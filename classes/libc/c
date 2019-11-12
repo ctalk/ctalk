@@ -1,0 +1,131 @@
+/* $Id: c,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-c-*-**/
+
+/*
+  This file is part of Ctalk.
+  Copyright © 2005-2012, 2015 Robert Kiesling, rk3314042@gmail.com.
+  Permission is granted to copy this software provided that this copyright
+  notice is included in all source code modules.
+
+  This program is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+*/
+
+/*
+ *  Templates for the C library functions cbrt, ceil, 
+ *  clearerr, clock, copysign, cos, cosh, and ctime,
+ *  and chdir.
+ */
+
+#include <ctalkdefs.h>
+
+#define cbrt \n\
+cCbrt (double d) { \n\
+  char buf[MAXLABEL]; \n\
+  sprintf (buf, "%f", cbrt (__ctalk_to_c_double (ARG(0)))); \n\
+  return __ctalkCreateObjectInit ("result", "Float", \n\
+		       "Magnitude", LOCAL_VAR, buf); \n\
+}
+
+
+#define ceil \n\
+cCeil (double d) { \n\
+  char buf[MAXLABEL]; \n\
+  sprintf (buf, "%f", ceil (__ctalk_to_c_double (ARG(0)))); \n\
+  return __ctalkCreateObjectInit ("result", "Float", \n\
+		       "Magnitude", LOCAL_VAR, buf); \n\
+}
+
+/*
+ *  Needs a few good test programs in test/expect.
+ */
+#define clearerr \n\
+cClearErr (OBJECT *fileobject) { \n\
+  FILE *f; \n\
+  OBJECT *val_obj; \n\
+  val_obj = __ctalk_getInstanceVariable (ARG(0), "value", 1); \n\
+  sscanf (val_obj -> value, "0x%p", f); \n\
+  clearerr (f); \n\
+  return NULL; \n\
+}
+
+/*
+ *   Also needs some good test programs.
+ */
+#define clock \n\
+cClock (void) { \n\
+  char buf[MAXLABEL]; \n\
+  sprintf (buf, "%d", clock ()); \n\
+  return __ctalkCreateObjectInit ("result", "Integer", \n\
+		       "Magnitude", LOCAL_VAR, buf); \n\
+}
+
+/*
+ *  Needs test programs also.
+ */
+#define copysign \n\
+cCopySign (double d, double s) { \n\
+  char buf[MAXLABEL]; \n\
+  sprintf (buf, "%f", copysign (ARG(1), ARG(0))); \n\
+  return __ctalkCreateObjectInit ("result", "Float", \n\
+		       "Magnitude", LOCAL_VAR, buf); \n\
+}
+
+#define cos \n\
+cCos (double d) { \n\
+  char buf[MAXLABEL]; \n\
+  sprintf (buf, "%f", cos (__ctalk_to_c_double (ARG(0)))); \n\
+  return __ctalkCreateObjectInit ("result", "Float", \n\
+		       "Magnitude", LOCAL_VAR, buf); \n\
+}
+
+#define cosh \n\
+cCosh (double d) { \n\
+  char buf[MAXLABEL]; \n\
+  sprintf (buf, "%f", cosh (__ctalk_to_c_double (ARG(0)))); \n\
+  return __ctalkCreateObjectInit ("result", "Float", \n\
+		       "Magnitude", LOCAL_VAR, buf); \n\
+}
+
+/* The actual argument object can be a Symbol which contains the address
+   of the Integer that has the UTC, if the function call uses the
+   C variable ctime(&t) for the argument. */
+#define ctime \n\
+cCTime (int *t) { \n\
+  char buf[MAXLABEL]; \n\
+ OBJECT *arg_obj, *arg_value, *t_value; \n\
+  long int timevalptr; \n\
+  arg_obj = ARG(0); \n\
+  if (!strcmp (arg_obj -> __o_classname, "Symbol")) {\n\
+    arg_value = __ctalkGetInstanceVariable (arg_obj, "value", 1); \n\
+    t_value = obj_ref_str (arg_value -> __o_value); \n\
+    timevalptr = *(int *)t_value -> __o_value; \n\
+  } else {\n\
+    arg_value = __ctalkGetInstanceVariable (arg_obj, "value", 1); \n\
+    timevalptr = *(int *)arg_value -> __o_value; \n\
+  } \n\
+  xsprintf (buf, "%s", ctime (&timevalptr)); \n\
+  return __ctalkCreateObjectInit ("result", "String", \n\
+     "Character", LOCAL_VAR, buf); \n\
+}
+
+#define chdir \n\
+cChdir (char *__d) { \n\
+  int r; \n\
+  char buf[MAXLABEL]; \n\
+  r = chdir (ARG(0)); \n\  
+  sprintf (buf, "%d", r); \n\
+  return __ctalkCreateObjectInit ("result", "Integer", \n\
+     "Magnitude", LOCAL_VAR, buf); \n\
+}
+

@@ -1,8 +1,8 @@
-/* $Id: t,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-c-*-**/
+/* $Id: m,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-c-*-**/
 
 /*
   This file is part of Ctalk.
-  Copyright Â© 2005-2012, 2015 Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2005-2012, 2015 Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
 
@@ -22,26 +22,19 @@
 */
 
 /*
- *  Template for C library function time.
- *
- *  Note that the time function requires one argument, the cast
- *  to an int * isn't necessary here.  We still need to give th
- *  template one argument so that the prototype matches (or at least
- *  sort of matches) with the actual C function when we use a
- *  plain C function call.
- *  
+ *  Template for C library function mkdir.  We use two parameters
+ *  so we don't get any confusion with the mkdir([2-3]) prototypes.
  */
 
 #include <ctalkdefs.h>
 
-#define time \n\
-cTime (int dummy) {\n\
-    OBJECT *result; \n\
-    char buf[64]; \n\
-    sprintf (buf, "%d", (int)time(NULL)); \n\
-    result =  __ctalkCreateObjectInit ("result", "Integer",\n\
-	"Magnitude", LOCAL_VAR, buf); \n\
-  __ctalkRegisterUserObject(result); \n\
-  return result; \n\
+#define mkdir \n\
+cMkdir (char *__d, int __m) { \n\
+  int r; \n\
+  char buf[MAXLABEL]; \n\
+  r = mkdir (__ctalk_to_c_char_ptr(ARG(1)), CTALK_DIRECTORY_MODE); \n\
+  sprintf (buf, "%d", r); \n\
+  return __ctalkCreateObjectInit ("result", "Integer", \n\
+     "Magnitude", LOCAL_VAR, buf); \n\
 }
-				       
+

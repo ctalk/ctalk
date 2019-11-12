@@ -1,0 +1,138 @@
+/* $Id: a,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-c-*-**/
+
+/*
+  This file is part of ctalk.
+  Copyright © 2005-2014 Robert Kiesling, rk3314042@gmail.com.
+  Permission is granted to copy this software provided that this copyright
+  notice is included in all source code modules.
+
+  This program is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+*/
+
+/*
+ *  Templates for the C library functions abs, acos, acosh, asctime,
+ *  asin, asinh, atanh, atof, atoi, atol, and atoll.
+ *  
+ *  Note that GCC seems to be picky about floating-point casts,
+ *  so the math templates cannot simply cast a pointer to a 
+ *  double as an argument to the math functions.  In these cases
+ *  the app must ensure that the argument to the template is an
+ *  object.  Normally Ctalk performs this translation automatically.
+ */
+
+#define abs \n\
+cAbs (int i) { \n\
+  char buf[MAXLABEL]; \n\
+  if (__ctalkIsObject (ARG(0))) \n\
+    sprintf (buf, "%d", abs (__ctalk_to_c_int (ARG(0)))); \n\
+  else \n\
+    strcpy (buf, "0"); \n\
+  return __ctalkCreateObjectInit ("result", "Integer", \n\
+		       "Magnitude", LOCAL_VAR, buf); \n\
+}
+
+#define acos \n\
+cAcos (double d) { \n\
+  char buf[MAXLABEL]; \n\
+  if (__ctalkIsObject (ARG(0))) \n\
+    sprintf (buf, "%f", acos (__ctalk_to_c_double (ARG(0)))); \n\
+  return __ctalkCreateObjectInit ("result", "Float", \n\
+		       "Magnitude", LOCAL_VAR, buf); \n\
+}
+
+#define acosh \n\
+cAcosh (double d) { \n\
+  char buf[MAXLABEL]; \n\
+  sprintf (buf, "%f", acosh (__ctalk_to_c_double (ARG(0)))); \n\
+  return __ctalkCreateObjectInit ("result", "Float", \n\
+		       "Magnitude", LOCAL_VAR, buf); \n\
+}
+
+#define asctime \n\
+cAscTime (struct tm *tm_ptr) { \n\
+  return __ctalkCreateObjectInit ("result", "String", \n\
+     "Character", LOCAL_VAR, asctime ((struct tm *)__ctalk_to_c_ptr(ARG(0)))); \n\
+}
+
+#define asin \n\
+cAsin (double d) { \n\
+  char buf[MAXLABEL]; \n\
+  sprintf (buf, "%f", asin (__ctalk_to_c_double (ARG(0)))); \n\
+  return __ctalkCreateObjectInit ("result", "Float", \n\
+		       "Magnitude", LOCAL_VAR, buf); \n\
+}
+
+#define asinh \n\
+cAsinh (double d) { \n\
+  char buf[MAXLABEL]; \n\
+  sprintf (buf, "%f", asinh (__ctalk_to_c_double (ARG(0)))); \n\
+  return __ctalkCreateObjectInit ("result", "Float", \n\
+		       "Magnitude", LOCAL_VAR, buf); \n\
+}
+
+#define atanh \n\
+cAtanh (double d) { \n\
+  char buf[MAXLABEL]; \n\
+  sprintf (buf, "%f", atanh (__ctalk_to_c_double (ARG(0)))); \n\
+  return __ctalkCreateObjectInit ("result", "Float", \n\
+		       "Magnitude", LOCAL_VAR, buf); \n\
+}
+
+#define atof \n\
+cAtof (void *s) { \n\
+  char buf[MAXLABEL]; \n\
+  if (__ctalkIsObject (ARG(0))) \n\
+    sprintf (buf, "%f", atof (__ctalk_to_c_char_ptr (ARG(0)))); \n\
+  else \n\
+    sprintf (buf, "%f", atof ((char *)ARG(0))); \n\
+  return __ctalkCreateObjectInit ("result", "Float", \n\
+        "Magnitude", LOCAL_VAR, buf); \n\
+}
+
+#define atoi \n\
+cAtoi (void *s) { \n\
+  char buf[MAXLABEL]; \n\
+  if (__ctalkIsObject (ARG(0))) \n\
+    sprintf (buf, "%d", atoi (__ctalk_to_c_char_ptr (ARG(0)))); \n\
+  else \n\
+    sprintf (buf, "%d", atoi ((char *)ARG(0))); \n\
+  return __ctalkCreateObjectInit ("result", "Integer", \n\
+				     "Magnitude", LOCAL_VAR, buf); \n\
+}
+
+
+#define atol \n\
+cAtol (void *s) { \n\
+  char buf[MAXLABEL]; \n\
+  if (__ctalkIsObject (ARG(0))) \n\
+    sprintf (buf, "%ld", atol (__ctalk_to_c_char_ptr (ARG(0)))); \n\
+  else \n\
+    sprintf (buf, "%ld", atol ((char *)ARG(0))); \n\
+  return __ctalkCreateObjectInit ("result", "Integer", \n\
+				     "Magnitude", LOCAL_VAR, buf); \n\
+}
+
+#define atoll \n\
+cAtoll (void *s) { \n\
+  char buf[MAXLABEL]; \n\
+  if (__ctalkIsObject (ARG(0))) \n\
+    sprintf (buf, "%lld", atoll (__ctalk_to_c_char_ptr (ARG(0)))); \n\
+  else \n\
+    sprintf (buf, "%lld", atoll ((char *)ARG(0))); \n\
+  return __ctalkCreateObjectInit ("result", "LongInteger", \n\
+				     "Magnitude", LOCAL_VAR, buf); \n\
+}
+
+

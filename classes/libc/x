@@ -1,0 +1,70 @@
+/* $Id: x,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-c-*-**/
+
+/*
+  This file is part of Ctalk.
+  Copyright © 2005-2012, 2015 Robert Kiesling, rk3314042@gmail.com.
+  Permission is granted to copy this software provided that this copyright
+  notice is included in all source code modules.
+
+  This program is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+*/
+
+/*
+ *  Template for Ctalk library function xsprintf, xstrcat, xstrcpy,
+ *  xstrncat, and xstrncpy.
+ */
+
+#include <ctalkdefs.h>
+
+#define xsprintf \n\
+cXsprintf (char *__s, char *__fmt,...) {\n\
+  EXPR_PARSER *parser;  \n\
+  OBJECT *result_object; \n\
+  parser = __ctalkGetExprParserAt (__ctalkGetExprParserPtr ()); \n\
+  result_object = \n\
+    __ctalkLibcFnWithMethodVarArgs ((int (*)())xsprintf, parser -> e_methods[parser->e_method_ptr-1], "Integer"); \n\
+  __ctalkRegisterUserObject(result_object); \n\
+  return result_object; \n\
+}\n\
+
+#define xstrcat \n\
+cXstrcat (char *__s1, char *__s2) { \n\
+  if (__ctalkIsObject (ARG(0))) \n\
+    xstrcat (__ctalk_to_c_char_ptr(ARG(1)),__ctalk_to_c_char_ptr (ARG(0))); \n\
+  return ARG(1);\n\
+}
+
+#define xstrcpy \n\
+cXstrcpy (char *__s1, char *__s2) { \n\
+  if (__ctalkIsObject (ARG(0))) \n\
+    strcpy (__ctalk_to_c_char_ptr(ARG(1)),__ctalk_to_c_char_ptr (ARG(0))); \n\
+  return ARG(1);\n\
+}
+
+#define xstrncat \n\
+cXstrncat (char *__s1, char *__s2, int __n) { \n\
+  if (__ctalkIsObject (ARG(0))) \n\
+    xstrncat (__ctalk_to_c_char_ptr(ARG(2)),__ctalk_to_c_char_ptr (ARG(1)), __ctalk_to_c_int(ARG(0))); \n\
+  return ARG(2);\n\
+}
+
+#define xstrncpy \n\
+cXstrncpy (char *__s1, char *__s2, int __n) { \n\
+  if (__ctalkIsObject (ARG(0))) \n\
+    xstrncpy (__ctalk_to_c_char_ptr(ARG(2)),__ctalk_to_c_char_ptr (ARG(1)), __ctalk_to_c_int(ARG(0))); \n\
+  return ARG(2);\n\
+}
+
+

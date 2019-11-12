@@ -1,0 +1,96 @@
+/* $Id: l,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-c-*-**/
+
+/*
+  This file is part of ctalk.
+  Copyright © 2014 - 2015 Robert Kiesling, rk3314042@gmail.com.
+  Permission is granted to copy this software provided that this copyright
+  notice is included in all source code modules.
+
+  This program is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+*/
+
+/*
+ *  Templates for the C library functions lrint, lrintf,
+ *  lrintl, llrint, llrintf, llrintl.
+ */
+
+#include <ctalkdefs.h>
+
+#define lrint \n\
+cLrint (double d) { \n\
+  char buf[MAXLABEL]; \n\
+  if (__ctalkIsObject (ARG(0))) \n\
+    sprintf (buf, "%ld", lrint (__ctalk_to_c_double (ARG(0)))); \n\
+  else \n\
+    sprintf (buf, "%ld", lrint (0.0f)); \n\
+  return __ctalkCreateObjectInit ("result", "Integer", \n\
+				     "Magnitude", LOCAL_VAR, buf); \n\
+}
+
+#define lrintf \n\
+cLrintf (float f) { \n\
+  char buf[MAXLABEL]; \n\
+  if (__ctalkIsObject (ARG(0))) \n\
+    sprintf (buf, "%ld", lrintf ((float)__ctalk_to_c_double (ARG(0)))); \n\
+  else \n\
+    sprintf (buf, "%ld", lrintf ((float)0.0f)); \n\
+  return __ctalkCreateObjectInit ("result", "Integer", \n\
+				     "Magnitude", LOCAL_VAR, buf); \n\
+}
+
+#define lrintl \n\
+cLrintl (long double l) { \n\
+  char buf[MAXLABEL]; \n\
+  if (__ctalkIsObject (ARG(0))) \n\
+    sprintf (buf, "%ld", lrintl ((long double)__ctalk_to_c_double (ARG(0)))); \n\
+  else \n\
+    sprintf (buf, "%ld", lrintl ((long double)0.0f)); \n\
+  return __ctalkCreateObjectInit ("result", "Integer", \n\
+				     "Magnitude", LOCAL_VAR, buf); \n\
+}
+
+
+#define llrint \n\
+cLlrint (double d) { \n\
+  char buf[MAXLABEL]; \n\
+  if (__ctalkIsObject (ARG(0))) \n\
+    sprintf (buf, "%lld", llrint (__ctalk_to_c_double (ARG(0)))); \n\
+  else \n\
+    sprintf (buf, "%lld", llrint (0.0f)); \n\
+   return __ctalkCreateObjectInit ("result", "LongInteger", \n\
+				     "Magnitude", LOCAL_VAR, buf); \n\
+}
+
+#define llrintf \n\
+cLlrintf (float f) { \n\
+  char buf[MAXLABEL]; \n\
+  if (__ctalkIsObject (ARG(0))) \n\
+    sprintf (buf, "%lld", llrintf ((float)__ctalk_to_c_double (ARG(0)))); \n\
+  else \n\
+    sprintf (buf, "%lld", llrintf ((float)0.0f)); \n\
+  return __ctalkCreateObjectInit ("result", "LongInteger", \n\
+				     "Magnitude", LOCAL_VAR, buf); \n\
+}
+
+#define llrintl \n\
+cLlrintl (long double l) { \n\
+  char buf[MAXLABEL]; \n\
+  if (__ctalkIsObject (ARG(0))) \n\
+    sprintf (buf, "%lld", llrintl ((long double)__ctalk_to_c_double (ARG(0)))); \n\
+  else \n\
+	 sprintf (buf, "%lld", llrintl ((long double)0.0f)); \n\
+  return __ctalkCreateObjectInit ("result", "LongInteger", \n\
+				     "Magnitude", LOCAL_VAR, buf); \n\
+}

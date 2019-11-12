@@ -1,0 +1,64 @@
+/* $Id: r,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-c-*-**/
+
+/*
+  This file is part of Ctalk.
+  Copyright © 2005-2012, 2015 Robert Kiesling, rk3314042@gmail.com.
+  Permission is granted to copy this software provided that this copyright
+  notice is included in all source code modules.
+
+  This program is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+*/
+
+/*
+ *  Templates for the C library functions rand, rmdir, rint, and round.
+ */
+
+#include <ctalkdefs.h>
+
+#define rand \n\
+cRand (void) { \n\
+  char buf[MAXLABEL]; \n\
+  __ctalkDecimalIntegerToASCII (rand (), buf); \n\
+  return __ctalkCreateObjectInit ("result", "Integer", \n\
+		       "Magnitude", LOCAL_VAR, buf); \n\
+}
+
+#define rmdir \n\
+cRmdir (char *_s) {\n\
+  int r; \n\
+  char buf[MAXLABEL]; \n\
+  r = rmdir (__ctalk_to_c_char_ptr(ARG(0))); \n\
+  sprintf (buf, "%d", r); \n\
+  return __ctalkCreateObjectInit ("result", "Integer", \n\
+     "Magnitude", LOCAL_VAR, buf); \n\
+}
+
+#define rint \n\
+cRint (double d) { \n\
+  char buf[MAXLABEL]; \n\
+  if (__ctalkIsObject (ARG(0))) \n\
+    sprintf (buf, "%f", rint (__ctalk_to_c_double (ARG(0)))); \n\
+  return __ctalkCreateObjectInit ("result", "Float", \n\
+		       "Magnitude", LOCAL_VAR, buf); \n\
+}
+
+#define round \n\
+cRound (double d) { \n\
+  char buf[MAXLABEL]; \n\
+  if (__ctalkIsObject (ARG(0))) \n\
+    sprintf (buf, "%f", round (__ctalk_to_c_double (ARG(0)))); \n\
+  return __ctalkCreateObjectInit ("result", "Float", \n\
+		       "Magnitude", LOCAL_VAR, buf); \n\
+}
