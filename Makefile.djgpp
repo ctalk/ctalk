@@ -1,0 +1,45 @@
+# $Id: Makefile.djgpp,v 1.1.1.1 2019/10/26 23:40:50 rkiesling Exp $
+#
+# Makefile for DJGPP and GNU make.
+#
+
+#
+# Change the value of CMD if your system uses a 
+# different shell than cmd.exe
+#
+CMD=cmd /C
+
+SUBDIRS=libctpp ctpp lib src classes doc
+
+MAKESUBDIR=make -f Makefile.djgpp -C 
+
+#
+#  Directory names without extensions cause circular rules -
+#  handle each subdirectory individually.
+#
+
+all: $(SUBDIRS)
+	$(MAKESUBDIR) libctpp $@
+	$(MAKESUBDIR) ctpp $@
+	$(MAKESUBDIR) lib $@
+	$(MAKESUBDIR) src $@
+	$(MAKESUBDIR) doc $@
+
+inst: $(SUBDIRS)
+	$(MAKESUBDIR) libctpp $@
+	$(MAKESUBDIR) ctpp $@
+	$(MAKESUBDIR) lib $@
+	$(MAKESUBDIR) src $@
+	$(MAKESUBDIR) classes $@
+	$(MAKESUBDIR) doc $@
+
+clean: $(SUBDIRS)
+	$(MAKESUBDIR) libctpp $@
+	$(MAKESUBDIR) ctpp $@
+	$(MAKESUBDIR) lib $@
+	$(MAKESUBDIR) src $@
+	$(MAKESUBDIR) classes $@
+	$(MAKESUBDIR) doc $@
+
+
+

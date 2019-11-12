@@ -1,0 +1,457 @@
+Ctalk News - November 12, 2019
+
+The Ctalk Home page: http://sourceforge.net/projects/ctalk.
+The Ctalk Wiki:      http://sourceforge.net/p/ctalk/wiki/Home.
+
+
+What's New in Release 0.0.65 2019-11-12
+---------------------------------------
+
+- The GLXCanvasPane class adds support for scalable fonts supported by
+the Freetype2 library: FreeType, TrueType, and Type 1; swap
+synchronization with the display refresh rate if the machine's OpenGL
+version supports the GLX_MESA_swap_control extension; methods that
+provide printf style formatting when displaying text, and conversion
+of named X11 colors to their OpenGL equivalents.
+
+- Support for some LLVM features, like the __has_include and
+__has_include_next preprocessor directives if the host compiler
+defines them.
+
+
+What's New in Release 0.0.65 2019-10-14
+---------------------------------------
+
+- This release also adds the ctalkmethods(1) manual page, and a basic
+interface for debugging methods and functions which is also a starting
+point for examining the Ctalk internals.
+
+- IMPORTANT: Release 0.0.65 contains major changes which significantly
+improve programs' run time speed.  It is NOT compatible with previous
+Ctalk releases.  If you have applications that were built with earlier
+releases, they will need to be rebuilt with this version of the
+compiler and libraries.
+
+
+What's New in Release 0.0.65 2019-08-23
+---------------------------------------
+
+- This release also adds MacOS format textures for GLXCanvasPane
+windows when using 24-bit colors, as well as internal fixes for
+expression analysis and memory leaks.
+
+
+What's New in Release 0.0.65 2019-08-16
+---------------------------------------
+
+- The C library functions that work with UNIX Domain sockets have
+been moved to lib/unixsock.c, to improve compatibility across platforms.
+The Ctalk library API adds the functions: __ctalkUNIXSocketOpenReader
+, __ctalkUNIXSocketOpenWriter, __ctalkUNIXSocketRead, __ctalkUNIXSocketWrite,
+and __ctalkUNIXSocketShutdown.  The UNIXNetworkStream class and its
+subclasses have been updated to use these functions.  Also, the UNIX domain
+API will not be built unless the development headers (sys/socket.h and
+sys/un.h) are present on the system.
+
+- The GLXCanvasPane method xpmToTexture, and the glxtexture.ca example
+program.
+
+
+What's New in Release 0.0.64 2019-03-25
+--------------------------------------
+
+- X11TextEditorPane objects now support cutting and pasting text
+between programs using the X primary selection.
+
+- The X11Pane class now defines the ftFontVar instance variable in
+addition to fontVar, so X11Pane subclasses can maintain either of the
+font libraries without declaring a separate object for scalable fonts.
+The instance variables also allow programs to determine which of either
+font library programs have initialized before receiving GUI events.
+
+- Added wrapper functions for libc functions like strcpy, strcat, and
+strncpy (xstrcpy, xstrcat, and xstrncpy), etc. The wrapper functions
+have standard parameter lists even when a platform compiler replaces
+library functions with other (presumably more secure) functions.  Any
+library function substitution now occurs internally in the Ctalk
+library.
+
+- The installation now stores the browseable class library and C API
+documentation in the GNU $pkgdatadir, and the searchlib program has
+been updated to look in that directory for the class and library
+documentation.  So documentation browsing should just work regardless
+of where Ctalk is installed on a system.  This release adds the Object
+: docDir method, so new programs can also use this documentation.
+
+
+Whats New in Release 0.0.63 2018-11-26
+--------------------------------------
+
+- The X11TextEditorPane class, which provides basic text editing
+functions in a X window.
+
+- The demonstration programs, demos/x11/ctedit.ca and
+demos/glx/glxchaser.ca.
+
+- Updated Xft detection of system-wide Fontconfig installations and
+cached font information (i.e., a machine's standard font
+configuration).
+
+- NOTE: When installing this release, it may be necessary (again)
+to rebuild apps, especially gui programs.
+
+
+Whats New in Release 0.0.62 2018-09-19
+--------------------------------------
+
+- The GLXCanvasPane methods useXFont, drawText, drawTextW, freeXFont,
+and textWidth, which support drawing text in GLX windows using X
+fonts.  Also, the GLXCanvasPane instance variable colormap, which
+contains the X resource ID of the window's default colormap. This
+facilitates using X color values with OpenGL.
+
+- The GLXCanvasPane demonstration programs, xfonts.ca and
+glxexts.ca, in the demos/glx subdirectory.
+
+- Support for the GL Extension Wrangler (libGLEW) library.
+
+- Direct support for the OpenGL data types GLubyte, GLbyte, GLuint,
+and GLint.
+
+- The methods Integer : asString, Integer : asDecimalString,
+and Integer : asHexString.
+
+
+Whats New in Release 0.0.62 2018-07-23
+--------------------------------------
+
+- This release adds the GLXCanvasPane class and the
+demos/glx/glx.ca example program.
+
+
+What's New in Relase 0.0.62 2018-06-02
+--------------------------------------
+
+- This release mainly contains updates for recent GCC releases'
+options and warning messages.
+
+
+What's New in Release 0.0.62 2018-04-23
+---------------------------------------
+
+The user visible changes in the 0.0.62 2018-04-23 release include:
+
+- Support for IPv6 socket networking with the classes
+TCPIPV6NetworkStream, TCPIPV6NetworkStreamReader, and
+TCPIPV6NetworkStreamWriter.  The TCPIPNetworkStreamReader and
+TCPIPNetworkStreamWriter classes have been updated to use getaddrinfo
+to resolve internet hostnames.
+
+- A new demos/net subdirectory, and the addition of several networking
+demonstration programs.
+
+- The String : printMatchToks method, which enables the display of a
+regular expression pattern's tokens and the matching text after each
+regular expression match.  This information can be useful when
+debugging regular expression patterns.
+
+- SortedList class and the methods pushAscending and pushDescending to
+manage sorted lists.  The List class adds the methods sortAscending,
+sortDescending, sortAscendingByName and sortDescendingByName.
+
+- New methods, including DirectoryStream : sortedDirectoryList, and
+String : systemErrnoStr.
+
+
+What's New in Release 0.0.61 2018-02-27
+---------------------------------------
+
+The user visible changes in the 0.0.61 2018-02-27 release include:
+
+- The pattern matching operators now include the '|' metacharacter
+which matches one of two alternative patterns.
+
+- The addition of the ctalkregex(1) manual page.
+
+- The methodsource program now correctly handles method names that
+contain regular expression metacharacters.
+
+- Compatibility updates for some recent GCC compiler releases.
+
+
+What's New in Release 0.0.60 2018-01-31
+---------------------------------------
+
+The user visible changes in the 0.0.60 2018-01-31 release include:
+
+- The method X11FreeTypeFont : selectFontFromFontConfig supports a
+subset of Fontconfig specification tags.  This is in addition to
+support for X Logical Font Descriptors and setting font parameters by
+setting a X11FreeTypeFont object's instance variables.
+
+- Other new methods in this release include: X11Cursor : arrow, String
+: isXLFD, and X11TextPane : deleteText.  The methods Object : == and
+Object : != now check for object identity; whether the receiver and
+the argument are the same object.
+
+- For the X11Pane class and its subclasses, compatibility updates for
+the Cinnamon, Compiz, Enlightenment, Cairo Dock, Pantheon, Xfce, and
+other window managers.
+
+- Writeback of scalar C variables (ints, long ints, and long
+long ints).  This updates a C variable correctly when an expression
+uses an increment or decrement method (++ or --) with the variable.
+
+- NOTE: There are several changes in the library's virtual method
+calling mechanism, so programs that use callbacks (these are mainly
+programs that use X11Pane graphics classes and subsclasses), should
+be recompiled in order to work correctly.  Other programs may need
+to be recompiled also.
+
+What's New in Release 0.0.59 2017-07-18
+---------------------------------------
+
+- Added the TCPIPNetworkStream, TCPIPNetworkStreamReader, and
+TCPIPNetworkStreamWriter classes, which provide methods that create
+client and server internet connections, and peer-oriented connections
+on supported platforms.
+
+What's New in Release 0.0.58 2017-04-28
+---------------------------------------
+
+- Added UNIXNetworkStream : removeSocket, so closing a socket (by
+using UNIXNetwordStream : closeSocket) and removing a socket
+permanently are two separate operations.  Also,
+UNIXNetworkStreamWriter : open adds a separate check for a socket
+file's existence.
+
+- Compatibility with GCC 7.
+
+- The --warnunresolvedselfexpr and --verbose command line options.
+--warnunresolvedselfexpr prints a warning if the, "self," keyword
+appears in an expression, mainly within argument blocks, that can't
+be resolved until run time.  The --verbose option is a synonym for
+-v.
+
+
+What's New in Release 0.0.58 2017-03-10
+----------------------------------------
+
+The user visible changes in the 0.0.58 2017-03-10 release include:
+
+- The "+" regular expression metacharacter, which matches one or more
+occurences of the character that immediately precedes it.
+
+- The X11Bitmap : drawPoint and X11Bitmap : drawLine methods, which
+facilitate drawing graphics in offscreen buffers.
+
+What's New in Release 0.0.58 2107-01-03
+----------------------------------------
+
+The user visible changes in the 0.0.58 2017-01-03 release include:
+
+- The method Object : backgroundMethodObjectMessage, which starts a
+method as a background process.  The process exits when the method
+returns.
+
+- Added the NetworkStream class and its subclasses: UNIXNetworkStream,
+UNIXNetworkStreamReader, and UNIXNetworkStreamWriter.  These classes
+provide interprocess communication facilities via UNIX domain
+sockets.
+
+- New methods in the SignalHandler class, including SignalHandler :
+waitStatus, which reports the status of a child process.
+
+- The graphics library now supports drawing Point objects using the X
+Render extension if it is available.  There's also a new release of
+the timepieces package, which contains minor compatibility updates.
+
+- The programs subdirectory has been renamed to demos, and
+there is a new directory, demos/ipc, which contains examples
+of interprocess communication using signals and UNIX sockets.
+
+- Yet more changes in X11PaneDispatcher class to support parent window
+references.  This may require that some GUI programs need to be
+recompiled.
+
+What's New in Release 0.0.57 2106-12-02
+----------------------------------------
+
+The user visible changes in the 0.0.57 2016-12-02 release include:
+
+- An updated X11TextPane class, and the x11textpane.c and
+displaytext.c demonstration programs in the programs subdirectory.
+The Ctalk library functions __ctalkSplitText and __ctalkWrapText
+perform line wrapping and filling.  The X11TextPane class also has new
+keyboard commands to move around the text, and supports basic markup
+tags.
+
+- Loading a X11Font or X11FreeTypeFont now loads the font's common
+typefaces; i.e., the font's regular, bold, italic, and bold italic
+variants.  Programs can switch between the typefaces with the methods
+faceRegular, faceBold, faceItalic, and faceBoldItalic, which are
+defined in X11TextPane and X11Bitmap classes.  These methods call the
+__ctalkSelectXFontFace library function to perform the typeface
+selection.
+
+- Application class now provides the spawnC method, which allows
+programs to launch other programs as daemon processes and continue
+executing while the background process is running.
+
+- The regular expression parser now supports the Perl-style character
+classes \W \d \x \p \l and \w.
+
+- CalendarTime class now includes the cTimeString, isoTimeString,
+and zoneInfo methods, and the instance variables haveDst, timeZone,
+tzStd, tzDst, and gmtOff.
+
+- The X11Pane : container instance variable is now a Symbol object,
+which allows for easier access to upper level panes from several
+subpane levels below them.  Note that this can be incompatible with
+earlier builds of the Ctalk apps that use the X11* classes.  If a
+graphical app suddenly seems not to display something, rebuilding the
+program with this Ctalk release builds the app with the updated X11*
+classes.
+
+
+What's New in Release 0.0.57 2106-10-14
+----------------------------------------
+
+The user visible changes in the 0.0.57 2016-10-14 release include:
+
+- Constructor methods (i.e., "new") can now create multiple
+objects from a list of object names; e.g.;
+
+   String new myStr1, myStr2, myStr3;
+   
+- Support for the Perl-style string match operators =~ and !~, and
+methods in String class that check for matching and non-matching
+strings.
+
+- The regular expression parser can now store the text and position
+of any part of a string that it matches (i.e., "backreferences").
+String class adds the methods, matchAt and matchIndexAt, which retrieve
+this information after a call to matchRegex, =~, !~, and other
+methods.
+
+- A new pattern constant type, which uses only the regular expression
+parser to interpret the the pattern's regular expression(s) when
+matching text.  This makes writing patterns less cumbersome.  For
+example, while a string that contains a pattern that escapes
+metacharacters might look like this:
+
+  "(.\\*)\\(.*\\)"
+
+the equivalent pattern would be:
+
+  /(.\*)\(.*\)/
+
+A pattern is delimited by slashes (//) or a delimiter preceded by a
+'m' character.  To match the regular expression '\*', you could use
+these character sequences.
+
+String        Pattern     Alternate Pattern
+"\\\\*"       /\\*/       m|\\*|
+
+
+- In GLUTApplication class, textures may now have an application
+defined alpha channel, which allows programs to use transparency and
+alpha blending in textures.  The release also adds the texblend.ca
+example program in the programs/glut subdirectory.
+
+- The method, Application : installPrefix, now provides the name
+of the top-level directory where Ctalk is installed.
+
+- The searchlib utility now uses the new LibrarySearch class to
+perform its searches, and adds the ability to search for method
+prototypes in the class library documentation.  The latest release of
+the Ctalk browser for Emacs also adds support for class library
+searches.
+
+- The method, Application : execC, which executes a subprocess and can
+either display the subprocesses' standard output (which may be
+redirected), or save the subprocesses' standard output in a String
+object.
+
+
+
+What's New in Release 0.0.56 2106-09-09
+----------------------------------------
+
+The user visible changes in the 0.0.56 2016-09-09 release include:
+
+- Top-level argument blocks can now contain, "return," statements, and
+the compiler can recognize the difference between a, "break," keyword
+used as an exit from an argument block loop and a, "structural break,"
+like the breaks that end, "case," statements.
+
+- The Xrender drawing routines now use color caching independent of
+the X server, which allows programs to look up colors without making a
+trip to the server.
+
+- The CalendarTime class, which provides a generally more efficient
+way to store time and date information than CTime class.  The apps in
+newest release of the Timepieces package use CalendarTime class to run
+more efficiently.
+
+- The ctdb and ctcc programs support the -c (compile only) option, and
+the compiler has more thorough error checking of complex expressions.
+
+- The Ctalk Wiki release 0.0.04 adds support for file uploads and
+convenience features like page cookies and file inclusion.
+
+
+What's New in Release 0.0.56 2106-08-16
+----------------------------------------
+
+The user visible changes in the 0.0.56 2016-08-16 release include:
+
+- Circle class, which defins instance data for circles, and methods
+that can render the circles on Various X Window System drawing
+surfaces. Also added the X11CanvasPane : drawCircle method, which
+draws circles in buffered windows.
+
+- Transparent support for the X Render extension.  Supports
+antialiasing and compositing (via alpha blending) in the graphics
+library, if the machine's X server supports X Render.  The useXRender
+method, defined in Application and X11Pane classes, allows programs to
+override the system's selection of drawing application programming
+interface and still use the Xlib API if necessary.
+
+- Related to the previous item, Pen class now defines an, "alpha,"
+instance variable, which allows Pen objects to define the complete X
+Render RGBA color specification.
+
+- The X11CanvasPane : copy and directCopy methods, which copy
+X11Bitmap objects to the receiver X11CanvasPane object or the parent
+X11Pane object.  This facilitates storing graphics offscreen and
+displaying them via the copy mechanism as needed.
+
+- Added the X11Font : textWidth method.
+
+- Added X11FreeTypeFont : namedX11Color method, which translates
+between X color names and Xft/XRender colors, and the methods, red,
+green, blue, and alpha, which allow programs to set each RGBA color
+channel individually.
+
+- Added convenience features to some of the drawing routines:
+Overloaded X11Bitmap : putStr and X11CanvasPane putStrXY methods allow
+programs to specify directly the font and text color to render the
+text for each method call.  X11FreeTypeFont : selectFont now returns
+SUCCESS or ERROR (an Integer) to indicate if the font selection
+succeeded. Also added the X11Pane : displayWidth and X11Pane :
+displayHeight methods, which return the size of the X display in
+pixels.
+
+- The X11TerminalStream class now has an eventMask instance variable,
+which allows programs to select only the window system events they
+want to receive, which can greatly improve program's response.
+
+- Updates in the analysis of mixed C/Ctalk expressions, and better
+support for typecasts in mixed expressions.  C typecasts can in many
+causes perform an on-the-fly conversion from one class to another.
+Generally better flexibility in mixing C functions with Ctalk terms in
+the same expression.
+
+
+

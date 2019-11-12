@@ -1,0 +1,787 @@
+Installing and Using Ctalk
+
+1. Quick Start
+2. Configuration Options
+3. Where to Go from Here
+   a. Where _is_ the Documentation?
+4. DJGPP Platforms
+5. Notes for Solaris
+   a. Solaris and X
+   b. Sun Legacy Support
+6. MacOS and Darwin Platforms
+7. Building a Basic Version of Ctalk
+8. Installing GCC on MacOS
+9. Learning about Ctalk
+10. Bug Reports, Feedback, and Support
+
+
+1. Quick Start
+
+For information about what's new in this release, refer to the
+file, "NEWS," in this directory.
+
+This release of Ctalk builds under most versions of Linux, Solaris,
+and OS X using GCC and GNU make.  For platform-specific notes, please
+refer to the sections below.
+
+To build and install Ctalk under Linux, UNIX, and most versions of
+OS/X:
+
+  $ ./configure
+  $ ./make
+  $ su
+  # ./make install
+
+During installation, Ctalk might generate some warning messages.  This
+is normal, so don't worry.
+
+If everything is installed correctly, you should be able to build 
+the some of the example programs.
+
+  $ cd ctalk/demos
+  $ ctcc hello.c -o hello
+
+If the process generates errors, you can also build a vanilla version
+of Ctalk.  Refer to, "Building a Basic Version of Ctalk," below.
+
+To build all of the example apps in the demos directory, enter the
+following commands.
+
+  $ cd demos
+  $ make
+
+The Makefile assumes that the system has the GNU Readline libraries. If not,
+edit the Makefile according to the comments there.
+
+The file demos/README describes the apps.  There is further information
+in each subdirectory that describe the apps there.
+
+
+2. Configuration Options
+
+The ./configure script recognizes the standard autoconf options.
+Ctalk adds these options.
+
+  --with-gnuc-version   Try to figure out for the preprocessor the
+                        version of GCC that we are building Ctalk
+                        with, and define the macros __GNUC__,
+                        __GNUC_MINOR__, and __GNUC_PATCHLEVEL__.  
+                        Some platforms define this in the preprocessor, 
+                        others don't.  If this option is not given, 
+                        only define the macros if the GNU cpp 
+                        preprocessor defines them.
+  --with-include-path=DIRS
+                        Tell ctpp what directories to search for
+                        include files.  The argument is a list
+                        of directories separated by colons: 
+                        <dir1>:<dir2>:<dir3>:...
+
+  --with-generic-path=yes/no
+                        If, "yes," search for include files only
+                        in /usr/local/include and /usr/include.
+
+  --with-mit-posix-path=yes/no
+                        If, "yes," search for include files
+                        in these directories:
+
+                          /usr/local/include
+                          <LIBDIR>/gcc/<TARGET>/<VERSION>/include
+                          /usr/<TARGET>/include
+                          /usr/include
+
+                          <LIBDIR>'s default can vary by system.  Use, 
+                          "./configure --prefix=<DIR>," to change it.
+
+                          <TARGET> is a concatenation of 
+                          <$target_cpu>-<$target_os>.
+
+                          <VERSION> is the version of ctalk (or ctpp).  
+                          If you need to use this option, then 
+                          ./configure probably couldn't find gcc and cpp 
+                          anyway.  We still use, "gcc," in the directory 
+                          path, though. 
+                                           
+                        If this path doesn't work, then use the 
+                        --with-include-path option, above, or else 
+                        install GCC and then run ./configure without any
+                        options.
+
+  --with-gcc-includes=<OPT>
+                        Use the gcc header files located in <DIR>.
+                        The argument can be yes|no|<dir>, or none.  
+                        Without an argument, or if the argument is
+                        yes (the default), try to determine the 
+                        GCC configuration at run time.  If no,
+                        tell the preprocessor not to search for 
+                        GCC's library includes.  Again, this option
+                        should not be necessary unless the compiler
+                        has been installed in an unusual location.
+                        
+  --with-builtins=yes|no|old
+                        If, "no," build the ctpp preprocessor without 
+                        built-in macros.  If, "old,", then use one 
+                        of the predefined definitions in ctpp/config.
+			Anything else causes ctpp to use the built-in
+                        macros that cpp lists with the command, 
+                        "echo ' ' | cpp -dM -".
+
+  --without-inline-functions
+                        Do not optimize by inlining functions.
+
+  --without-optimization
+                        Do not use -O<n> compiler optimization.
+                        Using this option makes debugging much
+                        easier.  This is the default for GCC
+                        versions earlier than 3.0.
+
+  --with-profiling      Compile with profiling information for
+                        gprof.  Note that this option is much
+			more useful if you link Ctalk apps
+			statically.  In that case, depending on the
+			system's linker, you might either need to build
+			Ctalk without GUI support (e.g., the ./configure
+			options including: --without-x --with-libxft=no 
+			--with-glut=no), or perhaps add the GUI libraries
+			manually when compiling apps, since the GUI 
+			libraries are normally built and installed out 
+			of the box for dynamic linking.
+
+  --x-includes=DIR      The directory where X11/X.h, X11/Xlib.h,
+                        and the other X include files are located.
+
+  --x-libraries=DIR     The directory where the X11 libraries are
+                        located.
+
+  --without-x           Build without X Window System support.
+                        If this option is given, then the
+			"make install" step skips building the
+			ctxlogo utility.  This option also skips the
+                        --with-libxft-includes, --with-libxft-libs,
+			--with-xrender-includes, --with-glut,
+			--with-gl-libs, --with-gl-includes,
+			--with-glx-includes, --with-glew-includes,
+			--with-freetype-includes, and --with-glew-libs
+			options, which skips building library modules
+			which depend on the X Window System or any of
+			the graphical libraries.
+
+  --with-gnu-readline=DIR
+                        Link GNU readline libraries from DIR/lib,
+                        and include files from DIR/include.  If 
+                        DIR is, "no," then build Ctalk without GNU
+                        readline.  The default is to link Ctalk with
+                        the readline libraries if they are located
+                        in either /usr or /usr/local.
+
+                        Readline depends on either the curses or
+			ncurses library.  If configure can't find
+			either on the system, it issues a warning.
+
+                        In addition, for some reason installing
+			the readline libraries below /usr/local
+			breaks the build, at least on some Linux
+			machines.  So if possible, use the readline
+			packages from the distro, or, if installing
+			from the source tarball, be sure to
+			configure readline with --prefix=/usr .
+
+  --without-x-protocon-errors
+                        Don't print X11 protocol errors.
+
+  --without-x11-warnings
+                        Don't print warning messages from 
+                        Ctalk's X11 libraries.  Because most
+                        internal errors are recoverable, it 
+                        should be safe to use this option with
+                        nearly every platform.
+
+  --without-signed-hex-octal-constant-warnings
+                        Don't print warnings when encountering 
+                        a signed octal or hexadecimal constant.
+
+  --without-preload-installation
+                        Don't try to preload base classes and
+                        methods during installation.  You should
+                        only use this option if the installation
+                        process can't determine the path of the 
+                        cache directory - it's normally 
+                        $HOME/.ctalk/libcache, or the file and
+                        directory permissions for the cache.  
+
+                        This option doesn't affect Ctalk's operation -
+                        it just runs more slowly the first few times 
+                        you compile programs. (Or it shouldn't, 
+			unless the release contains major changes in the 
+			base classes.)
+
+                        The installation process updates only the base
+                        classes, so if you modified them, then any
+                        changes will be lost.  But it's strongly 
+                        recommended that you update the base 
+                        classes when you update Ctalk.  
+
+                        The installation process does not affect
+                        other classes, which means that if you
+                        modified a subclass that you created,
+                        the installation won't try to update them.
+                        It's up to you to check for compatibility 
+                        with the new installation, but, again, if a 
+                        release contains major changes to the base 
+			classes, the release notes will mention 
+                        them.
+
+			If you change your mind later, you can 
+			skip the preload step by typing
+
+			  $ touch build/.nopreload
+
+			before doing the, "make install," step. Conversely, 
+			typing
+
+   			  $ rm build/.nopreload
+
+ 			re-enables the preloading step.
+
+  --without-language-tools
+                        Don't build Ctalk's language tools during
+                        the "make install" step.  If you configure Ctalk and
+                        then decide later that you want to skip this step,
+                        you change the configuration by typing the shell
+                        command:
+
+                          $ touch build/.nolangtools
+
+                        Typing 
+
+                          $ rm build/.nolangtools
+ 
+                        re-enables building the language tools during
+                        the "make install" step.
+ 
+
+  --with-circular-object-reference-warnings=yes/no
+                        If yes, print warnings about circular object
+                        references.  These are occasionally useful
+			for when working on Ctalk's internals.
+			However, Ctalk internally notes circular
+			references and compensates for them anyway,
+			so it's normally safe not to enable the warnings.
+
+  --with-libxft-includes=DIR
+                        The directory prefix for the Xft library include
+			files, like <DIR>X11/Xft/Xft.h.	The default is to
+			look for Xft.h in <prefix>/include/X11/Xft/Xft.h.
+			If your machine's setup is different, set
+			DIR to the installation directory, or "no"
+                        if the installation doesn't seem to work.
+                        Regardless of whether you install Ctalk to use
+			Xft, you can still use the system's basic Xlib
+			font support.  Because Xft uses the FreeType2
+			library and the	X Render extension, both of these
+			need to be installed also, which should happen
+			automatically, because Xft and X Render rely
+			on each other.  If you try to exclude any
+			part of the libXft/XRender/Freetype rendering
+			libraries, then the remaining libraries
+			might very well not be configured correctly.
+
+			Also, when using libXft, you might need a
+			XftConfig file so the Freetype and Xft
+			font libraries where to	the outline fonts
+			are located.  Refer to the X11FreeTypeFont
+			class in the Ctalk Reference Manual for
+			more information.
+
+			In most cases, however, Ctalk falls back on
+			Xlib routines for font support if any of the
+			XRender/Xft/Freetype components are missing.
+
+   --with-libxft-libs=DIR
+                        The directory to search for libXft.  You
+			should be careful if the directory is "no,"
+			because then the Ctalk build will not include
+			part of the libXft/X Render/Freetype rendering
+			libraries in its compilation.  In most cases,
+			as mentioned above, Ctalk falls back on Xlib
+			routines to perform font rendering if any of the
+			rendering or compositing components are
+			missing.
+   --without-freetype
+                        Build without Freetype font library support
+			even if it is present.  This is separate
+			from the Freetype support used in the Xft
+			libraries.
+
+   --with-freetype-includes=DIR
+                        Look for the ft2build.h include file
+			in this directory.
+
+   --with-xrender-includes=DIR
+                        Look for Xrender.h and the other X Render
+			extension include files in
+			<DIR>/X11/extensions.  If DIR is, "no," then
+			build Ctalk without X Render support.  Note:
+			it is highly recommended that you build all
+			of the X Render/Xft/Freetype libraries together,
+			or omit them all, because each of these
+			libraries depends on the other.  In most
+			cases, Ctalk will fall back on Xlib routines
+			if either X Render of Xft support is missing.
+
+			NOTE: Using Xrender/Freetype/Xft rendering is 
+			not very well tested and should be considered
+			experimental.
+			
+   --with-pthreads      Adds -pthread to the compiler flags.  The
+                        configuration tries to guess whether the compiler
+			knows about -pthread, but you can override 
+			./configure with this option; e.g., 
+			--with-pthreads=yes or --with-pthreads=no.
+
+   --with-long-double   Either yes or no, depending on whether the
+                        compiler supports a long double warning.
+                        The configuration tries to guess this, but
+                        you can override it with this option.  Normally
+                        only needed for PowerPC systems that don't
+                        support long doubles.
+
+   --without-cleanup-errors
+                        Don't print error messages if a cleanup function
+			called by __ctalk_exitFn () encounters a seriously
+			corrupted object.  Normally these errors are severe
+			enough to cause	the program to exit immediately and
+			return a non-zero exit code.  This option simply
+			causes the program to exit silently without printing
+			an error message.
+
+    --with-glut         If yes, include GLUT and OpenGL support if the
+                        libraries and include files are present on the
+                        machine.  If no, do not include GLUT support. On
+                        OSX machines, GLUT is included as an application
+                        framework.  On other systems, ./configure checks
+                        for its presence.  But you can still override the
+                        tests and omit any GLUT features with this option.  
+
+                        Because Ctalk doesn't support OSX application 
+                        frameworks, it uses the standard OpenGL libraries
+                        and include files whenever possible.  See the
+			GLUTApplication section in the Ctalk Language
+                        Reference, and the README file and the demo
+                        programs in the programs/glut subdirectory for
+                        more information.
+			
+    --with-gl-includes=DIR
+                        The directory where GL/gl.h GL/glx.h, and
+			GL/glew.h are located.  If any of them are
+			present this adds DIR to the include path,
+			and defines HAVE_GL_H, HAVE_GLX_H, and/or
+			HAVE_GLEW_H.  If DIR is "no" then build
+			Ctalk without GL support.
+
+    --with-gl-libs=DIR
+                        The directory where the libGL and libGLU libraries
+			are located, if configure can't find them
+			automatically.  If DIR is "no" then build Ctalk
+			without libGL and libGLU support.
+			
+     --with-glew-libs=DIR
+                        The directory where libGLEW is located, if
+			configure can't locate it.  GLEW is not used
+			internally by Ctalk, but it may be useful when
+			building programs that use machine-specific GL
+			extensions, like shaders.
+			
+    UNIX Domain Sockets Additionally, Ctalk supports UNIX domain sockets
+                        if the development headers (sys/socket.h and
+			sys/un.h) are present on the system.  There is
+			no configure option at present for this - If you
+			want the Ctalk API for UNIX sockets, you should
+			consult	with the system's package info to find out
+			how to install these development files.
+
+3. Where to Go from Here
+
+The demo subdirectory contains many sample programs.  The file,
+demo/README describes the programs in the demo directory and its
+subdirectories.
+
+In the doc subdirectory, The Ctalk tutorial provides an introduction
+to the language.  The tutorial is also available in PDF format, which
+you can download from the the Ctalk Web site,
+http://sf.net/projects/ctalk/.
+
+The doc subdirectory also contains the Ctalk Language Reference and
+Ctalk Tools manuals in Texinfo format. These manuals provide a
+reference to the class libraries, many of the language's features, and
+the language utility programs which get built and installed along with
+Ctalk
+
+There are also UNIX-style manual pages for the following
+programs and subjects:
+
+  ctalkintro (1)
+  ctalkclasses (1)
+  ctalkmethods (1)
+  ctalkregex (1)
+  ctalk (1)
+  ctdb (1)
+  ctcc (1)
+  classdoc (1)
+  classes (1)
+  ctxlogo (1)
+  membervars (1)
+  methods (1)
+  methodsource (1)
+  searchlib (1)
+  template (1)
+  inspect (3ctalk)
+  fnnames (5ctalk)
+
+On *NIX systems, typing (for example), 
+
+  $ man ctalkintro
+
+at a shell prompt displays the ctalkintro(1) manual page. 
+
+The installation process installs all of these documents automatically
+on UNIX, Linux, and OS X systems.
+
+On other systems, you can format the manual pages with, "nroff," and
+the man macro package.  If that isn't available, the ctalktools
+Texinfo manual also describes the language utilities.  They are
+already formatted for use by the info documentation reader and the GNU
+Emacs Texinfo mode.  The file, doc/README, contains some information
+about how to generate the documents in other formats.
+
+The file test/README contains information about the Ctalk test suite.
+The file test/expect/README also contains information about the
+individual test programs in that directory and its subdirectories.
+
+If you experience problems with older GCC versions (< version 3), try
+compiling Ctalk and its programs without optimization.  Typing,
+"./configure --help" displays the relevant options.
+
+Ctalk supports stdint.h wrapper files, though the compiler's header
+files may not be completely compatible with the header files of older
+systems.  If you are using GCC 4.5.0 or later, and you experience
+problems with conflicting type definitions, please post a note at the
+Web site address given below, or send the authors a mail message, and
+we will try to provide a compatibility fix for Ctalk and your system.
+
+
+3. a. Where _is_ the Documentation?
+
+As mentioned above, the manual pages and Texinfo documents are
+installed automatically on UNIX, Linux, and OS X systems.
+
+For starters, there are the ctalk (1), ctalkintro (1), and
+ctalkclasses (1) manual pages.  In addition to describing the basics
+of Ctalk, they contain references to the other manual pages in the
+Ctalk package.  After building and installing Ctalk, you can read them
+with the following shell commands.
+
+  $ man ctalk
+  $ man ctalkintro
+  $ man ctalkclasses
+
+The doc/ subdirectory also contains the GNU Texinfo source and
+compiled copies of the Ctalk Reference Manual, the Tutorial, and the
+documentation for the Ctalk preprocessor and Ctalk utitilities.  You
+can read them with Emacs, or with the standalone info browser, named,
+of course, "info," as in the following example.
+
+  $ cd doc
+  $ info ./tutorial.info
+
+There's also a Texinfo manual for the language utilities and apps in
+the programs subdirectory.  To read it, use the following shell
+commands.
+
+  $ cd doc
+  $ info ./ctalktools.info
+
+These manuals normally get installed in /usr/local/share/info.  If you
+want Emacs to add the manuals to its Info documentation directory
+(type M-x info in Emacs), you should add the following line to your
+~/.emacs file
+ 
+  (setq Info-default-directory-list 
+    (cons "/usr/local/share/info" Info-default-directory-list))
+
+The Ctalk class browser, which should be available from the site where
+you downloaded Ctalk, provides Emacs with a windowed view of the Ctalk
+classes, methods, and instance and class variables, as well as a
+searchable version of the C library API.
+
+If you don't use Emacs or prefer some other documentation format, you
+can create Text, Postscript, HTML or PDF copies of the manuals.  To
+generate text or HTML documents, see the manual page for makeinfo. For
+Postscript and PDF documents, the system needs to have TeX installed.
+It's normally an option in most Linux/UNIX distributions.  The TeX
+distribution might also provide manual pages for tex, pdftex,
+texindex, and so on.  The file, doc/README, contains some information
+about generating the documents in other formats.
+
+4. DJGPP platforms.
+
+Ctalk on DJGPP is no longer being actively supported, but the
+DJGPP specific classes and example programs are still included
+in the distribution.
+
+To build and install Ctalk on a platform which supports DJGPP.
+
+  > make -f Makefile.djgpp
+  > make -f Makefile.djgpp install
+
+To run the DJGPP test suite:
+
+  > cd test
+  > make -f Makefile.djgpp test
+
+DJGPP provides only about 1.5 MB of memory space in the
+default heap.  Ctalk's memory requirements are far in excess
+of that (about 130 MB for a 800 line source file with most
+of the standard C library headers), so your results may vary.
+
+If you want to adjust Ctalk's memory use, the heap size 
+parameter is in djgpp.h, and the stack size parameters
+N_MESSAGES and P_MESSAGES are in ctalk.h and ctpp.h. 
+
+IMPORTANT - Because DJGPP only supports mixed case file names on
+systems that support long file names Ctalk does not (at this time)
+work on machines that use only 8+3 file names. Refer to the 
+opendir () and _preserve_fncase () DJGPP info pages.
+
+Note that on some platforms DJGPP segfaults when compiling input 
+files that are already preprocessed.  In this case, you still need 
+to preprocess the input with DJGPP, using the extension, ".c," for 
+the Ctalk output.
+
+  > ctalk hello.c -o hello1.c
+  > gcc hello1.c -o hello.exe -lctalk
+  > ./hello.exe
+
+
+5. Notes for Solaris
+
+Ctalk should build on Solaris 8-10 with almost any 3.x or 4.x series GCC
+compiler using either the native Solaris build utilities (ld, ar, as,
+etc.), or with the GNU binutils.  
+
+Ctalk is compatible with the Solaris 10 SUNWgccfss421 GCC 4.2.1
+compiler upgrade and its auxiliary packages, available from the
+sun.com Web site.  Ctalk is not compatible with the bundled Solaris 10
+GCC in /usr/sfw/bin.
+
+GCC 2.95.2 bundled with Solaris 8 and installed in /opt/sfw/bin should
+work also.  
+
+Ctalk is compatible with the GCC 3.x packages from sunfreeware.com,
+and with GCC built from most of the GCC source code distributions from
+gnu.org.
+
+With all of these compilers, you should set the PATH and
+LD_LIBRARY_PATH for them.  You also need to add /usr/local/lib
+to LD_LIBRARY_PATH, which is where Ctalk installs its own 
+libraries.
+
+Whichever compiler the system has, be certain that it is the 
+same compiler that you used to build Ctalk.  Sudden, off the wall
+problems are almost always due to using a compiler different
+that the one you used to build Ctalk.
+
+In order to use the Sun linker, assembler, and other build tools, you
+must add /usr/ccs/bin to the directory search PATH.
+
+Problems with earlier GCC versions (i.e., version 2.95; Ctalk is
+untested with GCC versions earlier than this) can usually be worked
+around by building Ctalk without optimization; for example:
+
+$ ./configure --without-optimization
+$ make
+$ su
+# make install
+# exit
+$ cd programs
+$ ctdb hello.c    # Builds the app without optimization.
+$ ./hello
+
+Ctalk also needs GNU make to build - you can use either the bundled
+SunFreeWare make, or one of the packages from sunfreeware.com.  Some 
+of the Solaris distributions include GNU make renamed as, "gmake."
+
+4. a. Solaris and X
+
+Solaris versions earlier than 10 might not have sufficient file
+handles or shared memory segments to allocate to programs that use the
+X11Pane class.  The remedy is to increase system resources by
+adjusting the kernel's number of file handles and shared memory
+segments.  Refer to the notes in lib/x11lib.c for details.
+
+6. MacOS and Darwin Platforms
+
+Ctalk has been tested with MacOS up to 10.13 (High Sierra).  The front
+end and libraries should build and install normally with either the
+LLVM compiler provided with Xcode, or GCC.  Some of the considerations
+with GCC installations are discussed below, in, "8. Installing GCC on
+MacOS."
+
+If you would like X11 support, you might need to install libXft
+separately and then install Ctalk.  The libraries are located
+at:
+
+  git://anongit.freedesktop.org/git/xorg/lib/libXft
+  http://cgit.freedesktop.org/xorg/lib/libXft
+
+The Xlib related libraries should all be present. For fontconfig and
+related libraries, some experimenting with the following confgure
+options should sort them all out.
+
+  --x-includes=<dir>
+  --with-xrender-includes=<dir>
+  --with-freetype-includes=<dir>
+
+OpenGL works when building against either the OpenGL and GLUT
+frameworks, or the C libraries.  GLX also works with recent versions
+of Xquartz.  For shader support, you'll need the GLEW libraries and
+include files installed when building Ctalk.
+
+The GLEW source is located at:
+
+  https://sourceforge.net/projects/glew
+
+Depending on the version of MacOS, installing GLEW might could add
+version 2.0 support for shaders, or the GLEW_ARB_vertex_shader and
+GLEW_ARB_fragment_shader extensions, or both, or neither. YMMV.
+
+In these cases, experimenting with the following configure options
+should help.
+
+  --with-gl-includes=<dir>
+  --with-glx-includes=<dir>
+  --with-glew-includes=<dir>
+  --with-glew-libs=<dir>
+
+If you're building Ctalk programs with ctdb, you'll probably encounter
+the warning messages similar to the following:
+
+ftfont.i:65081:6: warning: implicit declaration of function
+                      '__ctalkRtSaveSourceFileName' is invalid in
+      C99 [-Wimplicit-function-declaration]
+     __ctalkRtSaveSourceFileName ("ftfont.ca");
+     ^
+ftfont.i:65082:6: warning: implicit declaration of function
+                      '__ctalk_initFn' is invalid in C99
+      [-Wimplicit-function-declaration]
+     __ctalk_initFn ("__istype");
+     ^
+ftfont.i:65086:3: warning: implicit declaration of function
+                      '__ctalk_exitFn' is invalid in C99
+      [-Wimplicit-function-declaration]
+
+These are normal and basically harmless. The declarations appear
+because MacOS defines C functions in its include files, which appear
+in Ctalk's intermediate files before Ctalk's API function prototypes.
+
+These warnings only appear when building Ctalk programs for debugging,
+due to the lack of C line number information in the intermediate files
+and should go away in a future release.
+
+
+7. Building a Basic Version of Ctalk
+
+The Ctalk distribution builds a package that provides as many features
+as the system provides in addition to the basic language.  They
+include support for graphical programs and the GNU Readline libraries.
+
+This generally means that to build Ctalk out of the box, the machine
+must have the header files that define the libraries' interface for
+Ctalk.  On Linux distributions, the headers are normally provided in,
+"dev," packages; e.g., libreadline-dev or libx11-dev.
+
+If for some reason you can't install these include files, you can omit
+their features from Ctalk by running configure with a command like
+this.
+
+  $ ./configure --with-x=no --with-gnu-readline=no
+
+There are other libaries that Ctalk might use.  Mostly, they define
+the interface to render shaded graphics and outline fonts.  Typing
+
+  $ ./configure --help 
+
+lists the options, and they're described more fully in the section,
+"Configuration Options," above.
+
+If a Ctalk program generates an error something like the following:
+
+  Error loading shared libraries: libctalk.so: shared library not found.
+
+Then you need to tell the computer where to find Ctalk's libraries.  
+There are several ways to do this.
+
+The most common method is to give the shell command:
+
+   export LD_LIBRARY_PATH="/usr/local/lib:$LD_LIBRARY_PATH"
+
+It's also possible to add this line to your .bashrc, .bash_profile or .profile
+file so that the library path is configured whenever you open a shell. Refer
+to the manual pages for bash (type, "man bash") or sh (type, "man sh") if you're not certain what these are.
+
+Another way (for Linux) is to run the program, "ldconfig."  You'll need
+root permissions to do this.  You also need to make sure that the library
+directory, usually /usr/local/lib, is listed in the file, /etc/ld.so.conf,
+or one of ldconfig's related directories.  The manual page, ldconfig(8)
+(type, "man ldconfig"), should provide further information.
+
+
+8.  Installing GCC on MacOS
+
+If your version of MacOS uses LLVM instead of GCC as its compiler,
+it's usually easier to install a GCC package from Homebrew or
+MacPorts, but if you decide to install GCC from the source tarball,
+you'll need (in addition to the GMP, MPFR, and MPC math libraries),
+very recent versions of bash and sed.  Here we normally install the
+GCC build tools under /usr/local/toolchain, then set the CONFIG_SHELL
+environment variable to the updated bashes' location when building
+GCC. You'll also need to install or symlink sed where the install
+process can find it.
+
+If you do build Ctalk with GCC, the gdb debugger might not be
+compatible if you need to debug the internals of the Ctalk libraries.
+
+In addition, installing GNU binutils causes the build process to try
+to link Ctalk against static libraries. They are not compatible with
+the MacOS linker.  If you must use the GNU binutils, you can skip
+building static libraries altogether by running configure like this.
+
+$ ./configure --enable-static=no
+
+
+9. Learning about Ctalk
+
+The example applications in the programs/ and programs/cgi directories
+describe a few of the language's features.  To compile, install, and 
+run them, follow the instructions in the source files, or in the 
+files programs/utils.texi and programs/cgi/web.texi.
+
+The Texinfo manuals, "ctalk.info," and "tutorial.info," provide a
+description of the language and its application programming interface.
+You can read them under Emacs with the, "M-x info," "m ctalk,"
+commands, or, "info ctalk," or, "info tutorial," from the shell.  
+
+As mentioned above, the documentation is normally installed in 
+/usr/local/share/info.  You can add these directory to the main info
+menu as described in the Texinfo documentation.
+
+The UNIX installation provides manual page for ctalk, ctcc, and ctdb.
+Typing, "ctalk -h," (or, "ctcc -h," or, "ctdb -h") displays the command
+line options.
+
+
+10. Bug Reports, Feedback, and Support
+
+Please contact the author(s), at rk3314042@gmail.com.  For updates,
+Ctalk apps, and other information, refer to the Ctalk Web site, 
+http://sf.net/projects/ctalk/.
+

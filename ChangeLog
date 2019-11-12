@@ -1,0 +1,454 @@
+2019-01-05
+	- Added xstrcat (strsecure.c).
+2019-01-06
+	- Added return15.c test program.
+2019-01-07
+	- Added prefix65.c test program.
+2019-01-09
+	- Added xmemcpy, xmemset, xstrncpy, and xstrncat library
+	functions (strsecure.c).
+	- Removed the ltime.c demonstration program.
+2019-01-11
+	- Added printon5.c and margexprs55.c test programs.
+2019-01-12
+	- Added printon6.c test program.
+2019-01-13
+	- Added margexprs[56-57].c test programs.
+2019-01-14
+	- Added the ANSIWidgetPane : addBuffer method.
+	- Cleaned up the ANSIButtonPane methods, new and
+	withText to use the addBuffer method.
+	- Updated ANSIYesNoBoxPane methods new and withText
+	to use the addBuffer method.
+	- Updated ANSILabelPane : sizePane to use addBuffer.
+2019-01-15
+	- Updated ANSIListBoxPane : new and ANSIMessageBoxPane :
+	new to use addBuffer.
+	- Updated ANSIMessageBoxPane : withText, and
+	ANSIProgressBarPane : new and ANSIProgressBarPane :
+	dimension to use addBuffer.
+2019-01-16
+	- Updated ANSIScrollingListBoxPane and ANSITextBoxPane
+	to use addBuffer.
+2019-01-19
+	- The ctdb program now creates an object file ("filename.o")
+	for systems that read debugging symbols from the object file.
+	- Updated fn_param9.c  test program to use xstrcpy.
+2019-01-23
+	- Updated sprintf call in cCTime macro to xsprintf
+	(classes/lib/c).
+2019-01-24
+	- Added cXsprintf template (classes/libc/x). Also updated
+	functions in rt_stdargs.c to recognize xsprintf.
+	- Added template for xstrcat and xstrcpy (classes/libc/x).
+	Updated	the test programs in test/expect to use xstrcat,
+	xstrcpy, xstrncat, and xstrncpy.
+2019-01-28
+	- Updated bitfield1.c test program to be compatible
+	(hopefully) with OS X.
+2019-01-31
+	- Added fprintf4.c test program.
+2019-02-03
+	- Added the Symbol : asString method.
+	- Added the fn_rval[1-2].c test programs.
+	- Added the symtostr1.c test program.
+2019-02-07
+	- Removed the test/expect/examples-x11/line-draw.c test
+	program - Xrender needs to use pane buffers to draw.
+	- Updated the MAXMSG #define in ctalklib.in to 8192 to match
+	the internal library value.
+2019-02-08
+	- Updated docs/doctools/makelibdoc.pl to format the
+	docs/libdoc file so it can be parsed more quicly/easily,
+	and updated the LibrarySearch : cAPIFunctionSearch method
+	to parse it.
+2019-02-10
+	- Added -I <X_INCLUDES_DIR> to the configuration system
+	and to ctcc, and ctdb, so the x include directories
+	are given on the command line.
+2019-02-12
+	- Added the X11TextEditorPane: ftFont instance variable,
+	and updated demos/x11/ctedit.ca file to use it. Also
+	updated X11TextEditorPane : defaultFormat method to
+	handle both X11Font and X11FreetypeFont measurements.
+2019-02-13
+	- Added the X11TextEditorPane subPaneResize event handler
+	which handles window resizing events.
+2019-02-14
+	- Added the X11TextEditorPane subPaneButtonPress event
+	handler	which handles window resizing events.
+	- Added the X11Pane : ftFontVar instance variable, and
+	the X11Pane : ftFont method.
+	- Updated the demos/xft/xfthello.c example program.
+2019-02-15
+	- Updated xfthello.c, displaytext.c, and x11textpane.c
+	in demos/xft,to use the X11Pane's ftFontVar instance
+	variable.
+	- Added __edittext_point_to_click (edittext.c), bound
+	to a Button1 press in X11TextEditorPane :
+	subPaneButtonPress.
+2019-02-23
+	- Added Apple monospace outline font (i.e., Courier) in
+	xftlib.c.
+2019-02-24
+	- Updated demos/x11/ctedit.ca to use Courier as the default
+	font for Apple, and also to display the -pt option in the
+	help message.
+	- Added point-to-click cursor movement and selected text
+	overlays in X11TextEditorPane class and edittext.c.
+2019-02-28
+	- Updated Object : asSymbol to return the receiver if it
+	is already a symbol.
+2019-03-04
+	- Updated configure.ac and configure to check for curses or
+	ncurses when installing GNU readline.
+2019-03-05
+	- Updated configure.ac and configure to check for the libreadline
+	dependency curses or ncurses.  Added either -lncurses -lcurses to
+	LD_AM_CFLAGS, and removed -lreadline, etc from the flags in ctcc
+	ctdb, and cttest, so HAVE_GNU_READLINE is only necessary in
+	__ctalkConsoleReadLine, so when building apps it is not necessary
+	to worry about adding -lreadline, -lhistory, and -lncurses to
+	the linker options.
+2019-03-07
+	- Added the library functions __inspect_brief_help and
+	__inspect_long_help in dblib.c Updated the class to call these
+	functions, which cat the text through either less or more,
+	depending on availablility.  Createad the help text files which are
+	installed in /usr/local/share/ctalk.
+	- Also moved libdoc and classlibdoc installation into the
+	doc/Makefile.am along with the ObjectInspector help text.
+2019-03-08
+	- Added the autoconf $pkgdatadir to the libctalk compile flags
+	(lib/Makefile.am), -DDOCDIR="<dir>".  Added the library function
+	__ctalkDocDir (lib/rtinfo.c), and the Object : docDir instance
+	method.	Updated the searchlib utility to use the Object : docDir
+	method when looking for documentation.
+	- Updated the documentation functions in dblib.c to use
+	the -DDOCDIR definition.
+2019-03-10
+	- Added unsigned1.c test program.
+2019-03-14
+	- Added argblk[35-38].c test programs.
+2019-03-16
+	- Added unsigned3.c and unsigned4.c test programs.
+2019-03-17
+	- Added argblk[39-43].c test programs.
+2019-03-18
+	- Added argblk[44-48].c test programs.
+2019-03-19
+	- Updated configure to check for the GL and GLU libraries
+	and include files expressely, and to link them with libctalk,
+	in case a machine doesn't use weak linking for functions
+	(i.e., a library reference must be resolved wherever it appears
+	instead of where it's actually used).
+	- Added argblk[49-53].c test programs.
+2019-03-20
+	- Added argblk[54-58].c test programs.
+2019-03-23
+	- Added __edittext_get_primary_selection and
+	__edittext_insert_str_at_point (edittext.c).  Used
+	to paste the X selection at a X11TextEditorPane object's
+	insertion point.
+2019-03-24
+	- Added __edittext_set_selection_owner library function.
+	- Added X primary selection cutting and pasting to
+	X11TextEditorPane objects.
+	- Updated __ctalkXftInitLib to look for directory lines
+	that use <dir>...</dir> tags, so the Xft lib internals
+	don't complain.  Also updated doc/XftConfig.sample and
+	the X11FreeTypeFont secion of the Ctalk Reference Manual.
+2019-03-25
+	- Release 0.0.64 2019-03-25.
+2019-03-31
+	- Added the __ctalkRegisterUserFunctionName library
+	call.
+2019-04-01
+	- Added fn_param15.c test program.
+2019-04-02
+	- Added fn_param[16-18].c test programs.
+2019-04-03
+	- Added f_param[19-22].c test programs.
+2019-04-04
+	- Added fn_param[23-25].c test programs.
+2019-04-05
+	- Added struct3.c test program.
+2019-04-06
+	- Added fn_param26.c test program.
+2019-04-07
+	- Added fn_param27.c test program.
+2019-04-08
+	- Added offsetof1.c test program.
+2019-04-12
+	- Updated Character : bitComp so there is only a version with
+	zero parameters.
+2019-04-21
+	- Updated Integer : = to use a binary arg value to
+	set the receiver directly.
+	- Updated Integer : + to use the binary values for
+	an Integer operand.
+2019-04-26
+	- Updated Integer methods to use binary values.
+2019-04-27
+	- Updated LongInteger methods to handle binary Integer
+	operands.
+2019-04-28
+	- Updated Array : size to use binary int names.
+	- Updated basicobject1.c test program.
+2019-04-29
+	- Updated String : at for binary int argument.
+	- Updated Magnitude : asCharacter to handle binary
+	Integer receiver values.
+	- Updated Boolean || and && to check for binary
+	Integer values.
+2019-04-30
+	- Updated all Object : basicNew methods to use
+	binary int values when suitable.
+2019-05-01
+	- Updated Integer : set_value to check for the
+	presence of value variables before trying to
+	read or set them.
+	- Updated String : subString to use binary
+	int values in parameters.
+	- Updated __ctalk_do_c_double to handle
+	binary int values (lib/objtoc.c).
+	2019-05-02
+	- Updated __ctalkSelfPrintOn to handle binary_int_values
+	(rt_prton.c).
+2019-05-03
+	- In Object : -> , check for a value instancevar before
+	using atoi on the __o_value.
+	- Added OBJECT_VALUE_IS_BIN_INT #define to ctalklib.in.
+	- Updated Integer : = to handle all classes of arguments.
+2019-05-05
+	- Updated fn_param6.c to handle binary Integer values.
+	- Updated Array : size yet again for compatibility with
+	Integer to String conversions.
+2019-05-06
+	- Updated formatObject[2-8].c for bin ints, and other
+	revisions.
+2019-05-08
+	- Updated ObjectInspector : formatInstanceVariable and
+	ObjectInspector : formatClassVariable for binary Integer
+	values.
+2019-05-09
+	- Updated LongInteger : == to handle binary Integer
+	argument.
+2019-05-12
+	- Updated instvars[1-2].c test programs.
+	- Updated Character : =^ to handle a binary int operand.
+	- Updated Object : -> to produce an Integer result if
+	the argument is an __o_value member of an Integer receiver.
+	- Updated LongInteger : = to handle binary int operands.
+2019-05-14
+	- Updated objderef[11-13].c to handle object deref differences.
+	- Updated objderef17.c to handle object deref differences.
+	- Updated Integer : = to check whether the receiver is the
+	value var again.
+2019-05-15
+	- Updated icol6.c test program.
+2019-05-18
+	- Updated objderef6.c and objderef14.c test programs.
+	- Updated all of the Integer ++|-- methods to update
+	the parent object if the receiver is the value variable.
+2019-05-19
+	- Updated ANSIYesNoBoxPane class to use binary int values.
+2019-05-20
+	- Updated veccontains1.c test program to use a LongInteger
+	argument to readVec.
+	- Updated the uSleep call in demos/lclock.c to wait longer
+	before checking the time again, to lower CPU usage.
+	- Updated CTime : utcTime to use a binary int value.
+2019-05-21
+	- Updated objderef7.c test program for binary int values.
+2019-05-24
+	- Updated Symbol : getValue to return NULL if the receiver's
+	value is NULL.
+2019-05-25
+	- Updated __ctalkCloseX11Pane, __ctalkX11CloseParentPane, and
+	__ctalkCreateX11SubWindow for binary int (or window XID) values
+	(x11lib.c).
+2019-05-26
+	- Updated X11Bitmap : create to use a binary int value for
+	the parent drawable, pixmap_xid, and gc_addr.
+	- Updated __ctalkGUIPaneDrawRectangle, __ctalkGUIPaneDrawLine,
+	and __ctalkGUIPaneDrawPoint to use the ascii array
+	for dimensions and bin int values for Integer objects.
+2019-05-28
+	- Updated bitfield1.c test program of MacOS.
+2019-05-31
+	- Updated Boolean : == and != to prevent using atoi
+	on bigendian systems.
+2019-06-08
+	- Updated configure, Makefiles, and test/expect/cttest.in
+	for -Waddress-of-packed-struct warning.
+	- Updated src/ctdb.in and src/ctcc.in to add
+	-Wstringop_trunctation.
+2019-06-11
+	- Added symfp4.c test program.
+2019-06-15
+	- Cleaned up String : subString and String : atPut.
+2019-06-17
+	- Removed CTime : =.
+	- Updated CTime : localTime for binary values.
+2019-06-18
+	- Added the _store_int primitive function, used in
+	Integer : =.
+2019-06-19
+	- Binary Integer values.
+2019-06-21
+	- Updated Object : isNullValue to use bin int values.
+	- Added String class clause to Magnitude : asLongInteger.
+2019-06-22
+	- Updated LongInteger class to use binary values.
+	- Updated Magnitude : asInteger and Magnitude : asFloat
+	to use binary LongInteger values.
+2019-07-02
+	- Added Symbol : asAddrString instance method.
+2019-08-04
+	- Moved the UNIX domain socket functions to lib/unixsock.c,
+	and added the API functions __ctalkUNIXSocketShutdown,
+	__ctalkUNIXSocketOpenReader, __ctalkUNIXSocketOpenWriter,
+	and __ctalkUNIXSocketWrite (unixsock.c), and updated
+	the UNIXNetworkStream* classes.
+2019-08-10
+	- Added if[189-212].c test programs.
+2019-08-11
+	- Updated __ctalkX11CreateGC to return a void *
+	(bitmap.c).
+	- Updated margexprs47.c test program.
+2019-08-12
+	- Updated the Integer, LongInteger, Boolean, Symbol, and
+	Character classes to store their values as binary data,
+	and updated the compiler and libraries to handle the binary
+	values.
+2019-08-13
+	- Release 0.0.65 2019-08-13.
+2019-08-15
+	- Added __ctalkXPMToGLXTexture (glxlib.c) and the GLXCanvasPane :
+	xpmToTexture methods.
+	- Added the demos/glx/glxtexture.ca example program.
+2019-08-16
+	- Release 0.0.65 2019-08-16.
+2019-08-18
+	- Added margexprs[58-59].c test programs.
+2019-08-19
+	- Updated __ctalkXPMToGLXTexture to handle MacOS texture formats,
+	for 24-bit colors, and demos/glx/glxtexture.ca to generate textures
+	with the MacOS internal texture format.  Updated ctalk.texi to
+	include information about MacOS texture formats.
+2019-08-20
+	- Added margexprs[60-62].c test programs.
+2019-08-21
+	- Added margexprs63.c.
+2019-08-23
+	- Release 0.0.65 2019-08-23
+2019-08-30
+	- Added margexprs6[4-5].c test programs.
+2019-09-10
+	- Added a second parameter to __ctalk_to_c_longlong, to specify
+	when to retain the object that is its argument.
+2019-09-11
+	- In Array : atPut, replaced the call to Key : setValueOld
+	with Symbol : setValue.
+2019-09-12
+	- Updated lclock.c.
+	- Added a warning message and exit in configure if GNU
+	makeinfo isn't found.
+2019-09-15
+	- Changed the texture in demos/glx/glxtexture.ca to
+	a higher resolution XPM, and removed the lighting
+	code to make the example code simpler.
+2019-09-19
+	- Fix in configure.ac if the X library path defaults
+	to "NONE".
+2019-09-24
+	- Release 0.0.65 2019-09-24
+2019-09-25
+	- Added margexprs66.c test program.
+2019-09-26
+	- Added rcvrexpr1.c test program.
+2019-09-28
+	- Added goto_in_argblk_check for better warnings of goto
+	targets not within the argument block the statement appears
+	in (control.c).
+	- Added goto5.c and margexprs67.c test programs.
+2019-09-29
+	- Added mparams1.c test program.
+2019-09-30
+	- Added margexprs68.c test program.
+2019-10-03
+	- Added mapi1.c test program.
+2019-10-05
+	- Added the ctalkmethods.1 manual page.
+	- Added mapi[2-5].c test programs.
+2019-10-06
+	- Added mapi[6-7].c test programs.
+2019-10-07
+	- Updated Magnitude : asLongInteger.
+	- Updated the LongInteger operator methods, +, -, *, and /.
+	- Added mapi[8-13].c test programs.
+2019-10-09
+	- Added mapi[14-15].c test programs.
+	- Updated the Boolean operator methods ||, &&, ==, and !=.
+2019-10-10
+	- Added mapi[16-19].c test programs.
+2019-10-12
+	- Added include/break.h.  Added conditionals and asm("int3;")
+	statements etc in parser.c, fnbuf.c, and primitives.c.
+2019-10-14
+	- Release 0.0.65 2019-10-14
+2019-10-15
+	- Added __ctalkGLXUseFTFont and __ctalkGLXDrawTextFT
+	library functions (ftlib.c).
+2019-10-18
+	- Added library module lib/glewlib.c. Added the
+	__ctalkInitGLEW, __ctalkGLEW20, and __ctalkARB library
+	functions.
+	- Added __ctalkGLXWinXOrg, __ctalkGLXWinYOrg,
+	__ctalkGLXWinXSize, and __ctalkGLWinYSize library
+	functions (glxlib.c).
+2019-10-19
+	- Added the __ctalkGLXFreeFTFont, __ctalkGLXPixeHeightFT,
+	__ctalkGLXNamedColorFT, __ctalkGLXRGBAColorFT, and
+	__ctalkGLXalphaFT library functions (ftlib.c).
+	- Added the demos/glx/ftfont.ca demonstration program.
+2019-10-20
+	- Added __glx_resize to update a GLXCanvasPane window's
+	dimensions (glxlib.c).
+	- Added __ctalkGLXFullScreen library function (glx.h).
+2019-10-29
+	- Added __ctalkCallerPrintOnSelf (rt_prton.c), library function,
+	and the String :vPrintOn method.
+	- Added the run-vprinton[1-2].c and examples/vprinton[1-2].c
+	test programs.
+2019-10-30
+	- Added the GLXCanvasPane methods: drawFmtTextFT, drawFmtText,
+	drawFmtTextW, and textWidthFT.
+	- Added the library function __ctalkGLXTextWidthFT (ftlib.c).
+2019-11-04
+	- Added margexprs69.c test program.
+2019-11-05
+	- Added the __ctalkGLXExtensionsString and
+	__ctalkGLXExtensionSupported API functions (glxlib.c).
+	- Added the __ctalkGLXSwapSyncFrameUsage and
+	__ctalkGLXEnableSwapSync API functions (glxlib.c).
+2019-11-08
+	- Updated __ctalkGLXNamedColorFT to only return the rgb
+	values of the color given as the first argument.
+	- Updated GLXCanvasPane : namedColorFT to return Floats
+	with the red, green, and blue values of the color given
+	as the argument.
+	- Added the addFloat method to glxchaser.ca, so we
+	don't get continuous warnings about Floats being
+	truncated to Integers.
+	- Added the __ctalkGLXRefreshRate library function (glxlib.c),
+	and the GLXCanvasPane : refreshRate method.
+	- Added the __ctalkGLXSwapControl library function (glxlib.c).
+2019-11-09
+	- Added the __ctalkGLXFrameRate library function (glxlib.c),
+	and the GLXCanvasPane : frameRate method.
+2019-11-10
+	- Added the GLXCanvasPane : extensions method.
+2019-11-12
+	- Release 0.0.65 2019-11-12.
