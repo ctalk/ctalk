@@ -1,0 +1,21 @@
+/* $Id: preload.ca,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $  -*- C -*-*/
+
+
+/* preload.ca - preload basic classes during installation. */
+
+/*
+ *  When rewriting this, also make sure that the list of classes
+ *  that need to be removed and then rewritten in preload.sh gets
+ *  updated, too.
+ */
+
+int main (void) {
+
+    Boolean new b;
+    Integer new myInt;
+    String new myString;
+    Float new myFloat;
+    List new myList;
+    Array new myArray;
+
+}
