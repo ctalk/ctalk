@@ -1,0 +1,82 @@
+/* $Id: UNIXNetworkStreamReader,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-c-*-*/
+
+/*
+  This file is part of Ctalk.
+  Copyright © 2016-2017, 2019  Robert Kiesling, rk3314042@gmail.com.
+  Permission is granted to copy this software provided that this copyright
+  notice is included in all source code modules.
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+*/
+
+UNIXNetworkStream class UNIXNetworkStreamReader;
+
+UNIXNetworkStreamReader instanceVariable charsRead Integer 0;
+
+/* The defs (for now) are in UNIXNetworkStream class. */
+#include <sys/socket.h>
+#include <sys/un.h>
+#include <sys/select.h>
+
+UNIXNetworkStreamReader instanceMethod open (void) {
+  "Creates a socket to read data from the socket path
+   named by the receiver's socketPath instance variable.
+   Returns the file number of the socket, or if an
+   error occured, returns -1 and raises a
+   SystemErrnoException."
+  returnObjectClass Integer;
+  SystemErrorNumberException new ex;
+  int s;
+
+
+  s = __ctalkUNIXSocketOpenReader (self socketPath);
+  if (s < 0) {
+    ex raiseException ": UNIXNetworkStreamReader open: " +
+      self socketPath;
+  }
+  self sock = s;
+  return self sock;
+}
+
+UNIXNetworkStreamReader instanceMethod openOn (String sockPath) {
+  "Sets the receiver's socketPath instance variable to the
+   path given as the argument and calls the open method.
+   Like open, returns the socket number, or -1 if an error
+   occurred, and raises a SystemErrnoException if an error
+   occurs during one of the system calls."
+  returnObjectClass Integer;
+  self socketPath = sockPath;
+  return self open;
+}
+
+UNIXNetworkStreamReader instanceMethod sockRead (void) {
+  "Read data from the socket created by the open or
+   openOn methods.  If data is ready to be received,
+   returns a String containing the data and sets the
+   charsRead instance variable to the number of
+   characters read.  If no data is waiting, returns
+   an empty String and sets charsRead to 0."
+  returnObjectClass String;
+  SystemErrnoException new ex;
+  char buf[MAXMSG];
+  int r;
+
+  xmemset (buf, 0, MAXMSG);
+  r = __ctalkUNIXSocketRead (self sock, buf);
+  self charsRead = r;
+  buf[self charsRead] = 0;  /* In case there is junk after the end. */
+
+  return buf;
+}

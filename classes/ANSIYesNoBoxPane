@@ -1,0 +1,346 @@
+/* $Id: ANSIYesNoBoxPane,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-C-*-*/
+
+/*
+  This file is part of Ctalk.
+  Copyright © 2005-2014, 2018, 2019  Robert Kiesling, rk3314042@gmail.com.
+  Permission is granted to copy this software provided that this copyright
+  notice is included in all source code modules.
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+*/
+
+/*
+ *  ANSIYesNoBoxPane - Maybe should be a subclass of 
+ *  ANSIMessageBoxPane.
+ *
+ *  This class is still very kludgy in that it doesn't allow
+ *  for dynamic positioning of the sub-panes.  See the "new"
+ *  and "show" methods.
+ *
+ *  The language also needs some improvements in handling
+ *  circular references that can result from the "parent"
+ *  method, and in processing of List elements and receivers
+ *  of in-line method calls, which is why several of the 
+ *  methods are written in C.
+ */
+
+ANSIWidgetPane class ANSIYesNoBoxPane
+"An ANSIYesNoBox pane presents a message on the display
+and 'Yes' and 'No' buttons, and wait's for the user's
+input.";
+ANSIYesNoBoxPane instanceVariable button1 ANSIButtonPane 0x0;
+ANSIYesNoBoxPane instanceVariable button2 ANSIButtonPane 0x0;
+ANSIYesNoBoxPane instanceVariable messageText String 0x0;
+
+ANSIYesNoBoxPane instanceMethod new (String __paneName) {
+  "The ANSIYesNoBoxPane constructor.  The argument, a
+  String, contains the name of the new object.  The
+  constructor also creates two ANSIButtonPane subpanes."
+
+  ANSIButtonPane new __button1New, __button2New;
+  ANSIWidgetPane super new __paneName;
+
+  __paneName paneStream openInputQueue;
+  __paneName withShadow;
+  __paneName withBorder;
+  __paneName isInputPane = TRUE;
+  __paneName size x = 10;
+  __paneName size y = 9;
+
+  __paneName addbuffer 10, 9, 1;
+
+  __paneName button1 become __button1New;
+  __paneName button2 become __button2New;
+  __paneName button1 shadow = FALSE;
+  __paneName button2 shadow = FALSE;
+  __paneName button1 withText "Yes";
+  __paneName button2 withText "No";
+  return __paneName;
+}
+
+ANSIYesNoBoxPane instanceMethod withText (String messageTextArg) {
+  "Sets the text of the receiver pane to the argument, a
+String."
+
+  self messageText = messageTextArg;
+  self size x = messageTextArg length + 4;
+
+  self addBuffer self size x, self size y, 1;
+
+  return self;
+}
+
+ANSIYesNoBoxPane instanceMethod nextFocus (void) {
+  "If the user presses the Tab key, shifts the input focus
+  between the receiver pane's two button subpanes."
+  OBJECT *child_list_alias, *t, *old_focus_alias, 
+    *subwidget_object_alias, *hasFocus_instancevar_alias,
+    *isinputpane_instancevar_alias;
+  child_list_alias = self children;
+  for (t = child_list_alias -> instancevars -> next, old_focus_alias = NULL; 
+       t; t = t -> next) {
+    subwidget_object_alias = *(OBJECT **)t -> instancevars -> __o_value;
+    isinputpane_instancevar_alias = 
+      __ctalkGetInstanceVariable (subwidget_object_alias, "isInputPane", TRUE);
+    if (*(int *)isinputpane_instancevar_alias -> instancevars ->
+	__o_value == 0)
+      continue;
+    hasFocus_instancevar_alias = 
+      __ctalkGetInstanceVariable (subwidget_object_alias, "hasFocus", TRUE);
+    if (*(int *)hasFocus_instancevar_alias->instancevars->__o_value == 1) {
+      old_focus_alias = subwidget_object_alias;
+      *(int *)hasFocus_instancevar_alias->instancevars->__o_value = 0;
+      if (!t -> next) {
+	t = child_list_alias -> instancevars -> next;
+      } else {
+	t = t -> next;
+      }
+      subwidget_object_alias = *(OBJECT **)t -> instancevars -> __o_value;
+      hasFocus_instancevar_alias =
+ 	__ctalkGetInstanceVariable (subwidget_object_alias, "hasFocus", TRUE);
+      *(int *)hasFocus_instancevar_alias->instancevars->__o_value = 1;
+    }
+  }
+  return NULL;
+}
+
+ANSIYesNoBoxPane instanceMethod getFocusWidgetText (void) {
+  "Returns the text of the button subpane that has the
+  input focus as a String object."
+  OBJECT *child_list_alias, *t, *subwidget_object_alias, *text_instance_variable,
+    *hasFocus_instancevar_alias;
+  String new response;
+  returnObjectClass String;
+
+  child_list_alias = self children;
+  for (t = child_list_alias -> instancevars -> next; t; t = t -> next) {
+    subwidget_object_alias = *(OBJECT **)t -> instancevars -> __o_value;
+    hasFocus_instancevar_alias = 
+      __ctalkGetInstanceVariable (subwidget_object_alias, "hasFocus", TRUE);
+    if (*(int *)hasFocus_instancevar_alias->instancevars->__o_value == 1) {
+      text_instance_variable = 
+	__ctalkGetInstanceVariable (subwidget_object_alias, "buttonText", TRUE);
+      __ctalkSetObjectValueVar(response, 
+			       text_instance_variable->instancevars->__o_value);
+    }
+  }
+  return text_instance_variable->instancevars->__o_value;
+}
+
+ANSIButtonPane instanceMethod highlightButton (void) {
+  if (self hasFocus) {
+    self focusHighlightOnOff;
+  } else {
+    self resetGraphics;
+  }
+  return NULL;
+}
+
+List instanceMethod highlightButton (void) {
+  Exception new e;
+  if (self value is ANSIButtonPane) {
+    eval self highlightButton;
+  } else {
+    e raiseCriticalException INVALID_RECEIVER_X, 
+      "Receiver of \"highlightDispatch\" is not an ANSIButtonPane object";
+  }
+  return NULL;
+}
+
+ANSIYesNoBoxPane instanceMethod focusButton (void) {
+  "Highlight the button that has the input focus.  Calls
+  List : highlightButton and ANSIButtonPane :
+  highlightButton, also defined in this class."
+  self children map highlightButton;
+  return NULL;
+}
+
+#ifndef ESC
+#define ESC     0x1b
+#endif
+#ifndef TAB
+#define TAB     0x09
+#endif
+#define CR      0x0d
+#define LF      0x0a
+
+ANSIYesNoBoxPane instanceMethod handleInput (void) {
+  "Wait for the user's input.  Pressing Tab shifts the
+  focus between the pane's buttons.  Pressing Enter
+  withdraws the receiver pane and returns a String with
+  the text of the button that has the input focus.
+  Pressing Escape withdraws the reciever pane and
+  returns NULL.  Pressing, 'y' or 'n' returns the text
+  of the 'Yes' or 'No' button, respectively."
+  Integer new c;
+  InputEvent new iEvent;
+  String new responseString;
+
+  returnObjectClass String;
+
+  self paneStream rawMode;
+  self paneStream openInputQueue;
+  while ((c = self paneStream getCh) != EOF) {
+    iEvent become self paneStream nextInputEvent;
+    switch (iEvent eventClass)
+      {
+      case KBDCHAR:
+	switch (iEvent eventData asCharacter)
+	  {
+	  case TAB:
+	    self nextFocus;
+	    self focusButton;
+	    self button1 gotoXY 2, 2;
+	    self button1 printOn "%s", self button1 buttonText;
+	    self button1 refresh;
+	    self button2 gotoXY 2, 2;
+	    self button2 printOn "%s", self button2 buttonText;
+	    self button2 refresh;
+	    break;
+	  case ESC:
+	    self withdraw;
+	    self paneStream restoreTerm;
+	    return NULL;
+	    break;
+ 	  case CR:
+	  case LF:
+	    self withdraw;
+	    responseString = self getFocusWidgetText;
+	    self paneStream restoreTerm;
+	    return responseString;
+	    break;
+	  case 'y':
+	  case 'Y':
+	    self withdraw;
+	    responseString = "Yes";
+	    self paneStream restoreTerm;
+	    return responseString;
+	    break;
+	  case 'n':
+	  case 'N':
+	    self withdraw;
+	    responseString = "No";
+	    self paneStream restoreTerm;
+	    return responseString;
+	    break;
+	  }
+	break;
+      case KBDCUR:
+	switch (iEvent eventData)
+	  {
+	  case ESC:
+	    self withdraw;
+	    self paneStream restoreTerm;
+	    return NULL;
+	    break;
+	  }
+	break;
+      }
+  }
+  return NULL;
+}
+
+#define BUTTONWIDTH 5
+
+ANSIYesNoBoxPane instanceMethod show (int x_org, int y_org) {
+  "Display the receiver pane and its buttons.  Sets the pane's
+  dimensions to the prompt text, and the initial focus to
+  the 'Yes' button subpane.  Calls the handleInput method
+  and waits for the user's input."
+  Integer new boxWidth;
+  Integer new xDimension;
+  String new response;
+  returnObjectClass String;
+  self origin x = x_org;
+  self origin y = y_org;
+  self gotoXY (3, 3);
+  self printOn "%s", self messageText;
+  if (self parentPane) {
+    self map;
+  }
+  if (self size x < 12) {
+    boxWidth = 12;
+    self size x = 12;
+  } else {
+    boxWidth = self size x;
+  }
+  self button1 parent self;
+  xDimension = (boxWidth / 2) - BUTTONWIDTH;
+  self button1 origin x = self button1 parentOrigin x + xDimension;
+  self button1 origin y = self button1 parentOrigin y + 4;
+
+  self button2 parent self;
+  xDimension = (boxWidth / 2) + 1;
+  self button2 origin x = self button2 parentOrigin x + xDimension;
+  self button2 origin y = self button2 parentOrigin y + 4;
+
+  self refresh;
+  self mapSubWidget self button1;
+  self button1 gotoXY 2, 2;
+  if (!self button1 border)
+    self button1 buttonText = " Yes";
+  self button1 printOn "%s", self button1 buttonText;
+  self button1 hasFocus = TRUE;
+  self button1 focusHighlightOnOff;
+  self button1 refresh;
+  self mapSubWidget self button2;
+  self button2 gotoXY 2, 2;
+  if (!self button2 border)
+    self button2 buttonText = " No";
+  self button2 printOn "%s", self button2 buttonText;
+  self button2 refresh;
+  response = self handleInput;
+
+  self withdraw;
+  self paneStream setGraphics '0';
+  return response;
+}
+
+
+ANSIYesNoBoxPane instanceMethod cleanup (void) {
+  "Delete the buffers associated with the receiver
+  pane and the button subpanes."
+  __ctalkDeleteWinBuffer (self button1 paneBuffer);
+  __ctalkDeleteWinBuffer (self button1 paneBackingStore);
+  __ctalkDeleteWinBuffer (self button2 paneBuffer);
+  __ctalkDeleteWinBuffer (self button2 paneBackingStore);
+  __ctalkDeleteWinBuffer (self paneBuffer);
+  __ctalkDeleteWinBuffer (self paneBackingStore);
+  return NULL;
+}
+
+ANSIYesNoBoxPane instanceMethod withBorder (void) {
+  self border = 1;
+  self button1 border = 1;
+  self button2 border = 1;
+}
+
+ANSIYesNoBoxPane instanceMethod noBorder (void) {
+  self border = 0;
+  self button1 border = 0;
+  self button2 border = 0;
+}
+
+ANSIYesNoBoxPane instanceMethod withShadow (void) {
+  self shadow = 1;
+  self button1 shadow = 1;
+  self button2 shadow = 1;
+}
+
+ANSIYesNoBoxPane instanceMethod noShadow (void) {
+  self shadow = 0;
+  self button1 shadow = 0;
+  self button2 shadow = 0;
+}

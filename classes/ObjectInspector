@@ -1,0 +1,414 @@
+/* $Id: ObjectInspector,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-c-*-*/
+
+/*
+  This file is part of Ctalk.
+  Copyright © 2005 - 2015, 2019  Robert Kiesling, rk3314042@gmail.com.
+  Permission is granted to copy this software provided that this copyright
+  notice is included in all source code modules.
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+*/
+
+/*
+ *    ObjectInspector Class
+ */
+
+Application class ObjectInspector
+"An ObjectInspector provides an interactive prompt where
+you can stop a program, examine objects, and continue
+running the program. Typing 'h' or 'help' at the command
+prompt displays information about the inspector's
+commands.";
+
+ObjectInspector instanceVariable promptString String "> "
+  "The string that an inspector displays as its prompt.";
+ObjectInspector instanceVariable verbose Boolean False
+"If True, the inspector's print command displays extra
+information about the objects.";
+
+ObjectInspector instanceMethod formatInstanceVariable (Symbol __objectRef) {
+  "Return a String with the formatted contents of an
+  object's instance variable.  This method is mainly
+  called by the formatObject method, also defined in
+  this class."
+  String new s;
+  String new s_element;
+
+  returnObjectClass String;
+
+  s = "";
+
+  s_element printOn "instance variable:       %s\n", 
+    __objectRef getValue -> __o_name;
+  s += s_element;
+
+  s_element printOn "class:                   %s (%p)\n",
+    __objectRef getValue -> __o_classname asString,
+    __objectRef getValue -> __o_class asSymbol;
+  s += s_element;
+
+  s_element printOn "superclass:              %s (%p)\n",
+    __objectRef getValue -> __o_superclassname,
+    __objectRef getValue -> __o_superclass asSymbol;
+  s += s_element;
+
+  if (__objectRef getValue -> instancevars getValue value
+      isSubClassOf "Symbol") {
+    s_element printOn "value:                   %p (%s)\n",
+      __objectRef getValue -> instancevars getValue value,
+      __objectRef getValue -> instancevars getValue value className;
+  } else {
+    s_element printOn "value:                   %d (%s)\n",
+      __objectRef getValue -> instancevars getValue value,
+      __objectRef getValue -> instancevars className;
+  }
+  s += s_element;
+
+  if (self verbose) {
+
+    s_element printOn "scope:      %d\n",
+      __objectRef getValue -> scope;
+    s = s + s_element;
+
+    s_element printOn "nrefs:      %d\n",
+      __objectRef getValue -> nrefs;
+    s = s + s_element;
+
+    s_element printOn "attrs:      %d\n",
+      __objectRef getValue -> attrs;
+    s = s + s_element;
+  }
+
+  return s;
+}
+
+ObjectInspector instanceMethod formatClassVariable (Symbol __objectRef) {
+  "Return a String with the formatted contents of an
+  object's class variable.  This method is mainly
+  called by the formatObject method, also defined in
+  this class."
+  String new s;
+  String new s_element;
+
+  returnObjectClass String;
+
+  s = "";
+
+  s_element printOn "class variable:          %s\n", 
+    __objectRef getValue -> __o_name;
+  s = s + s_element;
+
+  s_element printOn "class:                   %s (%p)\n",
+    __objectRef getValue -> __o_classname asString,
+    __objectRef getValue -> __o_class asSymbol;
+  s = s + s_element;
+
+  s_element printOn "superclass:              %s (%p)\n",
+    __objectRef getValue -> __o_superclassname,
+    __objectRef getValue -> __o_superclass asSymbol;
+  s = s + s_element;
+
+  if ((__objectRef getValue) -> instancevars isSubClassOf "Symbol") {
+    s_element printOn "value:      %p (%s)\n", 
+      __objectRef getValue -> instancevars getValue value,
+      __objectRef getValue -> __o_classname;
+  } else {
+    s_element printOn "value:      %d (%s)\n", 
+      __objectRef getValue -> instancevars getValue value,
+      __objectRef getValue -> __o_classname;
+  }
+
+  s = s + s_element;
+
+  if (self verbose) {
+    s_element printOn "scope:      %d\n",
+      __objectRef getValue -> scope;
+    s = s + s_element;
+
+    s_element printOn "nrefs:      %d\n",
+      __objectRef getValue -> nrefs;
+    s = s + s_element;
+
+    s_element printOn "attrs:      %d\n",
+      __objectRef getValue -> attrs;
+    s = s + s_element;
+
+  }
+
+  return s;
+}
+
+ObjectInspector instanceMethod formatObject (Symbol __objectRef) {
+  "Return a String object with the formatted contents of
+  the object pointed to by the argument, a Symbol
+  object."
+  String new s;
+  String new s_element;
+  Object new refValue;
+  Symbol new varRef;
+  
+  returnObjectClass String;
+
+  s = "";
+
+    s_element printOn "name:       %s\n", __objectRef getValue -> __o_name;
+    s = s + s_element;
+
+    s_element printOn "class:      %s (%p)\n", 
+      __objectRef getValue -> __o_classname asString,
+      __objectRef getValue -> __o_class asSymbol;
+    s = s + s_element;
+
+    s_element printOn "superclass: %s (%p)\n", 
+      __objectRef getValue -> __o_superclassname,
+      __objectRef getValue -> __o_superclass asSymbol;
+    s = s + s_element;
+
+    if (__objectRef getValue -> instancevars getValue value
+	isSubClassOf "Symbol") {
+      s_element printOn "value:      %p (%s)\n", 
+	__objectRef getValue -> instancevars getValue value,
+	__objectRef getValue -> __o_classname;
+    } else {
+      s_element printOn "value:      %s (%s)\n", 
+	__objectRef getValue -> instancevars getValue value,
+	__objectRef getValue -> __o_classname;
+    }
+    s = s + s_element;
+
+  if (self verbose) {
+    s_element printOn "scope:      %d\n",
+      __objectRef getValue -> scope;
+    s = s + s_element;
+
+    s_element printOn "nrefs:      %d\n",
+      __objectRef getValue -> nrefs;
+    s = s + s_element;
+
+    s_element printOn "attrs:      %d\n",
+      __objectRef getValue -> attrs;
+    s = s + s_element;
+
+  }
+
+  __objectRef getValue mapInstanceVariables {
+    if (self name != "value") {
+      *varRef = self;
+      s_element = super formatInstanceVariable varRef;
+      s = s + s_element;
+    }
+  }
+
+  __objectRef getValue mapClassVariables {
+    *varRef = self;
+    s_element = super formatClassVariable varRef;
+    s = s + s_element;
+  }
+  return s;
+}
+
+ObjectInspector instanceMethod __tokenize_cmd (String inputStr,
+					       List tokens) {
+  inputStr tokenize tokens;
+}
+
+ObjectInspector instanceMethod __inspect_cmd_loop (Symbol objRef,
+						   String promptStrArg) {
+  String new input;
+  List new inputTokens;
+  Symbol new argObjRef;
+  Array new matchPos;
+
+  while (1) {
+    input consoleReadLine promptStrArg;
+    printf ("%s\n", input);
+
+    if (input match "p" || input match "print") {
+
+      self __tokenize_cmd input, inputTokens;
+
+      switch (inputTokens size)
+	{
+	case 1:
+	  printf ("%s\n", self formatObject objRef);
+	  break;
+	case 2:
+	  if (((*(inputTokens + 1)) matchRegex "^0x", matchPos) || 
+	      ((*(inputTokens + 1)) matchRegex "^0X", matchPos)) {
+	    if (obj_ref_str (*(inputTokens + 1))) {
+	      __ctalkSetObjectValueVar (argObjRef, *(inputTokens + 1));
+	      printf ("%s\n", self formatObject argObjRef);
+	    } else {
+	      printf ("%s: Not an Object.\n", *(inputTokens + 1));
+	    }
+	  } else {
+	    __inspect_brief_help ();
+	  }
+	  break;
+	case 3:
+	  if (**(inputTokens + 1) == 'a') {
+
+	    *argObjRef = __inspect_get_arg (*(inputTokens + 2));
+	    printf ("%s\n", self formatObject argObjRef);
+
+	  } else if (**(inputTokens + 1) == 'r') {
+
+	    *argObjRef = __inspect_get_receiver (*(inputTokens + 2));
+	    printf ("%s\n", self formatObject argObjRef);
+
+	  } else if (**(inputTokens + 1) == 'g') {
+
+	    *argObjRef = __inspect_get_global (*(inputTokens + 2));
+	    printf ("%s\n", self formatObject argObjRef);
+
+	  } else if (**(inputTokens + 1) == 'l') {
+
+	    __inspect_locals (*(inputTokens + 2));
+
+	  } else {
+	    __inspect_brief_help ();
+	  }
+	  break;
+	case 4:
+	  if (**(inputTokens + 1) == 'l') {
+	    *argObjRef = __inspect_get_local (*(inputTokens + 2), 
+					      *(inputTokens + 3));
+	    printf ("%s\n", self formatObject argObjRef);
+	  } else {
+	    __inspect_brief_help ();
+	  }
+	  break;
+	default:
+	  __inspect_brief_help ();
+	  break;
+	}
+      inputTokens delete;
+      continue;
+    }
+
+    if (input == "br" || input == "brief") {
+      self verbose = False;
+      continue;
+    }
+
+    if (input == "v" || input == "verbose") {
+      self verbose = True;
+      continue;
+    }
+
+    if (input == "b" || input == "back") {
+      __inspector_trace (0);
+      continue;
+    }
+
+    if ((input matchRegex "^r", matchPos)  || 
+	(input matchRegex "^receivers", matchPos)) {
+      self __tokenize_cmd input, inputTokens;
+
+      switch (inputTokens size)
+	{
+	case 1:
+	  __receiver_trace (0);
+	  break;
+	case 2:
+	  *argObjRef = __inspect_get_receiver (*(inputTokens + 1));
+	  printf ("%s\n", self formatObject argObjRef);
+	  break;
+	default:
+	  printf ("Usage: r[eceivers] [<frame>]\n");
+	  break;
+	}
+      inputTokens delete;
+      continue;
+    }
+
+    if ((input matchRegex "^a", matchPos)  || 
+	(input matchRegex "^args", matchPos)) {
+      self __tokenize_cmd input, inputTokens;
+
+      switch (inputTokens size)
+	{
+	case 1:
+	  __arg_trace (0);
+	  break;
+	case 2:
+	  *argObjRef = __inspect_get_arg (*(inputTokens + 1));
+	  printf ("%s\n", self formatObject argObjRef);
+	  break;
+	default:
+	  printf ("Usage: a[rgs] [<frame>]\n");
+	  break;
+	}
+      inputTokens delete;
+      continue;
+    }
+
+    if (input == "g" || input == "globals") {
+      __inspect_globals ();
+      continue;
+    }
+
+    if (input == "c" || input == "continue")
+      break;
+
+    if (input match "l" || input match "locals") {
+
+      self __tokenize_cmd input, inputTokens;
+
+      if (inputTokens size != 2)
+	printf ("Usage: locals <frame>\n");
+      else
+	__inspect_locals (*(inputTokens + 1));
+
+      inputTokens delete;
+      continue;
+    }
+
+    if (input == "q" || input == "quit")
+      exit (0);
+
+    if (input == "?" || input == "h" || input == "help") {
+      __inspect_long_help ();
+      continue;
+    }
+
+    if (input length > 0)
+      printf ("Undefined command: \"%s.\"  Try \"help.\"\n", input);
+  }
+}
+
+ObjectInspector instanceMethod initialize (void) {
+  __inspect_init ();
+}
+
+ObjectInspector instanceMethod inspect (Symbol objRef) {
+  "Open an inspector on the object referred to by the argument,
+   a Symbol object.  At the  prompt, typing '?' or 'help'
+   displays a list of the inspector commands."
+
+    self initialize;
+    self __inspect_cmd_loop objRef, self promptString;
+}
+
+ObjectInspector instanceMethod inspect (Symbol objRef, String promptArg) {
+  "Open an inspector on the object referred to by the argument,
+   a Symbol object.  At the  prompt, typing '?' or 'help'
+   displays a list of the inspector commands.  The second argument,
+   a String, contains the text of the inspector's command prompt."
+
+    self promptString = promptArg;
+    self initialize;
+    self __inspect_cmd_loop objRef, self promptString;
+}

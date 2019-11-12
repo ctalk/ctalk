@@ -1,0 +1,1295 @@
+/* $Id: String,v 1.3 2019/10/30 02:10:14 rkiesling Exp $ -*-c-*- */
+
+/*
+  This file is part of Ctalk.
+  Copyright © 2005 - 2016, 2018 - 2019  
+    Robert Kiesling, rk3314042@gmail.com.
+  Permission is granted to copy this software provided that this copyright
+  notice is included in all source code modules.
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+*/
+
+/*
+ *    String class.
+ */
+
+#include  <ctalk/ctalkdefs.h>
+#include <errno.h>
+
+Character class String
+"String objects are collections of Characters.  This
+class contains methods for searching, conctatenating,
+splitting, performing pointer arithmetic, reading and
+writing formatted records, tokenizing, and creating
+substrings of String objects.  This class also provides
+methods for reading buffered keyboard input.";
+
+require Array;
+
+String instanceMethod callStackTrace (void) {
+  "Print a stack trace."
+  __warning_trace ();
+  return NULL;
+}
+
+String instanceMethod = setEqual (OBJECT *__stringArg) {
+  "String assignment method. Assigns the argument to the
+  receiver label.  Also does some String-specific
+  semantic stuff for different sorts of String objects.
+  Returns the new String object."
+
+  __ctalkStringifyName (self, __stringArg);
+  if (__ctalkAliasReceiver (self, __stringArg) != 0) {
+    self addInstanceVariable "value", __stringArg;
+    return self;
+  } else {
+    return self;
+  }
+}
+
+String instanceMethod + concat (Object sArg) {
+  "Return a String object that is the result of the
+  receiver combined with the argument.  If the argument
+  is an Integer, LongInteger, or Float, then increment
+  the object's start of the String by that number
+  of characters.  Otherwise, concatenate the receiver
+  and the argument, using use Object : asString to
+  convert the argument to a String object if necessary."
+
+  char *buf, *end_ptr_1, *end_ptr_2;
+  int l1, l2;
+  OBJECT *op1, *op2, *result_object;
+
+  op1 = self value;
+
+  if (sArg is Integer) {
+    __ctalkIncStringRef (self, sArg value, TAG_REF_TEMP);
+    return self value;
+  } else if ((sArg is LongInteger) || (sArg is Float)) {
+    __ctalkIncStringRef (self, sArg value asInteger, TAG_REF_TEMP);
+    return self value;
+  }
+
+
+  if (!sArg is String) {
+    op2 = sArg value asString;
+  } else {
+    op2 = sArg value;
+  }
+  if (!strcmp (((op1 -> instancevars) ? 
+		op1 -> instancevars -> __o_value :
+		op1 -> __o_value), NULLSTR)) {
+    if (op1 -> instancevars) {
+      op1 -> instancevars -> __o_value[0] = '\0';
+    } else {
+      op1 -> __o_value[0] = '\0';
+    }
+  }
+  end_ptr_1 = 
+    index ((op1->instancevars) ? 
+	   op1->instancevars->__o_value :
+	   op1->__o_value, '\0');
+  end_ptr_2 = 
+    index ((op2->instancevars) ? 
+	   op2->instancevars->__o_value :
+	   op2->__o_value, '\0');
+  l1 = end_ptr_1 - ((op1->instancevars) ? op1->instancevars->__o_value :
+	op1->__o_value);
+  l2 = end_ptr_2 - ((op2->instancevars) ? op2->instancevars->__o_value :
+	op2->__o_value);
+  buf = __xalloc (l1 + l2 + 1);
+  xstrcpy (buf, (op1->instancevars) ? 
+	  op1->instancevars->__o_value :
+	  op1->__o_value);
+  xstrcat (buf, (op2->instancevars) ? 
+	  op2->instancevars->__o_value :
+	  op2->__o_value);
+  result_object = __ctalkCreateObjectInit ("result", "String",
+					   "Character", LOCAL_VAR,
+					   buf);
+  __ctalkFree (buf);
+  return result_object;
+}
+
+String instanceMethod - decStringRef (Integer iArg) {
+  "Decrement the pointer to the receiver String by the
+   argument, an Integer.  If the result points past
+   the start of the original string, return NULL."
+  __ctalkIncStringRef (self, -iArg value, TAG_REF_TEMP);
+  return self value;
+}
+
+String instanceMethod -= concatRcvrDec (char *sArg) {
+  "Decrement the reference to  the receiver by the argument
+  and set the receiver to the new value.  If the
+  reference is before the start of the string, return
+  NULL."
+  __ctalkIncStringRef (self, -sArg, TAG_REF_PREFIX);
+  return self;
+}
+
+String instanceMethod += concatRcvr (Object sArg) {
+  "Combine the argument and the receiver and set the
+  receiver to the new String.  If the argument is an
+  Integer, LongInteger, or Float, increment the
+  receiver's reference to the String by that number of
+  characters.  If the argument is anything else,
+  concatenate the receiver and the argument, using
+  Object : asString to convert the argument to a String
+  object if necessary."
+  Exception new e;
+  char *buf, *end_ptr_1, *end_ptr_2;
+  int l1, l2;
+  OBJECT *op1, *op2;
+
+  op1 = self value;
+  op2 = sArg value;
+
+  if (sArg is Integer) {
+    __ctalkIncStringRef (self, sArg, TAG_REF_PREFIX);
+    return self;
+  } else if ((sArg is LongInteger) || (sArg is Float)) {
+    __ctalkIncStringRef (self, sArg asInteger, TAG_REF_PREFIX);
+    return self;
+  }
+
+  if (!sArg is String) {
+    op2 = sArg value asString;
+  }
+  if (!strcmp (((op1 -> instancevars) ? 
+		op1 -> instancevars -> __o_value :
+		op1 -> __o_value), NULLSTR)) {
+    if (op1 -> instancevars) {
+      op1 -> instancevars -> __o_value[0] = '\0';
+    } else {
+      op1 -> __o_value[0] = '\0';
+    }
+  }
+  end_ptr_1 = 
+    index ((op1->instancevars) ? 
+	   op1->instancevars->__o_value :
+	   op1->__o_value, '\0');
+  end_ptr_2 = 
+    index ((op2->instancevars) ? 
+	   op2->instancevars->__o_value :
+	   op2->__o_value, '\0');
+  l1 = end_ptr_1 - ((op1->instancevars) ? op1->instancevars->__o_value :
+	op1->__o_value);
+  l2 = end_ptr_2 - ((op2->instancevars) ? op2->instancevars->__o_value :
+	op2->__o_value);
+  buf = __xalloc (l1 + l2 + 1);
+  xstrcpy (buf, (op1->instancevars) ? 
+	  op1->instancevars->__o_value :
+	  op1->__o_value);
+  xstrcat (buf, (op2->instancevars) ? 
+	  op2->instancevars->__o_value :
+	  op2->__o_value);
+  __ctalkSetObjectValue (op1, buf);
+  __ctalkFree (buf);
+  return self;
+}
+
+String instanceMethod == equality (char *sArg) {
+  "Return a Boolean value of True if the contents of the
+  receiver String and the argument are equal, False
+  otherwise.  This method overloads many of the
+  expressions for a (null) string, and treats them as
+  equal."
+  returnObjectClass Boolean;
+  int rval;
+  bool op1_zero, op2_zero;
+
+  returnObjectClass Boolean;
+
+  op1_zero = STR_IS_NULL(self);
+  op2_zero = STR_IS_NULL (sArg);
+
+  if (op1_zero) {
+    if (op2_zero) {
+      rval = TRUE;
+    } else {
+      rval = FALSE;
+    }
+  } else {
+    if (op2_zero) {
+      if (op1_zero) {
+	rval = TRUE;
+      } else {
+	rval = FALSE;
+      }
+    } else {
+      if (!strcmp (self, sArg)) {
+	rval = TRUE;
+      } else {
+	rval = FALSE;
+      }
+    }
+  }
+  return rval;
+}
+
+String instanceMethod != inequality (char *sArg) {
+  "Return a Boolean value of True if the contents of
+  the receiver String and the argument String are not
+  equal, False otherwise. Also overloads the various
+  strings that indicate a (null) value."
+  int rval;
+  bool op1_zero, op2_zero;
+
+  returnObjectClass Boolean;
+
+  op1_zero = STR_IS_NULL(self);
+  op2_zero = STR_IS_NULL(sArg);
+
+  if (op1_zero) {
+    if (op2_zero) {
+      rval = FALSE;
+    } else {
+      rval = TRUE;
+    }
+  } else {
+    if (op2_zero) {
+      if (op1_zero) {
+	rval = FALSE;
+      } else {
+	rval = TRUE;
+      }
+    } else {
+      if (!strcmp (self, sArg)) {
+	rval = FALSE;
+      } else {
+	rval = TRUE;
+      }
+    }
+  }
+  return rval;
+}
+
+String instanceMethod subString (int __str_index, int __str_length) {
+  "Return a String that contains the contents of the
+  receiver beginning at the index given as the first
+  argument, with the length given as the second
+  argument.  If the index is greater than the length of
+  the receiver, returns the receiver."
+  char *buf;
+  OBJECT *result_object;
+
+  if (__str_index < self length) {
+    buf = __xalloc (__str_length + 1);
+    substrcpy (buf, self, __str_index, __str_length);
+    result_object = __ctalkCreateObjectInit ("result", "String",
+					     "Character", LOCAL_VAR,
+					     buf);
+    __ctalkFree (buf);
+    return result_object;
+  } else {
+    return self;
+  }
+}
+
+String instanceMethod length (void) {
+  "Return an Integer with the length of the receiver."
+  char *value_end_ptr;
+  OBJECT *rcvr;
+
+  returnObjectClass Integer;
+
+  rcvr = self value;
+
+  value_end_ptr = index (rcvr -> __o_value, '\0');
+  return value_end_ptr - rcvr -> __o_value;
+}
+
+String instanceMethod at (int i) {
+  "Return a Character object with the character given at
+  the index given by the argument, an Integer."
+    OBJECT *val_obj; 
+  char *value_end_ptr;
+  int idx, self_length;
+
+  returnObjectClass Character;
+
+  val_obj = self value;
+
+  value_end_ptr = index (val_obj -> __o_value, '\0');
+  self_length = value_end_ptr - val_obj -> __o_value - 1;
+
+  idx = i value;
+
+  if (idx > self_length) {
+    return val_obj -> __o_value[self_length + 1];
+  }
+
+  return val_obj -> __o_value[idx];
+}
+
+String instanceMethod atPut (int __idxArg, char __charArg) {
+  "Set the character of the receiver at the index given by
+  the first argument, an Integer, to the Character
+  given as the second argument."
+  SystemErrnoException new e;
+  OBJECT *val_obj, *char_obj;
+  char *charptr;
+
+  val_obj = self value;
+  char_obj = __charArg;
+
+  if (__idxArg >= self length) {
+    if (__xrealloc ((void **)&(val_obj -> __o_value), __idxArg + 1)
+	 == NULL) {
+      e raiseException "String : atPut";
+      return NULL;
+    }
+  }
+
+  charptr = char_obj -> instancevars ?
+    char_obj -> instancevars -> __o_value :
+    char_obj -> __o_value;
+
+  charptr = CHAR_CONSTANT_VALUE(charptr);
+  if (*charptr == '\\') {
+    switch (charptr[1])
+    {
+    case '0': val_obj -> __o_value[__idxArg] = 0; break;
+    case 'a': case 'b': val_obj -> __o_value[__idxArg] = 7; break;
+    case 'e': val_obj -> __o_value[__idxArg] = 27; break;
+    case 'n': case 'f': val_obj -> __o_value[__idxArg] = 10; break;
+    case 'r': val_obj -> __o_value[__idxArg] = 13; break;
+    case 't': val_obj -> __o_value[__idxArg] = 9; break;
+    case 'v': val_obj -> __o_value[__idxArg] = 11; break;
+    default:
+      val_obj -> __o_value[__idxArg] = '\\'; 
+      ++__idxArg;
+      val_obj -> __o_value[__idxArg] = charptr[1];
+      break;
+    }
+  } else {
+    val_obj -> __o_value[__idxArg] = *charptr;
+  }
+  if (__idxArg >= self length)
+    val_obj -> __o_value[__idxArg+1] = '\0';
+  return self;
+}
+
+String instanceMethod split (char delimiter, char **resultArray) {
+  "Split the receiver into tokens delimited by the
+  Character or String given as the first argument, and
+  store them in the Array given as the second argument.
+  If the delimiter pattern is a String, use Ctalk's
+  pattern matching routines, which recognizes a small
+  number of metacharacters (wildcards).  Returns an
+  Integer with the number of tokens in the result
+  Array."
+    char *buf, *elem_buf;
+  OBJECT *self_object, *self2_object;
+  int rcvr_length, idx, delim_char, start;
+  long long int matches[256];
+  int matchlength;
+  Integer new nItems;
+  String new token;
+  String new self2;
+
+  returnObjectClass Integer;
+
+  if (delimiter is Character) {
+
+    buf = __xalloc (self length + 1);
+    elem_buf = __xalloc (self length + 1);
+    self_object = self value;
+
+    if (self at 0 == delimiter) {
+      substrcpy (buf, self_object->__o_value, 1,
+		 strlen (self_object->__o_value) - 1);
+    } else {
+      xstrcpy (buf, self_object -> __o_value);
+    }
+    rcvr_length = strlen (buf);
+    delim_char = delimiter;
+
+    nItems = 0;
+    start = 0;
+    for (idx = 0; buf[idx]; idx++) {
+      if (buf[idx] == delim_char) {
+	substrcpy (elem_buf, buf, start, idx - start);
+	resultArray atPut nItems, elem_buf;
+	start = idx + 1;
+	++nItems;
+      }
+    }
+
+    if (start < rcvr_length) {
+      substrcpy (elem_buf, buf, start, idx - start);
+      resultArray atPut nItems, elem_buf;
+      ++nItems;
+    }
+
+    __ctalkFree (buf);
+    __ctalkFree (elem_buf);
+    return nItems;
+  }
+
+  if (delimiter is String) {
+    buf = __xalloc (self length + 1);
+    self_object = self value;
+
+    (void)__ctalkMatchText (delimiter value, self value, matches);
+
+    matchlength = __ctalkLastMatchLength ();
+    if (matches[0] != 0) {
+      substrcpy (buf, self_object -> __o_value, 0, matches[0]);
+      resultArray atPut 0, buf;
+      nItems = 1;
+      for (idx = 0; matches[idx] != -1; ++idx) {
+	if (matches[idx + 1] == -1) {
+	  substrcpy (buf, self_object -> __o_value,
+		     matches[idx] + matchlength, 
+		     strlen (self_object -> __o_value) - 
+		     (matches[idx] + matchlength));
+	} else {
+	  substrcpy (buf, self_object -> __o_value,
+		     matches[idx] + matchlength, 
+		     matches[idx + 1] - (matches[idx] + matchlength));
+	}
+	++nItems;
+	resultArray atPut (idx + 1), buf;
+      }
+    } else {
+      nItems = 0;
+      for (idx = 0; matches[idx]  != -1; ++idx) {
+	if (matches[idx + 1] == -1) {
+	  substrcpy (buf, self_object -> __o_value,
+		     matches[idx] + matchlength, 
+		     strlen (self_object -> __o_value) - 
+		     (matches[idx] + matchlength));
+	} else {
+	  substrcpy (buf, self_object -> __o_value,
+		     matches[idx] + matchlength, 
+		     matches[idx + 1] - (matches[idx] + matchlength));
+	}
+	++nItems;
+	resultArray atPut idx, buf;
+      }
+    }
+
+    __ctalkFree (buf);
+    return nItems;
+  }
+  _warning ("String : split : The delimiter is not a Character or String object.\n");
+  if (self traceEnabled)
+    self callStackTrace;
+  return -1;
+}
+
+String instanceMethod writeFormat (char *fmt, ...) {
+  "Print the formatted arguments on the receiver String."
+  Exception new __e_app;
+  SystemErrnoException new __e_system;
+  METHOD *self_method;
+  OBJECT *__fmt_arg_value,*result_object;
+  ARG *__save_fmt_arg, *__tmp_fmt_arg, *__tmp_stream_arg;
+  char *__streambuf;
+  char __ctalk_fmt[MAXMSG];
+  int __i_arg;
+  if ((self_method = 
+       __ctalkGetInstanceMethodByFn (__ctalkRtReceiverObject (),
+				     __ctalkRtGetMethodFn (),
+				     FALSE)) == NULL) {
+    __e_app raiseCriticalException UNDEFINED_METHOD_X, 
+      "in fmtPrint (class String)";
+    return NULL;
+  }
+  
+  __fmt_arg_value = fmt value;
+
+  __ctalkCPrintFmtToCtalkFmt (__fmt_arg_value -> __o_value, __ctalk_fmt);
+
+  __save_fmt_arg = self_method->args[0];
+
+  __tmp_fmt_arg = 
+    __ctalkCreateArgEntryInit
+    (__ctalkCreateObjectInit ("fmt", "String", "Character",
+			      LOCAL_VAR, __ctalk_fmt));
+  __objRefCntSet (&(__tmp_fmt_arg->obj), __save_fmt_arg->obj->nrefs);
+  self_method -> args[0] = __tmp_fmt_arg;
+
+  if ((__streambuf = (char *)calloc (MAXMSG, sizeof(char))) == NULL) {
+    __e_system raiseException "in writeFormat (class String)";
+    return NULL;
+  }
+  __tmp_stream_arg = 
+    __ctalkCreateArgEntryInit
+    (__ctalkCreateObjectInit ("stream", "String", "Character",
+			      LOCAL_VAR, NULL));
+  __ctalkSetObjectValueBuf (__tmp_stream_arg->obj, __streambuf);
+  __objRefCntSet (&(__tmp_stream_arg->obj), self_method->args[0]->obj->nrefs);
+
+  for (__i_arg = self_method -> n_args; __i_arg > 0; __i_arg--) {
+    self_method -> args[__i_arg] = self_method -> args[__i_arg - 1];
+  }
+
+  self_method -> args[0] = __tmp_stream_arg;
+  ++self_method -> n_args;
+
+  result_object = __ctalkLibcFnWithMethodVarArgs ((int (*)())xsprintf, self_method, "Integer");
+
+  --self_method -> n_args;
+  for (__i_arg = 1; __i_arg <= self_method -> n_args; __i_arg++) {
+    self_method -> args[__i_arg-1] = self_method -> args[__i_arg];
+  }
+  self_method -> args[self_method -> n_args] = NULL;
+  self_method -> args[0] = __save_fmt_arg;
+  __ctalkSetObjectValueVar (self, __tmp_stream_arg -> obj
+			    -> instancevars -> __o_value);
+  __objRefCntSet (&(__tmp_stream_arg->obj), 0);
+  __ctalkDeleteObject(__tmp_stream_arg->obj);
+  __ctalkDeleteArgEntry (__tmp_stream_arg);
+  __objRefCntSet (&(__tmp_fmt_arg->obj), 0);
+  __ctalkDeleteObject(__tmp_fmt_arg->obj);
+  __ctalkDeleteArgEntry (__tmp_fmt_arg);
+  __ctalkDeleteObject(result_object);
+  return self;
+}
+
+String instanceMethod readFormat (char *fmt, ...) {
+  "Read the formatted arguments from the receiver String."
+  Exception new __e_app;
+  SystemErrnoException new __e_system;
+  METHOD *self_method;
+  OBJECT *__fmt_arg_value, *result_object;
+  ARG *__save_fmt_arg, *__tmp_fmt_arg, *__tmp_stream_arg;
+  char *__argbuf;
+  char __ctalk_fmt[MAXMSG];
+  int __i_arg;
+  if ((self_method = 
+       __ctalkGetInstanceMethodByFn (__ctalkRtReceiverObject (),
+				     __ctalkRtGetMethodFn (),
+				     FALSE)) == NULL) {
+    __e_app raiseCriticalException UNDEFINED_METHOD_X, 
+      "in fmtPrint (class String)";
+    return NULL;
+  }
+  
+  __fmt_arg_value = fmt value;
+
+  __ctalkCPrintFmtToCtalkFmt (__fmt_arg_value -> __o_value, __ctalk_fmt);
+
+  __save_fmt_arg = self_method->args[0];
+
+  __tmp_fmt_arg = 
+    __ctalkCreateArgEntryInit 
+    (__ctalkCreateObjectInit ("fmt", "String", "Character",
+			      LOCAL_VAR, __ctalk_fmt));
+
+  __objRefCntSet (&(__tmp_fmt_arg->obj), __save_fmt_arg->obj->nrefs);
+  self_method -> args[0] = __tmp_fmt_arg;
+
+  for (__i_arg = 1; __i_arg < self_method->n_args; __i_arg++) {
+    if ((__argbuf = (char *)calloc (MAXMSG, sizeof(char))) == NULL) {
+      __e_system raiseException "in readFormat (class String)";
+      return NULL;
+    }
+    __ctalkSetObjectValueBuf 
+      (self_method->args[__i_arg]->obj, __argbuf);
+  }
+  __tmp_stream_arg = 
+    __ctalkCreateArgEntryInit 
+    (__ctalkCreateObjectInit ("stream", "String", "Character",
+			      LOCAL_VAR, self value));
+  __objRefCntSet (OBJREF(__tmp_stream_arg->obj), 
+		  self_method->args[0]->obj->nrefs);
+
+  for (__i_arg = self_method -> n_args; __i_arg > 0; __i_arg--) {
+    self_method -> args[__i_arg] = self_method -> args[__i_arg - 1];
+  }
+  self_method -> args[0] = __tmp_stream_arg;
+  ++self_method -> n_args;
+
+  result_object = __ctalkLibcFnWithMethodVarArgs ((int (*)())sscanf, self_method, "Integer");
+
+  --self_method -> n_args;
+  for (__i_arg = 1; __i_arg <= self_method -> n_args; __i_arg++) {
+    self_method -> args[__i_arg-1] = self_method -> args[__i_arg];
+  }
+  self_method -> args[self_method -> n_args] = NULL;
+  self_method -> args[0] = __save_fmt_arg;
+  __ctalkSetObjectValueVar (self, __tmp_stream_arg->obj
+			    -> instancevars -> __o_value);
+
+  __fmt_arg_value = __tmp_stream_arg -> obj;
+
+  __fmt_arg_value delete;
+  __ctalkDeleteArgEntry(__tmp_fmt_arg);
+
+  __fmt_arg_value = __tmp_fmt_arg -> obj;
+  __fmt_arg_value delete;
+  __ctalkDeleteArgEntry (__tmp_stream_arg);
+
+  result_object delete;
+
+  return self;
+}
+
+String instanceMethod getEnv (char *__envVar) {
+  "Set the receiver's contents to the value of the
+  environment variable given as the argument, also a
+  String."
+  String new __envVarValue;
+
+  if ((__envVarValue = getenv (__envVar)) != NULL) {
+    self addInstanceVariable ("value", __envVarValue);
+  } else {
+    self addInstanceVariable ("value", "");
+  }
+  return self;
+}
+
+String instanceMethod match (char *__patternString) {
+  "Returns a Boolean value of True if the contents of the
+  receiver String and the argument String match
+  regardless of case, False otherwise.  For case
+  sensitive matching, use matchCase or matchRegex."
+
+  OBJECT *__receiver, *__pattern;
+  char *__idx, *__receiver_value, *__pattern_value;
+
+  returnObjectClass Boolean;
+
+  __receiver = self value;
+  __pattern = __patternString value;
+
+  if (__receiver -> instancevars)
+    __receiver_value = __receiver->instancevars->__o_value;
+  else
+    __receiver_value = __receiver->__o_value;
+
+  if (__pattern -> instancevars)
+    __pattern_value = __pattern->instancevars->__o_value;
+  else
+    __pattern_value = __pattern->__o_value;
+  
+  for (__idx = __receiver_value; *__idx; __idx++) {
+    if (!strncasecmp (__idx, __pattern_value, strlen (__pattern_value)))
+      return TRUE;
+  }
+
+  return FALSE;
+}
+
+String instanceMethod matchCase (char *__patternString) {
+  "Returns a Boolean value of True if the contents of the
+  receiver String and the argument String match, false
+  otherwise.  The matchRegex method and the operators
+  =~ and !~ also perform case-sensitive matching."
+
+  long long int offsets[512];
+  int nmatches;
+
+  returnObjectClass Boolean;
+
+  nmatches = __ctalkSearchBuffer (__patternString, self, offsets);
+
+  if (nmatches > 0)
+    return True;
+  else
+    return False;
+
+}
+
+String instanceMethod asInteger (void) {
+  "Return an Integer value of the receiver String's
+  contents if the value is a valid integer, zero
+  otherwise."
+  returnObjectClass Integer;
+  return strtol (self value, NULL, 0);
+}
+
+String instanceMethod printOn (char *__fmt, ...) {
+  "Print the formatted arguments on the receiver String."
+  __ctalkSelfPrintOn (); 
+  return self;
+}
+
+String instanceMethod vPrintOn (Object fmtArg) {
+  __ctalkCallerPrintOnSelf (fmtArg); 
+  return self;
+}
+
+String instanceMethod envVarExists (char *__envVar) {
+  "Returns True if the environment variable given as the
+  argument, also a String, exists, or returns False if
+  the environment variable does not exist."
+  String new __envVarValue;
+  returnObjectClass Boolean;
+  if ((__envVarValue = getenv (__envVar)) != NULL) {
+    return TRUE;
+  } else {
+    return FALSE;
+  }
+}
+
+String instanceMethod charPos (Character c) {
+  "Return an Integer with the position of the Character
+  given as the argument in the receiver.  The first
+  position of the first character in the receiver
+  String is zero.  Returns -1 if the Character is not
+  in the String."
+  char arg_char;
+  int i;
+  OBJECT *self_value;
+  returnObjectClass Integer;
+  self_value = self value;
+  arg_char = c;
+  for (i = 0; self_value -> __o_value[i]; i++) {
+    if (self_value -> __o_value[i] == arg_char) {
+      return i;
+    }
+  }
+  return -1;
+}
+
+String instanceMethod charPosR (Character c) {
+  "Return an Integer with the position of the last
+   occurence of the Character given as the argument
+   in the receiver.  The first position of the first
+   character in the receiver String is zero.  Returns
+   -1 if the Character is not in the String."
+  char arg_char;
+  int i, length;
+  OBJECT *self_value;
+  returnObjectClass Integer;
+  length = self length;
+  arg_char = c;
+  self_value = self value;
+  for (i = length; i >= 0; i--) {
+    if (self_value -> __o_value[i] == arg_char) {
+      return i;
+    }
+  }
+  return -1;
+}
+
+String instanceMethod quickSearch (String __pattern, Array offsetsArray) {
+  "Perform an exact match of all occurrences of the first
+  argument, a String, in the receiver.  Stores the
+  offsets, which are numbered with the first character
+  of the receiver string as zero, in the Array given as
+  the second argument.  The last element of the offsets
+  array is -1.  Returns an Integer with the number of
+  matches in the offsets array."
+  long long offsets[MAXARGS];
+  int i, n;
+  returnObjectClass Array;
+  n = __ctalkSearchBuffer (__pattern, self, offsets);
+  if (n > 0) {
+    for (i = 0; ; i++) {
+      offsetsArray atPut i, offsets[i];
+      if (offsets[i] == -1)
+	break;
+    }
+  }
+  return n;
+}
+
+String instanceMethod matchRegex (String __pattern, Array offsetsArray) {
+  "Perform a search of all occurrences of the first argument, a 
+  String, in the receiver.  Stores the offsets, which are 
+  numbered with the first character of the receiver string as zero, 
+  in the Array given as the second argument.  The last element of 
+  the offsets array is -1.  Returns an Integer with the number of 
+  matches in the offsets array.  
+   
+  The pattern String can contain the metacharacters '*', which
+  matches zero or more occurrences of the preceding character;
+  '^', which matches beginning of the String; '$', which matches
+  the end of the string; and '.', which matches any single character."
+  long long offsets[MAXARGS];
+  int i, n;
+  returnObjectClass Array;
+  n = __ctalkMatchText (__pattern, self, offsets);
+  for (i = 0; ; i++) {
+    offsetsArray atPut i, offsets[i];
+    if (offsets[i] == -1)
+      break;
+  }
+  return n;
+}
+
+String instanceMethod search (String __pattern, Array offsetsArray) {
+  "This is a synonym for the matchRegex method, here for
+  backward compatibility."
+  return self matchRegex __pattern, offsetsArray;
+}
+
+String instanceMethod contains (String pattern) {
+  "Yet another matching method.  Returns a Boolean 
+   value of True if the receiver contains an exact
+   match of the argument's text, False otherwise."
+  returnObjectClass Boolean;
+  if (strstr (self, pattern))
+    return TRUE;
+  else
+    return FALSE;
+}
+
+String instanceMethod contains (String pattern, Integer startPos) {
+  "Returns the byte offset in the receiver's value where the 
+   first occurrence of the argument pattern is located, or
+   -1 if the receiver does not contain the pattern.  With two
+   arguments, the method begins its search from the Integer
+   offset given by the second argument."
+  OBJECT *self_object, *pat_object;
+  void *self_value;
+  char *pat_value;
+  int self_length;
+  int pat_length;
+  int i, eff_length, stpi;
+  returnObjectClass Integer;
+
+  self_length = self length value;
+
+  self_object = __ctalk_self_internal ();
+  self_value = (IS_VALUE_INSTANCE_VAR(self_object) ?
+		self_object -> __o_value : 
+		self_object -> instancevars -> __o_value);
+
+  pat_object = pattern value;
+  pat_value =  (IS_VALUE_INSTANCE_VAR(pat_object) ? 
+		pat_object -> __o_value : 
+		pat_object -> instancevars -> __o_value);
+
+  pat_length = strlen (pat_value);
+  eff_length = self_length - pat_length;
+
+  stpi = startPos value;
+  for (i = stpi; i <= eff_length; ++i) {
+    if (!memcmp (((char *)self_value) + i, pat_value, pat_length))
+      return i;
+  }
+  return -1;
+}
+
+String instanceMethod matchLength (void) {
+  "Returns the length of the match from a previous call to
+  String : matchRegex."
+  returnObjectClass Integer;
+ return __ctalkLastMatchLength (); 
+}
+
+String instanceMethod * deref_prefix (__prefix__) {
+  "Overloads the C language's * prefix operator.  Returns
+  the result of the expression, 'self at 0,' a Character."
+  returnObjectClass Character;
+  return self at 0;
+}
+
+String instanceMethod consoleReadLine (String promptStrArg) {
+  "Read a line of input from the console.  If Ctalk
+   supports GNU Readline, provides the Readline libraries'
+   command line editing and history facilities."
+    __ctalkConsoleReadLine (self, promptStrArg);
+  return self;
+}
+
+String instanceMethod tokenize (List tokenList) {
+  "A reasonably quick method that splits a string at each whitespace
+   character or characters (spaces, horizontal or vertical tabs, or
+   newlines) and places each non-whitespace token (word, number, or
+   miscellaneous punctuation) on the List given as the argument.  Uses
+   C's ispunct () function to determine punctuation, except for, '_',
+   which the method treats as a label character."
+  OBJECT *self_value;
+  char *end_ptr;
+  int i, j = 0, k, inword, length;
+  char tokbuf[MAXMSG];
+  Symbol new tokSym;
+
+  self_value = self value;
+
+  /* A reasonably portable way to find a string's length. */
+  end_ptr = index (self_value -> __o_value, '\0');
+  length = end_ptr - self_value -> __o_value;
+
+  inword = FALSE;
+
+  for (i = 0; i < length; i++) {
+    if (self_value -> __o_value[i] == '\n' ||
+	self_value -> __o_value[i] == ' ' ||	
+	self_value -> __o_value[i] == '\t' ||	
+	self_value -> __o_value[i] == '\v') {
+      if (inword) {
+	inword = FALSE;
+	k = i;
+	substrcpy (tokbuf, self_value -> __o_value, j, k - j);
+	*tokSym = String basicNew "token", tokbuf;
+	tokenList push *tokSym;
+      }
+    } else  {
+      if (ispunct ((int)self_value -> __o_value[i]) &&
+	  self_value -> __o_value[i] != '_') {
+	if (inword) {
+	  inword = FALSE;
+	  k = i;
+	  substrcpy (tokbuf, self_value -> __o_value, j, k - j);
+	  *tokSym = String basicNew "token", tokbuf;
+	  tokenList push *tokSym;
+	}
+	tokbuf[0] = self_value -> __o_value[i]; tokbuf[1] = '\0';
+	*tokSym = String basicNew "token", tokbuf;
+	tokenList push *tokSym;
+      } else {
+	if (!inword) {
+	  inword = TRUE;
+	  j = i;
+	}
+      }
+    }
+  }
+  /* Exit condition - save the last token if the string ends with it. */
+  if (self_value -> __o_value [i - 1] != '\n' &&
+      self_value -> __o_value [i - 1] != ' ' &&
+      self_value -> __o_value [i - 1] != '\t' &&
+      self_value -> __o_value [i - 1] != '\v') {
+    if (inword) {
+      substrcpy (tokbuf, self_value -> __o_value, j, length - j);
+      *tokSym = String basicNew "token", tokbuf;
+      tokenList push *tokSym;
+    }
+  }
+}
+
+String instanceMethod tokenizeLine (List tokenList) {
+  "Another method that splits a string at each whitespace
+   character or characters (spaces, horizontal or vertical tabs),
+   except this method tokenizes newlines as well as other non-
+   whitespace tokens (a word, number, or miscellaneous
+   punctuation) in the List given as the argument.  Uses
+   C's ispunct () function to determine punctuation, except for, '_',
+   which the method treats as a label character."
+  OBJECT *self_value;
+  char *end_ptr;
+  int i, j = 0, k, inword, length;
+  char tokbuf[MAXMSG];
+  Symbol new tokSym;
+
+  self_value = self value;
+
+  /* A reasonably portable way to find a string's length. */
+  end_ptr = index (self_value -> __o_value, '\0');
+  length = end_ptr - self_value -> __o_value;
+
+  inword = FALSE;
+
+  for (i = 0; i < length; i++) {
+    if (self_value -> __o_value[i] == ' ' ||	
+	self_value -> __o_value[i] == '\t' ||	
+	self_value -> __o_value[i] == '\v') {
+      if (inword) {
+	inword = FALSE;
+	k = i;
+	substrcpy (tokbuf, self_value -> __o_value, j, k - j);
+	*tokSym = String basicNew "token", tokbuf;
+	tokenList push *tokSym;
+      }
+    } else  {
+      if ((ispunct ((int)self_value -> __o_value[i]) &&
+	   self_value -> __o_value[i] != '_') ||
+	  self_value -> __o_value[i] == '\n') {
+	if (inword) {
+	  inword = FALSE;
+	  k = i;
+	  substrcpy (tokbuf, self_value -> __o_value, j, k - j);
+	  *tokSym = String basicNew "token", tokbuf;
+	  tokenList push *tokSym;
+	}
+	tokbuf[0] = self_value -> __o_value[i]; tokbuf[1] = '\0';
+	*tokSym = String basicNew "token", tokbuf;
+	tokenList push *tokSym;
+      } else {
+	if (!inword) {
+	  inword = TRUE;
+	  j = i;
+	}
+      }
+    }
+  }
+  /* Save the last token if the string has trailing whitespace. */
+  if (self_value -> __o_value [i - 1] != ' ' &&
+      self_value -> __o_value [i - 1] != '\t' &&
+      self_value -> __o_value [i - 1] != '\v') {
+    if (inword) {
+      substrcpy (tokbuf, self_value -> __o_value, j, length - j);
+      *tokSym = String basicNew "token", tokbuf;
+      tokenList push *tokSym;
+    }
+  }
+}
+
+String instanceMethod ++ increment (void) {
+  "Overloads C's ++ postfix operator.  This is overloaded to 
+  provide the equivalent of incrementing a C char *."
+
+  __ctalkIncStringRef (self, 1, TAG_REF_POSTFIX);
+  return self;
+}
+
+String instanceMethod -- decrement (void) {
+  "Overloads C's -- postfix operator.  This method functions
+  similarly to decrementing a C char *."
+
+  __ctalkIncStringRef (self, -1, TAG_REF_POSTFIX);
+  return self;
+}
+
+String instanceMethod ++ increment (__prefix__) {
+  "Overloads C's ++ prefix operator.  When the receiver
+  is a String object, this is the equivalent of incrementing
+  a C char *."
+
+  __ctalkIncStringRef (self, 1, TAG_REF_PREFIX);
+  return self value;
+}
+
+String instanceMethod -- decrement (__prefix__) {
+  "Overloads C's -- prefix operator.  When the receiver
+  is a String object, this is the equivalent of decrementing
+  a C char *."
+
+  __ctalkIncStringRef (self, -1, TAG_REF_PREFIX);
+  return self value;
+}
+
+String instanceMethod chomp (void) {
+  "Removes a trailing newline if the receiver String
+contains one."
+  char *s;
+  OBJECT *self_value;
+
+  self_value = self;
+
+  if ((s = strchr (self_value -> __o_value, '\n')) != NULL)
+    *s = '\0';
+
+  self_value = self value;
+
+  if ((s = strchr (self_value -> __o_value, '\n')) != NULL)
+    *s = '\0';
+  return NULL;
+}
+
+String instanceMethod ! negate_pfx (__prefix__) {
+  "Overloads the C prefix operator, '!'. Returns True if
+   the the receiver string evaluates to zero, NULL, or
+   (null), False otherwise."
+  returnObjectClass Boolean;
+  OBJECT *s;
+  s = self value;
+  if (STR_IS_NULL(s -> __o_value))
+    return True;
+  else
+    return False;
+}
+
+String instanceMethod getRS (void) {
+  "Return's the program's current record separator,
+  a Character."
+  returnObjectClass Character;
+  return __ctalkGetRS ();
+}
+
+String instanceMethod setRS (Character rsc) {
+  "Set the program's record separator to the Character given
+  as the argument."
+    __ctalkSetRS (rsc);
+}
+
+String instanceMethod map (OBJECT *(*methodfn)()) {
+  "Call the argument, a method, for each character in the
+  receiver String.  The argument method has the
+  prototype, 'String instanceMethod <methodName> (void)'."
+    OBJECT *list_elem, *rcvr_obj, *rcvr_obj_p, *(*fn)(), *have_break;
+#ifdef DJGPP
+  OBJECT *result_object;
+#endif
+  int i;
+  char buf[2], c_ret;
+  METHOD *self_method, *arg_method;
+
+  fn = (OBJECT *(*)())__ctalkRtGetMethodFn ();
+  rcvr_obj = rcvr_obj_p = __ctalk_self_internal ();
+
+  if (((self_method = __ctalkRtGetMethod ()) == NULL) &&
+      ((self_method = __ctalkFindClassMethodByFn (&rcvr_obj, fn, 0))
+       == NULL)) {
+    __ctalkCriticalExceptionInternal (NULL, undefined_method_x, 
+				      "from map (Class List)");
+    return NULL;
+  }
+
+  if (((arg_method = __ctalkFindInstanceMethodByName 
+	(&rcvr_obj_p, ARG_NAME(self_method->args[self_method->n_args-1]), 0, -1))
+      == NULL) &&
+      ((arg_method = __ctalkFindClassMethodByName 
+	(&rcvr_obj_p, ARG_NAME(self_method->args[self_method->n_args-1]), 0, -1))
+       == NULL)) {
+    char errormsg[256];
+    xsprintf (errormsg, 
+	     "From map (Class List): %s (Class %s) does not understand method, \"%s.\"",
+	     rcvr_obj_p -> __o_name, 
+	     rcvr_obj_p -> CLASSNAME,
+	     ARG_NAME(self_method->args[self_method->n_args-1]));
+    __ctalkCriticalExceptionInternal (NULL, undefined_method_x, 
+				      errormsg);
+    return NULL;
+  }
+
+  list_elem = __ctalkCreateObjectInit ("elem", "Character",
+				       "Magnitude", 
+				       LOCAL_VAR,
+				       NULLSTR);
+  for (i = 0, have_break = NULL; 
+       rcvr_obj -> __o_value[i] && !have_break; ++i) {
+    buf[0] = rcvr_obj -> __o_value[i];
+    buf[1] = '\0';
+    __ctalkSetObjectValueVar (list_elem, buf);
+    if (!list_elem) {
+      __ctalkCriticalExceptionInternal (NULL, undefined_receiver_x, 
+					"from map (Class String)");
+      return NULL;
+    }
+#ifdef DJGPP
+    if ((result_object = __ctalkInlineMethod (list_elem, arg_method,0))!=NULL){
+      c_ret  = (char)__ctalkIntFromCharConstant 
+	(list_elem -> instancevars -> __o_value);
+      if (c_ret != (int)rcvr_obj -> __o_value[i]) {
+	rcvr_obj -> __o_value[i] = c_ret;
+	rcvr_obj -> instancevars -> __o_value[i] = c_ret;
+      }
+      if (atoll (result_object -> __o_value) != 0)
+	break;
+    }
+#else
+    have_break = __ctalkInlineMethod (list_elem, arg_method, 0);
+    c_ret  = (char)__ctalkIntFromCharConstant 
+      (list_elem -> instancevars -> __o_value);
+    if (c_ret != (int)rcvr_obj -> __o_value[i]) {
+      rcvr_obj -> __o_value[i] = c_ret;
+      rcvr_obj -> instancevars -> __o_value[i] = c_ret;
+    }
+#endif
+  }
+  __ctalkArgBlkSetCallerReturn (have_break);
+  __objRefCntZero (OBJREF(list_elem));
+  __ctalkDeleteObject (list_elem);
+
+#ifdef DJGPP
+  if (result_object) __ctalkDeleteObject (result_object);
+#endif
+  return NULL;
+}
+
+String instanceMethod asList (List charList) {
+  "Split the receiver string into characters and push
+   each character onto the List given as the argument."
+  returnObjectClass List;
+  Symbol new ptr;
+  int i, length;
+  char c, *val;
+
+  length = self length;
+
+  val = self value;
+  for (i = 0; i < length; ++i) {
+    c = val[i];
+    *ptr = Character basicNew c, c;
+    charList push *ptr;
+  }
+  return charList;
+}
+
+String instanceMethod =~ matchOp (String pattern) {
+  long long offsets[MAXARGS];
+  int n;
+  returnObjectClass Boolean;
+  n = __ctalkMatchText (pattern, self, offsets);
+  if (n > 0) {
+    return true;
+  } else {
+    return false;
+  }
+}
+
+String instanceMethod !~ noMatchOp (String pattern) {
+  long long offsets[MAXARGS];
+  int n;
+  returnObjectClass Boolean;
+  n = __ctalkMatchText (pattern, self, offsets);
+  if (n > 0) {
+    return false;
+  } else {
+    return true;
+  }
+}
+
+String instanceMethod matchAt (Integer idx) {
+  "Returns the text of the idx'th parenthesized
+   match of the previous call to matchRegex, =~,
+   or !~.  The reference indexes are numbered
+   starting from 0 for the first reference, 1,
+   for the second, and so on."
+  return __ctalkMatchAt (idx);
+}
+
+String instanceMethod matchIndexAt (Integer idx) {
+  "Returns the character index in the receiver
+   string of the idx'th parenthesized
+   match of the previous call to matchRegex, =~,
+   or !~.  The reference indexes are numbered
+   starting from 0 for the first reference, 1,
+   for the second, and so on."
+  returnObjectClass Integer;
+  return __ctalkMatchIndexAt (idx);
+}
+
+String instanceMethod isXLFD (void) {
+  "Returns a Boolean value of TRUE if the argument
+   is a XLFD font specification, FALSE otherwise."
+    returnObjectClass Boolean;
+  if ((self at 0 == '-') && ((self at 1) isAlpha)) {
+    return TRUE;
+  } else if ((self at 0 == '-') && (self at 1 == '*')) {
+    return TRUE;
+  } else {
+    return FALSE;
+  }
+}
+
+String instanceMethod nMatches (void) {
+  "Returns an Integer with the number of matches
+   for the last call to matchRegex."
+    returnObjectClass Integer;
+  return __ctalkNMatches ();
+}
+
+String instanceMethod printMatchToks (Integer yesNo) {
+  __ctalkMatchPrintToks (yesNo);
+}
+
+String instanceMethod systemErrnoStr (void) {
+  "Sets the receiver string to the text of the last system error
+   (the value of the global C variable, errno)."
+  __ctalkSetObjectValueVar (self, strerror (errno));
+  return self;
+}

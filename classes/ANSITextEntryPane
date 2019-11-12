@@ -1,0 +1,194 @@
+/* $Id: ANSITextEntryPane,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-C-*-*/
+
+/*
+  This file is part of Ctalk.
+  Copyright © 2005-2014, 2018-2019  Robert Kiesling, rk3314042@gmail.com.
+  Permission is granted to copy this software provided that this copyright
+  notice is included in all source code modules.
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+*/
+
+ANSIWidgetPane class ANSITextEntryPane
+"An ANSITextEntryPane is a simple text entry dialog.";
+ANSITextEntryPane instanceVariable promptText String NULL;
+ANSITextEntryPane instanceVariable inputBuffer String NULL;
+ANSITextEntryPane instanceVariable inputLength Integer 20;
+
+ANSITextEntryPane instanceMethod withPrompt (String promptTextArg) {
+  // Set the prompt text for the the receiver.  The argument, a 
+  // String, contains the text.
+  self promptText = promptTextArg;
+  self size x = (promptTextArg length) + (self inputLength) + 3;
+
+  self addBuffer self size x, 3, 1;
+
+  return self;
+}
+
+ANSITextEntryPane instanceMethod inputWidth (Integer widthArg) {
+  "Set the receiver pane's width to the argument, an
+Integer."
+  OBJECT *paneBuffer_value_alias;
+  char buf[MAXMSG];
+  __ctalkDeleteWinBuffer (self paneBuffer);
+  self inputLength = widthArg;
+  self size x = (self promptText length) + (self inputLength) + 3;
+  paneBuffer_value_alias = self paneBuffer value;
+  __ctalkHexIntegerToASCII
+    ((unsigned int)__ctalkCreateWinBuffer
+     (self size x, 3, 1), buf);
+  __ctalkSetObjectValue (paneBuffer_value_alias, buf);
+  return self;
+}
+
+ANSITextEntryPane instanceMethod new (String __paneName) {
+  "The ANSITextPane constructor.  The argument, a String,
+  contains the name of the new object."
+  ANSIWidgetPane super new __paneName;
+  __paneName paneStream openInputQueue;
+  __paneName withShadow;
+  __paneName withBorder;
+  __paneName isInputPane = TRUE;
+  __paneName size x = __paneName inputLength + 3;
+  __paneName size y = 3;
+  __paneName addBuffer __paneName inputLength + 3, 1, 1;
+  return __paneName;
+}
+
+ANSITextEntryPane instanceMethod withdraw (void) {
+  "Remove the receiver pane from the display."
+  if (self parentPane) {
+    self unmap;
+  } else {
+    self paneStream clear;
+  }
+  return NULL;
+}
+
+#ifndef ESC
+#define ESC     0x1b
+#endif
+#ifndef CR
+#define CR      0x0d
+#endif
+#ifndef BS
+#define BS      0x08
+#endif
+#ifndef DEL
+#define DEL     0x7f
+#endif
+
+ANSITextEntryPane instanceMethod show (int x_org, int y_org) {
+  "Display the receiver pane at column and row position
+  given by the arguments, both Integers.  Calls the
+  handleInput method and waits for the user's input.
+  The method returns the buffer with the user's text
+  input, a String."
+  returnObjectClass String;
+  self origin x = self parentOrigin x + x_org;
+  self origin y = self parentOrigin y + y_org;
+  self gotoXY 2, 2;
+  self printOn "%s", self promptText;
+  self gotoXY self promptText length + 3, 2;
+  if (self parentPane) {
+    self map;
+  }
+  self refresh;
+  self handleInput;
+  return self inputBuffer;
+}
+
+
+ANSITextEntryPane instanceMethod handleInput (void) {
+  "Handle the user's input.  The method saves the input in
+  the inputBuffer instance variable.  The method
+  returns when the user presses Enter or Escape."
+  Integer new c;
+  InputEvent new iEvent;
+  Integer new bufIndex;
+  Character new cChar;
+  String new visibleText;
+  Integer new inputBufferLength;
+  Integer new inputLengthInt;
+  Integer new textStartColumn;
+
+  bufIndex = 0;
+
+  textStartColumn = self promptText length + 3;
+  inputLengthInt = self inputLength - 1;
+
+  self paneStream rawMode;
+  while ((c = self paneStream getCh) != EOF) {
+    iEvent become self paneStream nextInputEvent;
+    switch (iEvent eventClass)
+      {
+      case KBDCHAR:
+	switch (iEvent eventData)
+	  {
+	  case BS:
+	  case DEL:
+	    if (bufIndex > 0) {
+	      bufIndex = bufIndex - 1;
+	      self inputBuffer = self inputBuffer subString 0, bufIndex;
+	      inputBufferLength = self inputBuffer length;
+	      if (inputBufferLength < inputLengthInt) {
+		self gotoXY textStartColumn, 2;
+		self printOn "%s", self inputBuffer;
+		self gotoXY textStartColumn + bufIndex, 2;
+		self printOn "%s", " ";
+		self gotoXY textStartColumn + bufIndex, 2;
+	      } else {
+		visibleText = 
+		  (self inputBuffer subString inputBufferLength - 
+		   inputLengthInt, inputBufferLength);
+		self gotoXY textStartColumn, 2;
+		self printOn "%s", visibleText;
+	      }
+	      self refresh;
+	    }
+	    break;
+	  case CR:
+	  case ESC:
+	    self paneStream restoreTerm;
+	    self withdraw;
+	    return NULL;
+	    break;
+	  default:
+	    cChar = iEvent eventData asCharacter;
+ 	    self inputBuffer = self inputBuffer + cChar asString;
+ 	    bufIndex = bufIndex + 1;
+	    self gotoXY textStartColumn, 2;
+
+	    inputBufferLength = self inputBuffer length;
+	    if (inputBufferLength < inputLengthInt) {
+	      self printOn "%s", self inputBuffer;
+	      self gotoXY textStartColumn + bufIndex, 2;
+	    } else {
+	      inputBufferLength = self inputBuffer length;
+ 	      visibleText = 
+ 		(self inputBuffer subString inputBufferLength - 
+		 inputLengthInt, inputBufferLength);
+	      self printOn "%s", visibleText;
+	      self gotoXY textStartColumn + inputLengthInt, 2;
+	    }
+	    self refresh;
+	    break;
+	  }
+	break;
+      }
+  }
+}
+

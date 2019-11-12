@@ -1,0 +1,295 @@
+/* $Id: Collection,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-c-*-*/
+
+/*
+  This file is part of Ctalk.
+  Copyright © 2005 - 2016, 2019  Robert Kiesling, rk3314042@gmail.com.
+  Permission is granted to copy this software provided that this copyright
+  notice is included in all source code modules.
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+*/
+
+/*
+ *    Collection class.
+ */
+
+Object class Collection
+"Collection is the superclass of other classes that
+contain groups of objects - Arrays, Lists, and
+AssociativeArrays.  This class defines methods that
+are common to all collection types.";
+
+#include <ctalk/ctalkdefs.h>
+
+Collection instanceMethod atPut (char *__keyString, 
+				       OBJECT *__elemObject) {
+  "Set the receiver at element at <keyString> a String, to
+  <elemObject>, an Object.
+
+  This is the generic atPut method that subclasses of
+  Collection can call.
+
+  Note that the method needs to use, 
+     'eval key_alias_copy setValue __elemObject'
+  to defer setting the value of the key until run time,
+  because the compiler only evaluates key_alias_copy as
+  a generic OBJECT *.  The method uses a copy of
+  keyObject so that that the key that is actually
+  stored in the receiver Collection is not referred to
+  anywhere else.
+
+  If the collection element is created out of
+  constants; i.e., does not have a GLOBAL_VAR or
+  LOCAL_VAR scope, register the object as an extra
+  object, which gives it the scope METHOD_USER_OBJECT
+  and prevents it from being deleted as a temporary
+  object."
+
+  Key new keyObject;
+  OBJECT *key_alias_ptr, *key_alias_copy, *elem_object_alias;
+  OBJECT *self_object, *t;
+
+  keyObject setName __keyString;
+
+  key_alias_ptr = keyObject;
+
+  __ctalkCopyObject (OBJREF(key_alias_ptr), OBJREF(key_alias_copy));
+
+  __ctalkReferenceObject (key_alias_copy, __elemObject);
+
+  self_object = self;
+  __objRefCntSet (OBJREF(key_alias_copy), self_object -> nrefs);
+
+
+  if (!__LIST_HEAD(self_object)) {
+    __LIST_HEAD(self_object) = key_alias_copy;
+  } else {
+    for (t = __LIST_HEAD(self_object); t && t -> next; t = t -> next)
+      ;
+    t -> next = key_alias_copy;
+    key_alias_copy -> prev = t;
+  }
+  key_alias_copy -> __o_p_obj = self_object;
+  key_alias_copy -> attrs |= OBJECT_IS_MEMBER_OF_PARENT_COLLECTION;
+
+  elem_object_alias = __elemObject;
+  if (!(elem_object_alias -> scope & LOCAL_VAR) &&
+      !(elem_object_alias -> scope & GLOBAL_VAR)) {
+    __ctalkRegisterExtraObject (elem_object_alias);
+  }
+
+  return self;
+}
+
+Collection instanceMethod at (char *__keyString) {
+  "Return the receiver element with the key given by the
+  argument, a String."
+  OBJECT *key_object, *item_object;
+  
+  returnObjectClass Any;
+
+  key_object = __ctalkGetInstanceVariable (self, __keyString, FALSE);
+  if (key_object) {
+    item_object = *(OBJECT **) (key_object -> instancevars -> __o_value);
+    return item_object;
+  } else {
+    return NULLSTR;
+  }
+}
+
+Collection instanceMethod getValue (void) {
+  "If the receiver is a Key object, returns the value of
+  the Key.  Otherwise raises an exception."
+  Exception new e;
+
+  if (self is Key) {
+    return self getValue;
+  }
+  e raiseCriticalException INVALID_RECEIVER_X, 
+    "Receiver of \"getValue\" is not a Key object";
+  return NULL;
+}
+
+Collection instanceMethod keyExists (char *__key) {
+  "Returns an Integer value of True if the receiver
+  AssociativeArray contains the key given by the
+  argument, a String, False otherwise."
+  OBJECT *key_object;
+  
+  returnObjectClass Integer;
+
+  if ((key_object = 
+       __ctalkGetInstanceVariable (self, __key, FALSE)) != NULL) {
+    return TRUE;
+  } else {
+    return FALSE;
+  }
+}
+
+Collection instanceMethod isEmpty (void) {
+  "Return an Integer value of True if the receiver
+  Collection is empty, False otherwise."
+  OBJECT *rcvr_obj;
+
+  returnObjectClass Integer;
+
+  rcvr_obj = __ctalkRtReceiverObject ();
+  if (__LIST_HEAD(rcvr_obj) == NULL) {
+    return TRUE;
+  } else {
+    return FALSE;
+  }
+}
+
+Collection instanceMethod size (void) {
+  "Return an Integer with the number of items in the
+  receiver Collection."
+  returnObjectClass Integer;
+  OBJECT *rcvr_obj, *t;
+  Integer new n;
+  n = 0;
+
+  if (self isEmpty)
+    return n;
+
+  rcvr_obj = __ctalk_self_internal ();
+
+  if ((t = __LIST_HEAD(rcvr_obj)) != NULL) {
+    do {
+      n = n + 1;
+    }  while ((t = t -> next) != 0);
+  }
+  return n;
+}
+
+Collection instanceMethod removeAt (String keyName) {
+
+  OBJECT *rcvr_obj, *t, *value_obj;
+
+  if (self isEmpty)
+    return NULL;
+
+  rcvr_obj = __ctalk_self_internal ();
+
+  for (t = __LIST_HEAD(rcvr_obj); t; t = t -> next) {
+    if (!strcmp (t -> __o_name, keyName name)) {
+      if (t -> next) t -> next -> prev = t -> prev;
+      if (t -> prev) t -> prev = t -> prev -> next;
+      if (t == __LIST_HEAD(rcvr_obj)) __LIST_HEAD(rcvr_obj) = t -> next;
+      value_obj = SYMTOOBJ(t -> instancevars -> __o_value);
+      __objRefCntSet (OBJREF(value_obj), value_obj -> nrefs - 1);
+      t delete;
+      return value_obj;
+    }
+  }
+
+  return NULL;
+}
+
+Collection instanceMethod head (void) {
+  "Return the first item in the collection."
+    OBJECT *self_value, *head_object;
+  returnObjectClass Key;
+
+  if ((head_object =__LIST_HEAD(self)) != NULL)
+    return head_object;
+  else
+    return NULL;
+}
+
+Collection instanceMethod tail (void) {
+  "Return the last member of the collection."
+  OBJECT *head_object, *t;
+  returnObjectClass Key;
+
+  if ((head_object =__LIST_HEAD(self)) != NULL) {
+
+    for (t = head_object; t; t = t -> next) {
+      if (t -> next == NULL)
+	break;
+    }
+
+    return t;
+  } else {
+    return NULL;
+  }
+
+}
+
+Collection instanceMethod * deref_prefix (__prefix__) {
+  "This method overloads C' * prefix operator.  This is a
+  shortcut for the expression <collectionName> head."
+  returnObjectClass Any;
+  return self head;
+}
+
+Collection instanceMethod delete (void) {
+  "Remove all of the items from the receiver 
+   collection, leaving an empty collection.  If any of 
+   the objects in the list are temporary, delete
+   them."
+   OBJECT *rcvr_obj, *item_obj, *t, *key_object;
+  
+  rcvr_obj = __ctalk_self_internal ();
+
+  if (__LIST_HEAD(rcvr_obj) == NULL)
+    return NULL;
+
+  for (t = __LIST_HEAD(rcvr_obj); t && t -> next; t = t -> next)
+    ;
+
+  do {
+    key_object = t;
+    if (t -> prev) {
+      t -> prev -> next = NULL;
+      t = t -> prev;
+    } else  { /* Removed first item, so list is now empty. */
+      __LIST_HEAD(rcvr_obj) = NULL;
+    }
+
+    if (key_object is Key) {
+      /* If the memory slot isn't re-used by something else. */
+      item_obj = (Symbol *)key_object removeValue;
+      key_object delete;
+
+      if (item_obj) {
+	__objRefCntDec(OBJREF(item_obj));
+
+	if (IS_OBJECT (item_obj)) {
+	  if (HAS_CREATED_CVAR_SCOPE(item_obj)) {
+	    item_obj delete;
+	  } else {
+	    __ctalkSetObjectScope (item_obj, item_obj -> scope & ~VAR_REF_OBJECT);
+	    __objRefCntDec (OBJREF(item_obj));
+	  }
+	}
+      }
+    }
+
+  } while ((__LIST_HEAD(rcvr_obj) != NULL));
+
+  return NULL;
+}
+
+Collection instanceMethod + nth (Integer n) {
+  "With an Integer <n> as the argument, returns the nth
+   member of the receiver Collection."
+  Key new k;
+  returnObjectClass Key;
+
+  k = *self;
+  k += n;
+  return k;
+}

@@ -1,0 +1,229 @@
+/* $Id: ANSIProgressBarPane,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-C-*-*/
+
+/*
+  This file is part of Ctalk.
+  Copyright © 2014, 2018-2019  Robert Kiesling, rk3314042@gmail.com.
+  Permission is granted to copy this software provided that this copyright
+  notice is included in all source code modules.
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+*/
+
+/*
+ *  ANSIProgressBarPane class.  
+ */
+
+ANSIWidgetPane class ANSIProgressBarPane
+"An ANSIProgressBarPane widget can display progress bar
+as a percentage of the pane's width";
+ANSIProgressBarPane instanceVariable viewHeight Integer 0;
+ANSIProgressBarPane instanceVariable viewWidth Integer 0;
+ANSIProgressBarPane instanceVariable progress Integer 0;
+ANSIProgressBarPane instanceVariable pctLabelMargin Integer 0;
+ANSIProgressBarPane instanceVariable percentInt Integer 0;
+
+#define SCROLL_VIEW_START_X_OFFSET 2
+#define SCROLL_VIEW_START_Y_OFFSET 2 /* Count view lines from 1. */
+
+#define SCROLL_DEFAULT_ORIGIN_X 1
+#define SCROLL_DEFAULT_ORIGIN_Y 1
+#define SCROLL_DEFAULT_SIZE_X 40
+#define SCROLL_DEFAULT_SIZE_Y 3
+#define SCROLL_DEFAULT_VIEWHEIGHT 3
+#define SCROLL_DEFAULT_VIEWWIDTH 38   /* SCROLL_DEFAULT_SIZE_X - 2 */
+
+ANSIProgressBarPane instanceMethod dimension (int width, int height) {
+  "Resize the pane."
+
+  self addBuffer width, height, 1;
+
+  self viewWidth = width;
+  self viewHeight = height;
+  self size x = width;
+  self size y = height;
+  self pctLabelMargin = self size x / 2;
+}
+
+ANSIProgressBarPane instanceMethod new (String __paneName) {
+  "ANSIProgressBarPane constructor.  The argument, a
+  String, contains the name of the new object.  Sets
+  the default size of the new pane."
+  OBJECT *paneBuffer_value_alias;
+  ANSIWidgetPane super new __paneName;
+  __paneName paneStream openInputQueue;
+
+  __paneName shadow = TRUE;
+  __paneName border = TRUE;
+
+  __paneName origin x = SCROLL_DEFAULT_ORIGIN_X;
+  __paneName origin y = SCROLL_DEFAULT_ORIGIN_Y;
+  __paneName size x = SCROLL_DEFAULT_SIZE_X;
+  __paneName size y = SCROLL_DEFAULT_SIZE_Y;
+  __paneName viewWidth = SCROLL_DEFAULT_SIZE_X - 2;
+  __paneName viewHeight = SCROLL_DEFAULT_SIZE_Y - 2;
+  __paneName pctLabelMargin = (SCROLL_DEFAULT_SIZE_X / 2);
+
+  __paneName addBuffer __paneName size x, __paneName size y, 1;
+
+  return __paneName;
+}
+
+ANSIProgressBarPane instanceMethod percent (Float pct) {
+
+  self progress = (self viewWidth) * (pct * .01) ;
+  self percentInt = pct;
+}
+
+ANSIProgressBarPane instanceMethod refresh (void) {
+  "Update the pane's contents on the display.  Draws the
+  thumb starting at line thumbStartLine within the
+  pane, with a height of thumbHeight."
+
+  Integer new i;
+
+  self super refresh;
+
+  self reverseOnOff;
+
+  for (i = 0; i < self progress; i = i + 1) {
+    self putCharXY SCROLL_VIEW_START_X_OFFSET + i, 
+      SCROLL_VIEW_START_Y_OFFSET, ' ';
+  }
+
+  self reverseOnOff;
+
+  self gotoXY self pctLabelMargin, SCROLL_VIEW_START_Y_OFFSET;
+  self printOn "%d%%", self percentInt;
+  /* Leave the cursor in a nice place. */
+  self putCharXY SCROLL_VIEW_START_X_OFFSET + self progress, 
+    SCROLL_VIEW_START_Y_OFFSET, ' ';
+
+  return NULL;
+}
+
+#define ESC     0x1b
+#define CR      0x0d
+#define LF      0x0a
+#define EMACS_DN 0x0e
+#define EMACS_UP 0x10
+#define CSI2    0x5b     /* ESC [ sequence is CSI */
+
+ANSIProgressBarPane instanceMethod handleInput (void) {
+  "Process input for the Pane.  Pressing Escape or Enter
+  withdraws the pane from the display.
+  This method can also move a scroll bar that is drawn
+  independently, using the Up and Down arrow keys."
+  Integer new c;
+  InputEvent new iEvent;
+  String new responseString;
+
+  returnObjectClass String;
+
+  self paneStream rawMode;
+  self paneStream openInputQueue;
+  while ((c = self paneStream getCh) != EOF) {
+    iEvent become self paneStream nextInputEvent;
+    switch (iEvent eventClass)
+      {
+	/*
+	 *  ESC alone should work okay... but grab 
+	 *  the rest of a sequence if necessary.
+	 */
+      case KBDCHAR:
+	switch (iEvent eventData asCharacter)
+	  {
+	  case ESC:
+	    if ((c = self paneStream getChNoBlock) != 0) {
+	      iEvent become self paneStream nextInputEvent;
+	      switch (iEvent eventData asCharacter) 
+		{
+		case CSI2:
+ 		  if ((c = self paneStream getChNoBlock) != 0) {
+		    iEvent become self paneStream nextInputEvent;
+		    switch (iEvent eventData asCharacter) 
+		      {
+		      }
+		  }
+		  break;
+		default:
+		  break;
+		}
+	    } else {
+	      self withdraw;
+	      self paneStream restoreTerm;
+	      self paneStream setGraphics '0';
+	      return NULL;
+	    }
+	    break;
+ 	  case CR:
+	  case LF:
+	    self withdraw;
+	    self paneStream restoreTerm;
+	    self paneStream setGraphics '0';
+	    return responseString;
+	    break;
+	  }
+	break;
+      case KBDCUR:
+	switch (iEvent eventData)
+	  {
+	  case 'A':  /* Cursor up */
+	    self refresh;
+	    break;
+	  case 'B':  /* Cursor dn */
+	    self refresh;
+	    break;
+	  default:
+	    break;
+	  }
+	break;
+      }
+  }
+  return NULL;
+}
+
+ANSIProgressBarPane instanceMethod show (int x_org, int y_org) {
+  "Sets the X and Y position of the receiver object and
+  display it, then waits for user input."
+
+  self origin x = x_org;
+  self origin y = y_org;
+  self cursor x = SCROLL_VIEW_START_X_OFFSET;
+  self cursor y = SCROLL_VIEW_START_X_OFFSET;
+  self refresh;
+
+  self handleInput;
+  return NULL;
+}
+
+ANSIProgressBarPane instanceMethod display (int x_org, int y_org) {
+  "Set the X and Y positions of the receiver object and
+  displays it, then returns."
+
+  self origin x = x_org;
+  self origin y = y_org;
+  self cursor x = SCROLL_VIEW_START_X_OFFSET;
+  self cursor y = SCROLL_VIEW_START_X_OFFSET;
+  self refresh;
+
+  return NULL;
+}
+
+ANSIProgressBarPane instanceMethod cleanup (void) {
+  "Delete the buffers associated with the Pane objects."
+  __ctalkDeleteWinBuffer (self paneBuffer);
+  __ctalkDeleteWinBuffer (self paneBackingStore);
+  return NULL;
+}

@@ -1,0 +1,111 @@
+/* $Id: TCPIPV6NetworkStreamWriter,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-c-*-*/
+
+/*
+  This file is part of Ctalk.
+  Copyright © 2018 Robert Kiesling, rk3314042@gmail.com.
+  Permission is granted to copy this software provided that this copyright
+  notice is included in all source code modules.
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+*/
+
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <netdb.h>
+#include <errno.h>
+#include <ctalk/ctalkdefs.h>
+
+TCPIPV6NetworkStream class TCPIPV6NetworkStreamWriter;
+
+TCPIPV6NetworkStreamWriter instanceMethod __openOnInternal (String hostName,
+							    Integer port) {
+  "This method does the actual work of making an IPv6 connection
+   for writing.  It should be called by one of the openOn methods
+   in this class."
+  Exception new ex;
+  SystemErrnoException new exSocket;
+  String new errMsg;
+  int r, addrlen;
+  int on_int = 1;
+  struct sockaddr_in6 *server;
+  struct addrinfo *res, *rp, hints;
+
+  returnObjectClass Integer;
+
+  self createSocketBasic;
+  if (exSocket pending) {
+    return NULL;
+  }
+
+  setsockopt (self sock, SOL_SOCKET, SO_REUSEADDR, &on_int,
+	      sizeof (on_int));
+
+  xmemset (&hints, 0, sizeof (struct addrinfo));
+  hints.ai_family = AF_INET6;
+  hints.ai_socktype = SOCK_STREAM;
+  hints.ai_flags = AI_PASSIVE;
+  hints.ai_protocol = 0;
+  hints.ai_canonname = NULL;
+  hints.ai_addr = NULL;
+  hints.ai_next = NULL;
+
+  r = getaddrinfo (hostName, NULL, &hints, &res);
+  if (r != 0) {
+    errMsg printOn "Host, \"%s:\" ", hostName;
+    errMsg += gai_strerror (r);
+    ex raiseException INVALID_OPERAND_X, errMsg;
+    return 0;
+  }
+
+  addrlen = sizeof (struct sockaddr_in6);
+
+  for (rp = res; rp; rp = rp -> ai_next) {
+    server = (struct sockaddr_in6 *)rp -> ai_addr;
+    server -> sin6_port = htons (port);
+    if ((r = connect (self sock, (struct sockaddr *)server, addrlen))
+	== 0) {
+      break;
+    } else {
+     ex raiseException USER_EXCEPTION_X,
+	"In openOn: connect (): " + strerror (errno);
+    }
+  }
+
+  freeaddrinfo (res);
+  return self sock;
+
+}
+
+TCPIPV6NetworkStreamWriter instanceMethod openOn (String hostName) {
+  "Open a socket to communicate with the address given as
+   the argument.  The method can raise either an Exception if
+   an error occurs during address lookup, or a SystemErrnoException
+   if there is an error while making the connection."
+  returnObjectClass Integer;
+
+  return self __openOnInternal hostName, DEFAULT_TCPIP_PORT;
+}
+
+TCPIPV6NetworkStreamWriter instanceMethod openOn (String hostName,
+						Integer port) {
+  "Open a socket to communicate with the address and port
+   given as arguments. The method can raise either an Exception if
+   an error occurs during address lookup, or a SystemErrnoException
+   if there is an error while making the connection."
+  returnObjectClass Integer;
+    
+  return self __openOnInternal hostName, port;
+}

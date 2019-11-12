@@ -1,0 +1,126 @@
+/* $Id: ANSIButtonPane,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-C-*-*/
+
+/*
+  This file is part of Ctalk.
+  Copyright © 2005-2014, 2018  Robert Kiesling, rk3314042@gmail.com.
+  Permission is granted to copy this software provided that this copyright
+  notice is included in all source code modules.
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+*/
+
+ANSIWidgetPane class ANSIButtonPane
+"ANSIButtonPane class draws and handles the input for text-mode 
+button widgets.  The handleInput method provides keys highlighting
+and pressing a single button, though applications that contain
+multiple buttons (like ANSIYesNoBoxPane) can provide their own
+handleInput method.";
+ANSIButtonPane instanceVariable buttonText String 0x0;
+ANSIButtonPane instanceVariable outputBuffer String 0x0;
+
+ANSIButtonPane instanceMethod new (String __paneName) {
+  "The ANSIButtonPane constructor.  The argument, a String,
+  contains the name of the new object."
+
+  ANSIButtonPane super new __paneName;
+
+  __paneName paneStream openInputQueue;
+  __paneName withShadow;
+  __paneName withBorder;
+  __paneName isInputPane = TRUE;
+  __paneName size x = 10;
+  __paneName size y = 3;
+
+  __paneName addBuffer 13, 3, 1;
+
+  return __paneName;
+}
+
+ANSIButtonPane instanceMethod withText (String buttonTextArg) {
+  "Set the button pane's text to the argument, a String.
+  Also resizes the pane to fit the text."
+
+  self buttonText = buttonTextArg;
+  self size x = buttonTextArg length + 2;
+  self addBuffer self size x, 3, 1;
+
+  return self;
+}
+
+ANSIButtonPane instanceMethod show (int x_org, int y_org) {
+  "Display the button pane and wait for the user's input."
+  self origin x = self parentOrigin x + x_org;
+  self origin y = self parentOrigin y + y_org;
+  self gotoXY 2, 2;
+  self printOn "%s", self buttonText;
+  if (self parentPane) {
+    self map;
+  }
+  self refresh;
+  self handleInput;
+  return self outputBuffer;
+}
+
+ANSIButtonPane instanceMethod focusHighlightOnOff (void) {
+  "Set and clear the button's focus highlight."
+  self reverseOnOff;
+  return self;
+}
+
+#ifndef ESC
+#define ESC     0x1b
+#endif
+#define LF      0x0a
+#define CR      0x0d
+
+ANSIButtonPane instanceMethod handleInput (void) {
+  "Wait for input from the user.  Pressing Escape
+  or Enter flashes the button and then withdraws
+  the pane from the display before the method 
+  returns."
+  Integer new c;
+  InputEvent new iEvent;
+
+  self paneStream openInputQueue;
+
+  while ((c = self paneStream getCh) != EOF) {
+    iEvent become self paneStream nextInputEvent;
+    switch (iEvent eventClass)
+      {
+      case KBDCHAR:
+	switch (iEvent eventData)
+	  {
+	  case ESC:
+	    self outputBuffer = "";
+	    self withdraw;
+	    self paneStream restoreTerm;
+	    return NULL;
+	    break;
+ 	  case CR:
+	  case LF:
+	    self outputBuffer = self buttonText;
+	    self focusHighlightOnOff;
+	    self refresh;
+	    self withdraw;
+	    self paneStream restoreTerm;
+	    return NULL;
+	    break;
+	  }
+	break;
+      }
+  }
+  return NULL;
+}
+

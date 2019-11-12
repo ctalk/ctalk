@@ -1,0 +1,600 @@
+/* $Id: List,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-c-*- */
+
+/*
+  This file is part of Ctalk.
+  Copyright © 2005-2016, 2018, 2019 Robert Kiesling, rk3314042@gmail.com.
+  Permission is granted to copy this software provided that this copyright
+  notice is included in all source code modules.
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+*/
+
+/*
+ *   List Class
+ *
+ *   Lists have no "value" instance variable, which makes adding and 
+ *   removing from the instance variable list much simpler.  The class 
+ *   uses its own value method, which returns the list itself.
+ */
+
+#include <ctalk/ctalkdefs.h>
+
+require String;
+
+Collection class List
+"Lists are collections that add and remove objects in
+first-in/first-out or last-in/last-out order
+using the methods push, pop, shift, and unshift.
+The class also defines the map methods that iterate
+over lists and call each item with another method
+or argument block, ";
+
+List instanceMethod new (char *__newListName) {
+  "The List object constructor.  The argument, a String,
+  contains the name of the new object."
+  List super new __newListName;
+  return __newListName;
+}
+
+List instanceMethod value (void) {
+  "Return the value instance variable of a List object."  
+  OBJECT *self_object;
+  self_object = self;
+  return self_object -> instancevars;
+}
+
+List instanceMethod push (OBJECT *(*newItem)()) {
+  "Adds the argument to the end of the receiver List.
+   Creates the Key object that refers to newItem directly,
+   which makes the method faster."
+
+    OBJECT *key, *self_object, *t, *arg;
+
+  self_object = self;
+  key = __ctalkCreateObjectInit ("keyObject", "Key", "Symbol", 
+				 self_object -> scope,
+				 "");
+
+  /* arg = newItem;*/
+
+  __ctalkReferenceObject (key, newItem);
+
+  __objRefCntSet (OBJREF(key), self_object -> nrefs);
+  key -> __o_p_obj = self_object;
+  key -> attrs |= OBJECT_IS_MEMBER_OF_PARENT_COLLECTION;
+  if (!__LIST_HEAD(self_object)) {
+    __LIST_HEAD(self_object) = key;
+  } else {
+    for (t = __LIST_HEAD(self_object); t && t -> next; t = t -> next)
+      ;
+    t -> next = key;
+    key -> prev = t;
+  }
+  return self;
+}
+
+List instanceMethod pushItemRef (OBJECT *(*item)()) {
+  "Included for backward compatibility.  The method is
+  now the same as List : push."
+  self push item;
+  return self;
+}
+
+List instanceMethod popItemRef (void) {
+  "Included here for backward compatibility.  The method
+  is now functionally similar to List : pop."
+  OBJECT *self_object, *t, *symbol_object, *item_alias;
+  self_object = self;
+
+  if (!__LIST_HEAD(self_object)) {
+    return NULL;
+  } else {
+    for (t = __LIST_HEAD(self_object); t && t -> next; t = t -> next)
+      ;
+    symbol_object = t;
+    if (t -> prev) 
+      t -> prev -> next = NULL;
+    else  /* Removed first item, so list is now empty. */
+     __LIST_HEAD(self_object) = NULL;
+  }
+  item_alias = *(OBJECT **) (symbol_object -> instancevars -> __o_value);
+  __objRefCntDec(OBJREF(item_alias));
+  symbol_object -> instancevars -> __o_value[0] = '\0';
+
+  symbol_object delete;
+  return item_alias;
+}
+
+List instanceMethod pop (void) {
+  "New version of pop.  Removes the last item from the end
+  of the list and returns it."
+
+  OBJECT *self_object, *t, *symbol_object, *item_alias;
+  self_object = self;
+
+  if (!__LIST_HEAD(self_object)) {
+    return NULL;
+  } else {
+    for (t = __LIST_HEAD(self_object); t && t -> next; t = t -> next)
+      ;
+    symbol_object = t;
+    if (t -> prev) 
+      t -> prev -> next = NULL;
+    else  /* Removed first item, so list is now empty. */
+     __LIST_HEAD(self_object) = NULL;
+  }
+  item_alias = *(OBJECT **) (symbol_object -> instancevars -> __o_value);
+  __objRefCntDec(OBJREF(item_alias));
+  symbol_object -> instancevars -> __o_value[0] = '\0';
+
+  symbol_object delete;
+  return item_alias;
+}
+
+List instanceMethod shift (OBJECT *(*newItem)()) {
+  "Add a copy of the argument to the head of the receiver
+  list."
+  Key new keyObject;
+
+  OBJECT *key_alias_ptr;
+  OBJECT *self_object, *elem_object;
+
+  key_alias_ptr = keyObject;
+  __ctalkCopyObject (OBJREF(key_alias_ptr), OBJREF(elem_object));
+
+  __ctalkReferenceObject (elem_object, newItem);
+
+  self_object = self;
+
+  if (!__LIST_HEAD(self_object)) {
+    __LIST_HEAD(self_object) = elem_object;
+  } else {
+    elem_object -> next = __LIST_HEAD(self_object); 
+    __LIST_HEAD(self_object) -> prev = elem_object;
+    __LIST_HEAD(self_object) = elem_object;
+  }
+  return self;
+}
+
+List instanceMethod unshift (void) {
+  "Remove the first item from the receiver List and return
+  it.  Decrements the former List member's reference
+  count by one."
+  OBJECT *self_object, *symbol_object, *item_object;
+  self_object = self;
+  if (!__LIST_HEAD(self_object)) {
+    return NULL;
+  } else {
+    symbol_object = __LIST_HEAD(self_object);
+    if (symbol_object) symbol_object -> prev = NULL;
+    __LIST_HEAD(self_object) = symbol_object -> next;
+  }
+  item_object = *(OBJECT **)(symbol_object -> instancevars -> __o_value);
+  symbol_object -> instancevars -> __o_value[0] = '\0';
+  symbol_object -> __o_value[0] = '\0';
+  symbol_object delete;
+
+  __objRefCntDec(OBJREF(item_object));
+   __ctalkSetObjectScope (item_object, 
+			  item_object -> scope & ~VAR_REF_OBJECT);
+   __ctalkSetObjectAttr (item_object, 
+			  item_object -> attrs &
+			 ~OBJECT_IS_MEMBER_OF_PARENT_COLLECTION);
+  return item_object;
+}
+
+List instanceMethod map (OBJECT *(*methodfn)()) {
+  "Call the argument, a method, for each item in the
+  receiver List.  The argument method has the
+  prototype, 'List instanceMethod <methodName> (void)'."
+    OBJECT *list_elem, *rcvr_obj, *rcvr_obj_p, *t, *have_break;
+#ifdef DJGPP
+  OBJECT *result_object;
+#endif
+  METHOD *arg_method;
+
+  rcvr_obj = rcvr_obj_p = __ctalk_self_internal ();
+
+  if (((arg_method = __ctalkFindInstanceMethodByName 
+	(&rcvr_obj_p, ARG(0) -> __o_name, 0, -1))
+      == NULL) &&
+      ((arg_method = __ctalkFindClassMethodByName 
+	(&rcvr_obj_p, ARG(0) -> __o_name, 0, -1))
+       == NULL)) {
+    char errormsg[256];
+    xsprintf (errormsg, 
+	     "From map (Class List): %s (Class %s) does not understand method, \"%s.\"",
+	     rcvr_obj_p -> __o_name, 
+	     rcvr_obj_p -> CLASSNAME,
+	     ARG(0) -> __o_name);
+    __ctalkCriticalExceptionInternal (NULL, undefined_method_x, 
+				      errormsg);
+    return NULL;
+  }
+
+  for (t = __LIST_HEAD(rcvr_obj), have_break = NULL; 
+       t && !have_break; t = t -> next) {
+    list_elem = *(OBJECT **) ((t -> instancevars) ?
+			     t -> instancevars -> __o_value :
+			     (IS_VALUE_INSTANCE_VAR(t) ? 
+			      t -> __o_p_obj -> instancevars -> __o_value :
+			      NULL));
+    if (!list_elem) {
+      __ctalkCriticalExceptionInternal (NULL, undefined_receiver_x, 
+					"from map (Class List)");
+      return NULL;
+    }
+#ifdef DJGPP
+    if ((result_object = __ctalkInlineMethod (list_elem, arg_method,0))!=NULL){
+      if (atoll (result_object -> __o_value) != 0)
+	break;
+    }
+#else
+    have_break = __ctalkInlineMethod (list_elem, arg_method, 0);
+#endif
+    __ctalkArgBlkSetCallerReturn (have_break);
+  }
+#ifdef DJGPP
+  if (result_object) __ctalkDeleteObject (result_object);
+#endif
+  return NULL;
+}
+
+List instanceMethod map (OBJECT *(*methodfn)(), OBJECT argObject) {
+  "Call the first argument, a method, for each item in the
+  receiver List.  The argument method has the
+  prototype, 'List instanceMethod <methodName>
+  (<argument>).'  The second argument to List : map is
+  passed to <methodName> as its argument."
+  OBJECT *list_elem, *rcvr_obj, *rcvr_obj_p, *(*fn)(), *t, *have_break;
+  int arg_n;
+#ifdef DJGPP
+  OBJECT *result_object;
+#endif
+  METHOD *self_method, *arg_method;
+
+  fn = (OBJECT *(*)())__ctalkRtGetMethodFn ();
+  rcvr_obj = rcvr_obj_p = __ctalk_self_internal ();
+
+  if (((self_method = __ctalkRtGetMethod ()) == NULL) &&
+      ((self_method = __ctalkFindClassMethodByFn (&rcvr_obj, fn, 0))
+       == NULL)) {
+    __ctalkCriticalExceptionInternal (NULL, undefined_method_x, 
+				      "from map (Class List)");
+    return NULL;
+  }
+
+  for (arg_n = 0; self_method -> args[arg_n+1]; arg_n++)
+    ;
+  --arg_n;
+
+  if (((arg_method = __ctalkFindInstanceMethodByName 
+	(&rcvr_obj_p, ARG_NAME(self_method->args[arg_n]), 0, -1))
+      == NULL) &&
+      ((arg_method = __ctalkFindClassMethodByName 
+	(&rcvr_obj_p, ARG_NAME(self_method->args[arg_n]), 0, -1))
+       == NULL)) {
+    char errormsg[256];
+    xsprintf (errormsg, 
+	     "From map (Class List): %s (Class %s) does not understand method, \"%s.\"",
+	     rcvr_obj_p -> __o_name, rcvr_obj_p -> CLASSNAME,
+	     ARG_NAME(self_method->args[arg_n]));
+    __ctalkCriticalExceptionInternal (NULL, undefined_method_x, 
+				      errormsg);
+    return NULL;
+  }
+
+  for (t = __LIST_HEAD(rcvr_obj), have_break = NULL; t && !have_break; 
+       t = t -> next) {
+    list_elem = *(OBJECT **) ((t -> instancevars) ?
+			     t -> instancevars -> __o_value :
+			     (IS_VALUE_INSTANCE_VAR(t) ? 
+			      t -> __o_p_obj -> instancevars -> __o_value :
+			      NULL));
+    if (!list_elem) {
+      __ctalkCriticalExceptionInternal (NULL, undefined_receiver_x, 
+					"from map (Class List)");
+      return NULL;
+    }
+#ifdef DJGPP
+    if ((result_object = __ctalkInlineMethod (list_elem, arg_method,
+					      1, argObject))!=NULL){
+      if (atoll (result_object -> __o_value) != 0)
+	break;
+    }
+#else
+    have_break = __ctalkInlineMethod (list_elem, arg_method, 1, argObject);
+#endif
+    __ctalkArgBlkSetCallerReturn (have_break);
+  }
+#ifdef DJGPP
+  if (result_object) __ctalkDeleteObject (result_object);
+#endif
+  return NULL;
+}
+
+List instanceMethod map (OBJECT *(*methodfn)(), Object argObject1, Object argObject2) {
+  "Call the first argument, a method, for each item in the
+  receiver List.  The argument method has the
+  prototype, 'List instanceMethod <methodName> (<arg1>
+  <arg2>)' The second and third arguments are passed to
+  <methodName> as its arguments for each member of the
+  receiver List."
+  OBJECT *list_elem, *rcvr_obj, *rcvr_obj_p, *(*fn)(), *t, *have_break;
+  int arg_n;
+#ifdef DJGPP
+  OBJECT *result_object;
+#endif
+  METHOD *self_method, *arg_method;
+
+  fn = (OBJECT *(*)())__ctalkRtGetMethodFn ();
+  rcvr_obj = rcvr_obj_p = __ctalk_self_internal ();
+
+  if (((self_method = __ctalkRtGetMethod ()) == NULL) &&
+      ((self_method = __ctalkFindClassMethodByFn (&rcvr_obj, fn, 0))
+       == NULL)) {
+    __ctalkCriticalExceptionInternal (NULL, undefined_method_x, 
+				      "from map (Class List)");
+    return NULL;
+  }
+
+  for (arg_n = 0; self_method -> args[arg_n+1]; arg_n++)
+    ;
+  arg_n -= 2;
+  if (((arg_method = __ctalkFindInstanceMethodByName 
+	(&rcvr_obj_p, ARG_NAME(self_method->args[arg_n]), 0, -1))
+      == NULL) &&
+      ((arg_method = __ctalkFindClassMethodByName 
+	(&rcvr_obj_p, ARG_NAME(self_method->args[arg_n]), 0, -1))
+       == NULL)) {
+    char errormsg[256];
+    xsprintf (errormsg, 
+	     "From map (Class List): %s (Class %s) does not understand method, \"%s.\"",
+	     rcvr_obj_p -> __o_name, 
+	     rcvr_obj_p -> CLASSNAME,
+	     ARG_NAME(self_method->args[arg_n]));
+    __ctalkCriticalExceptionInternal (NULL, undefined_method_x, 
+				      errormsg);
+    return NULL;
+  }
+
+  for (t = __LIST_HEAD(rcvr_obj), have_break = NULL; t && !have_break; 
+       t = t -> next) {
+    list_elem = *(OBJECT **) ((t -> instancevars) ?
+			     t -> instancevars -> __o_value :
+			     (IS_VALUE_INSTANCE_VAR(t) ? 
+			      t -> __o_p_obj -> instancevars -> __o_value :
+			      NULL));
+    if (!list_elem) {
+      __ctalkCriticalExceptionInternal (NULL, undefined_receiver_x, 
+					"from map (Class List)");
+      return NULL;
+    }
+#ifdef DJGPP
+    if ((result_object = __ctalkInlineMethod (list_elem, arg_method,
+					      2, argObject1, argObject2))
+	!=NULL){
+      if (atoll (result_object -> __o_value) != 0)
+	break;
+    }
+#else
+    have_break = __ctalkInlineMethod (list_elem, arg_method, 2, argObject1, 
+			     argObject2);
+#endif
+    __ctalkArgBlkSetCallerReturn (have_break);
+  }
+#ifdef DJGPP
+  if (result_object) __ctalkDeleteObject (result_object);
+#endif
+  return NULL;
+}
+
+List instanceMethod mapRev (OBJECT *(*methodfn)()) {
+  "Map the receiver list in reverse; i.e., call the first
+  argument, a method, for each item in the receiver
+  List, beginning with the last item added.  The
+  argument method has the prototype, 'List
+  instanceMethod <methodName>'."
+  OBJECT *list_elem, *rcvr_obj, *rcvr_obj_p, *(*fn)(), *t, *have_break;
+#ifdef DJGPP
+  OBJECT *result_object;
+#endif
+  METHOD *self_method, *arg_method;
+
+  fn = (OBJECT *(*)())__ctalkRtGetMethodFn ();
+  rcvr_obj = rcvr_obj_p = __ctalk_self_internal ();
+
+  if (((self_method = __ctalkRtGetMethod ()) == NULL) &&
+      ((self_method = __ctalkFindClassMethodByFn (&rcvr_obj, fn, 0))
+       == NULL)) {
+    __ctalkCriticalExceptionInternal (NULL, undefined_method_x, 
+				      "from map (Class List)");
+    return NULL;
+  }
+
+  if (((arg_method = __ctalkFindInstanceMethodByName 
+	(&rcvr_obj_p, ARG_NAME(self_method->args[self_method->n_args-1]), 0, -1))
+      == NULL) &&
+      ((arg_method = __ctalkFindClassMethodByName 
+	(&rcvr_obj_p, ARG_NAME(self_method->args[self_method->n_args-1]), 0, -1))
+       == NULL)) {
+    char errormsg[256];
+    xsprintf (errormsg, 
+	     "From map (Class List): %s (Class %s) does not understand method, \"%s.\"",
+	     rcvr_obj_p -> __o_name, 
+	     rcvr_obj_p -> CLASSNAME,
+	     ARG_NAME(self_method->args[self_method->n_args-1]));
+    __ctalkCriticalExceptionInternal (NULL, undefined_method_x, 
+				      errormsg);
+    return NULL;
+  }
+
+  for (t = __LIST_HEAD(rcvr_obj); t && t -> next; t = t -> next)
+    ;
+
+  for (have_break = NULL; !have_break;  t = t -> prev) {
+    list_elem = *(OBJECT **) ((t -> instancevars) ?
+			     t -> instancevars -> __o_value :
+			     (IS_VALUE_INSTANCE_VAR(t) ? 
+			      t -> __o_p_obj -> instancevars -> __o_value :
+			      NULL));
+    if (!list_elem) {
+      __ctalkCriticalExceptionInternal (NULL, undefined_receiver_x, 
+					"from map (Class List)");
+      return NULL;
+    }
+
+#ifdef DJGPP
+    if ((result_object = __ctalkInlineMethod (list_elem, arg_method,
+					      0))!=NULL){
+      if (atoll (result_object -> __o_value) != 0)
+	break;
+    }
+#else
+    have_break = __ctalkInlineMethod (list_elem, arg_method, 0);
+#endif
+
+    if (t == __LIST_HEAD(rcvr_obj))
+      break;
+  }
+  __ctalkArgBlkSetCallerReturn (have_break);
+
+#ifdef DJGPP
+  if (result_object) __ctalkDeleteObject (result_object);
+#endif
+  return NULL;
+}
+
+List instanceMethod init (...) {
+  "Initialize the receiver List with the method's
+   arguments; e.g.,
+
+     myList init item1, item2, item3;   
+
+   This method initializes the receiver List with only
+   the arguments given in the expression. If there are
+   any elements that are already present in the list,
+   the method deletes them first."
+  int n, i;
+  OBJECT *arg;
+
+  self delete;
+  n = __ctalkNArgs ();
+
+  for (i = (n - 1); i >= 0; --i) {
+    arg = __ctalk_arg_internal (i);
+    self push arg;
+  }
+}
+
+List instanceMethod = initEQ (...) {
+  "Similar to the List : init method.  Initializes 
+   the list with the method's arguments; e.g.,
+
+     myList = item1, item2, item3;   
+
+   This method initializes the receiver List with only the
+   arguments given in the expression. If there are any
+   elements that are already present in the list, the
+   method deletes them first."
+  int n, i;
+  OBJECT *arg;
+
+  self delete;
+  n = __ctalkNArgs ();
+
+  for (i = (n - 1); i >= 0; --i) {
+    arg = __ctalk_arg_internal (i);
+    self push arg;
+  }
+}
+
+List instanceMethod append (...) {
+  "Append the method's arguments to the receiver List."
+  int n, i;
+  OBJECT *arg;
+
+  n = __ctalkNArgs ();
+
+  for (i = (n - 1); i >= 0; --i) {
+    arg = __ctalk_arg_internal (i);
+    self push arg;
+  }
+}
+
+List instanceMethod += appendEQ (...) {
+  "Overloaded version of the append method.  Appends the
+   arguments to the receiver List."
+  int n, i;
+  OBJECT *arg;
+
+  n = __ctalkNArgs ();
+
+  for (i = (n - 1); i >= 0; --i) {
+    arg = __ctalk_arg_internal (i);
+    self push arg;
+  }
+}
+
+List instanceMethod asString (void) {
+  "Returns the contents of the receiver Array as a String
+   object.  If any member of the receiver is a
+   Character object, unquotes the Character object's
+   value and concatenates the character to the result
+   string.  Otherwise the method concatenates each of
+   the receiver Array's values into the result string."
+  int i;
+  OBJECT *self_obj;
+  OBJECT *mbr;
+  char asStringResult[MAXMSG];
+  returnObjectClass String;
+
+  i = 0;
+  asStringResult[0] = 0;
+  self map {
+    mbr = self;
+    if (mbr -> __o_value[0] == '\'') {
+      /* A character constant. */
+      asStringResult[i] = mbr -> __o_value[1];
+    } else {
+      asStringResult[i] = mbr -> __o_value[0];
+    }
+    ++i;
+    asStringResult [i] = 0;
+  }
+  
+  return asStringResult;
+}
+
+List instanceMethod sortAscending (void) {
+  __ctalkSort (self, false);
+  return self;
+}
+
+List instanceMethod sortDescending (void) {
+  __ctalkSort (self, true);
+  return self;
+}
+
+List instanceMethod sortAscendingByName (void) {
+  __ctalkSortByName (self, false);
+  return self;
+}
+
+List instanceMethod sortDescendingByName (void) {
+  __ctalkSortByName (self, true);
+  return self;
+}
+

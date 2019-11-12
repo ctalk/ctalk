@@ -1,0 +1,324 @@
+/* $Id: Symbol,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-c-*-*/
+
+/*
+  This file is part of Ctalk.
+  Copyright © 2005 - 2016, 2018 - 2019  
+    Robert Kiesling, rk3314042@gmail.com.
+  Permission is granted to copy this software provided that this copyright
+  notice is included in all source code modules.
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+*/
+
+/*
+ *    Symbol class.
+ */
+
+Object class Symbol
+"Symbol class contains methods that manage objects that refer to
+other objects.  The value of a Symbol is the memory address of
+another object.";
+
+#include <ctalk/ctalkdefs.h>
+
+Symbol instanceMethod removeValue (void) {
+  "Remove the receiver object's value and return the
+  object.  Sets the receiver symbol's value to NULL.
+  Decreases the value object's reference count by 1.
+  If there are no remaining references to the object
+  (i.e., the reference count is 1 for a global object
+  and 2 for a local object), then remove VAR_REF_SCOPE
+  from the value object's scope.  If the value object
+  was created temporarily from method arguments, store
+  it as an extra object in case it's used later on."
+  OBJECT *self_alias, *value_object;
+  returnObjectClass Any;
+
+  self_alias = self value;
+
+  if ((value_object = *(OBJECT **)((self_alias -> instancevars) ? 
+				 (self_alias -> instancevars -> __o_value) : 
+				 (self_alias -> __o_value))) != NULL) {
+
+    SYMTOOBJ(self_alias -> instancevars ?
+	     self_alias -> instancevars -> __o_value :
+	     self_alias -> __o_value) = NULL;
+
+    if (IS_OBJECT(value_object)) {
+      __objRefCntSet (&value_object,
+		      value_object -> nrefs - 1);
+      if (value_object -> scope & LOCAL_VAR) {
+	if (value_object -> nrefs <= 2) {
+	  __ctalkSetObjectScope (value_object,
+				 value_object -> scope & ~VAR_REF_OBJECT);
+	}
+	if (value_object -> scope & GLOBAL_VAR) {
+	  if (value_object -> nrefs <= 1) {
+	    __ctalkSetObjectScope (value_object,
+				   value_object -> scope & ~VAR_REF_OBJECT);
+	  }
+	}
+      }
+      if (!(value_object -> scope & LOCAL_VAR) &&
+	  !(value_object -> scope & GLOBAL_VAR)) {
+	__ctalkRegisterExtraObject (value_object);
+      }
+
+      return value_object;
+    }
+  } else if (IS_OBJECT(self_alias -> __o_p_obj) &&
+	     ((value_object =
+	       SYMTOOBJ(self_alias -> __o_p_obj -> __o_value)) != NULL)) {
+
+    SYMTOOBJ(self_alias -> __o_p_obj -> __o_value) = NULL;
+
+    if (IS_OBJECT(value_object)) {
+      __objRefCntSet (&value_object,
+		      value_object -> nrefs - 1);
+      if (value_object -> scope & LOCAL_VAR) {
+	if (value_object -> nrefs <= 2) {
+	  __ctalkSetObjectScope (value_object,
+				 value_object -> scope & ~VAR_REF_OBJECT);
+	}
+	if (value_object -> scope & GLOBAL_VAR) {
+	  if (value_object -> nrefs <= 1) {
+	    __ctalkSetObjectScope (value_object,
+				   value_object -> scope & ~VAR_REF_OBJECT);
+	  }
+	}
+      }
+      if (!(value_object -> scope & LOCAL_VAR) &&
+	  !(value_object -> scope & GLOBAL_VAR)) {
+	__ctalkRegisterExtraObject (value_object);
+      }
+	
+      return value_object;
+    }
+  } else {
+    return NULL;
+  }
+}
+
+Symbol instanceMethod deref (void) {
+  "Return the address of the receiver."
+  OBJECT *self_object, *ref_val;
+  self_object = __ctalk_self_internal ();
+  if (self is Symbol) {
+
+    ref_val = (OBJECT *)SYMVAL((self_object -> instancevars) ? 
+			       (self_object -> instancevars -> __o_value) : 
+			       (self_object -> __o_value));
+    __ctalkSetObjectScope (ref_val, ref_val -> scope | VAR_REF_OBJECT);
+    return ref_val;
+  } else {
+    __ctalkExceptionInternal (NULL, invalid_receiver_x,
+			      ((self_object -> instancevars) ?
+			       self_object -> instancevars -> __o_value :
+			       self_object -> __o_value), 0);
+    return NULL;
+  }
+}
+
+Symbol instanceMethod symbolReference (void *v) {
+  "If the argument is a Symbol, set the receiver reference
+to the argument's reference.  If the receiver is any
+other class, set the receiver to point to the argument."
+  OBJECT *rcvr_val, *arg;
+  char buf[MAXLABEL];
+  rcvr_val = self value;
+  arg = v;
+  if (v is Symbol) {
+    if (IS_OBJECT(rcvr_val -> instancevars)) {
+      SYMVAL(rcvr_val -> __o_value) =
+	SYMVAL(rcvr_val -> instancevars -> __o_value) =
+	SYMVAL(arg -> __o_value);
+    } else {
+      SYMVAL(rcvr_val -> __o_value) = SYMVAL(arg -> __o_value);
+    }
+  } else {
+    SYMVAL(rcvr_val -> instancevars -> __o_value) = SYMVAL(arg);
+  }
+  return self;
+}
+
+Symbol instanceMethod getValue (void) {
+  "Returns object referred to by the receiver.  If the reference
+   isn't an object, returns the receiver."
+  OBJECT *self_object, *value_object = NULL;
+  /* void *generic_return; */
+  char *generic_return;
+  returnObjectClass Any;
+
+  /* This should be cleaned up -- Symbol methods for == and != ? . */
+  if (SYMVAL(__ctalk_self_internal_value () -> __o_value) != 0) {
+    self_object = self;
+    if ((value_object =
+	 *(OBJECT **)((self_object -> instancevars) ?
+		      (self_object -> instancevars -> __o_value) :
+		      (self_object -> __o_value))) != NULL) {
+      if (IS_OBJECT (value_object)) {
+	return value_object;
+      } else {
+	/* return (void *)value_object; *//***//* Fix this, too. */
+	/* And allow void * returns here, too. */
+	generic_return = (char *)value_object;
+	return generic_return;
+      }
+    } else {
+      __ctalkExceptionInternal (NULL, invalid_operand_x,
+				((self_object->instancevars) ?
+				 self_object->instancevars->__o_value :
+				 self_object->__o_value), 0);
+    }
+  }
+  return NULL;
+}
+
+Symbol instanceMethod setValue (void *v) {
+  "Set the value of the receiver to refer to the argument.
+  If the argument is also a Symbol object, set the
+  receiver's value to refer to the same object.
+  Otherwise, set the receiver's value to refer to the
+  argument object.  The referenced object's scope
+  includes VAR_REF_OBJECT scope."
+  OBJECT *rcvr_val, *arg;
+  char buf[MAXLABEL];
+
+  self removeValue;
+
+  rcvr_val = self value;
+  arg = ARG(0);
+  if (arg) {
+    if (v is Symbol) {
+      xmemcpy (rcvr_val -> __o_value,
+	       (arg -> instancevars ?
+		arg -> instancevars -> __o_value :
+		arg -> __o_value), sizeof (uintptr_t));
+    } else {
+      /* The additional scope indicates that the object is
+	 referenced by another object.  The (unsigned long int)
+	 cast is equivalent to uintptr_t. */
+      __ctalkSetObjectScope (arg, arg -> scope | 512);
+      SYMVAL(rcvr_val -> __o_value) = (unsigned long int)arg;
+    }
+  } else {
+    SYMVAL(rcvr_val -> __o_value) = 0;
+  }
+  return self;
+}
+
+Symbol instanceMethod = setEqual (OBJECT *__newObject) {
+  "Alias the argument to the receiver's indentifier. 
+  If the receiver refers to an object reference (it's
+  preceded by a '*' operator), or if the receiver wasn't 
+  declared as a global or local object (e.g., it's an 
+  instance variable), then create a reference to the 
+  argument object using Symbol : setValue ."
+
+  if (self hasPointerContext) {
+    self setValue __newObject;
+  } else {
+    if (__ctalkAliasObject (self, __newObject) != 0) {
+      self setValue __newObject;
+    }
+  }
+  /* 
+     Needed - 
+     1. We need to be able to test the value of the assignment
+        in conditionals.
+     2. In order to tell the scoping internals that we want
+        to keep an otherwise temporary operand.
+  */
+  return self;
+}
+
+Symbol instanceMethod * getValue_prefix (__prefix__) {
+  "Overloads C's * prefix operator.  Returns the object
+  that the receiver refers to.  This method is a shorthand
+  for the Symbol getValue method."
+  returnObjectClass Any;
+  return self getValue;
+}
+
+Symbol instanceMethod basicObject (char *name, char *classname,
+				   char *superclassname,
+				   char *value_expr) {
+  "Create a basic object and return a reference to it as
+  the receiver's value.  The arguments define the class
+  and value of the object.  This method is here in case
+  it's needed.  Most apps can use Object : basicNew
+  instead.  The prototype is:
+  
+  <SymbolObject> basicObject String <name>, String <classname>,
+                              String <superclassname>,
+                              STRING <value_expr>"
+  OBJECT *s;
+
+  s = __ctalkCreateObjectInit (name, classname, superclassname,
+			       LOCAL_VAR|VAR_REF_OBJECT, value_expr);
+
+  __objRefCntSet (&s, 1);
+
+  self value = s;
+
+  return self;
+}
+
+Symbol instanceMethod asString (void) {
+  "Returns a String object with the string pointed to
+   by the receiver."
+  returnObjectClass String;
+  char *s;
+  /* Note that we can't instantiate a String object in this
+     class - it's too early in parsing base classes to try
+     to pull in String class and its dependencies, so we
+     need to build the result manually. */
+  OBJECT *result, *self_object;
+  char buf[64];
+
+  self_object = self;
+  s = *(char **)self_object -> __o_value;
+  result = __ctalkCreateObjectInit (self_object -> __o_name,
+				    "String", "Character",
+				    LOCAL_VAR, s);
+  return result;
+
+}
+
+Symbol instanceMethod asAddrString (void) {
+  "Returns a String object with the formatted hexadecimal
+   address of the object pointed to by the receiver."
+  returnObjectClass String;
+  char *s;
+  /* Note that we can't instantiate a String object in this
+     class - it's too early in parsing base classes to try
+     to pull in String class and its dependencies, so we
+     need to build the result manually. */
+  OBJECT *result, *self_object;
+  char buf[64];
+
+  self_object = self;
+  s = *(char **)self_object -> __o_value;
+  result = __ctalkCreateObjectInit (self_object -> __o_name,
+				    "String", "Character",
+				    LOCAL_VAR, s);
+  sprintf (buf, "%p", s);
+  __ctalkSetObjectValueVar (result, buf);
+  __objRefCntSet (&result, 1);
+
+  return result;
+
+}
+

@@ -1,0 +1,73 @@
+/* $Id: UNIXNetworkStreamWriter,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-c-*-*/
+
+/*
+  This file is part of Ctalk.
+  Copyright © 2016-2017, 2019  Robert Kiesling, rk3314042@gmail.com.
+  Permission is granted to copy this software provided that this copyright
+  notice is included in all source code modules.
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+*/
+
+UNIXNetworkStream class UNIXNetworkStreamWriter;
+
+UNIXNetworkStreamWriter instanceVariable charsWritten Integer 0;
+
+UNIXNetworkStreamWriter instanceMethod open (void) {
+  "Creates a socket to write data to the socket path
+   named by the receiver's socketPath instance variable.
+   Returns the socket's file handle number, or, if there
+   is an error, returns -1 and raises a
+   SystemErrnoException if the error occured in a library
+   call."
+  returnObjectClass Integer;
+  int s;
+
+  s = __ctalkUNIXSocketOpenWriter (self socketPath);
+
+  self sock = s;
+  return self sock;
+}
+
+UNIXNetworkStreamWriter instanceMethod openOn (String sockPath) {
+  "Sets the receiver's socketPath instance variable to the
+   socket path given as the argument, and then calls the open
+   method.  Like open, returns the socket number, or -1 if
+   an error occurs, and raises a SystemErrnoException if the
+   error occurred during a system call."
+  returnObjectClass Integer;
+  self socketPath = sockPath;
+  return self open;
+}
+
+UNIXNetworkStreamWriter instanceMethod sockWrite (String data) {
+  "Writes the String given as the argument to a network connection
+   created by a previous open method call. Sets
+   the receiver's charsWritten instance variable to the
+   number of characters written, and returns 0.  If an error
+   occurs, raises a SystemErrnoException and returns -1."
+  
+  SystemErrnoException new ex;
+  int r;
+
+  r = __ctalkUNIXSocketWrite (self sock, data, strlen (data));
+  self charsWritten = r;
+  if (r < 0) {
+    ex raiseException ": UNIXNetworkStreamWriter : sockWrite (write).";
+    return ERROR;
+  }
+
+  return SUCCESS;
+}

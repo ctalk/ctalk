@@ -1,0 +1,265 @@
+/* $Id: ANSILabelPane,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-C-*-*/
+
+/*
+  This file is part of Ctalk.
+  Copyright © 2014, 2018-2019  Robert Kiesling, rk3314042@gmail.com.
+  Permission is granted to copy this software provided that this copyright
+  notice is included in all source code modules.
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+*/
+
+/*
+ *  ANSILabelPane class.  
+ */
+
+ANSIWidgetPane class ANSILabelPane
+"ANSILabelPane class provides label widgets, whose
+purpose is to display text in applications that use
+multiple widgets in their user interface.";
+ANSILabelPane instanceVariable text List NULL;
+ANSILabelPane instanceVariable viewHeight Integer 0;
+ANSILabelPane instanceVariable viewWidth Integer 0;
+ANSILabelPane instanceVariable borderLess Integer 0;
+
+
+#define LABEL_VIEW_START_X_OFFSET 2
+#define LABEL_VIEW_START_Y_OFFSET 2 /* Count view lines from 1. */
+
+#define LABEL_DEFAULT_ORIGIN_X 1
+#define LABEL_DEFAULT_ORIGIN_Y 1
+#define LABEL_DEFAULT_SIZE_X 40
+#define LABEL_DEFAULT_SIZE_Y 3
+#define LABEL_DEFAULT_VIEWHEIGHT 3
+#define LABEL_DEFAULT_VIEWWIDTH 38   /* LABEL_DEFAULT_SIZE_X - 2 */
+
+ANSILabelPane instanceMethod sizePane (int width, int height) {
+  "Set or reset the size of the label pane.
+  __ctalkDeleteWinBuffer () checks whether the buffer
+  and backing store instance variables contain a valid
+  pointer, so it's safe to call even when first
+  initializing the pane.  When sizing pane buffers, the
+  rows count from zero, so it's safe to give a
+  panebuffer's height as, '0,' when creating a
+  single-line, borderless label."
+
+  self addBuffer width, height, 1;
+
+  self viewWidth = width;
+  self viewHeight = height;
+  self size x = width;
+  self size y = height;
+}
+
+ANSILabelPane instanceMethod new (String __paneName) {
+  "ANSILabelPane constructor.  The argument, a String,
+  contains the name of the new object."
+  ANSIWidgetPane super new __paneName;
+  __paneName paneStream openInputQueue;
+
+  __paneName shadow = TRUE;
+  __paneName border = TRUE;
+
+  __paneName origin x = LABEL_DEFAULT_ORIGIN_X;
+  __paneName origin y = LABEL_DEFAULT_ORIGIN_Y;
+  __paneName size x = LABEL_DEFAULT_SIZE_X;
+  __paneName size y = LABEL_DEFAULT_SIZE_Y;
+  return __paneName;
+}
+
+ANSILabelPane instanceMethod appendLine (String __text) {
+  "Add the argument, a String that contains a line of
+  text, to the pane's contents. The label is drawn wide
+  enough to display the text, and tall enough to
+  display a single line of text."
+
+  if (self borderLess) {
+    self sizePane (__text length + 2, 0);
+  } else {
+    self sizePane (__text length + 2, 3);
+  }
+  self text push __text;
+  return NULL;
+}
+
+ANSILabelPane instanceMethod appendLine (String __text, 
+					 Integer width,
+					 Integer height) {
+  "Add the argument, a String that contains a line of
+  text, to the pane's contents.  With two additional
+  arguments, Integers that specify the label's width
+  and height, this method allows expressions that can
+  size the pane to display wider or multi-line labels."
+
+  if (self borderLess) {
+    self sizePane (width + 2, height);
+  } else {
+    self sizePane (width + 2, height + 2);
+  }
+  self text push __text;
+  return NULL;
+}
+
+/*
+ *  When writing a method like this, take care that the 
+ *  text does not overrun the window boundaries.  
+ *  Also see the comments for clearLine, above, and
+ *  uncomment if necessary.
+ */
+ANSILabelPane instanceMethod refresh (void) {
+  "Update the pane's contents on the display.  Centers
+  each line of text horizontally.  Vertically centers
+  the first line of text slightly above the center for
+  multi-line labels."
+
+  Integer new viewLine;
+  Integer new textWidth;
+  Integer new xPad;
+
+  viewLine = 0;
+
+  self text map {
+
+    __ctalkANSIClearPaneLine (super, viewLine + LABEL_VIEW_START_Y_OFFSET);
+
+    textWidth = self length;
+
+    xPad = (super viewWidth / 2) - (textWidth / 2);
+    if (xPad < LABEL_VIEW_START_X_OFFSET) {
+      super cursor x = LABEL_VIEW_START_X_OFFSET;
+    } else {
+      super cursor x = xPad;
+    }
+
+    if (super viewHeight > LABEL_DEFAULT_VIEWHEIGHT) {
+      // Center slightly above vertical center.
+      super cursor y = (super viewHeight / 2) + viewLine;
+    } else {
+      super cursor y = LABEL_VIEW_START_Y_OFFSET;
+    }
+
+    super printOn "%s", self value;
+  
+    
+    viewLine = viewLine + 1;
+  }
+
+  self super refresh;
+
+  return NULL;
+}
+
+#ifndef ESC
+#define ESC     0x1b
+#endif
+#define CR      0x0d
+#define LF      0x0a
+#define EMACS_DN 0x0e
+#define EMACS_UP 0x10
+#define CSI2    0x5b     /* ESC [ sequence is CSI */
+
+ANSILabelPane instanceMethod handleInput (void) {
+  "Process input for the Pane.  Pressing Escape or Enter
+  withdraws the pane from the display."
+  Integer new c;
+  InputEvent new iEvent;
+  String new responseString;
+
+  returnObjectClass String;
+
+  self paneStream rawMode;
+  self paneStream openInputQueue;
+  while ((c = self paneStream getCh) != EOF) {
+    iEvent become self paneStream nextInputEvent;
+    switch (iEvent eventClass)
+      {
+	/*
+	 *  ESC alone should work okay... but grab 
+	 *  the rest of a sequence if necessary.
+	 */
+      case KBDCHAR:
+	switch (iEvent eventData asCharacter)
+	  {
+	  case ESC:
+	    if ((c = self paneStream getChNoBlock) != 0) {
+	      iEvent become self paneStream nextInputEvent;
+	      switch (iEvent eventData asCharacter) 
+		{
+		case CSI2:
+ 		  if ((c = self paneStream getChNoBlock) != 0) {
+		    iEvent become self paneStream nextInputEvent;
+		    switch (iEvent eventData asCharacter) 
+		      {
+		      }
+		  }
+		  break;
+		default:
+		  break;
+		}
+	    } else {
+	      self withdraw;
+	      self paneStream restoreTerm;
+	      self paneStream setGraphics '0';
+	      return NULL;
+	    }
+	    break;
+ 	  case CR:
+	  case LF:
+	    self withdraw;
+	    self paneStream restoreTerm;
+	    self paneStream setGraphics '0';
+	    return responseString;
+	    break;
+	  }
+	break;
+      }
+  }
+  return NULL;
+}
+
+ANSILabelPane instanceMethod show (int x_org, int y_org) {
+  "Sets the X and Y position of the receiver object and
+  display it, then waits for user input."
+
+  self origin x = x_org;
+  self origin y = y_org;
+  self cursor x = LABEL_VIEW_START_X_OFFSET;
+  self cursor y = LABEL_VIEW_START_Y_OFFSET;
+  self refresh;
+
+  self handleInput;
+  return NULL;
+}
+
+ANSILabelPane instanceMethod display (int x_org, int y_org) {
+  "Set the X and Y positions of the receiver object and displays
+  it, then returns."
+
+  self origin x = x_org;
+  self origin y = y_org;
+  self cursor x = LABEL_VIEW_START_X_OFFSET;
+  self cursor y = LABEL_VIEW_START_Y_OFFSET;
+  self refresh;
+
+  /* self handleInput; */
+  return NULL;
+}
+
+ANSILabelPane instanceMethod cleanup (void) {
+  "Delete the buffers associated with the Pane objects."
+  __ctalkDeleteWinBuffer (self paneBuffer);
+  __ctalkDeleteWinBuffer (self paneBackingStore);
+  return NULL;
+}

@@ -1,0 +1,306 @@
+/* $Id: X11Bitmap,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-C-*-*/
+
+/*
+  This file is part of Ctalk.
+  Copyright © 2005-2016, 2019  Robert Kiesling, rk3314042@gmail.com.
+  Permission is granted to copy this software provided that this copyright
+  notice is included in all source code modules.
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+*/
+
+Bitmap class X11Bitmap
+"This class contains the methods and class definitions
+to support drawing on X11 Pixmaps (the names shouldn't
+be confused), which provides the buffers for X11Panes
+and other graphics objects.  The methods here are
+designed to make drawing on the X11Bitmap's surface
+more convenient than the corresponding methods in
+X11Pane's subclasses, Pen, or Rectangle or other shape
+classes.  This class also provides methods to import
+and render XPM files on the Pixmap's drawable surface.";  
+
+#include <X11/Xlib.h>
+#include <ctalk/ctalkdefs.h>
+
+X11Bitmap instanceVariable xID Integer 0;
+X11Bitmap instanceVariable xGC Symbol 0x0;
+X11Bitmap instanceVariable parentDrawable Integer 0;
+X11Bitmap instanceVariable parentGC Symbol 0;
+X11Bitmap instanceVariable width Integer 0;
+X11Bitmap instanceVariable height Integer 0;
+X11Bitmap instanceVariable depth Integer 0;
+
+X11Bitmap instanceMethod create (Integer parentDrawable, 
+				 Integer width, 
+				 Integer height, 
+				 Integer depth) {
+  "Create a server-side pixmap.  The ID of the pixmap
+  is stored in the receiver's xID instance variable.
+  Also creates an associated X11 graphics context, 
+  which is stored in the receiver's xGC instance variable.
+  The method's prototype is:
+  <X11BitmapObject> create Integer <parentDrawable>,
+                             Integer <width>,
+                             Integer <height>,
+                             Integer <depth>"
+  OBJECT *self_xID_alias,
+    *self_xGC_alias;
+  int pixmap_id;
+  int parentdrawable_id;
+  void *gc_addr;
+  self_xID_alias = self xID;
+
+  self parentDrawable = parentDrawable;
+
+  pixmap_id = __ctalkX11CreatePixmap 
+    (parentDrawable, width, height, depth value);
+  *(int *)self_xID_alias -> __o_value = pixmap_id;
+  *(int *)self_xID_alias -> instancevars -> __o_value = pixmap_id;
+  self_xGC_alias = self xGC;
+  gc_addr = __ctalkX11CreateGC (parentDrawable);
+  *(void **)self_xGC_alias -> __o_value = gc_addr;
+  *(void **)self_xGC_alias -> instancevars -> __o_value = gc_addr;
+  self width = width;
+  self height = height;
+  self depth = depth;
+}
+
+X11Bitmap instanceMethod delete (void) {
+  "Delete the receiver's pixmap and graphics context."
+  __ctalkX11DeletePixmap (self xID);
+  __ctalkX11FreeGC (self xGC);
+}
+
+X11Bitmap instanceMethod clear (void) {
+  "Clear the pixmap."
+  self clearRectangle 0, 0, self width, self height;
+}
+
+X11Bitmap instanceMethod clearRectangle (Integer x, Integer y,
+					 Integer width, Integer height) {
+  "Clear a rectangular area of the pixmap.  The
+  method's prototype is:
+  <X11BitmapObject> clearRectangle Integer <x>,
+                                    Integer <y>,
+                                    Integer <width>,
+                                    Integer <height>"
+  __ctalkX11ClearRectangleBasic (self xID, self xGC,
+				 x, y, width, height);
+}
+
+X11Bitmap instanceMethod resize (Integer parent_visual,
+				 Integer new_width,
+				 Integer new_height) {
+  "Resize the pixmap.  The method's prototype is:
+  <X11BitmapObject> resize Integer <parentID>,
+                           Integer <width>,
+                           Integer <height>"
+  int pixmap_return;
+  OBJECT *xID_value_alias;
+  __ctalkX11ResizePixmap (parent_visual, self xID, self xGC,
+			  self width, self height,
+			  new_width, new_height,
+			  self depth, &pixmap_return);
+  self width = new_width;
+  self height = new_height;
+  self xID value = pixmap_return;
+}
+
+X11Bitmap instanceMethod foreground (String color) {
+  "Set the foreground color of the receiver to the argument,
+  a String."
+  __ctalkX11SetForegroundBasic (self xID, self xGC, color);
+}
+
+X11Bitmap instanceMethod background (String color) {
+  "Set the background color of the receiver to the argument,
+  a String."
+  __ctalkX11SetBackgroundBasic (self xID, self xGC, color);
+  self clear;
+}
+
+X11Bitmap instanceMethod font (String font_desc) {
+  "Set the font of the receiver to the argument,
+   a String."
+  __ctalkX11UseFontBasic (self xID, self xGC, font_desc);
+}
+
+/* these are from ctalkdefs.h */
+#define X_FACE_REGULAR     (1 << 0)
+#define X_FACE_BOLD        (1 << 1)
+#define X_FACE_ITALIC      (1 << 2)
+#define X_FACE_BOLD_ITALIC (1 << 3)
+
+X11Bitmap instanceMethod faceBold (void) {
+  __ctalkSelectXFontFace (self xID, self xGC, X_FACE_BOLD);
+}
+
+X11Bitmap instanceMethod faceRegular (void) {
+  __ctalkSelectXFontFace (self xID, self xGC, X_FACE_REGULAR);
+}
+
+X11Bitmap instanceMethod faceItalic (void) {
+  __ctalkSelectXFontFace (self xID, self xGC, X_FACE_ITALIC);
+}
+
+X11Bitmap instanceMethod faceBoldItalic (void) {
+  __ctalkSelectXFontFace (self xID, self xGC, X_FACE_BOLD_ITALIC);
+}
+
+X11Bitmap instanceMethod putStr (Integer x, Integer y, String s) {
+  "Print a string to the receiver.  The method's prototype is:
+   <X11BitmapObject> putStr Integer <x>,
+                            Integer <y>,
+                            String <text>"
+  __ctalkX11PanePutStrBasic (self xID, self xGC, x, y, s);
+}
+
+X11Bitmap instanceMethod putStr (Integer x, Integer y,
+					 String s, String font_desc) {
+  "Print a string to the receiver using the font given by
+   the parameter, font_desc.  The method's prototype is:
+   <X11BitmapObject> putStr Integer <x>,
+                            Integer <y>,
+                            String <text>,
+                            String <font_desc>"
+  __ctalkX11UseFontBasic (self xID, self xGC, font_desc);
+  __ctalkX11PanePutStrBasic (self xID, self xGC, x, y, s);
+}
+
+X11Bitmap instanceMethod putStr (Integer x, Integer y,
+				 String s, String font_desc,
+				 String colorName) {
+  "Print a string to the receiver using the font given by
+   the parameter font_desc using the foreground color given
+   as the parameter foreground_color_name.  The method's
+   prototype is:
+   <X11BitmapObject> putStr Integer <x>,
+                            Integer <y>,
+                            String <text>,
+                            String <font_desc>,
+                            String <foreground_color_name>"
+  __ctalkX11SetForegroundBasic (self xID, self xGC, colorName);
+  __ctalkX11UseFontBasic (self xID, self xGC, font_desc);
+  __ctalkX11PanePutStrBasic (self xID, self xGC, x, y, s);
+}
+
+X11Bitmap instanceMethod pixmapFromData (char **xpm_data) {
+  "Create a XPM image on the receiver using the data given
+  as the argument.  The data is the contents of a .xpm file,
+   and has the C type char **."
+  __ctalkX11XPMFromData (self xID, self xGC, 0, 0, xpm_data);
+  return NULL;
+}
+
+X11Bitmap instanceMethod pixmapFromData (int x_org, int y_org, 
+					 char **xpm_data) {
+  "Create a XPM image on the receiver using the data given
+  as the argument.  The data is the contents of a .xpm file,
+  and has the C type char **.  The first two arguments give
+  the x,y coordinates of the upper left-hand corner of the 
+  image.  The method's prototype (using C data types) is:
+  
+  X11Bitmap pixmapFromData int xOrg, int yOrg, char **xpmData"
+  __ctalkX11XPMFromData (self xID, self xGC, 
+			 x_org, y_org, xpm_data);
+  return NULL;
+}
+
+X11Bitmap instanceMethod xpmInfoFromData (char **xpm_data, 
+					  Array dataReturn) {
+  "Fills in the Array given as the second argument
+   with the following information from
+   the pixmap data referred to by xpm_data: 
+   [width, height, colors, characters_per_color]."
+    int w, h, n, c;
+  __ctalkX11XPMInfo (xpm_data, &w, &h, &n, &c);
+  dataReturn atPut 0, w;
+  dataReturn atPut 1, h;
+  dataReturn atPut 2, n;
+  dataReturn atPut 3, c;
+  return NULL;
+}
+X11Bitmap instanceMethod xpmWidthFromData (char **xpm_data) { 
+  "Returns the width of the X11 pixmap given as 
+   the argument."
+  returnObjectClass Integer;
+    int w, h, n, c;
+  __ctalkX11XPMInfo (xpm_data, &w, &h, &n, &c);
+  return w;
+}
+X11Bitmap instanceMethod xpmHeightFromData (char **xpm_data) { 
+  "Returns the height of the X11 pixmap given as 
+   the argument."
+  returnObjectClass Integer;
+    int w, h, n, c;
+  __ctalkX11XPMInfo (xpm_data, &w, &h, &n, &c);
+  return h;
+}
+X11Bitmap instanceMethod xpmColorsFromData (char **xpm_data) { 
+  "Returns the number of colors in the X11 pixmap given 
+  as the argument."
+  returnObjectClass Integer;
+    int w, h, n, c;
+  __ctalkX11XPMInfo (xpm_data, &w, &h, &n, &c);
+  return n;
+}
+X11Bitmap instanceMethod xpmCharsPerColorFromData (char **xpm_data) { 
+  "Returns the characters per color in the X11 pixmap given
+   as the argument."
+  returnObjectClass Integer;
+    int w, h, n, c;
+  __ctalkX11XPMInfo (xpm_data, &w, &h, &n, &c);
+  return c;
+}
+
+X11Bitmap instanceMethod drawPoint (Integer x, Integer y, Pen p) {
+  "Draw a point at the x,y coordinates given as the first
+   two arguments, using the Pen object given as the third
+   argument."
+  __ctalkX11PaneDrawPointBasic (self xID, self xGC,
+				x, y, 
+				p width,
+				p alpha,
+				p colorName);
+  return NULL;
+}
+
+X11Bitmap instanceMethod drawLine (Integer xStart, Integer yStart,
+				   Integer xEnd, Integer yEnd, Pen aPen) {
+  "Draw a point at the x,y coordinates given as the first
+   two arguments, using the Pen object given as the third
+   argument."
+  __ctalkX11PaneDrawLineBasic (self xID, self xGC,
+			       xStart, yStart, xEnd, yEnd,
+			       aPen width,
+			       aPen alpha,
+			       aPen colorName);
+  return NULL;
+}
+
+X11Bitmap instanceMethod drawLine (Line aLine, Pen aPen) {
+  "Draw a point at the x,y coordinates given as the first
+   two arguments, using the Pen object given as the third
+   argument."
+  __ctalkX11PaneDrawLineBasic (self xID, self xGC,
+			       aLine start x, aLine start y,
+			       aLine end x, aLine end y,
+			       aPen width,
+			       aPen alpha,
+			       aPen colorName);
+  return NULL;
+}
+

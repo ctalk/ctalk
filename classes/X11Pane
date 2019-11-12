@@ -1,0 +1,488 @@
+/* $Id: X11Pane,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-c-*-*/
+
+/*
+  This file is part of Ctalk.
+  Copyright © 2005 - 2015, 2018 - 2019  
+    Robert Kiesling, rk3314042@gmail.com.
+  Permission is granted to copy this software provided that this copyright
+  notice is included in all source code modules.
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+*/
+
+/*
+ *    X11Pane class.
+ *
+ *  The only member of the, "children," list should be a
+ *  X11PaneDispatcher.
+ *
+ *  NOTE - You should *NOT* change these instance variables.  Many are
+ *  still hard wired in x11lib.c and gui*.c source files.  Subclass
+ *  instead.
+ */
+
+#include <ctalk/ctalkdefs.h>
+
+Pane class X11Pane
+"X11Pane class and its subclasses manage windows on X11
+displays.  The windows can be buffered or unbuffered,
+and may use the X11PaneDispatcher class to manage
+window events.  Each X11Pane object also has a
+X11TerminalStream instance variable, inputStream, which
+receives input events from the X display server.";
+X11Pane instanceVariable xWindowID Integer 0;
+X11Pane instanceVariable inputStream X11TerminalStream NULL;
+X11Pane instanceVariable xGC Symbol NULL;
+X11Pane instanceVariable fontDescStr String NULL;
+X11Pane instanceVariable fontVar X11Font NULL;
+X11Pane instanceVariable ftFontVar X11FreeTypeFont NULL;
+X11Pane instanceVariable container Symbol NULL;
+X11Pane instanceVariable depth Integer NULL;
+X11Pane instanceVariable backgroundColor String NULL;
+X11Pane instanceVariable borderWidth Integer 1;
+
+X11Pane classVariable xDisplay Symbol 0;
+X11Pane classVariable classInit Integer 0;
+X11Pane classVariable xColormap Integer 0;
+
+X11Pane instanceMethod openEventStream (void) {
+  "Open the receiver pane's input stream."
+  self inputStream openInputClient;
+  return self;
+}
+
+X11Pane instanceMethod new (String __paneName) {
+  "The X11Pane constructor.  The argument, a String,
+  contains the new object's name.  Also creates pixmaps
+  for the pane's buffer and backing store, and saves
+  the display's default color map."
+  X11Bitmap new xPaneBuffer;
+  X11Bitmap new xPaneBackingStore;
+  X11Pane super new __paneName;
+  int cmap;
+  if (!classInit) {
+    xDisplay = __ctalkX11Display ();
+    xColormap = __ctalkX11Colormap ();
+    classInit = true;
+  }
+  __paneName paneBuffer become xPaneBuffer;
+  __paneName paneBackingStore become xPaneBackingStore;
+  return __paneName;
+}
+
+X11Pane instanceMethod initialize (int x_size, int y_size) {
+  "Initialize the receiver object's window.  The arguments
+  are Integers with the window's width and height.
+  
+  This method uses the window manager to position the
+  window on the display.  The other forms of initialize
+  allow users and applications to determine the
+  window's placement."
+
+  unsigned int win_id;
+
+  self origin x = 0;
+  self origin y = 0;
+  self size x = x_size;
+  self size y = y_size;
+  self cursor x = 1;
+  self cursor y = 1;
+
+  win_id = __ctalkCreateX11MainWindow (self);
+  self xWindowID = win_id;
+  return self;
+}
+
+X11Pane instanceMethod initialize (int x_org, int y_org,
+				   int x_size, int y_size) {
+  "Initialize the receiver object's window.  The arguments
+  are Integers with the x and y coordinates of the
+  window's upper left-hand corner, and the window's
+  width and height.
+  
+  This method is here mainly for use with older
+  programs, or for programs that set the window's
+  position themselves.  Otherwise, use the form of
+  initialize that takes the program's geometry flags as
+  an argument, and let window manager position the
+  window.
+  
+  If you don't want to worry about the window position
+  at all, use zero as the X and Y arguments, and let
+  the window system determine the window placement."
+
+  unsigned int win_id;
+
+  self origin x = x_org;
+  self origin y = y_org;
+  self size x = x_size;
+  self size y = y_size;
+  self cursor x = 1;
+  self cursor y = 1;
+
+  win_id = __ctalkCreateX11MainWindow (self);
+  self xWindowID = win_id;
+  return self;
+}
+
+X11Pane instanceMethod initialize (int x_org, int y_org,
+				   int x_size, int y_size,
+				   int geom_flags) {
+  "Initialize the receiver object's window.  The arguments
+  are Integers with the x and y coordinates of the
+  window's upper left-hand corner, and the window's
+  width and height.
+  
+  The fifth argument, geomFlags, provides hints about
+  window placement.  Normally these are the values
+  provided by the Application : parseX11Geometry
+  method.  When creating the window, the method uses
+  __ctalkX11SetSizeHints () and
+  __ctalkCreateX11MainWindow () to set the actual
+  window to the X server's actual placement, which
+  includes window frames and other decorations.
+  
+  This method does not set the pane's origin instance
+  variable itself; it uses the x and y coordinates as
+  hints to the window manager. If you want the program
+  to specify the window origin, use the
+  parseX11Geometry method to provide the position on
+  the command line."
+  
+    unsigned int win_id;
+    int x_ret, y_ret, width_ret, height_ret, win_grav_ret, flags_ret;
+
+  self size x = x_size;
+  self size y = y_size;
+
+  __ctalkX11SetSizeHints (x_org, y_org, x_size, y_size, geom_flags);
+
+  win_id = __ctalkCreateX11MainWindow (self);
+  self xWindowID = win_id;
+
+  __ctalkX11GetSizeHints (win_id, &x_ret, &y_ret, &width_ret, &height_ret,
+			  &win_grav_ret, &flags_ret);
+
+  __ctalkX11FreeSizeHints ();
+
+  self size x = width_ret;
+  self size y = height_ret;
+
+  self cursor x = 1;
+  self cursor y = 1;
+
+
+  return self;
+}
+
+X11Pane instanceMethod initialize (int x_org, int y_org,
+				   int x_size, int y_size,
+				   int geom_flags,
+				   char *window_title) {
+  "Initialize the receiver object's window.  The arguments
+  are Integers with the x and y coordinates of the
+  window's upper left-hand corner, and the window's
+  width and height.
+  
+  The fifth argument, geomFlags, provides hints about
+  window placement.  Normally these are the values
+  provided by the Application : parseX11Geometry
+  method.  When creating the window, the method uses
+  __ctalkX11SetSizeHints () and
+  __ctalkCreateX11MainWindow () to set the actual
+  window to the X server's actual placement, which
+  includes window frames and other decorations.
+  
+  This method does not set the pane's origin instance
+  variable itself; it uses the x and y coordinates as
+  hints to the window manager. If you want the program
+  to specify the window origin, use the
+  parseX11Geometry method to provide the position on
+  the command line.
+
+  The sixth argument is a String that contains the window's
+  title."
+  
+  unsigned int win_id;
+  int x_ret, y_ret, width_ret, height_ret, win_grav_ret, flags_ret;
+
+  self size x = x_size;
+  self size y = y_size;
+
+  __ctalkX11SetSizeHints (x_org, y_org, x_size, y_size, geom_flags);
+
+  win_id = __ctalkCreateX11MainWindowTitle (self, window_title);
+  self xWindowID = win_id;
+
+  __ctalkX11GetSizeHints (win_id, &x_ret, &y_ret, &width_ret, &height_ret,
+			  &win_grav_ret, &flags_ret);
+
+  __ctalkX11FreeSizeHints ();
+
+  self size x = width_ret;
+  self size y = height_ret;
+
+  self cursor x = 1;
+  self cursor y = 1;
+
+
+  return self;
+}
+
+X11Pane instanceMethod clearWindow (void) {
+  "Clear the receiver object's window."
+  __ctalkGUIPaneClearWindow (self);
+  return self;
+}
+
+X11Pane instanceMethod clearRectangle (Integer x, Integer y, 
+				       Integer width, Integer height) {
+  "Clear a rectangle on the receiver object's window with
+  the dimensions given as the arguments, x,y,width,height."
+  __ctalkGUIPaneClearRectangle (self, x, y, width, height);
+  return self;
+}
+
+X11Pane instanceMethod map (void) {
+  "Map the receiver object's window on the display."
+  if (self value is X11Pane)
+    __ctalkMapX11Window (self);
+  return NULL;
+}
+
+X11Pane instanceMethod raiseWindow (void) {
+  "Raise the receiver object's window on the display."
+  if (self value is X11Pane)
+    __ctalkRaiseX11Window (self);
+  return NULL;
+}
+
+X11Pane instanceMethod deleteAndClose (void) {
+  "Call the delete handlers for each of the subpanes,
+  then delete the buffer and window associated with 
+  the receiver pane.
+  TODO - 
+  Make sure we can delete the backing store here, too."
+  self children map {
+    eval self deleteAndClose;
+  }
+  __ctalkDeleteWinBuffer (self paneBuffer);
+  __ctalkCloseX11Pane (self);
+  if (self is X11Pane)
+    __ctalkX11CloseParentPane (self);
+  return NULL;
+}
+
+X11Pane instanceMethod putStrXY (int xOrg, int yOrg, char *strPtr) {
+  "Draw a text string on the receiver pane's window.  The
+  method's prototype is:
+     <X11PaneObject> putStrXY Integer <xOrg>, Integer <yOrg>,
+                              String <text>"
+  __ctalkX11PanePutStr (self, xOrg, yOrg, strPtr);
+  return NULL;
+}
+
+X11Pane instanceMethod putTransformedStrXY (int xOrg, int yOrg, char *strPtr) {
+  "Currently this method is the same as X11Pane : putStrXY."
+  __ctalkX11PanePutStr (self, xOrg, yOrg, strPtr);
+  return NULL;
+}
+
+X11Pane instanceMethod setWMTitle (char *wmWinTitle) {
+  "Set the WMName property of the receiver pane's 
+  window to the argument, a String."
+  __ctalkX11SetWMNameProp (self, wmWinTitle);
+  return NULL;
+}
+
+X11Pane instanceMethod draw (Object graphicsObject) {
+  "Draw a graphics object given as an argument on the 
+  receiver pane's window."
+  graphicsObject draw self;
+  return NULL;
+}
+
+X11Pane instanceMethod drawWithPen (Object graphicsObject, Pen graphicsPen) {
+  "Draw a graphics object given as the first argument on the 
+  receiver pane's window, using the Pen object given as the 
+  second argument."
+  graphicsObject drawWithPen self, graphicsPen;
+  return NULL;
+}
+
+X11Pane instanceMethod attachTo (Object parentPane) {
+  "Register a receiver subpane with the parent pane given
+  as the argument."
+  self container become parentPane;
+  parentPane children pushItemRef self;
+  return NULL;
+}
+
+X11Pane instanceMethod isTopLevel (void) {
+  "Return a Boolean value of True if the receiver is
+  the top-level pane of the application, False 
+  otherwise."
+  returnObjectClass Boolean;
+  if (!self container value)
+    return TRUE;
+  else
+    return FALSE;
+}
+
+/*
+ *  Here for backward compatibility.
+ */
+X11Pane instanceMethod useFont (String fontDesc) {
+  "Set the receiver pane's font instance variable
+  to the font given as the argument, a String."
+  self font fontDesc;
+}
+
+X11Pane instanceMethod font (String fontDesc) {
+  "Set the receiver pane's font instance variable
+  to the font given as the argument, a String,
+  and get the font dimensions associated with
+  the font in the receiver's fontVar instance
+  variable."
+  self fontDescStr = fontDesc;
+  self fontVar getFontInfo fontDesc;
+  __ctalkX11UseFontBasic (self xWindowID, self xGC, fontDesc);
+}
+
+X11Pane instanceMethod ftFont (String family, Integer slant,
+			       Integer weight, Integer dpi,
+			       Float pointSize) {
+  self ftFontVar selectFont family, slant, weight, dpi, pointSize;
+}
+
+require X11PaneDispatcher;
+
+X11Pane instanceMethod subPaneNotify (InputEvent event) {
+  "Notify the receiver's subpanes of the InputEvent given
+  as the argument.  For a top-level pane, the only
+  subpane is normally a X11PaneDispatcher object, and any
+  other subpanes are subpanes of the X11PaneDispatcher
+  object."
+  Exception new subPaneException;
+  String new errorStr;
+
+  self children map {
+    if (self is X11PaneDispatcher) {
+
+      eval self handleSubPaneEvent event;
+
+    } else {
+      errorStr printOn
+	"subPaneNotify (class X11Pane): subPane class, \"%s\", has no event handlers",
+	self className;
+      subPaneException raiseCriticalException INVALID_OPERAND_X,
+	errorStr;
+    }
+  }
+  return NULL;
+}
+
+X11Pane instanceMethod background (String color) {
+  "Set the receiver pane's background color to
+  the argument, a String.  This method also 
+  sets the background color of the receiver pane's
+  window.  Other classes might need to define their
+  own background method, because this method is only 
+  for panes that have an actual X window associated with
+  them, due to the fact that we want a minimum
+  of hardcoding of instance variables in the 
+  libraries.  For all other X visual types, 
+  especially X11Bitmap objects and the classes 
+  that use them, change the background with 
+  __ctalkX11SetBackgroundBasic instead.  Again, this
+  can be implemented in the classes' background method.
+  
+  Remember that trying to change the background
+  of a window before initializing the X client can cause
+  a segfault.  E.g., send the X11Pane object an
+  openEventStream message before using this 
+  method.
+  
+  Also remember that this method only changes the color;
+  it does not update the window on the screen. For
+  that, use the clearWindow method after this one."
+
+  self backgroundColor = color;
+  __ctalkGUISetBackground (self, color);
+}
+
+X11Pane instanceMethod useCursor (X11Cursor cursor) {
+  "Set the window's cursor to the X11Cursor object
+  given as the argument."
+  __ctalkX11UseCursor (self, cursor);
+  return self;
+}
+X11Pane instanceMethod defaultCursor (void) {
+  "Set the window's cursor to the default
+  cursor."
+  __ctalkX11UseCursor (self, NULL);
+  return self;
+}
+
+X11Pane instanceMethod setResources (String resourceName, 
+				     String resourceClass) {
+  "Set the window's X resourceName and resourceClass, both
+  Strings.  The resource name is normally the name of
+  the application, although it may be different than
+  the window title.  The resource class is how the X
+  resource database refers to the application."
+
+  __ctalkX11SetResource (self xWindowID, resourceName, resourceClass);
+}
+
+X11Pane instanceMethod displayHeight (void) {
+  returnObjectClass Integer;
+  return __ctalkX11DisplayHeight ();
+}
+X11Pane instanceMethod displayWidth (void) {
+  returnObjectClass Integer;
+  return __ctalkX11DisplayWidth ();
+}
+
+X11Pane instanceMethod useXRender (Boolean b) {
+  __ctalkX11UseXRender (b);
+}
+
+X11Pane instanceMethod usingXRender (void) {
+  returnObjectClass Boolean;
+  return __ctalkX11UsingXRender ();
+}
+
+/* these are from ctalkdefs.h */
+#define X_FACE_REGULAR     (1 << 0)
+#define X_FACE_BOLD        (1 << 1)
+#define X_FACE_ITALIC      (1 << 2)
+#define X_FACE_BOLD_ITALIC (1 << 3)
+
+X11Pane instanceMethod faceBold (void) {
+  __ctalkSelectXFontFace (self xWindowID, self xGC, X_FACE_BOLD);
+}
+
+X11Pane instanceMethod faceRegular (void) {
+  __ctalkSelectXFontFace (self xWindowID, self xGC, X_FACE_REGULAR);
+}
+
+X11Pane instanceMethod faceItalic (void) {
+  __ctalkSelectXFontFace (self xWindowID, self xGC, X_FACE_ITALIC);
+}
+
+X11Pane instanceMethod faceBoldItalic (void) {
+  __ctalkSelectXFontFace (self xWindowID, self xGC, X_FACE_BOLD_ITALIC);
+}

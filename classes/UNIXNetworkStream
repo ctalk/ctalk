@@ -1,0 +1,118 @@
+/* $Id: UNIXNetworkStream,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-c-*-*/
+
+/*
+  This file is part of Ctalk.
+  Copyright © 2016, 2019  Robert Kiesling, rk3314042@gmail.com.
+  Permission is granted to copy this software provided that this copyright
+  notice is included in all source code modules.
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+*/
+
+#include <sys/socket.h>
+#include <sys/un.h>
+#include <sys/select.h>
+
+NetworkStream class UNIXNetworkStream
+"UNIXNetworkStream is the superclass of objects that
+use machine-local sockets to communicate between
+processes.";
+UNIXNetworkStream instanceVariable socketBaseName String "";
+UNIXNetworkStream instanceVariable socketPath String "";
+UNIXNetworkStream instanceVariable sock Integer 0;
+
+/* The macro P_tmpdir is defined in stdio.h, and is a string
+   with the machine-specific directory where temporary files
+   reside; e.g., /tmp, /var/tmp, etc. */
+UNIXNetworkStream classVariable socketPrefix String P_tmpdir;
+
+UNIXNetworkStream instanceMethod makeSocketPath (String baseName) {
+  returnObjectClass String;
+  String new substr1, substr2, pidStr, qualifiedName;
+  Array new indexes;
+  Application new nameApp;
+  Integer new prefix_length;
+  Boolean new trailing_slash;
+
+  prefix_length = self socketPrefix length;
+  
+  if (self socketPrefix at (prefix_length - 1) == '/')
+    trailing_slash = true;
+  else
+    trailing_slash = false;
+
+  if (baseName contains "$$") {
+    /* We don't use split because split uses regex matches, and
+       we would need to escape the '$' characters. */
+    baseName quickSearch "$$", indexes;
+    substr1 = baseName subString 0, (indexes at 0);
+    pidStr = nameApp getPID asString;
+    if (((indexes at 0) + 2) == (baseName length)) {
+      /* i.e., the $$ is at the end of the string. */
+      qualifiedName = substr1 + pidStr;
+    } else {
+      substr2 = baseName subString idx + 2, 255;
+      qualifiedName = substr1 +  pidStr + substr2;
+    }
+    if (trailing_slash) 
+      self socketPath = self socketPrefix + qualifiedName;
+    else
+      self socketPath = self socketPrefix + "/" + qualifiedName;
+  } else {
+    if (trailing_slash) 
+      self socketPath = self socketPrefix + baseName;
+    else
+      self socketPath = self socketPrefix + "/" + baseName;
+  }
+
+  return self socketPath;
+}
+
+/* On Linux, the shutdown modes are defined as macros of their
+   enum labels, so this is here if the enum that contains the actual
+   declaration hasn't been output yet. 
+*/
+#ifdef _SYS_SOCKET_H
+# ifdef SHUT_RD
+#  undef SHUT_RD
+#  define SHUT_RD 0
+# endif
+# ifdef SHUT_WR
+#  undef SHUT_WR
+#  define SHUT_WR 1
+# endif
+# ifdef SHUT_RDWR
+#  undef SHUT_RDWR
+#  define SHUT_RDWR 2
+# endif
+#else
+# define SHUT_RD 0
+# define SHUT_WR 1
+# define SHUT_RDWR 2
+#endif
+
+UNIXNetworkStream instanceMethod closeSocket (void) {
+  FileStream new f;
+  if (self sock != 0) {
+    __ctalkUNIXSocketShutdown (self sock, SHUT_RDWR);
+  }
+}
+
+UNIXNetworkStream instanceMethod removeSocket (void) {
+  FileStream new f;
+  if (f exists self socketPath) {
+    f deleteFile self socketPath;
+  }
+}

@@ -1,0 +1,268 @@
+/* $Id: CTime,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-c-*-*/
+
+/*
+  This file is part of Ctalk.
+  Copyright © 2005 - 2014, 2018, 2019  Robert Kiesling, rk3314042@gmail.com.
+  Permission is granted to copy this software provided that this copyright
+  notice is included in all source code modules.
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+*/
+
+Integer class CTime
+"CTime provides methods that handle the system's time, translate
+it into calendar time, formats time strings, and manages AM/PM,
+time zone, and daylight savings time adjustments.";
+
+#ifdef __CYGWIN__
+extern char *_tzname[2];
+extern int _daylight;
+extern long _timezone;
+#else
+# ifdef __DJGPP__
+extern char *tzname[2];
+# else
+extern char *tzname[2];
+#ifndef __APPLE__
+extern int daylight;
+extern long timezone;
+#endif
+# endif /* #ifdef __DJGPP__ */
+#endif
+
+CTime instanceMethod utcTime (void) {
+  "Set the value of the receiver to the system's UTC time."
+  self = __ctalkUTCTime ();
+  return self;
+}
+
+CTime instanceMethod localTime (void) {
+  "Return an Array with the receiver's value expressed as
+  the local calendar time. The returned Array contains
+  the following elements.
+     Array at 0 : Seconds.
+     Array at 1 : Minutes.
+     Array at 2 : Hours.
+     Array at 3 : Day of the month.
+     Array at 4 : Month (0 - 11).
+     Array at 5 : Years from 1900.
+     Array at 6 : Day of the week (0-6).
+     Array at 7 : Day of the year.
+     Array at 8 : T/F Daylight savings time."
+  Array new timeArray;
+  OBJECT *self_obj;
+#ifdef __DJGPP__
+  time_t utctime;
+#else
+  long int utctime;
+#endif
+  struct tm *__tm_struct;
+
+  returnObjectClass Array;
+
+  self_obj = self value;
+
+  utctime = INTVAL(self_obj -> __o_value);
+  __tm_struct = localtime (&utctime);
+
+  timeArray atPut 0, __tm_struct -> tm_sec;
+  timeArray atPut 1, __tm_struct -> tm_min;
+  timeArray atPut 2, __tm_struct -> tm_hour;
+  timeArray atPut 3, __tm_struct -> tm_mday;
+  timeArray atPut 4, __tm_struct -> tm_mon;
+  timeArray atPut 5, __tm_struct -> tm_year;
+  timeArray atPut 6, __tm_struct -> tm_wday;
+  timeArray atPut 7, __tm_struct -> tm_yday;
+  timeArray atPut 8, __tm_struct -> tm_isdst;
+#ifdef __APPLE__
+  timeArray atPut 9, __tm_struct -> tm_zone;
+  timeArray atPut 10, __tm_struct -> tm_gmtoff;
+#endif
+
+  return timeArray;
+}
+
+CTime instanceMethod gmTime (void) {
+  "Return an Array with the receiver's value expressed as
+   Greenwich Mean Time calendar time. The returned Array contains
+   the following elements.
+     Array at 0 : Seconds.
+     Array at 1 : Minutes.
+     Array at 2 : Hours.
+     Array at 3 : Day of the month.
+     Array at 4 : Month (0 - 11).
+     Array at 5 : Years from 1900.
+     Array at 6 : Day of the week (0-6).
+     Array at 7 : Day of the year.
+     Array at 8 : T/F Daylight savings time."
+  Array new timeArray;
+  OBJECT *self_obj;
+#ifdef __DJGPP__
+  time_t utctime;
+#else
+  long int utctime;
+#endif
+  struct tm *__tm_struct;
+
+  returnObjectClass Array;
+
+  self_obj = self value;
+
+  sscanf (self_obj -> __o_value, "%ld", &utctime);
+
+  __tm_struct = gmtime (&utctime);
+
+  timeArray atPut 0, __tm_struct ->tm_sec;
+  timeArray atPut 1, __tm_struct ->tm_min;
+  timeArray atPut 2, __tm_struct ->tm_hour;
+  timeArray atPut 3, __tm_struct ->tm_mday;
+  timeArray atPut 4, __tm_struct ->tm_mon;
+  timeArray atPut 5, __tm_struct ->tm_year;
+  timeArray atPut 6, __tm_struct ->tm_wday;
+  timeArray atPut 7, __tm_struct ->tm_yday;
+  timeArray atPut 8, __tm_struct ->tm_isdst;
+#ifdef __APPLE__
+  timeArray atPut 9, __tm_struct -> tm_zone;
+  timeArray atPut 10, __tm_struct -> tm_gmtoff;
+#endif
+  return timeArray;
+}
+
+CTime instanceMethod cTime (void) {
+  "Return String with the local time expressed 
+  in the same format as the C library ctime(3)
+  function."
+  char buf[64];
+  Array new timeInfo;
+  char *days[] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
+  char *months[] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug",
+		    "Sep", "Oct", "Nov", "Dec"};
+
+  returnObjectClass String;
+
+  timeInfo = self localTime;
+  
+  xsprintf (buf, "%s %s %d %02d:%02d:%02d %d\n", 
+	   days[timeInfo at 6], 
+	   months[timeInfo at 4],
+	   (timeInfo at 3),
+	   (timeInfo at 2),
+	   (timeInfo at 1),
+	   (timeInfo at 0),
+	   (timeInfo at 5) + 1900);
+  return buf;
+}
+
+CTime instanceMethod timeZoneName (void) {
+  "Return a String with the name of the system's time
+  zone setting."
+#ifndef __DJGPP__
+  Array new a;
+
+  returnObjectClass String;
+
+  a = self localTime;
+
+#ifdef __CYGWIN__
+  if (_daylight) {
+    if (a at 8) {
+      return (char *)_tzname[1];
+    } else {
+      return (char *)_tzname[0];
+    }
+  } else {
+    return (char *)_tzname[0];
+  }
+#else
+# ifdef __APPLE__
+  return a at 9;
+# else
+  if (daylight) {
+    if (a at 8) {
+      return (char *)tzname[1];
+    } else {
+      return (char *)tzname[0];
+    }
+  } else {
+    return (char *)tzname[0];
+  }
+# endif
+#endif
+#endif
+}
+
+CTime instanceMethod haveDST (void) {
+  "Return an Integer value of True if the system's
+  time zone handles daylight saving time.  On some
+  systems, this method uses the daylight builtin 
+  variable."
+#ifndef __DJGPP__
+  Array new a;
+  returnObjectClass Integer;
+  a = self localTime;
+# ifdef __CYGWIN__
+  return _daylight;
+# else
+#  ifdef __APPLE__
+  return a at 8;
+#  else
+  return daylight;
+#  endif
+# endif
+#endif
+}
+
+CTime instanceMethod timeZoneOffset (void) {
+  "Return an Integer value with the plus or minus
+  time zone offset from Greenwich Mean Time."
+#ifndef __DJGPP__
+  Array new a;
+  returnObjectClass Integer;
+  a = self localTime;
+#ifdef __CYGWIN__
+  return _timezone
+#else
+# ifdef __APPLE__
+    return a at 10;
+# else    
+  return timezone;
+# endif 
+#endif
+#endif
+}
+
+CTime instanceMethod isAM (void) {
+  OBJECT *self_obj;
+#ifdef __DJGPP__
+  time_t utctime;
+#else
+  long int utctime;
+#endif
+  struct tm *__tm_struct;
+
+  returnObjectClass Boolean;
+
+  self_obj = self value;
+
+  utctime = *(long int *)self_obj -> __o_value;
+
+  __tm_struct = localtime (&utctime);
+
+  if (__tm_struct -> tm_hour < 12)
+    return TRUE;
+  else
+    return FALSE;
+}
+

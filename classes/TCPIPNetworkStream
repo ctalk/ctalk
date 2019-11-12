@@ -1,0 +1,314 @@
+/* $Id: TCPIPNetworkStream,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-c-*-*/
+
+/*
+  This file is part of Ctalk.
+  Copyright © 2017 - 2019  Robert Kiesling, rk3314042@gmail.com.
+  Permission is granted to copy this software provided that this copyright
+  notice is included in all source code modules.
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+*/
+
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <netdb.h>
+#include <errno.h>
+
+NetworkStream class TCPIPNetworkStream
+"TCPIPNetworkStream is the superclass of objects that
+use TCP/IP sockets to communicate between processes. The
+processes may be on any machine that is connected by
+a TCP/IP enabled network, like 10/100base T Ethernet, 
+Wi-Fi, or the same machine.";
+
+TCPIPNetworkStream instanceVariable sock Integer 0
+"The file handle that the system assigns to the socket.";
+
+TCPIPNetworkStream instanceMethod createSocketBasic (void) {
+  "Creates a socket with the domain AF_INET and the
+   protocol SOCK_STREAM, and sets the receiver's sock
+   instance variable to the new socket's file handle
+   number, an Integer, and then returns the socket's file
+   handle number.  If not successful, the method raises a
+   SystemErrnoException and returns 0."
+
+  SystemErrnoException new ex;
+  int sock_fh;
+
+  returnObjectClass Integer;
+
+  if ((sock_fh = socket (AF_INET, SOCK_STREAM, 0)) < 0) {
+    ex raiseException strerror (errno);
+    return 0;
+  }
+
+  self sock = sock_fh;
+  return self sock;
+}
+
+TCPIPNetworkStream instanceMethod readText (void) {
+  "Read text from the receiver's socket.  Raises
+   a SystemErrnoException if the read causes an error."
+  returnObjectClass String;
+  SystemErrnoException new ex;
+  char readbuf[1026];
+  char *valbuf = NULL;
+  int bytes_read;
+  int bufsize = 0;
+  int sock_fh_i;
+  
+  xmemset (readbuf, 0, 1025);
+  sock_fh_i = self sock;
+
+  while ((bytes_read = read (sock_fh_i, readbuf, 1024)) > 0) {
+    if (valbuf == NULL) {
+      valbuf = __xalloc (bytes_read);
+      xstrcpy (valbuf, readbuf);
+      xmemset (readbuf, 0, 1025);
+      bufsize = bytes_read;
+    } else {
+      valbuf = __xrealloc ((void **)&valbuf, bufsize + bytes_read);
+      xstrcat (valbuf, readbuf);
+      xmemset (readbuf, 0, 1025);
+      bufsize += bytes_read;
+    }
+  }
+  if (bytes_read < 0) {
+    printf ("readText: %s.\n", strerror (errno));
+    ex raiseException "readText: read ().";
+    return NULL;
+  }
+  
+  return valbuf;
+}
+
+TCPIPNetworkStream instanceMethod readText (Integer sock_fh) {
+  "Read text from the socket given as the argument.  Raises
+   a SystemErrnoException if the read causes an error."
+  returnObjectClass String;
+  SystemErrnoException new ex;
+  char readbuf[1026];
+  char *valbuf = NULL;
+  int bytes_read;
+  int bufsize = 0;
+  int sock_fh_i;
+  
+  xmemset (readbuf, 0, 1025);
+  sock_fh_i = sock_fh;
+
+  while ((bytes_read = read (sock_fh_i, readbuf, 1024)) > 0) {
+    if (valbuf == NULL) {
+      valbuf = __xalloc (bytes_read);
+      xstrcpy (valbuf, readbuf);
+      xmemset (readbuf, 0, 1025);
+      bufsize = bytes_read;
+    } else {
+      valbuf = __xrealloc ((void **)&valbuf, bufsize + bytes_read);
+      xstrcat (valbuf, readbuf);
+      xmemset (readbuf, 0, 1025);
+      bufsize += bytes_read;
+    }
+  }
+  if (bytes_read < 0) {
+    printf ("readText: %s.\n", strerror (errno));
+    ex raiseException "readText: read ().";
+    return NULL;
+  }
+  
+  return valbuf;
+}
+
+TCPIPNetworkStream instanceMethod readVec (Integer sock_fh, Vector resultVec) {
+  "Reads data from the socket given as the argument and returns
+   it in the Vector object given as the second argument.  Raises
+   a SystemErrnoException if the read causes an error."
+  returnObjectClass String;
+  SystemErrnoException new ex;
+  char readbuf[1026];
+  char *valbuf = NULL;
+  int bytes_read;
+  int bufsize = 0;
+  int sock_fh_i;
+  
+  xmemset (readbuf, 0, 1025);
+  sock_fh_i = sock_fh;
+
+  while ((bytes_read = read (sock_fh_i, readbuf, 1024)) > 0) {
+    if (valbuf == NULL) {
+      valbuf = __xalloc (bytes_read);
+      xmemcpy ((void *)valbuf, (void *)readbuf, bytes_read);
+      xmemset (readbuf, 0, 1025);
+      bufsize = bytes_read;
+    } else {
+      valbuf = realloc ((void *)valbuf, bufsize + bytes_read);
+      xmemcpy ((void *)&valbuf[bufsize], (void *)readbuf, bytes_read);
+      xmemset (readbuf, 0, 1025);
+      bufsize += bytes_read;
+    }
+  }
+  if (bytes_read < 0) {
+    printf ("readVec: %s.\n", strerror (errno));
+    ex raiseException "readVec: read ().";
+    return NULL;
+  }
+  
+  __ctalkSetObjectValueAddr (resultVec, valbuf, bufsize);
+  return resultVec;
+}
+
+TCPIPNetworkStream instanceMethod writeText (String textArg) {
+  "Writes the String given as the argument to the receiver's
+   socket.  If the number of bytes written does not match
+   the length of the String argument, the method raises a
+   SystemErrnoException."
+  SystemErrnoException new ex;
+  int sockfh;
+  int write_length;
+  int n_bytes_written;
+  char *text;
+
+  sockfh = self sock;
+  text = textArg value;
+  write_length = strlen (text);
+  if ((n_bytes_written = write (sockfh, text, write_length))
+      != write_length) {
+    ex raiseException "writeText: write ().";
+  }
+}
+
+TCPIPNetworkStream instanceMethod writeVec (Vector dataArg) {
+  "Writes the contents of the Vector given as the argument
+   to the receiver's socket.  If the number of bytes written
+   does not match the length of the data, the method raises a
+   SystemErrnoException."
+  SystemErrnoException new systemEx;
+  Exception new classEx;
+  int sockfh;
+  int write_length;
+  int n_bytes_written;
+  void *data;
+
+  if (!dataArg is Vector) {
+    classEx raiseException INVALID_OPERAND_X,
+      "writeVec: Argument is not a Vector object.";
+  }
+
+  sockfh = self sock;
+  data = dataArg value;
+  write_length = dataArg length;
+  if ((n_bytes_written = write (sockfh, data, write_length))
+      != write_length) {
+    systemEx raiseException "writeVec: write ().";
+  }
+}
+
+TCPIPNetworkStream instanceMethod closeSock (void) {
+  "Close the receiver's socket. If closing the socket
+   causes an error, the method raises a SystemErrnoException."
+  SystemErrnoException new ex;
+  int sock_fh;
+
+  sock_fh = self sock;
+  if (close (sock_fh)) {
+    ex raiseException "closeSock : close ().";
+  }
+}
+
+TCPIPNetworkStream instanceMethod closeSock (Integer sockNum) {
+  "Close the socket given as the argument. If closing the socket
+   causes an error, the method raises a SystemErrnoException.";
+  SystemErrnoException new ex;
+  int sock_fh;
+
+  sock_fh = sockNum;
+  if (close (sock_fh)) {
+    ex raiseException "closeSock : close ().";
+  }
+}
+
+TCPIPNetworkStream instanceMethod hostToAddress (String hostname) {
+  Exception new ex;
+  String new exstr;
+  struct hostent *h_ent;
+  char addrbuf[256];
+  returnObjectClass String;
+  
+  if ((h_ent = gethostbyname (hostname)) == NULL) {
+    exstr printOn "Host, \"%s,\" not found", hostname;
+    ex raiseException INVALID_OPERAND_X, exstr;
+    return "";
+  }
+  inet_ntop (AF_INET, h_ent -> h_addr_list[0], addrbuf, 256);
+  return addrbuf;
+}
+
+TCPIPNetworkStream instanceMethod addrInfo (String hostName,
+					    String canonNameOut,
+					    List addrsOut) {
+  "Looks up the IP addresses of the hostName given as the first
+   argument, and returns the addresses as Strings in the List
+   addrsOut.  The hostName's canonical name is returned in 
+   canonNameOut, and the method returns an Integer with the
+   number of addresses found.  If there is an error during lookup,
+   the method raises an Exception and returns 0."
+  Exception new ex;
+  struct addrinfo *res, *rp;
+  struct sockaddr_in *addr;
+  struct addrinfo hints;
+  char buf[INET_ADDRSTRLEN];
+  char gai_errbuf[MAXLABEL];
+  String new errMsg;
+  int r;
+
+  returnObjectClass Integer;
+
+  xmemset (&hints, 0, sizeof (struct addrinfo));
+  hints.ai_family = AF_INET;
+  hints.ai_socktype = SOCK_STREAM;
+  hints.ai_flags = AI_PASSIVE|AI_CANONNAME;
+  hints.ai_protocol = 0;
+  hints.ai_canonname = NULL;
+  hints.ai_addr = NULL;
+  hints.ai_next = NULL;
+
+  addrsOut delete;
+
+  r = getaddrinfo (hostName, NULL, &hints, &res);
+  if (r != 0) {
+    canonNameOut = "";
+    errMsg printOn "Host, \"%s:\" ", hostName;
+    /* the extra buffer prevents a warning message */
+    xmemset (gai_errbuf, 0, MAXLABEL);
+    xstrncpy (gai_errbuf, gai_strerror (r), MAXLABEL);
+    errMsg += gai_errbuf;
+    ex raiseException INVALID_OPERAND_X, errMsg;
+    return 0;
+  }
+  
+  canonNameOut = res -> ai_canonname;
+
+  r = 0;
+  for (rp = res; rp != NULL; rp = rp->ai_next) {
+    ++r;
+    addr = (struct sockaddr_in *)rp -> ai_addr;
+    inet_ntop (AF_INET, &(addr -> sin_addr), buf,
+	       INET_ADDRSTRLEN);
+    addrsOut push buf;
+  }
+  freeaddrinfo (res);
+  return r;
+}

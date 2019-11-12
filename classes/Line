@@ -1,0 +1,50 @@
+/* $Id: Line,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-c-*-*/
+
+/*
+  This file is part of Ctalk.
+  Copyright © 2005 - 2014  Robert Kiesling, rk3314042@gmail.com.
+  Permission is granted to copy this software provided that this copyright
+  notice is included in all source code modules.
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+*/
+
+/*
+ *  __ctalkX11PaneDrawLine is still implemented, but it is
+ *  deprecated.
+ */
+
+Point class Line
+"Line class contains methods that draw lines on X11Pane
+and X11CanvasPane objects.";
+Line instanceVariable start Point NULL;
+Line instanceVariable end Point NULL;
+
+Line instanceMethod drawWithPen (OBJECT *__x11PaneObject, OBJECT *__penObject) {
+  "Draw a the receiver on the X11Pane object given as the
+  first argument, with the Pen object given as the
+  second argument."
+  __ctalkGUIPaneDrawLine (__x11PaneObject, self, __penObject);
+  return NULL;
+}
+
+Line instanceMethod draw (OBJECT *__x11PaneObject) {
+  "Draw a the receiver on the X11Pane object given as the
+  first argument, with the default Pen."
+  Pen new defaultPen;
+  __ctalkGUIPaneDrawLine (__x11PaneObject, self, defaultPen);
+  return NULL;
+}
+

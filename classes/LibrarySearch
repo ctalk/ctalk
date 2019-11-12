@@ -1,0 +1,157 @@
+/* $Id: LibrarySearch,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-c-*-*/
+
+/*
+  This file is part of Ctalk.
+  Copyright © 2016, 2019  Robert Kiesling, rk3314042@gmail.com.
+  Permission is granted to copy this software provided that this copyright
+  notice is included in all source code modules.
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+*/
+
+/*
+ *   LibrarySearch class.
+ *
+ *   Methods that search the class and C API Libraries.
+ */
+
+Application class LibrarySearch
+"This class defines methods that work with Ctalk's searchlib
+utility, which is installed with the compiler and libraries.
+The installation procedure also installs the dictionaries that
+searchlib uses to find class library methods and C runtime library
+functions.  The dictionaries are generated from Ctalk's Texinfo
+documentation and are also installed with the compiler and
+libraries.  The searchlib program has its own manual page,
+searchlib(1).";
+
+#include <ctalk/ctalkdefs.h>
+
+LibrarySearch instanceMethod cAPIFunctionSearch (String docPath,
+						 String pattern) {
+  "From the dictionary file given by _docPath_, find and return
+   the descriptions of the C library functions that match _pattern_,
+   which may contain metacharacters.  The method also returns any
+   related library functions.  The dictionary named by _docPath_ is
+   generated from the Ctalk Texinfo documentation and installed
+   with the compiler and libraries."
+  returnObjectClass String;
+  Boolean new haveEntry;
+  ReadFileStream new readFile;
+  String new inputLine;
+  Array new offsets;
+  String new strOut;
+  Exception new fileException;
+  String new protoStrs;
+  Integer new protoLength;
+  List new protos;
+ 
+  strOut = "";
+  haveEntry = false;
+  readFile openOn docPath;
+  if (fileException pending) {
+    /* Handled by the caller. */
+    return "";
+  }
+
+  while (true) {
+    inputLine = readFile readLine;
+    if (inputLine at 0 == EOF)
+      break;
+    if (inputLine quickSearch (KEYPAT, offsets) != 0) {
+      if (inputLine matchRegex (pattern, offsets) != 0) {
+	if (inputLine charPos "," < 0) {
+	  protoLength = inputLine length;
+	  protoStrs = inputLine subString 3, protoLength;
+	  strOut += protoStrs + "\n";
+	} else {
+	  protoLength = inputLine length;
+	  protoStrs = inputLine subString 3, protoLength;
+	  protoStrs split ':', protos;
+	  protos map {
+	    strOut += self + "\n";
+	  }
+	}
+	protos delete;
+	haveEntry = true;
+	continue;
+      }
+    }
+
+    if (haveEntry) {
+      if (inputLine quickSearch (KEYPAT, offsets) != 0) {
+	haveEntry = false;
+      } else {
+	strOut += inputLine;
+      }
+    }
+  }
+
+  return strOut;
+}
+
+LibrarySearch instanceMethod methodSearch (String docPath,
+					   String pattern) {
+  "From the dictionary file given by _docPath_, find and return
+   the methods that match _pattern_, which may contain metacharacters,
+   and also the descriptions of the methods.  This method also returns
+   any related dictionary entries.  The dictionary named by _docPath_
+   is generated from the Ctalk Texinfo documentation and installed
+   with the compiler and libraries."
+  returnObjectClass String;
+  Boolean new haveEntry, haveText;
+  ReadFileStream new readFile;
+  String new inputLine;
+  Array new offsets;
+  String new strOut;
+  Exception new fileException;
+
+  strOut = "";
+  readFile openOn docPath;
+  if (fileException pending) {
+    /* Handled by the caller. */
+    return "";
+  }
+  while (!readFile streamEof) {
+    inputLine = readFile readLine;
+    if (haveEntry && haveText) {
+      if (inputLine quickSearch (KEYPAT, offsets) != 0) {
+	haveEntry = false;
+	haveText = false;
+	offsets delete;
+      }
+      /* Fall through to check the input line again in case 
+	 of adjacent entries. */
+    }
+    /*  Match ">>>" separately so we don't have to anchor
+	the pattern to a column after the ">>>" field. */
+    if ((inputLine match KEYPAT) && 
+	(inputLine matchRegex (pattern, offsets) != 0)) {
+      haveEntry = true;
+      strOut += "\n";
+      strOut += inputLine + 3;
+      offsets delete;
+    } else {
+      if (haveEntry) {
+	if (inputLine quickSearch (KEYPAT, offsets) == 0) {
+	  haveText = true;
+	  /* printf ("%s", inputLine); */
+	  strOut += inputLine;
+	}
+      }
+    }
+  }
+  return strOut;
+}

@@ -1,0 +1,452 @@
+/* $Id: Integer,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-c-*-*/
+
+/*
+  This file is part of Ctalk.
+  Copyright © 2005 - 2016, 2018, 2019  
+    Robert Kiesling, rk3314042@gmail.com.
+  Permission is granted to copy this software provided that this copyright
+  notice is included in all source code modules.
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+*/
+
+/*
+ *    Integer class.
+ */
+
+/*
+ *   Note that some of these methods declare their return class
+ *   as Boolean.  
+ *
+ *   If String class isn't parsed yet, the parser doesn't (yet) 
+ *   translate  the expressions below for atoi (const char *), and 
+ *   other lib functions.
+ */
+
+/*
+ *  If you need to change these values, also make sure they
+ *  match the values in ctalklib.in, in the same directory as
+ *  this file.
+ */
+
+#include <ctalk/ctalkdefs.h>
+
+Magnitude class Integer
+"Integer class provides methods for performing math
+and comparision operations on Integer objects.";
+
+Integer instanceMethod = set_value (int __i) { 
+  "Set the value of the receiver to the argument.  The
+  method also checks for pointer contexts, and then it
+  simply assigns the object to the label."
+  return _store_int (self, __i);
+}
+
+Integer instanceMethod + add (Integer i) {
+  "Return the sum of the receiver and the argument."
+
+  if (i is Integer) {
+    return self + i;
+  } else {
+    return self + i asInteger;
+  }
+
+}
+
+Integer instanceMethod - subtract (Integer i) {
+  "Return the difference of the receiver and the argument."
+
+  if (i is Integer) {
+    return self - i;
+  } else {
+    return self - i asInteger;
+  }
+}
+
+Integer instanceMethod * multiply (Integer i) {
+  "Return the product of the receiver and the argument."
+
+  if (i is Integer) {
+    return self * i;
+  } else if (i is Float) {
+    /* we do this separately so that <int> * <float> to
+       get a ratio or percentage "just work" */
+    int r;
+    r = *(int *) __ctalk_self_internal () -> __o_value 
+      * strtod (i, NULL);
+    return r;
+  } else {
+    return self * i asInteger;
+  }
+    
+}
+
+Integer instanceMethod / divide (Integer i) {
+  "Return the integer division result of the receiver 
+   and the argument."
+
+  if (i is Integer) {
+    return self / i;
+  } else if (i is Float) {
+    /* see the comment in multiply, above */
+    int r;
+    r = *(int *) __ctalk_self_internal () -> __o_value 
+      / strtod (i, NULL);
+    return r;
+  } else {
+    return self / i asInteger;
+  }
+
+}
+
+Integer instanceMethod << asl (int i) {
+  "Return an Integer with the value of the receiver
+  shifted left by the number of bits given in the
+  argument, also an Integer."
+
+  if (!(i is Integer)) {
+    _warning ("Operand of << is not an Integer.\n");
+  }
+    return self << i;
+}
+
+Integer instanceMethod >> asr (int intArg) {
+  "Return an Integer with the value of the receiver
+  shifted right by the number of bits given in the
+  argument, also an Integer."
+
+  if (!(intArg is Integer)) {
+    _warning ("Operand of >> is not an Integer.\n");
+  }
+    return self >> intArg;
+}
+
+Integer instanceMethod & bitwise_and (int i) {
+  "Return an Integer with a bitwise and of the receiver
+  and the argument, also an Integer."
+
+    return self & i;
+}
+
+Integer instanceMethod | bitwise_or (int i) {
+  "Return an Integer with a bitwise or of the receiver and
+  the argument, also an Integer."
+
+    return self | i;
+}
+
+Integer instanceMethod ^ bitwise_xor (int i) {
+  "Return an Integer with a bitwise xor of the receiver
+  and the argument, also an Integer."
+
+    return self ^ i;
+}
+
+Integer instanceMethod % mod (int i) {
+  "Return an Integer with the modulus of the receiver and
+  the argument, also an Integer."
+
+    return self % i;
+}
+
+Integer instanceMethod bitComp (void) {
+  "Return an Integer with the bitwise complement of the
+  receiver."
+    int val;
+
+  if (IS_OBJECT(__ctalk_self_internal () -> instancevars)) {
+    val = ~*(int *)__ctalk_self_internal () -> instancevars -> __o_value;
+  } else {
+    val = ~*(int *)__ctalk_self_internal () -> __o_value;
+  }
+  return val;
+}
+
+Integer instanceMethod == equality (int i) {
+  "Return a Boolean value of True if the receiver's value
+  and the argument's value are equal, False otherwise."
+
+  returnObjectClass Boolean;
+
+    return self == i;
+} 
+
+Integer instanceMethod > gt (int i) {
+  "Return a Boolean value of True if the receiver is
+  greater than the argument, also an Integer."
+
+  returnObjectClass Boolean;
+
+    return self > i;
+} 
+
+Integer instanceMethod < lt (int i) {
+  "Return a Boolean value of True if the receiver is less
+  than the argument, also an Integer."
+
+  returnObjectClass Boolean;
+
+    return self < i;
+} 
+
+Integer instanceMethod >= ge (int i) {
+  "Return a Boolean value of True if the receiver is
+  greater than or equal to the argument, also an
+  Integer."
+
+  returnObjectClass Boolean;
+
+    return self >= i;
+} 
+
+Integer instanceMethod <= le (int i) {
+  "Return a Boolean value of True if the receiver is less
+  than or equal to the argument, also an Integer."
+
+  returnObjectClass Boolean;
+
+    return self <= i;
+} 
+
+Integer instanceMethod invert (void) {
+  "Return a Boolean value of True if the receiver is zero,
+  False if it is non-zero."
+
+  returnObjectClass Boolean;
+
+  return ! *(int *)__ctalk_self_internal () -> __o_value;
+} 
+
+Integer instanceMethod != inequality (int i) {
+  "Return a Boolean value of True if the receiver and the
+  argument are not equal, False otherwise."
+
+  returnObjectClass Boolean;
+
+    return self != i;
+} 
+
+Integer instanceMethod || logicalOr (int i) {
+  "Return a Boolean value of True if either the receiver
+  or the argument are non-zero, False otherwise."
+
+  returnObjectClass Boolean;
+
+    return self || i;
+} 
+
+Integer instanceMethod && logicalAnd (int i) {
+  "Return a Boolean value of True if both the receiver and
+  the argument are non-zero, False otherwise."
+
+  returnObjectClass Boolean;
+
+  /* Test the use the direct functions. */
+  return *(int *)__ctalk_self_internal_value () -> __o_value &&
+    *(int *)ARG(0) -> __o_value;
+}
+
+Integer instanceMethod ~ bitComp_prefix (__prefix__) {
+  "Return the bitwise complement of the receiver."
+
+  return self bitComp;
+}
+
+Integer instanceMethod  ! invert_prefix (__prefix__) {
+  "Return true if the receiver evaluates to zero,
+   false otherwise."
+  if (is_zero_q (self value))
+    return TRUE;
+  else
+    return FALSE;
+}
+
+Integer instanceMethod ++ increment (void) {
+  "Overloads C's ++ postfix operator."
+  Integer new returnVal;
+  int i;
+
+  i = *(int *)__ctalk_self_internal () -> __o_value;
+  returnVal = i;
+  ++i;
+  self = i;
+
+  /* if the receiver is the value var, then we also want
+     to update the parent object. */
+  if (IS_VALUE_INSTANCE_VAR(__ctalk_self_internal ())) {
+    *(int *)__ctalk_self_internal () -> __o_p_obj -> __o_value = i;
+  }
+  return returnVal;
+}
+
+Integer instanceMethod ++ pfx_increment (__prefix__) {
+  "Overloads C's ++ prefix operator."
+  int i;
+
+  i = *(int *)__ctalk_self_internal () -> __o_value;
+  ++i;
+  self = i;
+
+  if (IS_VALUE_INSTANCE_VAR(__ctalk_self_internal ())) {
+    *(int *)__ctalk_self_internal () -> __o_p_obj -> __o_value = i;
+  }
+  return self;
+}
+
+Integer instanceMethod -- pfx_decrement (__prefix__) {
+  "The C -- prefix operator for Integer objects."
+  int i;
+
+  i = *(int *)__ctalk_self_internal () -> __o_value;
+  --i;
+  self = i;
+
+  if (IS_VALUE_INSTANCE_VAR(__ctalk_self_internal ())) {
+    *(int *)__ctalk_self_internal () -> __o_p_obj -> __o_value = i;
+  }
+  return self;
+}
+
+Integer instanceMethod -- decrement (void) {
+  "Overloads C's -- postfix operator."
+  Integer new returnVal;
+  int i;
+
+  i = *(int *)__ctalk_self_internal () -> __o_value;
+  returnVal = i;
+  --i;
+  self = i;
+
+  if (IS_VALUE_INSTANCE_VAR(__ctalk_self_internal ())) {
+    *(int *)__ctalk_self_internal () -> __o_p_obj -> __o_value = i;
+  }
+  return returnVal;
+}
+
+Integer instanceMethod - minus_prefix (__prefix__) {
+  "Overloads C's unary minus operator.  Returns the
+  negated value of the receiver."
+  Integer new int_negated;
+  int int_val;
+
+  int_val = *(int *)__ctalk_self_internal () -> __o_value;
+  int_val = -int_val;
+  int_negated value = int_val;
+  return int_negated;
+}
+
+Integer instanceMethod += add_equal (int __i) {
+  "Add the argument to the receiver and return the receiver."
+
+    self = *(int *)__ctalk_self_internal () -> __o_value +
+    *(int *)ARG(0) -> __o_value;
+
+  return self;
+}
+
+Integer instanceMethod -= subtract_equal (int __i) {
+  "Subtract the argument from the receiver and return the receiver."
+
+    self = *(int *)__ctalk_self_internal () -> __o_value -
+    *(int *)ARG(0) -> __o_value;
+
+  return self;
+}
+
+Integer instanceMethod *= mult_equal (int __i) {
+  "Multiply the receiver by the argument and return the receiver."
+
+    self = *(int *)__ctalk_self_internal () -> __o_value *
+    *(int *)ARG(0) -> __o_value;
+
+  return self;
+}
+
+Integer instanceMethod /= div_equal (int __i) {
+  "Divide the receiver by the argument and return the receiver."
+
+    self = *(int *)__ctalk_self_internal () -> __o_value /
+    *(int *)ARG(0) -> __o_value;
+
+  return self;
+}
+
+Integer instanceMethod |= bit_or_assign (int __i) {
+  "Performs a bitwise OR of the receiver and the
+   argument, also an Integer, and assigns the result to
+   the receiver."
+
+    self = *(int *)__ctalk_self_internal () -> __o_value |
+    *(int *)ARG(0) -> __o_value;
+  
+}
+
+Integer instanceMethod &= bit_and_assign (int __i) {
+  "Performs a bitwise AND of the receiver and the
+   argument, also an Integer, and assigns the result to
+   the receiver."
+
+    self = *(int *)__ctalk_self_internal () -> __o_value &
+    *(int *)ARG(0) -> __o_value;
+  
+}
+
+Integer instanceMethod ^= bit_xor_assign (int __i) {
+  "Performs a bitwise XOR of the receiver and the
+   argument, also an Integer, and assigns the result to
+   the receiver."
+
+    self = *(int *)__ctalk_self_internal () -> __o_value ^
+    *(int *)ARG(0) -> __o_value;
+  
+}
+
+Integer instanceMethod %= mod_assign (int __i) {
+  "Performs a modulus of the receiver and the argument,
+   also an Integer, and assigns the value to the receiver."
+
+    self = *(int *)__ctalk_self_internal () -> __o_value %
+    *(int *)ARG(0) -> __o_value;
+  
+}
+
+Integer instanceMethod asDecimalString (void) {
+  "Returns a String formatted with the receiver
+   as a decimal integer."
+  returnObjectClass String;
+  char buf[0xffff];
+  __ctalkDecimalIntegerToASCII
+    (*(int *)__ctalk_self_internal () -> __o_value, buf);
+  return buf;
+}
+
+Integer instanceMethod asHexString (void) {
+  "Returns a String formatted with the receiver
+   as a hexadecimal integer."
+    returnObjectClass String;
+    char buf[0xffff];
+  __ctalkHexIntegerToASCII
+    (*(int *)__ctalk_self_internal () -> __o_value, buf);
+  return buf;
+}
+
+Integer instanceMethod asString (void) {
+  "Returns a String formatted with the receiver
+   as a decimal integer.  This is a synonym for
+   the asDecimalString method."
+  returnObjectClass String;
+  return self asDecimalString;
+}
+

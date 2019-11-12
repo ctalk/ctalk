@@ -1,0 +1,208 @@
+/* $Id: Win32TerminalStream,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-c-*-*/
+
+/*
+  This file is part of Ctalk.
+  Copyright © 2005 - 2012  Robert Kiesling, rk3314042@gmail.com.
+  Permission is granted to copy this software provided that this copyright
+  notice is included in all source code modules.
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+*/
+
+/*
+ *    Win32TerminalStream class.
+ *
+ *    Console I/O (with DJGPP conio.h) only, and likely to stay 
+ *    that way for some time, until we figure out a way to 
+ *    implement a genuine fork () call for DJGPP.
+ */
+
+TerminalStream class Win32TerminalStream
+"This class contains methods and instance variables
+to manage drawing on a Win32 terminal. Note that
+this class is not being actively maintained, but
+it may still be useful for some applications."
+Win32TerminalStream instanceVariable queueInput Integer 0x0;
+Win32TerminalStream instanceVariable shiftState Integer 0x0;
+
+#ifdef DJGPP
+#include <dos.h>
+#include <conio.h>
+extern unsigned char ScreenAttrib;
+#else
+#error Win32TerminalStream class requires DJGPP.  Use ANSITerminalStream instead.
+#endif
+
+#define CTRLC   0x03
+#define CTRLD   0x04
+#define CTRLZ   0x1a
+#define ESC     0x1b
+
+#ifndef KBDCHAR                 /* These are also defined in */
+#define KBDCHAR      (1 << 0)   /* TerminalStream class.     */
+#endif
+#ifndef KBDCUR   
+#define KBDCUR       (1 << 1)
+#endif
+
+Win32TerminalStream instanceMethod clear (void) {
+  // Clear the terminal screen.
+  clrscr ();
+  return NULL;
+}
+
+Win32TerminalStream instanceMethod screenColor (char *__fgStr, 
+						    char *__bgStr) {
+  "Set the screen color to the arguments, both Strings.
+  The first argument is the foreground color; the
+  second argument is the background color."
+  enum COLORS fgval, bgval;
+
+  if (__fgStr == "black") { fgval = BLACK; }
+  if (__fgStr == "blue") { fgval = BLUE; }
+  if (__fgStr == "green") { fgval = GREEN; }
+  if (__fgStr == "cyan") { fgval = CYAN; }
+  if (__fgStr == "red") { fgval = RED; }
+  if (__fgStr == "magenta") { fgval = MAGENTA; }
+  if (__fgStr == "brown") { fgval = BROWN; }
+  if (__fgStr == "lightgray") { fgval = LIGHTGRAY; }
+  if (__fgStr == "darkgray") { fgval = DARKGRAY; }
+  if (__fgStr == "lightblue") { fgval = LIGHTBLUE; }
+  if (__fgStr == "lightgreen") { fgval = LIGHTGREEN; }
+  if (__fgStr == "lightcyan") { fgval = LIGHTCYAN; }
+  if (__fgStr == "lightred") { fgval = LIGHTRED; }
+  if (__fgStr == "lightmagenta") { fgval = LIGHTMAGENTA; }
+  if (__fgStr == "yellow") { fgval = YELLOW; }
+  if (__fgStr == "white") { fgval = WHITE; }
+
+  if (__bgStr == "black") { bgval = BLACK; }
+  if (__bgStr == "blue") { bgval = BLUE; }
+  if (__bgStr == "green") { bgval = GREEN; }
+  if (__bgStr == "cyan") { bgval = CYAN; }
+  if (__bgStr == "red") { bgval = RED; }
+  if (__bgStr == "magenta") { bgval = MAGENTA; }
+  if (__bgStr == "brown") { bgval = BROWN; }
+  if (__bgStr == "lightgray") { bgval = LIGHTGRAY; }
+  if (__bgStr == "darkgray") { bgval = DARKGRAY; }
+  if (__bgStr == "lightblue") { bgval = LIGHTBLUE; }
+  if (__bgStr == "lightgreen") { bgval = LIGHTGREEN; }
+  if (__bgStr == "lightcyan") { bgval = LIGHTCYAN; }
+  if (__bgStr == "lightred") { bgval = LIGHTRED; }
+  if (__bgStr == "lightmagenta") { bgval = LIGHTMAGENTA; }
+  if (__bgStr == "yellow") { bgval = YELLOW; }
+  if (__bgStr == "white") { bgval = WHITE; }
+
+  ScreenAttrib = (bgval << 4) + fgval;
+
+  return NULL;
+}
+
+Win32TerminalStream instanceMethod cGetStr (void) {
+  "Get a String from the terminal."
+  char buf[MAXMSG + 3], *bufinput;
+  buf[0] = MAXMSG;
+  bufinput = cgets (buf);
+  return bufinput;
+}
+
+Win32TerminalStream instanceMethod cPutStr (char *__str) {
+  "Write the argument, a String, to the terminal."
+  cputs (__str);
+  return NULL;
+}
+
+Win32TerminalStream instanceMethod gotoXY (int __x, int __y) {
+  "Position the terminal cursor at the x,y coordinates
+  given as arguments."
+  gotoxy (__x, __y);
+  return NULL;
+}
+
+Win32TerminalStream instanceMethod cursorPos (int __x, int __y) {
+  "Position the terminal cursor at the x,y coordinates
+  given as arguments.  This method is a synonym for the
+  gotoXY method."
+  gotoxy (__x, __y);
+  return NULL;
+}
+
+Win32TerminalStream instanceMethod printOn (char *__fmt, ...) {
+  "Print a formatted string to the terminal."
+  String new __s;
+  __ctalkObjectPrintOn (__s);
+  self cPutStr __s;
+  return self;
+}
+
+Win32TerminalStream instanceMethod openInputQueue (void) {
+  "Start queueing input events."
+  self queueInput = TRUE;
+  return self;
+}
+
+Win32TerminalStream instanceMethod getCh (void) {
+  "Get a character from the terminal using the MS-DOS
+  INT 8 system call."
+  int c, c_lo;
+  returnObjectClass Integer;
+  c = bdos (8, 0, 0);
+  c_lo = c & 0xff;
+  switch (c_lo)
+    {
+    case CTRLC:
+    case CTRLD:
+    case CTRLZ:
+      __ctalk_exitFn(1);
+      exit (1);
+      break;
+    case 0:
+      c = bdos (8, 0, 0);
+      c_lo = c & 0xff;
+      if (self queueInput)
+	self queueInputEvent KBDCUR, c_lo;
+      break;
+    default:
+      if (self queueInput)
+	self queueInputEvent KBDCHAR, c_lo;
+      break;
+    }
+  return c_lo;
+}
+
+Win32TerminalStream instanceMethod biosKey (void) {
+  "Get the next keypress from the terminal using
+  the MS-DOS INT 22 system call."
+  union REGS inregs, outregs;
+  int c, s_state;
+  returnObjectClass Integer;
+  inregs.h.ah = 0;
+  int86(0x16, &inregs, &outregs);
+  c = outregs.h.ah;
+  inregs.h.ah = 0x12;
+  int86(0x16, &inregs, &outregs);
+  self shiftState = outregs.h.al;
+  return c;
+}
+
+Win32TerminalStream instanceMethod getShiftState (void) {
+  "Get the state of the shift keys using the MS-DOS INT 22
+  system call."
+  union REGS inregs, outregs;
+  int s_state;
+  inregs.h.ah = 0x12;
+  int86(0x16, &inregs, &outregs);
+  self shiftState = outregs.h.al;
+  return NULL;
+}

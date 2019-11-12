@@ -1,0 +1,221 @@
+/* $Id: TCPIPNetworkStreamReader,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-c-*-*/
+
+/*
+  This file is part of Ctalk.
+  Copyright © 2017-2019 Robert Kiesling, rk3314042@gmail.com.
+  Permission is granted to copy this software provided that this copyright
+  notice is included in all source code modules.
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+*/
+
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <netdb.h>
+#include <ctalk/ctalkdefs.h>
+#include <errno.h>
+#include <sys/select.h>
+
+TCPIPNetworkStream class TCPIPNetworkStreamReader;
+
+TCPIPNetworkStreamReader instanceVariable timeout Integer 10
+"The number of seconds to wait for a connection.";
+
+TCPIPNetworkStreamReader instanceMethod __openOnAnyInternal (Integer port) {
+  "An internal method that does the actual work of opening a reader
+   socket that listens on the port given as the argument, using the
+   system defined address INADDR_ANY. Programs should use one of the
+   openOn methods instead of calling this method directly.  The method
+   raises an Exception if there is an error."
+  Exception new ex;
+  int r;
+  int addrlen;
+  int on_int = 1;
+  struct sockaddr_in server;
+  returnObjectClass Integer;
+
+  self createSocketBasic;
+  if (ex pending) {
+    return 0;
+  }
+
+  addrlen = sizeof (server);
+  xmemset (&server, 0, addrlen);
+  server.sin_family = AF_INET;
+  server.sin_addr.s_addr = INADDR_ANY;
+  server.sin_port = htons(port);
+
+  setsockopt (self sock, SOL_SOCKET, SO_REUSEADDR, &on_int,
+	      sizeof (on_int));
+
+  if ((r = bind (self sock, (struct sockaddr *)&server, addrlen)) < 0) {
+    shutdown(self sock, SHUT_RDWR);
+    ex raiseException INVALID_OPERAND_X,
+      "In __openOnAnyInternal: bind (): " + strerror (errno) + ".";
+    return 0;
+  }
+
+  return self sock;
+}
+
+TCPIPNetworkStreamReader instanceMethod openOn (void) {
+  "Open a socket to communicate using the constant INADDR_ANY,
+   and the port DEFAULT_TCPIP_PORT, which is defined in the
+   include file ctalk/ctalkdefs.h.  Returns an Integer with
+   the file handle number of the server's listening socket.
+   Raises an Exception if there is an error."
+    returnObjectClass Integer;
+  return self __openOnAnyInternal DEFAULT_TCPIP_PORT;
+}
+
+TCPIPNetworkStreamReader instanceMethod openOn (Integer port) {
+  "Open a socket to communicate using the constant INADDR_ANY,
+   and the port given as the argument.  Returns an Integer with
+   the file handle number of the server's listening socket.
+   Raises an Exception if there is an error."
+    returnObjectClass Integer;
+  return self __openOnAnyInternal port;
+}
+
+TCPIPNetworkStreamReader instanceMethod openOn (String hostname,
+						Integer port) {
+  "Open a new socket to wait for receiver connections from
+   the hostname and port given as arguments.  The method raises
+   an Excption if there is an error."
+  Exception new ex;
+  SystemErrnoException new sysEx;
+  int r;
+  int addrlen;
+  int on_int = 1;
+  struct sockaddr_in client, *pclient;
+  struct addrinfo hints, *res, *rp;
+  struct hostent *client_host;
+  String new errText;
+  returnObjectClass Integer;
+
+  self createSocketBasic;
+  if (sysEx pending) {
+    sysEx handle;
+    errText systemErrnoStr;
+    ex raiseException USER_EXCEPTION_X, "createSocketBasic: " + errText + ".";
+    return 0;
+  }
+
+  if (hostname =~ /\d+\.\d+\.\d+\.\d+/) {
+    /* hostname is a dotted quad address - the old method
+       returns the address as a hostent */
+
+    if ((client_host = gethostbyname (hostname)) == NULL) {
+      shutdown(self sock, SHUT_RDWR);
+      errText systemErrnoStr;
+      ex raiseException USER_EXCEPTION_X, "gethostbyname: " + errText + ".";
+      return 0;
+    }
+
+    addrlen = sizeof (client);
+    xmemset (&client, 0, addrlen);
+    client.sin_family = AF_INET;
+    client.sin_addr.s_addr = *((unsigned long *)client_host -> h_addr);
+    client.sin_port = htons (port);
+
+    setsockopt (self sock, SOL_SOCKET, SO_REUSEADDR, &on_int,
+	      sizeof (on_int));
+
+    if ((r = bind (self sock, (struct sockaddr *)&client, addrlen)) < 0) {
+      shutdown(self sock, SHUT_RDWR);
+      errText systemErrnoStr;
+      ex raiseException USER_EXCEPTION_X, "bind: " + errText + ".";
+      return 0;
+    }
+  } else {   /* if (hostname =~ /\d+\.\d+\.\d+\.\d+/) */
+    xmemset (&hints, 0, sizeof (struct addrinfo));
+    hints.ai_family = AF_INET;
+    hints.ai_socktype = SOCK_STREAM;
+    hints.ai_flags = AI_PASSIVE;
+    hints.ai_protocol = 0;
+    hints.ai_canonname = NULL;
+    hints.ai_addr = NULL;
+    hints.ai_next = NULL;
+    r = getaddrinfo (hostname, NULL, &hints, &res);
+    if (r != 0) {
+      shutdown(self sock, SHUT_RDWR);
+      errText printOn "Host, \"%s:\" ", hostName;
+      errText += gai_strerror(r);
+      ex raiseException INVALID_OPERAND_X, errText;
+      return 0;
+    }
+    addrlen = sizeof (struct sockaddr_in);
+    for (rp = res; ; rp = rp->ai_next) {
+      pclient = (struct sockaddr_in *)rp -> ai_addr;
+      pclient -> sin_port = htons (port);
+      if ((r = bind (self sock, (struct sockaddr *)pclient, addrlen)) == 0) {
+	break;
+      } else if (rp -> ai_next == NULL) {
+	shutdown(self sock, SHUT_RDWR);
+	ex raiseException INVALID_OPERAND_X, "In openOn: bind (): " +
+	  strerror (errno);
+	return 0;
+      }
+    }
+  }   /* if (hostname =~ /\d+\.\d+\.\d+\.\d+/) */
+
+  return self sock;
+}
+
+TCPIPNetworkStreamReader instanceMethod acceptSock (void) {
+  "Places the receiver socket in listening mode and waits for
+   an incoming connection and, if a connection is pending returns
+   the handle number of the socket listening to the connection.  
+   If the connection times out (the number of seconds given in the
+   receiver's timeout instance variable), the method returns 0.  
+   If an error occurs the method also raises a SystemErrnoException."
+  SystemErrnoException new ex;
+  int r, new_fh, handle;
+  struct timeval tv;
+  fd_set rfds;
+
+  if (listen (self sock, SOMAXCONN) < 0) {
+    ex raiseException "In acceptSock : listen ().";
+    return 0;
+  }
+
+  handle = self sock;
+  FD_ZERO(&rfds);
+  FD_SET(handle, &rfds);
+  tv.tv_sec = self timeout;
+  tv.tv_usec = 0;
+
+
+  r = select (handle + 1, &rfds, NULL, NULL, &tv);
+  switch (r)
+    {
+    case 0:  /* a timeout */
+      return 0;
+      break;
+    case -1:
+      ex raiseException "In acceptSock: select ().";
+      return -1;
+      break;
+    default:   /* go to accept call. */
+      break;
+    }
+
+  if ((new_fh = accept (self sock, NULL, NULL)) < 0) {
+    ex raiseException "In acceptSock: accept ().";
+    return 0;
+  }
+  return new_fh;
+}

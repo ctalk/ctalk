@@ -1,0 +1,609 @@
+/* $Id: X11CanvasPane,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-c-*-*/
+
+/*
+  This file is part of Ctalk.
+  Copyright © 2005 - 2014, 2106  Robert Kiesling, rk3314042@gmail.com.
+  Permission is granted to copy this software provided that this copyright
+  notice is included in all source code modules.
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+*/
+
+/*
+ *    X11CanvasPane class.
+ */
+
+require X11Pane;
+require X11PaneDispatcher;
+
+/*
+ *  The __ctalkX11... are still implemented, but
+ *  they are (eventually) going to be superceded.
+ */
+
+X11PaneDispatcher class X11CanvasPane
+"A X11CanvasPane object provides a graphical drawing
+surface for programs that need to use buffered window
+displays.  The class defines methods to handle input
+events and to update the pane's window.  Objects of
+this class can also use the methods in X11Bitmap, Pen,
+Rectangle, Line and Point to draw on the pane's
+surface.";
+X11CanvasPane instanceVariable viewXOrg Integer 0;
+X11CanvasPane instanceVariable viewYOrg Integer 0;
+X11CanvasPane instanceVariable viewHeight Integer 0;
+X11CanvasPane instanceVariable viewWidth Integer 0;
+X11CanvasPane instanceVariable pen Pen NULL;
+X11CanvasPane instanceVariable moveCursor X11Cursor NULL;
+X11CanvasPane instanceVariable dragStart Point NULL;
+X11CanvasPane instanceVariable regions AssociativeArray NULL;
+
+X11CanvasPane instanceMethod refreshReframe (void) {
+  "Redraw the receiver pane's contents on the parent
+  window.  The refresh checks the receiver's viewXOrg,
+  viewYOrg, viewHeight, and viewWith instance variables
+  to determine where to position the receiver canvas
+  within the window."
+
+  Integer new srcX;
+  Integer new srcY;
+  Integer new destX;
+  Integer new destY;
+
+  if (self viewXOrg >= 0) {
+     srcX = 0;
+     destX = self viewXOrg;
+  } else {
+    srcX = 0 - self viewXOrg;
+    destX = 0;
+  }
+  if (self viewYOrg >= 0) {
+    srcY = 0;
+    destY = self viewYOrg;
+  } else {
+    srcY = 0 - self viewYOrg;
+    destY = 0;
+  }
+
+  __ctalkGUIPaneRefresh (self, srcX, srcY,
+   			 self viewWidth,
+   			 self viewHeight,
+   			 destX, destY);
+  return NULL;
+}
+
+X11CanvasPane instanceMethod refresh (void) {
+  "A slightly faster update method than refreshReframe,
+   this method simply draws the entire receiver canvas
+   with its origin at the upper-left hand corner of the
+   window."
+
+  __ctalkGUIPaneRefresh (self, 0, 0,
+   			 self size x,
+   			 self size y,
+   			 0, 0);
+}
+
+X11CanvasPane instanceMethod subPaneResize (Object __subPane, 
+					  InputEvent __event) {
+  "Resize the receiver pane.  This is the resize event
+  handler called by the parent window's pane
+  dispatcher."
+
+  if (__subPane container containerMode == "full") {
+    (X11Bitmap *)self paneBuffer resize self xWindowID, __event xEventData3, 
+      __event xEventData4;
+    (X11Bitmap *)self paneBackingStore resize self xWindowID, __event xEventData3, 
+      __event xEventData4;
+
+    __subPane viewWidth = __event xEventData3;
+    __subPane viewHeight = __event xEventData4;
+    __subPane size x = __event xEventData3;
+    __subPane size y = __event xEventData4;
+  } else {
+    fprintf (stderr, 
+     "Error: subPaneResize (class X11CanvasPane): unknown container mode!\n");
+  }
+  return NULL;
+}
+
+X11CanvasPane instanceMethod subPaneDestroy (Object __subPane, 
+					  InputEvent __event) {
+  "Delete the receiver pane's pixmaps and graphics
+  contexts.  This is the event handler called by the
+  parent window's pane dispatcher.
+
+  The method sets the buffers to a temporary X11Pixmap
+  object, which avoids generating several (basically
+  harmless) warnings at compile time.
+
+  Note that the 'xGC' messages should also generate
+  warnings but don't yet, because xGC instance
+  variables are also declared in X11Pane class."
+  X11Pixmap new tmpBuffer;
+  tmpBuffer become self paneBuffer;
+  __ctalkX11DeletePixmap (tmpBuffer xID);
+  XFreeGC (X11Pane xDisplay, (GC) self paneBuffer xGC);
+  tmpBuffer become self paneBackingStore;
+  XFreePixmap (X11Pane xDisplay, tmpBuffer xID);
+  XFreeGC (X11Pane xDisplay, (GC) self paneBackingStore xGC);
+
+  return NULL;
+}
+
+X11CanvasPane instanceMethod subPaneExpose (Object __subPane,
+					  InputEvent __event) {
+  "Handle an Expose event by redrawing the pane's contents
+  on the parent window."
+
+  __subPane refresh;
+}
+
+X11CanvasPane instanceMethod subPanePointerInput (Object __subPane,
+						  InputEvent __event) {
+  "Handle ButtonPress and ButtonRelease events from the
+  parent window's event dispatcher."
+    if (__event eventClass == 8) { /* ButtonPress */
+    self useCursor self moveCursor;
+    self dragStart x = __event xEventData1;
+    self dragStart y = __event xEventData2;
+  }
+  if (__event eventClass == 16) { /* ButtonRelease */
+    self defaultCursor;
+    self viewXOrg = self viewXOrg + 
+      (__event xEventData1 - self dragStart x); 
+    self viewYOrg = self viewYOrg + 
+      (__event xEventData2 - self dragStart y);
+    self refresh;
+  }
+  return NULL;
+}
+
+/*
+ *  Still under construction.
+ */
+X11CanvasPane instanceMethod subPanePointerMotion (Object __subPane,
+						  InputEvent __event) {
+  "Handle pointer motion events from the parent window's
+  event dispatcher.  The eventClass is a MOTIONNOTIFY
+  event."
+  if (__event eventClass == 128) {
+
+  }
+  return NULL;
+}
+
+X11CanvasPane instanceMethod new (String __paneName) {
+  "The X11CanvasPane constructor.  The argument, a String,
+  contains the name of the new object.  Creates buffer
+  and backing store pixmaps and their associated
+  graphics contexts."
+  Method new resizeMethod;
+  Method new destroyMethod;
+  Method new exposeMethod;
+  Method new pointerInputMethod;
+  Method new pointerMotionMethod;
+  X11CanvasPane super new __paneName;
+  __paneName moveCursor grabMove;
+  resizeMethod definedInstanceMethod "X11CanvasPane", "subPaneResize";
+  destroyMethod definedInstanceMethod "X11CanvasPane", "subPaneDestroy";
+  exposeMethod definedInstanceMethod "X11CanvasPane", "subPaneExpose";
+  pointerInputMethod definedInstanceMethod "X11CanvasPane", 
+    "subPanePointerInput";
+  pointerMotionMethod definedInstanceMethod "X11CanvasPane", 
+    "subPanePointerMotion";
+  __paneName setMethodHandler "resize", resizeMethod;
+  __paneName setMethodHandler "destroy", destroyMethod;
+  __paneName setMethodHandler "expose", exposeMethod;
+  __paneName setMethodHandler "pointerinput", pointerInputMethod;
+  __paneName setMethodHandler "pointermotion", pointerMotionMethod;
+  __paneName pen width = 3;
+  return __paneName;
+}
+
+X11CanvasPane instanceMethod attachTo (Object parentPane) {
+  "Register the receiver pane as a subpane of the X11Pane
+  given as the argument.  Generally parent pane should
+  be a X11PaneDispatcher object."
+  X11Bitmap new xPaneBuffer;
+  X11Bitmap new xPaneBackingStore;
+  self super attachTo parentPane;
+  self paneBuffer become xPaneBuffer;
+  self paneBackingStore become xPaneBackingStore;
+  if (parentPane containerMode == "full") {
+    self viewWidth = parentPane size x;
+    self viewHeight = parentPane size y;
+    self size x = parentPane size x;
+    self size y = parentPane size y;
+    self origin x = 0;
+    self origin y = 0;
+
+    /*
+     *  The evaluation of these statements  needs to be deferred
+     *  until run time.  See the comment in the other, "attachTo,"
+     *  method, below.
+     */
+    (X11Bitmap *)self paneBuffer create self xWindowID, self size x, 
+      self size y, self depth;
+    (X11Bitmap *)self paneBackingStore create self xWindowID, self size x, 
+      self size y, self depth;
+  } else {
+    fprintf (stderr, 
+	     "attachTo (class X11CanvasPane) : undefined containerMode.\n");
+  }
+  return NULL;
+}
+
+X11CanvasPane instanceMethod attachTo (Object parentPane, Integer xOrg,
+				       Integer yOrg) {
+  "Register the receiver pane as a subpane of the X11Pane
+  given as the argument.  Generally parent pane should
+  be a X11PaneDispatcher object."
+  X11Bitmap new xPaneBuffer;
+  X11Bitmap new xPaneBackingStore;
+  self super attachTo parentPane;
+  self paneBuffer become xPaneBuffer;
+  self paneBackingStore become xPaneBackingStore;
+  if (parentPane containerMode == "full") {
+    self viewWidth = parentPane size x;
+    self viewHeight = parentPane size y;
+    self size x = parentPane size x;
+    self size y = parentPane size y;
+    self origin x = xOrg;
+    self origin y = yOrg;
+
+    /*
+     *  The statements here need to be deferred until 
+     *  run time, because we've mutated paneBuffer into
+     *  a X11Bitmap object, above, and as yet, we're not
+     *  certain that we're going to know whether the original
+     *  paneBuffer instance variable understands the, 
+     *  "initialize," message.  So here (and in other methods),
+     *  we'll add a class cast to prevent a deferred evaluation
+     *  warning, and wait until run-time to evaluate the
+     *  expressions.
+     *
+     *  That is, until we have a backtrack where we can check
+     *  the association of the become method, above.
+     *  
+     *  As an alternative, you can initialize xPaneBuffer first,
+     *  then mutate it with, "become."
+     */
+    (X11Bitmap *)self paneBuffer create self xWindowID, self size x, 
+      self size y, self depth;
+    (X11Bitmap *)self paneBackingStore create self xWindowID, self size x, 
+      self size y, self depth;
+  } else {
+    fprintf (stderr, 
+	     "attachTo (class X11CanvasPane) : undefined containerMode.\n");
+  }
+  return NULL;
+}
+
+X11CanvasPane instanceMethod attachTo (Object parentPane, Integer xOrg,
+				       Integer yOrg, 
+				       Integer xSize,
+				       Integer ySize) {
+  "Register the receiver pane as a subpane of the X11Pane
+  given as the argument.  Generally parent pane should
+  be a X11PaneDispatcher object."
+  X11Bitmap new xPaneBuffer;
+  X11Bitmap new xPaneBackingStore;
+  self super attachTo parentPane;
+  self paneBuffer become xPaneBuffer;
+  self paneBackingStore become xPaneBackingStore;
+  if (parentPane containerMode == "full") {
+    self viewWidth = parentPane size x;
+    self viewHeight = parentPane size y;
+    self size x = xSize;
+    self size y = ySize;
+    self origin x = xOrg;
+    self origin y = yOrg;
+
+    /*
+     *  The statements here need to be deferred until 
+     *  run time, because we've mutated paneBuffer into
+     *  a X11Bitmap object, above, and as yet, we're not
+     *  certain that we're going to know whether the original
+     *  paneBuffer instance variable understands the, 
+     *  "initialize," message.  So here we'll try to 
+     *  generate a warning and just defer the entire expression 
+     *  until run-time.
+     *
+     *  Until we have a backtrack where we can check the association 
+     *  of the become method, above.
+     *  
+     *  As an alternative, you can initialize xPaneBuffer first,
+     *  then mutate it with, "become."
+     */
+    (X11Bitmap *)self paneBuffer create self xWindowID, self size x, 
+      self size y, self depth;
+    (X11Bitmap *)self paneBackingStore create self xWindowID, self size x, 
+      self size y, self depth;
+  } else {
+    fprintf (stderr, 
+	     "attachTo (class X11CanvasPane) : undefined containerMode.\n");
+  }
+  return NULL;
+}
+
+X11CanvasPane instanceMethod drawPoint (Integer x, Integer y) {
+  "Draw a point at the x,y coordinates given as arguments,
+  using the reciever's Pen object."
+  Point new aPoint;
+  aPoint x = x;
+  aPoint y = y;
+  __ctalkGUIPaneDrawPoint (self, aPoint, self pen);
+  return NULL;
+}
+
+X11CanvasPane instanceMethod drawLine (Integer startX, Integer startY,
+				       Integer endX, Integer endY) {
+  "Draw a line with its endpoints at the startX, startY,
+  endX, endY coordinates given as arguments, using the
+  reciever's Pen object."
+  Line new aLine;
+  aLine start x = startX;
+  aLine start y = startY;
+  aLine end x = endX;
+  aLine end y = endY;
+  __ctalkGUIPaneDrawLine (self, aLine, self pen);
+  return NULL;
+}
+
+X11CanvasPane instanceMethod drawLine (Integer startX, Integer startY,
+				       Integer endX, Integer endY,
+				       Pen aPen) {
+  "Draw a line with its endpoints at the startX, startY,
+  endX, endY coordinates given as arguments, width and
+  color defined by aPen."
+  Line new aLine;
+  aLine start x = startX;
+  aLine start y = startY;
+  aLine end x = endX;
+  aLine end y = endY;
+  __ctalkGUIPaneDrawLine (self, aLine, aPen);
+  return NULL;
+}
+
+X11CanvasPane instanceMethod drawLine (Line aLine) {
+  __ctalkGUIPaneDrawLine (self, aLine, self pen);
+  return NULL;
+}
+
+X11CanvasPane instanceMethod drawLine (Line aLine, Pen aPen) {
+  __ctalkGUIPaneDrawLine (self, aLine, aPen);
+  return NULL;
+}
+
+X11CanvasPane instanceMethod drawRectangle (Integer xOrg, Integer yOrg,
+					    Integer xSize, Integer ySize) {
+  "Draw a rectangle with the bounds xOrg, yOrg, xSize,
+  ySize using the receiver's Pen object."
+  Rectangle new aRectangle;
+
+  aRectangle dimensions xOrg, yOrg, xSize, ySize;
+  __ctalkGUIPaneDrawRectangle (self, aRectangle, self pen, FALSE);
+  return NULL;
+}
+
+X11CanvasPane instanceMethod background (String color) {
+  "Set the receiver's background color to the argument,
+  a String."
+  self paneBuffer background color;
+}
+
+X11CanvasPane instanceMethod foreground (String color) {
+  "Set the receiver's foreground color to the argument, a
+  String."
+  self paneBuffer foreground color;
+}
+
+X11CanvasPane instanceMethod clear (void) {
+  "Clear the receiver's contents."
+  self clearRectangle 0, 0, self size x, self size y;
+}
+
+X11CanvasPane instanceMethod clearRectangle (Integer xOrg, Integer yOrg,
+					    Integer xSize, Integer ySize) {
+  "Clear a rectangle with the dimensions xOrg, yOrg,
+  xSize, ySize given as arguments."
+  self paneBuffer clearRectangle xOrg, yOrg, xSize, ySize;
+  return NULL;
+}
+
+X11CanvasPane instanceMethod drawFilledRectangle (Integer xOrg, Integer yOrg,
+					  Integer xSize, Integer ySize) {
+  "Draw a filled rectangle with the dimensions xOrg, yOrg,
+  xSize, ySize given as arguments using the receiver's
+  Pen object."
+  Rectangle new aRectangle;
+
+  aRectangle dimensions xOrg, yOrg, xSize, ySize;
+  __ctalkGUIPaneDrawRectangle (self, aRectangle, self pen, TRUE);
+  return NULL;
+}
+
+X11CanvasPane instanceMethod pixmapFromData (char **xpm_data) {
+  "Draw a pixmap on the receiver's pane buffer from the
+  data given as the argument.  The pixmap data has the
+  C data type char **, the contents of a XPM file."
+  self paneBuffer pixmapFromData xpm_data;
+  return NULL;
+}
+
+X11CanvasPane instanceMethod pixmapFromData (int x_org, int y_org, 
+					     char **xpm_data) {
+  "Draw a pixmap on the receiver's pane buffer at with the
+  upper left cornet at x,y, using the data given as the
+  argument.  The pixmap data has the C data type char
+  **, the contents of a XPM file.  The prototype of
+  this method is (using C data types):
+   
+     X11CanvasPane pixmapFromData int xOrg, int yOrg,
+                                  char **xpmData
+   "
+  self paneBuffer pixmapFromData x_org, y_org, xpm_data;
+  return NULL;
+}
+
+X11CanvasPane instanceMethod defineRegion (String regionName, 
+					   Integer xOrg,
+					   Integer yOrg,
+					   Integer xSize,
+					   Integer ySize) {
+  "The method's prototype is:
+  
+  X11CanvasPane defineRegion String <regionName>,
+                           Integer <xOrg>, Integer <yOrg>,
+                           Integer <xSize>, Integer <ySize>
+  
+  Define a rectangular region having the name
+  <regionName>, with the upper left-hand corner at
+  <xOrg>, <yOrg> on the receiver, with the width <xSize>
+  and the height <ySize>.
+  
+  This method is still under construction."
+  Rectangle new aRectangle;
+
+  aRectangle dimensions xOrg, yOrg, xSize, ySize;
+
+  self regions atPut regionName, aRectangle;
+
+  return NULL;
+}
+
+X11CanvasPane instanceMethod putStrXY (int xOrg, int yOrg, String text) {
+  "Draw a text string on the receiver pane's window.  The
+  method's prototype is:
+     <X11CanvasPaneObject> putStrXY Integer <xOrg>, Integer <yOrg>,
+                              String <text>"
+  (X11Bitmap *)self paneBuffer putStr xOrg, yOrg, text;
+  return NULL;
+}
+
+X11CanvasPane instanceMethod putStrXY (int xOrg, int yOrg, String text,
+				       String font_desc) {
+  "Draw a text string on the receiver pane's window, using the
+   X font given as the font_desc argument.  The  method's prototype
+   is:
+     <X11CanvasPaneObject> putStrXY Integer <xOrg>, Integer <yOrg>,
+                              String <text>, String <font_desc>"
+  (X11Bitmap *)self paneBuffer putStr xOrg, yOrg, text, font_desc;
+  return NULL;
+}
+
+X11CanvasPane instanceMethod putStrXY (int xOrg, int yOrg, String text,
+				       String font_desc,
+				       String colorName) {
+  "Draw a text string on the receiver pane's window, using the
+   X font given as the font_desc argument.  The  method's prototype
+   is:
+     <X11CanvasPaneObject> putStrXY Integer <xOrg>, Integer <yOrg>,
+                              String <text>, String <font_desc>,
+                              String <colorName>"
+  (X11Bitmap *)self paneBuffer putStr xOrg, yOrg, text, font_desc, colorName;
+  return NULL;
+}
+
+X11CanvasPane instanceMethod directCopy (X11Bitmap srcBitmap,
+					 Integer srcXOrg, Integer srcYOrg,
+					 Integer srcWidth, Integer srcHeight,
+					 Integer destXOrg, Integer destYOrg) {
+  "Copies the the X11Bitmap object that is the first argument
+   directly to the receiver pane's window."
+  __ctalkX11CopyPixmapBasic (self xWindowID, self xGC,
+			     srcBitmap xID, srcXOrg, srcYOrg, 
+			     srcWidth, srcHeight,
+			     destXOrg, destYOrg);
+}
+
+X11CanvasPane instanceMethod copy (X11Bitmap srcBitmap,
+				   Integer srcXOrg, Integer srcYOrg,
+				   Integer srcWidth, Integer srcHeight,
+				   Integer destXOrg, Integer destYOrg) {
+  "Copies the the X11Bitmap object that is the first argument
+   to the receiver pane's buffer.  The program must still give
+   the receiver pane the refresh message for the changes to be
+   visible."
+    X11Bitmap new localPaneBuffer;  
+
+  /* This avoids a warning message - the compiler doesn't track
+     the change of the paneBuffer instance variable from a Pane
+     object to a X11Bitmap object when the program called the
+     method, attachTo, above. (The original Pane object doesn't
+     have xID or xGC instance variables.) */
+  localPaneBuffer = self paneBuffer;
+
+  __ctalkX11CopyPixmapBasic (localPaneBuffer xID,
+			     localPaneBuffer xGC,
+			     srcBitmap xID, srcXOrg, srcYOrg, 
+			     srcWidth, srcHeight,
+			     destXOrg, destYOrg);
+}
+
+X11CanvasPane instanceMethod drawCircle (Circle aCircle, Integer filled,
+					 String fillColor) {
+  "Draw the circle specified by aCircle, with the color and line
+   width by the reciever's pen instance variable.  If filled is
+   true, draws the circle filled with the pen color. If filled
+   is false, draws the circle with the interior filled by
+   filledColor."
+  X11Bitmap new localBuf;
+  localBuf = self paneBuffer; /* Avoid a warning message. */
+  __ctalkX11PaneDrawCircleBasic (localBuf xID, self xGC,
+				 aCircle center x, aCircle center y,
+				 aCircle radius, filled,
+				 self pen width,
+				 self pen alpha, /* alpha */
+				 self pen colorName,
+				 fillColor);
+}
+
+X11CanvasPane instanceMethod drawCircle (Circle aCircle, Pen aPen,
+					 Integer filled,
+					 String fillColor) {
+  "Draw the circle specified by aCircle, with the color and line
+   width defined in aPen.  If filled is true, draws the circle
+   filled. If filled is false, the method fills the interior of
+   the circle with fillColor."
+  X11Bitmap new localBuf;
+  localBuf = self paneBuffer; /* Avoid a warning message here, too. */
+  __ctalkX11PaneDrawCircleBasic (localBuf xID, self xGC,
+				 aCircle center x, aCircle center y,
+				 aCircle radius, filled,
+				 aPen width,
+				 aPen alpha,
+				 aPen colorName,
+				 fillColor);
+}
+					 
+X11CanvasPane instanceMethod faceBold (void) {
+  (X11Bitmap *)self paneBuffer faceBold;
+}
+
+X11CanvasPane instanceMethod faceRegular (void) {
+  (X11Bitmap *)self paneBuffer faceRegular;
+}
+
+X11CanvasPane instanceMethod faceItalic (void) {
+  (X11Bitmap *)self paneBuffer faceItalic;
+}
+
+X11CanvasPane instanceMethod faceBoldItalic (void) {
+  (X11Bitmap *)self paneBuffer faceBoldItalic;
+}
+
+

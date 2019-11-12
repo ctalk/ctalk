@@ -1,0 +1,191 @@
+/* $Id: DirectoryStream,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-c-*-*/
+
+/*
+  This file is part of Ctalk.
+  Copyright © 2005 - 2012  Robert Kiesling, rk3314042@gmail.com.
+  Permission is granted to copy this software provided that this copyright
+  notice is included in all source code modules.
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+*/
+
+/*
+ *    DirectoryStream class
+ */
+
+#include <ctalk/ctalkdefs.h>
+
+FileStream class DirectoryStream
+"DirectoryStream class contains methods for handling
+directories.";
+
+DirectoryStream instanceMethod mkDir (char *__dirName) {
+  "Create a directory with the name given as the argument,
+  a String.  Raises an exception on error."
+  SystemErrnoException new __e;
+  returnObjectClass Integer;
+  if (mkdir (__dirName, CTALK_DIRECTORY_MODE) == DIRECTORY_LIB_ERROR) {
+    __e raiseException __dirName;
+    return DIRECTORY_LIB_ERROR;
+  }
+  return self;
+}
+
+DirectoryStream instanceMethod rmDir (char *__dirName) {
+  "Delete a directory with the name given as the argument,
+  a String.  Raises an exception on error."
+  SystemErrnoException new __e;
+  returnObjectClass Integer;
+  if (rmdir (__dirName) == DIRECTORY_LIB_ERROR) {
+    __e raiseException __dirName;
+    return DIRECTORY_LIB_ERROR;
+  }
+  return self;
+}
+
+DirectoryStream instanceMethod chDir (char *__dirName) {
+  "Change the current directory to the directory given as
+  the argument, a String."
+  SystemErrnoException new __e;
+  returnObjectClass Integer;
+  if (chdir (__dirName) == DIRECTORY_LIB_ERROR) {
+    __e raiseException __dirName;
+    return DIRECTORY_LIB_ERROR;
+  }
+  return self;
+}
+
+DirectoryStream instanceMethod getCwd (void) {
+  "Return a String with the name of the current directory."
+  char buf[FILENAME_MAX];
+  returnObjectClass String;
+  getcwd (buf, FILENAME_MAX);
+  return buf;
+}
+
+DirectoryStream instanceMethod sortedDirectoryList (char *__dirName,
+						    SortedList __dList) {
+  "The prototype is:
+     <DirectoryStreamObject> directoryList <dirname>, <dirlist>
+  Sets each element of <dirlist> to the files and directories in
+  directory <dirname>."
+
+  DIR *d;
+  struct dirent *d_ent;
+  Array new __dirs;
+  Integer new __nDirs;
+  Integer new __i;
+  String new __dNameInternal;
+  String new __entryString;
+  SystemErrnoException new __e;
+
+  returnObjectClass List;
+
+  __dNameInternal = __dirName;
+
+  if ((__dirName == self getCwd) ||
+      (__dirName == ".")) {
+    __dNameInternal = self getCwd;
+  }
+  if (__dirName == "~") {
+    __dNameInternal = self getEnv "HOME";
+  }
+  if (__dirName == "..") {
+    __dirName = self getCwd;
+    __nDirs = __dirName split ('/', __dirs);
+    __dNameInternal = "";
+    for (__i = 0; __i < (__nDirs - 1); __i = __i + 1) {
+      __dNameInternal = __dNameInternal + "/";
+      __dNameInternal = __dNameInternal + (__dirs at __i);
+    }
+  }
+
+  if ((d = opendir (__dNameInternal)) == NULL) {
+    __e raiseException __dNameInternal;
+    return NULL;
+  }
+
+  while ((d_ent = readdir (d)) != NULL)
+    __dList pushAscending d_ent -> d_name;
+
+  if (closedir (d))
+    __e raiseException __dNameInternal;
+
+  return NULL;
+}
+
+DirectoryStream instanceMethod directoryList (char *__dirName, List __dList) {
+  "The prototype is:
+     <DirectoryStreamObject> directoryList <dirname>, <dirlist>
+  Sets each element of <dirlist> to the files and directories in
+  directory <dirname>."
+
+  DIR *d;
+  struct dirent *d_ent;
+  Array new __dirs;
+  Integer new __nDirs;
+  Integer new __i;
+  String new __dNameInternal;
+  String new __entryString;
+  SystemErrnoException new __e;
+
+  returnObjectClass List;
+
+  __dNameInternal = __dirName;
+
+  if ((__dirName == self getCwd) ||
+      (__dirName == ".")) {
+    __dNameInternal = self getCwd;
+  }
+  if (__dirName == "~") {
+    __dNameInternal = self getEnv "HOME";
+  }
+  if (__dirName == "..") {
+    __dirName = self getCwd;
+    __nDirs = __dirName split ('/', __dirs);
+    __dNameInternal = "";
+    for (__i = 0; __i < (__nDirs - 1); __i = __i + 1) {
+      __dNameInternal = __dNameInternal + "/";
+      __dNameInternal = __dNameInternal + (__dirs at __i);
+    }
+  }
+
+  if ((d = opendir (__dNameInternal)) == NULL) {
+    __e raiseException __dNameInternal;
+    return NULL;
+  }
+
+  while ((d_ent = readdir (d)) != NULL)
+    __dList push d_ent -> d_name;
+
+  if (closedir (d))
+    __e raiseException __dNameInternal;
+
+  return NULL;
+}
+
+DirectoryStream instanceMethod globPattern (String pattern, List paths_out) {
+  return __ctalkGlobFiles (pattern, paths_out);
+}
+
+DirectoryStream instanceMethod hasMeta (String fileSpec) {
+  returnObjectClass Boolean;
+  if ((fileSpec charPos '?' != -1) ||
+      (fileSpec charPos '*' != -1) ||
+      (fileSpec charPos '[' != -1))
+    return TRUE;
+  else
+    return FALSE;
+}

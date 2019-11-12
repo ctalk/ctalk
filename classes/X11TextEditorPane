@@ -1,0 +1,523 @@
+/* $Id: X11TextEditorPane,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-c-*-*/
+
+/*
+  This file is part of Ctalk.
+  Copyright © 2018, 2019  Robert Kiesling, rk3314042@gmail.com.
+  Permission is granted to copy this software provided that this copyright
+  notice is included in all source code modules.
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+*/
+
+/*
+ *    X11TextEditorPane class.
+ */
+
+X11TextPane class X11TextEditorPane;
+X11TextEditorPane instanceVariable shiftState Integer 0;
+X11TextEditorPane instanceVariable point Integer 0;
+X11TextEditorPane instanceVariable lineWidth Integer 65;
+X11TextEditorPane instanceVariable bufLength Integer 0;
+X11TextEditorPane instanceVariable textLength Integer 0;
+X11TextEditorPane instanceVariable foregroundColor String ""
+"The foreground color, so we can draw a cursor in the reverse
+colors.  The backgroundColor instance variable is declared in
+X11Pane class.";
+X11TextEditorPane instanceVariable selectionBackgroundColor String "orange";
+X11TextEditorPane instanceVariable button Integer 0;
+X11TextEditorPane instanceVariable sStart Integer 0
+"The character index where the selection starts";
+X11TextEditorPane instanceVariable sEnd Integer 0
+"The character index where the selection starts";
+X11TextEditorPane instanceVariable selecting Boolean false;
+
+static int i_button = 0;
+static bool b_selecting = false;
+
+X11TextEditorPane instanceMethod subPaneResize (X11TextEditorPane __subPane,
+ 					  InputEvent __event) {
+  X11Pane new container;
+  if (__subPane container containerMode == "full") {
+    (X11Bitmap *)self paneBuffer resize self xWindowID, __event xEventData3, 
+      __event xEventData4;
+    (X11Bitmap *)self paneBackingStore resize self xWindowID, __event xEventData3, 
+    __event xEventData4;
+
+    __subPane viewWidth = __event xEventData3;
+    __subPane viewHeight = __event xEventData4;
+    __subPane size x = __event xEventData3;
+    __subPane size y = __event xEventData4;
+    container = *__subPane container;
+    container size x = __event xEventData3;
+    container size y = __event xEventData4;
+    __subPane defaultFormat;
+  } else {
+    fprintf (stderr, 
+     "Error: subPaneResize (class X11CanvasPane): unknown container mode!\n");
+  }
+  return NULL;
+}
+
+X11TextEditorPane instanceMethod new (String __paneName) {
+  "The X11TextEditorPane constructor.  The argument, a String,
+  contains the name of the new object.  Also sets the
+  event handlers that this class overrides."
+    Method new resizeMethod, kbdInputMethod, motionNotifyMethod,
+    buttonPressMethod, selectionClearMethod;
+  X11TextEditorPane super new __paneName;
+  resizeMethod definedInstanceMethod "X11TextEditorPane", "subPaneResize";
+  kbdInputMethod definedInstanceMethod "X11TextEditorPane", "subPaneKbdInput";
+  motionNotifyMethod definedInstanceMethod "X11TextEditorPane",
+    "subPaneMotionNotify";
+  selectionClearMethod definedInstanceMethod "X11TextEditorPane",
+    "subPaneSelectionClear";
+  buttonPressMethod definedInstanceMethod "X11TextEditorPane",
+    "subPaneButtonPress";
+  __paneName setMethodHandler "resize", resizeMethod;
+  __paneName setMethodHandler "kbdinput", kbdInputMethod;
+  __paneName setMethodHandler "pointermotion", motionNotifyMethod;
+  __paneName setMethodHandler "pointerinput", buttonPressMethod;
+  __paneName setMethodHandler "selectionclear", selectionClearMethod;
+
+  /* Inherited from X11TextPane class. */
+  __paneName scrollMargin = 2;
+  __paneName viewXOffset = 10;
+  __paneName borderWidth = 0;
+
+  return __paneName;
+}
+
+X11TextEditorPane instanceMethod background (String color) {
+  "Set the receiver's background color.  The method also stores
+   the color name so the pane can use it for a reverse video cursor."
+  self backgroundColor = color;
+  self paneBuffer background color;
+}
+
+X11TextEditorPane instanceMethod foreground (String color) {
+  "Set the receiver's foreground color, and the foreground
+   color of the window buffer."
+  self foregroundColor = color;
+  self paneBuffer foreground color;
+}
+
+/* This is here for the early versions of the X11TextEditorPane class.
+   The calculations have been folded into defaultFormat, and this
+   method should go away. */
+X11TextEditorPane instanceMethod defaultFormatFT (X11FreeTypeFont font) {
+  "Sets the document-wide formatting parameters from the
+   receiver's lineWidth, leftMargin, and lineHeight instance
+   variables, and the container window's dimensions.  The
+   argument is needed because outline fonts are managed
+   externally from the window's graphics context."
+
+  Integer new calcLineHeight;
+  X11Bitmap new paneBuffer;
+  X11PaneDispatcher new topDispatcher;
+  String new textBuf;
+
+  topDispatcher = *(self container);
+
+  calcLineHeight = font height + self leading;
+  
+  paneBuffer = (X11Bitmap *)self paneBuffer;
+
+  textBuf = "<format=global>\n";
+  textBuf += "<lineWidth=" + self lineWidth asString + ">";
+  textBuf += "<leftMargin=" + self viewXOffset asString + ">";
+  textBuf += "<lineHeight=" + calcLineHeight asString + ">";
+  textBuf += "<winWidth=" + topDispatcher size x asString + ">\n";
+  textBuf += "<winHeight=" + topDispatcher size y asString + ">\n";
+  textBuf += "<foregroundColor=" + self foregroundColor + ">\n";
+  textBuf += "<backgroundColor=" + self backgroundColor + ">\n";
+  textBuf += "<selectionBackgroundColor=" +
+    self selectionBackgroundColor + ">\n";
+  textBuf += "<xWindowID=" + self xWindowID asString + ">\n";
+  textBuf += "</format>";
+  __ctalkX11TextFromData (paneBuffer xID, paneBuffer xGC, textBuf);
+
+}
+
+X11TextEditorPane instanceMethod defaultFormat (void) {
+  "Sets the document-wide formatting parameters from the
+   receiver's lineWidth, leftMargin, and lineHeight instance
+   variables, and the container window's dimensions."
+  String new textBuf;
+  X11Bitmap new paneBuffer;
+  X11PaneDispatcher new topDispatcher;
+  Integer new calcLineWidth, colWidth, calcLineHeight;
+
+  topDispatcher = *(self container);
+
+  paneBuffer = (X11Bitmap *)self paneBuffer;
+
+  if (self fontVar fontId == 0) {
+    /* we're using the X11FreeTypeFont ftFontVar instance variable. */
+    calcLineHeight = self ftFontVar height + self leading;
+    textBuf = "<format=global>\n";
+    textBuf += "<lineWidth=" + self lineWidth asString + ">";
+    textBuf += "<leftMargin=" + self viewXOffset asString + ">";
+    textBuf += "<lineHeight=" + calcLineHeight asString + ">";
+    textBuf += "<winWidth=" + topDispatcher size x asString + ">\n";
+    textBuf += "<winHeight=" + topDispatcher size y asString + ">\n";
+    textBuf += "<foregroundColor=" + self foregroundColor + ">\n";
+    textBuf += "<backgroundColor=" + self backgroundColor + ">\n";
+    textBuf += "<selectionBackgroundColor=" +
+      self selectionBackgroundColor + ">\n";
+    textBuf += "<xWindowID=" + self xWindowID asString + ">\n";
+    textBuf += "</format>";
+  } else {
+    colWidth = self fontVar maxWidth;
+    if (self lineWidth == 0) {
+      /* Calculating the window's width in columns here simplifies
+	 the library's layout engine a lot. */
+      calcLineWidth = ((topDispatcher size x) - (self viewXOffset)) / colWidth;
+    } else {
+      calcLineWidth = self lineWidth;
+    }
+    self lineHeight = self fontVar ascent + self fontVar descent;
+    textBuf = "<format=global>\n";
+    textBuf += "<lineWidth=" + calcLineWidth asString + ">\n";
+    textBuf += "<leftMargin=" + self viewXOffset asString + ">\n";
+    textBuf += "<lineHeight=" + self lineHeight asString + ">\n";
+    textBuf += "<winWidth=" + topDispatcher size x asString + ">\n";
+    textBuf += "<winHeight=" + topDispatcher size y asString ">\n";
+    textBuf += "<foregroundColor=" + self foregroundColor + ">\n";
+    textBuf += "<backgroundColor=" + self backgroundColor + ">\n";
+    textBuf += "<selectionBackgroundColor=" +
+      self selectionBackgroundColor + ">\n";
+    textBuf += "<xWindowID=" + self xWindowID asString + ">\n";
+    textBuf += "</format>";
+  }
+  __ctalkX11TextFromData (paneBuffer xID, paneBuffer xGC, textBuf);
+}
+
+X11TextEditorPane instanceMethod displayText (void) {
+  "Format and display the receiver object's text.  Setting the
+   selection start and end to 0 also clears the selection."
+  X11Bitmap new paneBuffer;
+  String new output;
+
+  paneBuffer = (X11Bitmap *)self paneBuffer;
+  
+  paneBuffer clear;
+
+  output = self point asString + ":" + self viewStartLine asString +
+    ":0:0:" + self text;
+  __ctalkX11TextFromData (paneBuffer xID, paneBuffer xGC, output);
+
+  self refresh;
+}
+
+X11TextEditorPane instanceMethod displayTextSelection (void) {
+  "Format and display the receiver object's text, including
+   selected text."
+  X11Bitmap new paneBuffer;
+  String new output;
+
+  paneBuffer = (X11Bitmap *)self paneBuffer;
+  
+  paneBuffer clear;
+
+  output = self point asString + ":" + self viewStartLine asString +
+    ":" + self sStart asString + ":" + self sEnd asString + ":" +
+    self text;
+  __ctalkX11TextFromData (paneBuffer xID, paneBuffer xGC, output);
+
+  self refresh;
+}
+
+/* These are from x11defs.h. */
+#define BUTTON1MASK  (1 << 0)
+#define BUTTON2MASK  (1 << 1)
+#define BUTTON3MASK  (1 << 2)  
+
+X11TextEditorPane instanceMethod subPaneMotionNotify
+                 (X11TextEditorPane __subPane, InputEvent __event) {
+
+  if (i_button & BUTTON1MASK) {
+    if (!b_selecting) {
+      self sStart = __edittext_index_from_pointer
+	(self, __event xEventData1, __event xEventData2);
+      self selecting = true;
+      b_selecting = true;
+    }
+    self sEnd = __edittext_index_from_pointer
+	(self, __event xEventData1, __event xEventData2);
+    self displayTextSelection;
+  } else {
+    if (b_selecting) {
+      self sEnd = __edittext_index_from_pointer
+	(self, __event xEventData1, __event xEventData2);
+      self selecting = false;
+      b_selecting = false;
+      self displayTextSelection;
+    }
+  }
+}
+
+X11TextEditorPane instanceMethod subPaneButtonPress
+                 (X11TextEditorPane __subPane, InputEvent __event) {
+  void *selection_out;
+  int selection_length_out;
+  switch (__event eventClass)
+    {
+    case BUTTONPRESS:
+      switch (__event xEventData4)
+	{
+	case Button1:
+	  self button |= BUTTON1MASK;
+	  i_button |= BUTTON1MASK;
+	  __edittext_point_to_click (self, __event xEventData1,
+				     __event xEventData2);
+	  self displayText;
+	  break;
+	case Button2:
+	  self button |= BUTTON2MASK;
+	  i_button |= BUTTON2MASK;
+	  /* Allocs a buffer for the selection data (only text
+	     so far), that we need to __xfree below. */
+	  __edittext_get_primary_selection (self, &selection_out,
+					    &selection_length_out);
+	  __edittext_insert_str_at_point (self, (char *)selection_out);
+	  __xfree (MEMADDR(selection_out));
+	  self displayText;
+	  break;
+	case Button3:
+	  self button |= BUTTON3MASK;
+	  i_button |= BUTTON3MASK;
+	  break;
+	}
+      break;
+    case BUTTONRELEASE:
+      switch (__event xEventData4)
+	{
+	case Button1:
+	  self button &= ~BUTTON1MASK;
+	  i_button &= ~BUTTON1MASK;
+	  break;
+	case Button2:
+	  self button &= ~BUTTON2MASK;
+	  i_button &= ~BUTTON2MASK;
+	  break;
+	case Button3:
+	  self button &= ~BUTTON3MASK;
+	  i_button &= ~BUTTON3MASK;
+	  break;
+	}
+      break;
+    }
+}
+
+X11TextEditorPane instanceMethod subPaneSelectionClear
+                 (X11TextEditorPane __subPane, InputEvent __event) {
+  "Handles the app state for a SelectionClear request when the
+   program receives the request from the X server, normally when
+   another program has requested the primary selection.  Updates the
+   app's state here to indicate that it's no longer selecting -
+   that is, the method clears the selection parameters and redraws
+   the text."
+  self sStart = 0;
+  self sEnd = 0;
+  self selecting = false;
+  self displayText;
+}
+
+
+/*
+ *  Keycodes Note: These values are supposed to be independent of a
+ *  particular keyboard.  Where necessary, the XK_* definitions from
+ *  xkeysymdef.h are included here.  These _should_ not need modification
+ *  for different keyboard types, but if they do, refer to the machine's
+ *  xkeysymdef.h file.
+ */
+#define CTRL_A  1
+#define CTRL_B  2
+#define CTRL_C  3
+#define CTRL_D  4
+#define CTRL_E  5
+#define CTRL_F  6
+#define CTRL_N 14
+#define CTRL_P 16
+#define CTRL_Q 17
+#define CTRL_T 20
+#define CTRL_V 22
+#define CTRL_Z 26
+#define LC_J   106
+#define UC_J   74
+#define LC_K   107
+#define UC_K   75
+#define UC_N   78
+#define LC_N   110
+#define UC_P   80
+#define LC_P   112
+#define UC_Q   81
+#define LC_Q   113
+#define LC_R   114
+#define LC_S   115
+#define CUP  114
+#define CDN  116
+#define CR   113
+#define CL   115
+# ifdef XK_Escape
+#  undef XK_Escape
+# endif
+#define XK_Escape  65307  
+#ifndef XK_Control_L
+#define XK_Control_L  0xffe3
+#endif
+#ifndef XK_Control_R
+#define XK_Control_R  0xffe4
+#endif
+#ifndef XK_Shift_L
+#define XK_Shift_L 0xffe1
+#endif
+#ifndef XK_Shift_R
+#define XK_Shift_R 0xffe2
+#endif
+#ifndef XK_Home
+#define XK_Home 0xff50
+#endif
+#ifndef XK_End
+#define XK_End 0xff57
+#endif
+#ifndef XK_Left
+#define XK_Left 0xff51
+#endif
+#ifndef XK_Up
+#define XK_Up 0xff52
+#endif
+#ifndef XK_Right
+#define XK_Right 0xff53
+#endif
+#ifndef XK_Down
+#define XK_Down 0xff54
+#endif
+#ifndef XK_PageUp
+#define XK_PageUp 0xff55
+#endif
+#ifndef XK_PageDown
+#define XK_PageDown 0xff56
+#endif
+
+/* these are our possible shiftState values */
+/* if changing these, also change in edittext.c */
+#define shiftStateShift (1 << 0)
+#define shiftStateCtrl  (1 << 1)
+
+X11TextEditorPane instanceMethod subPaneKbdInput (X11TextEditorPane __subPane, 
+						  InputEvent __event) {
+  "Handle keypress or keyrelease events."
+    char c;
+
+  switch (__event eventClass)
+    {
+    case KEYPRESS:
+      switch (__event xEventData5)
+	{
+	case XK_Control_L:
+	case XK_Control_R:
+	  self shiftState |= shiftStateCtrl;
+	  break;
+	case XK_Shift_L:
+	case XK_Shift_R:
+	  self shiftState |= shiftStateShift;
+	  break;
+	case XK_Escape:
+	case CTRL_C:
+	  self requestClose = TRUE;
+	  break;
+	case XK_Right:
+	case CTRL_F:
+	  __edittext_next_char (self);
+	  self displayText;
+	  break;
+	case XK_Left:
+	case CTRL_B:
+	  __edittext_prev_char (self);
+	  self displayText;
+	  break;
+	case XK_Up:
+	case CTRL_P:
+	  __edittext_prev_line (self);
+	  self displayText;
+	  break;
+	case XK_Down:
+	case CTRL_N:
+	  __edittext_next_line (self);
+	  self displayText;
+	  break;
+	case XK_Home:
+	case CTRL_A:
+	  __edittext_line_start (self);
+	  self displayText;
+	  break;
+	case XK_End:
+	case CTRL_E:
+	  __edittext_line_end (self);
+	  self displayText;
+	  break;
+	case XK_PageUp:
+	case CTRL_T:
+	  __edittext_prev_page (self);
+	  self displayText;
+	  break;
+	case XK_PageDown:
+	case CTRL_V:
+	  __edittext_next_page (self);
+	  self displayText;
+	  break;
+	case CTRL_D:
+	  __edittext_delete_char (self);
+	  self displayText;
+	  break;
+	case CTRL_Q:
+	  __edittext_text_start (self);
+	  self displayText;
+	  break;
+	case CTRL_Z:
+	  __edittext_text_end (self);
+	  self displayText;
+	  break;
+	default:
+	  c = __edittext_insert_at_point (self, __event xEventData4,
+					  self shiftState,
+					  __event xEventData5);
+	  self displayText;
+	  break;
+	} /* switch (__event xEventData5) */
+      break; /* case KEYPRESS: */
+    case KEYRELEASE:
+      switch (__event xEventData5)
+	{
+	case XK_Control_L:
+	case XK_Control_R:
+	  self shiftState &= ~shiftStateCtrl;
+	  break;
+	case XK_Shift_L:
+	case XK_Shift_R:
+	  self shiftState &= ~shiftStateShift;
+	  break;
+	} /* switch (__event xEventData5) */
+      break;  /* case KEYRELEASE: */
+    }
+
+  return NULL;
+}
+
+X11TextEditorPane instanceMethod subPaneSelectionRequest
+     (X11TextEditorPane __subPane, InputEvent __event) {
+  printf ("selection request!\n");
+}

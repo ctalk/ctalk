@@ -1,0 +1,112 @@
+/* $Id: ANSIMessageBoxPane,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-C-*-*/
+
+/*
+  This file is part of Ctalk.
+  Copyright © 2005-2014, 2018-2019  Robert Kiesling, rk3314042@gmail.com.
+  Permission is granted to copy this software provided that this copyright
+  notice is included in all source code modules.
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+*/
+
+ANSIWidgetPane class ANSIMessageBoxPane
+"ANSIMessageBoxPane class displays a message on the
+screen with an 'Ok' button to close the pane when
+finished.  For a more complex text display widget, see
+ANSITextBoxPane, which allows scrolling of text
+messages that don't fit within the pane's display area.";
+ANSIMessageBoxPane instanceVariable okButton ANSIButtonPane 0x0;
+ANSIMessageBoxPane instanceVariable messageText String 0x0;
+
+ANSIMessageBoxPane instanceMethod new (String __paneName) {
+  "The ANSIMessageBoxPane constructor.  The argument is a
+  String that contains the name of the new object.
+  Also constructs an ANSIButtonPane object as an
+  instance variable, which displays an 'Ok' button and
+  receives the user's input."
+  /*
+   *  If we construct a message button independently, then
+   *  this method does not need to perform the button's 
+   *  initialization.
+   */
+  ANSIButtonPane new __okButtonNew;
+  ANSIWidgetPane super new __paneName;
+  __paneName paneStream openInputQueue;
+  __paneName withShadow;
+  __paneName withBorder;
+  __paneName isInputPane = TRUE;
+  __paneName size x = 10;
+  __paneName size y = 9;
+
+  __paneName addBuffer 10, 9, 1;
+  /*
+   *  The receiver must have the parent pane's dimensions 
+   *  on the screen before mapping the child pane.
+   */
+  return __paneName;
+}
+
+ANSIMessageBoxPane instanceMethod withText (String messageTextArg) {
+  "Set the receiver pane's message text to the argument, a
+  String.  Also resizes the pane to fit the text."
+
+  self messageText = messageTextArg;
+  self size x = messageTextArg length + 4;
+
+  self addBuffer self size x, self size y, 1;
+  return self;
+}
+
+ANSIMessageBoxPane instanceMethod show (int x_org, int y_org) {
+  "Display the pane and send a show message to the button
+  to wait for user input.  When the button withdraws
+  from the display, the message pane also withdraws and
+  the method returns."
+  Integer new sizeDimension;
+  self origin x = x_org;
+  self origin y = y_org;
+  self gotoXY 3, 3;
+  self printOn "%s", self messageText;
+  self okButton parent self;
+  if (self parentPane) {
+    self map;
+  }
+  self refresh;
+  sizeDimension = ((self size x) / 2) - 2;
+  self okButton show sizeDimension, 4;
+  /*
+   *  TODO - In the following expression, the second 
+   *  "self" refers to "okButton," when we want it to
+   *  refer to "messageBox."  Can also cause segfault. 
+   *  To be fixed soon.
+   */
+/*   self okButton show ((self size x) / 2) - 2, 4; */
+  self withdraw;
+  self paneStream setGraphics '0';
+  return NULL;
+}
+
+
+ANSIMessageBoxPane instanceMethod cleanup (void) {
+  "Delete the buffers associated with the message pane and
+  the input button."
+  __ctalkDeleteWinBuffer (self okButton paneBuffer);
+  __ctalkDeleteWinBuffer (self okButton paneBackingStore);
+  __ctalkDeleteWinBuffer (self paneBuffer);
+  __ctalkDeleteWinBuffer (self paneBackingStore);
+  return NULL;
+}
+
+

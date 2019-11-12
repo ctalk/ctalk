@@ -1,0 +1,402 @@
+/* $Id: ANSIListBoxPane,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-C-*-*/
+
+/*
+  This file is part of Ctalk.
+  Copyright © 2014, 2018-2019  Robert Kiesling, rk3314042@gmail.com.
+  Permission is granted to copy this software provided that this copyright
+  notice is included in all source code modules.
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+*/
+
+/*
+ *  ANSIListBoxPane class.
+ *
+ *  Use the cursor up/down keys, vi j/k, or Emacs C-n/C-p to
+ *  move the selection.  Pressing Escape or Enter unmaps the
+ *  pane from the terminal.
+ *
+ *  Before cleaning up, you can retrieve the text of the selected
+ *  item with the selectedText method.
+ *
+ *  Here also, many of the instance variables are used by name
+ *  in the C library functions, so don't change them.  Subclass 
+ *  instead.
+ *
+ *  This class also clears lines by calling __ctalkANSIClearPaneLine ()
+ *  directly.
+ */
+
+#include <ctalk/ctalkdefs.h>
+
+ANSIWidgetPane class ANSIListBoxPane
+"An ANSIListBoxPane object is a non-scrolling list box.  For a
+scrolling list box, see ANSIScrollingListBoxPane class.";
+ANSIListBoxPane instanceVariable items List NULL;
+ANSIListBoxPane instanceVariable viewStartLine Integer 1;
+ANSIListBoxPane instanceVariable viewHeight Integer 0;
+ANSIListBoxPane instanceVariable viewWidth Integer 0;
+ANSIListBoxPane instanceVariable selectedLine Integer 0;
+ANSIListBoxPane instanceVariable prevSelectedLine Integer 0;
+ANSIListBoxPane instanceVariable selectedContent ANSILabelPane NULL;
+ANSIListBoxPane instanceVariable oldSelectedContent ANSILabelPane NULL;
+ANSIListBoxPane instanceVariable totalLines Integer 0;
+
+
+#define BUTTONWIDTH 10
+#define BUTTONHEIGHT 3
+#define LISTBOX_VIEW_START_X_OFFSET 2
+#define LISTBOX_VIEW_START_Y_OFFSET 1 /* Count view lines from 1. */
+
+#define LISTBOX_DEFAULT_ORIGIN_X 1
+#define LISTBOX_DEFAULT_ORIGIN_Y 1
+#define LISTBOX_DEFAULT_SIZE_X 40
+#define LISTBOX_DEFAULT_SIZE_Y 20
+#define LISTBOX_DEFAULT_VIEWHEIGHT 15  /* LISTBOX_DEFAULT_SIZE_Y - 5 */
+#define LISTBOX_DEFAULT_VIEWWIDTH 38   /* LISTBOX_DEFAULT_SIZE_X - 2 */
+
+ANSIListBoxPane instanceMethod new (String __paneName) {
+  "ANSIListBoxPane constructor.  The argument, a String,
+  contains the name of the new object."
+  ANSIWidgetPane super new __paneName;
+  __paneName paneStream openInputQueue;
+  __paneName withBorder;
+  __paneName withShadow;
+  __paneName origin x = LISTBOX_DEFAULT_ORIGIN_X;
+  __paneName origin y = LISTBOX_DEFAULT_ORIGIN_Y;
+  __paneName size x = LISTBOX_DEFAULT_SIZE_X;
+  __paneName size y = LISTBOX_DEFAULT_SIZE_Y;
+  __paneName viewHeight = LISTBOX_DEFAULT_VIEWHEIGHT;
+  __paneName viewWidth = LISTBOX_DEFAULT_VIEWWIDTH;
+  __paneName selectedLine = 1;
+  __paneName prevSelectedLine = 0;
+
+  __paneName addBuffer LISTBOX_DEFAULT_SIZE_X, LISTBOX_DEFAULT_SIZE_Y, 1;
+  return __paneName;
+}
+
+ANSIListBoxPane instanceMethod appendLine (String __text) {
+  "Add the argument, a String that contains a line of text,
+  to the pane's contents."
+  ANSILabelPane new labelItem;
+
+  labelItem borderLess = TRUE;
+  labelItem border = FALSE;
+  labelItem shadow = FALSE;
+
+  labelItem appendLine __text, 20, 0;
+
+  self items push labelItem;
+  self totalLines = self totalLines + 1;
+  return NULL;
+}
+
+ANSIListBoxPane instanceMethod selectNext (void) {
+  "Select the next item in the list.  Saves the
+  old selection so that refreshSelection can
+  un-highlight the previous selection.
+  
+  This method does not do any range checking, so 
+  before calling thiis method, the selectedLine instance 
+  variable should be set to the new selection, and the 
+  previous selection should point to a valid item at 
+  selectedLine - 1."
+
+ int contentLine, selectedLineInt, oldSelectedLineInt;
+
+  contentLine = 0;
+
+  self prevSelectedLine = self selectedLine - 1;
+  self oldSelectedContent become self selectedContent;
+
+  selectedLineInt = self selectedLine;
+  oldSelectedLineInt = self prevSelectedLine;
+
+  self items map {
+
+    ++contentLine;
+
+    if (selectedLineInt == contentLine) {
+      super selectedContent become self; 
+    }
+
+  }
+}
+
+ANSIListBoxPane instanceMethod selectPrev (void) {
+  "Select the next item in the list.  Saves the old
+  selection so that refreshSelection can un-highlight 
+  the previous selection.
+  
+  Neither selectNext nor selectPrev do any range checking, so 
+  before calling this method, the selectedLine instance 
+  variable should be set to the new selection, and the 
+  previous selection should point to a valid item at 
+  selectedLine + 1."
+
+ int contentLine, selectedLineInt, oldSelectedLineInt;
+
+  contentLine = 0;
+
+  self prevSelectedLine = self selectedLine + 1;
+  self oldSelectedContent become self selectedContent;
+
+  selectedLineInt = self selectedLine;
+  oldSelectedLineInt = self prevSelectedLine;
+
+  self items map {
+
+    ++contentLine;
+
+    if (selectedLineInt == contentLine) {
+      super selectedContent become self; 
+    }
+
+  }
+}
+
+ANSIListBoxPane instanceMethod refresh (void) {
+  "Update the pane's contents on the display.
+  Also sets the selected item."
+
+  int contentLine, viewLine, contentHeight,
+    viewStartLineInt, viewHeightInt; /* , selectedLineInt; */
+
+  viewStartLineInt = self viewStartLine;
+  viewHeightInt = self viewHeight;
+
+  /* selectedLineInt = self selectedLine; */
+
+  contentLine = 0;
+  viewLine = 0;
+  contentHeight = viewStartLineInt + viewHeightInt;
+
+  self super refresh;
+
+  self cursor x = self origin x + LISTBOX_VIEW_START_X_OFFSET;
+
+  self items map {
+
+    ++contentLine;
+
+    if ((contentLine >= viewStartLineInt) &&
+     	(contentLine < contentHeight)) {
+
+      ++viewLine;
+
+      __ctalkANSIClearPaneLine (super, viewLine + LISTBOX_VIEW_START_Y_OFFSET);
+
+      super cursor y = viewLine + super origin y;
+
+      eval self display super cursor x, super cursor y;
+
+      if (super selectedLine == contentLine)
+	super selectedContent become self; 
+
+    }
+
+  }
+
+  return NULL;
+}
+
+ANSIListBoxPane instanceMethod refreshSelection (void) {
+  "Highlight the new selection and un-highlight the
+  previous selection.  This method should should only
+  be called after selectNext or selectPrev.  To
+  hightlight the initial selection after drawing the
+  entire listbox, use refreshSelectionFirst."
+
+  self cursor x = self origin x + LISTBOX_VIEW_START_X_OFFSET;
+  self cursor y = self origin y + self prevSelectedLine;
+  self oldSelectedContent resetGraphics;
+  self oldSelectedContent display self cursor x, self cursor y;
+  self oldSelectedContent refresh;
+
+  self cursor y = self origin y + self selectedLine;
+  self selectedContent reverseOnOff;
+  self selectedContent display self cursor x, self cursor y;
+  self selectedContent refresh;
+
+}
+
+ANSIListBoxPane instanceMethod refreshSelectionFirst (void) {
+  // Highlight the initial selection.  Use this method to
+  // hightlight the selection after drawing the listbox
+  // by calling refresh.
+
+  self cursor x = self origin x + LISTBOX_VIEW_START_X_OFFSET;
+  self cursor y = self origin y + self selectedLine;
+  self selectedContent reverseOnOff;
+  self selectedContent display self cursor x, self cursor y;
+}
+
+#define ESC     0x1b
+#define CR      0x0d
+#define LF      0x0a
+#define EMACS_DN 0x0e
+#define EMACS_UP 0x10
+#define CSI2    0x5b     /* ESC [ sequence is CSI */
+
+ANSIListBoxPane instanceMethod handleInput (void) {
+  "Process input for the Pane.  Pressing Escape withdraws
+  the pane from the display without activating the 'OK'
+  button. Pressing Return activates the 'OK' button and
+  then withdraws the Pane.  Pressing 'j' Control-N, or
+  an ANSI Cursor Down selects the next item.  Pressing
+  'k', Control-P, or an ANSI Cursor Up selects the
+  previous item."
+  Integer new c;
+  InputEvent new iEvent;
+  String new responseString;
+
+  returnObjectClass String;
+
+  self paneStream rawMode;
+  self paneStream openInputQueue;
+  while ((c = self paneStream getCh) != EOF) {
+    iEvent become self paneStream nextInputEvent;
+    switch (iEvent eventClass)
+      {
+	/*
+	 *  ESC alone should work okay... but grab 
+	 *  the rest of a sequence if necessary.
+	 *  PgUp and PgDn do not register correctly
+	 *  on some terminals... so they're not used
+	 *  below.
+	 */
+      case KBDCHAR:
+	switch (iEvent eventData asCharacter)
+	  {
+	  case ESC:
+	    if ((c = self paneStream getChNoBlock) != 0) {
+	      iEvent become self paneStream nextInputEvent;
+	      switch (iEvent eventData asCharacter) 
+		{
+		case CSI2:
+ 		  if ((c = self paneStream getChNoBlock) != 0) {
+		    iEvent become self paneStream nextInputEvent;
+		    switch (iEvent eventData asCharacter) 
+		      {
+		      }
+		  }
+		  break;
+		default:
+		  break;
+		}
+	    } else {
+	      self withdraw;
+	      self paneStream restoreTerm;
+	      self paneStream setGraphics '0';
+	      return NULL;
+	    }
+	    break;
+ 	  case CR:
+	  case LF:
+	    // 	    self dismissButton focusHighlightOnOff;
+	    // 	    self dismissButton refresh;
+	    self withdraw;
+	    self paneStream restoreTerm;
+	    self paneStream setGraphics '0';
+	    return responseString;
+	    break;
+	    /*
+	     *  vi and emacs keys.
+	     */
+	  case 'j':
+	  case EMACS_DN:
+	    self selectedLine = self selectedLine + 1;
+	    if (self selectedLine > self totalLines) {
+	      self selectedLine = self totalLines;
+	    } else {
+	      self selectNext;
+	      self refreshSelection;
+	    }
+	    break;
+	  case 'k':
+	  case EMACS_UP:
+	    self selectedLine = self selectedLine - 1;
+	    if (self selectedLine < 1) {
+	      self selectedLine = 1;
+	    } else {
+	      self selectPrev;
+	      self refreshSelection;
+	    }
+	    break;
+	  }
+	break;
+      case KBDCUR:
+	switch (iEvent eventData)
+	  {
+	  case 'A':  /* Cursor up */
+	    self selectedLine = self selectedLine - 1;
+	    if (self selectedLine < 1) {
+	      self selectedLine = 1;
+	    } else {
+	      self selectPrev;
+	      self refreshSelection;
+	    }
+	    break;
+	  case 'B':  /* Cursor dn */
+	    self selectedLine = self selectedLine + 1;
+	    if (self selectedLine > self totalLines) {
+	      self selectedLine = self totalLines;
+	    } else {
+	      self selectNext;
+	      self refreshSelection;
+	    }
+	    break;
+	  default:
+	    break;
+	  }
+	break;
+      }
+  }
+  return NULL;
+}
+
+ANSIListBoxPane instanceMethod show (int x_org, int y_org) {
+  "Set the dimensions of the receiver object and display
+  it, then waits for user input."
+  self origin x = x_org;
+  self origin y = y_org;
+  self refresh;
+  self refreshSelectionFirst;
+  self handleInput;
+  return NULL;
+}
+
+ANSIListBoxPane instanceMethod cleanup (void) {
+  "Delete the buffers associated with the Pane objects."
+  __ctalkDeleteWinBuffer (self paneBuffer);
+  __ctalkDeleteWinBuffer (self paneBackingStore);
+
+  self items map {
+    eval self cleanup;
+  }
+  return NULL;
+}
+
+ANSIListBoxPane instanceMethod selectedText (void) {
+  "Return a String with the selected item's text."
+  returnObjectClass String;
+  String new _text;
+  ANSILabelPane new selectedTmp;
+  
+  _text = self selectedContent text unshift;
+  self selectedContent push _text;
+
+  return _text;
+}

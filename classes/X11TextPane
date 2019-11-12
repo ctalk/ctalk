@@ -1,0 +1,592 @@
+/* $Id: X11TextPane,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-c-*-*/
+
+/*
+  This file is part of Ctalk.
+  Copyright © 2005 - 2018  Robert Kiesling, rk3314042@gmail.com.
+  Permission is granted to copy this software provided that this copyright
+  notice is included in all source code modules.
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+*/
+
+/*
+ *    X11TextPane class.
+ */
+
+/*
+ *  Note that __ctalkGUI* and __ctalkX11* C functions 
+ *  rely on these instance variable names.  *Do not change 
+ *  them* unless you also change the library code.  Subclass
+ *  instead.
+ *  
+ *  Here is an example of the newer library interface
+ *  which the uses X11Bitmap objects for pane buffers.
+ *  It is much more basic and doesn't do any instance 
+ *  variable retrievel on its own.  That means you are
+ *  free to call variables whatever name you like.
+ *  Also see the X11CanvasPane and X11Bitmap classes.
+ */
+
+X11PaneDispatcher class X11TextPane
+"X11TextPane class defines methods to draw the text in a
+window, set the text font, and to scroll the window";
+X11TextPane instanceVariable text String "";
+X11TextPane instanceVariable textList List NULL;
+X11TextPane instanceVariable textLines Integer 0;
+X11TextPane instanceVariable viewStartLine Integer 0;
+X11TextPane instanceVariable viewHeight Integer 0;
+X11TextPane instanceVariable viewWidth Integer 0;
+X11TextPane instanceVariable viewXOffset Integer 0;
+X11TextPane instanceVariable lineHeight Integer 12;
+X11TextPane instanceVariable leading Integer 2;
+X11TextPane instanceVariable scrollMargin Integer 3;
+X11TextPane instanceVariable scrollHeight Integer 0;
+X11TextPane instanceVariable requestClose Boolean FALSE;
+
+String class TextBox;
+TextBox instanceVariable x Integer 0;
+TextBox instanceVariable y Integer 0;
+TextBox instanceVariable width Integer 0;
+TextBox instanceVariable height Integer 0;
+TextBox instanceVariable wrapAfter Boolean false;
+TextBox instanceVariable escapedTag Boolean false;
+
+int g_view_start_line;
+int g_text_lines;
+
+X11TextPane instanceMethod subPaneExpose (Object __subPane,
+					  InputEvent __event) {
+  "X11TextPane objects only redraw when starting or
+   when scrolled, so this method is a no-op."
+
+}
+
+X11TextPane instanceMethod subPaneResize (X11TextPane __subPane,
+ 					  InputEvent __event) {
+  "Handle a resize event."
+    Integer new prevWidth, prevHeight;
+  Boolean new redraw;
+  redraw = FALSE;
+  if ((*__subPane container) containerMode == "full") {
+    __subPane size x = __event xEventData3;
+    __subPane size y = __event xEventData4;
+    /* Note that we check three different receiver expressions
+       when retrieving xWindowID.  This helps to test the argument
+       list parsing.
+    */
+    (X11Bitmap *)self paneBuffer resize 
+      (*self container) xWindowID,
+      __event xEventData3, __event xEventData4;
+
+    if (__subPane fontVar fontId == 0) {
+      if (__subPane viewHeight != __subPane size y / 14) {
+	__subPane viewHeight = 
+	  __subPane size y / 14;
+	redraw = TRUE;
+      }
+      if (__subPane viewWidth != __subPane size x / 12) {
+	__subPane viewWidth = 
+	  __subPane size x / 12;
+	redraw = TRUE;
+      }
+    } else {
+      if (__subPane viewHeight != __subPane size y / __subPane fontVar height) {
+	__subPane viewHeight = __subPane size y /
+	  __subPane fontVar height;
+	redraw = TRUE;
+      }
+      if (__subPane viewWidth != __subPane size x / __subPane fontVar maxWidth) {
+	__subPane viewWidth = __subPane size x /
+	  __subPane fontVar maxWidth;
+	redraw = TRUE;
+      }
+    }
+    if (redraw) {
+      __subPane scrollHeight = __subPane viewHeight - __subPane scrollMargin;
+      self textList delete;
+      __ctalkSplitText (self text, self textList);
+      __ctalkWrapText (self xWindowID, self xGC,
+		       self textList, self size x,
+		       self viewXOffset);
+      g_text_lines = 0;
+      self textList map {
+	if (self wrapAfter) {
+	  ++g_text_lines;
+	}
+      }
+      __subPane displayText;
+    }
+  } else {
+    fprintf (stderr, 
+     "Error: subPaneResize (class X11TextPane): unknown container mode!\n");
+  }
+  return NULL;
+}
+
+/*
+ *  Keycodes Note: These values are supposed to be independent of a
+ *  particular keyboard.  Where necessary, the XK_* definitions from
+ *  xkeysymdef.h are included here.  These _should_ not need modification
+ *  for different keyboard types, but if they do, refer to the machine's
+ *  xkeysymdef.h file.
+ */
+#define CTRL_C  3
+#define CTRL_N 14
+#define CTRL_P 16
+#define CTRL_Q 17
+#define CTRL_T 20
+#define CTRL_V 22
+#define CTRL_Z 26
+#define LC_J   106
+#define UC_J   74
+#define LC_K   107
+#define UC_K   75
+#define UC_N   78
+#define LC_N   110
+#define UC_P   80
+#define LC_P   112
+#define UC_Q   81
+#define LC_Q   113
+#define CUP  114
+#define CDN  116
+#define CR   113
+#define CL   115
+# ifdef XK_Escape
+#  undef XK_Escape
+# endif
+#define XK_Escape  65307  
+#ifndef XK_Control_L
+#define XK_Control_L  0xffe3
+#endif
+#ifndef XK_Control_R
+#define XK_Control_R  0xffe4
+#endif
+#ifndef XK_Home
+#define XK_Home 0xff50
+#endif
+#ifndef XK_End
+#define XK_End 0xff57
+#endif
+
+/*
+ *  Here are the actual values from the KeyPress and KeyRelease
+ *  events.
+ */
+/*
+ *  Sun Type 6:
+ *  Cursor UP:
+ *  KeyPress                132     70      0       89      0
+ *  KeyRelease              132     70      0       89      0
+ *  Cursor DOWN:
+ *  KeyPress                132     70      0       88      0
+ *  KeyRelease              132     70      0       88      0
+ *  Cursor RIGHT:
+ *  KeyPress                132     70      0       86      0
+ *  KeyRelease              132     70      0       86      0
+ *  Cursor LEFT:
+ *  KeyPress                132     70      0       87      0
+ *  KeyRelease              132     70      0       87      0
+ *  
+ *  PC Extended with separate keypad:
+ *  Cursor UP:
+ *  KeyPress		69	7	0	98	0
+ *  KeyRelease	69	7	0	98	0
+ *  Cursor DOWN:
+ *  KeyPress		69	7	0	104	0
+ *  KeyRelease	69	7	0	104	0
+ *  Cursor RIGHT:
+ *  KeyPress		69	7	0	102	0
+ *  KeyRelease	69	7	0	102	0
+ *  Cursor LEFT:
+ *  KeyPress		69	7	0	100	0
+ *  KeyRelease	69	7	0	100	0
+ */
+
+X11TextPane instanceMethod subPaneKbdInput (X11TextPane __subPane, 
+					  InputEvent __event) {
+  "Handle a keypress or keyrelease event."
+
+  bool ctrl_keypress = false;
+
+  if (__event eventClass == KEYPRESS) {
+    /* This method receives both KEYPRESS and KEYRELEASE events. */
+    switch (__event xEventData5)
+      {
+      case XK_Control_L:
+      case XK_Control_R:
+	/* The modifier key.  The next key event contains the
+	   Control-N or Control-P ascii value. */
+	ctrl_keypress = true;
+	break;
+      case LC_P:
+      case UC_P:
+	if (ctrl_keypress) {
+	  ctrl_keypress = false;
+	} else {
+	  break;
+	}
+      case CTRL_P:
+      case LC_K:
+      case UC_K:
+      case CUP:
+	if (g_view_start_line > 0) {
+	  --g_view_start_line;
+ 	  __subPane displayText;
+	}
+	break;
+      case LC_N:
+      case UC_N:
+	if (ctrl_keypress) {
+	  ctrl_keypress = false;
+	} else {
+	  break;
+	}
+      case LC_J:
+      case UC_J:
+      case CDN:
+      case CTRL_N:
+	if (g_view_start_line < g_text_lines) {
+	  ++g_view_start_line;
+ 	  __subPane displayText;
+	}
+	break;
+      case UC_Q:
+      case LC_Q:
+	if (ctrl_keypress) {
+	  ctrl_keypress = false;
+	} else {
+	  break;
+	}  /* fall through */
+      case CTRL_Q:
+	g_view_start_line = 0;
+	__subPane displayText;
+	__subPane refresh;
+	break;
+      case CTRL_Z:
+	g_view_start_line = g_text_lines - __subPane viewHeight;
+	g_view_start_line += 2;
+	__subPane displayText;
+	__subPane refresh;
+	break;
+      case CTRL_T:
+	if (g_view_start_line - __subPane scrollHeight < 0) {
+	  g_view_start_line = 1;
+	} else {
+	  g_view_start_line -= __subPane scrollHeight;
+	}
+	__subPane displayText;
+	__subPane refresh;
+	break;
+      case CTRL_V:
+	if (g_view_start_line + __subPane scrollHeight > g_text_lines) {
+	  g_view_start_line = g_text_lines - __subPane viewHeight;
+	  g_view_start_line += 2;
+	} else {
+	  g_view_start_line += __subPane scrollHeight;
+	}
+	__subPane displayText;
+	__subPane refresh;
+	break;
+      case CTRL_C:
+	if (ctrl_keypress) {
+	  ctrl_keypress = false;
+	} else {
+	  break;
+	}  /* fall through */
+      case XK_Escape:
+	self requestClose = TRUE;
+	break;
+      }
+  }
+  return NULL;
+}
+
+X11TextPane instanceMethod subPaneDestroy (Object __subPane, 
+					  InputEvent __event) {
+  "Handle a destroy request."
+  __subPane paneBuffer delete;
+  __subPane paneBackingStore delete;
+}
+
+X11TextPane instanceMethod attachTo (X11PaneDispatcher parentPane) {
+  "Register the receiver pane as a subpane of the X11Pane
+  given as the argument."
+  Integer new ftMaxCharWidth;
+  X11Bitmap new paneBuffer;
+  X11Bitmap new paneBackingStore;
+  X11Pane new mainPane;
+  self super attachTo parentPane;
+  self paneBuffer become paneBuffer;
+  self paneBackingStore become paneBackingStore;
+  if (parentPane containerMode == "full") {
+    /*
+     *  Also set by subPaneResize.
+     */
+    self size x = parentPane size x;
+    self size y = parentPane size y;
+    if (self fontVar fontId == 0) {
+       self viewHeight = self size y / 14;
+       self viewWidth = self size x / 12;
+    } else {
+       self viewHeight = self size y / self fontVar height;
+       self viewWidth = self size x / self fontVar maxWidth;
+    }
+    self scrollHeight = self  viewHeight - self scrollMargin;
+    (X11Bitmap *)self paneBuffer create self xWindowID, self size x,
+      self size y, self depth;
+    (X11Bitmap *)self paneBackingStore create self xWindowID, self size x,
+      self size y, self depth;
+
+    mainPane = *parentPane container;
+    mainPane inputStream eventMask =
+      KEYPRESS|KEYRELEASE|WINDELETE|EXPOSE|RESIZENOTIFY;
+
+  } else {
+    fprintf (stderr, 
+	     "attachTo (class X11TextPane) : undefined containerMode.\n");
+  }
+  return NULL;
+}
+
+X11TextPane instanceMethod refresh (void) {
+  "Redraw the receiver pane."
+  __ctalkGUIPaneRefresh (self,
+			 0, 0,
+			 self size x, self size y,
+			 0, 0);
+  return NULL;
+}
+
+X11TextPane instanceMethod new (String __paneName) {
+  "The X11TextPane constructor.  The argument, a String,
+  contains the name of the new object.  Also sets the
+  event handlers that this class overrides."
+  Method new resizeMethod;
+  Method new kbdInputMethod;
+  Method new destroyMethod;
+  Method new exposeMethod;
+  X11TextPane super new __paneName;
+  resizeMethod definedInstanceMethod "X11TextPane", "subPaneResize";
+  kbdInputMethod definedInstanceMethod "X11TextPane", "subPaneKbdInput";
+  destroyMethod definedInstanceMethod "X11TextPane", "subPaneDestroy";
+  exposeMethod definedInstanceMethod "X11TextPane", "subPaneExpose";
+  __paneName setMethodHandler "resize", resizeMethod;
+  __paneName setMethodHandler "move", NULL;
+  __paneName setMethodHandler "kbdinput", kbdInputMethod;
+  __paneName setMethodHandler "destroy", destroyMethod;
+  __paneName setMethodHandler "expose", exposeMethod;
+  __paneName viewXOffset = 5;
+  return __paneName;
+}
+
+X11TextPane instanceMethod deleteText (void) {
+  "Deletes the receiver's text."
+  self text = "";
+  self textList delete;
+}
+
+X11TextPane instanceMethod addText (String __text) {
+  "Add the argument's text to the receiver's text List.  If
+   the argument is a String, it is added to the receiver's
+   text, splitting the argument's text at newlines if necessary.
+   If the argument is a List, it adds each element to the
+   receiver's text List. If word wrap is enabled, wraps the
+   lines to fit drawing surface."
+
+    self text += __text;
+
+    self textList delete;
+    __ctalkSplitText (self text, self textList);
+
+    __ctalkWrapText (self xWindowID, self xGC,
+		     self textList, self size x,
+		     self viewXOffset);
+
+    g_view_start_line = 0;
+    g_text_lines = 0;
+    self textList map {
+      if (self wrapAfter) {
+	/* ++super textLines; */
+	++g_text_lines;
+      }
+    }
+    
+}
+
+X11TextPane instanceMethod appendLine (String __text) {
+  "This is still here for compatibility with old programs."
+  self addText __text;
+}
+
+X11TextPane instanceMethod gotoXY  (Integer x, Integer y) {
+  "Set the software cursor position at the x,y arguments,
+   which is the position in pixels from the pane's upper
+   left corner."
+  self cursor x = x;
+  self cursor y = y;
+  return self;
+}
+
+X11TextPane instanceMethod cursorPos  (Integer x, Integer y) {
+  "Set the software cursor position at the x,y arguments.
+  This method is a synonym for gotoXY."
+  self cursor x = x;
+  self cursor y = y;
+  return self;
+}
+
+X11TextPane instanceMethod putChar (Character __c) {
+  "Draw the Character given as the argument at the
+  software cursor position."
+  (X11Bitmap *)self paneBuffer putStr self cursor x,
+    self cursor y, (__c asString);
+  return NULL;
+}
+
+X11TextPane instanceMethod putStr (String __s) {
+  "Draw the string given as the argument at the software
+  cursor position."
+  (X11Bitmap *)self paneBuffer putStr self cursor x,
+    self cursor y, __s;
+  return NULL;
+}
+
+X11TextPane instanceMethod printOn (char *__fmt, ...) {
+  "Print the formatted arguments on the receiver Pane at the
+   software cursor position."
+    String new str;
+  __ctalkObjectPrintOn (str);
+  (X11Bitmap *)self paneBuffer putStr self cursor x,
+    self cursor y, str;
+}
+
+/* these are from ctalkdefs.h */
+#define X_FACE_REGULAR     (1 << 0)
+#define X_FACE_BOLD        (1 << 1)
+#define X_FACE_ITALIC      (1 << 2)
+#define X_FACE_BOLD_ITALIC (1 << 3)
+
+X11TextPane instanceMethod faceBold (void) {
+  (X11Bitmap *)self paneBuffer faceBold;
+}
+
+X11TextPane instanceMethod faceRegular (void) {
+  (X11Bitmap *)self paneBuffer faceRegular;
+}
+
+X11TextPane instanceMethod faceItalic (void) {
+  (X11Bitmap *)self paneBuffer faceItalic;
+}
+
+X11TextPane instanceMethod faceBoldItalic (void) {
+  (X11Bitmap *)self paneBuffer faceBoldItalic;
+}
+
+X11TextPane instanceMethod displayText (void) {
+  "Display the pane's contents by first drawing
+   each line of text in the paneBuffer, then calling
+   refresh to update the pane's window."
+
+    int text_line_number, y,
+    line_height, size_y;
+  X11Bitmap new paneBuffer;
+  
+  line_height = self lineHeight;
+  y = line_height;
+  size_y = self size y;
+  text_line_number = 0;
+  paneBuffer = (X11Bitmap *)self paneBuffer;
+  
+  paneBuffer clear;
+
+  self textList map {
+
+    if (text_line_number >= g_view_start_line) {
+      if (self width) {
+	paneBuffer putStr self x, y, self;
+      } else {
+	if (self value at 0 ==  '<') {
+	  if (self value == "<b>") {
+	    paneBuffer faceBold;
+	  } else if (self value == "</b>") {
+	    paneBuffer faceRegular;
+	  } else if (self value == "<i>") {
+	    paneBuffer faceItalic;
+	  } else if (self value == "</i>") {
+	    paneBuffer faceRegular;
+	  }
+	}
+      }
+      if (self wrapAfter) {
+	y += line_height;
+      }
+    } else {
+      if (self wrapAfter) {
+	++text_line_number;
+      }
+    }
+
+    if (y > size_y) 
+      break;
+  }
+
+  self refresh;
+
+  return NULL;
+}
+
+/*
+ *  See the note for X11Bitmap : background method.
+ */
+X11TextPane instanceMethod background (String color) {
+  "Set the receiver's background color."
+  self paneBuffer background color;
+}
+
+X11TextPane instanceMethod foreground (String color) {
+  "Set the receiver's foreground color."
+  self paneBuffer foreground color;
+}
+
+X11TextPane instanceMethod clear (void) {
+  "Clear the pane."
+  self paneBuffer clear;
+  self refresh;
+}
+
+X11TextPane instanceMethod font (String fontDesc) {
+  "Set the receiver font to the font given in the
+  argument, a String, and get font info from the X
+  Window System."
+  X11FreeTypeFont new l_ftFont;
+  Integer new ftMaxCharWidth;
+  
+  self fontDescStr = fontDesc;
+  self fontVar getFontInfo fontDesc;
+  (X11Bitmap *)self paneBuffer font fontDesc;
+
+  if (l_ftFont libIsInitialized) {
+    self lineHeight = l_ftFont textHeight "ghyl";
+    self lineHeight += self leading;
+    ftMaxCharWidth = l_ftFont textWidth "M";
+    self viewWidth = self size x / ftMaxCharWidth;
+  } else {
+    /* Xlib fonts seem to look fine without extra leading. */
+    self lineHeight = self fontVar height;
+    self viewWidth = self size x / self fontVar maxWidth;
+  }
+  self viewHeight = self size y / self lineHeight;
+}
+

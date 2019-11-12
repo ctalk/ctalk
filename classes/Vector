@@ -1,0 +1,220 @@
+/* $Id: Vector,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-c-*- */
+
+/*
+  This file is part of Ctalk.
+  Copyright © 2016, 2018  Robert Kiesling, rk3314042@gmail.com.
+  Permission is granted to copy this software provided that this copyright
+  notice is included in all source code modules.
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+*/
+
+Symbol class Vector;
+Vector instanceVariable length Integer 0;
+
+Vector instanceMethod basicNew (char *name, char *classname,
+				char *superclassname, 
+				char *value_expr,
+				int data_length) {
+  "Return a new Vector object with the name, class, superclass,
+  and value given by the arguments.  The new object has
+  all of the instance variables defined by the class
+  object.  Also sets the object's value to the memory
+  pointed to by the value_expr argument, and registers
+  the memory segment internally.  Also sets the Vector
+  object's length instance variable to data_length."
+  OBJECT *s;
+  returnObjectClass Vector;
+
+  s = __ctalkCreateObjectInit (name, classname, superclassname,
+			       LOCAL_VAR, value_expr);
+
+  __ctalkInstanceVarsFromClassObject (s);
+  __ctalkAddBasicNewTag (s);
+  __ctalkSetObjectValueAddr (s, value_expr, data_length);
+  __objRefCntSet (&s, 1);
+
+  return s;
+}
+
+Vector instanceMethod basicNew (String aName, Symbol aValueExpr,
+				Integer aLength) {
+  "Return a new Vector object with the aName, and value given
+   by the arguments.  The method get the new object's class
+   and superclass from the receiver, which should also
+   be a vector object, or the Vector class object.  Also
+   sets the object's value to the memory pointed to by
+   the aValueExpr argument, and registers the memory segment 
+   internally.  Also sets the Vector object's length instance 
+   variable to aLength."
+  Exception new ex;
+  OBJECT *s;
+  returnObjectClass Vector;
+
+  if (self className != "Class") {
+    ex raiseException INVALID_RECEIVER_X, "\"basicNew\" with 3 arguments requires a class object as the receiver.";
+      return NULL;
+  }
+  
+  s = __ctalkCreateObjectInit (aName, self name, 
+			       self superclassName,
+			       LOCAL_VAR, aValueExpr);
+
+  __ctalkInstanceVarsFromClassObject (s);
+  __ctalkAddBasicNewTag (s);
+  __ctalkSetObjectValueAddr (s, aValueExpr, aLength);
+							  
+  __objRefCntSet (&s, 1);
+
+  return s;
+}
+
+Vector instanceMethod contains (String pattern) {
+  "Returns the byte offset in the receiver's value where the 
+   first occurrence of the argument pattern is located, or
+   -1 if the receiver does not contain the pattern."
+  OBJECT *self_object, *pat_object;
+  void *self_value;
+  char *pat_value;
+  int self_length;
+  int pat_length;
+  int i, eff_length;
+  returnObjectClass Integer;
+
+  self_length = self length;
+
+  self_object = __ctalk_self_internal ();
+  self_value = (IS_VALUE_INSTANCE_VAR(self_object) ?
+		self_object -> __o_value : 
+		self_object -> instancevars -> __o_value);
+
+  pat_object = __ctalk_arg_internal (0);
+  pat_value =  (IS_VALUE_INSTANCE_VAR(pat_object) ? 
+		pat_object -> __o_value : 
+		pat_object -> instancevars -> __o_value);
+
+  pat_length = strlen (pat_value);
+  eff_length = self_length - pat_length;
+
+  for (i = 0; i <= eff_length; ++i) {
+    if (!memcmp (((char *)self_value) + i, pat_value, pat_length))
+      return i;
+  }
+  return -1;
+}
+
+Vector instanceMethod contains (String pattern, Integer startPos) {
+  "Returns the byte offset in the receiver's value where the 
+   first occurrence of the argument pattern is located, or
+   -1 if the receiver does not contain the pattern.  With two
+   arguments, the method begins its search from the Integer
+   offset given by the second argument."
+  OBJECT *self_object, *pat_object;
+  void *self_value;
+  char *pat_value;
+  int self_length;
+  int pat_length;
+  int i, eff_length, stpi;
+  returnObjectClass Integer;
+
+  self_length = self length value;
+
+  self_object = __ctalk_self_internal ();
+  self_value = (IS_VALUE_INSTANCE_VAR(self_object) ?
+		self_object -> __o_value : 
+		self_object -> instancevars -> __o_value);
+
+  pat_object = pattern value;
+  pat_value =  (IS_VALUE_INSTANCE_VAR(pat_object) ? 
+		pat_object -> __o_value : 
+		pat_object -> instancevars -> __o_value);
+
+  pat_length = strlen (pat_value);
+  eff_length = self_length - pat_length;
+
+  stpi = startPos value;
+  for (i = stpi; i <= eff_length; ++i) {
+    if (!memcmp (((char *)self_value) + i, pat_value, pat_length))
+      return i;
+  }
+  return -1;
+}
+
+Vector instanceMethod asString (void) {
+  "Returns a string with the value of the receiver terminated
+   at its length with a NUL byte.  The method does not check
+   for NUL's or non-printing characters, so the result String
+   may still be truncated to a value shorter than the length
+   of the receiver."
+  returnObjectClass String;
+  OBJECT *self_object;
+
+  self_object = self value;
+  return self_object -> __o_value;
+}
+
+Vector instanceMethod + concat (Vector vecArg) {
+  "Return a Vector object that is the result of the
+  receiver contatenated with the argument."
+
+  void *buf;
+  int length1, length2;
+  OBJECT *op1, *op2;
+  Vector new resultObj;
+  returnObjectClass Vector;
+
+  op1 = self value;
+  op2 = vecArg value;
+  length1 = self length value;
+  length2 = vecArg length value;
+
+  buf = __xalloc (length1 + length2 + 1);
+  xmemcpy (buf, (op1 -> instancevars) ?
+	  op1 -> instancevars -> __o_value :
+	  op1 -> __o_value, length1);
+  xmemcpy (((char *)buf) + length1, (op2 -> instancevars) ?
+	  op2 -> instancevars -> __o_value :
+	  op2 -> __o_value, length2);
+
+  resultObj = Vector basicNew "result", buf, (length1 + length2);
+
+  return resultObj;
+}
+
+Vector instanceMethod += concatRcvr (Vector vecArg) {
+  "Combine the argument and the receiver and set the
+  receiver to the new String."
+  Exception new e;
+  void *buf;
+  int l1, l2;
+  OBJECT *op1, *op2;
+
+  op1 = self value;
+  op2 = vecArg value;
+  l1 = self length value;
+  l2 = vecArg length value;
+
+  buf = __xalloc (l1 + l2 + 1);
+  xmemcpy (buf, (op1 -> instancevars) ?
+	  op1 -> instancevars -> __o_value :
+	  op1 -> __o_value, l1);
+  xmemcpy (((char *)buf) + l1, (op2 -> instancevars) ?
+	  op2 -> instancevars -> __o_value :
+	  op2 -> __o_value, l2);
+  __ctalkSetObjectValueAddr (self, buf, l1 + l2);
+  return self;
+}
+
+

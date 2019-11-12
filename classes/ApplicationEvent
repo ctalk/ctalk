@@ -1,0 +1,103 @@
+/* $Id: ApplicationEvent,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-c-*-*/
+
+/*
+  This file is part of Ctalk.
+  Copyright © 2005-2014  Robert Kiesling, rk3314042@gmail.com.
+  Permission is granted to copy this software provided that this copyright
+  notice is included in all source code modules.
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+*/
+
+/*
+ *   ApplicationEvent Class
+ */
+
+#include <sys/types.h>
+#include <unistd.h>
+
+Event class ApplicationEvent;
+
+/*
+ *  This List does not use the List : new method, so
+ *  it has a value variable.
+ */
+ApplicationEvent classVariable pendingEvents List NULL;
+ApplicationEvent instanceVariable processID Integer 0;
+ApplicationEvent instanceVariable data String NULL;
+
+ApplicationEvent instanceMethod new (char *__appEventName) {
+  // This is the ApplicationEvent constructor.  The argument,
+  // a String, contains the name of the new object.
+  //
+  // This class is still under construction.
+  ApplicationEvent super new __appEventName;
+
+  __ctalkInstanceVarsFromClassObject (__appEventName);
+
+  return __appEventName;
+}
+
+ApplicationEvent instanceMethod queueEvent (void) {
+
+  OBJECT *__self_object, *__pendingEventList, *__t;
+
+  __self_object = __ctalk_self_internal ();
+
+  __pendingEventList = ApplicationEvent pendingEvents;
+
+  for (__t = __pendingEventList; __t && __t -> next; __t = __t -> next)
+    ;
+
+  __t -> next = __self_object;
+  __self_object -> prev = __t;
+}
+
+ApplicationEvent instanceMethod getPID (void) {
+
+  self addInstanceVariable "processID", getpid ();
+
+  return self;
+}
+
+ApplicationEvent instanceMethod pending (void) {
+
+  OBJECT *__pendingEventList;
+
+  returnObjectClass Integer;
+
+  __pendingEventList = ApplicationEvent pendingEvents;
+
+  if (__pendingEventList -> instancevars == NULL) {
+    return FALSE;
+  } else {
+return TRUE;
+  }
+  
+  return NULL;
+}
+
+ApplicationEvent instanceMethod sendToApp (char *__data) {
+
+  ApplicationEvent new __newEvent;
+
+  __newEvent getPID;
+
+  __newEvent addInstanceVariable "data", __data;
+
+  __newEvent queueEvent;
+
+  return self;
+}

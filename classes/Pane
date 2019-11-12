@@ -1,0 +1,90 @@
+/* $Id: Pane,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-C-*-*/
+
+/*
+  This file is part of Ctalk.
+  Copyright © 2005-2014  Robert Kiesling, rk3314042@gmail.com.
+  Permission is granted to copy this software provided that this copyright
+  notice is included in all source code modules.
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+*/
+
+require Point;
+
+/*
+ *  Note that many of the instance variables are used by name
+ *  in the C library functions, so don't change them.  Subclass 
+ *  instead.
+ */
+Object class Pane
+"Pane is the topmost class of objects that represent windows
+on the display.  All other window classes are subclasses of
+Pane";
+Pane instanceVariable origin Point 0;
+Pane instanceVariable size Point 0;
+Pane instanceVariable cursor Point 0;
+Pane instanceVariable paneBuffer Symbol 0x0;
+Pane instanceVariable paneBackingStore Symbol 0x0;
+Pane instanceVariable children List 0x0;
+Pane instanceVariable mapped Integer 0;
+
+Pane instanceMethod attach (Object __childPane) {
+  "Register the Pane object given as the argument as a subpane
+  of the receiver Pane object."
+  OBJECT *self_stream_alias,
+    *child_stream_alias,
+    *self_stream_inputHandle_alias,
+    *child_stream_inputHandle_alias,
+    *self_stream_outputHandle_alias,
+    *child_stream_outputHandle_alias;
+  if (self is ANSITerminalPane) {
+    self_stream_alias = 
+      __ctalkGetInstanceVariable (self, "paneStream", TRUE);
+    self_stream_inputHandle_alias = 
+      __ctalkGetInstanceVariable (self_stream_alias, "inputHandle", TRUE);
+    self_stream_outputHandle_alias = 
+      __ctalkGetInstanceVariable (self_stream_alias, "outputHandle", TRUE);
+    child_stream_alias = 
+      __ctalkGetInstanceVariable (__childPane, "paneStream", TRUE);
+    child_stream_inputHandle_alias = 
+      __ctalkGetInstanceVariable (child_stream_alias, "inputHandle", TRUE);
+    child_stream_outputHandle_alias = 
+      __ctalkGetInstanceVariable (child_stream_alias, "outputHandle", TRUE);
+    __ctalkSetObjectValue (child_stream_inputHandle_alias, 
+			   ((self_stream_inputHandle_alias -> instancevars) ?
+			    self_stream_inputHandle_alias -> instancevars -> __o_value :
+			    self_stream_inputHandle_alias -> __o_value));
+    __ctalkSetObjectValueVar (child_stream_inputHandle_alias, 
+			   ((self_stream_inputHandle_alias -> instancevars) ?
+			    self_stream_inputHandle_alias -> instancevars -> __o_value :
+			    self_stream_inputHandle_alias -> __o_value));
+    __ctalkSetObjectValue (child_stream_outputHandle_alias, 
+			   ((self_stream_outputHandle_alias -> instancevars) ?
+			    self_stream_outputHandle_alias -> instancevars -> __o_value :
+			    self_stream_outputHandle_alias -> __o_value));
+    __ctalkSetObjectValueVar (child_stream_outputHandle_alias, 
+			   ((self_stream_outputHandle_alias -> instancevars) ?
+			    self_stream_outputHandle_alias -> instancevars -> __o_value :
+			    self_stream_outputHandle_alias -> __o_value));
+  }
+  self children pushItemRef __childPane;
+  return self;
+}
+
+Pane instanceMethod deletePaneBuffer (void) {
+  "Delete the backing buffer associated with the receiver Pane."
+  __ctalkDeleteWinBuffer (self paneBuffer);
+  return NULL;
+}

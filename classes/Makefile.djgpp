@@ -1,0 +1,112 @@
+# $Id: Makefile.djgpp,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $
+#
+# Makefile for DJGPP and GNU make.
+#
+
+#
+# Change the value of CMD if your system uses a 
+# different shell than cmd.exe
+#
+CMD=cmd /C
+#
+#  utod is a DJGPP utility from the djdev package.
+#
+UTODCMD=\djgpp\bin\utod.exe
+CTALKCLASSDIR=\djgpp\include\ctalk
+CTALKLIBCTEMPLATEDIR=$(CTALKCLASSDIR)\libc
+CTALKLIBCTALKTEMPLATEDIR=$(CTALKCLASSDIR)\libctalk
+CLASSLIBS=ANSIButtonPane ANSIMessageBoxPane ANSIScrollBarPane \
+        ANSITextBoxPane ANSIYesNoBoxPane ANSITerminalPane \
+	ANSITerminalStream ANSITextEntryPane ANSIWidgetPane Application \
+	ApplicationEvent ArgumentList Array AssociativeArray BitMap Boolean \
+	Character Collection DirectoryStream Event Exception FileStream \
+	Float Font Integer InputEvent Key List LongInteger Magnitude Method \
+	Object ObjectInspector Pane Pen Point ReadFileStream \
+	ReadWriteFileStream Rectangle SignalEvent SignalHandler Stream \
+	String Symbol SystemErrnoException TerminalStream Time \
+	Win32TerminalStream WriteFileStream X11CanvasPane X11Font X11Pane \
+	X11TerminalStream X11TextPane X11PaneDispatcher ctalklib ctldjgpp \
+	gncompat.h 
+
+COPYCMD=cmd /c copy /Y 
+
+
+all: 
+	$(CMD) \djgpp\bin\true.exe
+
+inst:
+	$(CMD) if not exist $(CTALKCLASSDIR) mkdir $(CTALKCLASSDIR)
+	$(CMD) if not exist $(CTALKLIBCTEMPLATEDIR) mkdir $(CTALKLIBCTEMPLATEDIR)
+	$(CMD) if not exist $(CTALKLIBCTALKTEMPLATEDIR) mkdir $(CTALKLIBCTALKTEMPLATEDIR)
+	$(CMD) del /q $(CTALKCLASSDIR)\*.*
+	$(CMD) del /q $(CTALKLIBCTEMPLATEDIR)\*.*
+	$(CMD) del /q $(CTALKLIBCTALKTEMPLATEDIR)\*.*
+	$(UTODCMD) ANSIButtonPane; $(COPYCMD) ANSIButtonPane $(CTALKCLASSDIR)
+	$(UTODCMD) ANSIMessageBoxPane; $(COPYCMD) ANSIMessageBoxPane $(CTALKCLASSDIR)
+	$(UTODCMD) ANSIScrollBarPane; $(COPYCMD) ANSIScrollBarPane $(CTALKCLASSDIR)
+	$(UTODCMD) ANSITextBoxPane; $(COPYCMD) ANSITextBoxPane $(CTALKCLASSDIR)
+	$(UTODCMD) ANSIYesNoBoxPane; $(COPYCMD) ANSIYesNoBoxPane $(CTALKCLASSDIR)
+	$(UTODCMD) ANSITerminalPane; $(COPYCMD) ANSITerminalPane $(CTALKCLASSDIR)
+	$(UTODCMD) ANSITerminalStream; $(COPYCMD) ANSITerminalStream $(CTALKCLASSDIR)
+	$(UTODCMD) ANSITextEntryPane; $(COPYCMD) ANSITextEntryPane $(CTALKCLASSDIR)
+	$(UTODCMD) ANSIWidgetPane; $(COPYCMD) ANSIWidgetPane $(CTALKCLASSDIR)
+	$(UTODCMD) Application; $(COPYCMD) Application $(CTALKCLASSDIR)
+	$(UTODCMD) ApplicationEvent; $(COPYCMD) ApplicationEvent $(CTALKCLASSDIR)
+	$(UTODCMD) ArgumentList; $(COPYCMD) ArgumentList $(CTALKCLASSDIR)
+	$(UTODCMD) Array; $(COPYCMD) Array $(CTALKCLASSDIR)
+	$(UTODCMD) AssociativeArray; $(COPYCMD) AssociativeArray $(CTALKCLASSDIR)
+	$(UTODCMD) Boolean; $(COPYCMD) Boolean $(CTALKCLASSDIR)
+	$(UTODCMD) Character; $(COPYCMD) Character $(CTALKCLASSDIR)
+	$(UTODCMD) Collection; $(COPYCMD) Collection $(CTALKCLASSDIR)
+	$(UTODCMD) DirectoryStream; $(COPYCMD) DirectoryStream $(CTALKCLASSDIR)
+	$(UTODCMD) Event; $(COPYCMD) Event $(CTALKCLASSDIR)
+	$(UTODCMD) Exception; $(COPYCMD) Exception $(CTALKCLASSDIR)
+	$(UTODCMD) FileStream; $(COPYCMD) FileStream $(CTALKCLASSDIR)
+	$(UTODCMD) Float; $(COPYCMD) Float $(CTALKCLASSDIR)
+	$(UTODCMD) Integer; $(COPYCMD) Integer $(CTALKCLASSDIR)
+	$(UTODCMD) InputEvent; $(COPYCMD) InputEvent $(CTALKCLASSDIR)
+	$(UTODCMD) Key; $(COPYCMD) Key $(CTALKCLASSDIR)
+	$(UTODCMD) Line; $(COPYCMD) Line $(CTALKCLASSDIR)
+	$(UTODCMD) List; $(COPYCMD) List $(CTALKCLASSDIR)
+	$(UTODCMD) LongInteger; $(COPYCMD) LongInteger $(CTALKCLASSDIR)
+	$(UTODCMD) Magnitude; $(COPYCMD) Magnitude $(CTALKCLASSDIR)
+	$(UTODCMD) Method; $(COPYCMD) Method $(CTALKCLASSDIR)
+	$(UTODCMD) Object; $(COPYCMD) Object $(CTALKCLASSDIR)
+	$(UTODCMD) ObjectInspector; $(COPYCMD) ObjectInspector $(CTALKCLASSDIR)
+	$(UTODCMD) Pane; $(COPYCMD) Pane $(CTALKCLASSDIR)
+	$(UTODCMD) Pen; $(COPYCMD) Pen $(CTALKCLASSDIR)
+	$(UTODCMD) Point; $(COPYCMD) Point $(CTALKCLASSDIR)
+	$(UTODCMD) ReadFileStream; $(COPYCMD) ReadFileStream $(CTALKCLASSDIR)
+	$(UTODCMD) ReadWriteFileStream; $(COPYCMD) ReadWriteFileStream $(CTALKCLASSDIR)
+	$(UTODCMD) Rectangle; $(COPYCMD) Rectangle $(CTALKCLASSDIR)
+	$(UTODCMD) SignalEvent; $(COPYCMD) SignalEvent $(CTALKCLASSDIR)
+	$(UTODCMD) SignalHandler; $(COPYCMD) SignalHandler $(CTALKCLASSDIR)
+	$(UTODCMD) Stream; $(COPYCMD) Stream $(CTALKCLASSDIR)
+	$(UTODCMD) String; $(COPYCMD) String $(CTALKCLASSDIR)
+	$(UTODCMD) Symbol; $(COPYCMD) Symbol $(CTALKCLASSDIR)
+	$(UTODCMD) SystemErrnoException; $(COPYCMD) SystemErrnoException $(CTALKCLASSDIR)
+	$(UTODCMD) TerminalStream; $(COPYCMD) TerminalStream $(CTALKCLASSDIR)
+	$(UTODCMD) Time; $(COPYCMD) Time $(CTALKCLASSDIR)
+	$(UTODCMD) Win32TerminalStream; $(COPYCMD) Win32TerminalStream $(CTALKCLASSDIR)
+	$(UTODCMD) WriteFileStream; $(COPYCMD) WriteFileStream $(CTALKCLASSDIR)
+	$(UTODCMD) X11CanvasPane; $(COPYCMD) X11CanvasPane $(CTALKCLASSDIR)
+	$(UTODCMD) X11Pane; $(COPYCMD) X11Pane $(CTALKCLASSDIR)
+	$(UTODCMD) X11TextPane; $(COPYCMD) X11TextPane $(CTALKCLASSDIR)
+	$(UTODCMD) X11PaneDispatcher; $(COPYCMD) X11PaneDispatcher $(CTALKCLASSDIR)
+	$(UTODCMD) X11TerminalStream; $(COPYCMD) X11TerminalStream $(CTALKCLASSDIR)
+	$(UTODCMD) ctldjgpp; $(COPYCMD) ctldjgpp $(CTALKCLASSDIR)\ctalklib
+	$(UTODCMD) libc\a; $(COPYCMD) libc\a $(CTALKCLASSDIR)\libc\a
+	$(UTODCMD) libc\c; $(COPYCMD) libc\c $(CTALKCLASSDIR)\libc\c
+	$(UTODCMD) libc\d; $(COPYCMD) libc\d $(CTALKCLASSDIR)\libc\d
+	$(UTODCMD) libc\e; $(COPYCMD) libc\e $(CTALKCLASSDIR)\libc\e
+	$(UTODCMD) libc\f; $(COPYCMD) libc\f $(CTALKCLASSDIR)\libc\f
+	$(UTODCMD) libc\g; $(COPYCMD) libc\g $(CTALKCLASSDIR)\libc\g
+	$(UTODCMD) libc\m; $(COPYCMD) libc\m $(CTALKCLASSDIR)\libc\m
+	$(UTODCMD) libc\p; $(COPYCMD) libc\p $(CTALKCLASSDIR)\libc\p
+	$(UTODCMD) libc\r; $(COPYCMD) libc\r $(CTALKCLASSDIR)\libc\r
+	$(UTODCMD) libc\s; $(COPYCMD) libc\s $(CTALKCLASSDIR)\libc\s
+
+clean:
+	$(CMD) if exist *.o del *.o
+	$(CMD) if exist *~ del *~
+

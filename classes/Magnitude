@@ -1,0 +1,372 @@
+/* $Id: Magnitude,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-C-*-*/
+
+/*
+  This file is part of Ctalk.
+  Copyright © 2005-2014, 2016, 2018, 2019  
+    Robert Kiesling, rk3314042@gmail.com.
+  Permission is granted to copy this software provided that this copyright
+  notice is included in all source code modules.
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+*/
+
+/*
+ *   Magnitude class.
+ */
+
+#include <ctalk/ctalkdefs.h>
+
+/*
+ *  If you change these definitions, make sure they match the
+ *  definitions in the file, "ctalklib."
+ */
+
+#ifndef MAX_UCHAR 
+#define MAX_UCHAR 255
+#endif
+#ifndef MAX_UINT
+#define MAX_UINT 4294967295U
+#endif
+#ifndef MAX_ULONG
+#define MAX_ULONG  MAX_UINT
+#endif
+
+Object class Magnitude
+"Magnitude class is the superclass of objects that
+define quantities: Integer, Float, CTime, Character, and
+String.  This class provides methods that are common to
+all of its subclasses, and provides methods to convert
+values from one class to another.";
+
+Magnitude instanceMethod asCharacter (void) {
+  "Return the value of the receiver as a Character object.
+  If the receiver is a Float object, returns the whole
+  number portion of the receiver as a Character object."
+  OBJECT *self_value;
+  char buf[MAXMSG], c = 0;
+  int i;
+  long long int l;
+
+  returnObjectClass Character;
+
+  self_value = self value;
+
+  if (self value is Character) {
+    return self;
+  } else if (self value is Integer) {
+    i = *(int *)self_value -> __o_value;
+    c = (char)i;
+    if (i > MAX_UCHAR)
+      _warning ("Magnitude : asCharacter: Overflow in type conversion of "
+		"%d (Integer).\n", self_value -> __o_value);
+  } else if (self value is LongInteger) {
+    l = LLVAL(self_value -> __o_value);
+    if (l > MAX_UCHAR)
+      _warning ("Overflow in type conversion of %s.\n", self_value -> __o_value);
+    xsprintf (buf, "%c", (char)l); c = buf[0];
+  } else if (self value is Float) {
+    char *r;
+    xstrcpy (buf, self_value -> __o_value);
+    if ((r = strchr (buf, '.')) != NULL) {
+      *r = '\0';
+      sscanf (buf, "%d", &i);
+      if (i > MAX_UCHAR)
+	_warning ("Overflow in type conversion of %s.\n", self_value -> __o_value);
+      xsprintf (buf, "%c", (char)i); c = buf[0];
+    }
+  }
+  return c;
+}
+
+Magnitude instanceMethod - minus_prefix (__prefix__) {
+  "Overloads C's unary minus operator.  Returns the
+  negated value of the receiver."
+  Integer new int_negated;
+  LongInteger new longint_negated;
+  Float new float_negated;
+  int int_val;
+  long long int llint_val;
+  double double_val;
+  char char_val, char_negated;
+
+  if (self is Integer) {
+    int_val = atoi (self value asString);
+    int_val = -int_val;
+    int_negated value = int_val;
+    return int_negated;
+  }
+
+  if (self is LongInteger) {
+    llint_val = atoll (self value asString);
+    llint_val = -llint_val;
+    longint_negated value = llint_val;
+    return longint_negated;
+  }
+
+  if (self is Float) {
+    double_val = strtod (self value asString, NULL);
+    double_val = -double_val;
+    float_negated value = double_val;
+    return float_negated;
+  }
+
+  if (self is Character) {
+  _warning 
+    ("Warning: Magnitude : - : \"%s:\" Negative characters might be unsupported.\n",
+     self name); 
+    sscanf (self value asString, "%c", &char_val);
+    char_negated = -char_val;
+    return char_negated;
+  }
+
+  _warning 
+    ("Warning: Unimplemented class %s in method, \"-,\" (class Magnitude).\n", 
+     self className);
+
+  return self;
+}
+
+Magnitude instanceMethod asInteger (void) {
+  "Return the value of the receiver as an Integer object."
+  OBJECT *self_value;
+  int i;
+  long long int l;
+
+  returnObjectClass Integer;
+
+  self_value = self value;
+
+  if (self value is Integer) {
+    return self;
+  } else {
+    if (self is LongInteger) {
+      l = LLVAL(self_value -> __o_value);
+      if (l > MAX_UINT) {
+ 	if (self_value -> __o_p_obj) {
+	  __warning_trace ();
+	  _warning ("Overflow in type conversion:\n");
+	  printf ("name:       %s\n", self_value -> __o_p_obj -> __o_name);
+	  printf ("class:      %s (%p)\n", 
+		  self_value -> __o_p_obj -> CLASSNAME,
+		  self_value -> __o_p_obj -> __o_class);
+	  printf ("superclass: %s (%p)\n", 
+		  self_value -> __o_p_obj -> CLASSNAME,
+		  self_value -> __o_p_obj -> __o_class);
+	  printf ("value:      %s (%p)\n", 
+		  self_value -> __o_p_obj -> __o_value,
+		  self_value -> __o_p_obj -> CLASSNAME);
+	}
+	printf ("\tname:       %s\n", self_value -> __o_name);
+	printf ("\tclass:      %s (%p)\n", 
+		self_value -> CLASSNAME,
+		self_value -> __o_class);
+	printf ("\tsuperclass: %s (%p)\n", 
+		self_value -> CLASSNAME,
+		self_value -> __o_class);
+	printf ("\tvalue:      %s (%p)\n", 
+		self_value -> __o_value,
+		self_value -> CLASSNAME);
+	i = (int)0;
+      } else {
+	i = (int)l;
+      }
+    } else {
+      if (self is Character) {
+	i = __ctalkIntFromCharConstant (self_value -> __o_value);
+      } else { 
+	if (self is Float) {
+  _warning ("asInteger (class Magnitude): Receiver truncated to Integer.\n");
+	  i = (int)atof (self);
+	} else {
+	  if (!strcmp (self_value -> __o_value, NULLSTR)) {
+	    i = 0;
+	  } else {
+	    i = strtol (self, NULL, 0);
+	  }
+	}
+      }
+    }
+  }
+  return i;
+}
+
+Magnitude instanceMethod asLongInteger (void) {
+  "Return the value of the receiver as a LongInteger
+  object."
+  OBJECT *self_value;
+  int i;
+  long long int l;
+  double f;
+
+  returnObjectClass LongInteger;
+
+  self_value = self value;
+
+  if (self is LongInteger) {
+    return self;
+  } else if (self is Character) {
+    l = (long long int)__ctalkIntFromCharConstant (self_value -> __o_value);
+  } else if (self is Integer) {
+    i = INTVAL(self_value -> __o_value);
+    l = (long long int)i;
+  } else if (self is Float) {
+    f = strtod (self_value -> __o_value, NULL);
+    l = (long long int)f;
+    _warning ("Magnitude: LongInteger: \"%s\" (%f) truncated to LongInteger.\n",
+	      self name, f);
+  } else if (self is String) {
+    l = strtoll (self, NULL, 0);
+  }
+  return l;
+}
+
+Magnitude instanceMethod asSymbol (void) {
+  "Return the value of receiver as a Symbol.  If the
+  receiver contains an object reference return a copy
+  of the receiver as a Symbol object.  Otherwise,
+  return a Symbol object with a reference to the
+  receiver.  Increases the receiver's reference count
+  by one."
+  OBJECT *self_alias, *new_symbol;
+  char buf[MAXLABEL];
+  
+  returnObjectClass Symbol;
+
+  self_alias = __ctalk_self_internal ();
+
+  if ((self_alias -> attrs & OBJECT_VALUE_IS_BIN_SYMBOL) &&
+      SYMVAL(self_alias->instancevars->__o_value)) {
+      new_symbol = 
+	__ctalkCreateObjectInit ("result", 
+				 "Symbol",
+				 "Object",
+				 LOCAL_VAR, "");
+      xmemcpy (new_symbol -> instancevars -> __o_value,
+	       self_alias -> instancevars -> __o_value,
+	       sizeof (unsigned long int));
+      return new_symbol;
+  }
+#if defined (__GNUC__) && defined (__x86_64) && defined (__amd64__)
+  xsprintf (buf, "%#lx", (unsigned long int)self_alias);
+#else
+  __ctalkHexIntegerToASCII ((unsigned int)self_alias, buf);
+#endif
+  self_alias incReferenceCount;
+  new_symbol = 
+    __ctalkCreateObjectInit ("result", 
+			     "Symbol",
+			     "Object",
+			     LOCAL_VAR,
+			     buf);
+  return new_symbol;
+}
+
+Magnitude instanceMethod * deref_prefix (__prefix__) {
+  "Overloads C's unary * prefix operator."
+  OBJECT *self_value;
+  int *i = 0;
+  long long int *l = 0ll;
+  double *d = NULL;
+
+  returnObjectClass Any;
+  self_value = self value;
+  if (self value is Integer) {
+    if (__ctalkGenericPtrFromStr (self_value -> __o_value)) {
+      sscanf (self_value -> __o_value, STR_0XHEX_TO_PTR(&i));
+      if (*i > MAX_UINT)
+    	_warning ("Overflow in type conversion of %d.\n", i[0]);
+      return i[0];
+    } else {
+      return 0;
+    }
+  } else {
+    if (self value is LongInteger) {
+      if (__ctalkGenericPtrFromStr (self_value -> __o_value)) {
+	sscanf (self_value -> __o_value, STR_0XHEX_TO_PTR(&l));
+       	if (*l > MAX_ULONG)
+       	  _warning ("Overflow in type conversion of %s.\n", 
+		    self_value -> __o_value);
+       	return l[0];
+      } else {
+	return 0L;
+      }
+    } else {
+      if (self value is Float) {
+	if (__ctalkGenericPtrFromStr (self_value -> __o_value)) {
+	  sscanf (self_value -> __o_value, STR_0XHEX_TO_PTR(&d));
+	  return d[0];
+	} else {
+	  return 0.0;
+	}
+      }
+    }
+  }
+}
+
+Magnitude instanceMethod ! invert_prefix (__prefix__) {
+  "Overloads C's unary ! prefix operator.  Returns the
+  negated value of the receiver."
+  OBJECT *self_value;
+  int i;
+  long long int l;
+  double d;
+
+  returnObjectClass Any;
+  self_value = self value;
+  if (self value is Integer) {
+    i = ((strtol (self_value -> __o_value, NULL, 0) == 0) ? 1 : 0);
+    if (i > MAX_UINT)
+      _warning ("Overflow in type conversion of %s.\n", 
+		self_value -> __o_value);
+    return i;
+  } else {
+    if (self value is LongInteger) {
+      l = ((atoll (self_value -> __o_value) == 0) ? 1 : 0);
+      if (l > MAX_ULONG)
+	_warning ("Overflow in type conversion of %s.\n", 
+		  self_value -> __o_value);
+      return l;
+    } else {
+      if (self value is Float) {
+	d = ((strtod (self_value -> __o_value, (char **)NULL) == 0) ? 1 : 0);
+	return d;
+      }
+    }
+  }
+}
+
+Magnitude instanceMethod asFloat (void) {
+  "Return a Float with the value of the receiver expressed
+   as a floating point number."
+  Float new result;
+  long long int l;
+  returnObjectClass Float;
+
+  if (self is Integer) {
+    result = strtod (self value, NULL);
+  } else if (self is LongInteger) {
+    /* this cast is here to excercise the parser a little more */
+    result = (double)strtod (self value, NULL);
+  } else if (self is Float) {
+    result = self;
+  } else if (self is String) {
+    result = strtod (self value, NULL);
+  } else {
+    _warning ("Magnitude : asFloat: Invalid receiver, \"%s.\"\n",
+	      self name);
+    result = 0.0f;
+  }
+  return result;
+}

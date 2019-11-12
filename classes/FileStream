@@ -1,0 +1,265 @@
+/* $Id: FileStream,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-c-*-*/
+
+/*
+  This file is part of Ctalk.
+  Copyright © 2005 - 2015  Robert Kiesling, rk3314042@gmail.com.
+  Permission is granted to copy this software provided that this copyright
+  notice is included in all source code modules.
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+*/
+
+/*
+ *    FileStream class.
+ */
+
+#include <stdio.h>
+#include <errno.h>
+
+Stream class FileStream
+"FileStream is the superclass of Stream objects that
+handle file input and output.  This class also defines
+methods that are common to all file streams.";
+
+FileStream instanceVariable streamMode Integer 0;
+FileStream instanceVariable streamDev Integer 0;
+FileStream instanceVariable streamRdev Integer 0;
+FileStream instanceVariable streamSize LongInteger 0ll;
+FileStream instanceVariable streamAtime LongInteger 0ll;
+FileStream instanceVariable streamMtime LongInteger 0ll;
+FileStream instanceVariable streamCtime LongInteger 0ll;
+FileStream instanceVariable streamPos LongInteger 0ll;
+FileStream instanceVariable streamErrno Integer 0;
+FileStream instanceVariable streamPath String "";
+
+FileStream instanceMethod statStream (void) {
+  "Call the C function stat(2) with the receiver's file
+  stream.  This method must be called after the file
+  is opened with openOn, and it fills many of the 
+  stream's other instance variables.  Many of the
+  convenience methods in this class call this method."
+  int rval;
+  struct stat statbuf;
+  SystemErrnoException new s;
+
+  returnObjectClass Integer;
+
+  if ((rval = stat (self streamPath, &statbuf)) == SUCCESS) {
+    self streamMode = statbuf.st_mode;
+    self streamDev = statbuf.st_dev;
+    self streamRdev = statbuf.st_rdev;
+    self streamSize = statbuf.st_size;
+    self streamAtime = statbuf.st_atime;
+    self streamMtime = statbuf.st_mtime;
+    self streamCtime = statbuf.st_ctime;
+  } else {
+    s raiseException "FileStream : statStream: " + (self streamPath);
+  }
+
+  return rval;
+}
+
+FileStream instanceMethod statFile (String path) {
+  "Call the C function stat(2) with the file path
+  given as the argument, a String.  This method fills
+  in the stream's instance variables."
+  int rval;
+  struct stat statbuf;
+  SystemErrnoException new s;
+  returnObjectClass Integer;
+
+  returnObjectClass Integer;
+
+  if ((rval = stat (path, &statbuf)) == SUCCESS) {
+    self streamMode = statbuf.st_mode;
+    self streamDev = statbuf.st_dev;
+    self streamRdev = statbuf.st_rdev;
+    self streamSize = statbuf.st_size;
+    self streamAtime = statbuf.st_atime;
+    self streamMtime = statbuf.st_mtime;
+    self streamCtime = statbuf.st_ctime;
+  } else {
+    s raiseException "FileStream : statFile: " + path;
+  }
+
+  return rval;
+}
+
+FileStream instanceMethod size (void) {
+  "Return the file size of the receiver's file stream."
+  returnObjectClass LongInteger;
+
+  self statStream;
+
+  return self streamSize;
+}
+
+FileStream instanceMethod streamEof (void) {
+  "Return a Boolean value of True if the receiver's stream
+  has reached the end-of-file, False otherwise."
+  FILE *self_stream;
+
+  returnObjectClass Boolean;
+
+  if ((self_stream = (FILE *)__ctalkFilePtrFromStr (self value)) == NULL)
+    return FALSE;
+
+  if (feof (self_stream)) {
+    return TRUE;
+  }
+  return FALSE;
+}
+
+FileStream instanceMethod = set_value (FileStream f) {
+  "Set the receiver FileStream's value to the argument
+  FileStream object's value."
+  OBJECT *f_value;
+
+  f_value = __ctalkGetInstanceVariable (f, "value", FALSE);
+  __ctalkSetObjectValue (__ctalk_self_internal () -> instancevars,
+			 f_value -> __o_value);
+  return self;
+}
+
+extern int	fileno();
+
+FileStream instanceMethod isDir (void) {
+  "Return an Integer value of True if the receiver's stream
+  is a directory."
+  FILE *file;
+  int rval, mode;
+  struct stat statbuf;
+  OBJECT *value_var;
+  SystemErrnoException new isDirException;
+
+  returnObjectClass Integer;
+
+  value_var = self value;
+
+  if ((file = (FILE *)__ctalkGenericPtrFromStr (value_var -> __o_value))
+      == NULL)
+    return FALSE;
+
+  if ((rval = fstat (fileno (file), &statbuf)) == SUCCESS) {
+    mode = S_ISDIR (statbuf.st_mode);
+  } else {
+    isDirException raiseException value_var;
+    mode = 0;
+  }
+  return mode;
+}
+
+FileStream instanceMethod exists (char *__path) {
+  "Return a Boolean value of True if the path given
+  by the argument, a String, exists."
+  returnObjectClass Boolean;
+  int rval;
+  struct stat statbuf;
+  if ((rval = stat (__path, &statbuf)) == SUCCESS) {
+    return TRUE;
+  } else {
+    if (errno == ENOENT) {
+      return FALSE;
+    } else {
+      return TRUE;
+    }
+  }
+}
+
+FileStream instanceMethod closeStream (void) {
+  "Close the file associated with the receiver object
+  and clear the receiver object's value."
+  FILE *f;
+  int r;
+  OBJECT *self_value;
+  struct stat statbuf;
+  SystemErrnoException new closeStreamException;
+
+  if ((f = (FILE *)__ctalkFilePtrFromStr (self value)) != NULL) {
+    if ((r = fstat (fileno (self value), &statbuf)) == SUCCESS) {
+      if (S_ISDIR (statbuf.st_mode)) {
+	return NULL;
+      }
+    }  else {
+      return NULL;
+    }
+
+    r = fclose (f);
+    self_value = self value;
+    self_value -> __o_value[0] = '\0';
+    if (r)
+      closeStreamException raiseException NULL;
+  } else {
+    closeStreamException raiseException NULL;
+  }
+
+  return NULL;
+}
+
+FileStream instanceMethod seekTo (Integer filePos) {
+  FILE *f;
+  SystemErrnoException new seekException;
+  if ((f = (FILE *)__ctalkFilePtrFromStr (self value)) != NULL) {
+    if (fseek (f, filePos, SEEK_SET)) {
+      seekException raiseException "seekTo " + filePos asString;
+    }
+  }
+  return NULL;
+}
+
+FileStream instanceMethod seekToEnd (void) {
+  FILE *f;
+  SystemErrnoException new seekException;
+  if ((f = (FILE *)__ctalkFilePtrFromStr (self value)) != NULL) {
+    if (fseek (f, 0L, SEEK_END)) {
+      seekException raiseException "seekToEnd";
+    }
+  }
+  return NULL;
+}
+
+FileStream instanceMethod seekToBeginning (void) {
+  FILE *f;
+  SystemErrnoException new seekException;
+  if ((f = (FILE *)__ctalkFilePtrFromStr (self value)) != NULL) {
+    if (fseek (f, 0L, SEEK_SET)) {
+      seekException raiseException "seekToBeginning";
+    }
+  }
+  return NULL;
+}
+
+FileStream instanceMethod deleteFile (String filePath) {
+  "Deletes the file given as the argument.  Raises a
+   SystemErrnoException if the deletion causes an error."
+  SystemErrnoException new deleteException;
+
+  if (unlink (filePath)) {
+    deleteException raiseException "delete " + filePath;
+  }
+  return NULL;
+}
+
+FileStream instanceMethod renameFile (String oldname, String newname) {
+  "Renames the file give by the first argument to the name given
+   by the second argument.  Raises a SystemErrnoException if
+   renaming the file causes an error."
+  SystemErrnoException new renameException;
+
+  if (rename (oldname, newname)) {
+    renameException raiseException "rename " + oldname;
+  }
+  return NULL;
+}

@@ -1,0 +1,184 @@
+/* $Id: Key,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-c-*-*/
+
+/*
+  This file is part of Ctalk.
+  Copyright © 2005 - 2015, 2018, 2019  Robert Kiesling, rk3314042@gmail.com.
+  Permission is granted to copy this software provided that this copyright
+  notice is included in all source code modules.
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+*/
+
+Symbol class Key 
+"Key class defines objects that refer to the contents
+of collections - whenever you add an object to a List,
+Array, or Collection, Ctalk creates a Key object to
+maintain the reference. Key class uses many of the
+methods from its superclass, Symbol, to set and get
+the value of the Key object, and adds methods to 
+maneuver through sets of Key objects that are members
+of a parent collection.";
+
+#include <ctalk/ctalkdefs.h>
+
+Key instanceMethod setName (char *__keyNameString) {
+  "Set the receiver's name to the argument, a String."
+  __ctalkSetObjectName (self, __keyNameString);
+  return self;
+}
+
+Key instanceMethod setValueOld (OBJECT *__valueObject) {
+  "Set the receiver's value to a pointer to the a copy of
+  the object given as the argument.  The copy of the
+  argument object has the same reference count as the
+  argument, and the same scope with the addition of
+  VAR_REF_OBJECT scope.  If the argument's scope
+  includes METHOD_USER_OBJECT, it is removed from the
+  copy's scope.  This method is still here for Array
+  class - if you use it somewhere else, use with
+  caution."
+  OBJECT *arg_object, *arg_copy;
+  OBJECT *self_value_object;
+  char buf[MAXLABEL];
+  self_value_object = self value;
+  arg_object = __valueObject;
+  __ctalkCopyObject (OBJREF(arg_object), OBJREF(arg_copy));
+  __objRefCntSet(OBJREF(arg_copy), self_value_object -> nrefs);
+  __ctalkSetObjectScope (arg_copy, arg_copy -> scope & ~METHOD_USER_OBJECT);
+  __ctalkSetObjectScope (arg_copy, arg_copy -> scope | VAR_REF_OBJECT);
+  SYMVAL(self_value_object -> __o_value) = (uintptr_t)arg_copy;
+  return self;
+}
+
+Key instanceMethod getKeyObject (void) {
+  // Return the receiver.
+  return self;
+}
+
+Key instanceMethod ++ incKeyRefPrefix (__prefix__) {
+  "Overloads the C ++ prefix operator.  When the receiver is a
+   member of a Collection or one of its subclasses, increments
+   the receiver to point to the next member of the Collection.
+   If the receiver is the last member of a Collection, sets the
+   receiver to NULL."
+  __ctalkIncKeyRef (self, 1, TAG_REF_PREFIX);
+  return self value;
+}
+
+Key instanceMethod -- decKeyRefPrefix (__prefix__) {
+  "Overloads the C -- prefix operator.  Sets the receiver
+   to point the previous member of the receiver's parent
+   Collection.  If the receiver is the first member of a
+   Collection, sets the receiver to NULL."
+
+  __ctalkIncKeyRef (self, -1, TAG_REF_PREFIX);
+  return self value;
+}
+
+Key instanceMethod ++ incKeyRef (void) {
+  "Overloads the C ++ postfix operator.  Returns the receiver
+   Key, then increments it to point to the next member of a
+   parent Collection.  If the receiver is the last member of a
+   Collection, sets the receiver to NULL."
+  __ctalkIncKeyRef (self, 1, TAG_REF_POSTFIX);
+  return self value;
+}
+
+Key instanceMethod -- decKeyRef (void) {
+  "Overloads the C -- postfix operator.  Returns the
+   receiver Key, then decrements it to point to the previous
+   member of the Key's parent Collection.  If the receiver
+   is already the first member of the Collection, sets the
+   receiver to NULL."
+  __ctalkIncKeyRef (self, -1, TAG_REF_POSTFIX);
+  return self value;
+}
+
+Key instanceMethod - subtractRef (Integer iArg) {
+  "Returns the nth previous Key in the receiver's parent
+   Collection, or NULL if the argument points past the
+   beginning of the Collection."
+  __ctalkIncKeyRef (self, -iArg value, TAG_REF_TEMP);
+  return self value;
+}
+
+Key instanceMethod + addRef (Integer iArg) {
+  "Returns the nth next Key in the receiver's parent
+   Collection, or NULL if there are fewer members 
+   in the Collection following the receiver than the
+   argument." 
+  __ctalkIncKeyRef (self, iArg value, TAG_REF_TEMP);
+  return self value;
+}
+
+Key instanceMethod -= subtractAssignRef (Integer iArg) {
+  "Decrements the receiver by iArg to point to the nth
+   previous member of the receiver's parent Collection.
+   If there are fewer members in the Collection than 
+   the Argument, sets the receiver to NULL."
+  __ctalkIncKeyRef (self, -iArg, TAG_REF_PREFIX);
+  return self;
+}
+
+Key instanceMethod += addAssignRef (Integer iArg) {
+  "Increments the receiver by iArg to point to the nth next
+   member of the Collection.  If the Collection has fewer
+   members following the receiver than the argument, sets
+   the receiver to NULL."
+  __ctalkIncKeyRef (self, iArg, TAG_REF_PREFIX);
+    return self;
+}
+
+Key instanceMethod detach (void) {
+  "Detach the receiver object from its parent collection."
+  OBJECT *self_alias;
+  OBJECT *collection_alias;
+  self_alias = self value;
+  if ((collection_alias = self_alias -> __o_p_obj) != NULL) {
+    if (__LIST_HEAD(collection_alias) == self_alias) {
+      __LIST_HEAD(collection_alias) = self_alias -> next;
+      __LIST_HEAD(collection_alias) -> prev = NULL;
+      self_alias -> attrs = 
+        self_alias -> attrs & ~OBJECT_IS_MEMBER_OF_PARENT_COLLECTION;
+    }
+  }
+  if (self_alias -> next)
+    self_alias -> next -> prev =
+      self_alias -> prev;
+  if (self_alias -> prev)
+    self_alias -> prev -> next =
+      self_alias -> next;
+  self_alias -> next = self_alias -> prev = NULL;
+
+  return self;
+}
+
+Key instanceMethod = setEqual (OBJECT *__newObject) {
+  "Alias the argument to the receiver's indentifier. 
+  If the receiver refers to an object reference (it's
+  preceded by a '*' operator), or if the receiver wasn't 
+  declared as a global or local object (e.g., it's an 
+  instance variable), then create a reference to the 
+  argument object using Symbol : setValue ."
+
+  if (self hasPointerContext) {
+    self setValue __newObject;
+  } else {
+    if (__ctalkAliasObject (self, __newObject) != 0) {
+      self setValue __newObject;
+    }
+  }
+  return self;
+}

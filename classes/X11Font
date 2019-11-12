@@ -1,0 +1,57 @@
+/* $Id: X11Font,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-C-*-*/
+
+/*
+  This file is part of Ctalk.
+  Copyright © 2005-2014  Robert Kiesling, rk3314042@gmail.com.
+  Permission is granted to copy this software provided that this copyright
+  notice is included in all source code modules.
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+*/
+
+DisplayFont class X11Font
+"This class provides supporting methods for setting and getting
+X font information from the X server.  Normally an application
+uses the X11Pane : useFont method to set the X Logical Font
+Descriptor for the window, or sets the Pane's font instance
+variable directly.  Fonts described using XLFDs are listed
+using xfontsel(1) and other X utilties.";
+X11Font instanceVariable fontId Integer 0;
+X11Font instanceVariable ascent Integer 0;
+X11Font instanceVariable descent Integer 0;
+X11Font instanceVariable maxWidth Integer 0;
+X11Font instanceVariable maxLBearing Integer 0;
+X11Font instanceVariable maxRBearing Integer 0;
+X11Font instanceVariable height Integer 0;
+X11Font instanceVariable fontDesc String NULL;
+
+X11Font instanceMethod getFontInfo (String fontDesc) {
+  "Get the information for the font given as the
+  argument, a String."
+  self fontDesc = fontDesc;
+  __ctalkX11QueryFont (self, fontDesc);
+  return NULL;
+}
+
+X11Font instanceMethod textWidth (String text) {
+  "Returns the width in pixels of the String given as the
+   argument when displayed in the receiver's font.  The
+   method uses the font named by the fontDesc instance
+   variable."
+  Integer new textWidth;
+  returnObjectClass Integer;
+  textWidth = __ctalkX11TextWidth (self fontDesc, text);
+  return textWidth;
+}

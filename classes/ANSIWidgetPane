@@ -1,0 +1,165 @@
+/* $Id: ANSIWidgetPane,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-C-*-*/
+
+/*
+  This file is part of Ctalk.
+  Copyright © 2005-2014, 2019  Robert Kiesling, rk3314042@gmail.com.
+  Permission is granted to copy this software provided that this copyright
+  notice is included in all source code modules.
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+*/
+
+#include <ctalk/ctalkdefs.h>
+
+/*
+ *  Note that many of the instance variables are used by name
+ *  in the C library functions, so don't change them.  Subclass 
+ *  instead.
+ */
+ANSITerminalPane class ANSIWidgetPane
+"ANSIWidgetPane class is the superclass of objects
+designed to display widgets on text-mode terminals.  It
+provides basic methods for displaying and withdrawing a
+pane from the display, and for handling user input.
+Many of these methods can be rewritten in subclasses
+for an program's needs.";
+ANSIWidgetPane instanceVariable paneID Integer 0;
+ANSIWidgetPane instanceVariable isInputPane Integer 0;
+ANSIWidgetPane instanceVariable titleString String NULL;
+ANSIWidgetPane instanceVariable parentPane Key NULL;
+ANSIWidgetPane instanceVariable hasFocus Integer 0;
+
+ANSIWidgetPane instanceMethod title (String __titleString) {
+  // Set the title of the receiver pane to the argument, a String.
+  self titleString = __titleString;
+  return NULL;
+}
+
+ANSIWidgetPane instanceMethod new (char *__paneName) {
+  // The ANSIWidgetPane constructor.  The argument, a String,
+  // contains the name of the new object.
+  ANSIWidgetPane super new __paneName;
+  __paneName paneStream openInputQueue;
+  __paneName withShadow;
+  __paneName withBorder;
+  return __paneName;
+}
+
+ANSIWidgetPane instanceMethod unmap (void) {
+  // Remove the receiver pane from the display.
+  self mapped = 0;
+  __ctalkANSITerminalPaneUnMapWindow (self);
+  return NULL;
+}
+
+ANSIWidgetPane instanceMethod map (void) {
+  // Display the receiver pane.
+  self mapped = 1;
+  __ctalkANSITerminalPaneMapWindow (self);
+  return NULL;
+}
+
+ANSIWidgetPane instanceMethod mapSubWidget (ANSITerminalPane __child) {
+  // Map a subpane on the display.
+  __child mapped value = 1;
+  __ctalkANSITerminalPaneMapWindow (__child);
+  self children pushItemRef __child;
+  return NULL;
+}
+
+ANSIWidgetPane instanceMethod parent (ANSITerminalPane paneArg) {
+  // Set a pane's parent pane to the argument.  This method
+  // is generally used to attach an ANSIWidgetPane to its
+  // argument, an ANSITerminalPane.
+  self parentPane = paneArg;
+  self parentOrigin x = paneArg origin x;
+  self parentOrigin y = paneArg origin y;
+  self mapped = TRUE;
+  __ctalkCopyPaneStreams (self, __ctalk_arg_internal (0));
+  return NULL;
+}
+
+#ifndef ESC
+#define ESC     0x1b
+#endif
+
+ANSIWidgetPane instanceMethod withdraw (void) {
+  // If the receiver pane is a subpane, remove it
+  // from the display.  Otherwise, clear the 
+  // pane stream.
+  if (self parentPane) {
+    self unmap;
+  } else {
+    self paneStream clear;
+  }
+  return NULL;
+}
+
+ANSIWidgetPane instanceMethod handleInput (void) {
+  // Wait for the user's input.  Pressing Escape
+  // withdraws the receiver pane.  This method
+  // is intended to be overloaded for more specialized
+  // widget types in ANSIWidgetPane's subclasses.
+  // Uses the ANSITerminalStream : getCh method to 
+  // retrieve characters from the terminal.
+  Integer new c;
+  InputEvent new iEvent;
+
+  while ((c = self paneStream getCh) != EOF) {
+    iEvent become self paneStream nextInputEvent;
+    switch (iEvent eventClass)
+      {
+      case KBDCHAR:
+      case KBDCUR:
+	switch (iEvent eventData)
+	  {
+	  case ESC:
+	    self withdraw;
+	    self paneStream restoreTerm;
+	    return NULL;
+	    break;
+	  }
+	break;
+      }
+  }
+  return NULL;
+}
+
+ANSIWidgetPane instanceMethod addBuffer (Integer width, Integer height,
+					 Integer cell_size) {
+  "Creates the receiver pane's buffers with the width, height, and
+   cell size (which is almost always 1) that are given as the
+   arguments.  If the pane has buffers that were previously
+   created, the method deletes them first."
+  char buf[MAXMSG];
+  OBJECT *paneBuffer_value_alias;
+  int **new_buf;
+
+  __ctalkDeleteWinBuffer (self paneBuffer);
+  paneBuffer_value_alias = self paneBuffer;
+
+  new_buf = __ctalkCreateWinBuffer (width, height, cell_size);
+  xmemcpy (paneBuffer_value_alias -> __o_value, &new_buf, sizeof (int **));
+  xmemcpy (paneBuffer_value_alias -> instancevars -> __o_value,
+	   &new_buf, sizeof (int **));
+
+  __ctalkDeleteWinBuffer (self paneBackingStore);
+  paneBuffer_value_alias = self paneBackingStore;
+
+  new_buf = __ctalkCreateWinBuffer (width, height, cell_size);
+  xmemcpy (paneBuffer_value_alias -> __o_value, &new_buf, sizeof (int **));
+  xmemcpy (paneBuffer_value_alias -> instancevars -> __o_value,
+	   &new_buf, sizeof (int **));
+}

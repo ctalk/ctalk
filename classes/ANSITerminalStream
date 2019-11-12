@@ -1,0 +1,724 @@
+/* $Id: ANSITerminalStream,v 1.2 2019/10/27 00:06:11 rkiesling Exp $ -*-c-*-*/
+
+/*
+  This file is part of Ctalk.
+  Copyright © 2005 - 2014  Robert Kiesling, rk3314042@gmail.com.
+  Permission is granted to copy this software provided that this copyright
+  notice is included in all source code modules.
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+*/
+
+/*
+ *    ANSITerminalStream class.
+ *
+ *    Provides ansi, vt100, xterm, dtterm, etc terminal input and 
+ *    output.
+ *
+ *    Note that this class needs backward compatibility work
+ *    with Solaris < 10 and/or GCC < 3.
+ *
+ *    __APPLE__ OS X uses a fileno() macro, so the expressions have 
+ *    a cast in them.
+ */
+
+#ifdef DJGPP
+#error ANSITerminalStream is only implemented for UNIX Systems.  Use Win32TerminalStream instead.
+#endif
+
+/* ANSI/VT100/Xterm escape sequences. */
+#define VT_REV    "\033[7m"     /* Reverse video.                    */
+#define VT_NORM   "\033[0m"     /* Normal video.                     */
+#define VT_CPOS   "\033[%d;%df" /* Set cursor position: row, column. */
+#define VT_CLS    "\033[2J"     /* Clear the screen.                 */
+#define VT_RESET  "\033[!p"     /* Soft reset.                       */
+#define VT_SGR    "\033[%cm"    /* Set graphics.                     */
+#define VT_SCS_GRAPHICS    "\033(0"    /* Set graphics characters.   */
+#define VT_SCS_ASCII       "\033(B"    /* Set ASCII characters.      */
+#define VT_C_HIDE       "\033[>5l"  /* Cursor hidden - extension. */
+#define VT_C_SHOW       "\033[>5h"  /* Cursor visible - extension. */
+
+#ifndef CTRLC
+#define CTRLC   0x03
+#endif
+#ifndef CTRLD
+#define CTRLD   0x04
+#endif
+#ifndef CTRLH
+#define CTRLH   0x08
+#endif
+#ifndef TAB
+#define TAB     0x09
+#endif
+#ifndef CTRLZ
+#define CTRLZ   0x1a
+#endif
+#ifndef ESC
+#define ESC     0x1b
+#endif
+#ifndef CSI2
+#define CSI2    0x5b     /* ESC [ sequence is CSI */
+#endif
+#ifndef DEL
+#define DEL     0x7f
+#endif
+
+#ifndef KBDCHAR                 /* These are also defined in */
+#define KBDCHAR      (1 << 0)   /* TerminalStream class.     */
+#endif
+#ifndef KBDCUR   
+#define KBDCUR       (1 << 1)
+#endif
+
+TerminalStream class ANSITerminalStream
+"ANSITerminalStream class handles the low-level input
+for text-mode displays, whether the input is from a
+console, xterm, or ANSI-compatible serial terminal.
+The default I/O is via standard input and standard
+output, but you can set the stream to read and write a
+/dev/tty<n> device with the openOn method.  Normally
+ANSITerminalStream objects are part of an
+ANSITerminalPane widget, which uses the terminal input
+for the application. The class also provides methods to
+set graphics effects and the terminal modes directly,
+position the cursor, and write text to the terminal
+display directly.";
+ANSITerminalStream instanceVariable inputHandle ReadFileStream 0x0;
+ANSITerminalStream instanceVariable outputHandle WriteFileStream 0x0;
+ANSITerminalStream instanceVariable rawModeFlag Integer FALSE;
+ANSITerminalStream instanceVariable termioCIFlag Integer 0x0;
+ANSITerminalStream instanceVariable termioCOFlag Integer 0x0;
+ANSITerminalStream instanceVariable termioCLFlag Integer 0x0;
+ANSITerminalStream instanceVariable termioCCFlag Integer 0x0;
+ANSITerminalStream instanceVariable queueInput Integer 0x0;
+
+#if defined(__sparc__) && defined(__svr4__)
+#include <stdio.h>
+#include <sys/time.h>
+/* readline.h has a different definition - avoid a warning. */
+#undef CTRL
+#include <termios.h>
+#else /* Linux */
+
+#include <stdio.h>
+#include <sys/select.h>
+/* avoid a warning from readline.h's definition of CTRL here also. */
+#undef CTRL
+#include <termios.h>
+#endif
+
+
+ANSITerminalStream instanceMethod readChar (void) {
+  "Reads a character from standard input.  Waits for an
+  end-of-file before returning.  To read a character
+  and return immediately, use getChNoBlock."
+  Integer new c;
+  returnObjectClass Character;
+  c = self inputHandle readChar;
+  return c;
+}
+
+ANSITerminalStream instanceMethod readLine (void) {
+  "Reads a line from the standard input.  Returns the
+  input String after the user enters a newline or the
+  method encounters an end-of-file character."
+  String new s;
+  returnObjectClass String;
+  s = self inputHandle readLine;
+  return s;
+}
+
+ANSITerminalStream instanceMethod new (char *__ttyName) {
+  "The ANSITerminalStream constructor.  The argument, a
+  String, contains the name of the new object.  Also
+  initializes the new object's standard input and
+  standard output, and the terminal settings of the
+  standard output device."
+  OBJECT *__stdinStreamVar, *__stdoutStreamVar;
+  struct termios termios_s;
+  ANSITerminalStream super new __ttyName;
+
+  __ctalkInstanceVarsFromClassObject (__ttyName);
+
+  if ((__stdinStreamVar = 
+       __ctalkGetInstanceVariable (__ttyName, "inputHandle",
+				   FALSE)) != NULL) {
+    __ctalkInstanceVarsFromClassObject (__stdinStreamVar);
+#if defined (__linux__)
+    __ctalkObjValPtr (__stdinStreamVar, _IO_stdin);
+#else
+    __ctalkObjValPtr (__stdinStreamVar, stdin);
+#endif
+  }
+
+  if ((__stdoutStreamVar = 
+       __ctalkGetInstanceVariable (__ttyName, "outputHandle",
+				   FALSE)) != NULL) {
+    __ctalkInstanceVarsFromClassObject (__stdoutStreamVar);
+#if defined (__linux__)
+    __ctalkObjValPtr (__stdoutStreamVar, _IO_stdout);
+#else
+    __ctalkObjValPtr (__stdoutStreamVar, stdout);
+#endif
+  }
+
+  tcgetattr (0, &termios_s);
+  __ttyName termioCIFlag = termios_s.c_iflag;
+  __ttyName termioCOFlag = termios_s.c_oflag;
+  __ttyName termioCCFlag = termios_s.c_cflag;
+  __ttyName termioCLFlag = termios_s.c_lflag;
+
+  return __ttyName;
+}
+
+ANSITerminalStream instanceMethod clear (void) {
+  "Clear the terminal screen.  Does not affect the
+  contents of any Pane object."
+  self printOn "%s", VT_CLS;
+  return NULL;
+}
+
+/*
+ *  Only one attribute at a time.
+ *
+ *  0  - Attributes off.
+ *  1  - Bold
+ *  4  - Underscore
+ *  5  - Blink
+ *  7  - Reverse
+ *
+ */
+ANSITerminalStream instanceMethod setGraphics (char __Ps) {
+  // Set the graphics mode of the terminal device.  The argument,
+  // a Character, can have one of the following values.
+  //   0 - Attributes off
+  //   1 - Bold 
+  //   4 - Underscore
+  //   5 - Blinking
+  //   7 - Reverse
+  self printOn VT_SGR, __Ps;
+  return NULL;
+}
+
+ANSITerminalStream instanceMethod cursorPos (int __Prow, int __Pcol) {
+  "Position the terminal device's hardware cursor to the
+  row,col arguments, both Integers.  Does not affect
+  the software cursor of any Pane objects."
+  self printOn VT_CPOS, __Prow, __Pcol;
+  return NULL;
+}
+
+ANSITerminalStream instanceMethod gotoXY (int __Prow, int __Pcol) {
+  "A synonym for the cursorPos method."
+  self printOn VT_CPOS, __Prow, __Pcol;
+  return NULL;
+}
+
+ANSITerminalStream instanceMethod printOn (char *__fmt, ...) {
+  "Print the argument, a String <fmt>, <arg1>, <arg2>,
+  <argn>,...  argument list to the output device, and
+  output the string immediately if the program has set
+  the terminal device to raw mode."
+  __ctalkObjectPrintOn (self outputHandle);
+  if (self rawModeFlag == TRUE) 
+    fflush (self outputHandle value);
+  return self;
+}
+
+ANSITerminalStream instanceMethod restoreTerm (void) {
+  // Restore the terminal settings to the values when
+  // the ANSITerminalStream object was constructed.
+  struct termios termios_s;
+  int self_input_stream_no;
+#ifdef __APPLE__  
+  self_input_stream_no = fileno ((FILE *)self inputHandle value);
+#else
+  self_input_stream_no = fileno (self inputHandle value);
+#endif
+  tcgetattr (0, &termios_s);
+  termios_s.c_iflag = self termioCIFlag value;
+  termios_s.c_oflag = self termioCOFlag value;
+  termios_s.c_lflag = self termioCLFlag value;
+  termios_s.c_cflag = self termioCCFlag value;
+  tcsetattr (self_input_stream_no, TCSADRAIN, &termios_s);
+  return NULL;
+}
+
+ANSITerminalStream instanceMethod rawMode (void) {
+  "Set the terminal output device to raw mode.  Note that
+  if the program sets raw mode, it must also call
+  restoreTerm before exiting, or the terminal can be
+  left in an unusable state."
+  struct termios old_termios_s, new_termios_s;
+  int self_input_stream_no;
+#ifdef __APPLE__
+  self_input_stream_no = fileno ((FILE *)self inputHandle value);
+#else
+  self_input_stream_no = fileno (self inputHandle value);
+#endif
+  tcgetattr (0, &old_termios_s);
+  memcpy ((void *)&new_termios_s, (void *)&old_termios_s, 
+	  sizeof (struct termios));
+#if defined(__sparc__) && defined(__svr4__)
+   new_termios_s.c_iflag &= ~(IGNBRK | BRKINT | PARMRK | ISTRIP
+ 			  | INLCR | IGNCR | ICRNL | IXON);
+   new_termios_s.c_oflag &= ~OPOST;
+   new_termios_s.c_lflag &= ~(ECHO | ECHONL | ICANON | ISIG | IEXTEN);
+   new_termios_s.c_cflag &= ~(CSIZE | PARENB);
+   new_termios_s.c_cflag |= CS8;
+   new_termios_s.c_cc[VMIN] = 0;
+   new_termios_s.c_cc[VTIME] = 0;
+#else 
+   cfmakeraw (&new_termios_s);
+#endif
+  tcsetattr (self_input_stream_no, TCSADRAIN, &new_termios_s);
+  self rawModeFlag = TRUE;
+  return NULL;
+}
+
+ANSITerminalStream instanceMethod openInputQueue (void) {
+  "Start queueing input from the input device."
+  self queueInput = TRUE;
+  return self;
+}
+
+/*
+ *  Unlike xterms, some serial terminals seem not to like sending ESC 
+ *  on  its own - the stream isn't flushed until a newline
+ *  is typed at the terminal.  There can't be a timeout, either,
+ *  on the first select () call, because it needs to block.
+ */
+ANSITerminalStream instanceMethod getCh (void) {
+  "Retrieve a character from the input device, one
+  character at a time, and save it to the input queue,
+  as either a KBDCHAR or KBDCUR event."
+  int self_input_stream_no;
+  fd_set rfds;
+  int r;
+  int c, c1, c2;
+  char buf[2];
+  struct timeval timeout;
+  returnObjectClass Integer;
+
+#ifdef __APPLE__  
+  self_input_stream_no = fileno ((FILE *)self inputHandle value);
+#else
+  self_input_stream_no = fileno (self inputHandle value);
+#endif
+
+  /*
+   *  If changing these, you may also change them at the second 
+   *  select () call below.
+   */
+  FD_ZERO(&rfds);
+  FD_SET(self_input_stream_no, &rfds);
+  timeout.tv_sec  = 0;
+  timeout.tv_usec = 10000l;
+
+  if (!self rawModeFlag)
+    self rawMode;
+
+  if ((r = select (self_input_stream_no + 1, &rfds, NULL, NULL, NULL))< 0) {
+    fprintf (stderr, "select () error on standard input\n");
+    fflush (stderr);
+    exit (1);
+  }
+  if (FD_ISSET (self_input_stream_no, &rfds)) {
+    read (self_input_stream_no, (void *)buf, 1 * sizeof (char));
+    c = (int)buf[0];
+    switch (c)
+      {
+      case CTRLC:
+      case CTRLD:
+      case CTRLZ:
+	self restoreTerm;
+	__ctalk_exitFn(1);
+	exit (1);
+	break;
+       case ESC:
+	 /*
+	  *  Select can return either 0 or -1 on a timeout, depending on 
+	  *  implementation, signal event, or error.  This select call
+	  *  does not need to block.
+	  */
+  	 if ((r = select (self_input_stream_no + 1, &rfds, NULL, NULL, &timeout))<=0){
+  	   if (self queueInput)
+  	     self queueInputEvent KBDCHAR, c;
+  	 } else {
+	 if (read (0, (void *)buf, 1 * sizeof (char))) {
+	   c1 = buf[0];
+	   switch (c1)
+	     {
+	     case CSI2:
+	       read (0, (void *)buf, 1 * sizeof (char));
+	       c2 = buf[0];
+	       switch (c2)
+		 {
+		 case 'A':   /* Cursor up */
+		 case 'B':   /* Cursor down */
+		 case 'C':   /* Cursor right */
+		 case 'D':   /* Cursor left */
+		   c = c2;
+		   if (self queueInput)
+		     self queueInputEvent KBDCUR, c;
+		   break;
+		 }
+	       break;
+	     default:
+	       c = c1;        /* Any other escaped character. */
+	       if (self queueInput)
+		 self queueInputEvent KBDCUR, c;
+	       break;
+	     }
+	 } else {
+	   if (self queueInput)
+	     self queueInputEvent KBDCHAR, c;
+	 }
+  	 }
+	 break;
+      case CTRLH:
+      case DEL:
+      default:
+   	if (self queueInput)
+   	  self queueInputEvent KBDCHAR, c;
+	break;
+      }
+    return c;
+  } else {
+    return 0;
+  }
+}
+
+ANSITerminalStream instanceMethod getChNoBlock (void) {
+  "Read a character from the input device and return
+  immediately.  Returns an Integer object that contains
+  the input character's value."
+  int self_input_stream_no;
+  fd_set rfds;
+  int r;
+  int c;
+  char buf[2];
+  struct timeval timeout;
+  returnObjectClass Integer;
+
+#ifdef __APPLE__  
+  self_input_stream_no = fileno ((FILE *)self inputHandle value);
+#else
+  self_input_stream_no = fileno (self inputHandle value);
+#endif
+
+  FD_ZERO(&rfds);
+  FD_SET(self_input_stream_no, &rfds);
+  timeout.tv_sec = 0;
+  timeout.tv_usec = 10000l;
+
+  if (!self rawModeFlag)
+    self rawMode;
+
+  if ((r = 
+       select (self_input_stream_no + 1, &rfds, NULL, NULL, &timeout))> 0){
+    if (read (0, (void *)buf, 1 * sizeof (char))) {
+      c = buf[0];
+      if (self queueInput)
+	self queueInputEvent KBDCHAR, c;
+      return c;
+    }
+  } else {
+    fprintf (stderr, "%s\n", strerror(errno));
+    return 0;
+  }
+}
+
+ANSITerminalStream instanceMethod openOn (char *__deviceName) {
+  "Open a terminal device named in the argument, a String,
+  for reading and writing.  Raises an exception if the
+  device does not exist or is not a TTY device."
+  FILE *f;
+  OBJECT *self_inputHandle_value;
+  OBJECT *self_outputHandle_value;
+  SystemErrnoException new s;
+  Exception new e;
+
+  if ((f = xfopen (__deviceName, "r+")) == NULL) {
+    s raiseException __deviceName;
+    return NULL;
+  }
+
+  self ttyDevice = __deviceName;
+
+  self_inputHandle_value = self inputHandle value;
+  self_outputHandle_value = self outputHandle value;
+  __ctalkObjValPtr (self_inputHandle_value, f);
+  __ctalkObjValPtr (self_outputHandle_value, f);
+
+  if (!self isATty)
+    e raiseException NOT_A_TTY_X, __deviceName;
+  return NULL;
+}
+
+ANSITerminalStream instanceMethod setTty (int __speed, int __dataBits, 
+					  char __parity, int __stopBits) {
+  "Set the TTY device's parameters.  The parameters
+    are:
+     Integer __speed - SPARC/Solaris: [0|50|75|110|
+                               134|150|200|300|600|
+                               1200|1800|2400|4800|
+                               9600|19200|38400|
+                               57600|76800|115200|
+                               153600|230400|307200|
+                               460800]
+                  All others: [0|50|75|110:134|150|200
+                              |300|600|1200|1800|2400|
+                              4800|9600|19200|38400|
+                               57600|115200|230400]
+     Integer __dataBits -     [5|6|7|8]
+     Character __parity -     [N|n|E|e|O|o]
+     Integer __stopBits  -    [1|2]"
+     
+  Exception new e;
+  struct termios termios_s, termios_s_c;
+  int rval;
+#if defined(__sparc__) && defined(__svr4__)
+  int ospeed;
+#endif
+  if (!self isATty)
+    e raiseException NOT_A_TTY_X, self ttyDevice;
+
+#ifdef __APPLE__ 
+  _warning ("WARNING: Serial terminal streams are untested on Mac OS X platforms.\n");
+  _warning ("WARNING: In fact, many systems do not have serial ports.  Please\n"); 
+  _warning ("WARNING: use at your own risk.\n");
+  tcgetattr (fileno((FILE *)self inputHandle), &termios_s);
+#else
+  tcgetattr (fileno(self inputHandle), &termios_s);
+#endif
+
+#if defined(__sparc__) && defined(__svr4__)
+  switch (__speed)
+    {
+    case 0:
+      ospeed = B0;
+      break;
+    case 50:
+      ospeed = B50;
+      break;
+    case 75:
+      ospeed = B75;
+      break;
+    case 110:
+      ospeed = B110;
+      break;
+    case 134:
+      ospeed = B134;
+      break;
+    case 150:
+      ospeed = B150;
+      break;
+    case 200:
+      ospeed = B200;
+      break;
+    case 300:
+      ospeed = B300;
+      break;
+    case 600:
+      ospeed = B600;
+      break;
+    case 1200:
+      ospeed = B1200;
+      break;
+    case 1800:
+      ospeed = B1800;
+      break;
+    case 2400:
+      ospeed = B2400;
+      break;
+    case 4800:
+      ospeed = B4800;
+      break;
+    case 9600:
+      ospeed = B9600;
+      break;
+    case 19200:
+      ospeed = B19200;
+      break;
+    case 38400:
+      ospeed = B38400;
+      break;
+    case 57600:
+      ospeed = B57600;
+      break;
+    case 76800:
+      ospeed = B76800;
+      break;
+    case 115200:
+      ospeed = B115200;
+      break;
+    case 153600:
+      ospeed = B153600;
+      break;
+    case 230400:
+      ospeed = B230400;
+      break;
+    case 307200:
+      ospeed = B307200;
+      break;
+    case 460800:
+      ospeed = B460800;
+      break;
+    }
+   termios_s.c_cflag &= ~(CIBAUDEXT|CIBAUD);
+   if (ospeed > CBAUD) {
+     termios_s.c_cflag |= CBAUDEXT;
+     ospeed -= (CBAUD + 1);
+   } else {
+     termios_s.c_cflag &= ~CBAUDEXT;
+   }
+   termios_s.c_cflag =
+     (termios_s.c_cflag & ~CBAUD) | (ospeed & CBAUD);
+   termios_s.c_cflag = 
+     (termios_s.c_cflag & ~CBAUD) | (ospeed & CBAUD);
+#else
+  switch (__speed)
+    {
+    case 0:
+      cfsetspeed (&termios_s, B0);
+      break;
+    case 50:
+      cfsetspeed (&termios_s, B50);
+      break;
+    case 75:
+      cfsetspeed (&termios_s, B75);
+      break;
+    case 110:
+      cfsetspeed (&termios_s, B110);
+      break;
+    case 134:
+      cfsetspeed (&termios_s, B134);
+      break;
+    case 150:
+      cfsetspeed (&termios_s, B150);
+      break;
+    case 200:
+      cfsetspeed (&termios_s, B200);
+      break;
+    case 300:
+      cfsetspeed (&termios_s, B300);
+      break;
+    case 600:
+      cfsetspeed (&termios_s, B600);
+      break;
+    case 1200:
+      cfsetspeed (&termios_s, B1200);
+      break;
+    case 1800:
+      cfsetspeed (&termios_s, B1800);
+      break;
+    case 2400:
+      cfsetspeed (&termios_s, B2400);
+      break;
+    case 4800:
+      cfsetspeed (&termios_s, B4800);
+      break;
+    case 9600:
+      cfsetspeed (&termios_s, B9600);
+      break;
+    case 19200:
+      cfsetspeed (&termios_s, B19200);
+      break;
+    case 38400:
+      cfsetspeed (&termios_s, B38400);
+      break;
+    case 57600:
+      cfsetspeed (&termios_s, B57600);
+      break;
+    case 115200:
+      cfsetspeed (&termios_s, B115200);
+      break;
+    case 230400:
+      cfsetspeed (&termios_s, B230400);
+      break;
+    }
+#endif
+
+   switch (__dataBits)
+     {
+     case 5:
+       termios_s.c_cflag = (termios_s.c_cflag & ~CSIZE) | (CS5 & CSIZE);
+       break;
+     case 6:
+       termios_s.c_cflag = (termios_s.c_cflag & ~CSIZE) | (CS6 & CSIZE);
+       break;
+     case 7:
+       termios_s.c_cflag = (termios_s.c_cflag & ~CSIZE) | (CS7 & CSIZE);
+       break;
+     case 8:
+       termios_s.c_cflag = (termios_s.c_cflag & ~CSIZE) | (CS8 & CSIZE);
+       break;
+     }
+   switch (__parity)
+     {
+     case 'N':
+     case 'n':
+       termios_s.c_cflag &= ~(PARODD|PARENB);
+       break;
+     case 'E':
+     case 'e':
+       termios_s.c_cflag &= ~PARODD;
+       termios_s.c_cflag |= PARENB;
+       break;
+     case 'O':
+     case 'o':
+       termios_s.c_cflag |= (PARENB|PARODD);
+       break;
+     }
+   switch (__stopBits)
+     {
+     case 1:
+       termios_s.c_cflag &= ~CSTOPB;
+       break;
+     case 2:
+       termios_s.c_cflag |= CSTOPB;
+       break;
+     }
+#ifdef __APPLE__
+   rval = tcsetattr (fileno((FILE *)self inputHandle), TCSANOW, &termios_s);
+   tcgetattr (fileno((FILE *)self inputHandle), &termios_s_c);
+#else
+   rval = tcsetattr (fileno(self inputHandle), TCSANOW, &termios_s);
+   tcgetattr (fileno(self inputHandle), &termios_s_c);
+#endif
+   return NULL;
+}
+
+ANSITerminalStream instanceMethod closeStream (void) {
+  "Close the TTY device and clear the Object's file handle
+  entry."
+  FILE *f;
+  OBJECT *selfval;
+  int r;
+  SystemErrnoException new e;
+
+  selfval = self inputHandle value;
+  sscanf (selfval -> __o_value, "0x%p", &f);
+
+  r = fclose (f);
+  selfval -> __o_value[0] = '\0';
+
+  if (r)
+    e raiseException NULL;
+
+  return NULL;
+}
+

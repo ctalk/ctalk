@@ -1,0 +1,274 @@
+/* $Id: Float,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-C-*-*/
+
+/*
+  This file is part of Ctalk.
+  Copyright © 2005-2015, 2018, 2019  Robert Kiesling, rk3314042@gmail.com.
+  Permission is granted to copy this software provided that this copyright
+  notice is included in all source code modules.
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+*/
+
+/*
+ *    Float class.
+ */
+
+/*
+ *  Note that the parameters are declared as doubles.  These
+ *  are automagically converted to Floats by the compiler, and these
+ *  test the operation.
+ */
+
+Magnitude class Float
+"Objects in Float class contain values that are equivalent to C
+language double-precision, floating point numbers.  The class
+provides methods that perform math operations and comparisons on Float
+objects.  Ctalk's template library also provides many of the C
+library's math functions as methods.";
+
+#include <ctalk/ctalkdefs.h>
+
+Float instanceMethod = set_value (double d) {
+  "Set the value of the receiver to the value of 
+  the argument, also a Float object."
+  char buf[MAXLABEL];
+  __ctalkSetObjectValueVar
+    (self, __ctalkDoubleToASCII(__ctalk_to_c_double (d), buf));
+  return self;
+}
+
+Float instanceMethod + add (double d) {
+  "Return the sum of the receiver and the argument, both
+  Float objects."
+
+  if (d is Float) {
+    return self + d;
+  } else {
+    return self + d asFloat;
+  }
+
+}
+
+Float instanceMethod += add_equal (double d) {
+  "Add the argument to the receiver and set the receiver
+  to the new value.  Returns the receiver."
+
+  if (d is Float) {
+    self = self + d;
+  } else {
+    self = self + d asFloat;
+  }
+  return self;
+}
+
+Float instanceMethod - subtract (double d) {
+  "Return the difference between the receiver and the
+  argument, both Float objects."
+
+  if (d is Float) {
+    return self - d;
+  } else {
+    return self - d asFloat;
+ }
+ 
+}
+
+Float instanceMethod -= subtract_equal (double d) {
+  "Subtract the argument from the receiver, and set the
+  receiver to the new value.  Returns the receiver."
+
+  if (d is Float) {
+    self = self - d;
+  } else {
+    self = self - d asFloat;
+  }
+	    
+  return self;
+}
+
+Float instanceMethod * multiply (double d) {
+  "Return the product of the receiver and the argument,
+  both Float objects."
+
+  if (d is Float) {
+    return self * d;
+  } else {
+    return self * d asFloat;
+  }
+}
+
+Float instanceMethod *= multiply_equal (double d) {
+  "Multiply the receiver by the argument and set the
+  receiver to the new value.  Returns the receiver."
+  if (d is Float) {
+    self = self * d;
+  } else {
+    self = self * (d asFloat);
+  }
+  return self;
+}
+
+Float instanceMethod / divide (double d) {
+  "Return the result of dividing the receiver by the
+  argument, both Float objects."
+
+  if (d is Float) {
+    return self / d;
+  } else {
+    return self / d asFloat;
+  }
+}
+
+Float instanceMethod /= divide_equal (double d) {
+  "Divide the receiver by the argument and set the
+  receiver to the new value.  Returns the receiver."
+
+  if (d is Float) {
+    self = self / d;
+  } else {
+    self = self / d asFloat;
+  }
+
+  return self;
+}
+
+Float instanceMethod asInteger (void) {
+  "Return the whole number portion of the receiver as an
+  Integer."
+  int d;
+  returnObjectClass Integer;
+  sscanf (self value -> __o_value, "%d", &d);
+  _warning ("asInteger (class Float): %lf truncated to Integer.\n", self);
+  return d;
+}
+
+Float instanceMethod < lt (double d) {
+  "Return a Boolean value of True if the receiver 
+  is less than the argument, False otherwise."
+  returnObjectClass Boolean;
+
+  if (d is Float) {
+    return self < d;
+  } else {
+    return self < d asFloat;
+  }
+}
+
+Float instanceMethod > gt (double d) {
+  "Return a Boolean value of True if the receiver is
+  greater than the argument, False otherwise."
+  returnObjectClass Boolean;
+
+  if (d is Float) {
+    return self > d;
+  } else {
+    return self > d asFloat;
+  }
+}
+
+Float instanceMethod <= le (double d) {
+  "Return a Boolean value of True if the receiver is less
+  than or equal to the argument, False otherwise."
+  returnObjectClass Boolean;
+
+  if (d is Float) {
+    return self <= d;
+  } else {
+    return self <= d asFloat;
+  }
+}
+
+Float instanceMethod && boolAnd (double d) {
+  "Return a Boolean value of True if both the receiver and
+  the argument are non-zero, False otherwise."
+  returnObjectClass Boolean;
+    
+  if (d is Float) {
+    return self && d;
+  } else {
+    return self && d asFloat;
+  }
+
+
+}
+
+Float instanceMethod || boolOr (double d) {
+  "Return a Boolean value of True if either the receiver
+  and the argument are non-zero, False otherwise."
+
+  returnObjectClass Boolean;
+
+  if (d is Float) {
+    return self || d;
+  } else {
+    return self || d asFloat;
+  }
+
+}
+
+Float instanceMethod >= ge (double d) {
+  "Return a Boolean value of True if the receiver is less
+  than or equal to the argument, False otherwise."
+  returnObjectClass Boolean;
+
+  if (d is Float) {
+    return self >= d;
+  } else {
+    return self >= d asFloat;
+  }
+
+}
+
+Float instanceMethod == equality (double d) {
+  "Return a Boolean value of True if the receiver and the
+  argument are equal, False otherwise."
+
+  returnObjectClass Boolean;
+
+  if (d is Float) {
+    return self == d;
+  } else {
+    return self == d asFloat;
+  }
+
+} 
+
+Float instanceMethod != inequality (double d) {
+  "Return a Boolean value of True if the receiver and the
+  argument are not equal, False otherwise."
+  returnObjectClass Boolean;
+
+  if (d is Float) {
+    return self != d;
+  } else {
+    return self != d asFloat;
+  }
+
+} 
+
+Float instanceMethod - minus_prefix (__prefix__) {
+  "Overloads the C unary minus operator.  Returns the
+  negation of the receiver."
+
+  Float new float_negated;
+
+  double double_val;
+  double_val = strtod (self value asString, NULL);
+  double_val = -double_val;
+  float_negated value = double_val;
+  return float_negated;
+
+}
+

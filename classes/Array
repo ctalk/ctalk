@@ -1,0 +1,241 @@
+/* $Id: Array,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-c-*-*/
+
+/*
+  This file is part of Ctalk.
+  Copyright © 2005 - 2015, 2019  Robert Kiesling, rk3314042@gmail.com.
+  Permission is granted to copy this software provided that this copyright
+  notice is included in all source code modules.
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+*/
+
+/*
+ *    Array class.  
+ */
+/*
+ *  Many of these methods are coded in C in order to avoid circular
+ *  references with other basic classes.
+ */
+
+#include <ctalk/ctalkdefs.h>
+
+Collection class Array
+"Array class, like most arrays, stores objects numbered sequentially.";
+
+Array instanceMethod at (int __array_index) {
+  "Return the receiver Array element at the index given by
+  the argument, an Integer.  This uses the old method
+  of retrieving elements from collections."
+  OBJECT *key_object, *item_object;
+  
+  returnObjectClass Any;
+
+  key_object = __ctalkGetInstanceVariable (self, __array_index, FALSE);
+  if (key_object) {
+    item_object = (OBJECT *)SYMVAL(key_object -> instancevars -> __o_value);
+    return item_object;
+  } else {
+    return NULLSTR;
+  }
+}
+
+Array instanceMethod atPut (int __array_index, OBJECT *__elem_object) {
+  "Prototype: 
+  <receiver> atPut Integer <index> Object <element>
+  Save <element> at <index> in the receiver Array.
+  This uses the old method (the Key : setValueOld method) of
+  adding elements to collections.  First check for an
+  item at the same index and delete it if it exists.  The
+  library call replaces the index key automagically."
+
+  Key new keyObject;
+  OBJECT *key_alias_ptr, *key_object, *item_object;
+
+  key_object = __ctalkGetInstanceVariable (self, __array_index, FALSE);
+  if (key_object) {
+    item_object = *(OBJECT **)key_object -> instancevars -> __o_value;
+    if (IS_OBJECT (item_object)) {
+      if (!(item_object -> scope & 1)) {
+	if (item_object -> scope & (1 << 7)) {
+	  __ctalkRegisterUserObject (item_object);
+	} else {
+	  item_object delete;
+	}
+      } else {
+	if (item_object -> scope & (1 << 6)) {
+	  item_object delete;
+	}
+      }
+    }
+    key_object = NULL;
+  }
+
+  /* keyObject setValueOld __elem_object; */
+  keyObject setValue __elem_object;
+  key_alias_ptr = keyObject setName __array_index;
+  key_alias_ptr -> attrs |= OBJECT_IS_MEMBER_OF_PARENT_COLLECTION;
+  item_object = *(OBJECT **)key_alias_ptr -> instancevars -> __o_value;
+  if (__ctalk_self_internal () -> scope & 1) {
+    /* global array */
+    __ctalkSetObjectAttr (item_object,
+			   item_object -> attrs | OBJECT_IS_GLOBAL_COPY);
+  }
+
+  /* This adds a copy of key_alias_ptr to the array, and sets the
+     copy's __o_p_obj to the receiver.  When the
+     cleanup routines also check for a parent object, this is what
+     they look for to determine an actual array member, and not
+     a working copy.
+   */
+  __ctalkAddInstanceVariable (__ctalk_self_internal (),
+   			      key_alias_ptr -> __o_name,
+   			      key_alias_ptr);
+  return self;
+}
+
+Array instanceMethod size (void) {
+  "Return an Integer with the number of elements in the
+  receiver Array.  The method also does some basic
+  checking of the array indexes."
+  OBJECT *self_val, *t;
+
+  returnObjectClass Integer;
+
+  int i;
+  self_val = self value;
+  for (i = 0, t = self_val -> next; t; t = t -> next, ++i) {
+    /* Is this what we want? */
+    /* if (i != *(int *)t -> __o_name) */
+    /* break; */
+  }
+  return i;
+}
+
+Array instanceMethod = set_value (Array a) {
+  "Copy each element of the Array given as 
+  an argument to the receiver Array.  Whether the
+  the Array element is copied or simply has a 
+  new reference depends on the class of the 
+  element."
+  Integer new argSize;
+  Integer new idx;
+
+  argSize = a size;
+
+  for (idx = 0; idx < argSize; idx = idx + 1) {
+    self atPut idx, (a at idx);
+  }
+  
+  return __ctalk_self_internal ();
+}
+
+Array instanceMethod map (OBJECT *(*methodfn)()) {
+  "Call the argument, a method, for each element
+  in the receiver Array.  The method given in the
+  argument must have the prototype,
+     <Array> instanceMethod <methodname> (void)"
+
+  OBJECT *array_elem, *rcvr_obj, *(*fn)(), *have_break;
+#ifdef DJGPP
+  OBJECT *result_object;
+#endif
+  METHOD *self_method, *arg_method;
+  Integer new selfArraySize;
+  Integer new selfArrayIdx;
+
+  fn = (OBJECT *(*)())__ctalkRtGetMethodFn ();
+  rcvr_obj = __ctalkRtReceiverObject ();
+  if (rcvr_obj -> instancevars && 
+      !strcmp (rcvr_obj -> instancevars -> __o_name, "value"))
+    rcvr_obj = rcvr_obj -> instancevars;
+
+  if (((self_method = __ctalkFindInstanceMethodByFn (&rcvr_obj, fn, 0))
+      == NULL) &&
+      ((self_method = __ctalkFindClassMethodByFn (&rcvr_obj, fn, 0))
+       == NULL)) {
+    __ctalkCriticalExceptionInternal (NULL, undefined_method_x, 
+				      "from map (Class Array)");
+    return NULL;
+  }
+
+  if (((arg_method = __ctalkFindInstanceMethodByName 
+	(&rcvr_obj, ARG_NAME(self_method->args[self_method->n_args-1]), 0, -1))
+      == NULL) &&
+      ((arg_method = __ctalkFindClassMethodByName 
+	(&rcvr_obj, ARG_NAME(self_method->args[self_method->n_args-1]), 0, -1))
+       == NULL)) {
+    __ctalkCriticalExceptionInternal (NULL, undefined_method_x, 
+				      "from map (Class Array)");
+    return NULL;
+  }
+
+  selfArraySize = self size;
+
+  for (selfArrayIdx = 0, have_break = NULL;
+       (selfArrayIdx < selfArraySize) && !have_break; 
+       selfArrayIdx = selfArrayIdx + 1) {
+
+    array_elem = self at selfArrayIdx;
+
+#ifdef DJGPP 
+    if ((result_object = __ctalkInlineMethod (array_elem, arg_method,9))!=NULL){
+      if (atoll (result_object -> __o_value) != 0)
+	break;
+      if (result_object) __ctalkDeleteObject (result_object);
+      result_object = NULL;
+    }
+#else
+    have_break = __ctalkInlineMethod (array_elem, arg_method, 0);
+#endif
+  }
+  __ctalkArgBlkSetCallerReturn (have_break);
+
+#ifdef DJGPP
+  if (result_object) __ctalkDeleteObject (result_object);
+#endif
+  return NULL;
+}
+
+Array instanceMethod asString (void) {
+  "Returns the contents of the receiver Array as a String
+   object.  If any member of the receiver is a
+   Character object, unquotes the Character object's
+   value and concatenates the character to the result
+   string.  Otherwise the method concatenates each of
+   the receiver Array's values into the result string."
+  int i;
+  int self_size;
+  OBJECT *self_obj;
+  OBJECT *array_mbr;
+  char asStringResult[MAXMSG];
+  returnObjectClass String;
+
+  self_size = self size;
+  self_obj = self;  
+  asStringResult[0] = 0;
+  for (i = 0; i < self_size; i++) {
+    array_mbr = self at i;
+    if (array_mbr -> __o_value[0] == '\'') {
+      /* A character constant. */
+      asStringResult[i] = array_mbr -> __o_value[1];
+      asStringResult [i + 1] = 0;
+    } else {
+      strcat (asStringResult, array_mbr -> __o_value);
+    }
+  }
+  
+  return asStringResult;
+}
+

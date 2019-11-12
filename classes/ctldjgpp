@@ -1,0 +1,1071 @@
+/* $Id: ctldjgpp,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-c-*-*/
+
+/*
+  This file is part of Ctalk.
+  Copyright © 2005-2014  Robert Kiesling, rk3314042@gmail.com.
+  Permission is granted to copy this software provided that this copyright
+  notice is included in all source code modules.
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+*/
+
+extern int __ctalkRtSaveSourceFileName (char *);
+
+#ifndef _STDLIB_H
+#include <stdlib.h>
+#endif
+#ifndef _STRING_H
+#include <string.h>
+#endif
+#ifndef _SYS_TYPES_H
+#include <sys/types.h>
+#endif
+#ifndef _SYS_STAT_H
+#include <sys/stat.h>
+#endif
+#ifndef _UNISTD_H
+#include <unistd.h>
+#endif
+
+#ifndef _ERRNO_H
+#include <errno.h>
+#endif
+
+#ifndef _STDIO_H
+#include <stdio.h>
+#endif
+
+#ifndef MAXLABEL
+#define MAXLABEL 0x100
+#endif
+
+#ifndef MAXMSG
+#define MAXMSG MAXLABEL
+#endif
+
+#ifndef MAXUSERDIRS
+#define MAXUSERDIRS 15
+#endif
+
+#ifndef SUCCESS
+#define SUCCESS 0
+#endif
+
+#ifndef ERROR
+#define ERROR -1
+#endif
+
+#ifndef FALSE
+#define FALSE 0
+#endif
+
+#ifndef TRUE
+#define TRUE !(FALSE)
+#endif
+
+#ifndef MAXARGS
+#define MAXARGS 512
+#endif
+
+#ifndef CTALK_DIRECTORY_MODE
+#define CTALK_DIRECTORY_MODE 0755
+#endif
+
+#ifndef FILENAME_MAX
+#  define FILENAME_MAX 260
+#endif
+
+#ifndef NULL
+#define NULL ((void *)0)
+#endif
+
+#ifndef NULLSTR
+#define NULLSTR "(null)"
+#endif
+
+#ifndef N_MESSAGES
+#define N_MESSAGES (MAXARGS * 120)
+#endif
+
+/*
+ *  Scopes of objects.  Also defined in object.h and ctalklib.
+ */
+#ifndef GLOBAL_VAR 
+#define GLOBAL_VAR (1 << 0)
+#endif
+#ifndef LOCAL_VAR
+#define LOCAL_VAR (1 << 1)
+#endif
+#ifndef ARG_VAR
+#define ARG_VAR (1 << 2)
+#endif
+#ifndef RECEIVER_VAR
+#define RECEIVER_VAR (1 << 3)
+#endif
+#ifndef PROTOTYPE_VAR
+#define PROTOTYPE_VAR (1 << 4)
+#endif
+#ifndef CREATED_PARAM
+#define CREATED_PARAM (1 << 6)
+#endif
+#ifndef VAR_REF_OBJECT
+#define VAR_REF_OBJECT (1 << 9)
+#endif
+
+#ifndef METHOD_RETURN
+#define METHOD_RETURN "OBJECT * "
+#endif
+
+/*
+ *   Maximum unsigned arithmetic values.  Use unsigned 
+ *   maximums 
+ */
+#ifndef MAX_UCHAR 
+#define MAX_UCHAR 255
+#endif
+#ifndef MAX_UINT
+#define MAX_UINT 4294967295U
+#endif
+#ifndef MAX_ULONGLONG
+#define MAX_ULONGLONG 18446744073709551615
+#endif
+
+/*
+ * Value type, determined during parsing.  The values must correspond to
+ * the values in typeof.h.
+ */
+#ifndef __ctalk_INTEGER_T
+#define __ctalk_INTEGER_T         1
+#endif
+#ifndef __ctalk_LONG_T
+#define __ctalk_LONG_T            2
+#endif
+#ifndef __ctalk_LONGLONG_T
+#define __ctalk_LONGLONG_T        3
+#endif
+#ifndef __ctalk_DOUBLE_T
+#define __ctalk_DOUBLE_T          4
+#endif
+#ifndef __ctalk_LONGDOUBLE_T
+#define __ctalk_LONGDOUBLE_T      6
+#endif
+#ifndef __ctalk_LITERAL_T
+#define __ctalk_LITERAL_T         7
+#endif
+#ifndef __ctalk_LITERAL_CHAR_T
+#define __ctalk_LITERAL_CHAR_T    8
+#endif
+#ifndef __ctalk_PTR_T
+#define __ctalk_PTR_T             10
+#endif
+
+/* Define typedefs first so the compiler knows about them.*/
+
+#ifndef LIB_BUILD
+#ifndef METHOD
+typedef struct _method METHOD;
+#define __need_method 
+#endif
+#ifndef OBJECT
+typedef struct _object OBJECT;
+#define __need_object
+#endif
+#ifndef VAL
+typedef struct _val VAL;
+#define __need_val
+
+#ifndef PARAM
+typedef struct _param PARAM;
+#define __need_param
+#endif
+
+#ifndef ARG
+typedef struct _arg ARG;
+#define __need_arg
+#endif
+
+#ifndef CVAR
+typedef struct _cvar CVAR;
+#define __need_cvar
+#endif
+
+#ifndef MESSAGE
+typedef struct _message MESSAGE;
+#define __need_message
+#endif
+
+#define __need_boolean
+
+#ifndef I_EXCEPTION
+typedef struct _i_exception I_EXCEPTION;
+#define __need_i_exception
+#endif
+
+#ifndef RT_INFO
+typedef struct _rtinfo RT_INFO;
+#define __need_rt_info
+#endif
+
+#ifndef SYMBOL
+typedef struct _symbol SYMBOL;
+#define __need_symbol
+#endif
+
+#ifndef VARENTRY
+typedef struct _varentry VARENTRY;
+#define __need_varentry
+#endif
+
+#ifndef VARTAG
+typedef struct _vartag VARTAG;
+#define __need_vartag
+#endif
+
+#endif
+
+#ifdef __need_boolean
+/*
+ *  Compatible with X11/Intrinsic.h.  Make sure this matches the 
+ *  typedef in object.h.
+ */
+#ifdef CRAY
+typedef long Boolean;
+#else
+typedef char Boolean;
+#endif
+#define True 1
+#define False 0
+#undef __need_boolean
+#endif
+
+#ifdef __need_param
+struct _param {
+  char sig[5];
+  char class[MAXLABEL];
+  char name[MAXLABEL];
+  int attrs;
+  int is_ptr,
+    is_ptrptr,
+    n_derefs;
+};
+#undef __need_param
+#endif
+
+#ifdef __need_vartag
+struct _vartag {
+  int sig;
+  VARENTRY *tag;
+  VARENTRY *from;
+  struct _vartag *next;
+  struct _vartag *prev;
+};
+#undef __need_vartag
+#endif
+
+#ifdef __need_arg
+struct _arg {
+  char sig[3];
+  OBJECT *obj;
+  int call_stack_frame;
+};
+#undef __need_arg
+#endif
+
+#ifdef __need_varentry
+struct _varentry {
+  PARAM *var_decl;
+  OBJECT *var_object;
+  void *i;
+  int del_cnt;
+  struct _varentry *next, *prev;
+};
+#endif
+
+#ifdef __need_val
+struct _val{
+  int __type;
+  union {
+    void *__ptr;
+    int __i;
+    Boolean __b;
+    double __d;        /* Double and float. */
+    long double __ld;
+    long __l;
+    long long __ll;
+  } __value;
+  void *__deref_ptr;
+};
+#undef __need_val
+#endif
+
+#ifdef __need_method
+
+struct _method {
+  int sig;
+  char name[MAXLABEL];
+  char selector[MAXLABEL];
+  char returnclass[MAXLABEL];
+  OBJECT *rcvr_class_obj;
+  OBJECT *(*cfunc)();      /* Method prototype.            */
+  char *src;
+  PARAM *params[MAXARGS];
+  int n_params;
+  int varargs;
+  int prefix;
+  int no_init;
+  int n_args;
+  int primitive;
+  int attrs;
+  int error_line;
+  int error_column;
+  int arg_frame_top;
+  int rcvr_frame_top;
+  bool imported;
+  bool queued;
+  ARG *args[MAXARGS];
+  union {
+    VARENTRY *vars;
+    OBJECT *objs; 
+  } local_objects[MAXARGS];
+  union {
+    VARENTRY *vars;
+    OBJECT *objs; 
+  } local_ptr[MAXARGS];
+  int nth_local_ptr;
+  OBJECT *user_objects,
+    *user_object_ptr;
+  int n_user_objs;
+  CVAR *local_cvars;
+  struct _method *next;
+  struct _method *prev;
+};
+
+#undef __need_method
+#endif
+
+/*
+ *  When changing this, also change in ctalklib, message.h, object.h,
+ *  and chash.h. 
+ */
+#ifndef __llvm__
+#define GNUC_PACKED_STRUCT (defined(__linux__) && defined(__i386__) &&	\
+			    defined(__GNUC__) && (__GNUC__ >= 3))
+#endif
+
+#ifdef __need_object
+
+struct _object {
+#ifndef __sparc__
+  int sig;
+#else
+  char sig[16];
+#endif
+  char __o_name[MAXLABEL];
+  char __o_classname[MAXLABEL];
+  OBJECT *__o_class;
+  char __o_superclassname[MAXLABEL];
+  OBJECT *__o_superclass;
+  OBJECT *__o_p_obj;
+  VARTAG *__o_vartags;
+  char *__o_value;
+  METHOD *instance_methods,
+    *class_methods;
+  int scope;
+  int nrefs;
+  struct _object *classvars;
+  struct _object *instancevars;    
+  struct _object *next;
+  struct _object *prev;
+  int attrs;
+#if GNUC_PACKED_STRUCT
+  char pad[196];
+} __attribute__ ((packed));
+#else
+};
+#endif
+
+#ifndef _OBJECT_H
+#define OBJREF(__o) (&(__o))
+typedef OBJECT** OBJREF_T;
+#endif
+
+#undef __need_object
+#endif
+
+#ifdef __need_cvar
+struct _cvar {
+  char sig[4];
+  char decl[MAXLABEL];
+  char type[MAXLABEL];
+  char qualifier[MAXLABEL];
+  char qualifier2[MAXLABEL];
+  char qualifier3[MAXLABEL];
+  char qualifier4[MAXLABEL];
+  char storage_class[MAXLABEL];
+  char name[MAXLABEL];
+  int n_derefs;
+  int attrs;
+  Boolean is_unsigned;
+  int scope;
+  VAL val;                /* Used at run time to evaluate expressions
+			     and for enum values.                     */
+  struct _cvar *members;
+  struct _cvar *params;
+  struct _cvar *next;
+  struct _cvar *prev;
+};
+#undef __need_cvar
+#endif
+
+#ifdef __need_message
+
+struct _message {
+  int sig;
+  char *name;
+  char *value;
+  OBJECT *value_obj;
+  OBJECT *obj;
+  int tokentype; 
+  int evaled;
+  int output;
+  int error_line;
+  int error_column;
+  int attrs;
+  int attr_data;
+  OBJECT *receiver_obj;
+  struct _message *receiver_msg;
+};
+
+#undef __need_message
+#endif
+
+#ifdef __need_rt_info
+struct _rtinfo {
+  char source_file[FILENAME_MAX];
+  OBJECT *rcvr_obj;
+  OBJECT *rcvr_class_obj;
+  OBJECT *(*method_fn)(void);
+  Boolean classlib_read;
+};
+#undef __need_rt_info
+#endif
+
+#ifndef EXPR_PARSER
+typedef struct {
+  int lvl;
+  int rcvr_frame_top;
+  int msg_frame_top;
+  METHOD *e_method;
+} EXPR_PARSER;
+#endif
+
+/*
+ *  This declaration must match the declaration in except.h.
+ */
+typedef enum {
+  no_x = 0,
+  cplusplus_header_x = 1,     /* Preprocessor exceptions. */
+  mismatched_paren_x = 2,
+  false_assertion_x = 3,
+  file_is_directory_x = 4,
+  file_already_open_x = 5,
+  undefined_param_class_x = 6,
+  parse_error_x = 7,
+  invalid_operand_x = 8,
+  ambiguous_operand_x = 9,
+  ptr_conversion_x = 10,
+  undefined_class_x = 11,
+  undefined_method_x = 12,
+  method_used_before_define_x = 13,
+  self_without_receiver_x = 14,
+  undefined_label_x = 15,
+  undefined_type_x = 16,
+  undefined_receiver_x = 17,
+  unknown_file_mode_x = 18,
+  invalid_variable_declaration_x = 19,
+  wrong_number_of_arguments_x = 20,
+  signal_event_x = 21,
+  invalid_receiver_x = 22,
+  not_a_tty_x = 23,
+  user_exception_x = 24,
+  eperm_x,                /* These are looked up in errno_exceptions[]   */
+  enoent_x,               /* in except.c.                                */
+  esrch_x,
+  eintr_x,
+  eio_x,
+  enxio_x,
+  e2big_x,
+  enoexec_x,
+  ebadf_x,
+  echild_x,
+  eagain_x,
+  enomem_x,
+  eaccess_x,
+  efault_x,
+  enotblk_x,
+  ebusy_x,
+  eexist_x,
+  exdev_x,
+  enodev_x,
+  enotdir_x,
+  eisdir_x,
+  einval_x,
+  enfile_x,
+  emfile_x,
+  enotty_x,
+  etxtbsy_x,
+  efbig_x,
+  enospc_x,
+  espipe_x,
+  erofs_x,
+  emlink_x,
+  epipe_x,
+  edom_x,
+  erange_x,
+  edeadlk_x,
+  enametoolong_x,
+  enolck_x,
+  enosys_x,
+  enotempty_x,
+  eloop_x,
+  ewouldblock_x,
+  enomsg_x,
+  eidrm_x,
+  echrng_x,
+  el2nsync_x,
+  el3hlt_x,
+  el3rst_x,
+  elnrng_x,
+  eunatch_x,
+  enocsi_x,
+  el2hlt_x,
+  ebade_x,
+  ebadr_x,
+  exfull_x,
+  enoano_x,
+  ebadrqc_x,
+  ebadslt_x,
+  edeadlock_x,
+  ebfont_x,
+  enostr_x,
+  enodata_x,
+  etime_x,
+  enosr_x,
+  enonet_x,
+  enopkg_x,
+  eremote_x,
+  enolink_x,
+  eadv_x,
+  esrmnt_x,
+  ecomm_x,
+  eproto_x,
+  emultihop_x,
+  edotdot_x,
+  ebadmsg_x,
+  eoverflow_x,
+  enotuniq_x,
+  ebadfd_x,
+  eremchg_x,
+  elibacc_x,
+  elibbad_x,
+  elibscn_x,
+  elibmax_x,
+  elibexex_x,
+  eilseq_x,
+  erestart_x,
+  estrpipe_x,
+  eusers_x,
+  enotsock_x,
+  edestaddrreq_x,
+  emsgsize_x,
+  eprototype_x,
+  enoprotopt_x,
+  eprotonotsuppport_x,
+  esocktnosupport_x,
+  eopnotsupp_x,
+  epfnosupport_x,
+  eafnosupport_x,
+  eaddrinuse_x,
+  eaddrnotavail_x,
+  enetdown_x,
+  enetunreach_x,
+  enetreset_x,
+  econnaborted_x,
+  econnreset_x,
+  enobufs_x,
+  eisconn_x,
+  enotconn_x,
+  eshutdown_x,
+  etoomanyrefs_x,
+  etimeout_x,
+  econnrefused_x,
+  ehostdown_x,
+  ehostunreach_x,
+  ealready_x,
+  einprogress_x,
+  estale_x,
+  euclean_x,
+  enotnam_x,
+  enavail_x,
+  eisnam_x,
+  eremoteio_x,
+  edquot_x,
+  enomedium_x,
+  emediumtype_x
+} EXCEPTION;
+
+#define SUCCESS_X                        (EXCEPTION)0
+#define CPLUSPLUS_HEADER_X               (EXCEPTION)1
+#define MISMATCHED_PAREN_X               (EXCEPTION)2
+#define FALSE_ASSERTION_X                (EXCEPTION)3
+#define FILE_IS_DIRECTORY_X              (EXCEPTION)4
+#define FILE_ALREADY_OPEN_X              (EXCEPTION)5
+#define UNDEFINED_PARAM_CLASS_X          (EXCEPTION)6
+#define PARSE_ERROR_X                    (EXCEPTION)7
+#define INVALID_OPERAND_X                (EXCEPTION)8
+#define PTR_CONVERSION_X                 (EXCEPTION)9
+#define UNDEFINED_CLASS_X                (EXCEPTION)10
+#define UNDEFINED_METHOD_X               (EXCEPTION)11
+#define METHOD_USED_BEFORE_DEFINE_X      (EXCEPTION)12
+#define SELF_WITHOUT_RECEIVER_X          (EXCEPTION)13
+#define UNDEFINED_LABEL_X                (EXCEPTION)14
+#define UNDEFINED_TYPE_X                 (EXCEPTION)15
+#define UNDEFINED_RECEIVER_X             (EXCEPTION)16
+#define UNKNOWN_FILE_MODE_X              (EXCEPTION)17
+#define INVALID_VARIABLE_DECLARATION_X   (EXCEPTION)18
+#define WRONG_NUMBER_OF_ARGUMENTS_X      (EXCEPTION)19
+#define SIGNAL_EVENT_X                   (EXCEPTION)20
+#define INVALID_RECEIVER_X               (EXCEPTION)21
+#define NOT_A_TTY_X                      (EXCEPTION)22
+#define USER_EXCEPTION_X                 (EXCEPTION)23
+
+#ifdef __need_symbol
+struct _symbol {
+  char name[MAXLABEL];
+  struct _symbol *next, *prev;
+};
+#undef __need_symbol
+#endif
+
+#ifdef __need_i_exception
+struct _i_exception {
+  int parser_lvl, 
+    error_line,
+    error_col;
+  RT_INFO rtinfo;
+  EXCEPTION exception;
+  SYMBOL *unresolved_classes,
+    *unresolved_symbols;
+  char text[MAXMSG];
+  struct _i_exception *next,
+    *prev;
+};
+#undef __need_i_exception
+#endif
+
+#endif /* LIB_BUILD */
+
+/*  Dictionaries for class objects and object instances. */
+extern OBJECT *__ctalk_receivers[MAXARGS+1];   /* Defined in rt_rcvr.c */
+extern int __ctalk_receiver_ptr;
+
+extern OBJECT *__ctalk_classes;                /* Defined in rtclslib.c? */
+extern OBJECT *__ctalk_last_class;
+extern VARENTRY *__ctalk_dictionary;
+extern VARENTRY *__ctalk_last_object;
+
+extern char **environ;
+
+#ifndef _CTALK_LIB
+
+#ifdef DJGPP
+extern unsigned char ScreenAttrib;
+enum colorvals {
+    black = 0,
+    blue = 1,
+    green = 2,
+    cyan = 3,
+    red = 4,
+    magenta = 5,
+    brown = 6,
+    lightgray = 7};
+#endif
+
+/* 
+ *   Prototypes of ctalk library functions. 
+ */
+extern char   *substrcat (char *, char *, int, int);
+extern char   *substrcpy (char *, char *, int, int);
+extern void   _error (char *, ...);
+extern void   _warning (char *, ...);
+extern void   __argvName (char *);
+extern char   *__argvFileName (void);
+extern OBJECT *__ctalkAddClassVariable (OBJECT *, char *, OBJECT *);
+extern OBJECT *__ctalkAddInstanceVariable (OBJECT *, char *, OBJECT *);
+extern int __ctalkANSIClearPaneLine (OBJECT *, int);
+extern int     __ctalkANSIPanePutChar (int, int, char);
+extern OBJECT *__ctalkCallMethodFn (METHOD *);
+extern OBJECT *__ctalkCCharPtrToObj (char *);
+extern OBJECT *__ctalkCDoubleToObj (double);
+extern char   *__ctalkCharRadixToChar (char *);
+extern OBJECT *__ctalkCIntToObj (int);
+extern char   *__ctalkClassLibraryPath (void);
+extern char   *__ctalkClassSearchPath (void);
+extern OBJECT *__ctalkCLongLongToObj (long long int);
+extern char   *__ctalkCPrintFmtToCtalkFmt (char *, char *);
+extern OBJECT *__ctalkCallingFnObjectBecome (OBJECT *, OBJECT *);
+extern OBJECT *__ctalkCallingInstanceVarBecome (OBJECT *, OBJECT *);
+extern OBJECT *__ctalkCallingMethodObjectBecome (OBJECT *, OBJECT *);
+extern OBJECT *__ctalkCallingReceiverBecome (OBJECT *, OBJECT *);
+extern int     __ctalkCreateArg (char *, char *, void *);
+extern ARG *__ctalkCreateArgEntry (void);
+extern ARG *__ctalkCreateArgEntryInit (OBJECT *);
+extern void __ctalkDeleteArgEntry (ARG *);
+extern OBJECT *__ctalkCreateObject (char *, char *, char *, int);
+extern OBJECT *__ctalkCreateObjectInit (char *,char *, char *, int, char *);
+extern int   **__ctalkCreateWinBuffer (int, int, int);
+extern void    __ctalkClassMethodInitReturnClass (char *, char *, char *);
+extern OBJECT *__ctalkClassObject (OBJECT *);
+extern CVAR   *__ctalkCopyCVariable (CVAR *);
+extern OBJECT *__ctalkCopyObject (OBJREF_T, OBJREF_T);
+extern int     __ctalkCopyPaneStreams (OBJECT *, OBJECT *);
+extern int     __ctalkCriticalExceptionInternal (MESSAGE *, EXCEPTION, char *);
+extern void    __ctalkDecimalIntegerToASCII (int, char *);
+extern void    __ctalkDecimalLongLongToASCII (long long int, char *);
+extern int __ctalkDefaultSignalHandler (int);
+extern int __ctalkDefinedClassMethodObject (OBJECT *, char *, char *);
+extern int __ctalkDefinedInstanceMethodObject (OBJECT *, char *, char *);
+extern int     __ctalkDefineClassMethod (char *, char *, OBJECT *(*)(), int);
+extern OBJECT *__ctalkDefineClassVariable (char *, char *, char *, char *);
+extern int     __ctalkDefineInstanceMethod (char *, char *, OBJECT *(*)(), int, int);
+extern OBJECT *__ctalkDefineInstanceVariable (char *, char *, char *, char *);
+extern int     __ctalkDeleteObjectList (OBJECT *);
+extern void    __ctalkDoubleToASCII (double, char *);
+extern int     __ctalkErrorExit (void);
+extern int __ctalkEnterArgBlockScope (void);
+extern OBJECT *__ctalkEvalExpr (char *);
+extern int __ctalkExitArgBlockScope (void);
+extern int     __ctalkExceptionInternal (MESSAGE *, EXCEPTION, char *, int);
+extern OBJECT *__ctalkExceptionNotifyInternal (I_EXCEPTION *);
+extern METHOD *__ctalkFindClassMethodByFn (OBJECT **, OBJECT *(*)(void), int);
+extern METHOD *__ctalkFindClassMethodByName (OBJECT **, const char *, int, int);
+extern METHOD *__ctalkFindInstanceMethodByFn (OBJECT **, OBJECT *(*)(void), int);
+extern METHOD *__ctalkFindPrefixMethodByFn (OBJECT **, OBJECT *(*)(void), int);
+extern METHOD *__ctalkFindInstanceMethodByName (OBJECT **, const char *, int, int);
+extern void *__ctalkGenericPtrFromStr (char *);
+extern OBJECT *__ctalkGetCallingFnObject (char *, char *);
+extern OBJECT *__ctalkGetCallingMethodObject (char *, char *);
+extern OBJECT *__ctalkGetClass (const char *);
+extern METHOD *__ctalkGetClassMethodByFn (OBJECT *, OBJECT *(*)(void), int);
+extern METHOD *__ctalkGetClassMethodByName (OBJECT *, const char *, int, int);
+extern OBJECT *__ctalkGlobalObjectBecome (OBJECT *, OBJECT *);
+extern OBJECT *__ctalkFindClassVariable (char *, int);
+extern OBJECT *__ctalkGetClassVariable (OBJECT *, char *, int);
+extern CVAR   *__ctalkGetCArg (OBJECT *);
+extern EXPR_PARSER *__ctalkGetExprParserAt (int);
+extern int    __ctalkGetExceptionTrace (void);
+extern int     __ctalkGetExprParserPtr (void);
+extern METHOD *__ctalkGetInstanceMethodByFn (OBJECT *, OBJECT *(*)(void), int);
+extern METHOD *__ctalkGetInstanceMethodByName (OBJECT *, const char *, int, int);
+extern METHOD *__ctalkGetPrefixMethodByName (OBJECT *, const char *, int);
+extern OBJECT *__ctalkGetInstanceVariable (OBJECT *, char *, int);
+extern OBJECT *__ctalkGetInstanceVariableByName (char *, char *, int);
+extern int     __ctalkGetReceiverPtr (void);
+extern CVAR *__ctalkGetTypedef (char *);
+extern METHOD *__ctalkFindMethodByName (OBJECT **, const char *, int, int);
+extern char *__ctalkGetRunTimeException (void);
+extern OBJECT *__ctalkGetTemplateCallerCVAR (char *);
+extern int    __ctalkHandleInterpreterExceptionInternal (MESSAGE *);
+extern int    __ctalkHandleRunTimeException (void);
+extern int    __ctalkHandleRunTimeExceptionInternal (void);
+extern int    __ctalkIgnoreSignal (int);
+extern int    __ctalkInstallHandler (int signo, OBJECT *(*)());
+extern OBJECT *__ctalkInlineMethod (OBJECT *, METHOD *);
+extern void   __ctalkInstanceMethodInitReturnClass (char *, char *, char *);
+extern void   __ctalkInstanceMethodParam (char *, char *, char *, char *, int);
+extern int    __ctalkInstanceVarsFromClassObject (OBJECT *);
+extern int __ctalkInstanceVarIsCallersReceiver (void);
+extern char   *__ctalkIntRadixToDecimal (char *);
+extern int __ctalkIsCallersReceiver (void);
+extern int __ctalkIsInstanceMethod (OBJECT *, char *);
+extern int __ctalkIsClassMethod (OBJECT *, char *);
+extern int    __ctalkIsDir (char *);
+extern int    __ctalkIsClassVariableOf (OBJECT *, const char *);
+extern int    __ctalkIsInstanceVariableOf (OBJECT *, const char *);
+extern int     __ctalkIsObject (void *);
+extern int     __ctalkIsSubClassOf (char *, char *);
+extern OBJECT *__ctalkLibcFnWithMethodVarArgs (int (*)(), METHOD *,char *);
+extern void __ctalkLocalTime (time_t, int *, int *, int *, int *, int *, int *, int *, int *, int *);
+#else
+extern char   *__ctalkLongLongRadixToDecimal (char *);
+extern int __ctalkMatchText (char *, char *, long long int *);
+extern int __ctalkMethodObjectMessage (OBJECT *, OBJECT *);
+extern void    __ctalkMethodReturnClass (char *);
+extern int     __ctalkNewSignalEventInternal (int, int, char *);
+extern char * __ctalkPeekExceptionTrace (void);
+extern char *__ctalkPeekRunTimeException (void);
+extern int __ctalkPendingException (void);
+extern void __ctalkPrintExceptionTrace (void);
+extern int __ctalkPrintObject (OBJECT *);
+extern int __ctalkPrintObjectByName (char *);
+extern OBJECT *__ctalkReceiverReceiverBecome (OBJECT *);
+extern OBJECT *__ctalkRegisterBoolReturn (int);
+extern OBJECT *__ctalkRegisterCharPtrReturn (char *);
+extern OBJECT *__ctalkRegisterCharReturn (char);
+extern int __ctalkRegisterCTypedef (char *, char *, char *, char *, char *, char *, char *, int, int, int, int);
+extern int __ctalkRegisterExtraObject (OBJECT *);
+extern OBJECT *__ctalkRegisterFloatReturn (double);
+extern OBJECT *__ctalkRegisterIntReturn (int);
+extern OBJECT *__ctalkRegisterLongLongIntReturn (long long int);
+extern int __ctalkRegisterUserObject (OBJECT *);
+extern OBJECT *__ctalkReplaceVarEntry (VARENTRY *, OBJECT *);
+extern METHOD *__ctalkRtGetMethod (void);
+extern void   *__ctalkRtGetMethodFn (void);
+extern void    __ctalkRtMethodClass (OBJECT *);
+extern OBJECT *__ctalkRtMethodClassObject (void);
+/* This function can be inserted before this file, so use the implicit 
+ declaration. */
+extern int   __ctalkRtSaveSourceFileName (char *);
+extern OBJECT *__ctalkSaveCVARArrayResource (char *, int, void *);
+extern OBJECT *__ctalkSaveCVARResource (char *);
+extern OBJECT *__ctalkSaveOBJECTMemberResource (OBJECT *);
+extern int __ctalkSearchBuffer (char *, char *, long long *);
+extern void  __ctalkSleep (int);
+extern void    __ctalkRtReceiver (OBJECT *);
+extern OBJECT *__ctalkRtReceiverObject (void);
+extern void __ctalkObjValPtr (OBJECT *, void *);
+extern int __ctalkObjectPrintOn (OBJECT *);
+extern int __ctalkSelfPrintOn (void);
+extern void __ctalkSetExceptionTrace (int);
+extern void __ctalkSetObjectScope (OBJECT *, int);
+extern int __ctalkSetObjectValue (OBJECT *, char *);
+extern int __ctalkSetObjectValueBuf (OBJECT *, char *);
+extern int __ctalkSetObjectValueVar (OBJECT *, char *);
+extern int __ctalkSetObjectName (OBJECT *, char *);
+extern void *__ctalkStrToPtr (char *);
+extern int __ctalkSysErrExceptionInternal (MESSAGE *, int, char *);
+extern char *__ctalkSystemSignalName (int);
+int __ctalkSystemSignalNumber (char *);
+extern void __ctalkTemplateCallerCVARCleanup (void);
+extern void *__ctalkToCArrayElement (OBJECT *);
+extern char *__ctalkToCCharPtr (OBJECT *, int);
+extern int __ctalkToCIntArrayElement (OBJECT *);
+extern int __ctalkToCInteger (OBJECT *o, int);
+extern I_EXCEPTION *__ctalkTrapException (void);
+extern I_EXCEPTION *__ctalkTrapExceptionInternal (MESSAGE *);
+extern void __ctalkWarning (char *, ...);
+extern int     __ctalk_arg (char *, char *, void *);
+extern OBJECT *__ctalk_arg_pop_deref (void);
+extern int     __ctalk_check_args (METHOD *);
+extern void    __ctalk_class_initialize (void);
+extern OBJECT *__ctalk_define_class (ARG **);
+extern void    __ctalk_dictionary_add (OBJECT *);
+/* This function can be inserted before this file, so use the implicit 
+ declaration. */
+extern int    __ctalk_exitFn (int);
+extern OBJECT *__ctalk_get_object (const char *, const char *);
+/* This function can be inserted before this file, so use the implicit 
+ declaration. */
+extern int    __ctalk_initFn (char *);
+extern void    __ctalk_initRtFns (void);
+extern void    __ctalk_initLocalObjects (void);
+extern OBJECT *__ctalk_method (char *, OBJECT *(*)());
+extern OBJECT *__ctalk_new_object (ARG **);
+extern int     __ctalk_receiver_push (OBJECT *);
+extern OBJECT *__ctalk_receiver_pop (void);
+extern int     __ctalk_register_c_method_arg (char *, char *, char *, char *, 
+					      char *, char *, int, int, int, int, int,
+					      void *);
+extern OBJECT *__ctalk_arg_internal (int);
+extern char   __ctalk_to_c_char (OBJECT *);
+extern double __ctalk_to_c_double (OBJECT *);
+extern int    __ctalk_to_c_int (OBJECT *);
+extern char   *__ctalk_to_c_char_ptr (OBJECT *);
+extern void   *__ctalk_to_c_ptr (OBJECT *);
+extern long long int __ctalk_to_c_longlong (OBJECT *);
+extern void   __ctalkDeleteObject (OBJECT *);
+extern METHOD *__ctalk_getMethodByFn (OBJECT *, OBJECT *(*)(void));
+extern METHOD *__ctalk_getMethodByName (OBJECT *, char *);
+extern void __ctalk_primitive_method (char *, char *, int);
+extern OBJECT *__ctalk_self_internal (void);
+extern void __ctalk_set_global (char *, char *);
+extern void __ctalk_set_local (OBJECT *);
+extern void __ctalk_init (char *);
+extern void __objRefCntSet (OBJREF_T, int);
+extern void __refObj (OBJREF_T, OBJREF_T);
+extern void __objRefCntInc (OBJREF_T);
+extern void __objRefCntDec (OBJREF_T);
+extern OBJECT *obj_ref_str (char *);
+extern void __rt_init_library_paths (void);
+extern void __warning_trace (void);
+extern void *__xalloc (int);
+extern void __xfree(void *);
+extern void *__xrealloc (void **, int);
+extern long long int atoll (const char *);
+
+/* Signal handlers need these. */
+int raise (int);
+int kill (pid_t, int);
+
+#define ARG(n) (__ctalk_arg_internal(n))
+
+#ifndef TRIM_LITERAL
+#define TRIM_LITERAL(s) (substrcpy (s, s, 1, strlen (s) - 2))
+#endif
+#ifndef TRIM_CHAR
+#define TRIM_CHAR(c)    (substrcpy (c, c, 1, strlen (c) - 2))
+#endif
+#ifndef TRIM_CHAR_BUF
+#define TRIM_CHAR_BUF(s) \
+  { \
+    while ((s[0] == '\'')&&(s[1] != '\0')) \
+       substrcpy (s, s, 1, strlen (s) - 2); \
+  } \
+
+#endif
+
+#ifndef KBDCHAR                 /* These are also defined in   */
+#define KBDCHAR      (1 << 0)   /* TerminalStream and          */
+#endif                          /* ANSITerminalStream classes. */
+#ifndef KBDCUR   
+#define KBDCUR       (1 << 1)
+#endif
+
+#ifndef LIB_BUILD
+require Object;
+require Symbol;
+require Integer;
+require String;
+require ArgumentList;
+
+#ifndef IS_OBJECT
+#ifndef __sparc__
+#define IS_OBJECT(x) ((x) && (x)->sig == 0xd3d3d3)
+#else
+#define IS_OBJECT(x) ((x) && !memcmp ((void *)x, "OBJECT", 6))
+#endif
+#endif
+
+#ifndef CLASSNAME
+#define CLASSNAME __o_class->__o_name
+#endif
+#ifndef SUPERCLASSNAME
+#define SUPERCLASSNAME(o) ((IS_OBJECT((o)->__o_class) && \
+	IS_OBJECT((o)->__o_class->__o_superclass)) ? \
+	(o) -> __o_class -> __o_superclass -> __o_name : "")
+#endif
+
+#ifndef IS_ARG
+#define IS_ARG(a) ((a) && !memcmp((void *)a, "ARG", 3))
+#endif
+#ifndef ARG_OBJECT
+#define ARG_OBJECT(a) (IS_ARG(a) ? (a)->obj : NULL) 
+#endif
+#ifndef ARG_NAME
+#define ARG_NAME(a) ((IS_ARG(a) && IS_OBJECT((a)->obj)) ? \
+  (a)->obj->__o_name : NULL) 
+#endif
+#ifndef ARG_CLASSNAME
+#define ARG_CLASSNAME(a) ((IS_ARG(a) && IS_OBJECT((a)->obj)) ? \
+  (a)->obj->CLASSNAME : NULL) 
+#endif
+#ifndef ARG_SUPERCLASSNAME
+#define ARG_SUPERCLASSNAME(a) ((IS_ARG(a) && IS_OBJECT((a)->obj)) ? \
+			       SUPERCLASSNAME((a)->obj) : NULL) 
+#endif
+#ifndef ARG_CLASS
+#define ARG_CLASS(a) ((IS_ARG(a) && IS_OBJECT((a)->obj)) ? \
+  (a)->obj->__o_class : NULL) 
+#endif
+#ifndef ARG_SUPERCLASS
+#define ARG_SUPERCLASS(a) ((IS_ARG(a) && IS_OBJECT((a)->obj)) ? \
+  (a)->obj->__o_superclass : NULL) 
+#endif
+#ifndef ARG_NREFS
+#define ARG_NREFS(a) ((IS_ARG(a) && IS_OBJECT((a)->obj)) ? \
+  (a)->obj->nrefs : 0) 
+#endif
+#ifndef ARG_SCOPE
+#define ARG_SCOPE(a) ((IS_ARG(a) && IS_OBJECT((a)->obj)) ? \
+  (a)->obj->scope : 0) 
+#endif
+
+#define methodReturnInteger(i) { char __b[MAXMSG]; OBJECT *__o; \
+                                 __ctalkDecimalIntegerToASCII((i),__b); \
+                                 __o = __ctalkCreateObjectInit ("result", \
+                                "Integer", "Magnitude", LOCAL_VAR, __b); \
+				 __ctalkRegisterUserObject(__o); return __o;;;}
+
+#define methodReturnCharacter(c) { char __b[2]; OBJECT *__o; \
+                                 __b[0] = c; __b[1] = '\0'; \
+                                 __o = __ctalkCreateObjectInit ("result", \
+                                "Character", "Magnitude", LOCAL_VAR, __b); \
+				 __ctalkRegisterUserObject(__o); return __o;;;}
+
+#define methodReturnLongInteger(__l) { char __b[MAXMSG]; OBJECT *__o; \
+                                 __ctalkDecimalLongLongToASCII((__l),__b); \
+                                 __o = __ctalkCreateObjectInit ("result", \
+                                "LongInteger", "Magnitude", LOCAL_VAR, __b); \
+				 __ctalkRegisterUserObject(__o); return __o;;;}
+#define methodReturnBoolean(__i) { char __b[MAXMSG]; OBJECT *__o; \
+                                 __ctalkDecimalIntegerToASCII((__i),__b); \
+                                 __o = __ctalkCreateObjectInit ("result", \
+                                "Boolean", "Integer", LOCAL_VAR, __b); \
+				 __ctalkRegisterUserObject(__o); return __o;;;}
+/*
+ *  Deprecated - use "return NULL" instead.
+ */
+#define methodReturnNULL      { return NULL; }
+/*
+ *  Deprecated = use "return <object>" instead.
+ */
+#define methodReturnObject(...) {OBJECT *__o; __o=__ctalkEvalExpr(#__VA_ARGS__); if (__o->nrefs==0)__ctalkRegisterUserObject(__o); return __o;;;}
+/*
+ *  Deprecated = use "return <object>" instead.
+ */
+#define methodReturnObjectName(__o) { return __ctalk_get_object(#__o, NULL);;; }
+/*
+ *  Deprecated - use "return self" instead.
+ */
+#define methodReturnSelf      { return __ctalk_self_internal (); }
+
+#define methodReturnString(__s) { OBJECT *__o; \
+                                 __o = __ctalkCreateObjectInit ("result", \
+                                "String", "Character", LOCAL_VAR, __s); \
+				 __ctalkRegisterUserObject(__o); return __o;;;}
+
+/*
+ *  Deprecated - use "return FALSE" instead.
+ */
+#define methodReturnFalse     { OBJECT *__o; \
+                                __o = __ctalkCreateObjectInit ("result", \
+                                "Boolean", "Integer", LOCAL_VAR, "0"); \
+                                __ctalkRegisterUserObject(__o); \
+                                return __o;;; }
+/*
+ *  Deprecated - use "return TRUE" instead.
+ */
+#define methodReturnTrue     { OBJECT *__o; \
+                                __o = __ctalkCreateObjectInit ("result", \
+                                "Boolean", "Integer", LOCAL_VAR, "1"); \
+                                __ctalkRegisterUserObject(__o); \
+                                return __o;;; }
+#endif /* #ifndef LIB_BUILD */
+
+#define _CTALK_LIB
+
+#endif  /* _CTALK_LIB */
+
+

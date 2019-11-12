@@ -1,0 +1,737 @@
+/* $Id: Application,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-c-*-*/
+
+/*
+  This file is part of Ctalk.
+  Copyright © 2005 - 2016, 2018  Robert Kiesling, rk3314042@gmail.com.
+  Permission is granted to copy this software provided that this copyright
+  notice is included in all source code modules.
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+*/
+
+/*
+ *    Application class.
+ */
+
+/*
+ *  The require statement is still needed here for the 
+ *  instance variable's class.  
+ *
+ *  Signal handlers print a stack walkback if enabled, then 
+ *  perform a normal exit clean up if the signal causes an exit, 
+ *  then raise the system's default handler.
+ */
+require SignalHandler;
+
+Event class Application
+"Application class defines methods to initialize and exit
+application programs, handle signals and other events from
+the operating system, and look up Ctalk language definitions
+and documentation in the class library.";
+
+Application instanceVariable exitHandler SignalHandler 0x0;
+Application instanceVariable cmdLineArgs Array 0x0;
+Application instanceVariable cmdLineArgc Integer 0;
+Application instanceVariable winXOrg Integer 0;
+Application instanceVariable winYOrg Integer 0;
+Application instanceVariable winWidth Integer 0;
+Application instanceVariable winHeight Integer 0;
+Application instanceVariable geomFlags Integer 0;
+
+
+/*
+ *  TO DO - Make sure that eval_expr doesn't execute this method
+ *  when evaluating installExitHandler....
+ */
+Application instanceMethod __handleAppExit (__c_arg__ int signo) {
+  "Handle an application exit from a signal.  If the
+  application has enabled exception traces, print a
+  stack trace and then call the default SIGINT handler.
+  This method is designed to be used as a signal
+  handler.  Its argument a C int contains the number of
+  the signal that calls it.
+  
+  The Application must first call the
+  installExitHandler method to define this method as a
+  signal handler - then this method is called when the
+  application receives a SIGINT, which is normall
+  generated when the user presses Control-C.  This
+  method does not return."
+  noMethodInit;
+  if (self traceEnabled) 
+    __ctalkPrintExceptionTrace ();
+  __ctalk_exitFn(1);
+  __ctalkDefaultSignalHandler (__ctalkSystemSignalNumber ("SIGINT"));
+  kill (getpid (), __ctalkSystemSignalNumber ("SIGINT"));
+  /* Avoid a warning message. */
+  return NULL;
+}
+
+Application instanceMethod __handleSigAbrt (__c_arg__ int signo) {
+  "A signal handler for SIGABRT signals.  The argument, a
+  C int, contains the number of the signal.  If the
+  application has enabled exception traces, print a
+  stack trace before calling the default SIGABRT
+  handler.  This method does not return."
+  noMethodInit;
+  if (self traceEnabled) 
+    __ctalkPrintExceptionTrace ();
+  __ctalk_exitFn(1);
+  __ctalkDefaultSignalHandler (__ctalkSystemSignalNumber ("SIGABRT"));
+  kill (0, __ctalkSystemSignalNumber ("SIGABRT"));
+  /* Avoid a warning message. */
+  return NULL;
+}
+
+#if 0
+/* Until we can put C function caching in the method preload 
+   stuff, use __ctalkSignalHandlerBasic () instead.  It's
+   exactly the same.
+*/
+void signal_handler_basic (int signo) {
+  printf ("\n%s: Caught %s.\n", __argvFileName (), 
+	  __ctalkSystemSignalName (signo));
+  if (__ctalkGetExceptionTrace()) 
+    __warning_trace ();
+  __ctalk_exitFn(1);
+  __ctalkDefaultSignalHandler (signo);
+  kill (0, signo);
+  /*
+   *  Make sure the program finishes terminating.
+   */
+  usleep (1000);
+  kill (0, __ctalkSystemSignalNumber ("SIGKILL"));
+}
+#endif
+
+Application instanceMethod installExitHandler (void) {
+  "Tell the application to install the __handleAppExit
+  method as the SIGINT (normally the Control-C) signal
+  handler."
+  self exitHandler setSigInt;
+  self exitHandler installHandler __handleAppExit;
+  return self;
+}
+
+Application instanceMethod installExitHandlerBasic (void) {
+  "Install a generic Control-C handler.  This method does
+  not return."
+  __ctalkInstallHandler
+    (__ctalkSystemSignalNumber ("SIGINT"),
+     (OBJECT *(*)())__ctalkSignalHandlerBasic);
+						    
+  return NULL;
+}
+
+Application instanceMethod installAbortHandlerBasic (void) {
+  "Install a generic SIGABRT handler.  This method does
+  not return."
+  __ctalkInstallHandler 
+     (__ctalkSystemSignalNumber ("SIGABRT"),
+      (OBJECT *(*)())__ctalkSignalHandlerBasic);
+  return NULL;
+}
+
+Application instanceMethod installAbortHandler (void) {
+  "Install the __handleSigAbrt method to receive SIGABRT
+  signales."
+  self exitHandler setSigAbrt;
+  self exitHandler installHandler __handleSigAbrt;
+  return self;
+}
+
+Application instanceMethod uSleep (long long int __uSec) {
+  "Sleep for the number of microseconds given by the
+  argument, a LongInteger."
+  __ctalkSleep (__uSec);
+  return NULL;
+}
+
+Application instanceMethod classSearchPath (void) {
+  "Return a String containing the path that Ctalk uses to
+  search for class libraries.  For a running
+  application, this is the class library directory
+  defined when Ctalk is installed, plus any directories
+  named in the CLASSLIBDIRS environment variable."
+  returnObjectClass String;
+  return __ctalkClassSearchPath ();
+}
+
+Application instanceMethod installPrefix (void) {
+  "Returns the name of the top-level directory where
+   Ctalk's various component subdirectories are located."
+  returnObjectClass String;
+  return __ctalkInstallPrefix ();
+}
+
+Application instanceMethod parseArgs (Integer argc, Array argv) {
+  "Takes as its arguments the argc and argv variables that
+  the system passes to main () when a program starts.
+  Sets the elements of the instance variable
+  cmdLineArgs to String objects that contain each
+  command line parameter in the argv array.
+  
+  When argv is is used as a method argument, it is a
+  Symbol value, with the attribute
+  OBJECT_VALUE_IS_C_CHAR_PTR_PTR, which we should try
+  to work in as semantic conversion when we try to
+  subscript it.  For now, we just use a char ** alias
+  here."
+
+  int i;
+  char **argv_array;
+  
+  returnObjectClass Array;
+
+  argv_array = argv value;
+
+  self cmdLineArgc = argc;
+
+  for (i = 0; i < argc; i = i + 1) {
+
+    self cmdLineArgs atPut i, argv_array[i];
+
+  }
+
+}
+
+Application instanceMethod parseX11Geometry (String geomString) {
+  "Parses the String that contains the X window geometry
+  string given as the argument, and sets the instance
+  variables geomFlags, winXOrg, winYOrg, winWidth, and
+  winHeight to the values given in the geometry string.
+  If the geometry string omits any of these values, the
+  method sets the respective instance variable to zero.
+   
+  Also saves the window system's geometry flags in the
+  geomFlags instance variable."
+  int x, y, w, h, flags;
+
+  flags = __ctalkX11ParseGeometry (geomString, &x, &y, &w, &h);
+
+  self winXOrg = x;
+  self winYOrg = y;
+  self winWidth = w;
+  self winHeight = h;
+  self geomFlags = flags;
+  
+}
+
+Application instanceMethod __escapeMethodName (String methodName) {
+  "If the method name contains the regex metacharacters '+', '^' or '*',
+   escape them.  Otherwise return the argument."
+  String new escapedMethodName;
+  returnObjectClass String;
+  if ((methodName charPos '*' >= 0) ||
+      (methodName charPos '+' >= 0) ||
+      (methodName charPos '^' >= 0)) {
+    escapedMethodName = "";
+    methodName map {
+      if (self == '*') {
+	escapedMethodName += "\\*";
+      } else if (self == '+') {
+	escapedMethodName += "\\+";
+      } else if (self == '^') {
+	escapedMethodName += "\\^";
+      } else {
+	escapedMethodName += self asString;
+      }
+    }
+    return escapedMethodName;
+  } else {
+    return methodName;
+  }
+  printf ("--NULL\n");
+}
+
+Application instanceMethod methodSource (String aClassName, String aMethodName) {
+  "Takes as its arguments the name of a class, a String,
+   and a method name, also a String.  Returns a String
+   that contains the source code of the methods that
+   match the declaration <aClassName> instanceMethod
+   <aMethodName>.
+
+   Note: this method is meant to be fast, so it has a
+   rather simple-minded view of what constitutes a
+   method declaration.  Refer to the Ctalk
+   documentation for details."
+  returnObjectClass String;
+
+  ReadFileStream new f;
+  String new classLibFileName;
+  String new escapedMethodName;
+  String new input;
+  String new output;
+  String new method_start_str;
+  String new past_regex_str;
+  Integer new method_start_idx;
+  Integer new skip_length;
+  Integer new method_end_idx;
+  Array new start_offsets;
+  Array new end_offsets;
+  String new startRegex;
+  String new endRegex;
+  List new keywords;
+
+  classLibFileName = aClassName libraryPath;
+
+  if (!f exists classLibFileName) {
+    printf ("Application : methodSource: class %s not found.\n", aClassName);
+    exit (1);
+  }
+
+  f openOn classLibFileName;
+
+  input = f readAll;
+
+  f closeStream;
+
+  keywords = "instanceMethod", "classMethod";
+
+  escapedMethodName = self __escapeMethodName aMethodName;
+
+  keywords map {
+
+    startRegex = aClassName + " *" + self + " *" + 
+        escapedMethodName + " ";
+
+    input matchRegex startRegex, start_offsets;
+
+    if (start_offsets at 0 == -1)
+      continue;
+
+    start_offsets map {
+
+      if (self == -1)
+	break;
+
+      method_start_idx = self;
+      method_start_str = input subString method_start_idx, (input length);
+      skip_length = method_start_str charPos '{';
+      past_regex_str = method_start_str subString skip_length, 
+	(method_start_str length);
+
+      endRegex = aClassName + " *instanceMethod";
+      past_regex_str matchRegex endRegex, end_offsets;
+      method_end_idx = end_offsets at 0;
+
+      if (method_end_idx == -1) {
+	/* Check for a following class method, too. */
+	endRegex = aClassName + " *classMethod";
+	past_regex_str matchRegex endRegex, end_offsets;
+	method_end_idx = end_offsets at 0;
+      }
+
+      if (method_end_idx == -1) {
+	output += method_start_str;
+      } else {
+	method_end_idx += skip_length;
+	output += method_start_str subString 0, method_end_idx;
+      }
+
+    }
+
+  }
+
+  return output;
+}
+
+Application instanceMethod methodPrototypes (String input) {
+  "Returns a string containing any method prototypes
+   contained in the input.  A method prototype consists
+   of the declaration, the argument list, and return
+   class if different than the receiver's class."
+
+  returnObjectClass String;
+
+  String new lookback;
+  String new lookback2;
+  List new tokens;
+  String new output;
+  Boolean new haveDeclaration;
+  Boolean new haveArgList;
+  Boolean new inMethod;
+  Integer new nParens;
+  Integer new nBraces;
+  Boolean new haveReturnClass;
+
+  input tokenize tokens;
+
+  haveDeclaration = False;
+  haveArgList = False;
+  haveReturnClass = False;
+  inMethod = False;
+  nParens = 0;
+  output = "";
+
+  tokens map {
+
+    if (haveDeclaration) {
+
+      output += " " + self;
+
+      if (!haveArgList) {
+
+	if (self == "(") {
+	  haveArgList = True;
+	  ++nParens;
+	}
+
+      } else {
+
+	if (self == "(") {
+	  ++nParens;
+	}
+
+	if (self == ")") {
+	  --nParens;
+
+	  if (nParens == 0) {
+	    haveArgList = False;
+	    haveDeclaration = False;
+	    inMethod = True;
+	    // Add a separator.
+      	    output += "\n"; 
+	  }
+
+	}
+      }
+
+    } else {
+
+      if (inMethod) {
+	if (self == "{") {
+	  ++nBraces;
+	}
+
+	if (self == "}") {
+	  --nBraces;
+	  if (nBraces == 0) {
+	    inMethod = False;
+	  }
+	}
+
+	if (haveReturnClass) {
+	  output += "\t" + lookback + " " + self + "\n";
+	  haveReturnClass = False;
+	} else {
+	  if (self == "returnObjectClass") {
+	    haveReturnClass = True;
+	  }
+	}
+
+      } else {
+
+	if (self == "instanceMethod" || self == "classMethod") {
+	    output += lookback + " " + self;
+	    haveDeclaration = True;
+	}
+
+      }
+
+    }
+
+    lookback = self;
+  }
+
+  tokens delete;
+  return output;
+}
+
+Application instanceMethod methodDocString (String methodSource) {
+  "Returns the documentation string of the method source given
+   as the argument - the format of the documentation string can
+   be either a quoted string, a C comment, or a C++ comment."
+  returnObjectClass String;
+
+  Integer new bodyStartIdx;
+  Integer new docStartIdx;
+  Integer new docEndIdx;
+  Integer new newLineIdx;
+  Integer new lineStartIdx;
+  Integer new i;
+  Character new c;
+  String new docString;
+  Boolean new ctalkDoc;
+  Boolean new cDoc;
+  Boolean new cPlusDoc;
+
+  docString = "";
+  ctalkDoc = False;
+  cDoc = False;
+  cPlusDoc = False;
+  bodyStartIdx = methodSource contains "{", 0;
+
+  for (i = bodyStartIdx + 1; ; ++i) {
+    c = methodSource at i;
+    if (c isSpace) {
+      continue;
+    }
+    if (c == '\"') {
+      ctalkDoc = True;
+      docStartIdx = i;
+      break;
+    } else if (c == '/') {
+      if (methodSource at (i + 1) == '*') {
+	cDoc = True;
+	docStartIdx = i;
+      } else if (methodSource at (i + 1) == '/') {
+	cPlusDoc = True;
+	docStartIdx = i;
+      } else {
+	docString = NULLSTR;
+      }
+      break;
+    } else {
+      docString = NULLSTR;
+      break;
+    }
+  }
+
+  if (ctalkDoc) {
+    ++docStartIdx;
+    docEndIdx = methodSource contains "\"", docStartIdx;
+    if (docEndIdx < 0) {
+      docString = NULLSTR;
+      return docString;
+    }
+    docString = methodSource subString docStartIdx,
+      (docEndIdx - docStartIdx);
+  } else if (cDoc) {
+    docStartIdx += 2;
+    docEndIdx = methodSource contains "*/", docStartIdx;
+    if (docEndIdx < 0) {
+      docString = NULLSTR;
+      return docString;
+    }
+    docString = methodSource subString docStartIdx,
+      (docEndIdx - docStartIdx);
+  } else if (cPlusDoc) {
+    lineStartIdx = docStartIdx;
+    lineStartIdx += 2;
+    newLineIdx = methodSource contains "\n", lineStartIdx;
+    if (newLineIdx < 0) {
+      return docString;
+    } else {
+      /* Keep the newline for non-wrapped output. */
+      ++newLineIdx;
+    }
+    docString += methodSource subString lineStartIdx,
+      (newLineIdx - lineStartIdx);
+    while (i) {
+      lineStartIdx = methodSource contains "//", newLineIdx;
+      if (lineStartIdx > 0) {
+	lineStartIdx += 2;
+	newLineIdx = methodSource contains "\n", lineStartIdx;
+	if (newLineIdx < 0) {
+	  return docString;
+	} else {
+	  ++newLineIdx;
+	}
+	docString += methodSource subString lineStartIdx,
+	  (newLineIdx - lineStartIdx);
+      } else {
+	break;
+      }
+    }
+  }
+
+  return docString;
+}
+
+Application instanceMethod classDocString (Object aClassObject) {
+  "Return the documentation string for the class of the
+object given as the argument."
+  String new classNameStr;
+  String new classLibFileName;
+  SystemErrnoException new s;
+  ReadFileStream new f;
+  String new input;
+  String new output;
+  String new s_class;
+  String new regex;
+  Integer new term_index;
+  Integer new doc_index;
+  Integer new doc_close_index;
+  Array new matches;
+
+  returnObjectClass String;
+
+  if (aClassObject isClassObject) {
+    classNameStr = aClassObject name;
+  } else {
+    classNameStr = aClassObject className;
+  }
+
+  classLibFileName = classNameStr libraryPath;
+
+  if (!f exists classLibFileName) {
+    s raiseException classLibFileName;
+    return NULL;
+  }
+
+  f openOn classLibFileName;
+
+  input = f readAll;
+
+  f closeStream;
+
+  /* Note that we need at least one space between the keyword and
+     class name. */
+  regex = " class  *" + classNameStr;
+
+  if (input matchRegex regex, matches) {
+
+    /* The "+" method needs an an Integer object in order to
+       increment the String reference (otherwise it performs a
+       concatenation). So make sure that we get the correct
+       class for the "matches at 0" element." */
+    s_class = input + ((matches at 0) asInteger);
+
+
+    term_index = s_class charPos ';';
+    doc_index = s_class charPos '\"';
+
+    if (doc_index != -1) {
+      if (doc_index < term_index) {
+
+	++doc_index;
+	output = s_class + doc_index;
+
+	doc_close_index = output charPos '\"';
+
+	output atPut doc_close_index, '\0';
+      }
+    }
+
+  }
+
+  return output;
+}
+
+Application instanceMethod membervars (Object classObj) {
+  "Return a String with the receiver class's member
+variables."
+  String new classNameStr;
+  String new classLibFileName;
+  ReadFileStream new f;
+  String new inputLine;
+  String new outputLine;
+  Exception new s;
+  Array new searchOffsets;
+  List new keywordRegexes;
+  Boolean new noclose;
+
+  if (classObj is String) {
+    classNameStr = classObj value;
+  } else {
+    if (classObj isClassObject) {
+      classNameStr = classObj name;
+    } else {
+      classNameStr = classObj className;
+    }
+  }
+  classLibFileName = classNameStr libraryPath;
+
+  if (!f exists classLibFileName) {
+    s raiseException 
+      (UNDEFINED_CLASS_OR_RECEIVER_X, 
+       ("Object : methods: File " + classLibFileName + " not found."));
+    return NULL;
+  }
+
+  f openOn classLibFileName;
+  outputLine = "";
+  noclose = False;
+
+  keywordRegexes push " instanceVariable ";
+  keywordRegexes push " classVariable ";
+
+  while (!f streamEof) {
+
+    inputLine = f readLine;
+
+    if (noclose) {
+      outputLine += inputLine;
+      if (inputLine match ";")
+	noclose = False;
+      continue;
+    }
+
+    keywordRegexes map {
+
+      if (inputLine matchRegex self, searchOffsets) {
+
+	outputLine += inputLine; 
+
+	if (!inputLine match ";")
+	  noclose = True;
+
+      }
+
+    } /* keywordRegexes map */
+
+
+  }  /* while (!f streamEof) */
+
+  f closeStream;
+  return outputLine;
+}
+
+Application instanceMethod useXRender (Boolean b) {
+  __ctalkX11UseXRender (b);
+}
+
+Application instanceMethod usingXRender (void) {
+  returnObjectClass Boolean;
+  return __ctalkX11UsingXRender ();
+}
+
+Application instanceMethod execC (String commandLine) {
+  "Execute the command and arguments given by the parameter,
+   commandLine, and wait for the program to finish.  The method
+   displays the standard output of the subprocess."
+  __ctalkExec (commandLine, NULL);
+}
+
+Application instanceMethod execC (String commandLine, String commandOutput) {
+  "Execute the command and arguments given by the parameter,
+   commandLine, and wait for the program to finish.  If a second
+   argument is given, the method writes the subprocesses' output
+   to the object given as the method's second argument."
+  Symbol new strPtr;
+  strPtr = commandOutput;
+  __ctalkExec (commandLine, strPtr);
+}
+
+Application instanceMethod spawnC (String command, Integer restrict) {
+  "Spawns the program named by command in the background and resumes
+   execution of the calling program.  If the parameter, restrict,
+   is non-zero, changes the background program's working directory
+   and umask to the root directory and 0.  Returns an Integer
+   with the process ID of the spawned process."
+  returnObjectClass Integer;
+  Integer new childPID;
+  childPID = __ctalkSpawn (command, restrict);
+  return childPID;
+}
+
+Application instanceMethod getPID (void) {
+  "Returns an Integer with the program's process ID."
+  returnObjectClass Integer;
+  int i;
+  i = getpid ();
+  return i;
+}

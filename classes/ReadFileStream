@@ -1,0 +1,443 @@
+/* $Id: ReadFileStream,v 1.2 2019/10/27 00:06:11 rkiesling Exp $ -*-c-*-*/
+
+/*
+  This file is part of Ctalk.
+  Copyright © 2005 - 2018  Robert Kiesling, rk3314042@gmail.com.
+  Permission is granted to copy this software provided that this copyright
+  notice is included in all source code modules.
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+*/
+
+/*
+ *    ReadFileStream class.
+ *
+ *    Note: Setting of streamPos using ftell(3) after a read should
+ *    work correctly, but it has not been tested adequately.
+ */
+
+#ifndef _STDIO_H
+#include <stdio.h>
+#endif
+
+#include <errno.h>
+#include <ctalk/ctalkdefs.h>
+
+FileStream class ReadFileStream
+"A ReadFileStream object manages files that are opened
+for reading, and the class defines methods to read
+input from files.";
+
+/*
+ *  Note that stdinStream's value class is the same as ReadFileStream.
+ *  This is so the variable is constructed correctly and can look up 
+ *  methods.
+ */
+ReadFileStream classVariable stdinStream
+"Contains the application's standard input stream. Programs
+can initialize stdinStream by calling the classInit method.";
+ReadFileStream classVariable classInitDone Integer 0
+"The value of classInitDone is set to True after the first
+call to the classInit method, which should only be called
+once.";
+
+
+ReadFileStream classMethod classInit (void) {
+  "Initializes the classes' standard input stream.  This
+  method is normally called by the ReadFileStream
+  constructor.  The method needs to be called only once;
+  on further calls to 'new', it is a no-op."
+  OBJECT *classObject,
+    *stdinStreamVar,
+    *classInitVar;
+
+  if (self classInitDone)
+    return NULL;
+
+  classObject = __ctalkGetClass ("ReadFileStream");
+  stdinStreamVar = __ctalkFindClassVariable ("stdinStream", TRUE);
+  __ctalkInstanceVarsFromClassObject (stdinStreamVar);
+  
+#if defined (__linux__)
+  __ctalkObjValPtr (stdinStreamVar, _IO_stdin);
+#else
+  __ctalkObjValPtr (stdinStreamVar, stdin);
+#endif
+
+  classInitVar = 
+    __ctalkCreateObjectInit ("classInitDone", "Integer",
+			     "Magnitude",
+			     classObject -> scope, "1");
+  __ctalkAddClassVariable (classObject, "classInitDone", classInitVar);
+
+  return NULL;
+}
+
+ReadFileStream instanceMethod value (void) {
+  "Return the receiver."
+  return self;
+}
+
+ReadFileStream instanceMethod new (char *__streamName) {
+  "The ReadFileStream constructor.  Create a new
+  ReadFileStream object with the name given as the
+  argument, a String."
+  ReadFileStream super new __streamName;
+
+  ReadFileStream classInit;
+  
+  return __streamName;
+}
+
+ReadFileStream instanceMethod readChar (void) {
+  "Read the next character from the receiver object's
+  stream, and return it as a Character object."
+  OBJECT *self_value,
+    *self_pos;
+  FILE *self_stream;
+  int c;
+  SystemErrnoException new readCharException;
+
+  returnObjectClass Character;
+
+  self_value = self value;
+  self_pos = self streamPos;
+  
+  self_stream = (FILE *)__ctalkGenericPtrFromStr(self_value->__o_value);
+  c = getc (self_stream);
+
+  if (c == EOF && !self streamEof) {
+    readCharException raiseException NULL;
+  } else {
+    __ctalkDecimalLongLongToASCII((long long int)ftell (self_stream), 
+				  self_pos -> __o_value);
+  }
+  return c;
+}
+
+ReadFileStream instanceMethod readLine (void) {
+  "Read the next line from the receiver object's file
+  stream, and return it as a String object."
+  OBJECT *self_value,
+    *self_pos;
+  FILE *self_stream;
+  char *r, buf[MAXMSG];
+  struct stat statbuf;
+  int rval;
+  SystemErrnoException new readLineException;
+
+  returnObjectClass String;
+
+  self_value = self value;
+  self_pos = self streamPos;
+  
+  if ((self_stream = (FILE *)__ctalkFilePtrFromStr 
+       (self_value -> __o_value)) == NULL) {
+    FILEEOF(buf);
+    return buf;
+  }
+
+  if ((rval = fstat (fileno (self_stream), &statbuf)) == SUCCESS) {
+    if (S_ISDIR (statbuf.st_mode)) {
+      FILEEOF(buf);
+      return buf;
+    }
+  } else {
+    FILEEOF(buf)
+    return buf;
+  }
+
+  if ((r = fgets (buf, MAXMSG, self_stream)) == NULL) {
+    if (self streamEof) {
+      FILEEOF(buf);
+      __ctalkDecimalLongLongToASCII((long long int)ftell (self_stream), 
+				    self_pos -> __o_value);
+    } else {
+      readLineException raiseException NULL;
+    }
+  }
+
+  return buf;
+}
+
+ReadFileStream instanceMethod readAll (void) {
+  "Read the remainder of the receiver object's
+  file stream, and return it as a String object."
+  OBJECT *self_value,
+    *self_pos,
+    *result_object;
+  FILE *self_stream;
+  char *buf;
+  long int input_size, chars_read;
+  SystemErrnoException new readAllException;
+  Exception new __appException;
+
+  returnObjectClass String;
+
+  self_value = self value;
+  self_pos = self streamPos;
+  
+  if ((self_stream = 
+       (FILE *)__ctalkGenericPtrFromStr (self_value -> __o_value))
+      == NULL) {
+    __appException raiseException USER_EXCEPTION_X, "File not open.";
+    return NULL;
+  }
+
+  if (fileno (self_stream) == 0) {
+    int c, idx, bufsize;
+    idx = 0;
+    bufsize = 1024;
+    buf = __xalloc (bufsize);
+    while ((c = fgetc (self_stream)) != EOF) {
+      buf[idx++] = (char)c;
+      buf[idx] = '\0';
+      if (idx == bufsize) {
+	bufsize *= 2;
+	buf = realloc (buf, bufsize);
+      }
+    }
+  } else {
+    input_size = self size;
+
+    buf = __xalloc (input_size + 1);
+
+#ifdef __DJGPP__
+    fread (buf, sizeof (char), input_size, self_stream) ;
+    __ctalkDecimalLongLongToASCII((long long int)ftell (self_stream), 
+				  self_pos -> __o_value);
+#else
+    if ((chars_read = fread (buf, sizeof (char), input_size, self_stream)) 
+	!= input_size) {
+      readAllException raiseException NULL;
+    } else {
+      __ctalkDecimalLongLongToASCII((long long int)ftell (self_stream), 
+				    self_pos -> __o_value);
+    }
+#endif
+  }
+
+  result_object = __ctalkCreateObjectInit ("result", "String",
+ 				  "Character", LOCAL_VAR,
+ 				  buf);
+  __ctalkFree (buf);
+  return result_object;
+}
+
+ReadFileStream instanceMethod readRec (Integer __recLength) {
+  "Read the next <n> characters from the receiver stream
+  and return the contents as a String object.  The
+  argument, an Integer, defines the number of
+  characters to be read."
+  OBJECT *self_value,
+    *self_pos,
+    *result_object; 
+  FILE *self_stream;
+  char *buf;
+  long int input_size, chars_read;
+  SystemErrnoException new readRecException;
+  Exception new __appException;
+
+  returnObjectClass String;
+
+  self_value = self value;
+  self_pos = self streamPos;
+  input_size = __recLength value;
+  buf = __xalloc (input_size + 1);
+
+  if ((self_stream = 
+       (FILE *)__ctalkGenericPtrFromStr (self_value -> __o_value))
+      == NULL) {
+    __appException raiseException USER_EXCEPTION_X, "File not open.";
+    return NULL;
+  }
+
+#ifdef __DJGPP__
+  fread (buf, sizeof (char), input_size, self_stream) ;
+  __ctalkDecimalLongLongToASCII((long long int)ftell (self_stream), 
+				self_pos -> __o_value);
+#else
+  if ((chars_read = fread (buf, sizeof (char), input_size, self_stream)) 
+      != input_size) {
+    readRecException raiseException NULL;
+  } else {
+    __ctalkDecimalLongLongToASCII((long long int)ftell (self_stream), 
+				  self_pos -> __o_value);
+  }
+#endif
+  
+  result_object = 
+    __ctalkCreateObjectInit ("result", "String",
+			     "Character", LOCAL_VAR,
+			     buf);
+  __ctalkFree (buf);
+  return result_object;
+}
+
+ReadFileStream instanceMethod readVec (LongInteger __recLength) {
+  "Read the next <n> characters from the receiver stream
+  and return the contents as a new Vector object.  The
+  argument, an Integer, is the length in bytes of data
+  to be read.  This method also sets the returned Vector's
+  length instance variable to the size of the data read."
+  OBJECT *self_value, *self_pos;
+  FILE *self_stream;
+  char *buf;
+  long int input_size, chars_read;
+  int input_size_i;
+  SystemErrnoException new readRecException;
+  Exception new __appException;
+  Vector new resultVec;
+
+  returnObjectClass Vector;
+
+  self_value = self value;
+  self_pos = self streamPos;
+  if (!(__recLength is LongInteger)) {
+    _warning ("Warning: ReadFileStream : readVec : length argument is not a LongInteger.\n");
+  }
+  input_size = __recLength value;
+  buf = __xalloc (input_size + 1);
+
+  if ((self_stream = 
+       (FILE *)__ctalkGenericPtrFromStr (self_value -> __o_value))
+      == NULL) {
+    __appException raiseException USER_EXCEPTION_X, "File not open.";
+    return NULL;
+  }
+
+#ifdef __DJGPP__
+  fread (buf, sizeof (char), input_size, self_stream) ;
+  __ctalkDecimalLongLongToASCII((long long int)ftell (self_stream), 
+				self_pos -> __o_value);
+#else
+  if ((chars_read = fread (buf, sizeof (char), input_size, self_stream)) 
+      != input_size) {
+    readRecException raiseException NULL;
+  } else {
+    __ctalkDecimalLongLongToASCII((long long int)ftell (self_stream), 
+				  self_pos -> __o_value);
+  }
+#endif
+  
+  __ctalkSetObjectValueAddr (resultVec, buf, chars_read);
+
+  return resultVec;
+}
+
+ReadFileStream instanceMethod openOn (char *__streamPath) {
+  "Open the file path named by the argument, a String, and
+  initialize the value of the receiver object."
+  FILE *f;
+  OBJECT *selfval;
+  SystemErrnoException new __errnoException;
+  Exception new __appException;
+  
+  selfval = self value;
+
+  if (__ctalkIsDir (__streamPath)) {
+    __appException raiseException FILE_IS_DIRECTORY_X, __streamPath;
+    if (self traceEnabled)
+      self callStackTrace;
+    return self;
+  }
+  
+  if ((f = xfopen (__streamPath, "r")) != NULL) {
+    __ctalkObjValPtr (selfval, f);
+    self streamPath = __streamPath;
+    self statStream;
+  } else {
+    __errnoException raiseException __streamPath;
+    if (self traceEnabled)
+      self callStackTrace;
+    *selfval -> __o_value = '\0';
+  }
+
+  return self;
+}
+
+ReadFileStream instanceMethod readFormat (char *fmt, ...) {
+  "Read the formatted input defined by the arguments, a
+  stdarg format list.  Return the results in the
+  arguments to the format string given as the first
+  argument."
+  Exception new __e_app;
+  SystemErrnoException new __e_system;
+  METHOD *self_method;
+  OBJECT *__fmt_arg_value, *result_object;
+  ARG *__save_fmt_arg, *__tmp_fmt_arg, *__tmp_stream_arg;
+  char *__argbuf;
+  char __ctalk_fmt[MAXMSG];
+  int __i_arg;
+  if ((self_method = 
+       __ctalkGetInstanceMethodByFn (__ctalkRtReceiverObject (),
+				     __ctalkRtGetMethodFn (),
+				     FALSE)) == NULL) {
+    __e_app raiseCriticalException UNDEFINED_METHOD_X, 
+      "in readFormat (class ReadFileStream)";
+    return NULL;
+  }
+  
+  __fmt_arg_value = fmt value;
+
+  __ctalkCPrintFmtToCtalkFmt (__fmt_arg_value -> __o_value, __ctalk_fmt);
+
+  __save_fmt_arg = self_method->args[0];
+
+  __tmp_fmt_arg = 
+    __ctalkCreateArgEntryInit 
+    (__ctalkCreateObjectInit ("fmt", "String", "Character",
+			      LOCAL_VAR, __ctalk_fmt));
+  __objRefCntSet (&(__tmp_fmt_arg->obj), ARG_NREFS(__save_fmt_arg));
+  self_method -> args[0] = __tmp_fmt_arg;
+
+  for (__i_arg = 1; __i_arg < self_method->n_args; __i_arg++) {
+    if ((__argbuf = (char *)calloc (MAXMSG, sizeof(char))) == NULL) {
+      __e_system raiseException "in readFormat (class ReadFileStream)";
+      return NULL;
+    }
+    __ctalkSetObjectValueBuf (self_method->args[__i_arg]->obj, __argbuf);
+  }
+
+  __tmp_stream_arg = 
+    __ctalkCreateArgEntryInit
+    (__ctalkCreateObjectInit ("stream", "String", "Character",
+ 				     LOCAL_VAR, self value));
+  __objRefCntSet (OBJREF(__tmp_stream_arg->obj), 
+		  ARG_NREFS(self_method -> args[0]));
+
+  for (__i_arg = self_method -> n_args; __i_arg > 0; __i_arg--) {
+    self_method -> args[__i_arg] = self_method -> args[__i_arg - 1];
+  }
+  self_method -> args[0] = __tmp_stream_arg;
+  ++self_method -> n_args;
+
+  result_object = __ctalkLibcFnWithMethodVarArgs ((int (*)())fscanf, self_method, "Integer");
+
+  --self_method -> n_args;
+  for (__i_arg = 1; __i_arg <= self_method -> n_args; __i_arg++) {
+    self_method -> args[__i_arg-1] = self_method -> args[__i_arg];
+  }
+  self_method -> args[self_method -> n_args] = NULL;
+  self_method -> args[0] = __save_fmt_arg;
+  __ctalkSetObjectValueVar (self, 
+		    __tmp_stream_arg -> obj -> instancevars -> __o_value);
+  __tmp_stream_arg -> obj delete;
+  __ctalkDeleteArgEntry (__tmp_stream_arg);
+  __tmp_fmt_arg -> obj delete;
+  __ctalkDeleteArgEntry (__tmp_fmt_arg);
+  result_object delete;
+  return self;
+}

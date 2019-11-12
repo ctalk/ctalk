@@ -1,0 +1,853 @@
+/* $Id: Character,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-C-*-*/
+
+/*
+  This file is part of Ctalk.
+  Copyright © 2005-2015, 2018, 2019  Robert Kiesling, rk3314042@gmail.com.
+  Permission is granted to copy this software provided that this copyright
+  notice is included in all source code modules.
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+*/
+
+/*
+ *    Character class.
+ */
+
+#include <ctalk/ctalkdefs.h>
+
+Magnitude class Character
+"Character class represents alphanumeric characters in
+the ASCII character set.  It also provides functions
+for manipulating and comparing characters, and reading
+characters from the keyboard.";
+
+
+Character instanceMethod = set_value (char __charArg) {
+  "Set the receiver Character to the argument.  Uses the
+  Magnitude : asCharacter method to perform type
+  conversions on the argument if possible."
+  __ctalkAddInstanceVariable (self, "value", __charArg asCharacter);
+  return self;
+}
+
+Character instanceMethod toUpper (void) {
+  "Return the receiver Character as an uppercase
+Character."
+  Character new result;
+
+  if (self isAlpha && self isLower) {
+    result = self asInteger value & 223;
+  } else {
+    result = self;
+  }
+  return result;
+}
+
+Character instanceMethod toLower (void) {
+  "Return the receiver Character as a lowercase Character."
+  Character new result;
+
+  if (self isAlpha && self isUpper) {
+    result = self asInteger ^ 32;
+  } else {
+    result = self;
+  }
+
+  return result;
+
+}
+
+Character instanceMethod isAlpha (void) {
+  "Return a Boolean value of True if the receiver
+  Character is alphabetic, False otherwise.  Alphabetic
+  characters are any character in the sets A-Z, a-z."
+  OBJECT *self_value;
+  char c;
+
+  returnObjectClass Boolean;
+
+  self_value = self value;
+
+  sscanf (CHAR_CONSTANT_VALUE(self_value -> __o_value), "%c", &c);
+
+  if (((c >= 65) && (c <= 90)) ||
+      ((c >= 97) && (c <= 122))) {
+    return TRUE;
+  } else {
+    return FALSE;
+  }
+}
+
+Character instanceMethod isAlNum (void) {
+  "Return a Boolean value of True if the receiver
+  Character is alphanumeric, False otherwise.
+  Alphanumeric characters are any character in the sets
+  A-Z, a-z, 0-9."
+  returnObjectClass Boolean;
+
+   if ((self isAlpha) || (self isDigit)) {
+     return TRUE;
+   } else {
+     return FALSE;
+   }
+
+}
+
+Character instanceMethod isDigit (void) {
+  "Return a Boolean value of True if the receiver
+  Character is a digit, False otherwise.  Digits are
+  characters in the set 0-9."
+
+  OBJECT *self_value;
+  char c;
+
+  returnObjectClass Boolean;
+
+  self_value = self value;
+
+  sscanf (CHAR_CONSTANT_VALUE(self_value -> __o_value), "%c", &c);
+
+  if ((c >= 39) && (c <= 57)) {
+    return TRUE;
+  } else {
+    return FALSE;
+  }
+
+}
+
+Character instanceMethod isASCII (void) {
+  "Return a Boolean value of True if the receiver
+  Character is an ASCII character.  In Ctalk, this
+  method always returns True."
+
+  returnObjectClass Boolean;
+
+  return TRUE;
+}
+
+Character instanceMethod isBlank (void) {
+  "Returns a Boolean value of True if the receiver is a
+  space or horizontal tab character."
+  OBJECT *self_value;
+  char c;
+
+  returnObjectClass Boolean;
+
+  self_value = self;
+
+  sscanf (CHAR_CONSTANT_VALUE(self_value -> __o_value), "%c", &c);
+
+  if ((c == 32) || (c == 9)) {
+    return TRUE;
+  } else {
+    return FALSE;
+  }
+
+}
+
+Character instanceMethod isCntrl (void) {
+  "Returns a Boolean value of True if the receiver is a
+  Character with the ASCII value 1-31, False otherwise."
+  OBJECT *self_value;
+  char c;
+
+  returnObjectClass Boolean;
+
+  self_value = self;
+
+  sscanf (CHAR_CONSTANT_VALUE(self_value -> __o_value), "%c", &c);
+
+  if ((c >= 1) || (c <= 31)) {
+    return TRUE;
+  } else {
+    return FALSE;
+  }
+
+}
+
+Character instanceMethod isGraph (void) {
+  "Returns a Boolean value of True for any Character
+  except a space."
+  OBJECT *self_value;
+  char c;
+
+  returnObjectClass Boolean;
+
+  self_value = self;
+
+  sscanf (CHAR_CONSTANT_VALUE(self_value -> __o_value), "%c", &c);
+
+  if (self value isPrint) {
+    if (c != 32) {
+      return TRUE;
+    } else {
+      return FALSE;
+    }
+  } else {
+    return FALSE;
+  }
+
+}
+
+Character instanceMethod isLower (void) {
+  "Returns a Boolean value of True if the receiver
+  Character is lowercase."
+  OBJECT *self_value;
+  char c;
+
+  returnObjectClass Boolean;
+
+  self_value = self value;
+
+  sscanf (CHAR_CONSTANT_VALUE(self_value -> __o_value), "%c", &c);
+
+  if ((c >= 'a') && (c <= 'z')) {
+    return TRUE;
+  } else {
+    return FALSE;
+  }
+
+}
+
+Character instanceMethod isPrint (void) {
+  "Returns a Boolean value of True if the receiver
+  Character is printable.  This definition is
+  system-dependent, but here is implemented as any
+  character in the range ASCII 32 - 254."
+  OBJECT *self_value;
+
+  returnObjectClass Boolean;
+
+  self_value = self;
+
+  /* Casting to unsigned char avoids annoying warnings
+     with some compilers. */
+  if ((*((unsigned char *)CHAR_CONSTANT_VALUE(self_value -> __o_value)) >= 32) && 
+      (*((unsigned char *)CHAR_CONSTANT_VALUE(self_value -> __o_value)) <= 254)) {
+    return TRUE;
+  } else {
+    return FALSE;
+  }
+
+}
+
+Character instanceMethod isPunct (void) {
+  "Returns a Boolean value of True if the receiver is a
+  printable character which is not alphanumeric."
+  OBJECT *self_value;
+  char c;
+
+  returnObjectClass Boolean;
+
+  self_value = self;
+
+  sscanf (CHAR_CONSTANT_VALUE(self_value -> __o_value), "%c", &c);
+
+  if (((c >= 32) && (c <= 47)) ||   /* ! ... . */
+      ((c >= 58) && (c <= 64)) ||   /* : ... @ */
+      ((c >= 91) && (c <= 96)) ||   /* [ ... ` */
+      ((c >= 123) && (c <= 126))) { /* { ... ~ */
+    return TRUE;
+  } else {
+    return FALSE;
+  }
+
+}
+
+Character instanceMethod isSpace (void) {
+  "Returns a Boolean value of True if the receiver is a
+  space, horizontal tab, newline, vertical tab, form
+  feed, or carraige return."
+  OBJECT *self_value;
+  char c;
+
+  returnObjectClass Boolean;
+
+  self_value = self value;
+
+  sscanf (CHAR_CONSTANT_VALUE(self_value -> __o_value), "%c", &c);
+
+  if ((c == 32) ||    /* Space */
+      (c == 9) ||     /* Horizontal Tab, \t */
+      (c == 10) ||    /* Newline, \n */
+      (c == 11) ||    /* Vertical Tab, \v */
+      (c == 12) ||    /* Form Feed, \f */
+      (c == 13)) {    /* Carraige Return, \r */
+    return TRUE;
+  } else {
+    return FALSE;
+  }
+}
+
+Character instanceMethod isUpper (void) {
+  "Returns a Boolean value of True if the receiver is an
+  uppercase Character."
+  OBJECT *self_value;
+  char c;
+
+  returnObjectClass Boolean;
+
+  self_value = self value;
+
+  sscanf (CHAR_CONSTANT_VALUE(self_value -> __o_value), "%c", &c);
+
+  if ((c >= 65) && (c <= 90)) {
+    return TRUE;
+  } else {
+    return FALSE;
+  }
+}
+
+Character instanceMethod isXDigit (void) {
+  "Returns a Boolean value of True if the receiver is a
+  hexadecimal digit; e.g., a character in the sets 0-9,
+  a-f, A-F."
+  OBJECT *self_value;
+  char c;
+
+  returnObjectClass Boolean;
+
+  self_value = self value;
+
+  sscanf (CHAR_CONSTANT_VALUE(self_value -> __o_value), "%c", &c);
+
+  if (((c >= 48) && (c <= 57)) ||
+      ((c >= 97) && (c <= 102)) ||
+      ((c >= 65) && (c <= 70))) {
+    return TRUE;
+  } else {
+    return FALSE;
+  }
+}
+
+Character instanceMethod getChar (void) {
+  "Return the next character from the standard input."
+  char c;
+  c = (char) getchar ();
+  if (feof(stdin)) c = EOF;
+  return c;
+}
+
+Character instanceMethod + add (Character c) {
+  "Add the ASCII values of two characters and return a
+  Character with the sum of the two values.
+  
+  If the argument is an Integer, increments the ASCII
+  value of the receiver by that number.  The results
+  are not defined if the argument is any other class.
+   
+  To concatenate two characters, use either Object :
+  asString or Character :: asString (which is located
+  in ArgumentList class to avoid a circular class
+  lookups between Character and String class).
+  
+  After converting the Characters into String objects,
+  you can then concatenate them with String : +."
+
+    if (c is Character) {
+      return self + c;
+    } else {
+      return self + c asCharacter;
+    }
+
+}
+
+Character instanceMethod - subtract (char c) {
+  "Return a Character with the ASCII value of operand
+  subtracted from the receiver Character.  If the
+  argument is an Integer, decrements the ASCII value of
+  the receiver by that number.  The results are not
+  defined if the argument is any other class."
+  if (c is Character) {
+    return self - c;
+  } else {
+    return self - c asCharacter;
+  }
+}
+
+Character instanceMethod * multiply (char c) {
+  "Return a Character with the value of the receiver
+  multiplied by the argument Character."
+  if (c is Character) {
+    return self * c;
+  } else {
+    return self * c asCharacter;
+  }
+}
+
+Character instanceMethod / divide (char c) {
+  "Return a Character with the value of the receiver
+  divided by the Character given as the argument."
+
+  if (c is Character) {
+    return self / c;
+  } else {
+    return self / c asCharacter;
+  }
+}
+
+Character instanceMethod & bitwise_and (char c) {
+  "Perform a bitwise and of the receiver Character and the
+  operand Character."
+  int math_result;
+  math_result = __ctalkCharRadixToChar (self) &
+    __ctalkCharRadixToChar (c);
+
+  if ((math_result < 0) || (math_result > 127))
+    _warning ("Result of character bitwise and is not an ASCII character.\n");
+
+  return (char)math_result;
+}
+
+Character instanceMethod | bitwise_or (char c) {
+  "Return a Character with the bitwise or of the receiver
+  and argument Characters."
+  int math_result;
+
+  math_result = __ctalkCharRadixToChar (self) |
+    __ctalkCharRadixToChar (c);
+
+  if ((math_result < 0) || (math_result > 127))
+    _warning ("Result of character bitwise or is not an ASCII character.\n");
+
+  return (char) math_result;
+}
+
+Character instanceMethod ^ bitwise_xor (char c) {
+  "Return a Character with the bitwise xor of the receiver
+  and argument Characters."
+
+  int math_result;
+
+  math_result = __ctalkCharRadixToChar (self) ^
+    __ctalkCharRadixToChar (c);
+
+  if ((math_result < 0) || (math_result > 127))
+    _warning ("Result of character bitwise xor is not an ASCII character.\n");
+
+  return (char) math_result;
+}
+
+Character instanceMethod << asl (int i) {
+  "Return a Character that contains the value of the
+  receiver Character shifted left by the number of bits
+  given in the argument, an Integer."
+
+    char math_result_char;
+
+  if (!i is Integer) {
+    _warning ("Operand of << must be an Integer.\n");
+    return NULL;
+  }
+
+  math_result_char = __ctalkCharRadixToChar (self) <<
+    __ctalkIntRadixToDecimal (i);
+  return math_result_char;
+}
+
+Character instanceMethod >> asr (int i) {
+  "Return a Character that contains the value of the
+  receiver Character shifted right by the number of
+  bits given in the argument, an Integer."
+
+    char math_result_char;
+
+  if (!i is Integer) {
+    _warning ("Operand of << must be an Integer.\n");
+    return NULL;
+  }
+
+  math_result_char = __ctalkCharRadixToChar (self) >>
+    __ctalkIntRadixToDecimal (i);
+  return math_result_char;
+}
+
+Character instanceMethod < lt (char c) {
+  "Return a Boolean value of True if the receiver
+  Character is less than the argument Character, False
+  otherwise."
+  returnObjectClass Boolean;
+
+  if (self asInteger < c asInteger) {
+    return TRUE;
+  } else {
+    return FALSE;
+  }
+}
+
+Character instanceMethod > gt (char c) {
+  "Return a Boolean value of True if the receiver
+  Character is greater than the argument Character,
+  False otherwise."
+
+  returnObjectClass Boolean;
+
+  if (self asInteger > c asInteger) {
+    return TRUE;
+  } else {
+    return FALSE;
+  }
+}
+
+Character instanceMethod <= le (char c) {
+  "Return a Boolean value of True if the receiver
+  Character is less than or equal to the argument
+  Character, False otherwise."
+
+  returnObjectClass Boolean;
+
+  if (self asInteger <= c asInteger) {
+    return TRUE;
+  } else {
+    return FALSE;
+  }
+}
+
+Character instanceMethod >= ge (char c) {
+  "Return a Boolean value of True if the receiver
+  Character is greater than or equal to the argument
+  Character, False otherwise."
+
+  returnObjectClass Boolean;
+
+  if (self asInteger >= c asInteger) {
+    return TRUE;
+  } else {
+    return FALSE;
+  }
+}
+
+Character instanceMethod || logicalOr (char c) {
+  "Return a Boolean value of True if the either the
+  receiver Character or argument Character are
+  non-zero, False otherwise."
+
+  returnObjectClass Boolean;
+
+  if (self asInteger || c asInteger) {
+    return TRUE;
+  } else {
+    return FALSE;
+  }
+}
+
+Character instanceMethod invert (void) {
+  "Return a Boolean value of False if the either the
+  receiver Character is non-zero, True otherwise."
+
+  if (self asInteger) {
+    return FALSE;
+  } else {
+    return TRUE;
+  }
+}
+
+Character instanceMethod && logicalAnd (char c) {
+  "Return a Boolean value of True if the both the receiver
+  Character and argument Character are non-zero, False
+  otherwise."
+
+  returnObjectClass Boolean;
+
+  if (self asInteger && c asInteger) {
+    return TRUE;
+  } else {
+    return FALSE;
+  }
+}
+
+Character instanceMethod == equality (char c) {
+  "Return a Boolean value of True if the receiver
+  Character and argument Character have the same ASCII
+  value, False otherwise."
+
+  returnObjectClass Boolean;
+
+  if (self asInteger == c asInteger) {
+    return TRUE;
+  } else {
+    return FALSE;
+  }
+} 
+
+Character instanceMethod != inequality (char c) {
+  "Return a Boolean value of True if the receiver
+  Character and argument Character do not have the same
+  ASCII value, False otherwise."
+  returnObjectClass Boolean;
+
+  if (self asInteger != c asInteger) {
+    return TRUE;
+  } else {
+    return FALSE;
+  }
+} 
+
+Character instanceMethod ++ increment (void) {
+  "The C ++ postfix operator for Character objects."
+
+  OBJECT *self_value;
+  char c = 0, c_2;
+
+  self_value = self value;
+
+  if (self value is Character) {
+    if (self_value -> __o_value[0] == '\'') {
+      c_2 = c = self_value -> __o_value[1];
+      ++c_2;
+      self_value -> __o_value[1] = c_2;
+    } else {
+      c_2 = c = self_value -> __o_value[0];
+      ++c_2;
+      self_value -> __o_value[0] = c_2;
+    }
+  } else {
+    _warning 
+      ("Character method ++: Receiver class, \"%s,\" is not supported.\n",
+       self value class);
+  }
+
+  return c;
+}
+
+Character instanceMethod -- decrement (void) {
+  "This is the C -- postfix operator for Character objects."
+
+  OBJECT *self_value;
+  self_value = self value;
+  char c = 0, c_2;
+
+  if (self value is Character) {
+    if (self_value -> __o_value[0] == '\'') {
+      c_2 = c = self_value -> __o_value[1];
+      ++c_2;
+      self_value -> __o_value[1] = c_2;
+    } else {
+      c_2 = c = self_value -> __o_value[0];
+      ++c_2;
+      self_value -> __o_value[0] = c_2;
+    }
+  } else {
+    _warning 
+      ("Character method ++: Receiver class, \"%s,\" is not supported.\n",
+       self value class);
+  }
+
+  return c;
+}
+
+Character instanceMethod ++ inc_prefix (__prefix__) {
+  "The C ++ operator for Character objects."
+  OBJECT *self_value;
+  if (self value is Character) {
+    self_value = self value;
+    if (self_value -> __o_value[0] == '\'') {
+      ++(self_value -> __o_value[1]);
+    } else {
+      ++(self_value -> __o_value[0]);
+    }
+  } else {
+    _warning 
+      ("Character method ++: Receiver class, \"%s,\" is not supported.\n",
+       self value class);
+  }
+  return self;
+}
+
+Character instanceMethod -- dec_prefix (__prefix__) {
+  "The C -- operator for Character objects."
+  OBJECT *self_value;
+  if (self value is Character) {
+    self_value = self value;
+    if (self_value -> __o_value[0] == '\'') {
+      --(self_value -> __o_value[1]);
+    } else {
+      --(self_value -> __o_value[0]);
+    }
+  } else {
+    _warning 
+      ("Character method --: Receiver class, \"%s,\" is not supported.\n",
+       self value class);
+  }
+  return self;
+}
+
+Character instanceMethod += add_equal (int __i) {
+  "Add the argument to the receiver and return the receiver."
+
+  self = self + __i asCharacter;
+
+  return self;
+}
+
+Character instanceMethod -= subtract_equal (int __i) {
+  "Subtract the argument to the receiver and return the receiver."
+
+  self = self - __i asCharacter;
+
+  return self;
+}
+
+Character instanceMethod *= mult_equal (int __i) {
+  "Multiply the argument to the receiver and return the receiver."
+
+  self = self * __i asCharacter;
+
+  return self;
+}
+
+Character instanceMethod /= div_equal (int __i) {
+  "Divide the argument to the receiver and return the receiver."
+
+  self = self / __i asCharacter;
+
+  return self;
+}
+
+Character instanceMethod |= bit_or_assign (int __i) {
+  "Performs a bitwise OR of the receiver and the
+   argument, also an Integer, and assigns the result to
+   the receiver."
+  OBJECT *self_value;
+  OBJECT *arg_value;
+  int op1, op2;
+  char buf[0xff];
+
+  self_value = self value;
+  arg_value = __i value;
+
+  op1 = __ctalkIntFromCharConstant (self_value ->  __o_value);
+  if (__i is Integer) {
+    op2 = atoi (arg_value -> __o_value);
+  } else if (__i is Character) {
+    op2 = __ctalkIntFromCharConstant (arg_value -> __o_value);
+  } else {
+    _warning ("Character : |= : Argument class %s is not supported.\n",
+	      __i className);
+    return NULL;
+  }
+  __ctalkDecimalIntegerToChar ((op1 | op2), buf);
+  __ctalkSetObjectValueVar (__ctalk_self_internal (), buf);
+  
+}
+
+Character instanceMethod &= bit_and_assign (int __i) {
+  "Performs a bitwise AND of the receiver and the
+   argument, also an Integer, and assigns the result to
+   the receiver."
+  OBJECT *self_value;
+  OBJECT *arg_value;
+  int op1, op2;
+  char buf[0xff];
+
+  self_value = self value;
+  arg_value = __i value;
+
+  op1 = __ctalkIntFromCharConstant (self_value ->  __o_value);
+  if (__i is Integer) {
+    op2 = atoi (arg_value -> __o_value);
+  } else if (__i is Character) {
+    op2 = __ctalkIntFromCharConstant (arg_value -> __o_value);
+  } else {
+    _warning ("Character : &= : Argument class %s is not supported.\n",
+	      __i className);
+    return NULL;
+  }
+  __ctalkDecimalIntegerToChar ((op1 & op2), buf);
+  __ctalkSetObjectValueVar (__ctalk_self_internal (), buf);
+  
+}
+
+Character instanceMethod ^= bit_xor_assign (int __i) {
+  "Performs a bitwise XOR of the receiver and the
+   argument, also an Integer, and assigns the result to
+   the receiver."
+  OBJECT *self_value;
+  OBJECT *arg_value;
+  int op1, op2;
+  char buf[0xff];
+
+  self_value = self value;
+  arg_value = __i value;
+
+  op1 = __ctalkIntFromCharConstant (self_value ->  __o_value);
+  if (__i is Integer) {
+    op2 = *(int *)arg_value -> __o_value;
+  } else if (__i is Character) {
+    op2 = __ctalkIntFromCharConstant (arg_value -> __o_value);
+  } else {
+    _warning ("Character : ^= : Argument class %s is not supported.\n",
+	      __i className);
+    return NULL;
+  }
+  __ctalkDecimalIntegerToChar ((op1 ^ op2), buf);
+  __ctalkSetObjectValueVar (__ctalk_self_internal (), buf);
+  
+}
+
+Character instanceMethod %= mod_assign (int __i) {
+  "Performs a modulus of the receiver and the argument,
+   also an Integer, and assigns the value to the receiver."
+  OBJECT *self_value;
+  OBJECT *arg_value;
+  int op1, op2;
+  char buf[0xff];
+
+  self_value = self value;
+  arg_value = __i value;
+
+  op1 = __ctalkIntFromCharConstant (self_value ->  __o_value);
+  if (__i is Integer) {
+    op2 = atoi (arg_value -> __o_value);
+  } else if (__i is Character) {
+    op2 = __ctalkIntFromCharConstant (arg_value -> __o_value);
+  } else {
+    _warning ("Character : %= : Argument class %s is not supported.\n",
+	      __i className);
+    return NULL;
+  }
+  __ctalkDecimalIntegerToChar ((op1 % op2), buf);
+  __ctalkSetObjectValueVar (__ctalk_self_internal (), buf);
+  
+}
+
+Character instanceMethod bitComp (void) {
+  "Return a Character with the bitwise complement of the
+  receiver."
+
+
+  OBJECT *op1;
+
+  op1 = self value;
+  if (strcmp (op1 -> CLASSNAME, "Character")) {
+    _warning ("Receiver of method bitComp is not a Character.\n");
+  }
+  return (char)(~ atoi (op1 -> __o_value));
+}
+
+Character instanceMethod ~ bitComp_prefix (__prefix__) {
+  "Return the bitwise complement of the receiver."
+
+  return self bitComp;
+}
+
+Character instanceMethod  ! invert_prefix (__prefix__) {
+  "Return a value true if the receiver evaluates to zero,
+   false otherwise."
+  if (is_zero_q (self value))
+    return TRUE;
+  else
+    return FALSE;
+}

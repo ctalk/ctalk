@@ -1,0 +1,85 @@
+/* $Id: SignalEvent,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-c-*-*/
+
+/*
+  This file is part of Ctalk.
+  Copyright © 2005-2012, 2014  Robert Kiesling, rk3314042@gmail.com.
+  Permission is granted to copy this software provided that this copyright
+  notice is included in all source code modules.
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+*/
+
+/*
+ *   SignalEvent Class
+ */
+
+Event class SignalEvent
+"SignalEvents objects maintain information about signals
+from the operating system.";
+
+SignalEvent classVariable pendingEvents List NULL;
+
+SignalEvent instanceVariable processID Integer 0;
+SignalEvent instanceVariable sigNo Integer 0;
+SignalEvent instanceVariable text String NULL;
+
+#define NULL ((void *)0)
+
+SignalEvent instanceMethod new (char *__signalEventName) {
+  "Create a new SignalEvent object.  The argument, a
+  String, contains the name of the new object."
+  SignalEvent super new __signalEventName;
+
+  __ctalkInstanceVarsFromClassObject (__signalEventName);
+
+  return __signalEventName;
+}
+
+SignalEvent instanceMethod queueEvent (void) {
+  "Queue a SignalEvent object on the class's pendingEvents
+  queue."
+  SignalEvent pendingEvents push self;
+}
+
+SignalEvent instanceMethod nextEvent (void) {
+  "Return the next SignalEvent object from the classes'
+  pendingEvents queue."
+
+  if (SignalEvent pendingEvents isEmpty)
+    return NULL;
+
+  return SignalEvent pendingEvents unshift;
+}
+
+SignalEvent instanceMethod getPID (void) {
+  "Set the process ID instance variable of the SignalEvent
+  object that is the receiver to the process ID of the
+  application program."
+    self addInstanceVariable "processID", getpid ();
+  return self;
+}
+
+SignalEvent instanceMethod pending (void) {
+  "Return an Integer value of True if there are pending
+  events in the SignalEvent classes' queue, False
+  otherwise."
+  returnObjectClass Integer;
+  if (SignalEvent pendingEvents isEmpty) {
+    return FALSE;
+  } else {
+    return TRUE;
+  }
+}
+

@@ -1,0 +1,376 @@
+/* $Id: GLUTApplication,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-c-*-*/
+
+/*
+  This file is part of Ctalk.
+  Copyright © 2015 Robert Kiesling, rk3314042@gmail.com.
+  Permission is granted to copy this software provided that this copyright
+  notice is included in all source code modules.
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+*/
+
+
+Application class GLUTApplication
+"GLUTApplication provides methods that can initialize
+GLUT callbacks, run the main application loop, and
+display GLUT's predefined shapes.  The classes'
+initialization also calls Application : parseArgs,
+so Ctalk applications can define command line arguments
+in addition to the options defined by the GLUT API.";
+
+GLUTApplication instanceMethod initGLUT (Integer argc, Array argv) {
+  "Initialize the GLUT API.  The arguments are the argc
+   and argv parameters passed to the function main ().
+   Reads and parses the window-related arguments, then
+   sets GLUT's double buffered RGBA display mode.  This
+   method also calls Application : parseArgs to set the
+   elements of the cmdLineArgs instance variable, an
+   Array, to the arguments given on the command line."
+  char **p_argv;
+  self parseArgs (argc, argv);
+  p_argv = argv value;
+  __ctalkGLUTInit (argc, p_argv);
+}
+
+GLUTApplication instanceMethod initWindow (Integer width, Integer height) {
+  "Initialize the main window.  If two arguments are
+  given, they set the width and height of the window,
+  and let the window system determine the window's
+  placement."
+  __ctalkGLUTInitWindowGeometry (-1, -1, width, height);
+}
+
+GLUTApplication instanceMethod initWindow (Integer xOrg, Integer yOrg,
+					   Integer width, Integer height) {
+  "Initialize the main window.  With four arguments, sets
+  the X and Y coordinates of the window's upper left
+  corner, and the window's width and height."
+  __ctalkGLUTInitWindowGeometry (xOrg, yOrg, width, height);
+}
+
+GLUTApplication instanceMethod createMainWindow (String title) {
+  "Creates the main window.  The argument, a String, is
+  the window's title."
+  __ctalkGLUTCreateMainWindow (title);
+}
+
+GLUTApplication instanceMethod installCallbackFns (void) {
+  "Installs any default and user defined callback
+functions."
+  __ctalkGLUTInstallCallbacks ();
+}
+
+GLUTApplication instanceMethod run (void) {
+  "Enter the GLUT main application loop.  When this method
+  returns, the program exits."
+  __ctalkGLUTRun ();
+}
+
+GLUTApplication instanceMethod defineDisplayFn (Symbol fn) {
+  "Define a function to update the current window.  The
+  argument is the name of a C function that has the
+  prototype: void (*fn) (void).  The default callback
+  function simply clears the window with a black
+  background and returns."
+  void (*fn_p) ();
+  fn_p = fn value;
+  __ctalkGLUTInstallDisplayFn (fn_p);
+}
+
+GLUTApplication instanceMethod defineReshapeFn (Symbol fn) {
+  "Define a function to update the viewing area in
+  response to window resizing events.  The function
+  given as the argument has the prototype: 
+     void (*fn) (int w, int h).  
+  The default function configures an orthogonal viewing
+  space that is 5 grid coordinates in all directions
+  from the origin, with adjustments for the window's
+  aspect ratio."
+  void (*fn_p)();
+  fn_p = fn value;
+  __ctalkGLUTInstallReshapeFn (fn_p);
+}
+
+GLUTApplication instanceMethod defineIdleFn (Symbol fn) {
+  "Define a callback function to be called when the window
+  system is idle.  The argument is the name of a
+  function with the prototype:
+    void (*fn) (void).
+  The default value is NULL, which means this callback
+  is not used if the app doesn't define a function for
+  it."
+  void (*fn_p)();
+  fn_p = fn value;
+  __ctalkGLUTInstallIdleFn (fn_p);
+}
+
+GLUTApplication instanceMethod defineOverlayDisplayFn (Symbol fn) {
+  "Callback function to display window overlays on systems
+  that support overlays."
+  void (*fn_p)();
+  fn_p = fn value;
+  __ctalkGLUTInstallOverlayDisplayFunc (fn_p);
+}
+
+GLUTApplication instanceMethod defineKeyboardFn (Symbol fn) {
+  "Define a callback function to process standard keypresses.
+  The function has the prototype: 
+    void (*fn) (unsigned char c, int x, int y)
+  which provide the ASCII value of the character and
+  the X and Y pointer coordinates when the key is
+  pressed."
+  void (*fn_p)(unsigned char, int, int);
+  fn_p = fn value;
+  __ctalkGLUTInstallKeyboardFunc (fn_p);
+}
+
+GLUTApplication instanceMethod defineMouseFn (Symbol fn) {
+  "Define a callback function to handle mouse button clicks.  The
+  argument is the name of a function that has the prototype:
+    void (*fn) (int button, int button_state, int x, int y)."
+  void (*fn_p)();
+  fn_p = fn value;
+  __ctalkGLUTInstallMouseFunc (fn_p);
+}
+
+GLUTApplication instanceMethod defineMotionFn (Symbol fn) {
+  "Define a function that handes events when the user moves
+  the mouse within the window while a button is pressed.  
+  The argument is the name of a C function that has the prototype:
+     void (*fn) (int mouse_x_coord, int mouse_y_coord)"
+  void (*fn_p)();
+  fn_p = fn value;
+  __ctalkGLUTInstallMotionFunc (fn_p);
+}
+
+GLUTApplication instanceMethod definePassiveMotionFn (Symbol fn) {
+  "Define a function that handes events when the user moves
+  the mouse within the window without pressing a button.
+  The argument is the name of a C function that has the prototype:
+    void (*fn) (int mouse_x_coord, int mouse_y_coord)"
+  void (*fn_p)();
+  fn_p = fn value;
+  __ctalkGLUTInstallPassiveMotionFunc (fn_p);
+}
+
+GLUTApplication instanceMethod defineVisibilityFn (Symbol fn) {
+  "Define a function to handle events when the window is
+  obscured or visible."
+  void (*fn_p)();
+  fn_p = fn value;
+  __ctalkGLUTInstallVisibilityFunc (fn_p);
+}
+
+GLUTApplication instanceMethod defineEntryFn (Symbol fn) {
+  "A callback function that handles events generated when
+  the mouse pointer enters the window area."
+  void (*fn_p)();
+  fn_p = fn value;
+  __ctalkGLUTInstallEntryFunc (fn_p);
+}
+
+GLUTApplication instanceMethod defineSpecialFn (Symbol fn) {
+  "Set a callback function that responds to keypresses like 
+  function and cursor keys.  The argument is the name of
+  a C  function that has the prototype:
+     void (*fn) (int c, int x, int y)."
+  void (*fn_p)();
+  fn_p = fn value;
+  __ctalkGLUTInstallSpecialFunc (fn_p);
+}
+
+GLUTApplication instanceMethod defineSpaceballMotionFn (Symbol fn) {
+  "Define a callback function to handle spaceball motion
+  events on systems that support it."
+  void (*fn_p)();
+  fn_p = fn value;
+  __ctalkGLUTInstallSpaceballMotionFunc (fn_p);
+}
+
+GLUTApplication instanceMethod defineSpaceballRotateFn (Symbol fn) {
+  "Define a callback function to handle spaceball rotation
+  events on systems that support it."
+  void (*fn_p)();
+  fn_p = fn value;
+  __ctalkGLUTInstallSpaceballRotateFunc (fn_p);
+}
+
+GLUTApplication instanceMethod defineButtonBoxFn (Symbol fn) {
+  "Define a callback function to handle button box events
+  on systems that support it."
+  void (*fn_p)();
+  fn_p = fn value;
+  __ctalkGLUTInstallButtonBoxFunc (fn_p);
+}
+
+GLUTApplication instanceMethod defineDialsFn (Symbol fn) {
+  "Define a callback function to handle dial events on
+  systems that support it."
+  void (*fn_p)();
+  fn_p = fn value;
+  __ctalkGLUTInstallDialsFunc (fn_p);
+}
+
+GLUTApplication instanceMethod defineTabletMotionFn (Symbol fn) {
+  "Define a callback function to handle tablet motion
+  events on systems that support it."
+  void (*fn_p)();
+  fn_p = fn value;
+  __ctalkGLUTInstallTabletMotionFunc (fn_p);
+}
+
+GLUTApplication instanceMethod defineTabletButtonFn (Symbol fn) {
+  "Define a callback function to handle tablet button
+  events on systems that support it."
+  void (*fn_p)();
+  fn_p = fn value;
+  __ctalkGLUTInstallTabletButtonFunc (fn_p);
+}
+
+GLUTApplication instanceMethod defineMenuStatusFn (Symbol fn) {
+  void (*fn_p)();
+  fn_p = fn value;
+  __ctalkGLUTInstallMenuStatusFunc (fn_p);
+}
+
+GLUTApplication instanceMethod defineMenuStateFn (Symbol fn) {
+  void (*fn_p)();
+  fn_p = fn value;
+  __ctalkGLUTInstallMenuStateFunc (fn_p);
+}
+
+GLUTApplication instanceMethod defineTimerFn (Integer msec, Symbol fn,
+					      Integer argValue) {
+  void (*fn_p)();
+  fn_p = fn value;
+  __ctalkGLUTInstallTimerFunc (msec, fn_p, argValue);
+}
+
+GLUTApplication instanceMethod defineAnimationFn (Symbol fn) {
+  "Install a timer function callback that has a refresh
+   rate of 24 times a second."
+  void (*fn_p)();
+  fn_p = fn value;
+  __ctalkGLUTInstallTimerFunc (41, fn_p, 0);
+}
+
+GLUTApplication instanceMethod fullScreen (void) {
+  "Expand the main window to full screen mode."
+  __ctalkGLUTFullScreen ();
+}
+
+GLUTApplication instanceMethod sphere (Float radius, Integer slices,
+				       Integer stacks, Integer fill) {
+  __ctalkGLUTSphere (radius, slices, stacks, fill);
+}
+
+GLUTApplication instanceMethod cube (Float size, Integer fill) {
+  __ctalkGLUTCube (size, fill);
+}
+
+GLUTApplication instanceMethod cone (Float base, Float height,
+				     Integer slices, Integer stacks,
+				     Integer fill) {
+  __ctalkGLUTCone (base, height, slices, stacks, fill);
+}
+
+GLUTApplication instanceMethod torus (Float innerRadius,
+				      Float outerRadius,
+				      Integer size,
+				      Integer rings,
+				      Integer fill) {
+  __ctalkGLUTTorus (innerRadius, outerRadius, size, rings, fill);
+}
+
+GLUTApplication instanceMethod dodecahedron (Integer fill) {
+  __ctalkGLUTDodecahedron (fill);
+}
+
+GLUTApplication instanceMethod octahedron (Integer fill) {
+  __ctalkGLUTOctahedron (fill);
+}
+
+GLUTApplication instanceMethod tetrahedron (Integer fill) {
+  __ctalkGLUTTetrahedron (fill);
+}
+
+GLUTApplication instanceMethod icosahedron (Integer fill) {
+  __ctalkGLUTIcosahedron (fill);
+}
+
+GLUTApplication instanceMethod teapot (Float size, Integer fill) {
+  __ctalkGLUTTeapot (size, fill);
+}
+
+GLUTApplication instanceMethod position (Integer x, Integer y) {
+  "Create a request to position the window with its upper
+  left hand corner at x,y pixels from the screen's
+  upper left hand corner."
+  __ctalkGLUTPosition (x, y);
+}
+
+GLUTApplication instanceMethod reshape (Integer w, Integer h) {
+  "Create a glut request to resize the window.  The request
+   is handled by the reshape callback function."
+  __ctalkGLUTReshape (w, h);
+}
+
+static void *texel_data_out_i;
+
+GLUTApplication instanceMethod xpmToTexture (Symbol xpm_data,
+					     Integer width_out,
+					     Integer height_out,
+					     Symbol texel_data_out) {
+  "Create an OpenGL texture from the XPM data given as the
+   first argument. The method sets the arguments
+   width_out and height_out to the texture's
+   dimensions, and returns the texture data in
+   texel_data_out.  The texture has the OpenGL format
+   GL_RGBA and the data type GL_UNSIGNED_INT_8_8_8_8."
+  int width_out_i, height_out_i;
+
+  __ctalkXPMToGLTexture (xpm_data, 1.0, &width_out_i, &height_out_i, 
+			 &texel_data_out_i);
+  width_out = width_out_i;
+  height_out = height_out_i;
+  texel_data_out = texel_data_out_i;
+}
+
+GLUTApplication instanceMethod xpmToTexture (Symbol xpm_data,
+					     Integer alpha,
+					     Integer width_out,
+					     Integer height_out,
+					     Symbol texel_data_out) {
+  "Create an OpenGL texture from the XPM data given as the
+   first argument. The method sets the arguments
+   width_out and height_out to the texture's
+   dimensions, and returns the texture data in
+   texel_data_out.  The second argument gives the 
+   percentage of the total alpha channel value, and 
+   must be in the range 0.0 to 1.0. The texture has the
+   OpenGL format GL_RGBA and the data type
+   GL_UNSIGNED_INT_8_8_8_8."
+  int width_out_i, height_out_i;
+
+  __ctalkXPMToGLTexture (xpm_data, alpha, &width_out_i, &height_out_i, 
+			 &texel_data_out_i);
+  width_out = width_out_i;
+  height_out = height_out_i;
+  texel_data_out = texel_data_out_i;
+}
+
+GLUTApplication instanceMethod windowID (String windowName) {
+  return __ctalkGLUTWindowID (windowName);
+}

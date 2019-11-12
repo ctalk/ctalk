@@ -1,0 +1,229 @@
+/* $Id: CalendarTime,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-ctalk-*- */
+
+/*
+  This file is part of Ctalk.
+  Copyright © 2016  Robert Kiesling, rk3314042@gmail.com.
+  Permission is granted to copy this software provided that this copyright
+  notice is included in all source code modules.
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+*/
+
+CTime class CalendarTime
+"CalendarTime class defines instance variables that correspond
+to the elements of broken-down UTC time: seconds, minutes, hours,
+day of the month, and so on.  This class defines methods that
+fill in an object's instance data in either local time or
+UTC time.  This can be more efficient and convenient in many
+cases than the equivalent methods in CTime class, which use
+Arrays to return elements of UTC or local times.";
+
+CalendarTime instanceVariable seconds Integer 0;
+CalendarTime instanceVariable minutes Integer 0;
+CalendarTime instanceVariable hours Integer 0;
+CalendarTime instanceVariable dom Integer 0;
+CalendarTime instanceVariable month Integer 0;
+CalendarTime instanceVariable year Integer 0;
+CalendarTime instanceVariable dow Integer 0;
+CalendarTime instanceVariable doy Integer 0;
+CalendarTime instanceVariable isdst Integer 0;
+CalendarTime instanceVariable timeZone Integer 0;
+CalendarTime instanceVariable tzStd String "";
+CalendarTime instanceVariable tzDst String "";
+CalendarTime instanceVariable gmtOff String "";
+CalendarTime instanceVariable haveDst Integer false;
+
+
+
+CalendarTime instanceMethod localTime (void) {
+  "Fills in the reciever's instance variables with the elements
+   of the calendar time in the local time zone.  This method
+   expects that the receiver made a call to utcTime before
+   calling this method."
+  long int utctime, gmtoff_i;
+  char *tz1, *tz2;
+  struct tm tm_struct;
+  Exception new ex;
+
+  utctime = atoi (self value);
+  tzset ();  /* Per posix. */
+  localtime_r (&utctime, &tm_struct);
+  self seconds = tm_struct . tm_sec;
+  self minutes = tm_struct . tm_min;
+  self hours = tm_struct . tm_hour;
+  self dom = tm_struct . tm_mday;
+  self month = tm_struct . tm_mon;
+  self year = tm_struct . tm_year;
+  self dow = tm_struct . tm_wday;
+  self doy = tm_struct . tm_yday;
+  self isdst = tm_struct . tm_isdst;
+
+#ifdef __APPLE__  /* ymmv */
+  self tzStd = tm_struct . tm_zone;
+  self tzDst = tm_struct . tm_zone;
+  if (tm_struct . tm_gmtoff < 0) {
+    self gmtOff printOn "%05d", ((tm_struct. tm_gmtoff / 3600) * 100);
+  } else {
+    self gmtOff printOn "%04d", ((tm_struct . tm_gmtoff / 3600) * 100);
+  }
+  self haveDst = TRUE;
+#else
+  self timeZone = timezone;
+  self tzStd = tzname[0];
+  self tzDst = tzname[1];
+  self gmtOff printOn "%05d", ((timezone / -3600) * 100);
+  self haveDst = daylight;
+#endif
+  
+  
+}
+
+CalendarTime instanceMethod gmTime (void) {
+  "Fills in the reciever's instance variables with the elements
+   of the UTC calendar time.  This method expects that the
+   program made a call to utcTime before calling this method."
+  long int utctime;
+  struct tm tm_struct;
+
+  utctime = atoi (self value);
+  tzset ();
+  gmtime_r (&utctime, &tm_struct);
+  self seconds = tm_struct . tm_sec;
+  self minutes = tm_struct . tm_min;
+  self hours = tm_struct . tm_hour;
+  self dom = tm_struct . tm_mday;
+  self month = tm_struct . tm_mon;
+  self year = tm_struct . tm_year;
+  self dow = tm_struct . tm_wday;
+  self doy = tm_struct . tm_yday;
+  self isdst = tm_struct . tm_isdst;
+
+}
+
+CalendarTime instanceMethod dayName (void) {
+  "Returns a String with the three-letter abbreviated
+   day name represented by the receiver."
+    returnObjectClass String;
+  switch (self dow)
+    {
+    case 0: return "Sun"; break;
+    case 1: return "Mon"; break;
+    case 2: return "Tue"; break;
+    case 3: return "Wed"; break;
+    case 4: return "Thu"; break;
+    case 5: return "Fri"; break;
+    case 6: return "Sat"; break;
+    }
+}
+
+CalendarTime instanceMethod monName (void) {
+  "Returns a String with the three-letter abbreviated
+   month name represented by the receiver."
+    returnObjectClass String;
+  switch (self month)
+    {
+    case 0: return "Jan"; break;
+    case 1: return "Feb"; break;
+    case 2: return "Mar"; break;
+    case 3: return "Apr"; break;
+    case 4: return "May"; break;
+    case 5: return "Jun"; break;
+    case 6: return "Jul"; break;
+    case 7: return "Aug"; break;
+    case 8: return "Sep"; break;
+    case 9: return "Oct"; break;
+    case 10: return "Nov"; break;
+    case 11: return "Dec"; break;
+    }
+}
+
+CalendarTime instanceMethod cTimeString (void) {
+  "Returns a String formatted with the date and time similar
+   to the output of the ctime(3) C function (but without the
+   newline).  The receiver should have called the utcTime method
+   or set its time value in some other way before calling this
+   method, and also either the localTime or gmTime method to
+   translate the UTC time into calendar day and time information."
+  returnObjectClass String;
+  String new str, domStr, hoursStr, minutesStr, secondsStr,
+    yearStr;
+
+  domStr printOn "%02d", self dom;
+  hoursStr printOn "%02d", self hours;
+  minutesStr printOn "%02d", self minutes;
+  secondsStr printOn "%02d", self seconds;
+  yearStr printOn "%04d", self year + 1900;
+
+  str printOn "%s %s %s %s:%s:%s %s",
+    self dayName, self monName, domStr, hoursStr,
+    minutesStr, secondsStr, yearStr;
+  
+  return str;
+}
+
+CalendarTime instanceMethod isoTimeString (void) {
+  "Returns a String with the date and time formatted as 
+  an ISO date and time string The receiver should have 
+  called the utcTime method or set its time value in some 
+  other way before calling this method, and also either 
+  the localTime or gmTime method to translate the UTC time
+  into calendar day and time information."
+  returnObjectClass String;
+  String new str, domStr, hoursStr, minutesStr, secondsStr, yearStr,
+    monStr;
+
+  domStr printOn "%02d", self dom;
+  hoursStr printOn "%02d", self hours;
+  minutesStr printOn "%02d", self minutes;
+  secondsStr printOn "%02d", self seconds;
+  yearStr printOn "%04d", self year + 1900;
+  monStr printOn "%02d", self month;
+
+  str = yearStr + "-" + monStr + "-" + domStr +
+    " " + hoursStr + ":" + minutesStr + ":" + secondsStr + " " +
+    self gmtOff;
+
+  return str;
+}
+
+CalendarTime instanceMethod zoneInfo (void) {
+  "Fills in the receiver's timeZone, tzStd, tzDst, gmtOff, 
+   and daylight instance variables with the system's 
+   current time zone information."
+#ifdef __APPLE__
+   struct tm tm_struct;
+   long int utctime;
+   tzset ();
+   self tzStd = tzname[0];
+   self tzDst = tzname[1];
+   utctime = time (NULL);
+   localtime_r (&utctime, &tm_struct);
+   self timeZone = tm_struct.tm_gmtoff;
+   self haveDst = tm_struct.tm_isdst;
+  if (tm_struct . tm_gmtoff < 0) {
+    self gmtOff printOn "%05d", ((tm_struct. tm_gmtoff / 3600) * 100);
+  } else {
+    self gmtOff printOn "%04d", ((tm_struct . tm_gmtoff / 3600) * 100);
+  }
+#else
+  tzset ();
+  self timeZone = timezone;
+  self tzStd = tzname[0];
+  self tzDst = tzname[1];
+  self gmtOff printOn "%05d", ((timezone / -3600) * 100);
+  self haveDst = daylight;
+#endif
+}
+

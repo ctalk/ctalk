@@ -1,0 +1,423 @@
+/* $Id: TreeNode,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-C-*-*/
+
+/*
+  This file is part of Ctalk.
+  Copyright © 2014-2015, 2018, 2019  Robert Kiesling, rk3314042@gmail.com.
+  Permission is granted to copy this software provided that this copyright
+  notice is included in all source code modules.
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+*/
+
+/*
+ *  TreeNode Class - Basic methods and instance variables to manage
+ *  trees.  
+ * 
+ *  Note: This class is untested with DJGPP.
+ */
+
+#include <stdio.h> 
+#include <ctalk/ctalkdefs.h>
+
+require Collection;
+
+Collection class TreeNode
+"A TreeNode object represents a node in various types of
+tree structures.  A TreeNode has instance variables for
+its content, sets of sibling objects at the same level,
+and child objects at the next lower level in the tree.
+The class also contains methods to add elements to a
+tree, format a tree, and search a tree for a specific
+TreeNode object.";
+
+TreeNode instanceVariable siblings List NULL;
+TreeNode instanceVariable children List NULL;
+TreeNode instanceVariable content String NULL;
+TreeNode instanceVariable levelMargin String "  "
+"Additional margin at each level of the tree to provide
+indented tree levels.";
+TreeNode instanceVariable levelMarginLength Integer 2;
+
+TreeNode classVariable searchResult Symbol NULL;
+
+#include <ctalk/ctalkdefs.h>
+
+TreeNode instanceMethod setContent (Object arg) {
+  "Set the receiver's content instance variable, a String,
+  to the argument, after formatting the argument as a
+  String if necessary."
+  if (!arg is String) {
+    self content = arg asString;
+  } else {
+    self content = arg;
+  }
+}
+
+TreeNode instanceMethod makeSibling (TreeNode sib) {
+  "Add the argument TreeNode to the end of the receiver
+  TreeNode's sibling List."
+  self siblings push sib;
+}
+
+TreeNode instanceMethod addChild (TreeNode child) {
+  "Add the argument TreeNode to the end of the receiver
+  TreeNode's children List."
+  self children push child;
+}
+
+TreeNode instanceMethod __mapChildren (OBJECT *(*methodfn)()) {
+  "Call the argument method over receiver child TreeNode,
+  and recursively over the receiver's child and sibling
+  nodes.  This method is meant to be called recursively
+  by TreeNode : map."
+  OBJECT *tree_elem, *rcvr_obj, *rcvr_obj_p, *(*fn)(), *t, *have_break,
+    *list_elem;
+  int arg_n;
+  METHOD *self_method, *arg_method;
+
+  fn = (OBJECT *(*)())__ctalkRtGetMethodFn ();
+  rcvr_obj = rcvr_obj_p = __ctalk_self_internal ();
+
+  if (((self_method = __ctalkRtGetMethod ()) == NULL) &&
+      ((self_method = __ctalkFindClassMethodByFn (&rcvr_obj, fn, 0))
+       == NULL)) {
+    __ctalkCriticalExceptionInternal (NULL, undefined_method_x, 
+				      "from __mapChildren (Class TreeNode)");
+    return NULL;
+  }
+
+  for (arg_n = 0; self_method -> args[arg_n+1]; arg_n++)
+    ;
+  if (((arg_method = __ctalkFindInstanceMethodByName 
+	(&rcvr_obj_p, ARG_NAME(self_method->args[arg_n]), 0, -1))
+      == NULL) &&
+      ((arg_method = __ctalkFindClassMethodByName 
+	(&rcvr_obj_p, ARG_NAME(self_method->args[arg_n]), 0, -1))
+       == NULL)) {
+    char errormsg[256];
+    xsprintf (errormsg, 
+	     "From __mapChildren (Class TreeNode): %s (Class %s) does not understand method, \"%s.\"",
+	     rcvr_obj_p -> __o_name, 
+	     rcvr_obj_p -> CLASSNAME,
+	     ARG_NAME(self_method->args[arg_n]));
+    __ctalkCriticalExceptionInternal (NULL, undefined_method_x, 
+				      errormsg);
+    return NULL;
+  }
+
+
+  for (t = __LIST_HEAD(rcvr_obj), have_break = NULL; 
+       t && !have_break; t = t -> next) {
+    list_elem = *(OBJECT **) ((t -> instancevars) ? 
+			  t -> instancevars -> __o_value :
+			  (IS_VALUE_INSTANCE_VAR(t) ? 
+			   t -> __o_p_obj -> instancevars -> __o_value :
+			   NULL));
+    if (!IS_OBJECT(list_elem)) {
+      __ctalkCriticalExceptionInternal (NULL, undefined_receiver_x, 
+					"from __mapChildren (Class TreeNode)");
+      return NULL;
+    }
+    have_break = __ctalkInlineMethod (list_elem, arg_method, 0);
+
+    //
+    // The (TreeNode *)<cvar> cast construct is still experimental,
+    // and too lazy for general use until we have more examples.  If 
+    // you use it at all, please use with caution.
+    (TreeNode *)list_elem children __mapChildren methodfn;
+
+    (TreeNode *)list_elem siblings __mapSiblings methodfn;
+
+  }
+
+}
+
+TreeNode instanceMethod __mapSiblings (OBJECT *(*methodfn)()) {
+  "Call the argument method with the receiver TreeNode.  Then
+  map over the receiver's child TreeNodes.
+  This method is meant to be called from TreeNode : map."
+  OBJECT *tree_elem, *rcvr_obj, *rcvr_obj_p, *(*fn)(), *t, *have_break, 
+    *list_elem;
+  int arg_n;
+  METHOD *self_method, *arg_method;
+
+  fn = (OBJECT *(*)())__ctalkRtGetMethodFn ();
+  rcvr_obj = rcvr_obj_p = __ctalk_self_internal ();
+
+  if (((self_method = __ctalkRtGetMethod ()) == NULL) &&
+      ((self_method = __ctalkFindClassMethodByFn (&rcvr_obj, fn, 0))
+       == NULL)) {
+    __ctalkCriticalExceptionInternal (NULL, undefined_method_x, 
+				      "from __mapSiblings (Class TreeNode)");
+    return NULL;
+  }
+
+  for (arg_n = 0; self_method -> args[arg_n+1]; arg_n++)
+    ;
+  if (((arg_method = __ctalkFindInstanceMethodByName 
+	(&rcvr_obj_p, ARG_NAME(self_method->args[arg_n]), 0, -1))
+      == NULL) &&
+      ((arg_method = __ctalkFindClassMethodByName 
+	(&rcvr_obj_p, ARG_NAME(self_method->args[arg_n]), 0, -1))
+       == NULL)) {
+    char errormsg[256];
+    xsprintf (errormsg, 
+	     "From __mapSiblings (Class TreeNode): %s (Class %s) does not understand method, \"%s.\"",
+	     rcvr_obj_p -> __o_name, 
+	     rcvr_obj_p -> CLASSNAME,
+	     ARG_NAME(self_method->args[arg_n]));
+    __ctalkCriticalExceptionInternal (NULL, undefined_method_x, 
+				      errormsg);
+    return NULL;
+  }
+
+
+  for (t = __LIST_HEAD(rcvr_obj), have_break = NULL; 
+       t && !have_break; t = t -> next) {
+    list_elem = *(OBJECT**) ((t -> instancevars) ? 
+			  t -> instancevars -> __o_value :
+			  (IS_VALUE_INSTANCE_VAR(t) ? 
+			   t -> __o_p_obj -> instancevars -> __o_value :
+			   NULL));
+    if (!IS_OBJECT(list_elem)) {
+      __ctalkCriticalExceptionInternal (NULL, undefined_receiver_x, 
+					"from __mapSiblings (Class TreeNode)");
+      return NULL;
+    }
+
+    have_break = __ctalkInlineMethod (list_elem, arg_method, 0);
+
+    eval list_elem children __mapChildren methodfn;
+
+  }
+
+}
+
+TreeNode instanceMethod map (OBJECT *(*methodfn)()) {
+  "Call the argument method with each sibling
+  receiver TreeNode.  This method calls TreeNode : __mapSiblings,
+  which then recursively traverses the tree."
+    OBJECT *tree_elem, *rcvr_obj, *rcvr_obj_p, *(*fn)();
+  int arg_n;
+  METHOD *self_method, *arg_method;
+
+  fn = (OBJECT *(*)())__ctalkRtGetMethodFn ();
+  rcvr_obj = rcvr_obj_p = __ctalk_self_internal ();
+
+  if (((self_method = __ctalkRtGetMethod ()) == NULL) &&
+      ((self_method = __ctalkFindClassMethodByFn (&rcvr_obj, fn, 0))
+       == NULL)) {
+    __ctalkCriticalExceptionInternal (NULL, undefined_method_x, 
+				      "from map (Class TreeNode)");
+    return NULL;
+  }
+
+  for (arg_n = 0; self_method -> args[arg_n+1]; arg_n++)
+    ;
+  if (((arg_method = __ctalkFindInstanceMethodByName 
+	(&rcvr_obj_p, ARG_NAME(self_method->args[arg_n]), 0, -1))
+      == NULL) &&
+      ((arg_method = __ctalkFindClassMethodByName 
+	(&rcvr_obj_p, ARG_NAME(self_method->args[arg_n]), 0, -1))
+       == NULL)) {
+    char errormsg[256];
+    xsprintf (errormsg, 
+	     "From map (Class TreeNode): %s (Class %s) does not understand method, \"%s.\"",
+	     rcvr_obj_p -> __o_name, 
+	     rcvr_obj_p -> CLASSNAME,
+	     ARG_NAME(self_method->args[arg_n]));
+    __ctalkCriticalExceptionInternal (NULL, undefined_method_x, 
+				      errormsg);
+    return NULL;
+  }
+
+  /* This is how to tell the compiler that we want siblings
+     to use a TreeNode method. (The instance var siblings 
+     is a List.) */
+  (TreeNode *)self siblings __mapSiblings methodfn;
+
+}
+
+TreeNode instanceMethod __printChildren (String leftMargin) {
+  "Print the receiver TreeNode's contents to the screen, then
+  recursively print the receiver's child and sibling TreeNodes. 
+  This method is meant to be called recursively by 
+  TreeNode : print."
+  leftMargin += self levelMargin;
+
+  printf ("%s %s\n", leftMargin, self content);
+
+  self children map __printChildren, leftMargin;
+
+  self siblings map __printSiblings, leftMargin;
+
+  leftMargin = leftMargin subString 
+    (0, (leftMargin length - self levelMarginLength));
+
+}
+
+TreeNode instanceMethod __printSiblings (String leftMargin) {
+  "Print the receiver TreeNode to the screen, then print
+  each of the child nodes, and recursively, their child
+  and sibling nodes.  This method is meant to be called
+  by TreeNode : print."
+
+  printf ("%s %s\n", leftMargin, self content);
+
+  self children map __printChildren, leftMargin;
+
+  self siblings map {
+    printf ("%s %s\n", leftMargin, self content);
+    leftMargin += self levelMargin;
+    self children map __printChildren, leftMargin;
+    leftMargin = leftMargin subString 
+      (0, (leftMargin length - self levelMarginLength));
+  }
+}
+
+TreeNode instanceMethod print (void) {
+  "Print the receiver TreeNode's contents to the terminal,
+  then recursively print the node's sibling and
+  child nodes.  Uses the levelMargin and levelMarginLength
+  instance variables to adjust each level's left margin."
+  String new leftMargin;
+
+  printf ("%s\n", self content);
+
+  leftMargin = self levelMargin;
+
+  self children map __printChildren, leftMargin;
+
+  self siblings map __printSiblings, leftMargin;
+
+}
+
+TreeNode instanceMethod __formatChildren (String tree, 
+					  String leftMargin) {
+  "Format the receiver TreeNode's contents to the String
+  given as the first argument, then recursively format
+  the receiver's child and sibling TreeNodes.  This
+  method is meant to be called recursively by TreeNode
+  : format."
+  leftMargin += self levelMargin;
+
+  tree += leftMargin + self content + "\n";
+
+  self children map __formatChildren, tree, leftMargin;
+
+  self siblings map __formatSiblings, tree, leftMargin;
+
+  leftMargin = leftMargin subString 
+    (0, (leftMargin length - self levelMarginLength));
+
+}
+
+TreeNode instanceMethod __formatSiblings (String tree, 
+					  String leftMargin) {
+  "Format the receiver TreeNode's contents to the screen,
+  then print each of the child nodes, and recursively,
+  their child and sibling nodes.  This method is meant
+  to be called by TreeNode : format."
+
+  tree += leftMargin + self content + "\n";
+
+  self children map __formatChildren, tree, leftMargin;
+
+  self siblings map {
+    tree += leftMargin + self content + "\n";
+    leftMargin += self levelMargin;
+    self children map __printChildren, leftMargin;
+    leftMargin = leftMargin subString 
+      (0, (leftMargin length - self levelMarginLength));
+  }
+
+}
+
+TreeNode instanceMethod format (void) {
+  "Format the receiver TreeNode's contents to a String
+  then recursively format the node's sibling and child
+  nodes.  Uses the levelMargin and levelMarginLength
+  instance variables to adjust each level's left
+  margin.  Returns a String object with the formatted
+  tree."
+  String new leftMargin;
+  String new formattedTree;
+  returnObjectClass String;
+
+  formattedTree = self content + "\n";
+
+  leftMargin = self levelMargin;
+
+  self children map __formatChildren, formattedTree, leftMargin;
+
+  self siblings map __formatSiblings, formattedTree, leftMargin;
+
+  return formattedTree;
+}
+
+TreeNode instanceMethod __searchChildren (String searchString) {
+
+  self children map {
+    if (self content == searchString) {
+      self searchResult = self;
+      break;
+    } else {
+      self __searchSiblings searchString;
+      
+      if (self searchResult)
+	break;
+
+      self __searchChildren searchString;
+    }
+  }
+
+}
+
+TreeNode instanceMethod __searchSiblings (String searchString) {
+
+  self siblings map {
+    if (self content == searchString) {
+      self searchResult = self;
+    } else {
+      self __searchChildren searchString;
+
+      if (self searchResult)
+	break;
+
+      self __searchSiblings searchString;
+    }
+  }
+}
+
+TreeNode instanceMethod search (String searchString) {
+  "Search a tree for the TreeNode object with the same
+  content as the String given by the argument, and
+  return the node."
+  searchResult = NULL;
+
+  if (self content == searchString) {
+    *self searchResult = self;
+  } else {
+
+    self __searchSiblings searchString;
+
+    if (self searchResult)
+      return *self searchResult;
+
+    self __searchChildren searchString;
+  }
+  return  *self searchResult;
+}
+

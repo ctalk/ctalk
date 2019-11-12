@@ -1,0 +1,39 @@
+/* $Id: Pen,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-c-*-*/
+
+/*
+  This file is part of Ctalk.
+  Copyright © 2005 - 2012  Robert Kiesling, rk3314042@gmail.com.
+  Permission is granted to copy this software provided that this copyright
+  notice is included in all source code modules.
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+*/
+
+/*
+ *    Pen class.  
+ */
+
+Magnitude class Pen
+"A Pen object defines the width and color of the lines
+that are used to draw on a X11Pane or X11CanvasPane.
+Pen objects also contain an alpha instance variable,
+which can have a range of 0..65535 (0 - 0xffff), which
+defines the object's opacity for drawing routines that
+support alpha channel blending (e.g., the X Render library,
+the GLUT/OpenGL library).";
+Pen instanceVariable width Integer 1;
+Pen instanceVariable colorName String "black";
+Pen instanceVariable alpha Integer 65535;
+

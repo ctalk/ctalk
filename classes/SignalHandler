@@ -1,0 +1,292 @@
+/* $Id: SignalHandler,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-c-*-*/
+
+/*
+  This file is part of Ctalk.
+  Copyright © 2005-2014  Robert Kiesling, rk3314042@gmail.com.
+  Permission is granted to copy this software provided that this copyright
+  notice is included in all source code modules.
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+*/
+
+/*
+ *   SignalHandler Class
+ *
+ *   Some of the setSig* methods are temporarily under construction.
+ */
+
+/*
+ *  Attributes for signal handlers.
+ */
+#define SIG_DEFAULT (1 << 0)
+#define SIG_IGNORE  (1 << 1)
+#define SIG_METHOD  (1 << 2)
+
+#define NULL ((void *)0)
+
+SignalEvent class SignalHandler
+"The SignalHandler class defines signal handler methods
+and objects that can use system defined signal types.";
+
+SignalHandler instanceVariable attributes Integer SIG_DEFAULT;
+SignalHandler instanceVariable handler Symbol 0x0;
+
+SignalHandler instanceMethod new (char *__newHandlerName) {
+  "The SignalHander constructor.  The argument, a String,
+  contains the name of the new object."
+  SignalHandler super new __newHandlerName;
+
+  __ctalkInstanceVarsFromClassObject (__newHandlerName);
+  return __newHandlerName;
+}
+
+SignalHandler instanceMethod setSigNo (Integer signo) {
+  "Set the receiver's sigNo instance variable to the
+  signal given as the argument, an Integer."
+  self addInstanceVariable "sigNo", signo;
+  return self;
+}
+
+SignalHandler instanceMethod setSigHup (void) {
+  "Set the receiver's sigNo instance variable to SIGHUP."
+    self addInstanceVariable "sigNo", __ctalkSystemSignalNumber ("SIGHUP");
+  return self;
+}
+
+SignalHandler instanceMethod setSigInt (void) {
+  "Set the receiver's sigNo instance variable to SIGINT."
+  self addInstanceVariable "sigNo", __ctalkSystemSignalNumber ("SIGINT");
+  return self;
+}
+
+SignalHandler instanceMethod setSigQuit (void) {
+  "Set the receiver's sigNo instance variable to SIGQUIT."
+  self addInstanceVariable "sigNo", __ctalkSystemSignalNumber ("SIGQUIT");
+  return self;
+}
+
+SignalHandler instanceMethod setSigIll (void) {
+  "Set the receiver's sigNo instance variable to SIGILL."
+  self addInstanceVariable "sigNo", __ctalkSystemSignalNumber ("SIGILL");
+  return self;
+}
+
+SignalHandler instanceMethod setSigAbrt (void) {
+  "Set the receiver's sigNo instance variable to SIGABRT."
+  self addInstanceVariable "sigNo", __ctalkSystemSignalNumber ("SIGABRT");
+  return self;
+}
+
+SignalHandler instanceMethod setSigFpe (void) {
+  "Set the receiver's sigNo instance variable to SIGFPE."
+  self addInstanceVariable "sigNo", __ctalkSystemSignalNumber ("SIGFPE");
+  return self;
+}
+
+SignalHandler instanceMethod setSigSegv (void) {
+  "Set the receiver's sigNo instance variable to SIGSEGV."
+  self addInstanceVariable "sigNo", __ctalkSystemSignalNumber ("SIGSEGV");
+  return self;
+}
+
+SignalHandler instanceMethod setSigPipe (void) {
+  "Set the receiver's sigNo instance variable to SIGPIPE."
+  self addInstanceVariable "sigNo", __ctalkSystemSignalNumber ("SIGPIPE");
+  return self;
+}
+
+SignalHandler instanceMethod setSigAlrm (void) {
+  "Set the receiver's sigNo instance variable to SIGALRM."
+  self addInstanceVariable "sigNo", __ctalkSystemSignalNumber ("SIGALRM");
+  return self;
+}
+
+SignalHandler instanceMethod setSigTerm (void) {
+  "Set the receiver's sigNo instance variable to SIGTERM."
+  self addInstanceVariable "sigNo", __ctalkSystemSignalNumber ("SIGTERM");
+  return self;
+}
+
+SignalHandler instanceMethod setSigUsr1 (void) {
+  "Set the receiver's sigNo instance variable to SIGUSR1."
+  self addInstanceVariable "sigNo", __ctalkSystemSignalNumber ("SIGUSR1");
+  return self;
+}
+
+SignalHandler instanceMethod setSigUsr2 (void) {
+  "Set the receiver's sigNo instance variable to SIGUSR2."
+  self addInstanceVariable "sigNo", __ctalkSystemSignalNumber ("SIGUSR2");
+  return self;
+}
+
+SignalHandler instanceMethod setSigChld (void) {
+  "Set the receiver's sigNo instance variable to SIGCHLD."
+  self addInstanceVariable "sigNo", __ctalkSystemSignalNumber ("SIGCHLD");
+  return self;
+}
+
+SignalHandler instanceMethod setSigCont (void) {
+  "Set the receiver's sigNo instance variable to SIGCONT."
+  self addInstanceVariable "sigNo", __ctalkSystemSignalNumber ("SIGCONT");
+  return self;
+}
+
+SignalHandler instanceMethod setSigTstp (void) {
+  "Set the receiver's sigNo instance variable to SIGTSTP."
+  self addInstanceVariable "sigNo", __ctalkSystemSignalNumber ("SIGTSTP");
+  return self;
+}
+
+SignalHandler instanceMethod setSigTtin (void) {
+  "Set the receiver's sigNo instance variable to SIGTTIN."
+  self addInstanceVariable "sigNo", __ctalkSystemSignalNumber ("SIGTTIN");
+  return self;
+}
+
+SignalHandler instanceMethod setSigTtou (void) {
+  "Set the receiver's sigNo instance variable to SIGTTOU."
+  self addInstanceVariable "sigNo", __ctalkSystemSignalNumber ("SIGTTOU");
+  return self;
+}
+
+SignalHandler instanceMethod ignoreSignal (void) {
+  "Set the receiver to ignore signals."
+  Integer new attrVar;
+  OBJECT *signo_var;
+  int signo;
+
+  signo_var = self sigNo;
+  signo = __ctalk_to_c_int (signo_var);
+  if (signo <= 0) {
+    _warning ("Invalid signal number %d.\n", signo);
+  }
+  __ctalkIgnoreSignal (signo);
+  attrVar = SIG_IGNORE;
+  self addInstanceVariable "attributes", attrVar;
+  return self;
+}
+
+SignalHandler instanceMethod defaultHandler (void) {
+  "Set the receiver's handler to the system's default
+  signal handler."
+  Integer new attrVar;
+  OBJECT *signo_var;
+  int signo;
+
+  signo_var = self sigNo;
+  signo = __ctalk_to_c_int (signo_var);
+  if (signo <= 0) {
+    _warning ("Invalid signal number %d.\n", signo);
+  }
+  __ctalkDefaultSignalHandler (signo);
+  attrVar = SIG_DEFAULT;
+  self addInstanceVariable "attributes", attrVar;
+  return self;
+}
+
+#define RCVR_VALUE_OBJ(__o) ((__o)->instancevars ? \
+                             (__o)->instancevars : (__o))
+SignalHandler instanceMethod installHandler (OBJECT *(*sigfn)()) {
+  "Register the method given as the argument as a signal
+  handler.  The method given as the argument must use
+  the C calling convention and use only one argument,
+  the C int that contains the number of the signal."
+  Integer new attrVar;
+  OBJECT *(*fn)(), *rcvr_obj, *rcvr_value_obj, *signo_var;
+  METHOD *self_method, *arg_method;
+  int signo;
+  fn = (OBJECT *(*)())__ctalkRtGetMethodFn ();
+  rcvr_obj = __ctalkRtReceiverObject ();
+
+  rcvr_value_obj = RCVR_VALUE_OBJ(rcvr_obj);
+
+  if (((self_method = __ctalkFindInstanceMethodByFn (&rcvr_value_obj, fn, 0))
+      == NULL) &&
+      ((self_method = __ctalkFindClassMethodByFn (&rcvr_value_obj, fn, 0))
+       == NULL)) {
+    __ctalkCriticalExceptionInternal (NULL, undefined_method_x, 
+			      "from installHandler (Class SignalHandler)");
+    return NULL;
+  }
+  if (((arg_method = __ctalkFindInstanceMethodByName 
+	(&rcvr_value_obj, ARG_NAME(self_method->args[0]), 0, -1))
+      == NULL) &&
+      ((arg_method = __ctalkFindClassMethodByName 
+	(&rcvr_value_obj, ARG_NAME(self_method->args[0]), 0, -1))
+		 == NULL)) {
+    __ctalkCriticalExceptionInternal (NULL, undefined_method_x, 
+			      "from installHandler (Class SignalHandler)");
+    return NULL;
+  }
+  signo_var = self sigNo;
+  signo = __ctalk_to_c_int (signo_var);
+  __ctalkInstallHandler (signo, arg_method -> cfunc);
+  attrVar = SIG_METHOD;
+  self addInstanceVariable "attributes", attrVar;
+  return self;
+}
+
+SignalHandler instanceMethod raiseSignal (void) {
+  "Raise the signal defined by the receiver."
+  OBJECT *signo_var;
+  int signo;
+  signo_var = self sigNo;
+  signo = __ctalk_to_c_int(signo_var);
+  raise (signo);
+  return self;
+}
+
+SignalHandler instanceMethod signalProcessID (int processid) {
+  "Signal the process with the process ID given as the
+  argument with the signal defined by the receiver."
+  OBJECT *signo_var;
+  int signo;
+  signo_var = self sigNo;
+  signo = __ctalk_to_c_int(signo_var);
+  kill (__ctalk_to_c_int(ARG(0)), signo);
+  return self;
+}
+
+SignalHandler instanceMethod sigName (int signo) {
+  "Return the name of the signal whose number is given
+   as the argument."
+    returnObjectClass String;
+  return __ctalkSystemSignalName (signo);
+}
+
+SignalHandler instanceMethod sigNum (String signame) {
+  "Return the numeric value of the signal whose name is given
+   as the argument."
+    returnObjectClass Integer;
+  return __ctalkSystemSignalNumber (signame);
+}
+
+SignalHandler instanceMethod waitStatus (Integer childPID,
+					 Integer returnValOut,
+					 Integer sigNumOut,
+					 Integer errnoOut) {
+  "Returns a  change in status of the process identified
+   by childPID, if any.  Sets returnValOut if the child process
+   exited normally, or sigNumOut if the child process was
+   terminated by a signal, or errnoOut if an error occured."
+    int r, ret_val_out, sig_no_out, errno_out;
+    returnObjectClass Integer;
+    r = __ctalkProcessWait (childPID, &ret_val_out, &sig_no_out,
+			    &errno_out);
+    returnValOut = ret_val_out;
+    sigNumOut = sig_no_out;
+    errno_out = errnoOut;
+    return r;
+}

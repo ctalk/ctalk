@@ -1,0 +1,454 @@
+/* $Id: X11PaneDispatcher,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-c-*-*/
+
+/*
+  This file is part of Ctalk.
+  Copyright © 2005 - 2019  Robert Kiesling, rk3314042@gmail.com.
+  Permission is granted to copy this software provided that this copyright
+  notice is included in all source code modules.
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+*/
+
+/*
+ *    X11PaneDispatcher class.
+ */
+
+/*
+ *  The __ctalkX11... functions are still implemented, but they are
+ *  deprecated - there are still instance variables hard wired in
+ *  x11lib.c.
+ */
+
+X11Pane class X11PaneDispatcher
+"A X11PaneDispatcher object is responsible for handling
+events between the display and keyboard and mouse, and
+the main window of the program and its subwindows.
+X11PaneDispatcher class maintains the method callbacks
+that the application uses to respond to various types
+of events.  The class InputEvent contains the
+information for each input event, which the main
+window's X11TerminalStream object receives from the
+low-level interface with the display, keyboard, and
+mouse, and adds the events to the application's message
+queue, which a X11PaneDispatcher object then reads for
+each event.";
+
+/*
+ *  Note that, when checking for the presence of a method handler
+ *  either in the receiver or in a subPane, the methods below use
+ *  "isInstanceMethod" from Object class.  Setting method handlers is
+ *  done with X11PaneDispatcher : setMethodHandler, and the actual
+ *  implementation of the handler instance variables and handler
+ *  API is likely to change, so subclasses should use these methods
+ *  and protocols.  Refer to the X11PaneDispatcher section of 
+ *  the Ctalk Language Reference.
+ *
+ *  Note also that the message-passing protocol between the main
+ *  windows and sub panes is not completely pasted down, which means
+ *  that memory leaks are still possible.  An app draws on its main
+ *  memory pool, and after startup memory use increases slightly, as
+ *  the methods' user objects are allocated and registered with each method.  
+ *  Then memory usage levels off.  (Watch the parent process with top(1) 
+ *  for a while.)  It is also difficult to determine, after exit, whether
+ *  the memory being used by the X resources is returned directly by
+ *  the X libraries, so before/after checks with free(1) for dropped 
+ *  objects are not always reliable, depending on the system load, nor 
+ *  with vmstat(1) either.
+ *
+ */
+X11PaneDispatcher instanceVariable hasFocus Integer 0;
+X11PaneDispatcher instanceVariable handleMove Method NULL;
+X11PaneDispatcher instanceVariable handleResize Method NULL;
+X11PaneDispatcher instanceVariable handleKbdInput Method NULL;
+X11PaneDispatcher instanceVariable handlePointerInput Method NULL;
+X11PaneDispatcher instanceVariable handlePointerMotion Method NULL;
+X11PaneDispatcher instanceVariable handleDestroy Method NULL;
+X11PaneDispatcher instanceVariable handleExpose Method NULL;
+X11PaneDispatcher instanceVariable handleSelectionRequest Method NULL;
+X11PaneDispatcher instanceVariable handleSelectionClear Method NULL;
+X11PaneDispatcher instanceVariable containerMode String NULL;
+X11PaneDispatcher instanceVariable subPaneInfo List NULL;
+
+X11PaneDispatcher instanceMethod setMethodHandler (String __handlerType,
+						 Method __handlerMethod) {
+  "Set the method handler of the receiver to the handler
+  type given as the first argument.  The second
+  argument is the subpane method that handles the
+  event.
+   
+  The handler method should take two arguments: the
+  subpane object and the event from the top-level
+  pane's event stream."
+  
+  Exception new unknownHandlerTypeException;
+  String new errorStr;
+  OBJECT *method_arg;
+  method_arg = __handlerMethod;
+  if (__handlerType == "resize") {
+    xstrcpy (method_arg->__o_name, "handleResize");
+    __ctalkAddInstanceVariable (self, "handleResize", method_arg);
+  } else if (__handlerType == "move") {
+    xstrcpy (method_arg->__o_name, "handleMove");
+    __ctalkAddInstanceVariable (self, "handleMove", method_arg);
+  } else if (__handlerType == "kbdinput") {
+    xstrcpy (method_arg->__o_name, "handleKbdInput");
+    __ctalkAddInstanceVariable (self, "handleKbdInput", method_arg);
+  } else if (__handlerType == "destroy") {
+    xstrcpy (method_arg->__o_name, "handleDestroy");
+    __ctalkAddInstanceVariable (self, "handleDestroy", method_arg);
+  } else if (__handlerType == "expose") {
+    xstrcpy (method_arg->__o_name, "handleExpose");
+    __ctalkAddInstanceVariable (self, "handleExpose", method_arg);
+  } else if (__handlerType == "pointerinput") {
+    xstrcpy (method_arg->__o_name, "handlePointerInput");
+    __ctalkAddInstanceVariable (self, "handlePointerInput", 
+				method_arg);
+  } else if (__handlerType == "pointermotion") {
+    xstrcpy (method_arg->__o_name, "handlePointerMotion");
+    __ctalkAddInstanceVariable (self, "handlePointerMotion", 
+				method_arg);
+  } else if (__handlerType == "selectionrequest") {
+    xstrcpy (method_arg->__o_name, "handleSelectionRequest");
+    __ctalkAddInstanceVariable (self, "handleSelectionRequest", 
+				method_arg);
+  } else if (__handlerType == "selectionclear") {
+    xstrcpy (method_arg->__o_name, "handleSelectionClear");
+    __ctalkAddInstanceVariable (self, "handleSelectionClear",
+				method_arg);
+  } else {
+    errorStr printOn "Undefined handler type, \"%s\"";
+    unknownHandlerTypeException raiseCriticalException
+      INVALID_OPERAND_X, errorStr;
+  }
+}
+
+X11PaneDispatcher instanceMethod subPaneExpose (Object __subPane, 
+					      InputEvent __event) {
+  "Dispatch an Expose event to the subpanes of the
+receiver pane."
+    if (__subPane isInstanceMethod "subPaneExpose") {
+      __subPane methodObjectMessage __subPane handleExpose __subPane,
+	__event;
+    } else {
+      /*
+       * Else nothing...  there's no guarantee that the 
+       *  container window has a backing store buffer 
+       *  associated with it.
+       */
+    }
+  return NULL;
+}
+
+X11PaneDispatcher instanceMethod subPaneResize (Object __subPane, 
+					      InputEvent __event) {
+  "Dispatch an Resize event to the subpanes of the
+receiver pane."
+    X11Pane new containerPane;
+  self size x = __event xEventData3;
+  self size y = __event xEventData4;
+  containerPane = *self container;
+  XResizeWindow (containerPane xDisplay, containerPane xWindowID,
+		 self size x, self size y);
+  if (__subPane isInstanceMethod "subPaneResize") {
+    __subPane methodObjectMessage __subPane handleResize, __subPane,
+      __event;
+  }
+  return NULL;
+}
+
+X11PaneDispatcher instanceMethod subPaneSelectionRequest (Object __subPane,
+							  InputEvent __event) {
+  "Send a selection request event to the receiver subpanes."
+  if (__subPane isInstanceMethod "subPaneSelectionRequest") {
+    __subPane methodObjectMessage __subPane handleSelectionRequest,
+      __subPane,  __event;
+  }
+}
+
+X11PaneDispatcher instanceMethod subPaneSelectionClear (Object __subPane,
+							  InputEvent __event) {
+  "Send a selection request event to the receiver subpanes."
+  if (__subPane isInstanceMethod "subPaneSelectionClear") {
+    __subPane methodObjectMessage __subPane handleSelectionClear,
+      __subPane,  __event;
+  }
+}
+
+X11PaneDispatcher instanceMethod subPaneDestroy (Object __subPane, 
+						 InputEvent __event) {
+  "Dispatch an destroy event to the subpanes of the
+receiver pane."
+  if (__subPane isInstanceMethod "subPaneDestroy") {
+    __subPane handleDestroy withArg __subPane;
+    __subPane handleDestroy withArg __event;
+    __subPane methodObjectMessage __subPane handleDestroy;
+  }
+  return NULL;
+}
+
+X11PaneDispatcher instanceMethod subPaneMove (Object __subPane, 
+					      InputEvent __event) {
+  "Dispatch a move event to the subpanes of the receiver
+   pane."
+  self origin x += __event xEventData1;
+  self origin y += __event xEventData2;
+
+  (X11Pane *)(*self container) origin x = self origin x;
+  (X11Pane *)(*self container) origin y = self origin y;
+
+  XMoveWindow ((X11Pane *)(*self container) xDisplay,
+	       (X11Pane *)(*self container) xWindowID,
+		 self origin x, self origin y);
+
+  if (self containerMode == "full") {
+    if (__subPane isInstanceMethod "subPaneMove") {
+      fprintf (stderr, "subPaneMove subPane handler!\n");
+    } else {
+      __subPane origin x = 0;
+      __subPane origin y = 0;
+    }
+  } else {
+    fprintf (stderr, "unknown container mode!\n");
+  }
+  return NULL;
+}
+
+X11PaneDispatcher instanceMethod subPaneKbdInput (Object __subPane,
+						  InputEvent __event) {
+  "Send a keyboard input event to the receiver's subpanes."
+
+    if (__subPane isInstanceMethod "subPaneKbdInput") {
+    __subPane methodObjectMessage __subPane handleKbdInput,
+      __subPane, __event;
+  }
+  return NULL;
+}
+
+X11PaneDispatcher instanceMethod subPanePointerInput (Object __subPane,
+						  InputEvent __event) {
+  "Send ButtonPress and ButtonRelease events to the
+receiver's subpanes."
+  if (__subPane isInstanceMethod "subPanePointerInput") {
+    __subPane methodObjectMessage __subPane handlePointerInput, __subPane,
+      __event;
+  }
+  return NULL;
+}
+
+/*
+ *  Still under construction.
+ */
+X11PaneDispatcher instanceMethod subPanePointerMotion (Object __subPane,
+						  InputEvent __event) {
+  "Send pointer motion events to the receiver's subpanes."
+  if (__subPane isInstanceMethod "subPanePointerMotion") {
+    __subPane handlePointerMotion withArg __subPane;
+    __subPane handlePointerMotion withArg __event;
+    __subPane methodObjectMessage __subPane handlePointerMotion;
+  }
+  return NULL;
+}
+
+X11PaneDispatcher instanceMethod new (String __paneName) {
+  "The X11PaneDispatcher constructor.  The argument, a
+  String, contains the name of the new object.  Also
+  initializes the method empty methods."
+  X11PaneDispatcher super new __paneName;
+  Method new resizeMethod;
+  Method new moveMethod;
+  Method new kbdInputMethod;
+  Method new pointerInputMethod;
+  Method new pointerMotionMethod;
+  Method new destroyMethod;
+  Method new exposeMethod;
+  Method new selectionClearMethod;
+  __paneName containerMode = "full";
+
+  resizeMethod definedInstanceMethod "X11PaneDispatcher", "subPaneResize";
+  moveMethod definedInstanceMethod "X11PaneDispatcher", "subPaneMove";
+  kbdInputMethod definedInstanceMethod "X11PaneDispatcher", 
+    "subPaneKbdInput";
+  pointerInputMethod definedInstanceMethod "X11PaneDispatcher", 
+    "subPanePointerInput";
+  pointerMotionMethod definedInstanceMethod "X11PaneDispatcher", 
+    "subPanePointerMotion";
+  destroyMethod definedInstanceMethod "X11PaneDispatcher",
+    "subPaneDestroy";
+  exposeMethod definedInstanceMethod "X11PaneDispatcher",
+    "subPaneExpose";
+  selectionClearMethod definedInstanceMethod "X11PaneDispatcher",
+    "subPaneSelectionClear";
+
+  __paneName setMethodHandler "resize", resizeMethod;
+  __paneName setMethodHandler "move", moveMethod;
+  __paneName setMethodHandler "kbdinput", kbdInputMethod;
+
+  __paneName setMethodHandler "pointerinput", pointerInputMethod;
+  __paneName setMethodHandler "pointermotion", pointerMotionMethod;
+
+  __paneName setMethodHandler "destroy", destroyMethod;
+  __paneName setMethodHandler "expose", exposeMethod;
+  __paneName setMethodHandler "selectionclear", selectionClearMethod;
+
+  return __paneName;
+}
+
+X11PaneDispatcher instanceMethod attachTo (Object parentPane) {
+  "Attach the receiver pane to the parent pane given as
+  the argument.  This parent pane should be a X11Pane
+  object."
+  if (!self value is X11PaneDispatcher) {
+    if (parentPane is X11PaneDispatcher) {
+      __ctalkCreateX11SubWindow (parentPane container, self);
+    } else {
+      __ctalkCreateX11SubWindow (parentPane, self);
+    }
+  }
+  self container = parentPane;
+  self xWindowID = parentPane xWindowID;
+  self origin x = 0;
+  self origin y = 0;
+  self size x = parentPane size x;
+  self size y = parentPane size y;
+  parentPane children pushItemRef self;
+  return NULL;
+}
+
+/*
+ *  These parameters can be written into a subPaneInfo record,
+ *  a String, as:
+ *
+ *  object  - a reference to the subpane object.
+ *  orgX    - If given as percentages, then set propX and propY
+ *  orgY
+ *  sizeX
+ *  sizeY
+ *  propX    - Is proportional to horizontal parent size
+ *  propY    - Is proportional to vertical parent size.
+ *  extendX  - Can stretch horizontally.
+ *  extendY  - Can stretch vertically.
+ *  border   - draw a border around the subpane.
+ *  anchor   - n, s, e, w, nw, ne, se, sw, or none.
+ *  canfocus - From the subPane's canTakeFocus instance variable.
+ */
+X11PaneDispatcher instanceMethod attachToGrid (Object parentPane,
+					       String orgX,
+					       String orgY,
+					       String sizeX,
+					       String sizeY,
+					       Boolean extendX,
+					       Boolean extendY,
+					       Boolean border,
+					       String anchor) {
+  "Attach the receiver subpane to the parent pane given as
+  an argument with the coordinates given as arguments.
+  This method is still under construction."
+  if (!self value is X11PaneDispatcher) {
+    if (self parentPane is X11PaneDispatcher) {
+      __ctalkCreateX11SubWindow (parentPane container, self);
+    } else {
+      __ctalkCreateX11SubWindow (parentPane, self);
+    }
+  }
+  self container become parentPane;
+  self size x = parentPane size x;
+  self size y = parentPane size y;
+  parentPane subPane = self;
+  return NULL;
+}
+
+X11PaneDispatcher instanceMethod handleSubPaneEvent (InputEvent __e) {
+  "Handle a X Window System event provided by the
+  reciever's parent pane, dispatching the event to each
+  of the receiver's subpanes."
+  Exception new undefinedEventClassException;
+  String new errorStr;
+
+  switch (__e eventClass)
+    {
+    case RESIZENOTIFY:
+      self children map {
+	self methodObjectMessage self handleResize, self, __e;
+      }
+      break;
+    case MOVENOTIFY:
+      self children map {
+	if (self handleMove value) {
+	  self methodObjectMessage self handleMove, self, __e;
+	}
+      }
+      break;
+    case EXPOSE:
+      self children map {
+	self methodObjectMessage self handleExpose, self, __e;
+      }
+      break;
+    case MAPNOTIFY:
+      break;
+    case CONFIGURENOTIFY:
+      self children map {
+	self methodObjectMessage self handleExpose, self, __e;
+      }
+      break;
+    case KEYRELEASE:
+    case KEYPRESS:
+      self children map {
+	self methodObjectMessage self handleKbdInput, self, __e;
+      }
+      break;
+    case BUTTONPRESS:
+    case BUTTONRELEASE:
+      self children map {
+	self methodObjectMessage self handlePointerInput, self, __e;
+      }
+      break;
+    case MOTIONNOTIFY:
+      self children map {
+	self methodObjectMessage self handlePointerMotion, self, __e;
+      }
+      break;
+    case WINDELETE:
+      self children map {
+	self methodObjectMessage self handleDestroy, self, __e;
+      }
+      /*
+       *  We can't simply say, "self container deleteAndClose,"
+       *  here, because, a) container's value is declared as an 
+       *  Object, and looking up methods in variables' member
+       *  class raises all sorts of havoc; and b) the 
+       *  X11Pane : deleteAndClose method can be a 
+       *  forward reference, which we haven't yet dealt with.
+       * 
+       *  The main window gets closed in X11Pane : deleteAndClose.
+       */
+      break;
+    case SELECTIONREQUEST:
+      /* This is all handled internally for now, and only in the
+	 edittext.c library. */
+      break;
+    case SELECTIONCLEAR:
+      self children map {
+	self methodObjectMessage self handleSelectionClear, self, __e;
+      }
+      break;
+    default:
+      errorStr printOn "Undefined event class %d", __e eventClass value;
+      undefinedEventClassException raiseCriticalException 
+ 	INVALID_OPERAND_X, errorStr;
+      break;
+    }
+  return NULL;
+}
+

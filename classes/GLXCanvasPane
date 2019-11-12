@@ -1,0 +1,801 @@
+/* $Id: GLXCanvasPane,v 1.23 2019/11/11 20:21:51 rkiesling Exp $ -*-c-*-*/
+
+/*
+  This file is part of Ctalk.
+  Copyright © 2018, 2019  Robert Kiesling, rk3314042@gmail.com.
+  Permission is granted to copy this software provided that this copyright
+  notice is included in all source code modules.
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+*/
+
+/* GLXCanvasPane Class */
+
+X11Pane class GLXCanvasPane;
+
+GLXCanvasPane instanceVariable visualInfoPtr Symbol NULL
+"A pointer to the XVisualInfo structure that is created when
+the GLXCanvasPane object's window is created.";
+GLXCanvasPane instanceVariable displayPtr Symbol NULL
+"A pointer to the display handle that the X server provides
+to the application.";
+GLXCanvasPane instanceVariable glxContextPtr Symbol NULL
+"A pointer to the GLX context that is created when the
+GLXCanvasPane object's window is mapped to the display.";
+GLXCanvasPane instanceVariable colormap Integer 0
+"The resource ID of the default colormap of the current
+display and screen.";
+
+/* 
+ *  Instance variables used to select visual parameters. 
+ *  Refer to the GLXCanvasPane class docs and the 
+ *  glXSelectVisual(3) manual page.
+*/
+GLXCanvasPane instanceVariable visualDoubleBuffer Boolean TRUE
+"If true, selects a double-buffered GLX visual.  If false,
+selects a single buffer visual.";
+GLXCanvasPane instanceVariable visualRGBA Boolean TRUE
+"If true, selects a TrueColor or DirectColor visual.  If false,
+selects a PseudoColor or StaticColor visual.";
+GLXCanvasPane instanceVariable visualDepthSize Integer 24
+"If > 0, selects the size of the visual's depth buffer.";
+GLXCanvasPane instanceVariable visualBufferSize Integer 0
+"Defines the size of the color index buffer if > 0.";
+GLXCanvasPane instanceVariable visualStereo Boolean FALSE
+"If true, selects a stereo visual.";
+GLXCanvasPane instanceVariable visualAuxBuffers Integer 0
+"If > 0, selects the minimum number of the visual's
+auxiliary buffers.";
+GLXCanvasPane instanceVariable visualRedSize Integer 0
+"Selects the minimum size of the visual's red buffer if > 0.";
+GLXCanvasPane instanceVariable visualGreenSize Integer 0
+"Selects the minimum size of the visual's green buffer if > 0.";
+GLXCanvasPane instanceVariable visualBlueSize Integer 0
+"Selects the minimum size of the visual's blue buffer if > 0.";
+GLXCanvasPane instanceVariable visualAlphaSize Integer 0
+"Selects the minimum size of the visual's blue buffer if > 0.";
+GLXCanvasPane instanceVariable visualStencilPlanes Integer 8
+"If > 0, selects the number of bitplanes available in the
+stencil buffer.";
+GLXCanvasPane instanceVariable visualRedAccumSize Integer 0
+"Selects the minimum size of the visual's red accumulator 
+buffer if > 0.";
+GLXCanvasPane instanceVariable visualGreenAccumSize Integer 0
+"Selects the minimum size of the visual's green accumulator
+buffer if > 0.";
+GLXCanvasPane instanceVariable visualBlueAccumSize Integer 0
+"Selects the minimum size of the visual's blue accumulator 
+buffer if > 0.";
+GLXCanvasPane instanceVariable visualAlphaAccumSize Integer 0
+"Selects the minimum size of the visual's blue accumulator
+buffer if > 0.";
+
+/* these are our possible shiftState values */
+#define shiftStateShift (1 << 0)
+#define shiftStateCtrl  (1 << 1)
+#define shiftStateAlt   (1 << 2)
+GLXCanvasPane instanceVariable shiftState Integer 0
+"Records whether any of the Shift, Control, or Alt keys
+are currenly pressed.  Refer to the GLXCanvasPane documentation
+for information about how to interpret this value.";
+
+/* these are our buttonState values */
+#define buttonStateButton1 (1 << 0)
+#define buttonStateButton2 (1 << 1)
+#define buttonStateButton3 (1 << 2)
+#define buttonStateButton4 (1 << 3)
+#define buttonStateButton5 (1 << 4)
+GLXCanvasPane instanceVariable buttonState Integer 0
+"Records whether any mouse button keys are currently
+pressed. Refer to the GLXCanvasPane documentation for
+information about how to interpret this value.";
+
+/* dimensions of a X font selected with useXFont (read only) */
+GLXCanvasPane instanceVariable xLineHeight Integer 0
+"The line height in pixels of a X font that has been selected
+by useXFont (read only).";
+GLXCanvasPane instanceVariable xMaxCharWidth Integer 0
+"The maximum width in pixels of a X font's characters for
+a font that has been selected by useXFont (read only).";
+
+#include <sys/time.h>
+
+struct itimerval interval_timer;
+struct itimerval anim_timer;
+
+static void *texel_data_out_i;
+
+GLXCanvasPane instanceVariable timerMSec Integer 1
+"Contains the interval in milliseconds to wait between
+onTimerTick callbacks.";
+
+/*
+ *  Virtual Method objects for X event callbacks.
+ */
+GLXCanvasPane instanceVariable keyPressHandler Method NULL
+"The method that handles KeyPress events that the GUI sends
+to the program's window" ;
+GLXCanvasPane instanceVariable exposeHandler Method NULL
+"Defines the method that is called each time the window
+receives an Expose event from the display.";
+GLXCanvasPane instanceVariable idleHandler Method NULL
+"Defines a method that is called when the program is not
+processing display events.";
+GLXCanvasPane instanceVariable timerTickHandler Method NULL
+"The callback method that is executed when the classes'
+interval timer reaches 0.";
+GLXCanvasPane instanceVariable animationHandler Method NULL
+"Defines the callback method that is executed 24 times a second.";
+GLXCanvasPane instanceVariable buttonPressHandler Method NULL
+"Defines the callback method that is executed when a mouse button
+is pressed.";
+GLXCanvasPane instanceVariable resizeHandler Method NULL
+"Defines the callback method that is executed when the window
+is resized.";
+GLXCanvasPane instanceVariable pointerMotionHandler Method NULL
+"Defines the callback method that is executed when the mouse
+pointer moves.";
+
+GLXCanvasPane instanceMethod onButtonPress (String methodName) {
+  "Sets the receiver's buttonPressHandler instance variable to the
+   callback method named by the argument.  The callback method
+   must be a member of the GLXCanvasPane class."
+  Method new handlerMethod;
+  handlerMethod definedInstanceMethod "GLXCanvasPane", methodName;
+  handlerMethod setCallbackName "buttonPressHandler";
+  self addInstanceVariable "buttonPressHandler", handlerMethod;
+}
+
+GLXCanvasPane instanceMethod onPointerMotion (String methodName) {
+  "Sets the receiver's pointerMotionHandler instance variable to the
+   callback method named by the argument.  The callback method
+   must be a member of the GLXCanvasPane class."
+  Method new handlerMethod;
+  handlerMethod definedInstanceMethod "GLXCanvasPane", methodName;
+  handlerMethod setCallbackName "pointerMotionHandler";
+  self addInstanceVariable "pointerMotionHandler", handlerMethod;
+}
+
+GLXCanvasPane instanceMethod onIdle (String methodName) {
+  "Sets the receiver's idleHandler instance variable to the
+   callback method named by the argument.  The callback method
+   must be a member of the GLXCanvasPane class."
+  Method new handlerMethod;
+  handlerMethod definedInstanceMethod "GLXCanvasPane", methodName;
+  handlerMethod setCallbackName "idleHandler";
+  self addInstanceVariable "idleHandler", handlerMethod;
+}
+
+GLXCanvasPane instanceMethod onKeyPress (String methodName) {
+  "Sets the receiver's keyPressHandler instance variable to the
+   callback method named by the argument.  The callback method
+   must be a member of the GLXCanvasPane class."
+  Method new handlerMethod;
+  handlerMethod definedInstanceMethod "GLXCanvasPane", methodName;
+  handlerMethod setCallbackName "keyPressHandler";
+  self addInstanceVariable "keyPressHandler", handlerMethod;
+}
+
+GLXCanvasPane instanceMethod onExpose (String methodName) {
+  "Sets the receiver's exposeHandler instance variable to the
+   callback method named by the argument.  The callback method
+   must be a member of the GLXCanvasPane class."
+  Method new handlerMethod;
+  handlerMethod definedInstanceMethod "GLXCanvasPane", methodName;
+  handlerMethod setCallbackName "exposeHandler";
+  self addInstanceVariable "exposeHandler", handlerMethod;
+}
+
+GLXCanvasPane instanceMethod onResize (String methodName) {
+  "Sets the receiver's resizeHandler instance variable to the
+   callback method named by the argument.  The callback method
+   must be a member of the GLXCanvasPane class."
+  Method new handlerMethod;
+  handlerMethod definedInstanceMethod "GLXCanvasPane", methodName;
+  handlerMethod setCallbackName "resizeHandler";
+  self addInstanceVariable "resizeHandler", handlerMethod;
+}
+
+GLXCanvasPane instanceMethod onTimerTick (String methodName) {
+  "Sets the receiver's timerTickHandler instance variable to
+   the method given as the argument.  Also initializes the
+   tick timer counter with the interval defined in the
+   timerMSec instance variable."
+  Method new handlerMethod;
+  int timer_usec;
+  handlerMethod definedInstanceMethod "GLXCanvasPane", methodName;
+  handlerMethod setCallbackName "timerTickHandler";
+  self addInstanceVariable "timerTickHandler", handlerMethod;
+  timer_usec = self timerMSec * 1000;
+  interval_timer.it_interval.tv_usec = timer_usec;
+  interval_timer.it_interval.tv_sec = 0;
+  interval_timer.it_value.tv_usec = 0;
+  interval_timer.it_value.tv_sec = 0;
+  setitimer (ITIMER_REAL, &interval_timer, NULL);
+}
+
+GLXCanvasPane instanceMethod onAnimation (String methodName) {
+  "Sets the receiver's timerTickHandler instance variable to
+   the method given as the argument.  Also initializes the
+   animation counter to execute the callback 24 times per
+   second."
+  Method new handlerMethod;
+  handlerMethod definedInstanceMethod "GLXCanvasPane", methodName;
+  handlerMethod setCallbackName "animationHandler";
+  self addInstanceVariable "animationHandler", handlerMethod;
+  anim_timer.it_interval.tv_usec = 41666;
+  anim_timer.it_interval.tv_sec = 0;
+  anim_timer.it_value.tv_usec = 0;
+  anim_timer.it_value.tv_sec = 0;
+  setitimer (ITIMER_REAL, &anim_timer, NULL);
+}
+
+GLXCanvasPane instanceMethod initialize (int x_size, int y_size) {
+  "Initialize the receiver object's window.  The arguments
+  are Integers with the window's width and height.
+  
+  This method uses the window manager to position the
+  window on the display.  The other forms of initialize
+  allow users and applications to determine the
+  window's placement."
+
+  self origin x = 0;
+  self origin y = 0;
+  self size x = x_size;
+  self size y = y_size;
+  self cursor x = 1;
+  self cursor y = 1;
+  self borderWidth = 0;
+
+  __ctalkCreateGLXMainWindow (self);
+  return self;
+}
+
+GLXCanvasPane instanceMethod initialize (int x_org, int y_org,
+					 int x_size, int y_size) {
+  "Initialize the receiver object's window.  The arguments
+  are Integers with the x and y coordinates of the
+  window's upper left-hand corner, and the window's
+  width and height.
+  
+  This method is here mainly for use with older
+  programs, or for programs that set the window's
+  position themselves.  Otherwise, use the form of
+  initialize that takes the program's geometry flags as
+  an argument, and let window manager position the
+  window.
+  
+  If you don't want to worry about the window position
+  at all, use zero as the X and Y arguments, and let
+  the window system determine the window placement."
+
+  self origin x = x_org;
+  self origin y = y_org;
+  self size x = x_size;
+  self size y = y_size;
+  self cursor x = 1;
+  self cursor y = 1;
+  self borderWidth = 0;
+
+  __ctalkCreateGLXMainWindow (self);
+
+  return self;
+}
+
+GLXCanvasPane instanceMethod initialize (int x_org, int y_org,
+					 int x_size, int y_size,
+					 int geom_flags) {
+  "Initialize the receiver object's window.  The arguments
+  are Integers with the x and y coordinates of the
+  window's upper left-hand corner, and the window's
+  width and height.
+  
+  The fifth argument, geomFlags, provides hints about
+  window placement.  Normally these are the values
+  provided by the Application : parseX11Geometry
+  method.  When creating the window, the method uses
+  __ctalkX11SetSizeHints () and
+  __ctalkCreateGLXMainWindow () to set the actual
+  window to the X server's actual placement, which
+  includes window frames and other decorations.
+  
+  This method does not set the pane's origin instance
+  variable itself; it uses the x and y coordinates as
+  hints to the window manager. If you want the program
+  to specify the window origin, use the
+  parseX11Geometry method to provide the position on
+  the command line."
+  
+  unsigned int win_id;
+  int x_ret, y_ret, width_ret, height_ret, win_grav_ret, flags_ret;
+
+  self borderWidth = 0;
+
+  self size x = x_size;
+  self size y = y_size;
+
+  __ctalkX11SetSizeHints (x_org, y_org, x_size, y_size, geom_flags);
+
+  win_id = __ctalkCreateGLXMainWindow (self);
+
+  __ctalkX11GetSizeHints (win_id, &x_ret, &y_ret, &width_ret, &height_ret,
+			  &win_grav_ret, &flags_ret);
+
+  __ctalkX11FreeSizeHints ();
+
+  self size x = width_ret;
+  self size y = height_ret;
+
+  self cursor x = 1;
+  self cursor y = 1;
+
+  return self;
+}
+
+GLXCanvasPane instanceMethod map (void) {
+  "Maps the receiver pane's window on the display, and creates
+   a GLX context for the window, and makes the GLX context current."
+  __ctalkMapGLXWindow (self);
+  return NULL;
+}
+
+GLXCanvasPane instanceMethod deleteAndClose (void) {
+  "Releases the receiver pane's GLX context and deletes
+   the pane's X window, and shuts down the application's
+   X11 input client."
+  __ctalkCloseGLXPane (self);
+  return NULL;
+}
+
+GLXCanvasPane instanceMethod swapBuffers (void) {
+  "Swaps the receiver pane's internal rendering buffer
+   with the window's visible buffer."
+  __ctalkGLXSwapBuffers (self);
+  return NULL;
+}
+
+GLXCanvasPane instanceMethod title (String title) {
+  XStoreName (self displayPtr, self xWindowID, title);
+}
+
+#include <X11/Xlib.h>
+#include <GL/glx.h>
+
+extern Atom wm_delete_window;
+
+GLXCanvasPane instanceMethod run (void) {
+  Display *display;
+  XEvent xev;
+  int keysym, timer_usec;
+  int x_org, y_org, x_size, y_size;
+
+  display = self displayPtr;
+
+  while (TRUE) {
+
+    getitimer (ITIMER_REAL, &interval_timer);
+    getitimer (ITIMER_REAL, &anim_timer);
+
+    if (XPending (display)) {
+      XNextEvent (display, &xev);
+
+      switch (xev.type)
+	{
+	case Expose:
+	  if (self exposeHandler isInitialized) {
+	    self exposeHandler withArg xev.xexpose.count;
+	    self methodObjectMessage self exposeHandler;
+	  } else {
+	    self swapBuffers;
+	  }
+	  break;
+	case KeyPress:
+	  keysym = __ctalkGetX11KeySym (xev.xkey.keycode, xev.xkey.state,
+					TRUE);
+	  switch (keysym)
+	    {
+	    case XK_Control_L:
+	    case XK_Control_R:
+	      self shiftState |= shiftStateCtrl;
+	      break;
+	    case XK_Shift_L:
+	    case XK_Shift_R:
+	      self shiftState |= shiftStateShift;
+	      break;
+	    case XK_Alt_L:
+	    case XK_Alt_R:
+	      self shiftState |= shiftStateAlt;
+	      break;
+	    case XK_F1:
+	      __ctalkGLXFullScreen (self);
+	      __glx_get_win_config (&x_org, &y_org, &x_size, &y_size);
+	      if (self resizeHandler isInitialized) {
+		self resizeHandler withArg x_size;
+		self resizeHandler withArg y_size;
+		self methodObjectMessage self resizeHandler;
+	      }
+	      break;
+	    default:
+	      if (self keyPressHandler isInitialized) {
+		self keyPressHandler withArg keysym;
+		self keyPressHandler withArg xev.xkey.keycode;
+		self keyPressHandler withArg self shiftState;
+		self methodObjectMessage self keyPressHandler;
+	      }
+	      break;
+	    }
+	  break;
+	case KeyRelease:
+	  keysym = __ctalkGetX11KeySym (xev.xkey.keycode, xev.xkey.state,
+					FALSE);
+	  switch (keysym)
+	    {
+	    case XK_Control_L:
+	    case XK_Control_R:
+	      self shiftState &= ~shiftStateCtrl;
+	      break;
+	    case XK_Shift_L:
+	    case XK_Shift_R:
+	      self shiftState &= ~shiftStateShift;
+	      break;
+	    case XK_Alt_L:
+	    case XK_Alt_R:
+	      self shiftState &= ~shiftStateAlt;
+	      break;
+	    default:
+	      break;
+	    }
+	  break;
+	case ButtonPress:
+	  switch (xev.xbutton.button)
+	    {
+	    case Button1:
+	      self buttonState |= buttonStateButton1;
+	      break;
+	    case Button2:
+	      self buttonState |= buttonStateButton2;
+	      break;
+	    case Button3:
+	      self buttonState |= buttonStateButton3;
+	      break;
+	    case Button4:
+	      self buttonState |= buttonStateButton4;
+	      break;
+	    case Button5:
+	      self buttonState |= buttonStateButton5;
+	      break;
+	    }
+	  if (self buttonPressHandler isInitialized) {
+	    self buttonPressHandler withArg xev.xbutton.x;
+	    self buttonPressHandler withArg xev.xbutton.y;
+	    self buttonPressHandler withArg xev.xbutton.x_root;
+	    self buttonPressHandler withArg xev.xbutton.y_root;
+	    self buttonPressHandler withArg self buttonState;
+	    self buttonPressHandler withArg xev.xbutton.time;
+	    self methodObjectMessage self buttonPressHandler;
+	  }
+	  break;
+	case ButtonRelease:
+	  switch (xev.xbutton.button)
+	    {
+	    case Button1:
+	      self buttonState &= ~buttonStateButton1;
+	      break;
+	    case Button2:
+	      self buttonState &= ~buttonStateButton2;
+	      break;
+	    case Button3:
+	      self buttonState &= ~buttonStateButton3;
+	      break;
+	    case Button4:
+	      self buttonState &= ~buttonStateButton4;
+	      break;
+	    case Button5:
+	      self buttonState &= ~buttonStateButton5;
+	      break;
+	    }
+	  break;
+	case ConfigureNotify:
+	  __glx_resize (xev.xconfigure.width,
+			xev.xconfigure.height);
+	  if (self resizeHandler isInitialized) {
+	    self resizeHandler withArg xev.xconfigure.width;
+	    self resizeHandler withArg xev.xconfigure.height;
+	    self methodObjectMessage self resizeHandler;
+	  }
+	  break;
+	case MotionNotify:
+	  if (self pointerMotionHandler isInitialized) {
+	    self pointerMotionHandler withArg xev.xmotion.x;
+	    self pointerMotionHandler withArg xev.xmotion.y;
+	    self pointerMotionHandler withArg xev.xmotion.x_root;
+	    self pointerMotionHandler withArg xev.xmotion.y_root;
+	    self methodObjectMessage self pointerMotionHandler;
+	  }
+	  break;
+	case ClientMessage:
+	  if(xev.xclient.data.l[0] == wm_delete_window) {
+	    self deleteAndClose;
+	    exit (0);
+	  }
+	  break;
+	}
+    } else {
+      if (interval_timer.it_value.tv_usec == 0) {
+	if (self timerTickHandler isInitialized) {
+	  self methodObjectMessage self timerTickHandler;
+	  timer_usec = self timerMSec * 1000;
+	  interval_timer.it_interval.tv_usec = timer_usec;
+	  interval_timer.it_interval.tv_sec = 0;
+	  interval_timer.it_value.tv_usec = 0;
+	  interval_timer.it_value.tv_sec = 0;
+	  setitimer (ITIMER_REAL, &interval_timer, NULL);
+	}
+      }
+      if (anim_timer.it_value.tv_usec == 0) {
+	if (self animationHandler isInitialized) {
+	  self methodObjectMessage self animationHandler;
+	  anim_timer.it_interval.tv_usec = 41666;
+	  anim_timer.it_interval.tv_sec = 0;
+	  anim_timer.it_value.tv_usec = 0;
+	  anim_timer.it_value.tv_sec = 0;
+	  setitimer (ITIMER_REAL, &anim_timer, NULL);
+	}
+      }
+      if (self idleHandler isInitialized) {
+	self methodObjectMessage self idleHandler;
+	usleep (2000);
+      } 
+    }
+  }
+}
+
+GLXCanvasPane instanceMethod useXFont (String fontName) {
+  "Register the X font given as the argument with the receiver
+   pane for drawing text."
+  returnObjectClass Integer;
+  return __ctalkGLXUseXFont (self, fontName);
+}
+
+GLXCanvasPane instanceMethod freeXFont (void) {
+  "Release the receiver pane's font data that the
+   program allocated by a previous call to useXFont."
+  __ctalkGLXFreeXFont ();
+  return NULL;
+}
+
+GLXCanvasPane instanceMethod useFTFont (String fontFileName) {
+  "Initializes the freetype library and loads the font from
+   the font file given as the argument. Returns 0 on success,
+   -1 on error."
+  returnObjectClass Integer;
+  return __ctalkGLXUseFTFont (fontFileName);
+}
+
+GLXCanvasPane instanceMethod pixelHeightFT (Integer pxHeight) {
+  "Sets the pixel height of the font selected by useFTFont to
+   the height given as the argument."
+  __ctalkGLXPixelHeightFT (pxHeight);
+  return NULL;
+}
+
+GLXCanvasPane instanceMethod namedColor (String colorName,
+					   Float redOut,
+					   Float greenOut,
+					   Float blueOut) {
+  "Uses any X named color as the current foreground color
+   when drawing text with Freetype fonts.  See showrgb(1)
+   for a list of colors."
+    float r, g, b;
+  __ctalkGLXNamedColor (colorName, &r, &g, &b);
+  redOut = r;
+  greenOut = g;
+  blueOut = b;
+  return NULL;
+}
+
+GLXCanvasPane instanceMethod freeFTFont (void) {
+  "Release the Freetype font in use. Returns 0 on success,
+   and a non-zero value which contains the FreeType error
+   code on error."
+  return __ctalkGLXFreeFTFont ();
+}
+
+GLXCanvasPane instanceMethod drawText (Float xOrg, Float yOrg,
+	      		     	       String text) {
+  "Draw text on the receiver pane at the matrix coordinates
+   xOrg, yOrg.  The program must first register the font
+   used for drawing by a previous call to useXFont."
+  glRasterPos2f (xOrg, yOrg);
+  __ctalkGLXDrawText (text);
+  return NULL;
+}
+
+GLXCanvasPane instanceMethod drawFmtText (Float xOrg, Float yOrg,
+					  String fmt, ...) {
+  "Draw text on the receiver pane at the matrix coordinates
+   xOrg, yOrg.  The program must first register the font
+   used for drawing by a previous call to useXFont."
+  String new s;
+  s vPrintOn fmt;
+  glRasterPos2f (xOrg, yOrg);
+  __ctalkGLXDrawText (s);
+  return NULL;
+}
+
+GLXCanvasPane instanceMethod drawTextW (Integer xOrg, Integer yOrg,
+	      		     	       String text) {
+  "Draw text on the receiver pane using the window's pixel 
+   at xOrg, yOrg as the origin.  The program must first
+   register the font used for drawing by a previous call
+   to useXFont."
+    __ctalkGLXWindowPos2i (xOrg, yOrg);
+  __ctalkGLXDrawText (text);
+  return NULL;
+}
+
+GLXCanvasPane instanceMethod drawFmtTextW (Integer xOrg, Integer yOrg,
+					   String fmt, ...) {
+  "Draw text on the receiver pane using the window's pixel 
+   at xOrg, yOrg as the origin.  The program must first
+   register the font used for drawing by a previous call
+   to useXFont."
+    String new s;
+  s vPrintOn fmt;
+    __ctalkGLXWindowPos2i (xOrg, yOrg);
+  __ctalkGLXDrawText (s);
+  return NULL;
+}
+
+GLXCanvasPane instanceMethod drawText (Float xOrg, Float yOrg,
+				       Float red, Float green, Float blue,
+	      		     	       String text) {
+  "Draw text on the receiver pane at the matrix coordinates xOrg, yOrg,
+   using the colors provided by the red, green, and blue
+   arguments. The program must first register the font used
+   for drawing by a previous call to useXFont."
+  glColor3f (red, green, blue);
+  glRasterPos2f (xOrg, yOrg);
+  __ctalkGLXDrawText (text);
+  return NULL;
+}
+
+GLXCanvasPane instanceMethod drawTextW (Integer xOrg, Integer yOrg,
+					Float red, Float green, Float blue,
+	      		     	       String text) {
+  "Draw text on the receiver pane using the window's pixel 
+   at xOrg, yOrg as the origin, using the colors provided by
+   the red, green, and blue arguments. The program must first
+   register the font used for drawing by a previous call to
+   useXFont."
+  glColor3f (red, green, blue);
+    __ctalkGLXWindowPos2i (xOrg, yOrg);
+  __ctalkGLXDrawText (text);
+  return NULL;
+}
+
+GLXCanvasPane instanceMethod textWidth (String text) {
+  "Returns the width of the argument in pixels in the
+   currently selected X font.  If no font is selected,
+   returns -1."
+  returnObjectClass Integer;
+  return __ctalkGLXTextWidth (text);
+}
+
+GLXCanvasPane instanceMethod textWidthFT (String text) {
+  "Returns the width of the argument in pixels in the
+   currently selected X font.  If no font is selected,
+   returns -1."
+  returnObjectClass Float;
+  return __ctalkGLXTextWidthFT (text);
+}
+
+GLXCanvasPane instanceMethod drawFmtTextFT (Float xOrg,
+					    Float yOrg,
+					    String fmt, ...) {
+  String new s;
+  s vPrintOn fmt;
+  __ctalkGLXDrawTextFT (s, xOrg, yOrg);
+  return NULL;
+}
+
+GLXCanvasPane instanceMethod drawTextFT (Float xOrg, Float yOrg,
+					 String text) {
+  "Draw text on the receiver pane at the matrix coordinates
+   xOrg, yOrg.  The program must first register the font
+   used for drawing by a previous call to useXFont."
+    __ctalkGLXDrawTextFT (text, xOrg, yOrg);
+  return NULL;
+}
+
+GLXCanvasPane instanceMethod refreshRate (void) {
+  returnObjectClass Float;
+  return __ctalkGLXRefreshRate ();
+}
+
+GLXCanvasPane instanceMethod syncSwap (Integer interval) {
+  "If the argument > 0, set the swap interval to 1/n to
+   sync with the video refresh rate.  An argument of 0
+   disables swap synchronization."
+  return __ctalkGLXSwapControl (interval);
+}
+
+GLXCanvasPane instanceMethod frameRate (void) {
+  "Returns a Float with the program's swap rate, in frames per
+   second.  The library averages the rate over 5-second intervals,
+   so when the program starts, the method returns 0 until it has
+   sampled enough buffer swaps."
+  returnObjectClass Float;
+
+  return __ctalkGLXFrameRate ();
+}
+
+GLXCanvasPane instanceMethod xpmToTexture (Symbol xpm_data,
+					     Integer width_out,
+					     Integer height_out,
+					     Symbol texel_data_out) {
+  "Create an OpenGL texture from the XPM data given as the
+   first argument. The method sets the arguments
+   width_out and height_out to the texture's dimensions,
+   and returns the texture data in texel_data_out.  The Ctalk
+   Language Reference contains information about the texture's
+   data format when generating an implementation specific OpenGL
+   texture."
+  int width_out_i, height_out_i;
+  OBJECT *xpm_arg;
+  char **xpm;
+
+  xpm_arg = xpm_data;
+  xpm = *(char ***)xpm_arg -> __o_value;
+  __ctalkXPMToGLXTexture (xpm, 0xffff, &width_out_i, &height_out_i, 
+			 &texel_data_out_i);
+  width_out = width_out_i;
+  height_out = height_out_i;
+  texel_data_out = texel_data_out_i;
+}
+
+GLXCanvasPane instanceMethod xpmToTexture (Symbol xpm_data,
+					     Integer alpha,
+					     Integer width_out,
+					     Integer height_out,
+					     Symbol texel_data_out) {
+  "Create an OpenGL texture from the XPM data given as the
+   first argument. The method sets the arguments
+   width_out and height_out to the texture's
+   dimensions, and returns the texture data in
+   texel_data_out.  The second argument gives the 
+   percentage of the total alpha channel value, and 
+   must be in the range 0.0 to 1.0. The texture has the
+   OpenGL format GL_RGBA and the data type
+   GL_UNSIGNED_INT_8_8_8_8."
+  int width_out_i, height_out_i;
+  OBJECT *xpm_arg;
+  char **xpm;
+
+  xpm_arg = xpm_data;
+  xpm = *(char ***)xpm_arg -> __o_value;
+  __ctalkXPMToGLXTexture (xpm, alpha, &width_out_i, &height_out_i, 
+			 &texel_data_out_i);
+  width_out = width_out_i;
+  height_out = height_out_i;
+  texel_data_out = texel_data_out_i;
+}
+
+GLXCanvasPane instanceMethod extensions (void) {
+  "Returns the supported GLX extensions from the X display
+   as a String object."
+  returnObjectClass String;
+  return __ctalkGLXExtensionsString ();
+}

@@ -1,0 +1,138 @@
+/* $Id: TerminalStream,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-c-*-*/
+
+/*
+  This file is part of Ctalk.
+  Copyright © 2005 - 2012  Robert Kiesling, rk3314042@gmail.com.
+  Permission is granted to copy this software provided that this copyright
+  notice is included in all source code modules.
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+*/
+
+/*
+ *    TerminalStream Class.  
+ */
+
+#include <stdio.h>
+#if defined(__sparc__) && defined(__svr4__)
+#include <sys/time.h>
+#include <fcntl.h>
+#else /* Linux */
+#include <sys/select.h>
+#endif
+#include <sys/types.h>
+#include <sys/stat.h>
+/* #include <termios.h> */
+
+Stream class TerminalStream
+"TerminalStream's subclasses handle input events from
+various input devices, depending on the needs of the
+application program.  This class implements the generic
+event queue which all of the TerminalStream subclasses
+use to send input events to the application program.";
+
+TerminalStream instanceVariable inputQueue List 0x0; 
+TerminalStream instanceVariable inputQueueMax Integer 64;
+TerminalStream instanceVariable nInputEvents Integer 0;
+TerminalStream instanceVariable ttyDevice String NULL;
+
+#ifndef KBDCHAR
+#define KBDCHAR (1 << 0)
+#endif
+#ifndef KBDCUR
+#define KBDCUR  (1 << 1)
+#endif
+#ifndef WINDELETE
+#define WINDELETE  (1 << 2)
+#endif
+
+TerminalStream instanceMethod inputPending (void) {
+  "Return an Integer value of True if the receiver 
+  classes' input queue contains pending events,
+  False otherwise."
+  returnObjectClass Integer;
+  if (self inputQueue isEmpty) {
+    return FALSE;
+  } else {
+    return TRUE;
+  }
+}
+
+TerminalStream instanceMethod queueInputEvent (int class, int data) {
+  "Queue an input event.  The first argument defines the
+  class of the event.  The second argument contains the
+  data of the event.  This method is generally
+  re-implemented in subclasses to handle specific
+  events."
+  InputEvent new __nEvent;
+  InputEvent new __oEvent;
+
+  __nEvent eventClass = class;
+  __nEvent eventData = data;
+
+  if (self nInputEvents > self inputQueueMax) {
+    __oEvent become self inputQueue unshift;
+    __oEvent delete;
+    self nInputEvents = self nInputEvents - 1;
+  }
+  self inputQueue push __nEvent;
+  self nInputEvents = self nInputEvents + 1;
+  return self;
+}
+
+TerminalStream instanceMethod nextInputEvent (void) {
+  "Return the next event from the classes' input 
+  queue."
+  InputEvent new __nEvent;
+
+  returnObjectClass InputEvent;
+
+  if (self nInputEvents) {
+    self nInputEvents = self nInputEvents - 1;
+    __nEvent become self inputQueue unshift;
+    return __nEvent;
+  } else {
+    return NULL;
+  }
+}
+
+TerminalStream instanceMethod isATty (void) {
+  "Return an Integer value of True if the receiver
+  refers to a character device, False otherwise."
+  int rval, cval;
+  struct stat statbuf;
+  
+  returnObjectClass Integer;
+
+  if ((rval = stat (self ttyDevice, &statbuf)) == SUCCESS) {
+    cval = S_ISCHR(statbuf.st_mode);
+    return cval;
+  }
+  return FALSE;
+}
+
+TerminalStream instanceMethod eventPending (void) {
+  "Return an Integer value of True if the receiver 
+  classes' input queue contains pending events,
+  False otherwise.  This method is a synonym for
+  the inputPending method."
+  returnObjectClass Integer;
+  if (self inputQueue isEmpty) {
+    return FALSE;
+  } else {
+    return TRUE;
+  }
+}
+

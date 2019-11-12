@@ -1,0 +1,74 @@
+/* $Id: SystemErrnoException,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-c-*- */
+
+/*
+  This file is part of Ctalk.
+  Copyright © 2005-2012  Robert Kiesling, rk3314042@gmail.com.
+  Permission is granted to copy this software provided that this copyright
+  notice is included in all source code modules.
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+*/
+
+/*
+ *  SystemErrnoException Class
+ *
+ *  This class translates the C library's errno into Ctalk exceptions.  
+ *  The exception handlers themselves are in Exception class.  
+ *
+ *  This class only provides standard exceptions, because Ctalk only 
+ *  uses critical exceptions internally.  Programs themselves can
+ *  treat any exception as critical whenever it's necessary.
+ *
+ *  If adding methods or a subclassing, take care when using 
+ *  errno, in case it is implemented as a macro.
+ *  
+ */
+
+
+#ifndef _STDIO_H
+#include <stdio.h>
+#endif
+
+#include <errno.h>
+
+Exception class SystemErrnoException
+"SystemErrnoException class manages exceptions that
+correspond to operating system errors that are defined
+as values of the system's errno variable.";
+SystemErrnoException classVariable sysErrno Integer 0;
+
+SystemErrnoException instanceMethod raiseException (char *data) {
+  "Raise a system exception.  The receiver's sysErrno
+  instance variable contains an integer value that is
+  the same as the values defined by the C library's
+  errno.h include file and is also available as the C
+  library's global errno variable."
+  //
+  // The argument, a String, contains the text of the message
+  // to be displayed.
+  char buf[MAXLABEL];
+  OBJECT *sysErrnoVar;
+  returnObjectClass Integer;
+  if (errno) {
+    sysErrnoVar = __ctalkFindClassVariable ("sysErrno", TRUE);
+    __ctalkDecimalIntegerToASCII (errno, buf);
+    __ctalkSetObjectValueVar (sysErrnoVar, buf);
+    __ctalkSysErrExceptionInternal (NULL, errno, data);
+    return sysErrnoVar;
+  } else {
+    return FALSE;
+  }
+}
+

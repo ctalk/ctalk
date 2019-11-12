@@ -1,0 +1,254 @@
+/* $Id: X11FreeTypeFont,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-C-*-*/
+
+/*
+  This file is part of Ctalk.
+  Copyright © 2014 - 2015  Robert Kiesling, rk3314042@gmail.com.
+  Permission is granted to copy this software provided that this copyright
+  notice is included in all source code modules.
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+*/
+
+DisplayFont class X11FreeTypeFont
+"This class contains methods and variables that provide
+support and definitions for stroked fonts like Type 1
+and TrueType or FreeType fonts.  The library selects
+a font as the current font based on the parameters
+provided by the application.  The methods in this
+class allow application programs to set parameters
+individually or from a X11FreeTypeFont object,
+and to retrieve the parameters.  The class also
+provides methods to search for fonts that are
+available in the library.";
+
+X11FreeTypeFont instanceVariable family String "Mono";
+X11FreeTypeFont instanceVariable slant Integer 0;
+X11FreeTypeFont instanceVariable weight Integer 100;
+X11FreeTypeFont instanceVariable dpi Integer 72;
+X11FreeTypeFont instanceVariable pointSize Float 12.0;
+X11FreeTypeFont instanceVariable fgRed Integer 0;
+X11FreeTypeFont instanceVariable fgGreen Integer 0;
+X11FreeTypeFont instanceVariable fgBlue Integer 0;
+X11FreeTypeFont instanceVariable fgAlpha Integer 0xffff;
+X11FreeTypeFont instanceVariable rotation Float 0.0;
+X11FreeTypeFont instanceVariable scaleX Float 1.0;
+X11FreeTypeFont instanceVariable scaleY Float 1.0;
+X11FreeTypeFont instanceVariable ascent Integer 0;
+X11FreeTypeFont instanceVariable descent Integer 0;
+X11FreeTypeFont instanceVariable height Integer 0;
+X11FreeTypeFont instanceVariable maxAdvance Integer 0;
+
+X11FreeTypeFont instanceMethod saveSelectedFont (void) {
+  "Store the FreeType library's font parameters in the
+receiver object."
+  self family = __ctalkXftSelectedFamily ();
+  self slant = __ctalkXftSelectedSlant ();
+  self weight = __ctalkXftSelectedWeight ();
+  self dpi = __ctalkXftSelectedDPI ();
+  self pointSize = __ctalkXftSelectedPointSize ();
+  self fgRed = __ctalkXftFgRed ();
+  self fgGreen = __ctalkXftFgGreen ();
+  self fgBlue = __ctalkXftFgBlue ();
+  self fgAlpha = __ctalkXftFgAlpha ();
+  self ascent = __ctalkXftAscent ();
+  self descent = __ctalkXftDescent ();
+  self height = __ctalkXftHeight ();
+  self maxAdvance = __ctalkXftMaxAdvance ();
+}
+
+X11FreeTypeFont instanceMethod initFontLib (void) {
+  "Initialize the the Ctalk and X font libraries.  You
+should call this method before using any of the other
+X11FreeTypeFont methods."
+  __ctalkXftInitLib ();
+  if (self libIsInitialized)
+    self saveSelectedFont;
+}
+
+X11FreeTypeFont instanceMethod qualifyName (String __xftpattern) {
+  "Return a qualified font name that matches the pattern
+given by the argument."
+  String new matchedName;
+  returnObjectClass String;
+  
+  matchedName = __ctalkXftQualifyFontName (__xftpattern);
+  return matchedName;
+}
+
+X11FreeTypeFont instanceMethod listFonts (String __xftpattern) {
+  "List the fonts that match the pattern given as the
+argument.  If the argument is an empty string or '*',
+list all of the fonts that are available."
+  String new ftFontDesc;
+  ftFontDesc = __ctalkXftListFontsFirst (__xftpattern);
+  printf ("%s\n", ftFontDesc);
+
+  while (1) {
+    ftFontDesc = __ctalkXftListFontsNext ();
+    if (ftFontDesc value isNullValue)
+      break;
+    printf ("%s\n", ftFontDesc);
+  }
+
+  __ctalkXftListFontsEnd ();
+  return NULL;
+}
+
+X11FreeTypeFont instanceMethod selectedFont (void) {
+  "Return a String object with the descriptor of the
+currently selected font."
+  String new fontDesc;
+  returnObjectClass String;
+  
+  fontDesc = __ctalkXftSelectedFontDescriptor ();
+  return fontDesc;
+}
+
+X11FreeTypeFont instanceMethod selectFont (String family, Integer slant,
+					   Integer weight, Integer dpi,
+					   Float pointSize) {
+  "Select an outline font that matches the method's arguments.
+  The method returns an Integer value of 0 if it selects the
+  specified font, -1 if it can't.  The Xft library, however,
+  tries to maintain a stock outline font as the default, 
+  and will maintain the previous font if the library does
+  not find a match."
+
+  String new selectedDesc;
+  returnObjectClass Integer;
+
+    __ctalkXftSelectFont (family, slant, weight, dpi, pointSize);
+    self saveSelectedFont;
+    
+    selectedDesc = self selectedFont;
+    if (selectedDesc contains family)
+      return SUCCESS;
+    else
+      return ERROR;
+
+}
+
+X11FreeTypeFont instanceMethod RGBAColor (Integer red, Integer green,
+					  Integer blue, Integer alpha) {
+  "Set the font color to the RGBA values given as the
+arguments."
+  __ctalkXftSetForeground (red, green, blue, alpha);
+  self saveSelectedFont;
+}
+
+X11FreeTypeFont instanceMethod namedX11Color (String colorName) {
+  __ctalkXftSetForegroundFromNamedColor (colorName);
+  self saveSelectedFont;
+}
+
+X11FreeTypeFont instanceMethod selectFont (void) {
+  "Select a font from the Xft library that matches the
+receiver's values."
+  __ctalkXftSelectFont (self family, self slant, self weight,
+			self dpi, self pointSize);
+}
+
+X11FreeTypeFont instanceMethod selectFontFromXLFD (String xlfd) {
+  "Select a font from the Xft library using the X Logical Font
+   Descriptor given as the argument."
+    __ctalkXftSelectFontFromXLFD (xlfd);
+}
+
+X11FreeTypeFont instanceMethod selectFontFromFontConfig (String fcString) {
+  "Select a font from the Xft library the fcString font descriptor
+   given as the argument."
+    __ctalkXftSelectFontFromFontConfig (fcString);
+}
+
+X11FreeTypeFont instanceMethod RGBAColor (void) {
+  "Set the font color to the receiver's values."
+  __ctalkXftSetForeground (self fgRed, self fgGreen, self fgBlue,
+			   self fgAlpha);
+}
+
+X11FreeTypeFont instanceMethod textWidth (String text) {
+  "Return an Integer with the width of the String given as
+the argument in the currently selected font."
+  int x, y, width, height;
+  returnObjectClass Integer;
+  __ctalkXftGetStringDimensions (text, &x, &y, &width, &height);
+  return width;
+}
+
+X11FreeTypeFont instanceMethod textHeight (String text) {
+  "Return an Integer with the height of the String given
+as the argument in the currently selected font."
+  int x, y, width, height;
+  returnObjectClass Integer;
+  __ctalkXftGetStringDimensions (text, &x, &y, &width, &height);
+  return height;
+}
+
+X11FreeTypeFont instanceMethod majorVersion (void) {
+  "Return an Integer with the major version number of the
+Xft font library."
+  returnObjectClass Integer;
+  return __ctalkXftMajorVersion ();
+}
+X11FreeTypeFont instanceMethod minorVersion (void) {
+  "Return an Integer with the minor version number of the
+Xft font library."
+  returnObjectClass Integer;
+  return __ctalkXftMinorVersion ();
+}
+X11FreeTypeFont instanceMethod revision (void) {
+  "Return an Integer with the revision number of the
+Xft library."
+  returnObjectClass Integer;
+  return __ctalkXftRevision ();
+}
+X11FreeTypeFont instanceMethod version (void) {
+  "Another method that returns the version number
+of the Xft font library."
+  returnObjectClass Integer;
+  return __ctalkXftVersion ();
+}
+
+X11FreeTypeFont instanceMethod red  (int val) {
+  "Set the Xft font foreground's red channel. The
+   value of the argument must be between 0  and
+   65535 (0xffff hex)."
+  __ctalkXftRed (val);
+}
+X11FreeTypeFont instanceMethod green  (int val) {
+  "Set the Xft font foreground's green channel. The
+   value of the argument must be between 0  and
+   65535 (0xffff hex)."
+  __ctalkXftGreen (val);
+}
+X11FreeTypeFont instanceMethod blue  (int val) {
+  "Set the Xft font foreground's blue channel. The
+   value of the argument must be between 0  and
+   65535 (0xffff hex)."
+  __ctalkXftBlue (val);
+}
+X11FreeTypeFont instanceMethod alpha  (int val) {
+  "Set the Xft font foreground's alpha channel. The
+   value of the argument must be between 0  and
+   65535 (0xffff hex)."
+  __ctalkXftAlpha (val);
+}
+
+X11FreeTypeFont instanceMethod libIsInitialized (void) {
+  "Returns a non-zero Integer value if the font library
+   is initialized and a font is selected."
+  returnObjectClass Integer;
+  return __ctalkXftInitialized ();
+}

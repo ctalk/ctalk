@@ -1,0 +1,138 @@
+/* $Id: TCPIPNetworkStreamWriter,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-c-*-*/
+
+/*
+  This file is part of Ctalk.
+  Copyright © 2017 - 2019 Robert Kiesling, rk3314042@gmail.com.
+  Permission is granted to copy this software provided that this copyright
+  notice is included in all source code modules.
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+*/
+
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <netdb.h>
+#include <errno.h>
+#include <ctalk/ctalkdefs.h>
+
+TCPIPNetworkStream class TCPIPNetworkStreamWriter;
+
+TCPIPNetworkStreamWriter instanceMethod __openOnInternal (String hostname,
+							  Integer port) {
+  "Does the actual work of creating a new socket and connecting the
+   a server.  Programs should use the openOn methods in this class
+   instead of calling this method directly."
+  SystemErrnoException new sysEx;
+  Exception new ex;
+  String new errText;
+  int r, addrlen;
+  int on_int = 1;
+  struct sockaddr_in server, *pserver;
+  struct hostent *server_host;
+  struct addrinfo hints, *res, *rp;
+  returnObjectClass Integer;
+
+  self createSocketBasic;
+  if (sysEx pending) {
+    sysEx handle;
+    errText systemErrnoStr;
+    ex raiseException USER_EXCEPTION_X, "createSocketBasic: " + errText + ".";
+    return 0;
+  }
+
+  setsockopt (self sock, SOL_SOCKET, SO_REUSEADDR, &on_int,
+	      sizeof (on_int));
+
+  if (hostname =~ /\d+\.\d+\.\d+\.\d+/) {
+    /* If the hostname is a dotted quad address - the old method
+       returns the address as a hostent */
+
+    if ((server_host = gethostbyname (hostname)) == NULL) {
+      shutdown(self sock, SHUT_RDWR);
+      errText systemErrnoStr;
+      ex raiseException USER_EXCEPTION_X, "gethostbyname: " + errText + ".";
+      return 0;
+    }
+
+    addrlen = sizeof (server);
+    xmemset (&server, 0, addrlen);
+    server.sin_family = AF_INET;
+    server.sin_addr.s_addr = *((unsigned long *)server_host -> h_addr);
+    server.sin_port = htons (port);
+
+    if ((r = connect (self sock, (struct sockaddr *)&server, addrlen))
+	< 0) {
+      shutdown(self sock, SHUT_RDWR);
+      errText systemErrnoStr;
+      ex raiseException USER_EXCEPTION_X, "gethostbyname: " + errText + ".";
+      return 0;
+    }
+  } else { /* if (hostname =~ /\d+\.\d+\.\d+\.\d+/) */
+    xmemset (&hints, 0, sizeof (struct addrinfo));
+    hints.ai_family = AF_INET;
+    hints.ai_socktype = SOCK_STREAM;
+    hints.ai_flags = AI_PASSIVE;
+    hints.ai_protocol = 0;
+    hints.ai_canonname = NULL;
+    hints.ai_addr = NULL;
+    hints.ai_next = NULL;
+    r = getaddrinfo (hostname, NULL, &hints, &res);
+    if (r != 0) {
+      shutdown(self sock, SHUT_RDWR);
+      errText printOn "Host, \"%s:\" ", hostName;
+      errText += gai_strerror (r);
+      ex raiseException INVALID_OPERAND_X, errText;
+      return 0;
+    }
+    addrlen = sizeof (struct sockaddr_in);
+    for (rp = res; ; rp = rp->ai_next) {
+      pserver = (struct sockaddr_in *)rp -> ai_addr;
+      pserver -> sin_port = htons (port);
+      if ((r = connect (self sock, (struct sockaddr *)pserver, addrlen))
+	  == 0) {
+	break;
+      } else if (rp -> ai_next == NULL) {
+	shutdown(self sock, SHUT_RDWR);
+	ex raiseException INVALID_OPERAND_X, "In openOn: connect (): " +
+	  strerror (errno);
+	return 0;
+      }
+    }
+  } /* if (hostname =~ /\d+\.\d+\.\d+\.\d+/) */
+
+  return self sock;
+}
+
+TCPIPNetworkStreamWriter instanceMethod openOn (String hostname) {
+  "Open a socket to communicate with the hostname
+   given as the argument, using the port DEFAULT_TCPIP_PORT,
+   which is defined in ctalkdefs.h.  Returns an Integer with
+   the file handle number of the newly opened socket. The method
+   raises an Exception and returns 0 if there is an error."
+  returnObjectClass Integer;
+  return self __openOnInternal hostname, DEFAULT_TCPIP_PORT;
+}
+
+TCPIPNetworkStreamWriter instanceMethod openOn (String hostname,
+						Integer port) {
+  "Open a socket to communicate with the hostname and port
+   given as the argument.  Returns an Integer with the file
+   handle number of the newly opened socket. The method
+   raises an Exception and returns 0 if there is an error."
+  returnObjectClass Integer;
+  return self __openOnInternal hostname, port;
+}
+

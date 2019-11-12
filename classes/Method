@@ -1,0 +1,87 @@
+/* $Id: Method,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-C-*-*/
+
+/*
+  This file is part of Ctalk.
+  Copyright © 2005-2014, 2018  Robert Kiesling, rk3314042@gmail.com.
+  Permission is granted to copy this software provided that this copyright
+  notice is included in all source code modules.
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+*/
+
+Object class Method
+"Method class defines objects that represent methods,
+and defines the method, withArgs, that can define
+arguments for a virtual method call by Object :
+methodObjectMessage";
+
+/*
+ *  Some of the instance variables are used by the front end,
+ *  but they're defined here in case a progam needs them
+ *  anyway.  Also, some of the internal workings depend
+ *  on the order these are declared in, so don't change them,
+ *  either subclass or add your own variables after these
+ *  declarations.
+ */
+Method instanceVariable methodName String NULL;
+Method instanceVariable methodArgs List 0x0;
+Method instanceVariable methodFn Symbol 0x0;
+Method instanceVariable nArgs Integer 0;
+Method instanceVariable nParams Integer 0;
+Method instanceVariable varargs Integer 0;
+Method instanceVariable methodParameters List 0x0;
+Method instanceVariable methodSelector String NULL;
+Method instanceVariable returnClass String NULL;
+Method instanceVariable rcvrClassObject Symbol 0x0;
+Method instanceVariable methodSource String NULL;
+Method instanceVariable errorLine Integer 0;
+Method instanceVariable errorColumn Integer 0;
+Method instanceVariable argFrameTop Integer 0;
+Method instanceVariable rcvrFrameTop Integer 0;
+Method instanceVariable imported Integer 0;
+Method instanceVariable queued Integer 0;
+Method instanceVariable localObjects List 0x0;
+Method instanceVariable userObjects List 0x0;
+Method instanceVariable localCVARs List 0x0;
+Method instanceVariable isInitialized Boolean FALSE;
+
+Method instanceMethod definedInstanceMethod (String aClassName, String aMethodName) {
+  __ctalkDefinedInstanceMethodObject (self, aClassName, aMethodName);
+  return self;
+}
+
+Method instanceMethod definedClassMethod (String aClassName, String aMethodName) {
+  __ctalkDefinedClassMethodObject (self, aClassName, aMethodName);
+  return self;
+}
+
+Method instanceMethod withArg (Object argObject) {
+  "Add the argument Object to the receiver Method object's
+  argument list"
+  self methodArgs push argObject;
+  self nArgs += 1;
+  return self;
+}
+
+Method instanceMethod setCallbackName (String nameString) {
+  "Changes the receiver Method's name to the name of a
+   program's callback.  Does not alter the name of the
+   actual method, only the name of the Method object,
+   which is generally determined when the program is
+   compiled."
+  OBJECT *method_obj;
+  method_obj = self;
+  xstrcpy (method_obj -> __o_name, nameString);
+}

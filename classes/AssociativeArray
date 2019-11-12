@@ -1,0 +1,267 @@
+/* $Id: AssociativeArray,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-c-*-*/
+
+/*
+  This file is part of Ctalk.
+  Copyright © 2005 - 2017, 2019  Robert Kiesling, rk3314042@gmail.com.
+  Permission is granted to copy this software provided that this copyright
+  notice is included in all source code modules.
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+*/
+
+/*
+ *    AssociativeArray class.  
+ */
+
+#include <ctalk/ctalkdefs.h>
+
+List class AssociativeArray
+"An AssociativeArray stores its members with a named
+Key, so you can retrieve elements of the associative
+array by searching for its key.";
+
+AssociativeArray instanceMethod keyAt (char *__keyString) {
+  "Returns the key object given by the argument, a String."
+  OBJECT *key_object;
+  
+  returnObjectClass Key;
+
+  key_object = __ctalkGetInstanceVariable (self, __keyString, FALSE);
+  if (key_object) {
+    return key_object;
+  } else {
+    return NULLSTR;
+  }
+}
+
+AssociativeArray instanceMethod map (OBJECT *(*methodfn)()) {
+  "Execute the argument, a method or a block of code, with each 
+  value in the receiver AssociativeArray."
+  OBJECT *rcvr_obj, *rcvr_value_obj, *(*fn)(), *t, *list_elem, *have_break;
+  int arg_n;
+#ifdef DJGPP
+  OBJECT *result_object;
+#endif
+  METHOD *self_method, *arg_method;
+  Integer new i;
+
+  fn = (OBJECT *(*)())__ctalkRtGetMethodFn ();
+  rcvr_obj = __ctalkRtReceiverObject ();
+
+  if ((rcvr_value_obj = 
+       __ctalkGetInstanceVariable (rcvr_obj, "value", 0)) == NULL) 
+    rcvr_value_obj = rcvr_obj;
+
+  if (((self_method = __ctalkFindInstanceMethodByFn (&rcvr_value_obj, fn, 0))
+      == NULL) &&
+      ((self_method = __ctalkFindClassMethodByFn (&rcvr_value_obj, fn, 0))
+       == NULL)) {
+    __ctalkCriticalExceptionInternal (NULL, undefined_method_x, 
+				      "from map (Class AssociativeArray)");
+    return NULL;
+  }
+
+  for (arg_n = 0; self_method -> args[arg_n+1]; arg_n++)
+    ;
+  if (((arg_method = __ctalkFindInstanceMethodByName 
+	(&rcvr_value_obj, ARG_NAME(self_method->args[arg_n]), 0, -1))
+      == NULL) &&
+      ((arg_method = __ctalkFindClassMethodByName 
+	(&rcvr_value_obj, ARG_NAME(self_method->args[arg_n]), 0, -1))
+       == NULL)) {
+    __ctalkCriticalExceptionInternal (NULL, undefined_method_x, 
+				      "from map (Class AssociativeArray)");
+    return NULL;
+  }
+
+  for (t = __LIST_HEAD(rcvr_obj), have_break = NULL; t && !have_break; 
+       t = t -> next) {
+    list_elem = *(OBJECT **) ((t -> instancevars) ?
+			      t -> instancevars -> __o_value :
+			      (IS_VALUE_INSTANCE_VAR(t) ? 
+			       t -> __o_p_obj -> instancevars -> __o_value :
+			       NULL));
+    if (!IS_OBJECT(list_elem)) {
+      __ctalkCriticalExceptionInternal (NULL, undefined_receiver_x, 
+					"from map (Class AssociativeArray)");
+      return NULL;
+    }
+#ifdef DJGPP
+    if ((result_object = __ctalkInlineMethod (list_elem, arg_method,0))!=NULL){
+      if (atoll (result_object -> __o_value) != 0)
+	break;
+    }
+#else
+    have_break = __ctalkInlineMethod (list_elem, arg_method, 0);
+#endif
+  }
+  __ctalkArgBlkSetCallerReturn (have_break);
+
+#ifdef DJGPP
+  if (result_object) __ctalkDeleteObject (result_object);
+#endif
+
+  return NULL;
+}
+
+AssociativeArray instanceMethod mapKeys (OBJECT *(*methodfn)()) {
+  "Execute the argument, a method or code block, with each
+  key/value pair of the receiver AssociativeArray. 
+  When <methodName> is executed, each receiver of
+  <methodName> is a Key object with the parent object
+  class of AssociativeArray."
+    OBJECT *rcvr_obj, *rcvr_value_obj, *(*fn)(), *t, *have_break;
+  int arg_n;
+#ifdef DJGPP
+  OBJECT *result_object;
+#endif
+  METHOD *self_method, *arg_method;
+  Integer new i;
+
+  fn = (OBJECT *(*)())__ctalkRtGetMethodFn ();
+  rcvr_obj = __ctalkRtReceiverObject ();
+
+  if ((rcvr_value_obj = 
+       __ctalkGetInstanceVariable (rcvr_obj, "value", 0)) == NULL) 
+    rcvr_value_obj = rcvr_obj;
+
+  if (((self_method = __ctalkFindInstanceMethodByFn (&rcvr_value_obj, fn, 0))
+      == NULL) &&
+      ((self_method = __ctalkFindClassMethodByFn (&rcvr_value_obj, fn, 0))
+       == NULL)) {
+    __ctalkCriticalExceptionInternal (NULL, undefined_method_x, 
+				      "from map (Class AssociativeArray)");
+    return NULL;
+  }
+
+  for (arg_n = 0, have_break = NULL; self_method -> args[arg_n+1]; arg_n++)
+    ;
+  if (((arg_method = __ctalkFindInstanceMethodByName 
+	(&rcvr_value_obj, ARG_NAME(self_method->args[arg_n]), 0, -1))
+      == NULL) &&
+      ((arg_method = __ctalkFindClassMethodByName 
+	(&rcvr_value_obj, ARG_NAME(self_method->args[arg_n]), 0, -1))
+       == NULL)) {
+    __ctalkCriticalExceptionInternal (NULL, undefined_method_x, 
+				      "from map (Class AssociativeArray)");
+    return NULL;
+  }
+
+  for (t = __LIST_HEAD(rcvr_obj); t; t = t -> next) {
+#ifdef DJGPP
+    if ((result_object = __ctalkInlineMethod (t, arg_method, 0)) != NULL) {
+      if (atoll (result_object -> __o_value) != 0)
+	break;
+      if (result_object) __ctalkDeleteObject (result_object);
+      result_object = NULL;
+    }
+#else
+    if ((have_break = __ctalkInlineMethod (t, arg_method, 0)) != NULL)
+      break;
+#endif
+  }
+  __ctalkArgBlkSetCallerReturn (have_break);
+
+#ifdef DJGPP
+  if (result_object) __ctalkDeleteObject (result_object);
+#endif
+
+  return NULL;
+}
+
+AssociativeArray instanceMethod init (...) {
+  "Initialize the receiver with the method's arguments.
+
+   The argument list is a set of key/value objects:
+
+     myAssocArray init key1, value1, key2, value2, key3, value3;
+
+   Any items that were previously added to the receiver
+   are removed."
+  int n, i;
+  OBJECT *key, *value;
+
+  n = __ctalkNArgs ();
+
+  self delete;
+  for (i = (n - 1); i >= 0; i -= 2) {
+    key = __ctalk_arg_internal (i);
+    value = __ctalk_arg_internal (i - 1);
+    self atPut key, value;
+  }
+}
+
+AssociativeArray instanceMethod = initEq (...) {
+  "Initialize the receiver with the method's arguments.
+   This is similar to the init method, but it overloads
+   the '=' math operator. The argument list is a set of
+   key/value objects:
+
+     myAssocArray = key1, value1, key2, value2,....
+
+   The method removes any members from the receiver before
+   adding the items in the argument list."
+  int n, i;
+  OBJECT *key, *value;
+
+  n = __ctalkNArgs ();
+
+  self delete;
+  for (i = (n - 1); i >= 0; i -= 2) {
+    key = __ctalk_arg_internal (i);
+    value = __ctalk_arg_internal (i - 1);
+    self atPut key, value;
+  }
+}
+
+AssociativeArray instanceMethod append (...) {
+  "Append the method's arguments to the receiver.
+
+   The argument list is a set of key/value objects:
+
+     myAssocArray append key1, value1, key2, value2, key3, value3;"
+
+  int n, i;
+  OBJECT *key, *value;
+
+  n = __ctalkNArgs ();
+
+  for (i = (n - 1); i >= 0; i -= 2) {
+    key = __ctalk_arg_internal (i);
+    value = __ctalk_arg_internal (i - 1);
+    self atPut key, value;
+  }
+}
+
+AssociativeArray instanceMethod += appendEq (...) {
+  "Append the method's arguments to the receiver.
+   This is similar to the method, 'append', but it overloads
+   the '+=' math operator. The argument list is a set of
+   key/value objects:
+
+     myAssocArray = key1, value1, key2, value2, key3, value3;"
+
+  int n, i;
+  OBJECT *key, *value;
+
+  n = __ctalkNArgs ();
+
+  for (i = (n - 1); i >= 0; i -= 2) {
+    key = __ctalk_arg_internal (i);
+    value = __ctalk_arg_internal (i - 1);
+    self atPut key, value;
+  }
+}
+

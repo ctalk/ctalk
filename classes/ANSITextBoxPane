@@ -1,0 +1,306 @@
+/* $Id: ANSITextBoxPane,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-C-*-*/
+
+/*
+  This file is part of Ctalk.
+  Copyright © 2005-2014, 2018-2019  Robert Kiesling, rk3314042@gmail.com.
+  Permission is granted to copy this software provided that this copyright
+  notice is included in all source code modules.
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+*/
+
+/*
+ *  ANSITextBoxPane class.  This class can still be slow.  There's a
+ *  faster C version of refresh if you have a slow system.  The
+ *  clearLine method is kludged to be as fast as possible.  It is 
+ *  commented out here, and the class uses the libctalk C call directly. 
+ *  If you want to change the default size, changing the macro 
+ *  definitions below should keep things as fast as possible.
+ *
+ *  Note that many of the instance variables are used by name
+ *  in the C library functions, so don't change them.  Subclass 
+ *  instead.
+ */
+
+#include <ctalk/ctalkdefs.h>
+
+ANSIWidgetPane class ANSITextBoxPane
+"An ANSITextBoxPane displays a text message on the
+display, and includes a button which the user can click
+on to remove the pane from the display.  This is a more
+complex widget than ANSIMessageBoxPane, and allows
+scrolling of text messages that don't fit within the
+pane's display area.";
+ANSITextBoxPane instanceVariable dismissButton ANSIButtonPane NULL;
+ANSITextBoxPane instanceVariable text List NULL;
+ANSITextBoxPane instanceVariable viewStartLine Integer 1;
+ANSITextBoxPane instanceVariable viewHeight Integer 0;
+ANSITextBoxPane instanceVariable viewWidth Integer 0;
+ANSITextBoxPane instanceVariable viewXOffset Integer 0;
+
+
+#define BUTTONWIDTH 10
+#define BUTTONHEIGHT 3
+#define VIEW_START_X_OFFSET 2
+#define VIEW_START_Y_OFFSET 1 /* Count view lines from 1. */
+
+#define DEFAULT_ORIGIN_X 1
+#define DEFAULT_ORIGIN_Y 1
+#define DEFAULT_SIZE_X 40
+#define DEFAULT_SIZE_Y 20
+#define DEFAULT_VIEWHEIGHT 15  /* DEFAULT_SIZE_Y - 5 */
+#define DEFAULT_VIEWWIDTH 38   /* DEFAULT_SIZE_X - 2 */
+
+ANSITextBoxPane instanceMethod new (String __paneName) {
+  "ANSITextBoxPane constructor.  The argument, a String,
+  contains the name of the new object.  Also constructs
+  an 'OK' button sub-pane, which waits for the user's 
+  input."
+  ANSIWidgetPane super new __paneName;
+  ANSIButtonPane new __dismissButtonNew;
+  __paneName paneStream openInputQueue;
+  __paneName withBorder;
+  __paneName withShadow;
+  __paneName origin x = DEFAULT_ORIGIN_X;
+  __paneName origin y = DEFAULT_ORIGIN_Y;
+  __paneName size x = DEFAULT_SIZE_X;
+  __paneName size y = DEFAULT_SIZE_Y;
+  __paneName viewHeight = DEFAULT_VIEWHEIGHT;
+  __paneName viewXOffset = VIEW_START_X_OFFSET;
+  __paneName viewWidth = DEFAULT_VIEWWIDTH;
+
+
+  __paneName addBuffer DEFAULT_SIZE_X, DEFAULT_SIZE_Y, 1;
+
+  __paneName dismissButton become __dismissButtonNew;
+  __paneName dismissButton shadow = FALSE;
+  __paneName dismissButton withText "Dismiss";
+  return __paneName;
+}
+
+ANSITextBoxPane instanceMethod appendLine (String __text) {
+  "Add the argument, a String that contains a line of text,
+  to the pane's contents."
+
+  self text push __text;
+  return NULL;
+}
+
+ANSITextBoxPane instanceMethod refresh (void) {
+  "Update the pane's contents on the display."
+
+  int contentLine, viewLine, contentHeight,
+    viewStartLineInt, viewHeightInt;
+
+  viewStartLineInt = self viewStartLine;
+  viewHeightInt = self viewHeight;
+  contentLine = 0;
+  viewLine = 0;
+  contentHeight = viewStartLineInt + viewHeightInt;
+
+  self text map {
+
+    ++contentLine;
+
+    if ((contentLine >= viewStartLineInt) &&
+   	(contentLine < contentHeight)) {
+
+      ++viewLine; 
+
+      __ctalkANSIClearPaneLine (super, viewLine + VIEW_START_Y_OFFSET);
+
+       super cursor x = VIEW_START_X_OFFSET;
+       super cursor y = viewLine + VIEW_START_Y_OFFSET;
+       super printOn "%s", self;
+    }
+  }
+
+  /* Clear line after last line in case of scroll up. */
+  if (++viewLine <= contentHeight) {
+    self cursor x = VIEW_START_X_OFFSET;
+    self cursor y = viewLine + VIEW_START_Y_OFFSET;
+    __ctalkANSIClearPaneLine (self, viewLine + VIEW_START_Y_OFFSET);
+  }
+
+  self super refresh;
+  self dismissButton gotoXY 2, 2;
+  self dismissButton printOn "%s", self dismissButton buttonText;
+  self dismissButton refresh;
+  return NULL;
+}
+
+#ifndef ESC
+#define ESC     0x1b
+#endif
+#ifndef CR
+#define CR      0x0d
+#endif
+#ifndef LF
+#define LF      0x0a
+#endif
+#ifndef EMACS_DN
+#define EMACS_DN 0x0e
+#endif
+#ifndef EMACS_UP
+#define EMACS_UP 0x10
+#endif
+#ifndef CSI2
+#define CSI2    0x5b     /* ESC [ sequence is CSI */
+#endif
+
+ANSITextBoxPane instanceMethod handleInput (void) {
+  "Process input for the Pane.  Pressing Escape withdraws
+  the pane from the display without activating the 'OK'
+  button. Pressing Return activates the 'OK' button and
+  then withdraws the Pane.  Pressing 'j' Control-N, or 
+  an ANSI Cursor Down scrolls the text down.  Pressing 'k',
+  Control-P, or an ANSI Cursor Up scrolls the text up."
+  Integer new c;
+  InputEvent new iEvent;
+  String new responseString;
+
+  returnObjectClass String;
+
+  self paneStream rawMode;
+  self paneStream openInputQueue;
+  while ((c = self paneStream getCh) != EOF) {
+    iEvent become self paneStream nextInputEvent;
+    switch (iEvent eventClass)
+      {
+	/*
+	 *  ESC alone should work okay... but grab 
+	 *  the rest of a sequence if necessary.
+	 *  PgUp and PgDn do not register correctly
+	 *  on some terminals... so they're not used
+	 *  below.
+	 */
+      case KBDCHAR:
+	switch (iEvent eventData asCharacter)
+	  {
+	  case ESC:
+	    if ((c = self paneStream getChNoBlock) != 0) {
+	      iEvent become self paneStream nextInputEvent;
+	      switch (iEvent eventData asCharacter) 
+		{
+		case CSI2:
+ 		  if ((c = self paneStream getChNoBlock) != 0) {
+		    iEvent become self paneStream nextInputEvent;
+		    switch (iEvent eventData asCharacter) 
+		      {
+		      }
+		  }
+		  break;
+		default:
+		  break;
+		}
+	    } else {
+	      self withdraw;
+	      self paneStream restoreTerm;
+	      self paneStream setGraphics '0';
+	      return NULL;
+	    }
+	    break;
+ 	  case CR:
+	  case LF:
+	    self dismissButton focusHighlightOnOff;
+	    self dismissButton refresh;
+	    self withdraw;
+	    self paneStream restoreTerm;
+	    self paneStream setGraphics '0';
+	    return responseString;
+	    break;
+	    /*
+	     *  vi and emacs keys.
+	     */
+	  case 'j':
+	  case EMACS_DN:
+	    self viewStartLine = self viewStartLine + 1;
+	    self refresh;
+	    break;
+	  case 'k':
+	  case EMACS_UP:
+	    if (self viewStartLine > 1) 
+	      self viewStartLine = self viewStartLine - 1;
+	    self refresh;
+	    break;
+	  }
+	break;
+      case KBDCUR:
+	switch (iEvent eventData)
+	  {
+	  case 'A':  /* Cursor up */
+	    if (self viewStartLine > 1) 
+	      self viewStartLine = self viewStartLine - 1;
+	    self refresh;
+	    break;
+	  case 'B':  /* Cursor dn */
+	    self viewStartLine = self viewStartLine + 1;
+	    self refresh;
+	    break;
+	  default:
+	    break;
+	  }
+	break;
+      }
+  }
+  return NULL;
+}
+
+ANSITextBoxPane instanceMethod show (int x_org, int y_org) {
+  "Set the dimensions of the receiver object and display
+  it, then waits for user input."
+  self origin x = x_org;
+  self origin y = y_org;
+  self cursor x = VIEW_START_X_OFFSET;
+  self cursor y = VIEW_START_Y_OFFSET;
+  self dismissButton parent self;
+  self dismissButton origin x = 
+    self origin x + ((self size x / 2) - (BUTTONWIDTH / 2));
+  self dismissButton origin y = 
+    self origin y + (self size y - BUTTONHEIGHT - 1);
+  self refresh;
+  self dismissButton focusHighlightOnOff;
+  self dismissButton refresh;
+  self handleInput;
+  return NULL;
+}
+
+ANSITextBoxPane instanceMethod resize (Integer __xSize, Integer __ySize) {
+  "Resize the pane to the size of the arguments, width,
+  height, both Integers."
+    /* check if this is needed */
+  __ctalkDeleteWinBuffer (self dismissButton paneBuffer);
+  __ctalkDeleteWinBuffer (self dismissButton paneBackingStore);
+  self size x = __xSize;
+  self size y = __ySize;
+  if (self border) {
+    self viewXOffset = VIEW_START_X_OFFSET;
+    self viewWidth = self size x - 2;
+  } else {
+    self viewXOffset = 1;
+    self viewWidth = self size x;
+  }
+  self addBuffer __xSize, __ySize, 1;
+  return self;
+}
+
+ANSITextBoxPane instanceMethod cleanup (void) {
+  "Delete the buffers associated with the Pane objects."
+  __ctalkDeleteWinBuffer (self dismissButton paneBuffer);
+  __ctalkDeleteWinBuffer (self dismissButton paneBackingStore);
+  __ctalkDeleteWinBuffer (self paneBuffer);
+  __ctalkDeleteWinBuffer (self paneBackingStore);
+  return NULL;
+}

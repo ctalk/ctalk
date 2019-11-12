@@ -1,0 +1,290 @@
+/* $Id: WriteFileStream,v 1.2 2019/10/27 00:06:11 rkiesling Exp $ -*-c-*-*/
+
+/*
+  This file is part of Ctalk.
+  Copyright © 2005 - 2014, 2019  Robert Kiesling, rk3314042@gmail.com.
+  Permission is granted to copy this software provided that this copyright
+  notice is included in all source code modules.
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+*/
+
+
+#include <ctalk/ctalkdefs.h>
+
+FileStream class WriteFileStream   
+"Defines the methods and instance variables that write data to
+files. Also defines the class variables stdoutStream and stderrStream,
+which are the object representation of the standard output and
+standard error streams.";
+
+WriteFileStream classVariable stdoutStream
+"Defines an object that contains the value of the system's standard output
+file descriptor.";
+WriteFileStream classVariable stderrStream
+"Defines an object that contains the value of the system's standard error
+file descriptor.";
+WriteFileStream classVariable writeStreamClassInitDone Integer 0
+"Set to True when the class has been initialized, which needs to
+be done only once for a running program.";
+
+WriteFileStream classMethod classInit (void) {
+  "Initialize the application's standard output and
+  standard error.  This method is called by the
+  constructor method to initialize the class if
+  necessary."
+  OBJECT *classObject,
+    *stdoutStreamVar,
+    *stderrStreamVar,
+    *classInitVar;
+
+  if (self writeStreamClassInitDone)
+    return NULL;
+
+  classObject = __ctalkGetClass ("WriteFileStream");
+  stdoutStreamVar = __ctalkFindClassVariable ("stdoutStream", TRUE);
+  __ctalkInstanceVarsFromClassObject (stdoutStreamVar);
+  stderrStreamVar = __ctalkFindClassVariable ("stderrStream", TRUE);
+  __ctalkInstanceVarsFromClassObject (stderrStreamVar);
+  
+#if defined (__linux__)
+  __ctalkObjValPtr (stdoutStreamVar, _IO_stdout);
+  __ctalkObjValPtr (stderrStreamVar, _IO_stderr);
+#else
+  __ctalkObjValPtr (stdoutStreamVar, stdout);
+  __ctalkObjValPtr (stderrStreamVar, stderr);
+#endif
+
+  __ctalkInstanceVarsFromClassObject (stdoutStreamVar);
+  __ctalkInstanceVarsFromClassObject (stderrStreamVar);
+
+  classInitVar = 
+    __ctalkCreateObjectInit ("writeStreamClassInitDone", "Integer",
+				"Magnitude",
+				classObject -> scope, "1");
+  __ctalkAddClassVariable (classObject, "writeStreamClassInitDone", 
+			   classInitVar);
+
+  return NULL;
+}
+
+WriteFileStream instanceMethod value (void) {
+  "Return the receiver."
+  return self;
+}
+
+WriteFileStream instanceMethod new (char *fileStreamName) {
+  "The WriteFileStream constructor.  The argument, a
+  String, contains the name of the new object."
+  WriteFileStream super new fileStreamName;
+
+  __ctalkInstanceVarsFromClassObject (fileStreamName);
+
+  WriteFileStream classInit;
+  
+  return fileStreamName;
+}
+
+
+/*
+ *  Leave these translations for the moment.
+ */
+WriteFileStream instanceMethod openOn (char *streamPath) {
+  "Open the file with the name given in the argument, a String,
+  and initialize the receiver object's value.  Raises an
+  exception if the path refers to a directory.
+   
+    TO DO: This is only somewhat portable.  21 == EISDIR is 
+        good for Linux and Solaris at least."
+
+  FILE *f;
+  OBJECT *selfval;
+  String new fileReadWriteMode;
+  String new fileCreateMode;
+  
+  if (__ctalkIsDir (streamPath)) {
+    __ctalkSysErrExceptionInternal (NULL, 21, streamPath);
+    return self;
+  }
+  
+  fileReadWriteMode = "r+";
+  fileCreateMode = "w+";
+
+  if (!self exists streamPath) {
+    if ((f = xfopen (streamPath, fileCreateMode)) != NULL) {
+      selfval = self value;
+      __ctalkObjValPtr (selfval, f);
+      self closeStream;
+    } else {
+      __ctalkSysErrExceptionInternal (NULL, errno, streamPath);
+      return self;
+    }
+  }
+
+  if ((f = xfopen (streamPath, fileReadWriteMode)) != NULL) {
+    selfval = self value;
+    __ctalkObjValPtr (selfval, f);
+    self streamPath = streamPath;
+  } else {
+    __ctalkSysErrExceptionInternal (NULL, errno, streamPath);
+  }
+  return self;
+}
+
+WriteFileStream instanceMethod writeChar (char inChar) {
+  "Write the argument, a Character to the receiver's
+  stream.  Raises an exception if the stream has an
+  end-of-file condition."
+  int r;
+  char *c;
+  OBJECT *self_value, *arg_value, *self_pos;
+  FILE *self_stream;
+  SystemErrnoException new __errnoException;
+
+  self_value = self value;
+  arg_value = inChar value;
+  self_pos = self streamPos;
+  
+  sscanf (self_value -> __o_value, "0x%p", &self_stream);
+  c = CHAR_CONSTANT_VALUE (arg_value -> __o_value);
+
+  r = fputc (*c, self_stream);
+
+  if (r == EOF) {
+    __errnoException raiseException NULL;
+  } else {
+    __ctalkDecimalLongLongToASCII((long long int)ftell (self_stream), 
+				  self_pos -> __o_value);
+  }
+  return NULL;
+}
+
+WriteFileStream instanceMethod writeStream (char *str) {
+  "Write the argument, a String, to the receiver stream.
+  Raises an exception if the stream has an end-of-file
+  condition."
+  int r;
+  OBJECT *self_value, *arg_value, *self_pos;
+  FILE *self_stream;
+  SystemErrnoException new __errnoException;
+
+  self_value = __ctalkGetInstanceVariable (self, "value", 1);
+  arg_value = str value;
+  self_pos = self streamPos;
+  
+  sscanf (self_value -> __o_value, "0x%p", &self_stream);
+
+  r = fputs (arg_value -> __o_value, self_stream);
+
+  if (r == EOF) {
+    __errnoException raiseException NULL;
+  } else {
+    __ctalkDecimalLongLongToASCII((long long int)ftell (self_stream), 
+				  self_pos -> __o_value);
+  }
+  return NULL;
+}
+
+WriteFileStream instanceMethod writeVec (Vector vec) {
+  "Write the argument, a Vector, to the receiver stream.
+  Raises an exception if the stream has an end-of-file
+  condition."
+  int r;
+  int length;
+  OBJECT *self_value, *arg_value, *self_pos;
+  FILE *self_stream;
+  void *buf;
+  SystemErrnoException new __errnoException;
+
+  self_value = __ctalkGetInstanceVariable (self, "value", 1);
+  arg_value = vec value;
+  self_pos = self streamPos;
+  length = vec length value;
+  
+  sscanf (self_value -> __o_value, "0x%p", &self_stream);
+
+  buf = *(void **)arg_value -> __o_value;
+  r = fwrite ((void *)arg_value -> __o_value, sizeof (char), length,
+	      self_stream);
+
+  if (r == EOF) {
+    __errnoException raiseException NULL;
+  } else {
+    __ctalkDecimalLongLongToASCII((long long int)ftell (self_stream), 
+				  self_pos -> __o_value);
+  }
+  return NULL;
+}
+
+WriteFileStream instanceMethod writeFormat (char *fmt, ...) {
+  "Write the formatted output to the receiver stream.
+  This is probably redundant with the printOn method."
+  Exception new __e_app;
+  METHOD *self_method;
+  OBJECT *result_object, *__fmt_arg_value; 
+  ARG *__save_fmt_arg, *__tmp_fmt_arg;
+  char __ctalk_fmt[MAXMSG];
+  int __i_arg;
+  if ((self_method = 
+       __ctalkGetInstanceMethodByFn (__ctalkRtReceiverObject (),
+				     __ctalkRtGetMethodFn (),
+				     FALSE)) == NULL) {
+    __e_app raiseCriticalException UNDEFINED_METHOD_X, 
+      "in writeFormat (class WriteFileStream)";
+    return NULL;
+  }
+
+  __fmt_arg_value = fmt value;
+
+  __ctalkCPrintFmtToCtalkFmt (__fmt_arg_value -> __o_value, __ctalk_fmt);
+
+  __save_fmt_arg = self_method->args[0];
+
+  __tmp_fmt_arg = 
+    __ctalkCreateArgEntryInit
+    (__ctalkCreateObjectInit ("fmt", "String", "Character",
+			      LOCAL_VAR, __ctalk_fmt));
+  __objRefCntSet (&(__tmp_fmt_arg->obj), __save_fmt_arg->obj->nrefs);
+  self_method -> args[0] = __tmp_fmt_arg;
+
+  for (__i_arg = self_method -> n_args; __i_arg > 0; __i_arg--) {
+    self_method -> args[__i_arg] = self_method -> args[__i_arg - 1];
+  }
+  self_method->args[0] = __ctalkCreateArgEntryInit (self value);
+  ++self_method -> n_args;
+
+  result_object = __ctalkLibcFnWithMethodVarArgs ((int (*)())fprintf, self_method, "Integer");
+
+  --self_method -> n_args;
+  __ctalkDeleteArgEntry (self_method->args[0]);
+  for (__i_arg = 1; __i_arg <= self_method -> n_args; __i_arg++) {
+    self_method -> args[__i_arg-1] = self_method -> args[__i_arg];
+  }
+  self_method -> args[self_method -> n_args] = NULL;
+  self_method -> args[0] = __save_fmt_arg;
+  __objRefCntZero (&(__tmp_fmt_arg->obj));
+  __ctalkDeleteObject(__tmp_fmt_arg->obj);
+  __ctalkDeleteArgEntry(__tmp_fmt_arg);
+  __ctalkDeleteObject(result_object);
+  return self;
+}
+
+WriteFileStream instanceMethod printOn (char *fmt, ...) {
+  "Print the formatted arguments to the receiver stream."
+  __ctalkSelfPrintOn (); 
+  return self;
+}
+
+

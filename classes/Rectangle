@@ -1,0 +1,128 @@
+/* $Id: Rectangle,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-c-*-*/
+
+/*
+  This file is part of Ctalk.
+  Copyright © 2005 - 2014  Robert Kiesling, rk3314042@gmail.com.
+  Permission is granted to copy this software provided that this copyright
+  notice is included in all source code modules.
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+*/
+
+/*
+ *  Rectangle class.  Note that the class defines each line
+ *  individually.  Although the X library drawing functions need 
+ *  only the upper-left and lower-right coordinates of the
+ *  rectangle, the instance variable definitions give us
+ *  more freedom when working with complex graphics objects.
+ *
+ *  Note also that, unlike Line objects, which use absolute endpoints, 
+ *  the width and height are given relative  to the upper-left hand 
+ *  corner. This is how the various Xlib drawing functions use the 
+ *  dimensions.
+ *
+ *  For simple rectangles, the dimension method, below, is a 
+ *  convenience method that needs only the origin and extent 
+ *  coordinates to fill in the dimensions of the rectangle.
+ */
+
+Line class Rectangle
+"Rectangle class is used to draw rectangles on X11Pane
+and X11CanvasPane objects, although Rectangle objects
+can be used to define rectangular regions in any type
+of space.";
+Rectangle instanceVariable top Line NULL;
+Rectangle instanceVariable right Line NULL;
+Rectangle instanceVariable bottom Line NULL;
+Rectangle instanceVariable left Line NULL;
+
+Rectangle instanceMethod draw (OBJECT *__x11PaneObject) {
+  "Draw the outline of the receiver Rectangle on the
+  argument, a X11Pane object, using a default Pen."
+  Pen new defaultPen;
+  __ctalkGUIPaneDrawRectangle (__x11PaneObject, self, defaultPen, FALSE);
+  return NULL;
+}
+
+Rectangle instanceMethod drawWithPen (OBJECT *__x11PaneObject, OBJECT *__penObject) {
+  "Draw the outline of the receiver Rectangle on the first
+  argument, a X11Pane object, using the Pen object
+  given as the second argument."
+  __ctalkGUIPaneDrawRectangle (__x11PaneObject, self, __penObject, FALSE);
+  return NULL;
+}
+
+Rectangle instanceMethod fill (OBJECT *__x11PaneObject) {
+  "Draw a filled rectangle defined by the receiver on the 
+  argument, a X11Pane object, using a default Pen."
+  Pen new defaultPen;
+  __ctalkGUIPaneDrawRectangle (__x11PaneObject, self, defaultPen, TRUE);
+  return NULL;
+}
+
+Rectangle instanceMethod fillWithPen (OBJECT *__x11PaneObject, OBJECT *__penObject) {
+  "Draw a filled rectangle defined by the receiver on the 
+  argument, a X11Pane object, using a Pen object given as 
+  the second argument."
+  __ctalkGUIPaneDrawRectangle (__x11PaneObject, self, __penObject, TRUE);
+  return NULL;
+}
+
+Rectangle instanceMethod clear (OBJECT *__x11PaneObject) {
+  "Clear the area of the argument, a X11Pane object, with
+  the rectangle defined by the receiver object."
+  __ctalkGUIPaneClearRectangle (__x11PaneObject,
+				self top start x,
+				self top start y,
+				self bottom end x - self top start x,
+				self bottom end y - self top start y);
+
+  return NULL;
+}
+
+Rectangle instanceMethod dimensions (Integer __XOrg, Integer __YOrg,
+				     Integer __XSize, Integer __YSize) {
+  "A convenience function that translates arguments, all Integers,
+  that give the upper left corner of the rectangle, and its width 
+  and height, into the rectangle object's dimensions.
+  The prototype is:
+  '<RectangleObject> dimensions <x_org>, <y_org>, <width>, <height>'."
+  self top start x = __XOrg;
+  self top start y = __YOrg;
+
+  self top end x = __XSize;
+  self top end y = __YOrg;
+
+  self right start x = __XSize;
+  self right start y = __YOrg;
+
+  self right end x = __XSize;
+  self right end y = __YSize;
+
+  self bottom start x = __XOrg;
+  self bottom start y = __YSize;
+
+  self bottom end x = __XSize;
+  self bottom end y = __YSize;
+
+  self left start x = __XOrg;
+  self left start y = __YOrg;
+
+  self left end x = __XOrg;
+  self left end y = __YSize;
+
+  return self;
+}
+

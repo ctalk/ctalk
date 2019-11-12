@@ -1,0 +1,240 @@
+/* $Id: SortedList,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-c-*- */
+
+/*
+  This file is part of Ctalk.
+  Copyright © 2016-2019 Robert Kiesling, rk3314042@gmail.com.
+  Permission is granted to copy this software provided that this copyright
+  notice is included in all source code modules.
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+*/
+
+#include <ctalk/ctalkdefs.h>
+
+List class SortedList;
+
+SortedList instanceMethod pushAscending (OBJECT *(*newItem)()) {
+  "Adds the argument to the receiver list, sorting the
+   values of the list members in ascending order."
+
+    OBJECT *key, *self_object, *t, *arg, *index_object,
+    *index_object_next, *insert_ptr;
+
+  self_object = self;
+  key = __ctalkCreateObjectInit ("keyObject", "Key", "Symbol", 
+				 self_object -> scope,
+				 NULLSTR);
+
+  arg = newItem;
+
+  __ctalkReferenceObject (key, arg);
+
+  __objRefCntSet (OBJREF(key), self_object -> nrefs);
+  key -> __o_p_obj = self_object;
+  key -> attrs |= OBJECT_IS_MEMBER_OF_PARENT_COLLECTION;
+  if (!__LIST_HEAD(self_object)) {
+    __LIST_HEAD(self_object) = key;
+  } else {
+    insert_ptr = NULL;
+    for (t = __LIST_HEAD(self_object); t; t = t -> next) {
+      index_object = *(OBJECT **)(t -> instancevars -> __o_value);
+      if (t -> next) {
+	index_object_next =
+	  *(OBJECT **) (t -> next -> instancevars -> __o_value);
+	if ((strcmp (index_object -> __o_value, arg -> __o_value) < 0) &&
+	    (strcmp (index_object_next -> __o_value, arg -> __o_value) >= 0)) {
+	  insert_ptr = t;
+	  break;
+	}
+      } else {
+	if (strcmp (index_object -> __o_value, arg -> __o_value) < 0) {
+	  insert_ptr = t;
+	} else {
+	  insert_ptr = NULL;
+	}
+	break;
+      }
+      if (t -> next == NULL) {
+	insert_ptr = t;
+	break;
+      }
+    }
+
+    if (insert_ptr == NULL) {
+      /* only one element in the list, which is greater than
+	 the new element, so we shift the value onto the list */
+      key -> next = __LIST_HEAD(self_object);
+      __LIST_HEAD(self_object) = key;
+      key -> next -> prev = key;
+      return self;
+    } else if (insert_ptr -> next == NULL) {
+      /* insert at the end of the list. */
+      insert_ptr -> next = key;
+      key -> prev = insert_ptr;
+    } else {
+      insert_ptr -> next -> prev = key;
+      key -> next = insert_ptr -> next;
+      insert_ptr -> next = key;
+      key -> prev = insert_ptr;
+      return self;
+    }
+  }
+  return self;
+}
+
+SortedList instanceMethod pushDescending (OBJECT *(*newItem)()) {
+  "Adds the argument to the receiver list, sorting the
+   values of the list members in descending order."
+
+    OBJECT *key, *self_object, *t, *arg, *index_object,
+    *index_object_next, *insert_ptr;
+
+  self_object = self;
+  key = __ctalkCreateObjectInit ("keyObject", "Key", "Symbol", 
+				 self_object -> scope,
+				 NULLSTR);
+
+  arg = newItem;
+
+  __ctalkReferenceObject (key, arg);
+
+  __objRefCntSet (OBJREF(key), self_object -> nrefs);
+  key -> __o_p_obj = self_object;
+  key -> attrs |= OBJECT_IS_MEMBER_OF_PARENT_COLLECTION;
+  if (!__LIST_HEAD(self_object)) {
+    __LIST_HEAD(self_object) = key;
+  } else {
+    insert_ptr = NULL;
+    for (t = __LIST_HEAD(self_object); t; t = t -> next) {
+      index_object = *(OBJECT**) (t -> instancevars -> __o_value);
+      if (t -> next) {
+	index_object_next =
+	  *(OBJECT **) (t -> next -> instancevars -> __o_value);
+	if ((strcmp (index_object -> __o_value, arg -> __o_value) > 0) &&
+	    (strcmp (index_object_next -> __o_value, arg -> __o_value) <= 0)) {
+	  insert_ptr = t;
+	  break;
+	}
+      } else {
+	if (strcmp (index_object -> __o_value, arg -> __o_value) > 0) {
+	  insert_ptr = t;
+	} else {
+	  insert_ptr = NULL;
+	}
+	break;
+      }
+      if (t -> next == NULL) {
+	insert_ptr = t;
+	break;
+      }
+    }
+
+    if (insert_ptr == NULL) {
+      /* only one element in the list, which is greater than
+	 the new element, so we shift the value onto the list */
+      key -> next = __LIST_HEAD(self_object);
+      __LIST_HEAD(self_object) = key;
+      key -> next -> prev = key;
+      return self;
+    } else if (insert_ptr -> next == NULL) {
+      /* insert at the end of the list. */
+      insert_ptr -> next = key;
+      key -> prev = insert_ptr;
+    } else {
+      insert_ptr -> next -> prev = key;
+      key -> next = insert_ptr -> next;
+      insert_ptr -> next = key;
+      key -> prev = insert_ptr;
+      return self;
+    }
+  }
+  return self;
+}
+
+SortedList instanceMethod init (...) {
+  "Initialize the receiver List with the method's
+   arguments; e.g.,
+
+     myList init item1, item2, item3;   
+
+   This method initializes the receiver List with only
+   the arguments given in the expression. If there are
+   any elements that are already present in the list,
+   the method deletes them first.  The arguments are
+   added to the list sorted by their values in ascending
+   order."
+  int n, i;
+  OBJECT *arg;
+
+  self delete;
+  n = __ctalkNArgs ();
+
+  for (i = (n - 1); i >= 0; --i) {
+    arg = __ctalk_arg_internal (i);
+    self pushAscending arg;
+  }
+}
+
+SortedList instanceMethod = initEQ (...) {
+  "Similar to the List : init method.  Initializes 
+   the list with the method's arguments; e.g.,
+
+     myList = item1, item2, item3;   
+
+   This method initializes the receiver List with only the
+   arguments given in the expression. If there are any
+   elements that are already present in the list, the
+   method deletes them first.  The arguments are added to
+   the list sorted by their values in ascending order."
+  int n, i;
+  OBJECT *arg;
+
+  self delete;
+  n = __ctalkNArgs ();
+
+  for (i = (n - 1); i >= 0; --i) {
+    arg = __ctalk_arg_internal (i);
+    self pushAscending arg;
+  }
+}
+
+SortedList instanceMethod append (...) {
+  "Append the method's arguments to the receiver List,
+   sorted by their values in ascending order."
+  int n, i;
+  OBJECT *arg;
+
+  n = __ctalkNArgs ();
+
+  for (i = (n - 1); i >= 0; --i) {
+    arg = __ctalk_arg_internal (i);
+    self pushAscending arg;
+  }
+}
+
+SortedList instanceMethod += appendEQ (...) {
+  "Appends the arguments to the receiver List, sorted
+   by their values in ascending order."
+  int n, i;
+  OBJECT *arg;
+
+  n = __ctalkNArgs ();
+
+  for (i = (n - 1); i >= 0; --i) {
+    arg = __ctalk_arg_internal (i);
+    self pushAscending arg;
+  }
+}
+

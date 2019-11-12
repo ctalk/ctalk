@@ -1,0 +1,439 @@
+/* $Id: X11ScrollBarPane,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-c-*-*/
+
+/*
+  This file is part of Ctalk.
+  Copyright © 2014  Robert Kiesling, rk3314042@gmail.com.
+  Permission is granted to copy this software provided that this copyright
+  notice is included in all source code modules.
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+*/
+
+/*
+ *    X11ScrollBarPane class.
+ *
+ *    Draws a basic scroll bar.
+ */
+
+require X11Pane;
+require X11PaneDispatcher;
+
+#define SCROLLBAR_WIDTH 20
+#define DEFAULT_THUMB_HEIGHT 20
+
+X11PaneDispatcher class X11ScrollBarPane
+"A X11ScrollBarPane object draws a simple scroll bar on
+the left-hand side of a window, and handles pointer
+motion and scroll thumb movement within the scroll
+region.";
+X11ScrollBarPane instanceVariable arrowCursor X11Cursor NULL;
+X11ScrollBarPane instanceVariable grabCursor X11Cursor NULL;
+X11ScrollBarPane instanceVariable frame Rectangle NULL;
+X11ScrollBarPane instanceVariable thumb Rectangle NULL;
+X11ScrollBarPane instanceVariable framePen Pen NULL;
+X11ScrollBarPane instanceVariable thumbPen Pen NULL;
+X11ScrollBarPane instanceVariable thumbErasePen Pen NULL;
+X11ScrollBarPane instanceVariable thumbHeight Integer DEFAULT_THUMB_HEIGHT;
+// These are derived from the frame and thumb rectangles.
+// They're here because they're quicker to evaluate.
+X11ScrollBarPane instanceVariable frameTopStartX Integer 0;
+X11ScrollBarPane instanceVariable frameTopStartY Integer 0;
+X11ScrollBarPane instanceVariable frameBottomEndX Integer 0;
+X11ScrollBarPane instanceVariable frameBottomEndY Integer 0;
+X11ScrollBarPane instanceVariable thumbTopStartX Integer 0;
+X11ScrollBarPane instanceVariable thumbTopStartY Integer 0;
+X11ScrollBarPane instanceVariable thumbBottomEndX Integer 0;
+X11ScrollBarPane instanceVariable thumbBottomEndY Integer 0;
+X11ScrollBarPane instanceVariable dragStartX Integer 0;
+X11ScrollBarPane instanceVariable dragStartY Integer 0;
+X11ScrollBarPane instanceVariable dragging Boolean FALSE;
+X11ScrollBarPane instanceVariable lastY Integer 0;
+
+Integer new scrollbarTopStartX, scrollbarTopStartY,
+  scrollbarBottomEndX, scrollbarBottomEndY;
+
+X11ScrollBarPane instanceMethod pointIsInFrame (Integer pointX,	
+						Integer pointY) {
+  "Returns a Boolean object with the value of True if the
+  mouse pointer is over the scroll bar frame, False
+  otherwise."
+  returnObjectClass Boolean;
+
+  if (scrollbarTopStartX == -1) {
+    scrollbarTopStartX = self frameTopStartX;
+    scrollbarTopStartY = self frameTopStartY;
+    scrollbarBottomEndX = self frameBottomEndX;
+    scrollbarBottomEndY = self frameBottomEndY;
+  }
+
+  if (pointX >= scrollbarTopStartX &&
+      pointX <= scrollbarBottomEndX &&
+      pointY >= scrollbarTopStartY &&
+      pointY <= scrollbarBottomEndY) {
+#if 0
+  if ((pointX >= (self frameTopStartX)) &&
+      (pointX <= (self frameBottomEndX)) &&
+      (pointY >= (self frameTopStartY)) &&
+      (pointY <= (self frameBottomEndY))) {
+#endif    
+    return TRUE;
+  } else {
+    return FALSE;
+  }
+}
+
+X11ScrollBarPane instanceMethod pointIsInThumb (Integer pointX,
+						Integer pointY) {
+  "Returns a Boolean object with the value of True if the
+  mouse pointer is over the scroll thumb, False
+  otherwise."
+  returnObjectClass Boolean;
+
+  if ((pointX >= (self thumbTopStartX)) &&
+      (pointX <= (self thumbBottomEndX)) &&
+      (pointY >= (self thumbTopStartY)) &&  /* printf ("%d\n", deltaY); */
+
+
+      (pointY <= (self thumbBottomEndY))) {
+    return TRUE;
+  } else {
+    return FALSE;
+  }
+}
+
+X11ScrollBarPane instanceMethod thumbDimensions (Integer deltaY,
+						 Integer thumbHeight) {
+  "Set the coordinates for sliding the thumb to its new
+  position using the new Y origin and the height of the
+  thumb.  The method leaves a small channel between the
+  thumb and the scrollbar frame when 'self framePen
+  width == 2.'"
+
+  self thumb dimensions 2, deltaY, 
+    self size x - 5, thumbHeight;
+  self thumbTopStartX = self thumb top start x;
+  self thumbTopStartY = self thumb top start y;
+  self thumbBottomEndX = (self thumbTopStartX) + self thumb bottom end x;
+  self thumbBottomEndY = (self thumbTopStartY) + (self thumb bottom end y);
+
+}
+
+X11ScrollBarPane instanceMethod drawThumb (void) {
+  "Draw the thumb rectangle."
+  __ctalkGUIPaneDrawRectangle (self, self thumb, self thumbPen, TRUE);
+}
+
+X11ScrollBarPane instanceMethod eraseThumb (void) {
+  "Erase the thumb rectangle."
+  __ctalkGUIPaneDrawRectangle (self, self thumb, self thumbErasePen, TRUE);
+}
+
+X11ScrollBarPane instanceMethod refresh (void) {
+  "Redraw the scrollbar."
+  __ctalkGUIPaneDrawRectangle (self, self frame, self framePen, FALSE);
+
+  if (self dragging)
+    self eraseThumb;
+  else
+    self drawThumb;
+
+  __ctalkGUIPaneRefresh (self, 0, 0,
+   			 self size x,
+   			 self size y,
+   			 self origin x, self origin y);
+}
+
+X11ScrollBarPane instanceMethod subPaneResize (Object __subPane, 
+					  InputEvent __event) {
+  "Resize the receiver pane.  This is the resize event
+  handler called by the parent window's pane dispatcher
+  This method is under construction and is currently a
+  no-op."
+#if 0
+  if (__subPane container containerMode == "full") {
+    self paneBuffer resize 
+      self container xWindowID,
+      __event xEventData3, __event xEventData4;
+
+    __subPane viewWidth = __event xEventData3;
+    __subPane viewHeight = __event xEventData4;
+    __subPane refresh;
+  } else {
+    fprintf (stderr, 
+     "Error: subPaneResize (class X11ScrollBarPane): unknown container mode!\n");
+  }
+#endif
+  return NULL;
+}
+
+X11ScrollBarPane instanceMethod subPaneDestroy (Object __subPane, 
+					  InputEvent __event) {
+  "Delete the receiver pane's pixmaps and graphics
+  contexts.  This is the event handler called by the
+  parent window's pane dispatcher.  Uses a temporary
+  X11Pixmap object to cast the paneBuffer and
+  paneBackingStore instance variables, which were
+  changed from Symbol to X11Pixmap objects, which is
+  mentioned in the attachTo method's comments."
+  X11Pixmap new tmpPixmap;
+  tmpPixmap become self paneBuffer;
+  XFreePixmap (X11Pane xDisplay, tmpPixmap xID);
+  XFreeGC (X11Pane xDisplay, (GC) self paneBuffer xGC);
+  tmpPixmap become self paneBackingStore;
+  XFreePixmap (X11Pane xDisplay, tmpPixmap xID);
+  XFreeGC (X11Pane xDisplay, (GC) self paneBackingStore xGC);
+
+  return NULL;
+}
+
+X11ScrollBarPane instanceMethod subPaneExpose (Object __subPane,
+					  InputEvent __event) {
+  "Handle an Expose event by redrawing the pane's contents
+  on the parent window."
+  __subPane refresh;
+}
+
+X11ScrollBarPane instanceMethod subPanePointerInput (Object __subPane,
+						  InputEvent __event) {
+  "Handle ButtonPress and ButtonRelease events.  If the
+  pointer is over the scroll thumb and the right mouse
+  button is pressed, change the cursor and indicate the
+  start of a click-and-drag.  If the right mouse button
+  is released over the scroll frame, change the cursor
+  to a vertical arrow."
+  if (__event eventClass == 8) {
+    if (self pointIsInThumb (__event xEventData1, __event xEventData2)) {
+      self useCursor self grabCursor;
+      self dragStartX = __event xEventData1;
+      self dragStartY = __event xEventData2;
+      self dragging = TRUE;
+    }
+  }
+  if (__event eventClass == 16) {
+    if (self pointIsInFrame (__event xEventData1, __event xEventData2)) {
+      self useCursor self arrowCursor;
+    } else {
+      self defaultCursor;
+    }
+    if (self dragging)
+      self dragging = FALSE;
+    self refresh;
+  }
+  return NULL;
+}
+
+X11ScrollBarPane instanceMethod subPanePointerMotion (Object __subPane,
+					  InputEvent __event) {
+  "Handle pointer motion events from the parent window's
+  event dispatcher.  If not dragging (ie, the right
+  mouse button is not pressed), change the cursor on a
+  mouseover in the scrollbar frame.  Otherwise, move
+  the scroll thumb.  Uses a lot of C library calls
+  directly for speed."
+  Integer new y;
+  Integer new updatedY;
+
+  y = __event xEventData2 value;
+
+  if (self dragging) {
+
+    updatedY = self thumbTopStartY + (y - self lastY);
+    self lastY = y;
+
+    __ctalkGUIPaneDrawRectangle (self, self thumb, self thumbErasePen, TRUE);
+    self thumbDimensions updatedY, self thumbHeight;
+    __ctalkGUIPaneDrawRectangle (self, self thumb, self thumbPen, TRUE);
+    __ctalkGUIPaneRefresh (self, 0, 0, self size x, self size y,
+     			   self origin x, self origin y);
+  } else {
+    if (self pointIsInFrame  (__event xEventData1, __event xEventData2)) {
+      self useCursor self arrowCursor;
+    } else {
+      self defaultCursor;
+    }
+  }
+    
+  return NULL;
+}
+
+X11ScrollBarPane instanceMethod new (String __paneName) {
+  "The X11ScrollBarPane constructor.  The argument, a
+  String, contains the name of the new object.  Sets
+  pen colors and line widths for the scroll frame and
+  thumb, and the X event handlers."
+
+  Method new resizeMethod;
+  Method new destroyMethod;
+  Method new exposeMethod;
+  Method new pointerInputMethod;
+  Method new pointerMotionMethod;
+  X11ScrollBarPane super new __paneName;
+  __paneName arrowCursor scrollArrow;
+  __paneName grabCursor grabMove;
+  resizeMethod definedInstanceMethod "X11ScrollBarPane", "subPaneResize";
+  destroyMethod definedInstanceMethod "X11ScrollBarPane", "subPaneDestroy";
+  exposeMethod definedInstanceMethod "X11ScrollBarPane", "subPaneExpose";
+  pointerInputMethod definedInstanceMethod "X11ScrollBarPane", 
+    "subPanePointerInput";
+  pointerMotionMethod definedInstanceMethod "X11ScrollBarPane", 
+    "subPanePointerMotion";
+  __paneName setMethodHandler "resize", resizeMethod;
+  __paneName setMethodHandler "destroy", destroyMethod;
+  __paneName setMethodHandler "expose", exposeMethod;
+  __paneName setMethodHandler "pointerinput", pointerInputMethod;
+  __paneName setMethodHandler "pointermotion", pointerMotionMethod;
+
+  __paneName framePen width = 2;
+  __paneName framePen colorName = "black";
+  __paneName thumbPen colorName = "gray";
+  __paneName thumbErasePen colorName = "white";
+
+  scrollbarTopStartX = -1;
+
+  return __paneName;
+}
+
+X11ScrollBarPane instanceMethod attachTo (Object parentPane) {
+  "Register the receiver pane as a subpane of the X11Pane*
+  object given as the argument.  Generally parent pane
+  should be a X11PaneDispatcher object.  After setting
+  the dimensions, create the X11Pixmap objects for the
+  pane's buffer and backing store.
+
+  The single argument form of this method draws the
+  scrollbar the full height of the window on the left
+  side, with the default scrollbar width."
+  X11Bitmap new xPaneBuffer;
+  X11Bitmap new xPaneBackingStore;
+  self super attachTo parentPane;
+  self paneBuffer become xPaneBuffer;
+  self paneBackingStore become xPaneBackingStore;
+  if (parentPane containerMode == "full") {
+
+    self size x = SCROLLBAR_WIDTH;
+    self size y = parentPane size y;
+
+    self frame dimensions 0, 0, self size x - 1, self size y - 1;
+    self frameTopStartX = self frame top start x;
+    self frameTopStartY = self frame top start y;
+    self frameBottomEndX = self frame bottom end x;
+    self frameBottomEndY = self frame bottom end y;
+
+    self thumbDimensions 2, self thumbHeight;
+
+    /*
+     *  The statements here need to be deferred until 
+     *  run time, because we've mutated paneBuffer into
+     *  a X11Bitmap object, above, and as yet, we're not
+     *  certain that we're going to know whether the original
+     *  paneBuffer instance variable understands the, 
+     *  "initialize," message.  So here we'll try to 
+     *  generate a warning and just defer the entire expression 
+     *  until run-time.
+     *
+     *  Until we have a backtrack where we can check the association 
+     *  of the become method, above.
+     *  
+     *  As an alternative, you can initialize xPaneBuffer first,
+     *  then mutate it with, "become."
+     */
+    self paneBuffer create self xWindowID, self size x, 
+      self size y, self depth;
+    self paneBackingStore create self xWindowID, self size x, 
+      self size y, self depth;
+  } else {
+    fprintf (stderr, 
+	     "attachTo (class X11ScrollBarPane) : undefined containerMode.\n");
+  }
+  return NULL;
+}
+
+X11ScrollBarPane instanceMethod attachTo (Object parentPane, Integer xOrg,
+				       Integer yOrg, 
+				       Integer xSize,
+				       Integer ySize) {
+  "The five-argument form of attachTo is still under
+  construction and is a no-op right now."
+#if 0
+  // Register the receiver pane as a subpane of the X11Pane*
+  // object given as the argument.  Generally parent pane 
+  // should be a X11PaneDispatcher object.  After setting the
+  // dimensions, create the X11Pixmap objects for the pane's
+  // buffer and backing store.
+  X11Bitmap new xPaneBuffer;
+  X11Bitmap new xPaneBackingStore;
+  self super attachTo parentPane;
+  self paneBuffer become xPaneBuffer;
+  self paneBackingStore become xPaneBackingStore;
+  if (parentPane containerMode == "full") {
+
+    self size x = xSize;
+    self size y = ySize;
+    self origin x = xOrg;
+    self origin y = yOrg;
+
+    self frame dimensions 0, 0, self size x - 1, self size y - 1;
+    self frameTopStartX = self frame top start x;
+    self frameTopStartY = self frame top start y;
+    self frameBottomEndX = self frame bottom end x;
+    self frameBottomEndY = self frame bottom end y;
+
+    self thumbDimensions 2, self thumbHeight;
+
+    /*
+     *  The statements here need to be deferred until 
+     *  run time, because we've mutated paneBuffer into
+     *  a X11Bitmap object, above, and as yet, we're not
+     *  certain that we're going to know whether the original
+     *  paneBuffer instance variable understands the, 
+     *  "initialize," message.  So here we'll try to 
+     *  generate a warning and just defer the entire expression 
+     *  until run-time.
+     *
+     *  Until we have a backtrack where we can check the association 
+     *  of the become method, above.
+     *  
+     *  As an alternative, you can initialize xPaneBuffer first,
+     *  then mutate it with, "become."
+     */
+    self paneBuffer create self xWindowID, self size x, 
+      self size y, self depth;
+    self paneBackingStore create self xWindowID, self size x, 
+      self size y, self depth;
+  } else {
+    fprintf (stderr, 
+	     "attachTo (class X11ScrollBarPane) : undefined containerMode.\n");
+  }
+  return NULL;
+#endif
+}
+
+X11ScrollBarPane instanceMethod background (String color) {
+  "Set the receiver's background color to the argument, a
+  String."
+  self paneBuffer background color;
+}
+
+X11ScrollBarPane instanceMethod foreground (String color) {
+  "Set the receiver's foreground color to the argument, a
+  String."
+  self paneBuffer foreground color;
+}
+
+X11ScrollBarPane instanceMethod clear (void) {
+  "Clear the receiver's contents."
+  self paneBuffer clearRectangle 0, 0, self size x, self size y;
+}
+

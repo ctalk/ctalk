@@ -1,0 +1,586 @@
+/* $Id: LongInteger,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-c-*-*/
+
+/*
+  This file is part of Ctalk.
+  Copyright © 2005 - 2016, 2018 - 2019  
+    Robert Kiesling, rk3314042@gmail.com.
+  Permission is granted to copy this software provided that this copyright
+  notice is included in all source code modules.
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+*/
+
+/*
+ *    LongInteger class.
+ */
+
+#ifndef FALSE
+#define FALSE 0
+#endif
+
+#ifndef TRUE
+#define TRUE (!(FALSE))
+#endif
+
+/*
+ *  The Solaris (at least 2.8) index and rindex are interchangeable
+ *  with strchr and strrchr.
+ */
+#if defined (__sparc__) && defined (__GNUC__)
+#define index strchr
+#define rindex strrchr
+#endif
+
+Magnitude class LongInteger
+"LongInteger class defines methods that perform
+operations on wide integers.  LongInteger is analogous
+to the C data type 'long long int'.";
+
+LongInteger instanceMethod = set_value (long long int l) { 
+  "Set the value of the receiver to the argument."
+  OBJECT *l_var;
+  char buf[MAXLABEL];
+
+  l_var = l value;
+
+  /* This is the lower-level method API.  Refer to
+     ctalkmethod(1). */
+  if ((l_var -> attrs & OBJECT_VALUE_IS_BIN_INT) ||
+      (l_var -> attrs & OBJECT_VALUE_IS_BIN_BOOL)) {
+    LLVAL(__ctalk_self_internal () -> __o_value) =
+      INTVAL(l_var -> __o_value);
+    LLVAL(__ctalk_self_internal_value () -> __o_value) =
+      INTVAL(l_var -> __o_value);
+  } else if (l_var -> attrs & OBJECT_VALUE_IS_BIN_LONGLONG) {
+    LLVAL(__ctalk_self_internal () -> __o_value) =
+      LLVAL(l_var -> __o_value);
+    LLVAL(__ctalk_self_internal_value () -> __o_value) =
+      LLVAL(l_var -> __o_value);
+  } else {
+    LLVAL(__ctalk_self_internal () -> __o_value) =
+      strtoll (l_var -> __o_value, NULL, 0);
+    LLVAL(__ctalk_self_internal_value () -> __o_value) =
+      strtoll (l_var -> __o_value, NULL, 0);
+  }
+
+  return self;
+}
+  
+LongInteger instanceMethod + add (LongInteger l) {
+  "Return a LongInteger with the sum of the receiver and
+  the argument, also a LongInteger."
+
+  if (l is LongInteger) {
+    return self + l;
+  } else {
+    return self + l asLongInteger;
+  }
+
+}
+
+LongInteger instanceMethod - subtract (LongInteger l) {
+  "Return a LongInteger with the difference between the
+  receiver and the argument, also a LongInteger."
+
+  if (l is LongInteger) {
+    return self - l;
+  } else {
+    return self - l asLongInteger;
+  }
+
+}
+
+LongInteger instanceMethod * multiply (LongInteger l) {
+  "Return a LongInteger with the product of the receiver
+  and the argument, also a LongInteger."
+
+  if (l is LongInteger) {
+    return self * l;
+  } else if (l is Float) {
+    /* we do this separately so that <long long int> * <float> to
+       get a ratio or percentage "just works" */
+    int r;
+    r = *(int *) __ctalk_self_internal () -> __o_value 
+      * strtod (l, NULL);
+    return r;
+  } else {
+    return self * l asLongInteger;
+  }
+    
+}
+
+LongInteger instanceMethod / divide (LongInteger l) {
+  "Return a LongInteger with the result of dividing the
+  receiver by the argument, also a LongInteger."
+
+  if (l is LongInteger) {
+    return self / l;
+  } else if (l is Float) {
+    /* If we need to divide by a fraction this is valid, too. */
+    int r;
+    r = *(int *) __ctalk_self_internal () -> __o_value 
+      / strtod (l, NULL);
+    return r;
+  } else {
+    return self / l asLongInteger;
+  }
+
+}
+
+LongInteger instanceMethod << asl (int i) {
+  "Return a LongInteger with the result shifting the
+  receiver left by the argument, an Integer."
+
+  OBJECT *op1, *op2;
+
+  op1 = self value;
+  op2 = i value;
+
+  if (strcmp (op2 -> CLASSNAME, "Integer")) {
+    _warning ("Operand of << is not an Integer.\n");
+  }
+  return LLVAL(op1 -> __o_value) << INTVAL(op2 -> __o_value);
+}
+
+LongInteger instanceMethod >> asr (int i) {
+  "Return a LongInteger with the result shifting the
+  receiver right by the argument, an Integer."
+  OBJECT *op1, *op2;
+
+  op1 = self value;
+  op2 = i value;
+  if (strcmp (op2 -> CLASSNAME, "Integer")) {
+    _warning ("Operand of >> is not an Integer.\n");
+  }
+  return LLVAL(op1 -> __o_value) >> INTVAL(op2 -> __o_value);
+}
+
+LongInteger instanceMethod & bitwise_and (long long int i) {
+  "Return a LongInteger that is a bitwise and of the
+  receiver and the argument, also a LongInteger."
+  OBJECT *op1, *op2;
+
+  op1 = self value;
+  op2 = i value;
+  if (strcmp (op2 -> CLASSNAME, "LongInteger")) {
+    _warning ("Operand of & is not a LongInteger.\n");
+  }
+  return LLVAL(op1 -> __o_value) & INTVAL(op2 -> __o_value);
+}
+
+LongInteger instanceMethod | bitwise_or (long long int i) {
+  "Return a LongInteger that is a bitwise or of the
+  receiver and the argument, also a LongInteger."
+  OBJECT *op1, *op2/* , *result_object */;
+
+  op1 = self value;
+  op2 = i value;
+  if (strcmp (op2 -> CLASSNAME, "LongInteger")) {
+    _warning ("Operand of | is not a LongInteger.\n");
+  }
+  return LLVAL(op1 -> __o_value) | INTVAL(op2 -> __o_value);
+}
+
+LongInteger instanceMethod ^ bitwise_xor (long long int i) {
+  "Return a LongInteger that is a bitwise xor of the
+  receiver and the argument, also a LongInteger."
+  OBJECT *op1, *op2;
+
+  op1 = self value;
+  op2 = i value;
+  if (strcmp (op2 -> CLASSNAME, "LongInteger")) {
+    _warning ("Operand of ^ is not a LongInteger.\n");
+  }
+  return LLVAL(op1 -> __o_value) ^ INTVAL(op2 -> __o_value);
+}
+
+LongInteger instanceMethod % mod (long long int i) {
+  "Return a LongInteger that is the modulus of the
+  receiver and the argument, also a LongInteger."
+  OBJECT *op1, *op2/* , *result_object */;
+
+  op1 = self value;
+  op2 = i value;
+  if (strcmp (op2 -> CLASSNAME, "LongInteger")) {
+    _warning ("LongInteger : % : operand is not a LongInteger.\n");
+  }
+  return LLVAL(op1 -> __o_value) % LLVAL(op2 -> __o_value);
+}
+
+LongInteger instanceMethod bitComp (void) {
+  "Return a LongInteger that is the bitwise complement of
+  the receiver."
+  OBJECT *op1;
+
+  op1 = self value;
+  if (strcmp (op1 -> CLASSNAME, "LongInteger")) {
+    _warning ("Receiver of method bitComp is not a LongInteger.\n");
+  }
+  return ~ LLVAL(op1 -> __o_value);
+}
+
+LongInteger instanceMethod == equality (long long int i) {
+  "Return a Boolean value of True if the value of the
+  receiver and the argument, also a LongInteger are
+  equal, False otherwise."
+  returnObjectClass Boolean;
+  OBJECT *op1, *op2;
+
+  returnObjectClass Boolean;
+
+  op1 = self value;
+  op2 = i value;
+
+  if (op2 -> attrs & OBJECT_VALUE_IS_BIN_LONGLONG) {
+    return LLVAL(op1 -> __o_value) == LLVAL(op2 -> __o_value);
+  } else if (op2 -> attrs & OBJECT_VALUE_IS_BIN_INT) {
+    return LLVAL(op1 -> __o_value) == INTVAL(op2 -> __o_value);
+  } else {
+    _warning ("ctalk: Operand of LongInteger : == is a %s.\n",
+	      op2 -> CLASSNAME);
+  }
+  return false;
+} 
+
+LongInteger instanceMethod > gt (long long int i) {
+  "Return a Boolean value of True if the value of the
+  receiver, a LongInteger, is greater than the value of
+  the argument, also a LongInteger.  Return False
+  otherwise."
+    returnObjectClass Boolean;
+  OBJECT *op1, *op2;
+
+  returnObjectClass Boolean;
+
+  op1 = self value;
+  op2 = i value;
+
+  if (op2 -> attrs & OBJECT_VALUE_IS_BIN_LONGLONG) {
+    return LLVAL(op1 -> __o_value) > LLVAL(op2 -> __o_value);
+  } else if (op2 -> attrs & OBJECT_VALUE_IS_BIN_INT) {
+    return LLVAL(op1 -> __o_value) > INTVAL(op2 -> __o_value);
+  } else {
+    _warning ("ctalk: Operand of LongInteger : > is a %s.\n",
+	      op2 -> CLASSNAME);
+  }
+  return false;
+} 
+
+LongInteger instanceMethod < lt (int i) {
+  "Return a Boolean value of True if the value of the
+  receiver, a LongInteger, is less than the value of
+  the argument, also a LongInteger.  Return False
+  otherwise."
+    returnObjectClass Boolean;
+  OBJECT *op1, *op2;
+
+  returnObjectClass Boolean;
+
+  op1 = self value;
+  op2 = i value;
+
+  if (op2 -> attrs & OBJECT_VALUE_IS_BIN_LONGLONG) {
+    return LLVAL(op1 -> __o_value) < LLVAL(op2 -> __o_value);
+  } else if (op2 -> attrs & OBJECT_VALUE_IS_BIN_INT) {
+    return LLVAL(op1 -> __o_value) < INTVAL(op2 -> __o_value);
+  } else {
+    _warning ("ctalk: Operand of LongInteger : < is a %s.\n",
+	      op2 -> CLASSNAME);
+  }
+  return false;
+} 
+
+LongInteger instanceMethod >= ge (long long int i) {
+  "Return a Boolean value of True if the value of the
+  receiver, a LongInteger, is greater than or equal to
+  the value of the argument, also a LongInteger.
+  Return False otherwise."
+    returnObjectClass Boolean;
+  OBJECT *op1, *op2;
+
+  returnObjectClass Boolean;
+
+  op1 = self value;
+  op2 = i value;
+
+  if (op2 -> attrs & OBJECT_VALUE_IS_BIN_LONGLONG) {
+    return LLVAL(op1 -> __o_value) >= LLVAL(op2 -> __o_value);
+  } else if (op2 -> attrs & OBJECT_VALUE_IS_BIN_INT) {
+    return LLVAL(op1 -> __o_value) >= INTVAL(op2 -> __o_value);
+  } else {
+    _warning ("ctalk: Operand of LongInteger : >= is a %s.\n",
+	      op2 -> CLASSNAME);
+  }
+  return false;
+} 
+
+LongInteger instanceMethod <= le (long long int i) {
+  "Return a Boolean value of True if the value of the
+  receiver, a LongInteger, is less than or equal to the
+  value of the argument, also a LongInteger.  Return
+  False otherwise."
+  OBJECT *op1, *op2;
+
+  returnObjectClass Boolean;
+
+  op1 = self value;
+  op2 = i value;
+
+  if (op2 -> attrs & OBJECT_VALUE_IS_BIN_LONGLONG) {
+    return LLVAL(op1 -> __o_value) <= LLVAL(op2 -> __o_value);
+  } else if (op2 -> attrs & OBJECT_VALUE_IS_BIN_INT) {
+    return LLVAL(op1 -> __o_value) <= INTVAL(op2 -> __o_value);
+  } else {
+    _warning ("ctalk: Operand of LongInteger : <= is a %s.\n",
+	      op2 -> CLASSNAME);
+  }
+  return false;
+} 
+
+LongInteger instanceMethod invert (void) {
+  "Return a one's complement of the receiver."
+  OBJECT *op1;
+
+  op1 = self value;
+
+  return ! LLVAL(op1 -> __o_value);
+
+} 
+
+LongInteger instanceMethod != inequality (long long int i) {
+  "Return a Boolean value of True if the value of the
+  receiver and the argument, also a LongInteger are not
+  equal, False otherwise."
+    returnObjectClass Boolean;
+  OBJECT *op1, *op2;
+
+  returnObjectClass Boolean;
+
+  op1 = self value;
+  op2 = i value;
+
+  if (op2 -> attrs & OBJECT_VALUE_IS_BIN_LONGLONG) {
+    return LLVAL(op1 -> __o_value) != LLVAL(op2 -> __o_value);
+  } else if (op2 -> attrs & OBJECT_VALUE_IS_BIN_INT) {
+    return LLVAL(op1 -> __o_value) != INTVAL(op2 -> __o_value);
+  } else {
+    _warning ("ctalk: Operand of LongInteger : != is a %s.\n",
+	      op2 -> CLASSNAME);
+  }
+  return false;
+} 
+
+LongInteger instanceMethod || logicalOr (long long int i) {
+  "Return a Boolean value of True if either the value of
+  the receiver or the argument, both LongIntegers are
+  non-zero, False otherwise."
+    returnObjectClass Boolean;
+  OBJECT *op1, *op2;
+
+  returnObjectClass Boolean;
+
+  op1 = self value;
+  op2 = i value;
+  if (op2 -> attrs & OBJECT_VALUE_IS_BIN_LONGLONG) {
+    return LLVAL(op1 -> __o_value) || LLVAL(op2 -> __o_value);
+  } else if (op2 -> attrs & OBJECT_VALUE_IS_BIN_INT) {
+    return LLVAL(op1 -> __o_value) || INTVAL(op2 -> __o_value);
+  } else {
+    _warning ("ctalk: Operand of LongInteger : || is a %s.\n",
+	      op2 -> CLASSNAME);
+  }
+  return false;
+} 
+
+LongInteger instanceMethod && logicalAnd (long long int i) {
+  "Return a Boolean value of True if both the value of the
+  receiver or the argument, both LongIntegers are
+  non-zero, False otherwise."
+    returnObjectClass Boolean;
+  OBJECT *op1, *op2;
+
+  returnObjectClass Boolean;
+
+  op1 = self value;
+  op2 = i value;
+
+  if (op2 -> attrs & OBJECT_VALUE_IS_BIN_LONGLONG) {
+    return LLVAL(op1 -> __o_value) && LLVAL(op2 -> __o_value);
+  } else if (op2 -> attrs & OBJECT_VALUE_IS_BIN_INT) {
+    return LLVAL(op1 -> __o_value) && INTVAL(op2 -> __o_value);
+  } else {
+    _warning ("ctalk: Operand of LongInteger : && is a %s.\n",
+	      op2 -> CLASSNAME);
+  }
+  return false;
+} 
+
+LongInteger instanceMethod ~ bitComp_prefix (__prefix__) {
+  "Return the bitwise complement of the receiver."
+  return self bitComp;
+}
+
+LongInteger instanceMethod ++ increment (void) {
+  "Overloads C's ++ postfix operator."
+
+    OBJECT *self_value;
+  long long int l;
+
+  if (self value is LongInteger) {
+    self_value = self value;
+    l = LLVAL(self_value -> __o_value);
+    LLVAL(self_value -> __o_value) = (l + 1);
+  } else {
+    _warning 
+      ("LongInteger method ++: Receiver class, \"%s,\" is not supported.\n",
+       self value class);
+  }
+
+  return l;
+
+}
+
+LongInteger instanceMethod -- decrement (void) {
+  "Overloads C's -- postfix operator."
+
+    OBJECT *self_value;
+  long long int l;
+
+  if (self value is LongInteger) {
+    self_value = self value;
+    l = LLVAL(self_value -> __o_value);
+    LLVAL(self_value -> __o_value) = (l - 1);
+  } else {
+    _warning 
+      ("LongInteger method ++: Receiver class, \"%s,\" is not supported.\n",
+       self value class);
+  }
+  return l;
+
+}
+
+LongInteger instanceMethod - minus_prefix (__prefix__) {
+  "Overloads C's unary minus operator.  Returns the
+  negation of the receiver."
+  long long int llint_val;
+  OBJECT *self_value;
+
+  self_value = self value;
+  llint_val = LLVAL(self_value -> __o_value);
+  return -llint_val;
+
+}
+
+LongInteger instanceMethod |= bit_or_assign (long long int __i) {
+  "Performs a bitwise OR of the receiver and the
+   argument, an Integer, and assigns the result to
+   the receiver."
+  OBJECT *self_value;
+  OBJECT *arg_value;
+  long long int op1, op2;
+
+  self_value = self value;
+  arg_value = __i value;
+
+  op1 = LLVAL(self_value -> __o_value);
+  op2 = LLVAL(arg_value -> __o_value);
+  LLVAL(self_value -> __o_value) = (long long int)(op1 | op2);
+  
+  return self;
+}
+
+LongInteger instanceMethod &= bit_and_assign (long long int __i) {
+  "Performs a bitwise AND of the receiver and the
+   argument, an Integer, and assigns the result to
+   the receiver."
+  OBJECT *self_value;
+  OBJECT *arg_value;
+  int op1, op2;
+
+  self_value = self value;
+  arg_value = __i value;
+
+  op1 = LLVAL(self_value -> __o_value);
+  op2 = LLVAL(arg_value -> __o_value);
+  LLVAL(self_value -> __o_value) = (long long)(op1 & op2);
+  
+  return self;
+  
+}
+
+LongInteger instanceMethod ^= bit_xor_assign (long long int __i) {
+  "Performs a bitwise XOR of the receiver and the
+   argument, an Integer, and assigns the result to
+   the receiver."
+  OBJECT *self_value;
+  OBJECT *arg_value;
+  int op1, op2;
+
+  self_value = self value;
+  arg_value = __i value;
+
+  op1 = LLVAL(self_value -> __o_value);
+  op2 = LLVAL(arg_value -> __o_value);
+  LLVAL(self_value -> __o_value) = (long long)(op1 ^ op2);
+  
+  return self;
+}
+
+LongInteger instanceMethod %= mod_assign (long long int __i) {
+  "Performs a modulus of the receiver and the argument,
+   an Integer, and assigns the value to the receiver."
+  OBJECT *self_value;
+  OBJECT *arg_value;
+  int op1, op2;
+
+  self_value = self value;
+  arg_value = __i value;
+
+  op1 = LLVAL(self_value -> __o_value);
+  op2 = LLVAL(arg_value -> __o_value);
+  LLVAL(self_value -> __o_value) = (long long)(op1 % op2);
+  
+  return self;
+}
+
+LongInteger instanceMethod ++ inc_prefix (__prefix__) {
+  "Overloads C's ++ prefix operator."
+  long long int l;
+  OBJECT *self_value;
+
+  self_value = self value;
+
+  /* TODO - Causes ctpp to hang... should be an error. */
+  /* l = LLVAL(self_value -> __o_value; */
+  l = LLVAL(self_value -> __o_value);
+  ++l;
+  self = l;
+
+  return self;
+}
+
+LongInteger instanceMethod -- dec_prefix (__prefix__) {
+  "The C -- prefix operator for LongInteger objects."
+  long long int l;
+  OBJECT *self_value;
+
+  self_value = self value;
+
+  l = LLVAL(self_value -> __o_value);
+  --l;
+  self = l;
+
+  return self;
+}

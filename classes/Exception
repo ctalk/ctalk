@@ -1,0 +1,142 @@
+/* $Id: Exception,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-c-*-*/
+
+/*
+  This file is part of Ctalk.
+  Copyright © 2005-2014, 2017-2019  Robert Kiesling, rk3314042@gmail.com.
+  Permission is granted to copy this software provided that this copyright
+  notice is included in all source code modules.
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+*/
+
+/*
+ *  Exception Class
+ */
+
+Event class Exception
+"Exception class manages Ctalk's exception stack.  It
+can create an exception, check for pending exceptions,
+and create application specific exception handlers.";
+/*
+ *  Symbol is the probably the only Object subclass that is safe to use 
+ *  here as an instance variable.  Using other base classes also causes 
+ *  circular references, and the just-in-time mechanism, on its own,
+ *  is not equipped to detect them, nor should the mechanism try to 
+ *  cope with circular references anyway.  The situation is only 
+ *  slightly better in the subclasses of Exception.
+ *
+ *  Subclasses, however, should be able to define their own 
+ *  implementations of the handler methods, though.
+ */
+Exception instanceVariable handlerMethod Symbol NULL;
+
+Exception instanceMethod exceptionHandler (void) {
+  "The generic exception handler.  If the application has
+  defined another exception handler, call that instead."
+  METHOD *user_handler;
+  if (self traceEnabled)
+    self printExceptionTrace;
+  if (self handlerMethod value) {
+    /*
+     *  This method needs to call __ctalkEvalExpr itself,
+     *  so it avoids the automatic string-to-pointer translation
+     *  that the front end would provide.
+     */
+    if ((user_handler = 
+  	 (METHOD *) __ctalk_to_c_ptr
+	 (__ctalkEvalExpr("self handlerMethod value"))) != NULL) {
+      __ctalkInlineMethod (self, user_handler, 0);
+
+    } else {
+      _warning ("Warning: Method exceptionHandler (class Exception): Bad user exception handler.\n");
+    }
+  } else {
+    __ctalkHandleRunTimeException ();
+  }
+  return NULL;
+}
+
+Exception instanceMethod installHandler (char *__methodName) {
+  "Install an application defined exception handler.  The
+  argument, a String, contains the name of a method
+  that has the prototype, Exception instanceMethod
+  <handlerName> (void)"
+  void *m;
+  OBJECT *self_object;
+  self_object = self;
+  if ((m = (void *)__ctalkFindInstanceMethodByName 
+       (OBJREF(self_object), 
+	__ctalkToCCharPtr(ARG(0), TRUE), FALSE, -1)) == NULL) {
+    _warning ("Exception : setHandler: Could not find method.\n");
+  } else {
+    self handlerMethod value = m;
+  }
+  return NULL;
+}
+
+Exception instanceMethod pending (void) {
+  // Return an Integer value of True if there are any exceptions
+  // pending, false otherwise.
+  int r;
+  returnObjectClass Integer;
+  r = __ctalkPendingException ();
+  return r;
+}
+
+Exception instanceMethod handle (void) {
+  "Handle any pending exceptions."
+
+  returnObjectClass Integer;
+  if (strcmp (__ctalkPeekRunTimeException (), "Success")) {
+    self exceptionHandler;
+  }
+}
+
+Exception instanceMethod printExceptionTrace (void) {
+  "Print a call stack trace of the current exception."
+  __ctalkPrintExceptionTrace ();
+  return NULL;
+}
+
+Exception instanceMethod raiseException (int errcode, char *data) {
+  "Raise an exception with the arguments 
+     Integer <errcode> String <data>  
+  <errcode> is the value of a Ctalk exception, and <data>
+  contains the message that the exception handler prints."
+  __ctalkExceptionInternal (NULL, (EXCEPTION)errcode, data, 0);
+  return NULL;
+}
+
+Exception instanceMethod raiseCriticalException (int errcode, char *data) {
+  "Raise a critical exception with the arguments 
+    Integer <errcode> String <data>  
+    <errcode> is the value of a Ctalk exception, and <data>
+   contains the message that the exception handler prints."
+  __ctalkCriticalExceptionInternal (NULL, (EXCEPTION)errcode, data);
+  return NULL;
+}
+
+Exception instanceMethod deleteLastException (void) {
+  "Delete the last exception silently."
+  __ctalkDeleteLastExceptionInternal ();
+}
+
+Exception instanceMethod peek (void) {
+  "Return the next pending exception."
+  String new s;
+  returnObjectClass String;
+  s = __ctalkPeekRunTimeException ();
+  return s;
+}
