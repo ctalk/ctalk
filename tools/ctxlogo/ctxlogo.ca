@@ -1,0 +1,277 @@
+/* $Id: ctxlogo.ca,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ */
+
+/*
+  This file is part of Ctalk.
+  Copyright © 2014 Robert Kiesling, rk3314042@gmail.com.
+  Permission is granted to copy this software provided that this copyright
+  notice is included in all source code modules.
+
+  This program is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program; if not, write to the Free Software Foundation, 
+  Inc., 51 Franklin St., Fifth Floor, Boston, MA 02110-1301 USA.
+*/
+
+/*
+ *  ctxlogo.c - Draw the X logo.  The drawXLogo does this 
+ *  differently than the original xlogo, but we don't have
+ *  a polygon class yet.
+ *
+ *   Build the program with a command like the following.
+ *
+ *    $ ctcc -x ctxlogo.ca -o ctxlogo
+ *
+ */
+
+#include <math.h>
+#include <stdlib.h>
+#include "ctalk-logo.xpm"
+
+#define LOGO_WIDTH 189
+#define LOGO_HEIGHT 61
+
+#define CTRL_C 3
+
+/* From the #defines in X11/keysymdef.h */
+#define X_Escape_keycode 0xff1b
+#define X_Control_L_keycode  0xffe3
+#define X_Control_R_keycode  0xffe4
+
+String new fgColor;
+String new bgColor;
+
+String new geomString;
+
+void exit_help (char *);
+
+Application instanceMethod ctxlogoOptions (void) {
+
+  Integer new i;
+  Integer new nParams;
+  String new param;
+
+  nParams = self cmdLineArgs size;
+
+  for (i = 1; i < nParams; i++) {
+
+    param = self cmdLineArgs at i;
+
+    if (param  == "-g") {
+      geomString = self cmdLineArgs at i + 1;
+      i = i + 1;
+      continue;
+    }
+
+    if (param  == "-fg") {
+      fgColor = self cmdLineArgs at i + 1;
+      i = i + 1;
+      continue;
+    }
+
+    if (param  == "-bg") {
+      bgColor = self cmdLineArgs at i + 1;
+      i = i + 1;
+      continue;
+    }
+
+    if (param  == "-h")
+      exit_help ("ctxlogo");
+
+  }
+}
+
+/*
+ *  The xlogo program uses polygons to draw its logo.  Without
+ *  having a Polygon class, this method uses different stroke
+ *  widths to construct the logo.
+ */
+X11CanvasPane instanceMethod drawXLogo (Integer winWidth, Integer winHeight) {
+  Integer new winCenterX;
+  Integer new winCenterY;
+  Integer new wideStrokeWidth;
+  Integer new wideStrokeHalf;
+  Integer new narrowStrokeWidth;
+  Integer new narrowStrokeHalf;
+  Integer new dividerWidth;
+
+  wideStrokeWidth = winWidth / 5;
+  wideStrokeHalf = wideStrokeWidth / 2;
+
+  narrowStrokeWidth = winWidth / 10;
+  narrowStrokeHalf = narrowStrokeWidth / 2;
+
+  dividerWidth = 4;
+
+  self pen width = wideStrokeWidth;
+  self pen colorName = fgColor;
+
+  self drawLine 0, -20, winWidth, winHeight + 20;
+
+  
+  winCenterX = winWidth / 2;
+  winCenterY = winHeight / 2;
+
+  self pen width = narrowStrokeWidth;
+  self drawLine winWidth + dividerWidth, -narrowStrokeHalf,
+    winCenterX + dividerWidth, winCenterY + narrowStrokeWidth;
+
+  self drawLine winCenterX - dividerWidth, winCenterY - narrowStrokeHalf,
+    -dividerWidth, winHeight + narrowStrokeWidth;
+
+  self pen width = dividerWidth;
+  self pen colorName = bgColor;
+
+  self drawLine
+    winWidth - narrowStrokeHalf, -narrowStrokeWidth,
+    narrowStrokeWidth - dividerWidth, winHeight + narrowStrokeWidth;
+
+}
+
+int main (int argc, char **argv) {
+  Integer new xWindowSize;
+  Integer new yWindowSize;
+  Integer new xWindowOrg;
+  Integer new yWindowOrg;
+  // Raise the logo a little above the vertical center.
+  Integer new logoAirPix;
+  X11Pane new xPane;
+  X11PaneDispatcher new xTopLevelPane;
+  X11CanvasPane new xCanvasPane;
+  InputEvent new e;
+  Integer new nEvents;
+  Exception new ex;
+  Application new ctxlogo;
+  Boolean new control_keypress;
+
+  ctxlogo enableExceptionTrace;
+  ctxlogo installExitHandlerBasic;
+  ctxlogo installAbortHandlerBasic;
+
+  fgColor = "blue";
+  bgColor = "red";
+
+  ctxlogo parseArgs argc, argv;
+  ctxlogo ctxlogoOptions;
+  if (geomString length > 0) 
+    ctxlogo parseX11Geometry geomString;
+
+  // The window needs to have a height and a width, so check
+  // for zero.
+  if (ctxlogo winWidth > 0) 
+    xWindowSize = ctxlogo winWidth;
+  else
+    xWindowSize = 230;
+
+  if (ctxlogo winHeight > 0) 
+    yWindowSize = ctxlogo winHeight;
+  else
+    yWindowSize = 230;
+
+  // A zero in the x or y coordinate could also be negative,
+  // so we need to check the geometry flags in the
+  // initialize method.
+  xWindowOrg = ctxlogo winXOrg;
+  yWindowOrg = ctxlogo winYOrg;
+
+
+  logoAirPix = xWindowSize / 20;
+
+  xPane initialize xWindowOrg, yWindowOrg, xWindowSize, yWindowSize,
+    ctxlogo geomFlags;
+  xPane inputStream eventMask =
+    WINDELETE|KEYPRESS|MOVENOTIFY|EXPOSE|RESIZENOTIFY;
+  xTopLevelPane attachTo xPane;
+  xCanvasPane attachTo xTopLevelPane;
+
+  xPane map;
+  xPane raiseWindow;
+
+  xPane openEventStream;
+
+  xCanvasPane background bgColor;
+  xCanvasPane clear;
+
+  xPane setWMTitle "Ctalk Logo";
+
+  while (TRUE) {
+
+    xPane inputStream queueInput;
+    if (xPane inputStream eventPending) {
+      e become xPane inputStream inputQueue unshift;
+      xPane subPaneNotify e;
+      if (ex pending)
+  	ex handle;
+      switch (e eventClass value)
+ 	{
+ 	case WINDELETE:
+  	  xPane deleteAndClose;
+ 	  exit (0);
+ 	  break;
+	case KEYPRESS:
+	  /* Escape or Control-C key closes the window. 
+	     X11CanvasPane objects don't have a built-in
+	     keyboard handler, so there's one here. */
+	  if (e xEventData5 value == X_Escape_keycode) {
+	    xPane deleteAndClose;
+	    exit (0);
+	  } else if (e xEventData5 == X_Control_L_keycode ||
+		     e xEventData5 == X_Control_R_keycode) {
+	    control_keypress = true;
+	    continue;
+	  } else if (control_keypress) {
+	    if (e xEventData5 == CTRL_C) {
+	      xPane deleteAndClose;
+	      exit (0);
+	    } else {
+	      control_keypress = false;
+	    }
+	  } else {
+	    control_keypress = false;
+	  }
+	  break;
+	case RESIZENOTIFY:
+	  xWindowSize = xPane size x;
+	  yWindowSize = xPane size y;
+	  logoAirPix = xWindowSize / 20;
+	  xCanvasPane clear;
+	  xCanvasPane drawXLogo xWindowSize, yWindowSize;
+	  xCanvasPane pixmapFromData (xWindowSize / 2) - (LOGO_WIDTH / 2), 
+	    ((yWindowSize / 2) - (LOGO_HEIGHT / 2)) - logoAirPix, 
+	    ctalk_logo_xpm;
+	  xCanvasPane refresh;
+	  break;
+	case EXPOSE:
+	  xCanvasPane clear;
+	  xCanvasPane drawXLogo xWindowSize, yWindowSize;
+	  xCanvasPane pixmapFromData (xWindowSize / 2) - (LOGO_WIDTH / 2), 
+	    ((yWindowSize / 2) - (LOGO_HEIGHT / 2)) - logoAirPix, 
+	    ctalk_logo_xpm;
+	  xCanvasPane refreshReframe;
+  	  break;
+  	default:
+	  break;
+ 	}
+
+    }
+  }
+}
+
+void exit_help (char *cmd) {
+  printf ("\nUsage: %s [-h] | [-fg <color>] [-bg <color>] [-g <geom>]\n", cmd);
+  printf ("-bg <color>  Background color.\n");
+  printf ("-fg <color>  Foreground color.\n");
+  printf ("-g  <geom>   Initial window size and position\n");
+  printf ("-h           Print this message and exit.\n");
+  printf ("Please report bugs to: rk3314042@gmail.com.\n");
+  exit (0);
+}
+
