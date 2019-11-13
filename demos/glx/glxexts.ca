@@ -1,0 +1,337 @@
+#include <X11/Xlib.h>
+#include <GL/glx.h>
+
+void exit_help (char *cmd);
+
+/* Default window dimensions. */
+#define WIN_WIDTH 500
+#define WIN_HEIGHT 700
+#define WIN_X 100
+#define WIN_Y 100
+
+#define DEFAULT_BG_RED 0
+#define DEFAULT_BG_GREEN 0
+#define DEFAULT_BG_BLUE 0
+
+#define DEFAULT_FG_RED 0
+#define DEFAULT_FG_GREEN 0
+#define DEFAULT_FG_BLUE 65535
+
+unsigned short bg_red, bg_green, bg_blue;
+int fg_red, fg_green, fg_blue;
+char fg_color_opt[0xff] = "";
+char bg_color_opt[0xff] = "";
+char font_opt[0xff] = "fixed";
+
+/* raster positions for text columns */
+#define COL1 12
+#define COL2 200
+#define COL3 350
+
+String new searchString;
+
+Application new glxexts;
+
+Array new extArray;
+Integer new nExts;
+Integer new winLineHeight;
+String new geomString;
+
+GLXCanvasPane instanceMethod namedFGColor (String colorName) {
+  XColor xc_screen, xc_exact;
+  Display *d;
+  Colormap c;
+
+  d = self displayPtr;
+  c = self colormap;
+  XAllocNamedColor (d, c, colorName, &xc_screen, &xc_exact);
+  fg_red = (int)xc_screen.red;
+  fg_green = (int)xc_screen.green;
+  fg_blue = (int)xc_screen.blue;
+}
+
+GLXCanvasPane instanceMethod namedBGColor (String colorName) {
+  XColor xc_screen, xc_exact;
+  Display *d;
+  Colormap c;
+
+  d = self displayPtr;
+  c = self colormap;
+  XAllocNamedColor (d, c, colorName, &xc_screen, &xc_exact);
+  bg_red = xc_screen.red;
+  bg_green = xc_screen.green;
+  bg_blue = xc_screen.blue;
+}
+
+GLXCanvasPane instanceMethod draw (void) {
+  int col;
+  int i, extcol;
+  int y_line, line_height, nth_line;
+  char textbuf[0xff];
+  
+  glLoadIdentity ();
+  glColor3us ((unsigned short)fg_red, (unsigned short)fg_green,
+	      (unsigned short)fg_blue);
+  
+  line_height = self xLineHeight;
+  y_line = glxexts winHeight - (line_height * 2);
+  nth_line = 2;
+
+  strcpy (textbuf, "VERSION:");
+  self drawTextW COL1, y_line, textbuf;
+  strcpy (textbuf, glGetString (GL_VERSION));
+  self drawTextW COL2, y_line, textbuf;
+  ++nth_line;
+
+  y_line -= line_height;
+  strcpy (textbuf, "VENDOR:");
+  self drawTextW COL1, y_line, textbuf;
+  strcpy (textbuf, glGetString (GL_VENDOR));
+  self drawTextW COL2, y_line, textbuf;
+  ++nth_line;
+
+  y_line -= line_height;
+  strcpy (textbuf, "RENDERER:");
+  self drawTextW COL1, y_line, textbuf;
+  strcpy (textbuf, glGetString (GL_RENDERER));
+  self drawTextW COL2, y_line, textbuf;
+  ++nth_line;
+
+  y_line -= line_height;
+  strcpy (textbuf, "GLSL VERSION:");
+  self drawTextW COL1, y_line, textbuf;
+  strcpy (textbuf, glGetString (GL_SHADING_LANGUAGE_VERSION));
+  self drawTextW COL2, y_line, textbuf;
+  ++nth_line;
+
+  y_line -= line_height;
+  strcpy (textbuf, "EXTENSIONS:");
+  self drawTextW COL1, y_line, textbuf;
+  ++nth_line;
+
+  y_line -= line_height;
+
+
+  extcol = 0;
+  col = COL1;
+  for (i = 0; i < extArray size; i++) {
+    if (nth_line > (winLineHeight - 2))
+      break;
+    if (searchString length > 0) {
+      if (!extArray at i contains searchString) {
+	continue;
+      }
+    }
+    self drawTextW col, y_line, extArray at i;
+    if (extcol == 1) {
+      extcol = 0;
+      y_line -= line_height;
+      ++nth_line;
+      col = COL1;
+    } else {
+      ++extcol;
+      col = COL3;
+    }
+  }
+
+  if (searchString length == 0) {
+    glColor3f (1.0f, 1.0f, 1.0f);
+    y_line -= line_height;
+    self drawTextW COL1, y_line,
+      "... (The -s option selects which extensions to display.) ";
+  }
+
+  self swapBuffers;
+
+}
+
+GLXCanvasPane instanceMethod initGL (void) {
+  char textbuf[0xffff];
+
+  glViewport (0, 0, glxexts winWidth, glxexts winHeight);
+  glClearColor((float)bg_red / 0xffff,
+	       (float)bg_green / 0xffff,
+	       (float)bg_blue / 0xffff, 1.0);
+  glLineWidth (1.0);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  glEnable (GL_LINE_SMOOTH);
+  glHint (GL_LINE_SMOOTH_HINT, GL_DONT_CARE);
+  glMatrixMode (GL_PROJECTION);
+  glLoadIdentity ();
+  if (glxexts winWidth <= glxexts winHeight) {
+    glOrtho (-5.0, 5.0,
+	     -5.0 * ((float)(glxexts winHeight) / (float)(glxexts winWidth)),
+	     5.0 * ((float)(glxexts winHeight) / (float)(glxexts winWidth)),
+	     -5.0, 5.0);
+  } else {
+    glOrtho (-5.0, 5.0,
+	     -5.0 * ((float)(glxexts winWidth) / (float)(glxexts winHeight)),
+	     5.0 * ((float)(glxexts winWidth) / (float)(glxexts winHeight)),
+	     -5.0, 5.0);
+  }
+  glMatrixMode (GL_MODELVIEW);
+  glLoadIdentity ();
+
+  self useXFont font_opt;
+
+  strcpy (textbuf, glGetString (GL_EXTENSIONS));
+  textbuf split ' ', extArray;
+  nExts = extArray size;
+
+  winLineHeight = glxexts winHeight / self xLineHeight;
+
+}
+
+/* This definition comes from the machine's X11/keysymdef.h file. */
+#define XK_Escape 0xff1b
+
+GLXCanvasPane instanceMethod myKeyPressMethod (Integer xKeySym,
+					       Integer keyCode,
+					       Integer shiftState) {
+  if (xKeySym == XK_Escape) {
+    self deleteAndClose;
+    exit (0);
+  }
+}
+
+GLXCanvasPane instanceMethod myExposeMethod (Integer nEvents) {
+  if (nEvents == 0)
+    self draw;
+}
+
+GLXCanvasPane instanceMethod myResizeMethod (Integer width,
+					     Integer height) {
+  float ar;
+
+  glViewport (0, 0, width, height);
+  glMatrixMode (GL_PROJECTION);
+  glLoadIdentity ();
+  if (width <= height)
+    ar = (float)height / (float)width;
+  else
+    ar = (float)width / (float)height;
+  glOrtho (-5.0, 5.0, -5.0 * ar, 5.0 * ar, -5.0, 5.0);
+  glMatrixMode (GL_MODELVIEW);
+  glLoadIdentity ();
+}
+
+Application instanceMethod cmdLineOptions (void) {
+
+  Integer new i;
+  Integer new nParams;
+  String new param;
+  
+  fg_red = DEFAULT_FG_RED;
+  fg_green = DEFAULT_FG_GREEN;
+  fg_blue = DEFAULT_FG_BLUE;
+  bg_red = DEFAULT_BG_RED;
+  bg_green = DEFAULT_BG_GREEN;
+  bg_blue = DEFAULT_BG_BLUE;
+
+  nParams = self cmdLineArgs size;
+
+  for (i = 1; i < nParams; i++) {
+
+    param = self cmdLineArgs at i;
+
+    if (param == "-g") {
+      i += 1;
+      geomString = self cmdLineArgs at i;
+      continue;
+    }
+
+    if (param == "-fn") {
+      i += 1;
+      xstrcpy (font_opt, self cmdLineArgs at i);
+      continue;
+    }
+
+    if (param == "-s") {
+      i += 1;
+      searchString = self cmdLineArgs at i;
+      continue;
+    }
+
+    /* We have to wait until the window is created before setting
+       the colors.  Until then, just record the color name. */
+    if (param == "-fg") {
+      i += 1;
+      xstrcpy (fg_color_opt, self cmdLineArgs at i);
+      continue;
+    }
+
+    if (param == "-bg") {
+      i += 1;
+      xstrcpy (bg_color_opt, self cmdLineArgs at i);
+      continue;
+    }
+
+    if ((param  == "-h") || (param == "--help"))
+      exit_help ("glxexts");
+
+    printf ("glxexts: Unknown option: %s. Exiting.\n", param);
+    exit_help ("glxexts");
+  }
+}
+
+int main (int argc, char **argv) {
+  GLXCanvasPane new pane;
+
+  searchString = "";
+
+  glxexts parseArgs argc, argv;
+  glxexts cmdLineOptions;
+
+ if (geomString length > 0) {
+    glxexts parseX11Geometry geomString;
+    if (glxexts winWidth ==  0) {
+      glxexts winWidth = WIN_WIDTH;
+    }
+    if (glxexts winHeight == 0) {
+      glxexts winHeight = WIN_HEIGHT;
+    }
+    if (glxexts winXOrg == 0) {
+      glxexts winXOrg = WIN_X;
+    }
+    if (glxexts winYOrg == 0) {
+      glxexts winYOrg = WIN_Y;
+    }
+  } else {
+    glxexts winWidth = WIN_WIDTH;
+    glxexts winHeight = WIN_HEIGHT;
+    glxexts winXOrg = WIN_X;
+    glxexts winYOrg = WIN_Y;
+  }
+
+ pane initialize (glxexts winXOrg, glxexts winYOrg,
+		  glxexts winWidth, glxexts winHeight);
+  pane title "GLX Stats";
+  pane map;
+  pane raiseWindow;
+
+  pane onKeyPress "myKeyPressMethod";
+  pane onExpose "myExposeMethod";
+  pane onResize "myResizeMethod";
+
+  /* We have to set the colors after the window is initialized. */
+  if (*fg_color_opt)
+    pane namedFGColor fg_color_opt;
+  if (*bg_color_opt)
+    pane namedBGColor bg_color_opt;
+
+  pane initGL;
+  
+  pane run;
+
+  pane freeXFont;
+}
+
+void exit_help (char *cmd) {
+  printf ("\nUsage: %s [-h|--help] | [-bg <color>] [-fg <color>] [-fn <font>] [-s <string>]\n", cmd);
+  printf ("-bg <color>        Use <color> for the window background.\n");
+  printf ("-fg <color>        Use <color> to display text.\n");
+  printf ("-fn <fontspec>     Display text using <fontspec>. (See xlsfonts(1) or xfontsel(1)).\n");
+  printf ("-h, --help         Print this message and exit.\n");
+  printf ("-s  <string>       List only the extensions that contain <string>.\n");
+  exit (EXIT_SUCCESS);
+}

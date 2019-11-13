@@ -1,0 +1,217 @@
+/* glxtexture.c - Example of applying a texture to a surface rendered
+   with GL.
+
+   Instead of applying the same texture segment to each face of the
+   tetrahedron, the program wraps the texture around the shape.
+
+               Face 1
+             ----------
+             | \     /|
+             |  \   / | 
+             |   \ /  |
+     Face 4  |    /   |  Face 2
+	     |   / \  |
+	     |  /   \ |
+	     | /     \|
+	     ----------
+               Face 3
+
+*/
+
+#include <X11/Xlib.h>
+#include <GL/glx.h>
+
+#include "blackmarble.xpm"
+
+#define DEFAULT_WIDTH 640
+#define DEFAULT_HEIGHT 640
+
+float face1[3][3] = {{0.0f, 2.0f, 0.0f},
+		     {-2.0f, -2.0f, 2.0f},
+		     {2.0f, -2.0f, 2.0f}};
+float face2[3][3] = {{0.0f, 2.0f, 0.0f},
+		     {2.0f, -2.0f, 2.0f},
+		     {2.0f, -2.0f, -2.0f}};
+float face3[3][3] = {{0.0f, 2.0f, 0.0f},
+		     {2.0f, -2.0f, -2.0f},
+		     {-2.0f, -2.0f, -2.0f}};
+float face4[3][3] = {{0.0f, 2.0f, 0.0f},
+		     {-2.0f, -2.0f, -2.0f},
+		     {-2.0f, -2.0f, 2.0f}};
+
+float base[4][3] = {{-2.0f, -2.0f, 2.0f},
+		    {-2.0f, -2.0f, -2.0f},
+		    {2.0f, -2.0f, -2.0f},
+		    {2.0f, -2.0f, 2.0f}};
+
+float angle = 0.0;
+
+GLXCanvasPane instanceMethod draw (void) {
+  glEnable (GL_NORMALIZE);
+  glEnable(GL_DEPTH_TEST);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+  glLineWidth (1.0f);
+
+  glLoadIdentity ();
+
+  glRotatef (angle, 0.0f, 1.0f, 0.0f);
+  glRotatef (10.0f, 0.0f, 0.0f, 1.0f);
+
+  glBegin (GL_TRIANGLES);
+
+  glTexCoord2f (0.5f, 0.5f);
+  glVertex3fv (face1[0]);
+  glTexCoord2f (0.0f, 0.0f);
+  glVertex3fv (face1[1]);
+  glTexCoord2f (1.0f, 0.0f);
+  glVertex3fv (face1[2]);
+
+  glTexCoord2f (0.5f, 0.5f);
+  glVertex3fv (face2[0]);
+  glTexCoord2f (1.0f, 0.0f);
+  glVertex3fv (face2[1]);
+  glTexCoord2f (1.0f, 1.0f);
+  glVertex3fv (face2[2]);
+
+  glTexCoord2f (0.5f, 0.5f);
+  glVertex3fv (face3[0]);
+  glTexCoord2f (1.0f, 1.0f);
+  glVertex3fv (face3[1]);
+  glTexCoord2f (0.0f, 1.0f);
+  glVertex3fv (face3[2]);
+
+  glTexCoord2f (0.5f, 0.5f);
+  glVertex3fv (face4[0]);
+  glTexCoord2f (0.0f, 1.0f);
+  glVertex3fv (face4[1]);
+  glTexCoord2f (0.0f, 0.0f);
+  glVertex3fv (face4[2]);
+  glEnd ();
+
+  glBegin (GL_QUADS);
+
+  glTexCoord2f (0.0f, 1.0f);
+  glVertex3fv (base[0]);
+  glTexCoord2f (1.0f, 1.0f);
+  glVertex3fv (base[1]);
+  glTexCoord2f (1.0f, 0.0f);
+  glVertex3fv (base[2]);
+  glTexCoord2f (0.0f, 0.0f);
+  glVertex3fv (base[3]);
+
+  glEnd ();
+
+  self swapBuffers;
+}
+
+GLXCanvasPane instanceMethod initTexture (void) {
+  Integer new textureWidth;
+  Integer new textureHeight;
+  Symbol new texelData;
+
+  /* "blackmarble" is declared in the XPM file, included above. */
+  self xpmToTexture blackmarble, textureWidth, textureHeight, texelData;
+
+#ifdef __APPLE__
+   glTexImage2D (GL_TEXTURE_2D, 0, GL_RGBA, textureWidth, textureHeight,
+   		0, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, texelData);
+#else
+   glTexImage2D (GL_TEXTURE_2D, 0, GL_RGBA, textureWidth, textureHeight,
+   		0, GL_RGBA, GL_UNSIGNED_INT_8_8_8_8, texelData);
+#endif
+  glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  glTexEnvi (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+  glEnable (GL_TEXTURE_2D);
+}
+
+GLXCanvasPane instanceMethod initGL (void) {
+
+  glShadeModel (GL_SMOOTH);	      
+  glEnable (GL_LINE_SMOOTH);
+  glHint (GL_LINE_SMOOTH_HINT, GL_DONT_CARE);
+
+  glEnable (GL_DEPTH_TEST);
+  glEnable (GL_CULL_FACE);
+  glEnable (GL_CW);
+  glEnable (GL_NORMALIZE);
+
+  glClearColor(0.0, 0.0, 0.0, 1.0);
+  glViewport (0, 0, DEFAULT_WIDTH, DEFAULT_HEIGHT);
+  glLineWidth (1.0);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  glMatrixMode (GL_PROJECTION);
+  glLoadIdentity ();
+  if (DEFAULT_WIDTH <= DEFAULT_HEIGHT) {
+    glOrtho (-5.0, 5.0,
+	     -5.0 * ((float)DEFAULT_HEIGHT / (float)DEFAULT_WIDTH),
+	     5.0 * ((float)DEFAULT_HEIGHT / (float)DEFAULT_WIDTH),
+	     -5.0, 5.0);
+  } else {
+    glOrtho (-5.0, 5.0,
+	     -5.0 * ((float)DEFAULT_WIDTH / (float)DEFAULT_HEIGHT),
+	     5.0 * ((float)DEFAULT_WIDTH / (float)DEFAULT_HEIGHT),
+	     -5.0, 5.0);
+  }
+  glMatrixMode (GL_MODELVIEW);
+  glLoadIdentity ();
+}
+
+GLXCanvasPane instanceMethod myTimerTickHandler (void) {
+  angle += 1.0;
+  self draw;
+}
+
+/* This definition comes from the machine's X11/keysymdef.h file. */
+#define XK_Escape 0xff1b
+
+GLXCanvasPane instanceMethod myKeyPressMethod (Integer xKeySym,
+					       Integer keyCode,
+					       Integer shiftState) {
+  if (xKeySym == XK_Escape) {
+    self deleteAndClose;
+    exit (0);
+  }
+}
+
+GLXCanvasPane instanceMethod myExposeMethod (Integer nEvents) {
+  if (nEvents == 0)
+    self draw;
+}
+
+GLXCanvasPane instanceMethod myResizeMethod (Integer width,
+					     Integer height) {
+  float ar;
+
+  glViewport (0, 0, width, height);
+  glMatrixMode (GL_PROJECTION);
+  glLoadIdentity ();
+  if (width <= height)
+    ar = (float)height / (float)width;
+  else
+    ar = (float)width / (float)height;
+  glOrtho (-5.0, 5.0, -5.0 * ar, 5.0 * ar, -5.0, 5.0);
+  glMatrixMode (GL_MODELVIEW);
+  glLoadIdentity ();
+}
+
+int main () {
+  GLXCanvasPane new pane;
+
+  pane initialize (1, 150, DEFAULT_WIDTH, DEFAULT_HEIGHT);
+  pane title "GLXCanvasPane Texture Demonstration";
+  pane map;
+  pane raiseWindow;
+
+  pane onKeyPress "myKeyPressMethod";
+  pane onExpose "myExposeMethod";
+  pane onTimerTick "myTimerTickHandler";
+  pane onResize "myResizeMethod";
+
+  pane initTexture;
+  pane initGL;
+  
+  pane run;
+
+}

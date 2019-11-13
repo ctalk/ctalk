@@ -1,0 +1,170 @@
+#include <X11/Xlib.h>
+#include <GL/glx.h>
+
+#define DEFAULT_WIDTH 500
+#define DEFAULT_HEIGHT 500
+
+float face1[3][3] = {{0.0f, 2.0f, 0.0f},
+		     {-2.0f, -2.0f, 2.0f},
+		     {2.0f, -2.0f, 2.0f}};
+float face2[3][3] = {{0.0f, 2.0f, 0.0f},
+		     {2.0f, -2.0f, 2.0f},
+		     {2.0f, -2.0f, -2.0f}};
+float face3[3][3] = {{0.0f, 2.0f, 0.0f},
+		     {2.0f, -2.0f, -2.0f},
+		     {-2.0f, -2.0f, -2.0f}};
+float face4[3][3] = {{0.0f, 2.0f, 0.0f},
+		     {-2.0f, -2.0f, -2.0f},
+		     {-2.0f, -2.0f, 2.0f}};
+
+float base[4][3] = {{2.0f, -2.0f, 2.0f},
+		    {2.0f, -2.0f, -2.0f},
+		    {-2.0f, -2.0f, -2.0f},
+		    {-2.0f, -2.0f, 2.0f}};
+
+float angle = 20.0;
+
+GLXCanvasPane instanceMethod draw (void) {
+  glEnable (GL_NORMALIZE);
+  glEnable(GL_DEPTH_TEST);
+  glClearColor(0.0, 0.0, 0.0, 1.0);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+  glLineWidth (1.0f);
+
+  glLoadIdentity ();
+  glColor4f (1.0f, 1.0f, 1.0f, 1.0f);
+
+  glRotatef (angle, 0.0f, 1.0f, 0.0f);
+  glRotatef (10.0f, 0.0f, 0.0f, 1.0f);
+
+  glBegin (GL_TRIANGLES);
+  glColor3f (1.0f, 0.0f, 0.0f);
+  glVertex3fv (face1[0]);
+  glColor3f (0.0f, 1.0f, 0.0f);
+  glVertex3fv (face1[1]);
+  glColor3f (0.0f, 0.0f, 1.0f);
+  glVertex3fv (face1[2]);
+
+  glColor3f (1.0f, 0.0f, 0.0f);
+  glVertex3fv (face2[0]);
+  glColor3f (0.0f, 1.0f, 0.0f);
+  glVertex3fv (face2[1]);
+  glColor3f (0.0f, 0.0f, 1.0f);
+  glVertex3fv (face2[2]);
+			
+  glColor3f (1.0f, 0.0f, 0.0f);
+  glVertex3fv (face3[0]);
+  glColor3f (0.0f, 1.0f, 0.0f);
+  glVertex3fv (face3[1]);
+  glColor3f (0.0f, 0.0f, 1.0f);
+  glVertex3fv (face3[2]);
+			
+  glColor3f (1.0f, 0.0f, 0.0f);
+  glVertex3fv (face4[0]);
+  glColor3f (0.0f, 1.0f, 0.0f);
+  glVertex3fv (face4[1]);
+  glColor3f (0.0f, 0.0f, 1.0f);
+  glVertex3fv (face4[2]);
+  glEnd ();
+
+  glBegin (GL_QUADS);
+
+  glColor3f (1.0f, 0.0f, 0.0f);
+  glVertex3fv (base[0]);
+  glColor3f (0.0f, 1.0f, 0.0f);
+  glVertex3fv (base[1]);
+  glColor3f (0.0f, 0.0f, 1.0f);
+  glVertex3fv (base[2]);
+  glColor3f (1.0f, 0.0f, 1.0f);
+  glVertex3fv (base[3]);
+
+  glEnd ();
+
+  glRotatef (20.0, 0.0f, 0.0f, 1.0f);
+  glRotatef (angle, 0.0f, 1.0f, 0.0f);
+
+  self swapBuffers;
+}
+
+GLXCanvasPane instanceMethod initGL (void) {
+  glViewport (0, 0, DEFAULT_WIDTH, DEFAULT_HEIGHT);
+  glClearColor(0.0, 0.0, 0.0, 1.0);
+  glLineWidth (1.0);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  glEnable (GL_LINE_SMOOTH);
+  glHint (GL_LINE_SMOOTH_HINT, GL_DONT_CARE);
+  glMatrixMode (GL_PROJECTION);
+  glLoadIdentity ();
+  if (DEFAULT_WIDTH <= DEFAULT_HEIGHT) {
+    glOrtho (-5.0, 5.0,
+	     -5.0 * ((float)DEFAULT_HEIGHT / (float)DEFAULT_WIDTH),
+	     5.0 * ((float)DEFAULT_HEIGHT / (float)DEFAULT_WIDTH),
+	     -5.0, 5.0);
+  } else {
+    glOrtho (-5.0, 5.0,
+	     -5.0 * ((float)DEFAULT_WIDTH / (float)DEFAULT_HEIGHT),
+	     5.0 * ((float)DEFAULT_WIDTH / (float)DEFAULT_HEIGHT),
+	     -5.0, 5.0);
+  }
+  glMatrixMode (GL_MODELVIEW);
+  glLoadIdentity ();
+}
+
+GLXCanvasPane instanceMethod myTimerTickHandler (void) {
+  angle += 1.0;
+  self draw;
+}
+
+/* This definition comes from the machine's X11/keysymdef.h file. */
+#define XK_Escape 0xff1b
+
+GLXCanvasPane instanceMethod myKeyPressMethod (Integer xKeySym,
+					       Integer keyCode,
+					       Integer shiftState) {
+  if (xKeySym == XK_Escape) {
+    self deleteAndClose;
+    exit (0);
+  }
+}
+
+GLXCanvasPane instanceMethod myExposeMethod (Integer nEvents) {
+  if (nEvents == 0)
+    self draw;
+}
+
+GLXCanvasPane instanceMethod myResizeMethod (Integer width,
+					     Integer height) {
+  float ar;
+
+  glViewport (0, 0, width, height);
+  glMatrixMode (GL_PROJECTION);
+  glLoadIdentity ();
+  if (width <= height)
+    ar = (float)height / (float)width;
+  else
+    ar = (float)width / (float)height;
+  glOrtho (-5.0, 5.0, -5.0 * ar, 5.0 * ar, -5.0, 5.0);
+  glMatrixMode (GL_MODELVIEW);
+  glLoadIdentity ();
+}
+
+int main () {
+  GLXCanvasPane new pane;
+
+  pane initialize (1, 150, DEFAULT_WIDTH, DEFAULT_HEIGHT);
+
+  pane title "GLXCanvasPane Demonstration";
+  pane map;
+  pane raiseWindow;
+
+  pane onKeyPress "myKeyPressMethod";
+  pane onExpose "myExposeMethod";
+  pane onTimerTick "myTimerTickHandler";
+  pane onResize "myResizeMethod";
+
+  pane initGL;
+  
+  pane run;
+
+}

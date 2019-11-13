@@ -1,0 +1,25 @@
+GLX Demonstration Programs
+
+The programs in this directory use the GLXCanvasPane class to display
+OpenGL 3 dimensional graphics in a X window.
+
+The programs require that the machine's display server provides
+support for GLX visuals.  Most modern Linux, UNIX, and other POSIX
+systems with graphical desktops support GLX.  Om most of these
+systems, the GLX support can be detected by the Ctalk configuration
+and installation process.
+
+On systems with GLX support, the program, glxinfo (1), can display which
+GLX visuals the display server provides.
+
+If everything is installed correctly, then you should be able to build
+each of these programs using ctcc (1).  For example, to build glx.ca, you
+can use a shell command like this.
+
+  $ ctcc -x glx.ca -o glx
+
+Most of the programs use standard OpenGL functions.  The ftfont.ca
+program, however, uses shaders via Mesa OpenGL's GLEW_ARB_vertex_shader
+and GLEW_ARB_fragment shader.  It also has function calls that support
+the GLEW 2.0 application programming interface. but it is presently
+untested.

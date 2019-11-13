@@ -1,0 +1,415 @@
+/* $Id: glxchaser.ca,v 1.22 2019/11/11 19:41:12 rkiesling Exp $ */
+
+/*
+  This file is part of Ctalk.
+  Copyright © 2019  Robert Kiesling, rk3314042@gmail.com.
+  Permission is granted to copy this software provided that this copyright
+  notice is included in all source code modules.
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program; if not, write to the Free Software Foundation, 
+  Inc., 51 Franklin St., Fifth Floor, Boston, MA 02110-1301 USA.
+*/
+
+/*
+ *    glxchaser.ca - A side-scrolling text window.  To view
+ *    the options, enter the following at a shell prompt:
+ *
+ *       $ glxchaser -h
+ *
+ *    Ctalk supports (so far) the GLX_OML_sync_control and 
+ *    GLX_MESA_swap_control extensions to enable refresh 
+ *    synchronization.  They API for synchronization is a no-op
+ *    with other systems, and you can comment out the following
+ *    line if you don't want to view the warning messages on the
+ *    terminal.
+ */
+
+#define SYNC_SWAP
+
+/*
+ *    The program isn't very graphics op intensive, and it can take a
+ *    while (3-4 hours!) for OpenGL's buffers to fill, but the memory
+ *    usage is steady after that.
+ *
+ *    Ctalk should print a couple of warnings when compiling the
+ *    program... they're harmless.
+ */
+/*
+ *    Uncomment the following #define if you want to enable the display
+ *    of the FPS and video refresh rates on a terminal.
+ */
+
+/* #define REFRESH_STATS */
+
+#include <X11/Xlib.h>
+#include <GL/glx.h>
+
+/* Default window dimensions. */
+#define WIN_WIDTH 600
+#define WIN_HEIGHT 60
+#define WIN_X 100
+#define WIN_Y 100
+
+#define DEFAULT_BG_RED 0
+#define DEFAULT_BG_GREEN 0
+#define DEFAULT_BG_BLUE 0
+
+#define DEFAULT_FG_RED 0
+#define DEFAULT_FG_GREEN 0
+#define DEFAULT_FG_BLUE 65535
+
+unsigned short bg_red, bg_green, bg_blue;
+int fg_red, fg_green, fg_blue;
+char fg_color_opt[0xff] = "blue";
+char bg_color_opt[0xff] = "black";
+char font_opt[0xff] = "-*-helvetica-medium-r-*-*-*-100-*-*-*-*-*-*";
+
+Boolean new showRefresh;
+Boolean new showFrameRate;
+Float new frameInterval;
+Integer new swapInterval;
+
+void exit_help (char *);
+
+float x, x_prev, y, textwidth, gap = 20;
+float bgcolor[3] = {0.0, 0.0, 0.0};
+float fgcolor[3] = {0.0, 0.0, 0.0};
+
+Application new glxchaser;
+String new geomString;
+String new text;
+String new inputFileName;
+ReadFileStream new textInput;
+
+static long int g_t = 0;
+static int g_frames = 0;
+
+Integer instanceMethod addFloat (Float operand) {
+  "Adds a float to an Integer without giving us a
+   warning about truncation.  Used mainly by
+   the GLXCanvasPane : myTimerTickHandler method
+   below.  This method may cause a warning when
+   the program is compiled but should work okay."
+    int d;
+    
+   if (operand is Float) {
+     sscanf (operand value, "%d", &d);
+     return self + d;
+   } else {
+     return self + operand asInteger;
+   }
+
+}
+
+GLXCanvasPane instanceMethod showStats (void) {
+  String new stats;
+  if (showRefresh) {
+    if (showFrameRate) {
+      stats printOn "Refresh %.1f: FPS %3.1f",
+	self refreshRate, self frameRate;
+    } else {
+      stats printOn "Refresh: %.1f", self refreshRate;
+    }
+  } else {
+    if (showFrameRate) {
+      stats printOn "FPS: %3.1f", self frameRate;
+    }
+  }
+  if (showRefresh || showFrameRate) {
+    printf ("%s\n", stats);
+  }
+}
+
+GLXCanvasPane instanceMethod draw (void) {
+  String new refresh, frame;
+
+#ifdef __APPLE__
+  glClear (GL_COLOR_BUFFER_BIT);
+#else  
+  self drawTextW x_prev, y, bgcolor[0], bgcolor[1], bgcolor[2], text;
+#endif  
+
+  self drawTextW x, y, fgcolor[0], fgcolor[1], fgcolor[2], text;
+
+#ifdef REFRESH_STATS
+  self showStats;
+#endif  
+  
+  self swapBuffers;
+
+}
+
+GLXCanvasPane instanceMethod initGL (void) {
+  Float new r, g, b;
+
+  self namedColor bg_color_opt, r, g, b;
+  bgcolor[0] = r; bgcolor[1] = g; bgcolor[2] = b;
+
+  self namedColor fg_color_opt, r, g, b;
+  fgcolor[0] = r; fgcolor[1] = g; fgcolor[2] = b;
+
+  glViewport (0, 0, glxchaser winWidth, glxchaser winHeight);
+  glClearColor(bgcolor[0], bgcolor[1], bgcolor[2], 1.0);
+  glLineWidth (1.0);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  glEnable (GL_LINE_SMOOTH);
+  glHint (GL_LINE_SMOOTH_HINT, GL_DONT_CARE);
+  glMatrixMode (GL_PROJECTION);
+  glLoadIdentity ();
+  if (glxchaser winWidth <= glxchaser winHeight) {
+    glOrtho (-5.0, 5.0,
+	     -5.0 * (glxchaser winHeight / glxchaser winWidth),
+	     5.0 * (glxchaser winHeight / glxchaser winWidth),
+	     -5.0, 5.0);
+  } else {
+    glOrtho (-5.0, 5.0,
+	     -5.0 * (glxchaser winWidth / glxchaser winHeight),
+	     5.0 * (glxchaser winWidth / glxchaser winHeight),
+	     -5.0, 5.0);
+  }
+  glMatrixMode (GL_MODELVIEW);
+  glLoadIdentity ();
+
+  if (self useXFont font_opt < 0)
+    self useXFont "fixed";
+  x = (float)glxchaser winWidth / 2;
+  y = (float)glxchaser winHeight / 2;
+  textwidth = self textWidth text;
+
+#ifdef SYNC_SWAP
+  self syncSwap swapInterval;
+#endif  
+}
+
+GLXCanvasPane instanceMethod myTimerTickHandler (void) {
+  x_prev = x;
+  x -= frameInterval;
+
+  if (x < -(textwidth + gap)) {
+    x_prev = x = glxchaser winWidth addFloat gap;
+    if (inputFileName length > 0) {
+      textInput openOn inputFileName;
+      text = textInput readAll;
+      textInput closeStream;
+      text chomp;
+    }
+  }
+  self draw;
+}
+
+/* This definition comes from the machine's X11/keysymdef.h file. */
+#define XK_Escape 0xff1b
+
+GLXCanvasPane instanceMethod myKeyPressMethod (Integer xKeySym,
+					       Integer keyCode,
+					       Integer shiftState) {
+  if (xKeySym == XK_Escape) {
+    self deleteAndClose;
+    exit (0);
+  }
+}
+
+GLXCanvasPane instanceMethod myExposeMethod (Integer nEvents) {
+  if (nEvents == 0)
+    self draw;
+}
+
+GLXCanvasPane instanceMethod myResizeMethod (Integer width,
+					     Integer height) {
+  float ar;
+
+  glViewport (0, 0, width, height);
+  glMatrixMode (GL_PROJECTION);
+  glLoadIdentity ();
+  if (width <= height)
+    ar = (float)height / (float)width;
+  else
+    ar = (float)width / (float)height;
+  glOrtho (-5.0, 5.0, -5.0 * ar, 5.0 * ar, -5.0, 5.0);
+  glMatrixMode (GL_MODELVIEW);
+  glLoadIdentity ();
+}
+
+Application instanceMethod cmdLineOptions (void) {
+
+  Integer new i;
+  Integer new nParams;
+  String new param;
+  
+  fg_red = DEFAULT_FG_RED;
+  fg_green = DEFAULT_FG_GREEN;
+  fg_blue = DEFAULT_FG_BLUE;
+  bg_red = DEFAULT_BG_RED;
+  bg_green = DEFAULT_BG_GREEN;
+  bg_blue = DEFAULT_BG_BLUE;
+
+  nParams = self cmdLineArgs size;
+
+  for (i = 1; i < nParams; i++) {
+
+    param = self cmdLineArgs at i;
+
+    if (param == "-rr") {
+      showRefresh = true;
+      continue;
+    }
+
+    if (param == "-fr") {
+      showFrameRate = true;
+      continue;
+    }
+
+    if (param == "-g") {
+      i += 1;
+      geomString = self cmdLineArgs at i;
+      continue;
+    }
+
+    if (param == "-fn") {
+      i += 1;
+      xstrcpy (font_opt, self cmdLineArgs at i);
+      continue;
+    }
+
+    if (param == "-s") {
+      i += 1;
+      text = self cmdLineArgs at i;
+      continue;
+    }
+
+    /* We have to wait until the window is created before setting
+       the colors.  Until then, just record the color name. */
+    if (param == "-fg") {
+      i += 1;
+      xstrcpy (fg_color_opt, self cmdLineArgs at i);
+      continue;
+    }
+
+    if (param == "-bg") {
+      i += 1;
+      xstrcpy (bg_color_opt, self cmdLineArgs at i);
+      continue;
+    }
+
+    if (param == "-f") {
+      i += 1;
+      inputFileName = self cmdLineArgs at i;
+      continue;
+    }
+
+    if (param == "-sy") {
+      i += 1;
+      swapInterval = atoi (self cmdLineArgs at i);
+      continue;
+    }
+
+    if (param == "-r") {
+      i += 1;
+      frameInterval = (self cmdLineArgs at i) asFloat;
+      continue;
+    }
+
+    if ((param  == "-h") || (param == "--help"))
+      exit_help ("glxchaser");
+
+    printf ("glxchaser: Unknown option: %s. Exiting.\n", param);
+    exit_help ("glxchaser");
+  }
+}
+
+int main (int argc, char **argv) {
+  GLXCanvasPane new pane;
+
+  text = "Set the message text using the -s command line option.";
+  text += "  Type, \"glxchaser -h\" to display a list of options.";
+  glxchaser winWidth = WIN_WIDTH;
+  glxchaser winHeight = WIN_HEIGHT;
+  glxchaser winXOrg = WIN_X;
+  glxchaser winYOrg = WIN_Y;
+
+  showRefresh = false;
+  showFrameRate = false;
+  frameInterval = 1.0f;
+  swapInterval = 1;
+
+  glxchaser parseArgs argc, argv;
+  glxchaser cmdLineOptions;
+
+  if (geomString length > 0) {
+    glxchaser parseX11Geometry geomString;
+    if (glxchaser winWidth == 0) {
+      glxchaser winWidth = WIN_WIDTH;
+    }
+    if (glxchaser winHeight == 0) {
+      glxchaser winHeight = WIN_HEIGHT;
+    }
+    if (glxchaser winXOrg == 0) {
+      glxchaser winXOrg = WIN_X;
+    }
+    if (glxchaser winYOrg == 0) {
+      glxchaser winYOrg = WIN_Y;
+    }
+  }
+
+  if (inputFileName length > 0) {
+    textInput openOn inputFileName;
+    text = textInput readAll;
+    textInput closeStream;
+    text chomp;
+  }
+
+  pane initialize (glxchaser winXOrg, glxchaser winYOrg,
+		   glxchaser winWidth, glxchaser winHeight,
+		   glxchaser geomFlags);
+  pane title "glxchaser";
+  pane setResources "glxchaser", "Glxchaser";
+  pane map;
+  pane raiseWindow;
+
+  pane onKeyPress "myKeyPressMethod";
+  pane onExpose "myExposeMethod";
+  pane onTimerTick "myTimerTickHandler";
+  pane onResize "myResizeMethod";
+
+  pane initGL;
+  
+  pane run;
+
+}
+
+void exit_help (char *cmd) {
+  printf ("\nUsage: %s [-h|--help] | [-fr] [-rr] [-[-bg <color>] [-f <filename>] [-fg <color>] [-fn <font>] [-s <text>]\n", cmd);
+  printf ("-bg <color>        Use <color> for the window background. See showrgb(1).\n");
+  printf ("-f  <filename>     Use the contents of <filename> as the text to display.  The\n");
+  printf ("                   program reads <filename> between scans, so another program\n");
+  printf ("                   can update the text while glxchaser is running.\n");
+  printf ("-fg <color>        Use <color> to display the text. See showrgb(1).\n");
+  printf ("-fn <fontspec>     Display text using <fontspec>. See xlsfonts(1) or\n");
+  printf ("-g  <geom>         Set the window's size and position.\n");
+  printf ("                   xfontsel(1).\n");
+#ifdef REFRESH_STATS
+  printf ("-fr                Display the frame rate.\n");
+#endif
+  printf ("-h, --help         Print this message and exit.\n");
+  printf ("-r  <n>            Move the text <n> pixels per frame.  The default is 1 pixel.\n");
+#ifdef REFRESH_STATS
+  printf ("-rr                Display the screen refresh rate.\n");
+#endif  
+#ifdef SYNC_SWAP
+  printf ("-sy <n>            Set the swap buffer sync interval to 1/n.  If n == 0,\n");
+  printf ("                   disable swap synchronization.\n");
+#endif  
+  printf ("-s  <text>         Text to display.\n");
+  exit (EXIT_SUCCESS);
+}
