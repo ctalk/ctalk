@@ -1,0 +1,113 @@
+/* $Id: classdoc.ca,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ */
+
+/*
+  This file is part of Ctalk.
+  Copyright © 2015 Robert Kiesling, rk3314042@gmail.com.
+  Permission is granted to copy this software provided that this copyright
+  notice is included in all source code modules.
+
+  This program is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program; if not, write to the Free Software Foundation, 
+  Inc., 51 Franklin St., Fifth Floor, Boston, MA 02110-1301 USA.
+*/
+
+/*
+ *  classdoc.ca - Display information about a Ctalk class.
+ */
+
+void help_exit (void) {
+  printf ("Usage: classdoc [-h] | [-f] [-s] [-v] [-V] <classname>\n");
+  printf ("-f              Print the classes' file path.\n");
+  printf ("-h              Print this message and exit.\n");
+  printf ("-s              Print the classes' superclass.\n");
+  printf ("-v              The same as -f, -s and the classes' docstring.\n");
+  printf ("-V              Add labels to the verbose printout.\n");
+  printf ("To report bugs, mail rk3314042@gmail.com, or visit the Ctalk\n");
+  printf ("Web site: http://sourceforge.net/projects/ctalk/.\n");
+  exit (1);
+}
+
+int main (int argc, char **argv) {
+  Application new classDocApp;
+  String new classArg;
+  Integer new i;
+  String new classArg;
+  String new arg;
+  Boolean new displaySuperClass;
+  Boolean new displayFilePath;
+  Boolean new displayVerbose;
+  Boolean new displayLabels;
+  Object new classObj;
+
+  if (argc < 2)
+    help_exit ();
+
+  classArg = "";
+  displaySuperClass = False;
+  displayFilePath = False;
+  displayVerbose = False;
+  displayLabels = False;
+
+  classDocApp parseArgs argc, argv;
+
+  for (i = 0; i < argc; i++) {
+    arg = classDocApp cmdLineArgs at i;
+    if (arg == "-f") {
+      displayFilePath = True;
+      continue;
+    } else if (arg == "-s") {
+      displaySuperClass = True;
+      continue;
+    } else if (arg == "-v") {
+      displayVerbose = True;
+      continue;
+    } else if (arg == "-V") {
+      displayVerbose = True;
+      displayLabels = True;
+      continue;
+    } else if (arg == "-h") {
+      help_exit ();
+    }
+    if (i == (argc - 1)) {
+      classArg = classDocApp cmdLineArgs at i;  /* should be the last arg. */
+      break;
+    }
+  }
+
+  if (classArg length == 0)
+    help_exit ();
+
+  classObj = classArg classObject;
+
+  if (displaySuperClass) {
+    printf ("%s\n", classObj superclassName);
+  } else if (displayFilePath) {
+    printf ("%s\n", classArg libraryPath);
+  } else {
+    if (displayVerbose) {
+      if (displayLabels) {
+	printf ("Superclass: %s\n", classObj superclassName);
+	printf ("File:       %s\n", classArg libraryPath);
+	printf ("%s\n", classDocApp classDocString classObj);
+      } else {
+	printf ("%s\n", classObj superclassName);
+	printf ("%s\n", classArg libraryPath);
+	printf ("%s\n", classDocApp classDocString classObj);
+      }
+    } else {
+      printf ("%s\n", classDocApp classDocString classObj);
+    }
+  }
+
+  exit (0);
+}
