@@ -1,0 +1,74 @@
+# $Id: Makefile.djgpp,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $
+#
+# Makefile for DJGPP and GNU make.
+#
+
+#
+# Change the value of CMD if your system uses a 
+# different shell than cmd.exe
+#
+CMD=cmd /C
+
+LIBDEFINES=-DPKGNAME=\"ctalk\" -DCLASSLIBDIR=\"/djgpp/include/ctalk\" \
+	-DVERSION=\"0.0.96\" -DLIB_BUILD 
+
+LIBINCLUDES=-I../include
+
+LIBCFLAGS=-g -Wall -DWITHOUT_X11
+
+CFLAGS=$(LIBDEFINES) $(LIBINCLUDES) $(LIBCFLAGS)
+
+LIBSOURCES=ansitime.c become.c bitmap.c bnamecmp.c chash.c clibtmpl.c \
+	ctatoll.c ctdtoa.c ctitoa.c ctlltoa.c cttmpl.c ctoobj.c ctsleep.c \
+        escstr.c \
+	error_out.c errorloc.c event.c except.c font.c \
+	guiclearrectangle.c guiclearwindow.c guidrawline.c guidrawpoint.c \
+	guidrawrectangle.c guiputstr.c guirefresh.c \
+	infiles.c ismethd.c lex.c \
+	lextype.c lineinfo.c list.c keyword.c message.c param.c rt_op.c \
+	objtoc.c optiondb.c panelib.c pattern.c pattypes.c radixof.c \
+	read.c rt_call.c rtclslib.c rtinfo.c rtnewobj.c rtnwmthd.c \
+	rtobjref.c rtobjvar.c rttmpobj.c rttrace.c rtxalloc.c rt_args.c \
+	rt_cvar.c rt_error.c rt_expr.c rt_methd.c rt_prton.c rt_obj.c \
+	rt_rcvr.c rt_return.c rt_signal.c rt_stdarg.c rt_vmthd.c sconvchk.c sformat.c \
+	signame.c shmem.c ssearch.c statfile.c streq.c substrcpy.c tempio.c \
+	tempname.c trimstr.c typecast.c val.c wregex.c x11ksym.c x11lib.c
+
+LIBOBJS=ansitime.o become.o bitmap.o bnamecmp.o chash.o clibtmpl.o \
+	ctatoll.o ctdtoa.o ctitoa.o ctlltoa.o cttmpl.o ctoobj.o ctsleep.o \
+        escstr.o error_out.o errorloc.o event.o except.o font.o \
+	guiclearrectangle.o guiclearwindow.o guidrawline.o guidrawpoint.o \
+	guidrawrectangle.o guiputstr.o guirefresh.o infiles.o ismethd.o \
+	lex.o lextype.o lineinfo.o list.o keyword.o message.o param.o \
+	rt_op.o objtoc.o optiondb.o panelib.o pattern.o pattypes.o \
+	radixof.o read.o rt_call.o rtclslib.o rtinfo.o rtnewobj.o \
+	rtnwmthd.o rtobjref.o rtobjvar.o rttmpobj.o rttrace.o rtxalloc.o \
+	rt_argblk.o rt_args.o rt_cvar.o rt_error.o rt_expr.o rt_methd.o \
+	rt_prton.o rt_obj.o rt_rcvr.o rt_return.o rt_signal.o rt_stdarg.o rt_vmthd.o \
+	sconvchk.o sformat.o shmem.o signame.o ssearch.o statfile.o streq.o \
+	substrcpy.o tempio.o tempname.o trimstr.o typecast.o val.o \
+	wregex.o x11ksym.o x11lib.o
+
+
+HEADERS=../include/ctalk.h ../include/list.h ../include/pexcept.h \
+	../include/phash.h ../include/plex.h ../include/pmessage.h \
+	../include/pparser.h ../include/prtinfo.h ../include/pval.h \
+	../include/typeof.h
+
+LIB=libctalk.a
+
+all: $(LIB)
+
+$(LIBOBJS): $(LIBSOURCES) $(HEADERS)
+
+$(LIB): $(LIBOBJS)
+	ar rvs $(LIB) $(LIBOBJS)
+
+clean:
+	$(CMD) if exist *.o del *.o 
+	$(CMD) if exist *~ del *~
+	$(CMD) if exist $(LIB) del $(LIB)
+
+inst: $(LIB)
+	$(CMD) copy $(LIB) \\djgpp\\lib
+
