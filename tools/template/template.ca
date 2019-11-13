@@ -1,0 +1,210 @@
+
+#define USERTEMPLATEDIR ".ctalk/templates"
+#define USERTEMPLATEREGISTRY ".ctalk/templates/fnnames"
+
+String new userTemplateRegistryFile;
+String new userTemplateDir;
+String new userTemplateFile;
+
+String new fnActualName;
+String new fnAPIName;
+String new templateFileName;
+String new createOption;
+
+Application instanceMethod exitHelp (void) {
+  printf ("Usage:\ntemplate -c | -r | <actual_name> <api_name> <template_file>\n");
+  printf ("-c      Create an empty fnnames template registry file if one doesn't exist.\n");
+  printf ("-r      Replace an existing fnnames template registry file with a new,\n");
+  printf ("        empty registry.\n");
+  printf 
+    ("See template (1) (type, \"man template\") for more information.\n");
+  printf 
+    ("Please report bugs to rk3314042@gmail.com.\n");
+  exit (1);
+}
+
+Application instanceMethod getRegistryPaths (void) {
+  String new homeDir;
+
+  homeDir getEnv "HOME";
+
+  if (homeDir length == 0) {
+    printf ("template: $HOME directory not found.\n");
+    exit (1);
+  }
+
+  userTemplateRegistryFile = homeDir + "/" + USERTEMPLATEREGISTRY;
+  userTemplateDir = homeDir + "/" + USERTEMPLATEDIR;
+
+}
+
+Application instanceMethod deleteRegistry  (void) {
+  "Delete an existing fnnames file."
+  WriteFileStream new writeFile;
+  SystemErrnoException new sysErr;
+
+  self getRegistryPaths;
+
+  if (writeFile exists userTemplateRegistryFile) {
+    writeFile deleteFile userTemplateRegistryFile;
+    if (sysErr pending) {
+      sysErr handle;
+      exit (1);
+    }
+  }
+}
+
+Application instanceMethod createRegistry (void) {
+  "Create a new fnnames file.  The text of the new file is the
+   same as in the function init_user_template_path, in include.c
+   in the Ctalk source code."
+  WriteFileStream new writeFile;
+  SystemErrnoException new sysErr;
+
+  self getRegistryPaths;
+
+  if (writeFile exists userTemplateRegistryFile) {
+    printf ("template: Registry file %s already exists.\n",
+	    userTemplateRegistryFile);
+    printf ("The -r option can replace an existing registry file. Exiting.\n");
+    exit (1);
+  }
+
+  writeFile openOn userTemplateRegistryFile;
+  if (sysErr pending) {
+    sysErr handle;
+    return NULL;
+  }
+
+  if (createOption == "-c") {
+    printf ("template: Creating %s.\n", userTemplateRegistryFile);
+  } else if (createOption == "-r") {
+    printf ("template: Replacing %s.\n", userTemplateRegistryFile);
+  }
+
+  writeFile printOn "# This is a machine generated file.\n";
+  writeFile printOn "# The format of each line is:\n";
+  writeFile printOn "# <source_function_name>,<api_function_name>\n";
+  writeFile printOn "# See the fnnames(5ctalk) and template(1) man pages for more\n";
+  writeFile printOn "# information.\n";
+
+  writeFile closeStream;
+
+}
+
+Application instanceMethod addFnToRegistry (void) {
+  ReadFileStream new readFile;
+  WriteFileStream new writeFile;
+  SystemErrnoException new sysErr;
+  String new inputLine;
+  String new outputLine;
+
+  readFile openOn userTemplateRegistryFile;
+
+  if (sysErr pending) {
+    sysErr handle;
+    exit (1);
+  }
+
+  while (!readFile streamEof) {
+    inputLine = readFile readLine;
+  }
+
+  if ((inputLine length == 1) && (inputLine at 0 == -1)) {
+    outputLine = fnActualName + "," + fnAPIName + "\n";
+  } else {
+    outputLine = "\n" + fnActualName + "," + fnAPIName + "\n";
+  }
+
+  readFile closeStream;
+
+  writeFile openOn userTemplateRegistryFile;
+  if (sysErr pending) {
+    sysErr handle;
+    return NULL;
+  }
+  writeFile seekToEnd;
+  writeFile writeStream outputLine;
+  writeFile closeStream;
+}
+
+Application instanceMethod addTemplateFile (String templateFn) {
+  ReadFileStream new templateInput;
+  WriteFileStream new templateOutput;
+  String new templateStr;
+  SystemErrnoException new sysErr;
+  Array new matches;
+  Integer new iMatchLength;
+  Integer new nameOffset;
+  String new apiName;
+  Integer new i;
+  Character new c;
+  Character new initialChar;
+
+  templateInput openOn templateFn;
+  if (sysErr pending) {
+    sysErr handle;
+    return NULL;
+  }
+  templateStr = templateInput readAll;
+  templateInput closeStream;
+  if (!templateStr matchRegex "#define *", matches) {
+    printf ("template: file %s: #define keyword not found.\n",
+	    templateFn);
+    return NULL;
+  }
+  iMatchLength = templateStr matchLength;
+  nameOffset = (matches at 0) + iMatchLength;
+
+  apiName = "";
+  for (i = nameOffset; ; i++) {
+    c = templateStr at i;
+    if (!c isAlNum)
+      break;
+    apiName += c asString;
+  }
+  initialChar = apiName at 0;
+
+  userTemplateFile = userTemplateDir + "/" + initialChar asString;
+  printf ("template: Adding %s to file %s.\n", apiName, userTemplateFile);
+
+  templateOutput openOn userTemplateFile;
+  if (sysErr pending) {
+    sysErr handle;
+    return NULL;
+  }
+  templateOutput seekToEnd;
+  templateOutput writeStream templateStr;
+  templateOutput closeStream;
+}
+
+int main (int argc, char **argv) {
+  Application new template;
+  
+  if (argc == 2) {
+    createOption = argv[1];
+    if (createOption == "-c") {
+      template createRegistry;
+      exit (0);
+    } else if (createOption == "-r") {
+      template deleteRegistry;
+      template createRegistry;
+      exit (0);
+    } else {
+      template exitHelp;
+    }
+  }
+  if (argc != 4) {
+    template exitHelp;
+  }
+
+  fnActualName = argv[1];
+  fnAPIName = argv[2];
+  templateFileName = argv[3];
+
+  template getRegistryPaths;
+  template addFnToRegistry;
+  template addTemplateFile templateFileName;
+
+  exit (0);
+}
