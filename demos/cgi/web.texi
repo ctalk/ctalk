@@ -1,0 +1,1255 @@
+\input texinfo @c -*-texinfo-*-
+@c $Id: web.texi,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $
+@c %**start of header  
+@setfilename web.info
+@settitle Ctalk Web Utilities
+@setchapternewpage odd
+@paragraphindent 0
+@c %**end of header
+
+@set VERSION 0.0.97b
+
+@macro idxfncite{fnname}
+@cite{\fnname\} C function
+@end macro
+
+@macro idxclscite{fnname}
+(@code{\fnname\} class)
+@end macro
+
+@macro mnm{methodname}
+@code{\methodname\}
+@end macro
+
+@macro flnm{filename}
+@code{\filename\}
+@end macro
+
+@ifinfo
+
+@dircategory Ctalk
+@direntry
+* web: (web).	Ctalk Web applications and utilities.
+@end direntry
+
+This file documents Ctalk version @value{VERSION}.
+
+Copyright @copyright{} 2007-2012,  Robert Kiesling
+
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.1 or
+any later version published by the Free Software Foundation; with no
+Invariant Sections, with no Front-Cover Texts, and with no Back-Cover
+Texts.  A copy of the license is included in the section entitled,
+``GNU Free Documentation License.''
+
+@end ifinfo
+
+@iftex
+
+@titlepage
+@title Ctalk Web Applications and Utilities
+@subtitle World Wide Web Applications Written with Ctalk
+@author Robert Kiesling
+
+@page
+@vskip 0pt plus 1filll
+
+Ctalk Web Applications and Utilties.  This manual describes Ctalk, version
+@value{VERSION}.
+
+Copyright @copyright{} 2007,2008, Robert Kiesling
+
+Permission is granted to distribute this document
+under the terms of the GNU Free Documentation
+License. @xref{GNU Free Documentation License}.
+
+@end titlepage
+
+@contents
+@end iftex
+
+@iftex
+Web Applications and Utilities
+
+Refer to the installation notes for general World Wide Web server 
+installation instructions.  @xref{Installation}.
+
+@contents
+
+@end iftex
+@ifnottex
+
+Ctalk Web Applications and Utilities
+
+Refer to the installation notes for general World Wide Web server 
+installation instructions.  @xref{Installation}.
+@end ifnottex
+
+@node Top, , (dir), (dir)
+
+@menu
+* Ctenv.c::                        A simple CGI program that prints a Web server's environment.
+* Ctcheckquery.c::                 A CGI demonstration program that parses a URL's parameters.
+* Httpecho.c::                     Echo a message to a Web browser.
+* pageName.c::                     Browse to a Web page using a symbolic label.
+* Installation::                   Installation notes for Web servers.
+* GNU Free Documentation License::    Copying and distributing this manual.
+* Index::
+@end menu
+
+@node Ctenv.c, Ctcheckquery.c, Top, Top
+@iftex
+@chapter Web Applications and Utilities
+@end iftex
+@ifnottex
+@chapheading Web Applications and Utilities
+@end ifnottex
+
+@iftex
+@section @flnm{ctenv.c}
+@end iftex
+@ifnottex
+@subheading @flnm{ctenv.c}
+@end ifnottex
+@cindex @flnm{ctenv.c} example program
+@cindex @code{CGIApp} class
+
+The program @flnm{ctenv.c} is a simple Common Gateway Interface
+application that prints the environment of an Apache Web server.
+It uses the class @flnm{CGIApp}.  Both the @flnm{ctenv.c} source
+code and the @flnm{CGIApp} class source code are located in the
+Ctalk's @flnm{programs/cgi} source code subdirectory.
+
+Here is the source code of the @code{ctenv} application.  
+The comments describe how to compile and install it.
+@example
+/*
+ *   ctenv.c - Print the environment variables of an Apache
+ *             Web server.
+ *
+ *   Installation:
+ *   1. Build the ctenv program.
+ *
+ *      ctalk -I . ctenv.c -o ctenv.i && gcc ctenv.i -o ctenv -lctalk
+ *
+ *      or simply,
+ *
+ *      ctcc -I . ctenv.c -o ctenv
+ *
+ *      You must include the current directory in the Ctalk
+ *      search path (with -I .), so Ctalk can locate the CGIApp 
+ *      class library.
+ *
+ *   2. Copy the ctenv binary to the server's CGI directory,
+ *      and set its permissions. If you don't know where the
+ *      CGI directory is, look at the CGI configuration in the 
+ *       server's httpd.conf file. For example, for a normal 
+ *       Apache 2 installation:
+ *
+ *      $ su
+ *      # cp ctenv /usr/local/apache2/cgi-bin
+ *      # chmod 0755 /usr/local/apache2/cgi-bin/ctenv
+ *
+ *      If necessary, change the owner and group of 
+ *      the ctenv binary so the server can execute it.
+ *
+ *   3. Perform any additional configuration the 
+ *      server needs.  In addition to configuring 
+ *      the server to run CGI scripts, you might need
+ *      to add the ctalk libraries to the server's 
+ *      library path, with a line similar to the following,
+ *       outside of any directory wrapper.
+ *
+ *      SetEnv LD_LIBRARY_PATH /usr/local/lib
+ * 
+ *   4. To run ctenv, browse to a URL like the following.
+ *
+ *      http://<your-web-server-name>/cgi-bin/ctenv
+ */
+
+CGIApp new envApp;
+
+AssociativeArray instanceMethod printEnvVar (void) @{
+  String new keyName;
+  String new keyValue;
+  /*
+   *  Each member of an AssociativeArray is a Key object,
+   *  so the actual receiver of a method called inline
+   *  by "map" (class AssociativeArray) is a Key.
+   *
+   *  The method, "name" (class Object) creates an object
+   *  as a return value. The method needs to store it
+   *  in keyName so the program can delete the object when
+   *  it is no longer needed.  Ctalk still does not, at this
+   *  time, use "self" in some C expressions, so the method stores 
+   *  the result of the "getValue" method (class Key) in keyValue.
+   */
+  keyName = self name;
+  printf ("<tt>%s=", keyName);
+  keyValue = self getValue;
+  printf ("\"%s\"</tt><br>\n", keyValue);
+  return NULL;
+@}
+
+int main (int argc, char **argv, char **envp) @{
+
+  envApp getServerEnv envp;
+
+  envApp httpHeader;
+  envApp htmlPageHeader "Server Environment";
+
+  envApp serverEnvironment map printEnvVar;
+
+  return 0;
+@}
+
+@end example
+
+And here is the source code of the @code{CGIApp} class.
+@anchor{CGIApp class}
+@example
+/*
+ *   CGIApp - Ctalk class with methods needed by CGI Web
+ *   applications.
+ */
+
+#include <stdio.h>
+
+extern char **environ;
+
+Event class CGIApp;
+
+CGIApp classVariable classInitialized Integer FALSE;
+CGIApp instanceVariable serverEnvironment AssociativeArray NULL;
+CGIApp instanceVariable queryValues AssociativeArray NULL;
+
+CGIApp instanceMethod new (char *__appName) @{
+
+  CGIApp super new __appName;
+
+  __ctalkInstanceVarsFromClassObject (__appName);
+
+  return __appName;
+
+@}
+
+/*
+ *  Get the applications environment and save it in
+ *  the receiver's serverEnvironment instance variable.
+ *  Normally an application calls this after creating
+ *  the CGIapp object, with envp or environ as the 
+ *  argument.
+ */
+
+/*
+ *  Using _appEnvP should be envp from main ().
+ *  It's here for compatibility.
+ */
+CGIApp instanceMethod getServerEnv (char **_appEnvP) @{
+
+  char **appEnvCVar, *envVar, *__p, __key[MAXLABEL];
+  unsigned int __oldEnvVarSeg = 0;
+  int idx;
+  String new keyObj;
+
+  appEnvCVar = (char **)__ctalk_arg_internal(0)->instancevars->__o_value;
+
+  /***/
+  /*
+   *  Use this when we do exception handler testing.
+   */
+/*      for (idx = 0; appEnvCVar[idx]; idx++) @{ */
+/*        envVar = appEnvCVar[idx]; */
+  for (idx = 0; environ[idx]; idx++) @{
+    envVar = environ[idx];
+    /*
+     *  Not all Solaris versions keep the environment in contiguous 
+     *  memory, so break here in order to avoid a possible segfault.  
+     *  You may need to run an app several times to get
+     *  the complete environment.
+     */
+    if (__oldEnvVarSeg && (__oldEnvVarSeg != 
+			   ((unsigned int)envVar & 0xF0000000)))
+    break;
+    __oldEnvVarSeg = (unsigned int)envVar & 0xF0000000;
+    __p = strchr (envVar, '=');
+    if (__p) @{
+      substrcpy (__key, envVar, 0, __p - envVar);
+      keyObj = __key;
+      ++__p;
+      self serverEnvironment atPut keyObj, __p;
+    @}
+  @}
+  return NULL;
+@}
+
+CGIApp instanceMethod outputString (char *__strToOutput) @{
+  printf ("%s", __ctalk_to_c_char_ptr(__strToOutput));
+  fflush (stdout);
+  return NULL;
+@}
+
+CGIApp instanceMethod httpHeader (void) @{
+  self outputString "Content-type: text/html\r\n\r\n";
+  return NULL;
+@}
+
+CGIApp instanceMethod locationHeader (String _location) @{
+  self outputString "Location: " + _location + "\r\n\r\n";
+  return NULL;
+@}
+
+CGIApp instanceMethod contentLocationHeader (String _content_type, String _location) @{
+  self outputString "Location: " + _location + "\r\n";
+  self outputString "Content-type: " + _content_type + "\r\n\r\n";
+  return NULL;
+@}
+
+CGIApp instanceMethod htmlPageHeader (char *__pageTitle) @{
+   String new titleLine;
+   titleLine writeFormat "<html><head><title>%s</title></head>\n", __pageTitle;
+   self outputString titleLine;
+   return NULL;
+@}
+
+CGIApp instanceMethod htmlPageFooter (void) @{
+  self outputString "</html>\n";
+  return NULL;
+@}
+
+CGIApp instanceMethod httpUnescapeString (char *__argString) @{
+
+  String new __unescapedChar;
+  int i, j, k, arglength;
+  OBJECT *__argStringValueObj, *result_object;
+  char *buf;
+  char escsequence[3];
+  /*
+   *  HTTP hexadecimal escapes and the ASCII characters.
+   */
+  char *escsequences[] = @{"20", " ", "21", "!", "22", "\"", "23", "#",
+			  "24", "$", "25", "%", "26", "&", "27", "'",
+			  "28", "(", "29", ")", "2A", "*", "2B", "+",
+			  "2C", ",", "2D", "-", "2E", ".", "2F", "/",
+			  "30", "0", "31", "1", "32", "2", "33", "3",
+			  "34", "4", "35", "5", "36", "6", "37", "7",
+			  "38", "8", "39", "9", "3A", ":", "3B", ";",
+			  "3C", "<", "3D", "=", "3E", ">", "3F", "?",
+			  "40", "@", "41", "A", "42", "B", "43", "C",
+			  "44", "D", "45", "E", "46", "F", "47", "G",
+			  "48", "H", "49", "I", "4A", "J", "4B", "K",
+			  "4C", "L", "4D", "M", "4E", "N", "4F", "O",
+			  "50", "P", "51", "Q", "52", "R", "53", "S",
+			  "54", "T", "55", "U", "56", "V", "57", "W",
+			  "58", "X", "59", "Y", "5A", "Z", "5B", "[",
+			  "5C", "\\", "5D", "]", "5E", "^", "5F", "_",
+			  "60", "`", "61", "a", "62", "b", "63", "c",
+			  "64", "d", "65", "e", "66", "f", "67", "g",
+			  "68", "h", "69", "i", "6A", "j", "6B", "k",
+			  "6C", "l", "6D", "m", "6E", "n", "6F", "o",
+			  "70", "p", "71", "q", "72", "r", "73", "s",
+			  "74", "t", "75", "u", "76", "v", "77", "w",
+			  "78", "x", "79", "y", "7A", "z", "7B", "@{",
+			  "7C", "|", "7D", "@}", "7E", "~", NULL, NULL @};
+
+  returnObjectClass String;
+
+  __argStringValueObj = __argString value;
+  /***/
+/*   fprintf (stderr, "__xalloc argaluebuf\n"); */
+/*   argvaluebuf = __xalloc (); */
+/*   strcpy (argvaluebuf, __argStringValueObj -> __o_value); */
+/*   arglength = strlen (argvaluebuf); */
+  arglength = strlen (__argStringValueObj->__o_value);
+/*   fprintf (stderr, "__xalloc buf\n"); */
+  buf = __xalloc (arglength);
+  for (i = 0, j = 0; i < arglength; ) @{
+    /***/
+/*     if (argvaluebuf[i] == '%') @{ */
+/*       escsequence[0] = argvaluebuf[i+1]; */
+/*       escsequence[1] = argvaluebuf[i+2]; */
+    if (__argStringValueObj->__o_value[i] == '%') @{
+      escsequence[0] = __argStringValueObj->__o_value[i+1];
+      escsequence[1] = __argStringValueObj->__o_value[i+2];
+      escsequence[2] = 0;
+      i += 3;
+      for (k = 0; escsequences[k]; k += 2) @{
+	if (!strcmp (escsequence, escsequences[k])) @{
+	  strcat (buf, escsequences[k+1]);
+	  j += 1;
+	@}
+      @}
+    @} else @{
+      /***/
+/*       buf[j++] = argvaluebuf[i++]; */
+      buf[j++] = __argStringValueObj->__o_value[i++];
+      buf[j] = 0;
+    @}
+  @} 
+
+  /***/
+/*    methodReturnString(buf) */
+  result_object = __ctalkCreateObjectInit ("result", "String",
+					   "Character", LOCAL_VAR,
+					   buf);
+  __xfree (buf);
+  /***/
+/*   __xfree (argvaluebuf); */
+  __ctalkRegisterUserObject (result_object);
+  return result_object;
+@}
+
+/*
+ *  Call after getServerEnvironment.
+ */
+CGIApp instanceMethod parseQueryString (void) @{
+  String new queryString;
+  String new paramString;
+  Array new queryParams;
+  Array new paramArray;
+  Integer new nParams;
+  String new paramKey;
+  String new paramValue;
+  Integer new i;
+  Integer new j;
+
+  queryString = self serverEnvironment at "QUERY_STRING";
+
+  if ((queryString length == 0) || (queryString isNull)) @{
+    return NULL;
+  @}
+
+  nParams = queryString split '&', queryParams;
+
+  for (i = 0; i < nParams; i = i + 1) @{
+    paramString = queryParams at i;
+    j = paramString split '=', paramArray;
+    if (j == 1) @{
+      self queryValues atPut (paramArray at 0), "1";
+    @} else @{
+      if (j == 2) @{
+	self queryValues atPut (paramArray at 0), (paramArray at 1);
+      @}
+    @}
+  @}  
+  return NULL;
+@}
+
+CGIApp instanceMethod handleCGIException (void) @{
+  __ctalkHandleRunTimeException ();
+  return NULL;
+@}
+@end example
+
+@node Ctcheckquery.c, Httpecho.c, Ctenv.c, Top
+@iftex
+@section @flnm{ctcheckquery.c}
+@end iftex
+@ifnottex
+@subheading @flnm{ctcheckquery.c}
+@end ifnottex
+@cindex @flnm{ctcheckquery.c} example program
+@cindex @code{CGIApp} class
+
+Ctcheckquery is a CGI demonstration program that parses a URL for 
+CGI parameters and outputs them to the browser window.  The program 
+also uses the @code{CGIApp} class.  @xref{CGIApp class}.
+
+When printing query keys and values, @flnm{ctcheckquery.c} uses
+a different technique for determining that @code{self} is a 
+@code{Key} object that the @flnm{ctenv.c} program in the previous
+section.  
+
+Instead of declaring a local @code{Key} object, the 
+@mnm{printQueryParamPair} method relies on the @mnm{getValue} method in
+@code{Collection} class to determine that the actual receiver is a
+@code{Key} object.  If it is, then the method calls @mnm{getValue} in
+class @code{Key}.  Otherwise, the method generates an exception.
+
+The @cite{Ctalk Tutorial} contains an explanation of how this 
+method works.
+
+Here is the source code of @flnm{ctcheckquery.c.}
+
+@example
+/*
+ *   ctcheckquery.c - Print a URL's CGI query parameters.  Written
+ *                    for Apache Web servers.
+ *
+ *   Installation:
+ *   1. Build the ctcheckquery program.
+ *
+ *      ctcc -I . ctcheckquery.c -o ctcheckquery
+ *
+ *      You must include the current directory in the Ctalk
+ *      search path (with -I .), so Ctalk can locate the CGIApp 
+ *      class library.
+ *
+ *   2. Copy the ctcheckquery binary to the server's CGI directory,
+ *      and set its permissions. If you don't know where the
+ *      CGI directory is, look at the CGI configuration in the 
+ *      server's httpd.conf file. For example, for a normal 
+ *      Apache 2 installation:
+ *
+ *      $ su
+ *      # cp ctcheckquery /usr/local/apache2/cgi-bin
+ *      # chmod 0755 /usr/local/apache2/cgi-bin/ctcheckquery
+ *
+ *      If necessary, change the owner and group of 
+ *      the ctcheckquery binary so the server can execute it.
+ *
+ *   3. Perform any additional configuration the 
+ *      server needs.  In addition to configuring 
+ *      the server to run CGI scripts, you might need
+ *      to add the ctalk libraries to the server's 
+ *      library path, with a line similar to the following,
+ *      outside of any directory wrapper.
+ *
+ *      SetEnv LD_LIBRARY_PATH /usr/local/lib
+ * 
+ *   4. To run ctcheckquery, browse to a URL like the following.
+ *
+ *      http://<server-name>/cgi-bin/ctcheckquery?param1=value1&param2=value2
+ */
+
+AssociativeArray instanceMethod printQueryParamPair (void) @{
+  /*
+   *  This method is similar to the printEnvVar method
+   *  in ctenv.c, except that the program maps over 
+   *  the app's queryValues instance variable.
+   *  
+   *  Each member of an AssociativeArray is a Key object, 
+   *  so the class of the actual receiver is a Key.
+   *
+   *  The method, "name," (class Object) creates an object
+   *  as a return value. Because the method is defined in Object
+   *  class, Ctalk can find it without knowing exactly
+   *  what the class of self is.  
+   *
+   *  Both class Key and class Collection define a, "getValue," 
+   *  method.  In a statement like, "self getValue," the 
+   *  receiver isn't defined until run time, and the methods 
+   *  determine how,  "getValue," should be evaluated when the 
+   *  program is run.  If called with a receiver that is not 
+   *  an instance of Key class, "getValue," raises an 
+   *  exception.
+   */
+  printf ("<tt>%s=", self name);
+  printf ("\"%s\"</tt><br>\n", self getValue);
+  return NULL;
+@}
+
+int main (int argc, char **argv, char **envp) @{
+  CGIApp new queryApp;
+
+  queryApp getServerEnv envp;
+
+  queryApp parseQueryString;
+
+  queryApp httpHeader;
+  queryApp htmlPageHeader "HTTP Query";
+
+  queryApp queryValues map printQueryParamPair;
+
+  return 0;
+@}
+@end example
+
+@node Httpecho.c, pageName.c, Ctcheckquery.c, Top
+@iftex
+@section @flnm{ctcheckquery.c}
+@end iftex
+@ifnottex
+@subheading @flnm{ctcheckquery.c}
+@end ifnottex
+@cindex @flnm{httpecho.c} example program
+@cindex @code{CGIApp} class
+
+@flnm{Httpecho.c} is a simple Common Gateway Interface programs that 
+echos a query to the Web browser.  Like many of the other programs 
+in this section, it uses the @code{CGIApp} class.  
+@example
+/*
+ *   httpecho.c - Print the environment variables of an Apache
+ *             Web server.
+ *
+ *   Installation:
+ *   1. Build the httpecho program.
+ *
+ *      ctcc -I . httpecho.c -o httpecho
+ *
+ *      You must include the current directory in the Ctalk
+ *      search path (with -I .), so Ctalk can locate the CGIApp 
+ *      class library.
+ *
+ *   2. Copy the httpecho binary to the server's CGI directory,
+ *      and set its permissions. If you don't know where the
+ *      CGI directory is, look at the CGI configuration in the 
+ *       server's httpd.conf file. For example, for a normal 
+ *       Apache 2 installation:
+ *
+ *      $ su
+ *      # cp httpecho /usr/local/apache2/cgi-bin
+ *      # chmod 0755 /usr/local/apache2/cgi-bin/httpecho
+ *
+ *      If necessary, change the owner and group of 
+ *      the httpecho binary so the server can execute it.
+ *
+ *   3. Perform any additional configuration the 
+ *      server needs.  In addition to configuring 
+ *      the server to run CGI scripts, you might need
+ *      to add the ctalk libraries to the server's 
+ *      library path, with a line similar to the following,
+ *       outside of any directory wrapper.
+ *
+ *      SetEnv LD_LIBRARY_PATH /usr/local/lib
+ * 
+ *   4. Browse to a URL like the following.
+ *
+ *      http://<your-web-server-name>/cgi-bin/httpecho?<strong>Hello, world!</strong>
+ */
+
+int main (int argc, char **argv, char **envp) @{
+  CGIApp new httpEcho;
+  String new messageString;
+  String new queryStringValue;
+
+  httpEcho getServerEnv envp;
+
+  httpEcho httpHeader;
+  httpEcho htmlPageHeader "HTML Echo";
+
+  httpEcho outputString "<body>\n";
+  queryStringValue = httpEcho serverEnvironment at "QUERY_STRING";
+  messageString = httpEcho httpUnescapeString queryStringValue;
+  httpEcho outputString messageString;
+  httpEcho outputString "</body>\n";
+
+  httpEcho htmlPageFooter;
+
+  return 0;
+@}
+@end example
+
+@node pageName.c, Installation, Httpecho.c, Top
+@iftex
+@section @flnm{pageName.c}
+@end iftex
+@ifnottex
+@subheading @flnm{pageName.c}
+@end ifnottex
+@cindex @flnm{httpecho.c} example program
+
+The @flnm{pageName.c} program allows you to browse to a Web page using a
+symbolic label.  
+
+@code{pageName} is useful if you need to change the URL of a Web page
+for an entire Web site, because you only need to change the URL in
+@code{pageName}'s record.
+
+For usage and installation instructions, refer to the comments in the 
+listing.
+
+The program should be able to handle MIME types if a Web browser knows
+about them.  For example, look at the @code{application/tar} file in
+the third entry of the @code{__page_names} example below.
+@example
+/*
+ *   pageName.c - Retrieve a Web page using a symbolic name.
+ *
+ *   pageName reads the value of its query from a file of 
+ *   <page name>|<url> records, and returns the page that 
+ *   matches <page name>.  
+ *
+ *   This allows you to refer to pages using a pageName label, 
+ *   and if you need to change a page's URL, only the pageName
+ *   entry needs to be edited.
+ *
+ *   The pageName name/url records are stored in a text file in
+ *   the Web server's document directory.  The file is named, 
+ *   http://<web-server>/__page_names.  You can change the name 
+ *   by editing the PAGEFILENAME definition below.
+ *
+ *   Each line of the __page_names file has the format:
+ *
+ *     <page_name>|<url>|<content-type>
+ *
+ *   An example __page_names file might contain the following 
+ *   entries.
+ *
+ *     defaultHome|http://your-server-name/index.html|text/html
+ *     apacheManual|http://your-server-name/manual/index.html|test/html
+ *     latestSoftware|http://your-server-name/software.tar.gz|application/tar
+ *
+ *   To browse the server's manual, use a query like the following 
+ *   (assuming that the pageName program is in the cgi-bin directory).
+ *
+ *     http://your-web-server/cgi-bin/pageName?page=apacheManual
+ *
+ *   The program should be able to handle most MIME types if the browser
+ *   knows about them, like the third entry in the __page_names example 
+ *   above.
+ *
+ *   Installation:
+ *   1. Build the pageName program.
+ *
+ *      ctcc -I . pageName.c -o pageName
+ *
+ *      You must include the current directory in the Ctalk
+ *      search path (with -I .), so Ctalk can locate the CGIApp 
+ *      class library.
+ *
+ *   2. Copy the pageNam binary to the server's CGI directory,
+ *      and set its permissions. If you don't know where the
+ *      CGI directory is, look at the CGI configuration in the 
+ *      server's httpd.conf file. For example, for a normal 
+ *      Apache 2 installation:
+ *
+ *      $ su
+ *      # cp pageName /usr/local/apache2/cgi-bin
+ *      # chmod 0755 /usr/local/apache2/cgi-bin/pageName
+ *
+ *      If necessary, change the owner and group of 
+ *      the pageName binary so the server can execute it.
+ *
+ *   3. Perform any additional configuration the 
+ *      server needs.  In addition to configuring 
+ *      the server to run CGI scripts, you might need
+ *      to add the ctalk libraries to the server's 
+ *      library path, with a httpd.conf line similar to the 
+ *      following, outside of any directory wrapper.
+ *
+ *      SetEnv LD_LIBRARY_PATH /usr/local/lib
+ */
+
+#define PAGEFILENAME "__page_names"
+
+int main (int argc, char **argv, char **envp) @{
+
+  CGIApp new pageNameApp;
+  String new pageRecordPath;
+  String new pageRecord;
+  String new pageQuery;
+  ReadFileStream new pageRecordStream;
+  String new queryValueString;
+  String new pageNameString;
+  String new urlString;
+  String new contentTypeString;
+  Array new pageRecordFields;
+  Integer new nRecordFields;
+  Integer new i;
+  Exception new e;
+
+  pageNameApp getServerEnv envp;
+
+  pageRecordPath = 
+    pageNameApp serverEnvironment at "DOCUMENT_ROOT" + "/" + PAGEFILENAME;
+
+  pageRecordStream openOn pageRecordPath;
+  if (e pending) @{
+    pageNameApp httpHeader;
+    pageNameApp htmlPageHeader "pageName Error";
+    pageNameApp outputString "<body>\n";
+    pageNameApp outputString "<strong>pageName Error:</strong> ";
+    pageNameApp outputString "Error reading ";
+    pageNameApp outputString pageRecordPath;
+    e handle;
+    exit (1);
+  @}
+
+  /*
+   *  parseQueryString stores the value of the page=<pagename>
+   *  query as a String. AssociativeArray method at retrieves 
+   *  the String object.
+   */
+  pageNameApp parseQueryString;
+  queryValueString = pageNameApp queryValues at "page";
+
+  while (!pageRecordStream streamEof) @{
+    pageRecord = pageRecordStream readLine;
+    /*
+     *  When using split, make sure that the first argument
+     *  is a Character, and that it is unlikely to be duplicated
+     *  unnecessarily in the receiver String - otherwise split
+     *  may return more elements than you intended.
+     */
+    nRecordFields = pageRecord split '|' , pageRecordFields;
+    if (nRecordFields != 3) @{
+      break;
+    @}
+    /*
+     *  Apps still need to assign array elements to
+     *  an object of the value's class in some cases.  
+     *  
+     *  Here, the class of the pageRecordField's values is
+     *  String.
+     */
+    pageNameString = pageRecordFields at 0;
+    urlString = pageRecordFields at 1;
+    contentTypeString = pageRecordFields at 2;
+    if (pageNameString == queryValueString) @{
+      pageNameApp contentLocationHeader contentTypeString, urlString;
+      return 0;
+    @}
+  @}
+
+  /*
+   *  If the program hasn't found the page, print an 
+   *  error message.
+   */
+  pageNameApp httpHeader;
+  pageNameApp htmlPageHeader "pageName Error";
+  pageNameApp outputString "<strong>pageName Error:</strong> Page <i>";
+  pageNameApp outputString queryValueString;
+  pageNameApp outputString "</i> not found.";
+  pageNameApp htmlPageFooter;
+
+  return 0;
+@}
+@end example
+
+@node Installation, GNU Free Documentation License, pageName.c, Top
+@iftex
+@section Installation Notes
+@end iftex
+@ifnottex
+@subheading Installation Notes
+@end ifnottex
+
+The Web applications and utilities use the Common Gateway Interface
+and should work with Web servers that support CGI applications.  
+
+@iftex
+@subsection Apache Web Servers
+@end iftex
+@ifnottex
+@subsubheading Apache Web Servers
+@end ifnottex
+@cindex Configuration of Web servers
+@cindex Web server configuration
+@cindex Apache configuration
+@cindex @code{SetEnv} Apache directive
+
+The Web applications and utilities work with Apache servers configured
+to run CGI applications.  You can install the programs in the server's
+@flnm{/cgi-bin} directory.  
+
+The programs must be able to locate the Ctalk libraries, so 
+add a line like the following to the server's @flnm{httd.conf} file.
+@example
+SetEnv LD_LIBRARY_PATH /usr/local/lib
+@end example
+
+If a program, like @flnm{wiki.c} in the previous section, requires
+write access to a Web directory, one way to allow this is to 
+set group write permissions on the directory.  Check the Web server's
+configuration to find out what group it runs as, then set the document
+directory's groupd ID and write permissions. 
+
+If, for example, the Web server runs as group, @code{nobody,} and the
+server's document directory is @flnm{/usr/local/apache/htdocs}, then
+you would issue the following commands.
+@example
+# chgrp nobody /usr/local/apache/htdocs
+# chmod g+w /usr/local/apache/htdocs
+@end example
+
+@node GNU Free Documentation License, Index, Installation, Top
+@iftex
+@chapter GNU Free Documentation License
+@end iftex
+@ifnottex
+@heading GNU Free Documentation License
+@end ifnottex
+@cindex GNU Free Documentation License
+@example
+
+                        Version 1.1, March 2000
+     Copyright (C) 2000  Free Software Foundation, Inc.
+     59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+     
+     Everyone is permitted to copy and distribute verbatim copies
+     of this license document, but changing it is not allowed.
+
+
+
+  0. PREAMBLE
+
+     The purpose of this License is to make a manual, textbook, or other
+     written document "free" in the sense of freedom: to assure everyone
+     the effective freedom to copy and redistribute it, with or without
+     modifying it, either commercially or noncommercially.  Secondarily,
+     this License preserves for the author and publisher a way to get
+     credit for their work, while not being considered responsible for
+     modifications made by others.
+
+     This License is a kind of "copyleft", which means that derivative
+     works of the document must themselves be free in the same sense.
+     It complements the GNU General Public License, which is a copyleft
+     license designed for free software.
+
+     We have designed this License in order to use it for manuals for
+     free software, because free software needs free documentation: a
+     free program should come with manuals providing the same freedoms
+     that the software does.  But this License is not limited to
+     software manuals; it can be used for any textual work, regardless
+     of subject matter or whether it is published as a printed book.
+     We recommend this License principally for works whose purpose is
+     instruction or reference.
+
+
+  1. APPLICABILITY AND DEFINITIONS
+
+     This License applies to any manual or other work that contains a
+     notice placed by the copyright holder saying it can be distributed
+     under the terms of this License.  The "Document", below, refers to
+     any such manual or work.  Any member of the public is a licensee,
+     and is addressed as "you."
+
+     A "Modified Version" of the Document means any work containing the
+     Document or a portion of it, either copied verbatim, or with
+     modifications and/or translated into another language.
+
+     A "Secondary Section" is a named appendix or a front-matter
+     section of the Document that deals exclusively with the
+     relationship of the publishers or authors of the Document to the
+     Document's overall subject (or to related matters) and contains
+     nothing that could fall directly within that overall subject.
+     (For example, if the Document is in part a textbook of
+     mathematics, a Secondary Section may not explain any mathematics.)
+     The relationship could be a matter of historical connection with
+     the subject or with related matters, or of legal, commercial,
+     philosophical, ethical or political position regarding them.
+
+     The "Invariant Sections" are certain Secondary Sections whose
+     titles are designated, as being those of Invariant Sections, in
+     the notice that says that the Document is released under this
+     License.
+
+     The "Cover Texts" are certain short passages of text that are
+     listed, as Front-Cover Texts or Back-Cover Texts, in the notice
+     that says that the Document is released under this License.
+
+     A "Transparent" copy of the Document means a machine-readable copy,
+     represented in a format whose specification is available to the
+     general public, whose contents can be viewed and edited directly
+     and straightforwardly with generic text editors or (for images
+     composed of pixels) generic paint programs or (for drawings) some
+     widely available drawing editor, and that is suitable for input to
+     text formatters or for automatic translation to a variety of
+     formats suitable for input to text formatters.  A copy made in an
+     otherwise Transparent file format whose markup has been designed
+     to thwart or discourage subsequent modification by readers is not
+     Transparent.  A copy that is not "Transparent" is called "Opaque."
+
+     Examples of suitable formats for Transparent copies include plain
+     ASCII without markup, Texinfo input format, LaTeX input format,
+     SGML or XML using a publicly available DTD, and
+     standard-conforming simple HTML designed for human modification.
+     Opaque formats include PostScript, PDF, proprietary formats that
+     can be read and edited only by proprietary word processors, SGML
+     or XML for which the DTD and/or processing tools are not generally
+     available, and the machine-generated HTML produced by some word
+     processors for output purposes only.
+
+     The "Title Page" means, for a printed book, the title page itself,
+     plus such following pages as are needed to hold, legibly, the
+     material this License requires to appear in the title page.  For
+     works in formats which do not have any title page as such, "Title
+     Page" means the text near the most prominent appearance of the
+     work's title, preceding the beginning of the body of the text.
+
+
+  2. VERBATIM COPYING
+
+     You may copy and distribute the Document in any medium, either
+     commercially or noncommercially, provided that this License, the
+     copyright notices, and the license notice saying this License
+     applies to the Document are reproduced in all copies, and that you
+     add no other conditions whatsoever to those of this License.  You
+     may not use technical measures to obstruct or control the reading
+     or further copying of the copies you make or distribute.  However,
+     you may accept compensation in exchange for copies.  If you
+     distribute a large enough number of copies you must also follow
+     the conditions in section 3.
+
+     You may also lend copies, under the same conditions stated above,
+     and you may publicly display copies.
+
+
+  3. COPYING IN QUANTITY
+
+     If you publish printed copies of the Document numbering more than
+     100, and the Document's license notice requires Cover Texts, you
+     must enclose the copies in covers that carry, clearly and legibly,
+     all these Cover Texts: Front-Cover Texts on the front cover, and
+     Back-Cover Texts on the back cover.  Both covers must also clearly
+     and legibly identify you as the publisher of these copies.  The
+     front cover must present the full title with all words of the
+     title equally prominent and visible.  You may add other material
+     on the covers in addition.  Copying with changes limited to the
+     covers, as long as they preserve the title of the Document and
+     satisfy these conditions, can be treated as verbatim copying in
+     other respects.
+
+     If the required texts for either cover are too voluminous to fit
+     legibly, you should put the first ones listed (as many as fit
+     reasonably) on the actual cover, and continue the rest onto
+     adjacent pages.
+
+     If you publish or distribute Opaque copies of the Document
+     numbering more than 100, you must either include a
+     machine-readable Transparent copy along with each Opaque copy, or
+     state in or with each Opaque copy a publicly-accessible
+     computer-network location containing a complete Transparent copy
+     of the Document, free of added material, which the general
+     network-using public has access to download anonymously at no
+     charge using public-standard network protocols.  If you use the
+     latter option, you must take reasonably prudent steps, when you
+     begin distribution of Opaque copies in quantity, to ensure that
+     this Transparent copy will remain thus accessible at the stated
+     location until at least one year after the last time you
+     distribute an Opaque copy (directly or through your agents or
+     retailers) of that edition to the public.
+
+     It is requested, but not required, that you contact the authors of
+     the Document well before redistributing any large number of
+     copies, to give them a chance to provide you with an updated
+     version of the Document.
+
+
+  4. MODIFICATIONS
+
+     You may copy and distribute a Modified Version of the Document
+     under the conditions of sections 2 and 3 above, provided that you
+     release the Modified Version under precisely this License, with
+     the Modified Version filling the role of the Document, thus
+     licensing distribution and modification of the Modified Version to
+     whoever possesses a copy of it.  In addition, you must do these
+     things in the Modified Version:
+
+     A. Use in the Title Page (and on the covers, if any) a title
+     distinct    from that of the Document, and from those of previous
+     versions    (which should, if there were any, be listed in the
+     History section    of the Document).  You may use the same title
+     as a previous version    if the original publisher of that version
+     gives permission.
+     B. List on the Title Page, as authors, one or more persons or
+     entities    responsible for authorship of the modifications in the
+     Modified    Version, together with at least five of the principal
+     authors of the    Document (all of its principal authors, if it
+     has less than five).
+     C. State on the Title page the name of the publisher of the
+     Modified Version, as the publisher.
+     D. Preserve all the copyright notices of the Document.
+     E. Add an appropriate copyright notice for your modifications
+     adjacent to the other copyright notices.
+     F. Include, immediately after the copyright notices, a license
+     notice    giving the public permission to use the Modified Version
+     under the    terms of this License, in the form shown in the
+     Addendum below.
+     G. Preserve in that license notice the full lists of Invariant
+     Sections    and required Cover Texts given in the Document's
+     license notice.
+     H. Include an unaltered copy of this License.
+     I. Preserve the section entitled "History", and its title, and add
+     to    it an item stating at least the title, year, new authors, and
+       publisher of the Modified Version as given on the Title Page.
+     If    there is no section entitled "History" in the Document,
+     create one    stating the title, year, authors, and publisher of
+     the Document as    given on its Title Page, then add an item
+     describing the Modified    Version as stated in the previous
+     sentence.
+     J. Preserve the network location, if any, given in the Document for
+       public access to a Transparent copy of the Document, and
+     likewise    the network locations given in the Document for
+     previous versions    it was based on.  These may be placed in the
+     "History" section.     You may omit a network location for a work
+     that was published at    least four years before the Document
+     itself, or if the original    publisher of the version it refers
+     to gives permission.
+     K. In any section entitled "Acknowledgements" or "Dedications",
+     preserve the section's title, and preserve in the section all the
+      substance and tone of each of the contributor acknowledgements
+     and/or dedications given therein.
+     L. Preserve all the Invariant Sections of the Document,
+     unaltered in their text and in their titles.  Section numbers
+     or the equivalent are not considered part of the section titles.
+     M. Delete any section entitled "Endorsements."  Such a section
+     may not be included in the Modified Version.
+     N. Do not retitle any existing section as "Endorsements"    or to
+     conflict in title with any Invariant Section.
+
+     If the Modified Version includes new front-matter sections or
+     appendices that qualify as Secondary Sections and contain no
+     material copied from the Document, you may at your option
+     designate some or all of these sections as invariant.  To do this,
+     add their titles to the list of Invariant Sections in the Modified
+     Version's license notice.  These titles must be distinct from any
+     other section titles.
+
+     You may add a section entitled "Endorsements", provided it contains
+     nothing but endorsements of your Modified Version by various
+     parties-for example, statements of peer review or that the text has
+     been approved by an organization as the authoritative definition
+     of a standard.
+
+     You may add a passage of up to five words as a Front-Cover Text,
+     and a passage of up to 25 words as a Back-Cover Text, to the end
+     of the list of Cover Texts in the Modified Version.  Only one
+     passage of Front-Cover Text and one of Back-Cover Text may be
+     added by (or through arrangements made by) any one entity.  If the
+     Document already includes a cover text for the same cover,
+     previously added by you or by arrangement made by the same entity
+     you are acting on behalf of, you may not add another; but you may
+     replace the old one, on explicit permission from the previous
+     publisher that added the old one.
+
+     The author(s) and publisher(s) of the Document do not by this
+     License give permission to use their names for publicity for or to
+     assert or imply endorsement of any Modified Version.
+
+
+  5. COMBINING DOCUMENTS
+
+     You may combine the Document with other documents released under
+     this License, under the terms defined in section 4 above for
+     modified versions, provided that you include in the combination
+     all of the Invariant Sections of all of the original documents,
+     unmodified, and list them all as Invariant Sections of your
+     combined work in its license notice.
+
+     The combined work need only contain one copy of this License, and
+     multiple identical Invariant Sections may be replaced with a single
+     copy.  If there are multiple Invariant Sections with the same name
+     but different contents, make the title of each such section unique
+     by adding at the end of it, in parentheses, the name of the
+     original author or publisher of that section if known, or else a
+     unique number.  Make the same adjustment to the section titles in
+     the list of Invariant Sections in the license notice of the
+     combined work.
+
+     In the combination, you must combine any sections entitled
+     "History" in the various original documents, forming one section
+     entitled "History"; likewise combine any sections entitled
+     "Acknowledgements", and any sections entitled "Dedications."  You
+     must delete all sections entitled "Endorsements."
+
+
+  6. COLLECTIONS OF DOCUMENTS
+
+     You may make a collection consisting of the Document and other
+     documents released under this License, and replace the individual
+     copies of this License in the various documents with a single copy
+     that is included in the collection, provided that you follow the
+     rules of this License for verbatim copying of each of the
+     documents in all other respects.
+
+     You may extract a single document from such a collection, and
+     distribute it individually under this License, provided you insert
+     a copy of this License into the extracted document, and follow
+     this License in all other respects regarding verbatim copying of
+     that document.
+
+
+  7. AGGREGATION WITH INDEPENDENT WORKS
+
+     A compilation of the Document or its derivatives with other
+     separate and independent documents or works, in or on a volume of
+     a storage or distribution medium, does not as a whole count as a
+     Modified Version of the Document, provided no compilation
+     copyright is claimed for the compilation.  Such a compilation is
+     called an "aggregate", and this License does not apply to the
+     other self-contained works thus compiled with the Document, on
+     account of their being thus compiled, if they are not themselves
+     derivative works of the Document.
+
+     If the Cover Text requirement of section 3 is applicable to these
+     copies of the Document, then if the Document is less than one
+     quarter of the entire aggregate, the Document's Cover Texts may be
+     placed on covers that surround only the Document within the
+     aggregate.  Otherwise they must appear on covers around the whole
+     aggregate.
+
+
+  8. TRANSLATION
+
+     Translation is considered a kind of modification, so you may
+     distribute translations of the Document under the terms of section
+     4.  Replacing Invariant Sections with translations requires special
+     permission from their copyright holders, but you may include
+     translations of some or all Invariant Sections in addition to the
+     original versions of these Invariant Sections.  You may include a
+     translation of this License provided that you also include the
+     original English version of this License.  In case of a
+     disagreement between the translation and the original English
+     version of this License, the original English version will prevail.
+
+
+  9. TERMINATION
+
+     You may not copy, modify, sublicense, or distribute the Document
+     except as expressly provided for under this License.  Any other
+     attempt to copy, modify, sublicense or distribute the Document is
+     void, and will automatically terminate your rights under this
+     License.  However, parties who have received copies, or rights,
+     from you under this License will not have their licenses
+     terminated so long as such parties remain in full compliance.
+
+
+ 10. FUTURE REVISIONS OF THIS LICENSE
+
+     The Free Software Foundation may publish new, revised versions of
+     the GNU Free Documentation License from time to time.  Such new
+     versions will be similar in spirit to the present version, but may
+     differ in detail to address new problems or concerns.  See
+     http://www.gnu.org/copyleft/.
+
+     Each version of the License is given a distinguishing version
+     number.  If the Document specifies that a particular numbered
+     version of this License "or any later version" applies to it, you
+     have the option of following the terms and conditions either of
+     that specified version or of any later version that has been
+     published (not as a draft) by the Free Software Foundation.  If
+     the Document does not specify a version number of this License,
+     you may choose any version ever published (not as a draft) by the
+     Free Software Foundation.
+
+
+ADDENDUM: How to use this License for your documents
+
+   To use this License in a document you have written, include a copy of
+the License in the document and put the following copyright and license
+notices just after the title page:
+
+     Copyright (C)  YEAR  YOUR NAME.
+     Permission is granted to copy, distribute and/or modify this document
+     under the terms of the GNU Free Documentation License, Version 1.1
+     or any later version published by the Free Software Foundation;
+     with the Invariant Sections being LIST THEIR TITLES, with the
+     Front-Cover Texts being LIST, and with the Back-Cover Texts being LIST.
+     A copy of the license is included in the section entitled "GNU
+     Free Documentation License."
+
+   If you have no Invariant Sections, write "with no Invariant Sections"
+instead of saying which ones are invariant.  If you have no Front-Cover
+Texts, write "no Front-Cover Texts" instead of "Front-Cover Texts being
+LIST"; likewise for Back-Cover Texts.
+
+   If your document contains nontrivial examples of program code, we
+recommend releasing these examples in parallel under your choice of
+free software license, such as the GNU General Public License, to
+permit their use in free software.
+
+@end example
+
+@c
+@c  INDEX
+@c
+@ifnottex
+@node Index, , GNU Free Documentation License, Top
+@end ifnottex
+@chapter Index
+@printindex cp
+@bye
