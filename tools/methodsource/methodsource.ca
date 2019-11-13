@@ -1,0 +1,88 @@
+/*
+ *  If methodsource is run by the Ctalk browser for Emacs, it can
+ *  receive part of a prototype.  All of this is here to parse
+ *  the prototype to find the selector.
+ */
+bool is_label (char c) {
+  if ((c >= '0' && c <= '9') ||
+      (c >= 'a' && c <= 'z') ||
+      (c >= 'A' && c <= 'Z') ||
+      (c == '_')) {
+    return true;
+  }
+  return false;
+}
+
+bool is_math (char c) {
+  if (((c) == '(') || ((c) == ')') || ((c) == '[') || ((c) == ']') ||
+      ((c) == '!') || ((c) == '+') || ((c) == '-') || ((c) == '*') ||
+      ((c) == '&') || ((c) == '/') || ((c) == '%') || ((c) == '<') ||
+      ((c) == '>') || ((c) == '=') || ((c) == '&') || ((c) == '^') ||
+      ((c) == '|') || ((c) == '?') || ((c) == ':') || ((c) == '#') ||
+      ((c) == '.') || ((c) == ',')) {
+    return true;
+  }
+  return false;
+}
+
+int skip_space (char *s, int i) {
+  int j = i;
+  while(s[j] == ' ' || s[j] =='\t' || s[j] =='\n')
+    ++j;
+  return j;
+}
+
+
+char *parse_prototype (char *s_in, char *s_out) {
+  int i, j;
+  char c;
+  i = 0; j = 0;
+  i = skip_space (s_in, i);
+  c = s_in[i];
+  if (is_math (c)) {
+    while (is_math (c)) {
+      s_out[j++] = c; s_out[j] = 0;
+      ++i;
+      i = skip_space (s_in, i);
+      c = s_in[i];
+    }
+  } else {
+    while (is_label (c)) {
+      s_out[j++] = c; s_out[j] = 0;
+      c = s_in[++i];
+    }
+  }
+  return s_out;
+}
+
+int main (int argc, char **argv) {
+  char sArg[255];
+  Application new methodSourceApp;
+  SystemErrnoException new sysErr;
+
+
+  if (argc != 3) {
+    printf ("Usage: methodsource <classname> <methodname>\n");
+    exit (1);
+  }
+
+  /* If executed by the Ctalk browser, we could have part of a
+     prototype, so parse it to find the selector.  Starts
+     parsing on the char following the keyword.
+  */
+  if (!strncmp (argv[2], "instanceMethod", strlen ("instanceMethod"))) {
+    parse_prototype (&(argv[2][14]), sArg);
+    printf ("%s\n", methodSourceApp methodSource argv[1], sArg);
+  } else { 
+    if (!strncmp (argv[2], "classMethod", strlen ("classMethod"))) {
+      parse_prototype (&(argv[2][11]), sArg);
+      printf ("%s\n", methodSourceApp methodSource argv[1], sArg);
+    } else {
+      printf ("%s\n", methodSourceApp methodSource argv[1], argv[2]);
+    }
+  }
+  if (sysErr pending) {
+    sysErr handle;
+  }
+exit (0);
+}
