@@ -1,0 +1,53 @@
+/* $Id: ip6reader.ca,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ */
+
+/*
+  This file is part of Ctalk.
+  Copyright © 2018 Robert Kiesling, rk3314042@gmail.com.
+  Permission is granted to copy this software provided that this copyright 
+  notice is included in all source code modules.
+
+  This program is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program; if not, write to the Free Software Foundation, 
+  Inc., 51 Franklin St., Fifth Floor, Boston, MA 02110-1301 USA.
+*/
+
+/*
+ *  ip6reader.ca
+ *
+ *  Waits for an IPv6 network connection and prints the data it
+ *  receives.  The number of seconds the program waits is defined
+ *  by the "server" object's timeout instance variable.  For more
+ *  info about how to set up an IPv6 connection, refer to the
+ *  source code of the ip6writer.ca program, which should in the
+ *  same location as this program.
+ */
+
+int main () {
+  Exception new ex;
+  TCPIPV6NetworkStreamReader new server, connection;
+  String new data;
+
+  server openOn;
+  if (ex pending) {
+    ex handle;
+  }
+
+  connection = server acceptSock;
+  if (ex pending) {
+    ex handle;
+  }
+  data = server readText connection;
+  printf ("%s\n", data);
+
+  server closeSock;
+}
