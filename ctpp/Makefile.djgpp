@@ -1,0 +1,50 @@
+# $Id: Makefile.djgpp,v 1.1.1.1 2019/10/26 23:40:50 rkiesling Exp $
+#
+# Makefile for DJGPP and GNU make.
+#
+
+#
+# Change the value of CMD if your system uses a 
+# different shell than cmd.exe
+#
+CMD=cmd /C
+
+#
+# Note that CLASSLIBDIR is the directory above the actual
+# class lib directory.  Ctalk appends PKGNAME automatically
+# during include and class library searches.
+#
+CDEFS=-DPKGNAME=\"ctpp\" -DCLASSLIBDIR=\"/djgpp/include\" \
+	-DVERSION=\"1.0.66\" -DUSE_GCC_INCLUDES
+
+LDFLAGS=-L../libctpp
+
+LIBS=-lctpp
+
+SOURCES=ansisymbols.c assert.c a_opt.c builtins.c ccompat.c cexpr.c \
+	chkstate.c d_opt.c error.c escline.c include.c is_fn.c is_methd.c \
+	i_opt.c lineinfo.c macprint.c main.c m_opt.c pcvars.c pmath.c \
+	ppexcept.c ppop.c pragma.c preprocess.c psubexpr.c type_of.c u_opt.c
+
+HEADERS=../include/ctpp.h ../include/djgpp.h ../include/pexcept.h \
+	../include/phash.h ../include/plex.h ../include/list.h \
+	../include/pmessage.h ../include/pparser.h ../include/prtinfo.h \
+	../include/typeof.h ../include/pval.h \
+	./config/linux-gnu-x86.h \
+	./config/cygwin32-pc-x86.h
+
+BIN=ctpp.exe
+
+all: $(BIN)
+
+$(BIN): $(SOURCES) $(HEADERS)
+	gcc $(CDEFS) -g -Wall -I../include $(SOURCES) $(LDFLAGS) $(LIBS) \
+	-o $(BIN)
+
+clean:
+	$(CMD) if exist *.o del *.o
+	$(CMD) if exist $(BIN) del $(BIN)
+	$(CMD) if exist *~ del *~
+
+inst: $(BIN)
+	$(CMD) copy $(BIN) \djgpp\bin
