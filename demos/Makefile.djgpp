@@ -1,0 +1,83 @@
+# $Id: Makefile.djgpp,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $
+
+BINARIES=hello ctecho ctpath ctwc ctrep ltime timeclient \
+	       timesignal mdt mdt2 methods lclock sls
+
+CTALK=\djgpp\bin\ctalk
+CLASSES=../classes
+
+CC=gcc
+CCFLAGS=-g -O3
+
+programs: $(BINARIES)
+
+hello: hello.c
+	$(CTALK) hello.c -o hello.i ; \
+	$(CC) $(CCFLAGS) hello.i -o hello.exe -lctalk  ; \
+	del hello.i
+
+ctecho: ctecho.c
+	$(CTALK) ctecho.c -o ctecho.i ; \
+	$(CC) $(CCFLAGS) ctecho.i -o ctecho.exe -lctalk  ; \
+	del ctecho.i
+
+ctpath: ctpath.c
+	$(CTALK) ctpath.c -o ctpath.i ; \
+	$(CC) $(CCFLAGS) ctpath.i -o ctpath.exe -lctalk  ; \
+	del ctpath.i
+
+ctwc: ctwc.c
+	$(CTALK) ctwc.c -o ctwc.i ; \
+	$(CC) $(CCFLAGS) ctwc.i -o ctwc.exe -lctalk  ; \
+	del ctwc.i
+
+ctrep: ctrep.c
+	$(CTALK) ctrep.c -o ctrep.i ; \
+	$(CC) $(CCFLAGS) ctrep.i -o ctrep.exe -lctalk  ; \
+	del ctrep.i
+
+ltime: ltime.c
+	$(CTALK) ltime.c -o ltime.i ; \
+	$(CC) $(CCFLAGS) ltime.i -o ltime.exe -lctalk  ; \
+	del ltime.i
+
+timeclient: timeclient.c
+	$(CTALK) timeclient.c -o timeclient.i ; \
+	$(CC) $(CCFLAGS) timeclient.i -o timeclient.exe -lctalk  ; \
+	del timeclient.i
+
+timesignal: timesignal.c
+	$(CTALK) timesignal.c -o timesignal.i ; \
+	$(CC) $(CCFLAGS) timesignal.i -o timesignal.exe -lctalk  ; \
+	del timesignal.i
+
+mdt: mdt.c
+	$(CTALK) mdt.c -o mdt.i ; \
+	$(CC) $(CCFLAGS) mdt.i -o mdt.exe -lctalk  ; \
+	del mdt.i
+
+mdt2: mdt2.c
+	$(CTALK) mdt2.c -o mdt2.i ; \
+	$(CC) $(CCFLAGS) mdt2.i -o mdt2.exe -lctalk  ; \
+	del mdt2.i
+
+methods: methods.c
+	$(CTALK) methods.c -o methods.i ; \
+	$(CC) $(CCFLAGS) methods.i -o methods.exe -lctalk  ; \
+	del methods.i
+
+lclock: lclock.c
+	$(CTALK) lclock.c -o lclock.i ; \
+	$(CC) $(CCFLAGS) lclock.i -o lclock.exe -lctalk  ; \
+	del lclock.i
+
+sls: sls.c
+	$(CTALK) sls.c -o sls.i ; \
+	$(CC) $(CCFLAGS) sls.i -o sls.exe -lctalk  ; \
+	del sls.i
+
+clean:  
+	del *.i ; del *~ ; del *.tmp ; del *.exe
+
+
+

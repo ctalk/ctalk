@@ -1,0 +1,79 @@
+Ctalk Demonstration Programs
+
+hello.c    The Ctalk version of, "Hello, world!"
+
+cgi 	   This subdirectory contains some useful CGI utilities
+	   that demonstrate how to write programs that work with
+	   the Apache Web server.
+
+chaser.c   Displays side scrolling banners in text terminals.
+           Chaser can use the contents of files as the message
+           text, and you can update the banner text without
+	   restarting the program.
+
+ctecho.c   Similar to UNIX echo, with extra features.
+
+ctpath.c   With a path name as the argument, splits
+           the path into separate directory names,
+           one per line.  Does not handle shell 
+           expansions like ~user or ~/user, or 
+           . and .. directory links.
+
+ctrep.c    A simple pattern-replacement text filter.
+
+ctwc.c     A filter similar to the UNIX wc command.  Counts
+           the characters, words, and lines in the file given
+           as its argument or standard input.  
+
+glut 	   This subdirectory contains apps that use the GLUT
+     	   toolkit with Ctalk and OpenGL to write 3-d graphics
+	   programs. The file glut/README contains information
+	   about using the OpenGL libraries on various
+	   platforms.
+
+glx        Contains programs that draw 3D graphics in a X
+	   window using the GLXCanvasPane class.
+
+ipc 	   Programs in this subdirectory demonstrate some
+	   of the things Ctalk can do with multiple processes
+	   and interprocess communication.
+
+net 	   This subdirectory contains TCPIP client and
+	   server programs, as well as some address resolution
+	   programs, which demonstrate the capabilities of
+	   the TCPIPNetworkStream and TCPIPV6NetworkStream
+	   classes and their subclasses.
+
+lclock.c   A digital, text-mode clock for your terminal.
+
+mdt.c      A program equivalent to "mkdir -p" which creates
+           a directory and its parent directories if 
+           necessary.
+
+mdt2.c     Similar to mdt.c, but the program uses a loop instead
+           of an inline method to create subdirectories.
+
+win32      The programs in the win32 subdirectory provide examples
+  	   of apps that you can build with DJGPP on Win32 platforms.
+	   These programs are mostly unsupported now, but they're
+	   still included as examples of a few of Win32's unique
+	   features, and in case you find them useful.
+
+x11        This directory contains demo programs that use basic
+	   Xlib functions.
+
+xft 	   The xft directory contains X Window System programs
+	   that demonstrate how to write apps that use the
+	   X Render extension and the Xft outline font library,
+	   and the other libraries that they depend on.  The
+	   machine must have these libraries installed in order to
+	   build and run these demos, although in many cases the
+	   programs work with the Xlib drawing routines also,
+	   although they display graphics in a more limited
+	   (that is, jagged, mostly) manner.
+
+Bug Reports, Feedback, and Support
+
+Please contact the Ctalk authors at: rk3314042@gmail.com,
+or visit the Ctalk Web site: http://sf.net/projects/ctalk/.
+

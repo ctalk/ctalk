@@ -1,0 +1,2236 @@
+\input texinfo @c -*-texinfo-*-
+@c $Id: utils.texi,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $
+@c %**start of header  
+@setfilename utils.info
+@settitle Ctalk Utilities
+@setchapternewpage odd
+@paragraphindent 0
+@c %**end of header
+
+@set VERSION 0.0.97b
+
+@macro idxfncite{fnname}
+@cite{\fnname\} C function
+@end macro
+
+@macro idxclscite{fnname}
+(@code{\fnname\} class)
+@end macro
+
+@macro mnm{methodname}
+@code{\methodname\}
+@end macro
+
+@macro flnm{filename}
+@code{\filename\}
+@end macro
+
+@ifinfo
+
+@dircategory Ctalk
+@direntry
+* examples: (examples).	Ctalk example utilities.
+@end direntry
+
+This file documents Ctalk version @value{VERSION}.
+
+Copyright @copyright{} 2007-2012,  Robert Kiesling
+
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.1 or
+any later version published by the Free Software Foundation; with no
+Invariant Sections, with no Front-Cover Texts, and with no Back-Cover
+Texts.  A copy of the license is included in the section entitled,
+``GNU Free Documentation License.''
+
+@end ifinfo
+
+@iftex
+
+@titlepage
+@title Ctalk Utilities
+@subtitle Example Programs and Utilities for Ctalk
+@author Robert Kiesling
+
+@page
+@vskip 0pt plus 1filll
+
+Ctalk Utilities.  This manual describes the Ctalk utilities, version
+@value{VERSION}.
+
+Copyright @copyright{} 2007,2008, Robert Kiesling
+
+Permission is granted to distribute this document
+under the terms of the GNU Free Documentation
+License. @xref{GNU Free Documentation License}.
+
+@end titlepage
+
+@contents
+
+@end iftex
+
+@node Top, , (dir), (dir)
+@ifnottex
+@chapheading Ctalk Utilities
+@end ifnottex
+
+@menu
+* Hello.c::                        A simple ctalk program.
+* Chaser.c::                       Display side-scrolling banners on terminals.
+* Ctecho.c::                       A modified version of @command{echo}.
+* Ctpath.c::                       A utility that splits a directory path.
+* Ctwc.c::                         A filter program similar to the UNIX @command{wc}.
+* Ctrep.c::                        A simple pattern-replacement filter.
+* Ltime.c::                        Print the time in large block numbers.
+* Lclock.c::                       A desktop clock for a terminal window.
+* Mdt.c::                          A program equivalent to 
+                                   @code{mkdir -p} which creates a 
+                                   directory and its parent
+                                   directories if necessary.
+* Mdt2.c::                         A slightly different implementation
+                                   of mdt.c that uses a loop instead 
+                                   of an inline method.
+* Sls.c::                          A simple directory list program.
+* Timeclient.c::                   A program that handles signals.
+* Timesignal.c::                   A client program that sends signals.
+* Xhello.c::                       Demonstrates how to handle X Window System events.
+* Xspiro.c::                       Plots spirograph-like drawings in a X window.
+* GNU Free Documentation License::    Copying and distributing this manual.
+* Index::
+@end menu
+
+@node Hello.c, Chaser.c, Top, Top
+
+@iftex
+@chapter Example Programs
+@end iftex
+@ifnottex
+@heading Example Programs
+@end ifnottex
+
+@iftex
+@section @flnm{hello.c}
+@end iftex
+@ifnottex
+@subheading @flnm{hello.c}
+@end ifnottex
+@cindex @flnm{hello.c} example program
+
+The following example shows the, ``Hello, world,'' program written 
+in Ctalk.  It contains an object, @code{helloObject}, an instance of
+class @code{String}; and two methods, @code{=}, and, @code{value}, which
+set and return the value of @code{helloObject}.
+
+@example
+int main () @{
+  /*
+   *  Initialize stdoutStream;
+   */
+  WriteFileStream classInit;
+
+  stdoutStream printOn "Hello, world!\n";
+
+  exit (0);
+@}
+@end example
+
+This program is in the file @flnm{programs/hello.c} in the ctalk
+distribution. You can build and run the @code{hello} executable with 
+the following commands.
+@example
+# UNIX and Linux Systems
+$ ctcc hello.c -o hello
+$ ./hello
+
+# DJGPP 
+> ctalk hello.c -o hello.i && gcc hello.i -o hello -lctalk  
+> hello
+@end example
+
+@node Chaser.c, Ctecho.c, Hello.c, Top
+
+@iftex
+@section @flnm{chaser.c}
+@end iftex
+@ifnottex
+@subheading @flnm{chaser.c}
+@end ifnottex
+@cindex @flnm{chaser.c} example program
+
+Chaser displays a side-scrolling banner at the top of a
+text-mode terminal.  It uses the ANSITerminalStream and 
+ANSITerminalPane classes, so it should be compatible with
+most terminals and xterms.
+
+Chaser uses the argument given on the command line as the
+message text.  You can also use the contents of a file
+as the text, which lets you update the banner while chaser
+is running.  Refer to the @samp{-f} option, below.
+
+@subsubheading Command Line Options
+
+@table @code
+
+@item -d @var{usec}
+The delay between display updates in microseconds.  The
+default is 10000.
+
+@item -f @var{file}
+Use the contents of @var{file} as the message text.  Chaser
+reads the file each time it starts a new scroll, so you
+can update the message without restarting the program.
+
+@item -h
+Print a help message and exit.
+
+@item -w @var{cols}
+Set the terminal width to @var{cols} character columns.  This
+is useful for terminals that don't support reporting their own
+width.
+
+@end table
+
+Like most of the utilities, you can build chaser with the following
+command.
+
+@example
+
+ $ ctcc chaser.c -o chaser
+
+@end example
+
+In addition, typing @samp{make} in the @code{programs} subdirectory
+builds chaser as well as the other example programs.
+
+@node Ctecho.c, Ctpath.c, Chaser.c, Top
+
+@iftex
+@section @flnm{ctecho.c}
+@end iftex
+@ifnottex
+@subheading @flnm{ctecho.c}
+@end ifnottex
+@cindex @flnm{ctecho.c} example program
+
+The program, @flnm{programs/ctecho.c}, is similar to the UNIX
+@command{echo} command, but it has additional options that translate
+its output to upper or lower case.
+
+Except for the functions that parse the command line and print a help
+message, the program does its work in the function, @code{main ()}.
+
+The program shows how to use C variables as well as ctalk objects.  In
+particular, the C variables @code{i}, and @code{nOptions}, which are
+indexes into the @code{argv} array, are easier to work with than ctalk
+objects.  In some cases, however, you can mix C variables and objects
+in the same statement. 
+
+@c @xref{C statements}.
+
+@example
+  int main (int argc, char **argv) @{
+
+    String new inputString;
+    Character new outputChar;
+
+    Integer new stringIndex;
+    Integer new stringLength;
+
+    int nOptions;
+    int i;
+
+    if (argc <= 1)
+      usage (argv);
+
+    nOptions = parse_args (argc, argv);
+
+    if (opt_l && opt_u)
+      usage (argv);
+
+    for (i = nOptions; i < argc; i = i + 1) @{
+
+      inputString = argv[i];
+
+      stringLength = inputString length;
+
+      for (stringIndex = 0; stringIndex < stringLength; 
+	   stringIndex = stringIndex + 1) @{
+        outputChar = inputString at stringIndex;
+        if (opt_l)
+	  printf ("%c", outputChar toLower);
+        if (opt_u)
+	  printf ("%c", outputChar toUpper);
+        if (!opt_l && !opt_u)
+	  printf ("%c", outputChar);
+      @}
+
+      printf (" ");
+
+    @}
+
+    if (!opt_n)
+      printf ("\n");
+
+    return 0;
+  @}
+@end example
+
+You can build the program with the following UNIX commands.
+
+@example
+  $ cd programs
+  $ ctalk ctecho.c -o ctecho.i && gcc ctecho.i -o ctecho -lctalk
+@end example
+
+@node Ctpath.c, Ctwc.c, Ctecho.c, Top
+
+@iftex
+@section @flnm{ctpath.c}
+@end iftex
+@ifnottex
+@subheading @flnm{ctpath.c}
+@end ifnottex
+@cindex @flnm{ctpath.c} example program
+
+The utility @flnm{programs/ctpath.c}, simply splits a path given as its
+argument into directory names and prints the names.  The program shows
+how to parse a String object, @code{path} and print an Array object,
+@code{paths}.
+
+@example
+#include <stdio.h>
+
+int main (int argc, char **argv) @{
+
+  String new path;
+  Array new paths;
+  Integer new nItems;
+  Integer new i;
+  Character new separator;
+
+  if (argc != 2) @{
+    printf ("Usage: ctpath <path>\n");
+    exit (1);
+  @}
+
+  path = argv[1];
+
+  separator = '/';
+
+  nItems = path split separator, paths;
+
+  for (i = 0; i < nItems; i = i + 1)
+    printf ("%s\n", paths at i);
+
+  exit (0);
+@}
+@end example
+
+You can build the program with the following UNIX commands.
+
+@example
+cd programs
+ctalk ctpath.c -o ctpath.i && gcc ctpath.i -o ctpath -lctalk
+@end example
+
+@node Ctwc.c, Ctrep.c, Ctpath.c, Top
+
+@iftex
+@section @flnm{ctwc.c}
+@end iftex
+@ifnottex
+@subheading @flnm{ctwc.c}
+@end ifnottex
+@cindex @flnm{ctwc.c} example program
+
+Ctwc is a filter that works similarly to UNIX @command{wc}.  It counts
+lines, words, and characters from the standard input or the file given
+as its argument.  For example,
+@example
+  $ ctwc prog.c
+@end example
+or 
+@example
+  $ ctwc <prog.c
+@end example
+
+@example
+int main (int argc, char **argv) @{
+
+  String new fileArg;
+  String new appName;
+  ReadFileStream new inputStream;
+  String new inputString;
+  Integer new inputLength;
+  Integer new i;
+
+  Character new input;
+  Integer new nWords;
+  Integer new nLines;
+  Integer new nCharacters;
+  Integer new inWord;
+  Exception new e;
+
+
+  appName = argv[0];
+
+  if (argc == 2) @{
+    fileArg = argv[1];
+    if (fileArg == "-h") @{
+      printf ("Usage: %s [ -h | infile | - ]\n", appName);
+      exit (0);
+    @} else @{
+      if (fileArg == "-") @{
+	inputStream = stdinStream;
+      @} else @{
+	inputStream openOn fileArg;
+  	if (e pending) @{
+  	  e handle;
+ 	  exit (1);
+  	@}
+	if (inputStream isDir) @{
+	  printf ("Input is a directory.\n");
+	  exit (1);
+	@}
+      @}
+    @}
+  @} else @{
+    fileArg = "-";
+    inputStream = stdinStream;
+  @}
+
+
+  nWords = 0;
+  nLines = 0;
+  nCharacters = 0;
+  inWord = FALSE;
+
+  inputString = inputStream readAll;
+  inputLength = inputString length;
+
+  for (i = 0; i < inputLength; i = i + 1) @{
+    input = inputString at i;
+    nCharacters = nCharacters + 1;
+    if (input == '\n') 
+      nLines = nLines + 1;
+    if (inWord) @{
+      if (input isSpace) @{
+	nWords = nWords + 1;
+	inWord = FALSE;
+      @}
+    @} else @{
+      if (!input isSpace) @{
+	inWord = TRUE;
+      @}
+    @}
+  @}
+
+  printf ("\t%d\t%d\t%d\n", nLines, nWords, nCharacters);
+
+  if (fileArg != "-")
+    inputStream closeStream;
+
+  exit (0);
+@}
+@end example
+
+You can build this program in the @flnm{programs} directory with the 
+command:
+@example
+  $ ctalk ctwc.c -o ctwc.i && gcc ctwc.i -o ctwc -lctalk
+@end example
+
+Or, use the command, @command{make ctwc}.
+
+@node Ctrep.c, Ltime.c, Ctwc.c, Top
+@iftex
+@section @flnm{ctrep.c}
+@end iftex
+@ifnottex
+@subheading @flnm{ctrep.c}
+@end ifnottex
+@cindex @flnm{ctrep.c} example program
+
+Ctrep is simple pattern replacement filter.  It replaces each
+occurrence of a text pattern from standard input with replacement
+text.  It uses only standard input and standard output for its
+file I/O.  With the exception of functions to parse  the command 
+line arguments and print a help message, the entire program is
+contained in the function @code{main}.
+
+@example
+#include <stdio.h>
+
+/*
+ *  Function prototypes.
+ */
+void exit_help (void);
+int check_args (int, char **);
+
+/*
+ *   Global Objects.
+ */
+Integer new verboseOpt;    /* Print what we're replacing before processing. */
+
+String new pattern;        /* The text pattern to replace.                  */
+String new replacement;    /* The replacement text for <pattern>.           */
+
+int main (int argc, char **argv) @{
+
+  String new line;
+  String new word;
+  Integer new inputLineLength;
+  Integer new i;
+  Character new inputChar;
+
+  verboseOpt = FALSE;
+
+  /*
+   *  Strings must still be explicitly initialized.
+   */
+  pattern = "";
+  replacement = "";
+
+  check_args (argc, argv);
+
+  /*
+   *  Initialize stdinStream and stdoutStream.
+   */
+  ReadFileStream classInit;
+  WriteFileStream classInit;
+
+  if (verboseOpt) @{
+    printf ("Replacing %s with %s.\n", pattern, replacement);
+  @}
+
+  /*
+   *  Loop until the end of input.
+   */
+  while (TRUE) @{
+    line = stdinStream readLine;
+    if (stdinStream streamEof)
+      break;
+    inputLineLength = line length;
+
+    word = "";
+
+    for (i = 0; i < inputLineLength; i = i + 1) @{
+      inputChar = line at i;
+      if (inputChar isSpace) @{
+	if (word == pattern) @{
+	  stdoutStream writeStream replacement;
+	@} else @{
+	  stdoutStream writeStream word;
+	@}
+	stdoutStream writeChar inputChar;
+	word = "";
+      @} else @{
+	word = word + inputChar asString;
+      @}
+    @}
+  @}
+
+  exit (0);
+@}
+
+
+int check_args (int c, char **a) @{
+
+  int i, have_pattern, have_replacement;
+
+  have_pattern = have_replacement = FALSE;
+
+  for (i = 1; i < c; i++) @{
+
+    if (a[i][0] == '-') @{
+	
+      if (a[i][1] == 'h') @{
+	exit_help ();
+      @} else @{
+	if (a[i][1] == 'v') @{
+	  verboseOpt = TRUE;
+	@} else @{
+	  exit_help ();
+	@}
+      @}
+
+    @} else @{
+
+      if (!have_pattern) @{
+	have_pattern = TRUE;
+	pattern = a[i];
+      @} else @{
+	if (!have_replacement) @{
+	  have_replacement = TRUE;
+	  replacement = a[i];
+	@} else @{
+	  exit_help ();
+	@}
+      @}
+
+    @}
+  @}
+
+  return 0;
+@}
+
+void exit_help (void) @{
+  printf ("Usage: ctrep [-v] [-h] <pattern> <replacement>\n");
+  exit (1);
+@}
+@end example
+
+Like all of the other example programs, you can build @command{ctrep}
+with the following command.
+
+@example
+$ cd programs
+$ ctalk ctrep.c -o ctrep.i && gcc ctrep.i -o ctrep -lctalk
+@end example
+
+Or simply,
+
+@example
+$ cd programs
+$ make ctrep
+@end example
+
+To view the command line options, type:
+
+@example
+$ ./ctrep -h
+@end example
+
+@node Ltime.c, Lclock.c, Ctrep.c, Top
+@iftex
+@section @flnm{ltime.c}
+@end iftex
+@ifnottex
+@subheading @flnm{ltime.c}
+@end ifnottex
+@cindex @flnm{ltime.c} example program
+
+This program simply prints the 24-hour time in large, block letters.
+It is compatible with XTERM, ANSI, and VT100 terminal types, and
+should be easily modifiable for other terminal types.
+
+To build this program, enter the following commands.
+@example
+$ cd programs
+$ make ltime
+@end example
+
+@example
+/*
+ *  Terminal sequences for XTERM/ANSI/VT100 terminals.
+ *  Change these for other terminal types.
+ */
+#define VT_REV    "\033[7m"     /* Reverse video.                    */
+#define VT_NORM   "\033[0m"     /* Normal video.                     */
+#define VT_CPOS   "\033[%d;%df" /* Set cursor position: row, column. */
+#define VT_CLS    "\033[2J"     /* Clear the screen.                 */
+#define VT_RESET  "\033[!p"     /* Soft reset.                       */
+
+#define DIGIT_WIDTH  6
+#define DIGIT_HEIGHT 7
+
+static int row, column, digitN;
+
+Array class ClockDigit;         /* The clock digit subclass and      */
+                                /* clock digits, which are initial-  */
+ClockDigit new digit0;          /* ized below.                       */
+ClockDigit new digit1;
+ClockDigit new digit2;
+ClockDigit new digit3;
+ClockDigit new digit4;
+ClockDigit new digit5;
+ClockDigit new digit6;
+ClockDigit new digit7;
+ClockDigit new digit8;
+ClockDigit new digit9;
+ClockDigit new colon;
+
+Array instanceMethod getTime (void) @{
+
+  Time new timeNow;
+  Array new currentLocalTime;
+
+  timeNow utcTime;
+
+  currentLocalTime = timeNow localTime;
+
+  self atPut 0, (currentLocalTime at 2);
+  self atPut 1, (currentLocalTime at 1);
+  self atPut 2, (currentLocalTime at 0);
+
+  return NULL;
+@}
+
+ClockDigit classMethod initDigits (void) @{
+
+  digit0 atPut 0, "001110";
+  digit0 atPut 1, "010001";
+  digit0 atPut 2, "010001";
+  digit0 atPut 3, "010001";
+  digit0 atPut 4, "010001";
+  digit0 atPut 5, "010001";
+  digit0 atPut 6, "001110";
+
+  digit1 atPut 0, "000100";
+  digit1 atPut 1, "001100";
+  digit1 atPut 2, "010100";
+  digit1 atPut 3, "000100";
+  digit1 atPut 4, "000100";
+  digit1 atPut 5, "000100";
+  digit1 atPut 6, "011111";
+
+  digit2 atPut 0, "001110";
+  digit2 atPut 1, "010001";
+  digit2 atPut 2, "000001";
+  digit2 atPut 3, "000110";
+  digit2 atPut 4, "001000";
+  digit2 atPut 5, "010000";
+  digit2 atPut 6, "011111";
+
+  digit3 atPut 0, "011111";
+  digit3 atPut 1, "000001";
+  digit3 atPut 2, "000010";
+  digit3 atPut 3, "001111";
+  digit3 atPut 4, "000001";
+  digit3 atPut 5, "010001";
+  digit3 atPut 6, "001110";
+
+  digit4 atPut 0, "000001";
+  digit4 atPut 1, "000011";
+  digit4 atPut 2, "000101";
+  digit4 atPut 3, "001001";
+  digit4 atPut 4, "011111";
+  digit4 atPut 5, "000001";
+  digit4 atPut 6, "000001";
+
+  digit5 atPut 0, "011111";
+  digit5 atPut 1, "010000";
+  digit5 atPut 2, "010110";
+  digit5 atPut 3, "011001";
+  digit5 atPut 4, "000001";
+  digit5 atPut 5, "010001";
+  digit5 atPut 6, "001110";
+
+  digit6 atPut 0, "001110";
+  digit6 atPut 1, "010001";
+  digit6 atPut 2, "010000";
+  digit6 atPut 3, "011110";
+  digit6 atPut 4, "010001";
+  digit6 atPut 5, "010001";
+  digit6 atPut 6, "001110";
+
+  digit7 atPut 0, "011111";
+  digit7 atPut 1, "000001";
+  digit7 atPut 2, "000010";
+  digit7 atPut 3, "000100";
+  digit7 atPut 4, "000100";
+  digit7 atPut 5, "001000";
+  digit7 atPut 6, "001000";
+
+  digit8 atPut 0, "001110";
+  digit8 atPut 1, "010001";
+  digit8 atPut 2, "010001";
+  digit8 atPut 3, "001110";
+  digit8 atPut 4, "010001";
+  digit8 atPut 5, "010001";
+  digit8 atPut 6, "001110";
+
+  digit9 atPut 0, "001110";
+  digit9 atPut 1, "010001";
+  digit9 atPut 2, "010001";
+  digit9 atPut 3, "001111";
+  digit9 atPut 4, "000001";
+  digit9 atPut 5, "010001";
+  digit9 atPut 6, "001110";
+
+  colon atPut 0, "000000";
+  colon atPut 1, "001100";
+  colon atPut 2, "001100";
+  colon atPut 3, "000000";
+  colon atPut 4, "001100";
+  colon atPut 5, "001100";
+  colon atPut 6, "000000";
+
+  return NULL;
+@}
+
+ClockDigit instanceMethod printDigitLine (void) @{
+
+  int i;
+  OBJECT *self_var;
+
+  self_var = __ctalk_self_internal ();
+
+  printf (VT_CPOS, row, column);
+  for (i = 0; i < DIGIT_WIDTH; i++) @{
+    if (self_var -> __o_value[i] == '1') @{
+      printf ("%s %s", VT_REV, VT_NORM);
+    @} else @{
+      printf (" ");
+    @}
+  @}
+  ++row;
+  return NULL;
+@}
+
+ClockDigit instanceMethod printDigit (void) @{
+
+  row = 1; 
+  column = digitN * (DIGIT_WIDTH + 1);
+  self map printDigitLine;
+
+  return NULL;
+@}
+
+Integer instanceMethod selectDigit (void) @{
+
+  ClockDigit new digit;
+
+  returnObjectClass ClockDigit;
+
+  if (self == 0) @{digit = digit0;@}
+  if (self == 1) @{digit = digit1;@}
+  if (self == 2) @{digit = digit2;@}
+  if (self == 3) @{digit = digit3;@}
+  if (self == 4) @{digit = digit4;@}
+  if (self == 5) @{digit = digit5;@}
+  if (self == 6) @{digit = digit6;@}
+  if (self == 7) @{digit = digit7;@}
+  if (self == 8) @{digit = digit8;@}
+  if (self == 9) @{digit = digit9;@}
+
+  /* Return the complete object, not "digit value." */
+  return digit;
+
+@}
+
+int main (int argc, char **argv) @{
+
+  Array new clockTime;
+  Integer new hourDigit1;
+  Integer new hourDigit2;
+  Integer new minuteDigit1;
+  Integer new minuteDigit2;
+  ClockDigit new digit;
+
+  ClockDigit initDigits;
+
+  /* Clear the screen and place the cursor at the upper 
+   * left-hand corner.
+   */
+  printf (VT_CLS);
+  printf (VT_CPOS, 1, 1);
+
+  clockTime getTime;
+
+  hourDigit1 = (clockTime at 0) / 10;
+  hourDigit2 = (clockTime at 0) % 10;
+  minuteDigit1 = (clockTime at 1) / 10;
+  minuteDigit2 = (clockTime at 1) % 10;
+
+  digit = hourDigit1 selectDigit;
+  digitN = 0;
+  digit printDigit;
+
+  digit = hourDigit2 selectDigit;
+  digitN = 1;
+  digit printDigit;
+
+  digitN = 2;
+  colon printDigit;
+
+  digit = minuteDigit1 selectDigit;
+  digitN = 3;
+  digit printDigit;
+
+  digit = minuteDigit2 selectDigit;
+  digitN = 4;
+  digit printDigit;
+
+  printf ("\n");
+
+  exit (0);
+@}
+
+@end example
+
+@node Lclock.c, Mdt.c, Ltime.c, Top
+@iftex
+@section @flnm{lclock.c}
+@end iftex
+@ifnottex
+@subheading @flnm{lclock.c}
+@end ifnottex
+@cindex @flnm{lclock.c} example program
+
+The @code{lclock.c} is a desktop clock for a terminal window.  The
+program is an expanded version of @code{ltime.c} in the previous
+section.
+@example
+/*
+ *   lclock.c - Another clock program that displays and updates the 
+ *   time in large block characters.
+ *
+ *   Usage: lclock [-s|-t|-h]
+ *     -s   Display seconds.
+ *     -t   Twelve-hour format.
+ *     -h   Print help message and exit.
+ */
+
+/*
+ *  Terminal sequences for XTERM/ANSI/VT100 terminals.
+ *  Change these for other terminal types.
+ */
+#define VT_REV    "\033[7m"     /* Reverse video.                    */
+#define VT_NORM   "\033[0m"     /* Normal video.                     */
+#define VT_CPOS   "\033[%d;%df" /* Set cursor position: row, column. */
+#define VT_CLS    "\033[2J"     /* Clear the screen.                 */
+#define VT_RESET  "\033[!p"     /* Soft reset.                       */
+
+#define DIGIT_WIDTH  6
+#define DIGIT_HEIGHT 7
+
+static int row = 0,                  /* Row/column display parameters. */
+  column = 0, 
+  digitN = 0; 
+
+static int displaySeconds = FALSE,   /* Command line options. */
+  hours24 = TRUE;
+
+Array class ClockDigit;         /* The clock digit subclass and      */
+                                /* clock digits, which are initial-  */
+ClockDigit new digit0;          /* ized below.                       */
+ClockDigit new digit1;
+ClockDigit new digit2;
+ClockDigit new digit3;
+ClockDigit new digit4;
+ClockDigit new digit5;
+ClockDigit new digit6;
+ClockDigit new digit7;
+ClockDigit new digit8;
+ClockDigit new digit9;
+ClockDigit new colon;
+
+Integer new updateTime;
+
+#warning Expect a warning message when building with ctdb or ctcc.
+
+Array instanceMethod getTime (void) @{
+
+  Time new timeNow;
+  Array new currentLocalTime;
+
+  timeNow utcTime;
+
+  if (!hours24)
+    timeNow = timeNow - 43200;
+
+  currentLocalTime = timeNow localTime;
+
+  self atPut 0, (currentLocalTime at 2);
+  self atPut 1, (currentLocalTime at 1);
+  self atPut 2, (currentLocalTime at 0);
+
+  return NULL;
+@}
+
+ClockDigit classMethod initDigits (void) @{
+
+  digit0 atPut 0, "001110";
+  digit0 atPut 1, "010001";
+  digit0 atPut 2, "010001";
+  digit0 atPut 3, "010001";
+  digit0 atPut 4, "010001";
+  digit0 atPut 5, "010001";
+  digit0 atPut 6, "001110";
+
+  digit1 atPut 0, "000100";
+  digit1 atPut 1, "001100";
+  digit1 atPut 2, "010100";
+  digit1 atPut 3, "000100";
+  digit1 atPut 4, "000100";
+  digit1 atPut 5, "000100";
+  digit1 atPut 6, "011111";
+
+  digit2 atPut 0, "001110";
+  digit2 atPut 1, "010001";
+  digit2 atPut 2, "000001";
+  digit2 atPut 3, "000110";
+  digit2 atPut 4, "001000";
+  digit2 atPut 5, "010000";
+  digit2 atPut 6, "011111";
+
+  digit3 atPut 0, "011111";
+  digit3 atPut 1, "000001";
+  digit3 atPut 2, "000010";
+  digit3 atPut 3, "001111";
+  digit3 atPut 4, "000001";
+  digit3 atPut 5, "010001";
+  digit3 atPut 6, "001110";
+
+  digit4 atPut 0, "000001";
+  digit4 atPut 1, "000011";
+  digit4 atPut 2, "000101";
+  digit4 atPut 3, "001001";
+  digit4 atPut 4, "011111";
+  digit4 atPut 5, "000001";
+  digit4 atPut 6, "000001";
+
+  digit5 atPut 0, "011111";
+  digit5 atPut 1, "010000";
+  digit5 atPut 2, "010110";
+  digit5 atPut 3, "011001";
+  digit5 atPut 4, "000001";
+  digit5 atPut 5, "010001";
+  digit5 atPut 6, "001110";
+
+  digit6 atPut 0, "001110";
+  digit6 atPut 1, "010001";
+  digit6 atPut 2, "010000";
+  digit6 atPut 3, "011110";
+  digit6 atPut 4, "010001";
+  digit6 atPut 5, "010001";
+  digit6 atPut 6, "001110";
+
+  digit7 atPut 0, "011111";
+  digit7 atPut 1, "000001";
+  digit7 atPut 2, "000010";
+  digit7 atPut 3, "000100";
+  digit7 atPut 4, "000100";
+  digit7 atPut 5, "001000";
+  digit7 atPut 6, "001000";
+
+  digit8 atPut 0, "001110";
+  digit8 atPut 1, "010001";
+  digit8 atPut 2, "010001";
+  digit8 atPut 3, "001110";
+  digit8 atPut 4, "010001";
+  digit8 atPut 5, "010001";
+  digit8 atPut 6, "001110";
+
+  digit9 atPut 0, "001110";
+  digit9 atPut 1, "010001";
+  digit9 atPut 2, "010001";
+  digit9 atPut 3, "001111";
+  digit9 atPut 4, "000001";
+  digit9 atPut 5, "010001";
+  digit9 atPut 6, "001110";
+
+  colon atPut 0, "000000";
+  colon atPut 1, "001100";
+  colon atPut 2, "001100";
+  colon atPut 3, "000000";
+  colon atPut 4, "001100";
+  colon atPut 5, "001100";
+  colon atPut 6, "000000";
+
+  return NULL;
+@}
+
+ClockDigit instanceMethod printDigitLine (void) @{
+
+  int i;
+  OBJECT *self_var;
+
+  self_var = __ctalk_self_internal ();
+
+  printf (VT_CPOS, row, column);
+  for (i = 0; i < DIGIT_WIDTH; i++) @{
+    if (self_var -> __o_value[i] == '1') @{
+      printf ("%s %s", VT_REV, VT_NORM);
+    @} else @{
+      printf (" ");
+    @}
+  @}
+  ++row;
+  return NULL;
+@}
+
+ClockDigit instanceMethod printDigit (void) @{
+
+  row = 1; 
+  column = digitN * (DIGIT_WIDTH + 1);
+  self map printDigitLine;
+
+  return NULL;
+@}
+
+Integer instanceMethod selectDigit (void) @{
+
+  ClockDigit new digit;
+
+  returnObjectClass ClockDigit;
+
+  if (self == 0) @{digit = digit0;@}
+  if (self == 1) @{digit = digit1;@}
+  if (self == 2) @{digit = digit2;@}
+  if (self == 3) @{digit = digit3;@}
+  if (self == 4) @{digit = digit4;@}
+  if (self == 5) @{digit = digit5;@}
+  if (self == 6) @{digit = digit6;@}
+  if (self == 7) @{digit = digit7;@}
+  if (self == 8) @{digit = digit8;@}
+  if (self == 9) @{digit = digit9;@}
+
+  /* Return the complete object, not "digit value." */
+  return digit;
+@}
+
+int main (int argc, char **argv) @{
+
+  Application new clockApp;
+  Array new clockTime;
+  Integer new hourDigit1;
+  Integer new hourDigit2;
+  Integer new minuteDigit1;
+  Integer new minuteDigit2;
+  Integer new secondDigit1;
+  Integer new secondDigit2;
+  ClockDigit new digit;
+
+  clockApp enableExceptionTrace;
+  clockApp installExitHandlerBasic;
+  clockApp installAbortHandlerBasic;
+
+  /*
+   *  If there is not a class defined for the 
+   *  application, it is often more convenient to 
+   *  parse the command line options using C.
+   */
+  if (argc > 1)          
+    args (argc, argv);
+
+  ClockDigit initDigits;
+
+
+  /* Clear the screen.
+   */
+  printf (VT_CLS);
+
+  /*
+   *  The getTime method sets or clears updateTime depending
+   *  on whether the time has changed since the previous time
+   *  getTime checked the system time.
+   *
+   *  A more complicated application might start a client 
+   *  process (like timeclient.c) in the background and send a 
+   *  signal when the system time changes.
+   */
+  while (1) @{
+    clockApp uSleep 50000L;
+    clockTime getTime;
+    /*
+     *  Position the cursor at the upper left-hand 
+     *  corner of the screen and display the time.
+     */
+    printf (VT_CPOS, 1, 1);
+
+    hourDigit1 = (clockTime at 0) / 10;
+    hourDigit2 = (clockTime at 0) % 10;
+    minuteDigit1 = (clockTime at 1) / 10;
+    minuteDigit2 = (clockTime at 1) % 10;
+    secondDigit1 = (clockTime at 2) / 10;
+    secondDigit2 = (clockTime at 2) % 10;
+
+    if (!hours24 && ((clockTime at 0) < 10)) @{
+      digit = hourDigit2 selectDigit;
+      digitN = 0;
+      digit printDigit;
+    @} else @{
+      digit = hourDigit1 selectDigit;
+      digitN = 0;
+      digit printDigit;
+
+      digit = hourDigit2 selectDigit;
+      digitN = digitN + 1;
+      digit printDigit;
+    @}
+
+    digitN = digitN + 1;
+    colon printDigit;
+
+    digit = minuteDigit1 selectDigit;
+    digitN = digitN + 1;
+    digit printDigit;
+
+    digit = minuteDigit2 selectDigit;
+    digitN = digitN + 1;
+    digit printDigit;
+
+    if (displaySeconds == TRUE) @{
+      digitN = digitN + 1;
+      colon printDigit;
+
+      digit = secondDigit1 selectDigit;
+      digitN = digitN + 1;
+      digit printDigit;
+
+      digit = secondDigit2 selectDigit;
+      digitN = digitN + 1;
+      digit printDigit;
+    @}
+
+    printf ("\n");
+
+  @}
+
+  exit (0);
+@}
+
+void exit_help (void) @{
+  printf ("Usage: lclock [-s|-t|-h]\n");
+  exit (1);
+@}
+
+int args (int argc, char **argv) @{
+
+  int i;
+
+  for (i = 1; i < argc; i++) @{
+    if (argv[i][0] == '-') @{
+      switch (argv[i][1])
+	@{
+	case 's':
+	  displaySeconds = TRUE;
+	  break;
+	case 't':
+	  hours24 = FALSE;
+	  break;
+	case 'h':
+	default:
+	  exit_help ();
+	  break;  /* Not reached. */
+	@}
+    @} else @{
+      exit_help ();
+    @}
+  @}
+@}
+
+
+@end example
+
+@node Mdt.c, Mdt2.c, Lclock.c, Top
+@iftex
+@section @flnm{mdt.c}
+@end iftex
+@ifnottex
+@subheading @flnm{mdt.c}
+@end ifnottex
+@cindex @flnm{mdt.c} example program
+
+The @flnm{mdt.c} program works similarly to the UNIX @code{mkdir -p}
+command - it creates a directory and its parent directories.  If you
+give the name of a directory tree as the command line argument,
+@code{mdt} creates the entire directory tree.
+@example
+Array instanceMethod mkSubDir (char *dirName) @{
+  DirectoryStream new mkdirStream;
+
+  mkdirStream mkDir self;
+  mkdirStream chDir self;
+  printf ("%s\n", mkdirStream getCwd);
+@}
+
+int main (int argc, char **argv) @{
+
+  String new newDirName;
+  Array new subDirNames;
+  Integer new nSubDirs;
+  
+  if (argc != 2) @{
+    printf ("Usage: mdt <dirname>\n");
+    exit (1);
+  @}
+
+  newDirName = argv[1];
+
+  nSubDirs = newDirName split '/', subDirNames;
+
+  subDirNames map mkSubDir;
+
+  exit (0);
+@}
+@end example
+
+@node Mdt2.c, Sls.c, Mdt.c, Top
+@iftex
+@section @flnm{mdt2.c}
+@end iftex
+@ifnottex
+@subheading @flnm{mdt2.c}
+@end ifnottex
+@cindex @flnm{mdt2.c} example program
+
+This is a slightly different, and simpler implementation of
+@flnm{mdt.c} from the previous section.  @flnm{mdt2.c} uses a loop
+instead of an inline method to create a series of directories.
+@example
+/*
+ *  mdt2.c - Like mdt.c, implemented with a loop instead of a map.
+ *
+ *  Usage: mdt2 <dirname>
+ */
+
+int main (int argc, char **argv) @{
+
+  DirectoryStream new mkdirStream;
+  String new newDirName;
+  Array new subDirNames;
+  Integer new nSubDirs;
+  Integer new i;
+  
+  WriteFileStream classInit;
+  
+  if (argc != 2) @{
+    stdoutStream writeStream "Usage: mdt2 <dirname>\n";
+    exit (1);
+  @}
+
+  newDirName = argv[1];
+
+  nSubDirs = newDirName split '/', subDirNames;
+
+  for (i = 0; i < nSubDirs; i = i + 1) @{
+    mkdirStream mkDir subDirNames at i;
+    mkdirStream chDir subDirNames at i;
+    stdoutStream writeStream mkdirStream getCwd + "\n";
+  @}
+  exit (0);
+@}
+@end example
+
+@node Sls.c, Timeclient.c, Mdt2.c, Top
+@iftex
+@section @flnm{sls.c}
+@end iftex
+@ifnottex
+@subheading @flnm{sls.c}
+@end ifnottex
+@cindex @flnm{sls.c} example program
+
+The @flnm{sls.c} program is a simple directory list program.
+It prints the names of files, one per directory.
+@example
+/*
+ *  sls - List the current directory, one file per line.
+ */
+
+List instanceMethod printEntries (void) @{
+  /*
+   *  Unlike other collection types, Lists are only 
+   *  concerned with the actual objects stored within 
+   *  them, in the order that they were added, so an 
+   *  in-line method like this one does not need to worry 
+   *  about the value of a key or index, only the
+   *  item stored there.  
+   *
+   *  For examples of in-line methods that use collection
+   *  keys and value objects, look at ctenv.c and 
+   *  ctcheckquery.c in the programs/cgi directory.
+   */
+  printf ("%s\n", self value);
+@}
+
+int main (int argc, char **argv) @{
+  DirectoryStream new d;
+  List new directoryFiles;
+
+  d directoryList ".", directoryFiles;
+
+  directoryFiles map printEntries;
+@}
+@end example
+
+@node Timeclient.c, Timesignal.c, Sls.c, Top
+@iftex
+@section @flnm{timeclient.c}
+@end iftex
+@ifnottex
+@subheading @flnm{timeclient.c}
+@end ifnottex
+@cindex @flnm{timeclient.c} example program
+
+The @flnm{timeclient.c} program shows how to use a signal handler to
+generate an event that an application can respond to.  The method
+@mnm{handleSignal} is an example of a method that does not rely on
+having a receiver.  A program can register the method with the
+operating system and then respond when the program receives a
+signal. See the section @cite{Method functions} in the @cite{Ctalk
+Language Reference}.
+
+@cindex __ctalkNewSignalEventInternal function
+@cindex @mnm{nextEvent} method @idxclscite{SignalEvent}
+The program uses the @code{__ctalkNewSignalEventInternal} function to
+create and queue a @code{SignalEvent} object without relying on being
+called from within the program's class hierarchy.  When the signal
+arrives, the application stops waiting, dequeues the signal event
+using the method @mnm{nextEvent} (class @code{SignalEvent}), and
+reads the system time information from the event object.
+
+Here is the listing of @flnm{timeclient.c.}
+@example
+/*
+ *  timeclient2.c - Signal handler that tells the application to 
+ *  print the time and date on the terminal.  
+ *
+ *  Use with timesignal.c to signal this program's process ID.
+ *  Launch this program either in the background or on another
+ *  terminal.
+ *
+ *  $ ctcc timeclient2.c
+ *  $ ctcc timesignal.c
+ *  $ ./timeclient &
+ *  [1] <PID>
+ *  $ ./timesignal <PID>
+ */
+
+/*
+ *  When writing a signal handler, the program must have the 
+ *  time () prototype from time.h here in order to avoid a 
+ *  conflicting declaration when including time.h.
+ */
+#if defined (__linux__)
+extern time_t time (time_t *) __THROW;
+#else
+extern time_t		time(time_t *);
+#endif
+
+SignalHandler instanceMethod handleSignal (__c_arg__ int signo) @{
+  time_t t;
+  char buf[MAXLABEL];
+  noMethodInit;
+  t = time (NULL);
+  __ctalkDecimalIntegerToASCII (t, buf);
+  __ctalkNewSignalEventInternal (signo, getpid (), buf);
+  return NULL;
+@}
+
+SignalEvent instanceMethod printTime (void) @{
+
+  Time new timeFromHandler;
+  String new timeString;
+
+  WriteFileStream classInit;
+
+  timeFromHandler = self data;
+  timeString = timeFromHandler cTime;
+  stdoutStream writeStream timeString;
+
+  return NULL;
+@}
+
+
+int main () @{
+
+  SignalHandler new s;
+  SignalEvent new eventSelf;
+  SignalEvent new event;
+
+  s setSigUsr2;
+  s getPID;
+  s installHandler handleSignal;
+
+  while (pause()) @{
+    if (eventSelf pending) @{
+      event = eventSelf nextEvent;
+      event printTime;
+      /*
+       *  The signal handler needs to be set 
+       *  again after each usage.
+       */
+      s installHandler handleSignal;
+    @}
+  @}
+@}
+@end example
+
+The program uses @cite{pause(3)} instead of @cite{sleep(3)} in the
+loop in main, because @cite{pause()} breaks only on a signal instead
+of timing out.
+
+@node Timesignal.c, Xhello.c, Timeclient.c, Top
+@iftex
+@section @flnm{timesignal.c}
+@end iftex
+@ifnottex
+@subheading @flnm{timesignal.c}
+@end ifnottex
+@cindex @flnm{timesignal.c} example program
+The @flnm{timesignal.c} program is a sample client that works with 
+the @flnm{timeclient.c} program in the previous section.  At regular
+intervals it sends a signal to the process specified on the command 
+line.
+
+@example
+/*
+ *  timesignal.c - Signal the timeclient program to print  
+ *  the date and time on the terminal.
+ *  
+ *  Launch timeclient either in the background or on another
+ *  terminal.
+ *
+ *  $ ctcc timeclient.c -o timeclient
+ *  $ ctcc timesignal.c -o timesignal
+ *  $ ./timeclient &
+ *  [1] <PID>
+ *  $ ./timesignal <PID>
+ */
+
+#include <time.h>
+
+int main (int argc, char **argv) @{
+
+  Time new thisTime;
+  Time new prevTime;
+  Integer new handlerProcessId;
+
+  if (argc != 2) @{
+    printf ("Usage: timesignal <pid>\n");
+    exit (1);
+  @}
+
+  handlerProcessId = atoi(argv[1]);
+
+  SignalHandler new s;
+
+  s setSigUsr2;
+
+  prevTime = 0;
+
+  while (TRUE) @{
+    thisTime utcTime;
+    if (thisTime != prevTime) @{
+      s signalProcessID handlerProcessId;
+    @}
+    prevTime = thisTime;
+  @}
+@}
+@end example
+
+@node Xhello.c, Xspiro.c, Timesignal.c, Top
+@iftex
+@chapter Xhello.c
+@end iftex
+@ifnottex
+@heading Xhello.c
+@end ifnottex
+
+The @flnm{xhello.c} program is a simple demonstration of how a program
+that uses @code{X11Pane} objects might handle X Window System events.
+
+The program automatially centers text in the window.  If you
+provide the @samp{-v} option on the command line,
+@command{xhello} prints the window system's events on the
+terminal, which are generated when the window is resized, displayed,
+or uncovered by another window.  
+
+@code{X11Pane} objects create a default fixed font resource by
+default, so this program does not need to consult a X server for font
+dimensions.  
+
+@example
+/*
+ *  xhello.c
+ *
+ *  Demonstration of how to get X11Pane objects to respond
+ *  to events from a X server; in this case, ConfigureNotify
+ *  and Expose events, which are generated when the window is 
+ *  moved, resized, or uncovered.
+ *
+ *  X11Pane objects define only a default fixed-width font
+ *  in this Ctalk version, so this program can calculate
+ *  text dimensions without consulting the X server.
+ *  Instead, the macros below should be correct for most
+ *  X Window systems.
+ */
+
+#define FIXED_CHAR_WIDTH 8
+#define FIXED_CHAR_HEIGHT 12
+
+X11Pane instanceMethod putCenteredText (String text) @{
+  Integer new sizeX;
+  Integer new sizeY;
+  Integer new textCharWidth;
+  Integer new textXSize;
+  Integer new textYSize;
+
+  sizeX = self size x;
+  sizeY = self size y;
+  textCharWidth = text length;
+
+  textXSize = textCharWidth * FIXED_CHAR_WIDTH;
+  textYSize = FIXED_CHAR_HEIGHT;
+
+  self clearWindow;
+
+  self putStrXY (sizeX / 2) - (textXSize / 2), 
+    (sizeY / 2) - (textYSize / 2), 
+    text;
+  return NULL;
+@}
+
+int main (int argv, char **argc) @{
+  X11Pane new xPane;
+  InputEvent new e;
+  Integer new nEvents;
+  Integer new verbose;
+
+  xPane initialize 25, 30, 200, 100;
+  xPane map;
+  xPane raiseWindow;
+
+  xPane font "-*-courier-medium-r-*-*-12-120-*-*-*-*-*-*";
+
+  xPane openEventStream;
+
+  verbose = FALSE;
+  if (argc == 2) @{
+    if (!strcmp (argv[1], "-v")) @{
+      verbose = TRUE;
+    @}
+  @}
+
+  if (verbose)
+    printf ("Actual font: %s\n", xPane font fontDesc);
+
+  WriteFileStream classInit;
+
+  xPane putCenteredText "Hello, world!";
+
+  while (TRUE) @{
+    xPane inputStream queueInput;
+    if (xPane inputStream eventPending) @{
+      e become xPane inputStream inputQueue unshift;
+      switch (e eventClass value) 
+	@{
+	  /*
+	   *  Handle both types of events in case the window
+	   *  manager doesn't distinguish between them.
+	   */
+	case MOVENOTIFY:
+	  xPane putCenteredText "Hello, world!";
+	  if (verbose) @{
+	    stdoutStream printOn "MOVENOTIFY\t%d\t%d\t%d\t%d\n",
+	      e xEventData1, 
+	      e xEventData2, 
+	      e xEventData3, 
+	      e xEventData4;
+	    stdoutStream printOn "Window\t\t%d\t%d\t%d\t%d\n",
+	      xPane origin x, 
+	      xPane origin y, 
+	      xPane size x,
+	      xPane size y;
+	  @}
+	  break;
+	case RESIZENOTIFY:
+	  xPane putCenteredText "Hello, world!";
+	  if (verbose) @{
+	    stdoutStream printOn "RESIZENOTIFY\t%d\t%d\t%d\t%d\n",
+	      e xEventData1, 
+	      e xEventData2, 
+	      e xEventData3, 
+	      e xEventData4;
+	    stdoutStream printOn "Window\t\t%d\t%d\t%d\t%d\n",
+	      xPane origin x, 
+	      xPane origin y, 
+	      xPane size x,
+	      xPane size y;
+	  @}
+	  break;
+	case EXPOSE:
+ 	  xPane putCenteredText "Hello, world!";
+	  if (verbose) @{
+	    stdoutStream printOn "Expose\t\t%d\t%d\t%d\t%d\t%d\n",
+	      e xEventData1, 
+	      e xEventData2, 
+	      e xEventData3, 
+	      e xEventData4,
+	      e xEventData5;
+	  @}
+	  break;
+	case WINDELETE:
+	  xPane deleteAndClose;
+	  exit (0);
+	  break;
+	default:
+	  break;
+	@}
+    @}
+  @}
+@}
+@end example
+
+@node Xspiro.c, GNU Free Documentation License, Xhello.c, Top
+@iftex
+@chapter Xspiro.c
+@end iftex
+@ifnottex
+@heading Xspiro.c
+@end ifnottex
+
+The @flnm{xspiro.c} program plots spirograph-like
+epicycloids in a X window.  To build the program, use a
+command like this one:
+@example
+$ ctcc -m xspiro.c -o xspiro
+@end example
+This links the program with the system's math libraries,
+which provide the @code{sin} and @code{cos} math functions.
+
+Typing @samp{xspiro -h} provides a list of options.
+
+@example
+#include <math.h>
+#include <stdlib.h>
+
+Float new rFixed;
+Float new rMoving;
+
+Float instanceMethod plotX (Float rTotal, Float r, Integer s) @{
+  int s_int, x;
+  double r_total, r_double, t_double;
+
+  returnObjectClass Integer;
+
+  r_total = rTotal value;
+  r_double = r value;
+  s_int = s value;
+  t_double = self value;
+
+  x = (int)r_total*cos(t_double) - 
+    (r_double + s_int) * cos((double)(r_total/r_double)*t_double);
+
+  methodReturnInteger(x);
+@}
+
+Float instanceMethod plotY (Float rTotal, Float r, Integer s) @{
+  int s_int, y;
+  double r_total, r_double, t_double;
+
+  returnObjectClass Integer;
+
+  r_total = rTotal value;
+  r_double = r value;
+  s_int = s value;
+  t_double = self value;
+
+  y = (int)r_total*sin(t_double) - 
+    (r_double + s_int) * sin((double)(r_total/r_double)*t_double);
+  methodReturnInteger(y);
+@}
+
+int main (int argv, char **argc) @{
+  Float new t;
+  Integer new s;
+  Integer new x;
+  Integer new y;
+  Float new rTotal;
+  Integer new xCenterOffset;
+  Integer new yCenterOffset;
+  Integer new xWindowSize;
+  Integer new yWindowSize;
+  X11Pane new xPane;
+  X11PaneDispatcher new xTopLevelPane;
+  X11CanvasPane new xCanvasPane;
+  InputEvent new e;
+  Integer new nEvents;
+  Exception new ex;
+  Application new xspiro;
+
+  xspiro enableExceptionTrace;
+  xspiro installExitHandlerBasic;
+  xspiro installAbortHandlerBasic;
+
+  xWindowSize = 400;
+  yWindowSize = 400;
+  xCenterOffset = xWindowSize / 2;
+  yCenterOffset = yWindowSize / 2;
+
+  rFixed = 90.0;
+  rMoving = 53.5;
+
+  parse_args (argc, argv);
+
+  xPane initialize 25, 30, xWindowSize, yWindowSize;
+  xTopLevelPane attachTo xPane;
+  xCanvasPane attachTo xTopLevelPane;
+
+  xPane map;
+  xPane raiseWindow;
+
+  xCanvasPane pen width = 1;
+  xCanvasPane pen colorName = "white";
+
+  xPane openEventStream;
+
+  xCanvasPane background "blue";
+  xCanvasPane clear;
+
+  rTotal = rFixed + rMoving;
+
+  t = 0.0;
+  s = 0;
+
+  while (TRUE) @{
+
+    x = t plotX rTotal, rMoving, s;
+    y = t plotY rTotal, rMoving, s;
+    xCanvasPane drawPoint x + xCenterOffset, y + yCenterOffset;
+    t = t + 0.005;
+
+    xPane inputStream queueInput;
+    if (xPane inputStream eventPending) @{
+      e become xPane inputStream inputQueue unshift;
+      xPane subPaneNotify e;
+      if (ex pending)
+  	ex handle;
+      switch (e eventClass value)
+ 	@{
+ 	case WINDELETE:
+  	  xPane deleteAndClose;
+ 	  exit (0);
+ 	  break;
+  	default:
+  	  break;
+ 	@}
+    @}
+  @}
+@}
+
+void exit_help (char *cmd) @{
+  printf ("\nUsage: %s [-h] | [-f n] | [-m n]\n", cmd);
+  printf ("-f n        Size of fixed circle (default is 90.0).\n");
+  printf ("-h          Print this message and exit.\n");
+  printf ("-m n        Size of moving circle (default is 53.5).\n\n");
+  printf ("Please report bugs to: rk3314042@@gmail.com.\n");
+  exit (0);
+@}
+
+int parse_args (int c, char **a) @{
+  int i;
+  for (i = 1; i < c; i++) @{
+    if (a[i][0] == '-') @{
+      switch (a[i][1])
+	@{
+	case 'h':
+	  exit_help (a[0]);
+	  break;
+	case 'f':
+	  rFixed = strtod (a[++i], (char **)NULL);
+	  break;
+	case 'm':
+	  rMoving = strtod (a[++i], (char **)NULL);
+	  break;
+	@}
+    @} else @{
+      exit_help (a[0]);
+    @}
+  @}
+@}
+@end example
+
+@node GNU Free Documentation License, Index, Xspiro.c, Top
+@iftex
+@chapter GNU Free Documentation License
+@end iftex
+@ifnottex
+@heading GNU Free Documentation License
+@end ifnottex
+@cindex GNU Free Documentation License
+@example
+
+                        Version 1.1, March 2000
+     Copyright (C) 2000  Free Software Foundation, Inc.
+     59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+     
+     Everyone is permitted to copy and distribute verbatim copies
+     of this license document, but changing it is not allowed.
+
+
+
+  0. PREAMBLE
+
+     The purpose of this License is to make a manual, textbook, or other
+     written document "free" in the sense of freedom: to assure everyone
+     the effective freedom to copy and redistribute it, with or without
+     modifying it, either commercially or noncommercially.  Secondarily,
+     this License preserves for the author and publisher a way to get
+     credit for their work, while not being considered responsible for
+     modifications made by others.
+
+     This License is a kind of "copyleft", which means that derivative
+     works of the document must themselves be free in the same sense.
+     It complements the GNU General Public License, which is a copyleft
+     license designed for free software.
+
+     We have designed this License in order to use it for manuals for
+     free software, because free software needs free documentation: a
+     free program should come with manuals providing the same freedoms
+     that the software does.  But this License is not limited to
+     software manuals; it can be used for any textual work, regardless
+     of subject matter or whether it is published as a printed book.
+     We recommend this License principally for works whose purpose is
+     instruction or reference.
+
+
+  1. APPLICABILITY AND DEFINITIONS
+
+     This License applies to any manual or other work that contains a
+     notice placed by the copyright holder saying it can be distributed
+     under the terms of this License.  The "Document", below, refers to
+     any such manual or work.  Any member of the public is a licensee,
+     and is addressed as "you."
+
+     A "Modified Version" of the Document means any work containing the
+     Document or a portion of it, either copied verbatim, or with
+     modifications and/or translated into another language.
+
+     A "Secondary Section" is a named appendix or a front-matter
+     section of the Document that deals exclusively with the
+     relationship of the publishers or authors of the Document to the
+     Document's overall subject (or to related matters) and contains
+     nothing that could fall directly within that overall subject.
+     (For example, if the Document is in part a textbook of
+     mathematics, a Secondary Section may not explain any mathematics.)
+     The relationship could be a matter of historical connection with
+     the subject or with related matters, or of legal, commercial,
+     philosophical, ethical or political position regarding them.
+
+     The "Invariant Sections" are certain Secondary Sections whose
+     titles are designated, as being those of Invariant Sections, in
+     the notice that says that the Document is released under this
+     License.
+
+     The "Cover Texts" are certain short passages of text that are
+     listed, as Front-Cover Texts or Back-Cover Texts, in the notice
+     that says that the Document is released under this License.
+
+     A "Transparent" copy of the Document means a machine-readable copy,
+     represented in a format whose specification is available to the
+     general public, whose contents can be viewed and edited directly
+     and straightforwardly with generic text editors or (for images
+     composed of pixels) generic paint programs or (for drawings) some
+     widely available drawing editor, and that is suitable for input to
+     text formatters or for automatic translation to a variety of
+     formats suitable for input to text formatters.  A copy made in an
+     otherwise Transparent file format whose markup has been designed
+     to thwart or discourage subsequent modification by readers is not
+     Transparent.  A copy that is not "Transparent" is called "Opaque."
+
+     Examples of suitable formats for Transparent copies include plain
+     ASCII without markup, Texinfo input format, LaTeX input format,
+     SGML or XML using a publicly available DTD, and
+     standard-conforming simple HTML designed for human modification.
+     Opaque formats include PostScript, PDF, proprietary formats that
+     can be read and edited only by proprietary word processors, SGML
+     or XML for which the DTD and/or processing tools are not generally
+     available, and the machine-generated HTML produced by some word
+     processors for output purposes only.
+
+     The "Title Page" means, for a printed book, the title page itself,
+     plus such following pages as are needed to hold, legibly, the
+     material this License requires to appear in the title page.  For
+     works in formats which do not have any title page as such, "Title
+     Page" means the text near the most prominent appearance of the
+     work's title, preceding the beginning of the body of the text.
+
+
+  2. VERBATIM COPYING
+
+     You may copy and distribute the Document in any medium, either
+     commercially or noncommercially, provided that this License, the
+     copyright notices, and the license notice saying this License
+     applies to the Document are reproduced in all copies, and that you
+     add no other conditions whatsoever to those of this License.  You
+     may not use technical measures to obstruct or control the reading
+     or further copying of the copies you make or distribute.  However,
+     you may accept compensation in exchange for copies.  If you
+     distribute a large enough number of copies you must also follow
+     the conditions in section 3.
+
+     You may also lend copies, under the same conditions stated above,
+     and you may publicly display copies.
+
+
+  3. COPYING IN QUANTITY
+
+     If you publish printed copies of the Document numbering more than
+     100, and the Document's license notice requires Cover Texts, you
+     must enclose the copies in covers that carry, clearly and legibly,
+     all these Cover Texts: Front-Cover Texts on the front cover, and
+     Back-Cover Texts on the back cover.  Both covers must also clearly
+     and legibly identify you as the publisher of these copies.  The
+     front cover must present the full title with all words of the
+     title equally prominent and visible.  You may add other material
+     on the covers in addition.  Copying with changes limited to the
+     covers, as long as they preserve the title of the Document and
+     satisfy these conditions, can be treated as verbatim copying in
+     other respects.
+
+     If the required texts for either cover are too voluminous to fit
+     legibly, you should put the first ones listed (as many as fit
+     reasonably) on the actual cover, and continue the rest onto
+     adjacent pages.
+
+     If you publish or distribute Opaque copies of the Document
+     numbering more than 100, you must either include a
+     machine-readable Transparent copy along with each Opaque copy, or
+     state in or with each Opaque copy a publicly-accessible
+     computer-network location containing a complete Transparent copy
+     of the Document, free of added material, which the general
+     network-using public has access to download anonymously at no
+     charge using public-standard network protocols.  If you use the
+     latter option, you must take reasonably prudent steps, when you
+     begin distribution of Opaque copies in quantity, to ensure that
+     this Transparent copy will remain thus accessible at the stated
+     location until at least one year after the last time you
+     distribute an Opaque copy (directly or through your agents or
+     retailers) of that edition to the public.
+
+     It is requested, but not required, that you contact the authors of
+     the Document well before redistributing any large number of
+     copies, to give them a chance to provide you with an updated
+     version of the Document.
+
+
+  4. MODIFICATIONS
+
+     You may copy and distribute a Modified Version of the Document
+     under the conditions of sections 2 and 3 above, provided that you
+     release the Modified Version under precisely this License, with
+     the Modified Version filling the role of the Document, thus
+     licensing distribution and modification of the Modified Version to
+     whoever possesses a copy of it.  In addition, you must do these
+     things in the Modified Version:
+
+     A. Use in the Title Page (and on the covers, if any) a title
+     distinct    from that of the Document, and from those of previous
+     versions    (which should, if there were any, be listed in the
+     History section    of the Document).  You may use the same title
+     as a previous version    if the original publisher of that version
+     gives permission.
+     B. List on the Title Page, as authors, one or more persons or
+     entities    responsible for authorship of the modifications in the
+     Modified    Version, together with at least five of the principal
+     authors of the    Document (all of its principal authors, if it
+     has less than five).
+     C. State on the Title page the name of the publisher of the
+     Modified Version, as the publisher.
+     D. Preserve all the copyright notices of the Document.
+     E. Add an appropriate copyright notice for your modifications
+     adjacent to the other copyright notices.
+     F. Include, immediately after the copyright notices, a license
+     notice    giving the public permission to use the Modified Version
+     under the    terms of this License, in the form shown in the
+     Addendum below.
+     G. Preserve in that license notice the full lists of Invariant
+     Sections    and required Cover Texts given in the Document's
+     license notice.
+     H. Include an unaltered copy of this License.
+     I. Preserve the section entitled "History", and its title, and add
+     to    it an item stating at least the title, year, new authors, and
+       publisher of the Modified Version as given on the Title Page.
+     If    there is no section entitled "History" in the Document,
+     create one    stating the title, year, authors, and publisher of
+     the Document as    given on its Title Page, then add an item
+     describing the Modified    Version as stated in the previous
+     sentence.
+     J. Preserve the network location, if any, given in the Document for
+       public access to a Transparent copy of the Document, and
+     likewise    the network locations given in the Document for
+     previous versions    it was based on.  These may be placed in the
+     "History" section.     You may omit a network location for a work
+     that was published at    least four years before the Document
+     itself, or if the original    publisher of the version it refers
+     to gives permission.
+     K. In any section entitled "Acknowledgements" or "Dedications",
+     preserve the section's title, and preserve in the section all the
+      substance and tone of each of the contributor acknowledgements
+     and/or dedications given therein.
+     L. Preserve all the Invariant Sections of the Document,
+     unaltered in their text and in their titles.  Section numbers
+     or the equivalent are not considered part of the section titles.
+     M. Delete any section entitled "Endorsements."  Such a section
+     may not be included in the Modified Version.
+     N. Do not retitle any existing section as "Endorsements"    or to
+     conflict in title with any Invariant Section.
+
+     If the Modified Version includes new front-matter sections or
+     appendices that qualify as Secondary Sections and contain no
+     material copied from the Document, you may at your option
+     designate some or all of these sections as invariant.  To do this,
+     add their titles to the list of Invariant Sections in the Modified
+     Version's license notice.  These titles must be distinct from any
+     other section titles.
+
+     You may add a section entitled "Endorsements", provided it contains
+     nothing but endorsements of your Modified Version by various
+     parties-for example, statements of peer review or that the text has
+     been approved by an organization as the authoritative definition
+     of a standard.
+
+     You may add a passage of up to five words as a Front-Cover Text,
+     and a passage of up to 25 words as a Back-Cover Text, to the end
+     of the list of Cover Texts in the Modified Version.  Only one
+     passage of Front-Cover Text and one of Back-Cover Text may be
+     added by (or through arrangements made by) any one entity.  If the
+     Document already includes a cover text for the same cover,
+     previously added by you or by arrangement made by the same entity
+     you are acting on behalf of, you may not add another; but you may
+     replace the old one, on explicit permission from the previous
+     publisher that added the old one.
+
+     The author(s) and publisher(s) of the Document do not by this
+     License give permission to use their names for publicity for or to
+     assert or imply endorsement of any Modified Version.
+
+
+  5. COMBINING DOCUMENTS
+
+     You may combine the Document with other documents released under
+     this License, under the terms defined in section 4 above for
+     modified versions, provided that you include in the combination
+     all of the Invariant Sections of all of the original documents,
+     unmodified, and list them all as Invariant Sections of your
+     combined work in its license notice.
+
+     The combined work need only contain one copy of this License, and
+     multiple identical Invariant Sections may be replaced with a single
+     copy.  If there are multiple Invariant Sections with the same name
+     but different contents, make the title of each such section unique
+     by adding at the end of it, in parentheses, the name of the
+     original author or publisher of that section if known, or else a
+     unique number.  Make the same adjustment to the section titles in
+     the list of Invariant Sections in the license notice of the
+     combined work.
+
+     In the combination, you must combine any sections entitled
+     "History" in the various original documents, forming one section
+     entitled "History"; likewise combine any sections entitled
+     "Acknowledgements", and any sections entitled "Dedications."  You
+     must delete all sections entitled "Endorsements."
+
+
+  6. COLLECTIONS OF DOCUMENTS
+
+     You may make a collection consisting of the Document and other
+     documents released under this License, and replace the individual
+     copies of this License in the various documents with a single copy
+     that is included in the collection, provided that you follow the
+     rules of this License for verbatim copying of each of the
+     documents in all other respects.
+
+     You may extract a single document from such a collection, and
+     distribute it individually under this License, provided you insert
+     a copy of this License into the extracted document, and follow
+     this License in all other respects regarding verbatim copying of
+     that document.
+
+
+  7. AGGREGATION WITH INDEPENDENT WORKS
+
+     A compilation of the Document or its derivatives with other
+     separate and independent documents or works, in or on a volume of
+     a storage or distribution medium, does not as a whole count as a
+     Modified Version of the Document, provided no compilation
+     copyright is claimed for the compilation.  Such a compilation is
+     called an "aggregate", and this License does not apply to the
+     other self-contained works thus compiled with the Document, on
+     account of their being thus compiled, if they are not themselves
+     derivative works of the Document.
+
+     If the Cover Text requirement of section 3 is applicable to these
+     copies of the Document, then if the Document is less than one
+     quarter of the entire aggregate, the Document's Cover Texts may be
+     placed on covers that surround only the Document within the
+     aggregate.  Otherwise they must appear on covers around the whole
+     aggregate.
+
+
+  8. TRANSLATION
+
+     Translation is considered a kind of modification, so you may
+     distribute translations of the Document under the terms of section
+     4.  Replacing Invariant Sections with translations requires special
+     permission from their copyright holders, but you may include
+     translations of some or all Invariant Sections in addition to the
+     original versions of these Invariant Sections.  You may include a
+     translation of this License provided that you also include the
+     original English version of this License.  In case of a
+     disagreement between the translation and the original English
+     version of this License, the original English version will prevail.
+
+
+  9. TERMINATION
+
+     You may not copy, modify, sublicense, or distribute the Document
+     except as expressly provided for under this License.  Any other
+     attempt to copy, modify, sublicense or distribute the Document is
+     void, and will automatically terminate your rights under this
+     License.  However, parties who have received copies, or rights,
+     from you under this License will not have their licenses
+     terminated so long as such parties remain in full compliance.
+
+
+ 10. FUTURE REVISIONS OF THIS LICENSE
+
+     The Free Software Foundation may publish new, revised versions of
+     the GNU Free Documentation License from time to time.  Such new
+     versions will be similar in spirit to the present version, but may
+     differ in detail to address new problems or concerns.  See
+     http://www.gnu.org/copyleft/.
+
+     Each version of the License is given a distinguishing version
+     number.  If the Document specifies that a particular numbered
+     version of this License "or any later version" applies to it, you
+     have the option of following the terms and conditions either of
+     that specified version or of any later version that has been
+     published (not as a draft) by the Free Software Foundation.  If
+     the Document does not specify a version number of this License,
+     you may choose any version ever published (not as a draft) by the
+     Free Software Foundation.
+
+
+ADDENDUM: How to use this License for your documents
+
+   To use this License in a document you have written, include a copy of
+the License in the document and put the following copyright and license
+notices just after the title page:
+
+     Copyright (C)  YEAR  YOUR NAME.
+     Permission is granted to copy, distribute and/or modify this document
+     under the terms of the GNU Free Documentation License, Version 1.1
+     or any later version published by the Free Software Foundation;
+     with the Invariant Sections being LIST THEIR TITLES, with the
+     Front-Cover Texts being LIST, and with the Back-Cover Texts being LIST.
+     A copy of the license is included in the section entitled "GNU
+     Free Documentation License."
+
+   If you have no Invariant Sections, write "with no Invariant Sections"
+instead of saying which ones are invariant.  If you have no Front-Cover
+Texts, write "no Front-Cover Texts" instead of "Front-Cover Texts being
+LIST"; likewise for Back-Cover Texts.
+
+   If your document contains nontrivial examples of program code, we
+recommend releasing these examples in parallel under your choice of
+free software license, such as the GNU General Public License, to
+permit their use in free software.
+
+@end example
+
+@c
+@c  INDEX
+@c
+@ifnottex
+@node Index, , GNU Free Documentation License, Top
+@end ifnottex
+@chapter Index
+@printindex cp
+@bye
