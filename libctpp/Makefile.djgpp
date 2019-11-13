@@ -1,0 +1,52 @@
+# $Id: Makefile.djgpp,v 1.1.1.1 2019/10/26 23:40:50 rkiesling Exp $
+#
+# Makefile for DJGPP and GNU make.
+#
+
+#
+# Change the value of CMD if your system uses a 
+# different shell than cmd.exe
+#
+CMD=cmd /C
+
+LIBDEFINES=-DPKGNAME=\"ctalk\" -DCLASSLIBDIR=\"/djgpp/include/ctalk\" \
+	-DVERSION=\"1.0.27\" -DLIB_BUILD
+
+LIBINCLUDES=-I../include
+
+LIBCFLAGS=-g -Wall 
+
+CFLAGS=$(LIBDEFINES) $(LIBINCLUDES) $(LIBCFLAGS)
+
+LIBSOURCES=ansitime.c bnamecmp.c error_out.c errorloc.c \
+	hash.c lex.c lextype.c lineinfo.c list.c keyword.c message.c \
+	radixof.c read.c rtinfo.c rt_error.c sformat.c statfile.c \
+	substrcpy.c tempio.c trimstr.c val.c
+
+LIBOBJS=ansitime.o bnamecmp.o error_out.o errorloc.o \
+	hash.o lex.o lextype.o lineinfo.o list.o keyword.o message.o \
+	radixof.o read.o rtinfo.o rt_error.o sformat.o statfile.o \
+	substrcpy.o tempio.o trimstr.o val.o
+
+HEADERS=../include/ctpp.h ../include/list.h ../include/pexcept.h \
+	../include/phash.h ../include/plex.h ../include/pmessage.h \
+	../include/pparser.h ../include/prtinfo.h ../include/pval.h \
+	../include/typeof.h
+
+LIB=libctpp.a
+
+all: $(LIB)
+
+$(LIBOBJS): $(LIBSOURCES) $(HEADERS)
+
+$(LIB): $(LIBOBJS)
+	ar rvs $(LIB) $(LIBOBJS)
+
+clean:
+	$(CMD) if exist *.o del *.o 
+	$(CMD) if exist *~ del *~
+	$(CMD) if exist $(LIB) del $(LIB)
+
+inst: $(LIB)
+	$(CMD) copy $(LIB) \\djgpp\\lib
+
