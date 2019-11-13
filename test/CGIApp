@@ -1,0 +1,237 @@
+/* $Id: CGIApp,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-c-*- */
+
+/*
+  This file is part of Ctalk.
+  Copyright © 2005-2011 Robert Kiesling, rk3314042@gmail.com.
+  Permission is granted to copy this software provided that this copyright
+  notice is included in all source code modules.
+
+  This program is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program; if not, write to the Free Software Foundation, 
+  Inc., 51 Franklin St., Fifth Floor, Boston, MA 02110-1301 USA.
+*/
+
+/*
+ *   CGIApp - Ctalk class with methods needed by CGI Web
+ *   applications.
+ */
+
+#include <stdio.h>
+
+extern char **environ;
+
+Event class CGIApp;
+
+CGIApp classVariable classInitialized Integer FALSE;
+CGIApp instanceVariable serverEnvironment AssociativeArray NULL;
+CGIApp instanceVariable queryValues AssociativeArray NULL;
+
+CGIApp instanceMethod new (char *__appName) {
+
+  CGIApp super new __appName;
+
+  __ctalkInstanceVarsFromClassObject (__appName);
+
+  return __appName;
+
+}
+
+/*
+ *  Get the applications environment and save it in
+ *  the receiver's serverEnvironment instance variable.
+ *  Normally an application calls this after creating
+ *  the CGIapp object, with envp or environ as the 
+ *  argument.
+ */
+
+/*
+ *  Using _appEnvP should be envp from main ().
+ *  It's here for compatibility.
+ */
+CGIApp instanceMethod getServerEnv (char **_appEnvP) {
+
+  char **appEnvCVar, *envVar, *__p, __key[MAXLABEL];
+  unsigned int __oldEnvVarSeg = 0;
+  int idx;
+  String new keyObj;
+
+  appEnvCVar = (char **)__ctalk_arg_internal(0)->instancevars->__o_value;
+
+  /*
+   *  Use this when we do exception handler testing.
+   */
+/*      for (idx = 0; appEnvCVar[idx]; idx++) { */
+/*        envVar = appEnvCVar[idx]; */
+  for (idx = 0; environ[idx]; idx++) {
+    envVar = environ[idx];
+    /*
+     *  Not all Solaris versions keep the environment in contiguous 
+     *  memory, so break here in order to avoid a possible segfault.  
+     *  You may need to run an app several times to get
+     *  the complete environment.
+     */
+    if (__oldEnvVarSeg && (__oldEnvVarSeg != 
+			   ((unsigned int)envVar & 0xF0000000)))
+    break;
+    __oldEnvVarSeg = (unsigned int)envVar & 0xF0000000;
+    __p = strchr (envVar, '=');
+    if (__p) {
+      substrcpy (__key, envVar, 0, __p - envVar);
+      keyObj = __key;
+      ++__p;
+      self serverEnvironment atPut keyObj, __p;
+    }
+  }
+  return NULL;
+}
+
+CGIApp instanceMethod outputString (char *__strToOutput) {
+  printf ("%s", __ctalk_to_c_char_ptr(__strToOutput));
+  fflush (stdout);
+  return NULL;
+}
+
+CGIApp instanceMethod httpHeader (void) {
+  self outputString "Content-type: text/html\r\n\r\n";
+  return NULL;
+}
+
+CGIApp instanceMethod locationHeader (String _location) {
+  self outputString "Location: " + _location + "\r\n\r\n";
+  return NULL;
+}
+
+CGIApp instanceMethod contentLocationHeader (String _content_type, String _location) {
+  self outputString "Location: " + _location + "\r\n";
+  self outputString "Content-type: " + _content_type + "\r\n\r\n";
+  return NULL;
+}
+
+CGIApp instanceMethod htmlPageHeader (char *__pageTitle) {
+   String new titleLine;
+   titleLine writeFormat "<html><head><title>%s</title></head>\n", __pageTitle;
+   self outputString titleLine;
+   return NULL;
+}
+
+CGIApp instanceMethod htmlPageFooter (void) {
+  self outputString "</html>\n";
+  return NULL;
+}
+
+CGIApp instanceMethod httpUnescapeString (char *__argString) {
+
+  String new __unescapedChar;
+  int i, j, k, arglength;
+  OBJECT *__argStringValueObj, *result_object;
+  char *buf;
+  char escsequence[3];
+  /*
+   *  HTTP hexadecimal escapes and the ASCII characters.
+   */
+  char *escsequences[] = {"20", " ", "21", "!", "22", "\"", "23", "#",
+			  "24", "$", "25", "%", "26", "&", "27", "\'",
+			  "28", "(", "29", ")", "2A", "*", "2B", "+",
+			  "2C", ",", "2D", "-", "2E", ".", "2F", "/",
+			  "30", "0", "31", "1", "32", "2", "33", "3",
+			  "34", "4", "35", "5", "36", "6", "37", "7",
+			  "38", "8", "39", "9", "3A", ":", "3B", ";",
+			  "3C", "<", "3D", "=", "3E", ">", "3F", "?",
+			  "40", "@", "41", "A", "42", "B", "43", "C",
+			  "44", "D", "45", "E", "46", "F", "47", "G",
+			  "48", "H", "49", "I", "4A", "J", "4B", "K",
+			  "4C", "L", "4D", "M", "4E", "N", "4F", "O",
+			  "50", "P", "51", "Q", "52", "R", "53", "S",
+			  "54", "T", "55", "U", "56", "V", "57", "W",
+			  "58", "X", "59", "Y", "5A", "Z", "5B", "[",
+			  "5C", "\\", "5D", "]", "5E", "^", "5F", "_",
+			  "60", "`", "61", "a", "62", "b", "63", "c",
+			  "64", "d", "65", "e", "66", "f", "67", "g",
+			  "68", "h", "69", "i", "6A", "j", "6B", "k",
+			  "6C", "l", "6D", "m", "6E", "n", "6F", "o",
+			  "70", "p", "71", "q", "72", "r", "73", "s",
+			  "74", "t", "75", "u", "76", "v", "77", "w",
+			  "78", "x", "79", "y", "7A", "z", "7B", "{",
+			  "7C", "|", "7D", "}", "7E", "~", NULL, NULL };
+
+  returnObjectClass String;
+
+  __argStringValueObj = __argString value;
+  arglength = strlen (__argStringValueObj->__o_value);
+  buf = __xalloc (arglength);
+  for (i = 0, j = 0; i < arglength; ) {
+    if (__argStringValueObj->__o_value[i] == '%') {
+      escsequence[0] = __argStringValueObj->__o_value[i+1];
+      escsequence[1] = __argStringValueObj->__o_value[i+2];
+      escsequence[2] = 0;
+      i += 3;
+      for (k = 0; escsequences[k]; k += 2) {
+	if (!strcmp (escsequence, escsequences[k])) {
+	  strcat (buf, escsequences[k+1]);
+	  j += 1;
+	}
+      }
+    } else {
+      buf[j++] = __argStringValueObj->__o_value[i++];
+      buf[j] = 0;
+    }
+  } 
+
+  result_object = __ctalkCreateObjectInit ("result", "String",
+					   "Character", LOCAL_VAR,
+					   buf);
+  __xfree (MEMADDR(buf));
+  __ctalkRegisterUserObject (result_object);
+  return result_object;
+}
+
+/*
+ *  Call after getServerEnvironment.
+ */
+CGIApp instanceMethod parseQueryString (void) {
+  String new queryString;
+  String new paramString;
+  Array new queryParams;
+  Array new paramArray;
+  Integer new nParams;
+  String new paramKey;
+  String new paramValue;
+  Integer new i;
+  Integer new j;
+
+  queryString = self serverEnvironment at "QUERY_STRING";
+
+  if ((queryString length == 0) || (queryString isNull)) {
+    return NULL;
+  }
+
+  nParams = queryString split '&', queryParams;
+
+  for (i = 0; i < nParams; i = i + 1) {
+    paramString = queryParams at i;
+    j = paramString split '=', paramArray;
+    if (j == 1) {
+      self queryValues atPut (paramArray at 0), "1";
+    } else {
+      if (j == 2) {
+	self queryValues atPut (paramArray at 0), (paramArray at 1);
+      }
+    }
+  }  
+  return NULL;
+}
+
+CGIApp instanceMethod handleCGIException (void) {
+  __ctalkHandleRunTimeException ();
+  return NULL;
+}

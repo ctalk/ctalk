@@ -1,0 +1,34 @@
+Ctalk Tests
+
+The following programs test ctalk.
+
+basecls.c    Tests ctalk's base classes.
+
+ctrlstrc.c   Tests ctalk's handling of control structures.
+
+ctypes.c     Tests of C data types.  Note that this test
+             only supports the type definitions and library
+             quirks of Linux and SunOS.
+
+basiclist.c  Tests Ctalk's handling of basic collections and 
+assocarray.c object references.
+
+externs.c    Tests Ctalk's handling of functions and methods 
+             in multiple input files.
+
+You can run the tests in this directory by typing, "make test."
+
+Note for GCC Version 7.x
+
+GCC version 7.0.1 adds some new warning messages for string
+space and format overflow.  If you want to run the tests without
+warning messages using GCC 7.x, use make -f Makefile.gcc7 for
+the tests.
+
+Tests for individual features and example programs from the manuals
+are in the test/expect directory.  The file test/expect/README
+describes them.
+
+Support, Bug Reports, and Feedback
+
+Please contact the author(s), at rk3314042@gmail.com.

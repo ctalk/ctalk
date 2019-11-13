@@ -1,0 +1,66 @@
+# $Id: Makefile.djgpp,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $
+#
+# Makefile for DJGPP and GNU make.
+#
+.SILENT:
+CTALK=ctalk.exe
+
+CLASSES=../classes
+
+test: cvariables baseclasses ctrlstructs basiclist associativearray externs
+
+cvariables:
+	echo "=========================="; \
+	echo "C variable test."  ; \
+	echo "=========================="; \
+	copy ..\classes\ctldjgpp \djgpp\include\ctalklib >NUL; \
+	ctalk ctypes-djgpp.c -o ctypes-djgpp.i ; \
+	gcc ctypes-djgpp.i -o ctypes-djgpp.exe -lctalk ; \
+	./ctypes-djgpp.exe ; \
+	rm ctypes-djgpp.i; rm ctypes-djgpp.exe
+
+baseclasses:
+	echo "=========================="; \
+	echo "Base classes."; \
+	echo "=========================="; \
+	ctalk basecls.c -o basecls.i ; \
+	gcc basecls.i -o basecls.exe -lctalk ; \
+	./basecls.exe ; \
+	rm basecls.i; rm basecls.exe
+
+ctrlstructs:
+	echo "============================="; \
+	echo "Control structures."; \
+	echo "============================="; \
+	ctalk ctrlstrc.c -o ctrlstrc.i ; \
+	gcc ctrlstrc.i -o ctrlstrc.exe -lctalk ; \
+	./ctrlstrc.exe ; \
+	rm ctrlstrc.i; rm ctrlstrc.exe
+
+basiclist:
+	echo "============================="; \
+	echo "Basic lists."; \
+	echo "============================="; \
+	ctalk basiclist.c -o basiclist.i ; \
+	gcc basiclist.i -o basiclist.exe -lctalk ; \
+	./basiclist.exe ; \
+	rm basiclist.i; rm basiclist.exe
+
+associativearray:
+	echo "============================="; \
+	echo "Associative Arrays."; \
+	echo "============================="; \
+	ctalk assocarray.c -o assocarray.i ; \
+	gcc assocarray.i -o assocarray.exe -lctalk ; \
+	./assocarray.exe ; \
+	rm assocarray.i; rm assocarray.exe
+
+externs:
+	echo "============================="; \
+	echo "Externs."; \
+	echo "============================="; \
+	ctalk -I . externs.c testfunc.c testmethod.c -o externs.i ; \
+	gcc externs.i -o externs.exe -lctalk ; \
+	./externs.exe ; \
+	rm externs.exe; rm externs.i
+
