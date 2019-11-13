@@ -1,0 +1,2700 @@
+>>>__argvName (char *s)
+Set the name of the program at run time.  Normally this is the
+same as argv[0].
+
+>>>__argvFileName (void)
+Returns the name of the executable program.
+
+>>>__arg_trace (int stack_index)
+Prints the object at argument stack index stack_index.
+
+>>>__ctalkAddClassVariable (OBJECT *class_object, char *name, OBJECT *variable_object)
+Add a class variable variable_objectto class_object.
+
+>>>__ctalkAddInstanceVariable (OBJECT *object, char *name, OBJECT *variable_object)
+Add an instance variable to an object.  Note that the function
+adds a copy of variable_object to object.
+
+>>>__ctalkAliasObject (OBJECT *rcvr, OBJECT * target)
+Set the rcvr object's label to the target object, so the
+target object can be referred to by the rcvr object's
+identifier.  This function does not require rcvr to be the
+actual receiver of the method, so the results can be unpredictable if
+it is used in a context other than where self is the first
+argument.  To insure that rcvr is the actual receiver of the
+calling method, use __ctalkAliasReceiver (), below.
+
+>>>__ctalkAliasReceiver (OBJECT *rcvr, OBJECT * target)
+Like __ctalkAliasObject (), above, but the function checks that
+rcvr is the actual receiver of the calling method and returns
+ERROR (-1) if it isn't.  Here is an example.
+
+---------------------------------------------------------
+
+String instanceMethod = setEqual (OBJECT *__stringArg) {
+  // String assignment method. Assigns the argument  to the
+  // receiver label.  Also does some String-specific
+  // semantic stuff for different sorts of String objects.
+  // Returns the new String object.
+
+  __ctalkStringifyName (self, __stringArg);
+  if (__ctalkAliasReceiver (self, __stringArg) != 0) {
+    __ctalkAddInstanceVariable (self, "value", __stringArg);
+    return self;
+  } else {
+    return __stringArg;
+  }
+}
+
+---------------------------------------------------------
+
+>>>__ctalkANSIClearPaneLine (OBJECT *paneObject, int lineNumber)
+Clear (to spaces) the pane line at lineNumber.
+
+>>>__ctalkANSITerminalPaneMapWindow (Object *childPane)
+Map childPane onto the receiver pane.  The child pane's upper
+left-hand corner origin is relative to the receiver pane's origin.
+The receiver pane should be large enough to completely enclose the
+child pane.  The child pane is displayed at the next refresh
+message. 
+
+>>>__ctalkANSITerminalPaneUnmapWindow (Object *childPane)
+Removes the pane given as the argument from the receiver pane.
+
+>>>__ctalkANSITerminalPanePutChar (int x, int y, char c)
+Store character c at coordinates x,y in the pane's
+content region.  The character will be displayed after the next
+refresh message.
+
+>>>__ctalkANSITerminalPaneRefresh (void)
+Display the contents of ANSITerminalPane objects on the display,
+including text and window decorations if any.
+
+>>>__ctalkANSITerminalPaneUnMapWindow (Object childPane)
+Unmap childPane from the receiver pane's visible area.  The
+child pane is not deleted; it is simply not displayed at the next
+refresh message.
+
+>>>__ctalkARB (void)
+Returns a boolean value of true if the GLEW libraries support
+the GLEW_ARB_vertex_shader and GLEW_ARB_fragment_shader
+extensions.  Programs must call the __ctalkInitGLEW
+function before using this function.
+
+>>>__ctalkArgBlkReturnVal (void)
+Called by the calling function of an argument block to retrieve
+the block's return value, if any.  
+
+>>>__ctalkArgBlkSetCallerReturn (void)
+Called by a map method to indicate to a calling method or function
+that an argument block has requested a return from the function or
+method that called it.  Map-type methods for general use should
+include a call to this function, which provides argument block support
+for return statements. Refer to
+__ctalkRegisterArgBlkReturn, below, and the String : map
+method for an example of these functions' use.
+
+>>>__ctalkArrayElementToCCharPtr (OBJECT *array_element):__ctalkArrayElementToCChar (OBJECT *array_element):__ctalkArrayElementToCDouble (OBJECT *array_element):__ctalkArrayElementToCInt (OBJECT *array_element):__ctalkArrayElementToCLongLongInt (OBJECT *array_element):__ctalkArrayElementToCPtr (OBJECT *array_element)
+Translates the object array_element's value to a C @code{char
+*}, char, double, int, long long int, or
+void *.
+
+>>>__ctalkBackgroundMethodObjectMessage (OBJECT *rcvr, OBJECT *method_instance)
+Perform a method call by sending rcvr the message defined by
+method_instance, which is a previously defined Method
+object.  
+
+The function starts method_instance as a separate process,
+which runs concurrently with the process that launched it.
+The background process exits when method_instance returns.
+
+The method instance argument is a normal method.  However,
+__ctalkBackgroundMethodObjectMessage does not save the return
+object before method_instance exits, and method_instance,
+does not take any arguments.
+
+The function returns the PID of the child process, or -1 on
+error.
+
+This function is used by the method
+backgroundMethodObjectMessage (class Object).  Refer to
+the description of the method for more information.
+
+
+For examples of method instance calls, 
+
+>>>__ctalkBackgroundMethodObjectMessage2Args (OBJECT *rcvr, OBJECT *method_instance, OBJECT *arg1, OBJECT *arg2)
+
+This function combines a background method instance call with two arguments.
+Its function is similar to __ctalkMethodObjectMessage, below.
+
+For examples of method instance calls, 
+
+>>>__ctalkCallMethodFn (METHOD *method)
+Used internally to perform a method call.
+
+>>>__ctalkCallingFnObjectBecome (OBJECT *old, OBJECT *new)
+Used by Object : become to translate the receiver when
+become is called within a function.
+
+>>>__ctalkCallingInstanceVarBecome (OBJECT *old, OBJECT *new)
+Used by Object : become to translate the receiver when
+the receiver is an instance variable.
+
+>>>__ctalkCallingMethodObjectBecome (OBJECT *old, OBJECT *new)
+Used by Object : become to translate the receiver when
+become's receiver is an object declared in another method.
+
+>>>__ctalkCallingReceiverBecome (OBJECT *old, OBJECT *new)
+Used by Object : become to translate the receiver when
+become's receiver also the receiver of the method that calls
+become.
+
+>>>__ctalkCBoolToObj (bool b)
+Create a Boolean object with the boolean (either true or false)
+value of the argument.
+
+>>>__ctalkCCharPtrToObj (char *s)
+Create a String object from a C char *.
+
+>>>__ctalkConsoleReadLine (OBJECT *string_object, char *prompt_string)
+Prints the prompt prompt_string to standard output of a
+terminal, then reads a line of text from the standard input, until it
+encounters a newline, and saves it as the value of
+string_object.
+
+If Ctalk is built with support for the GNU readline libraries, the
+function provides the readline libraries' command line editing and
+history facilities.  Otherwise, the function reads input up to a
+newline using only the basic text input and editing facilities
+provided by the stdio functions.
+
+>>>__ctalkCreateArg (OBJECT *receiver, char *methodname, char *arg_expr)
+Create an argument for the following __ctalk_method or
+__ctalk_primitive_method function call.  Unlike
+__ctalk_arg, this function always creates a new object.  Its
+primary use is to create local method objects that are fully instantiated
+into a class by a following new method.
+
+>>>__ctalkCreateArgA (OBJECT *receiver, char *methodname, char *arg_expr)
+Like __ctalkCreateArg, creates local method objects that are
+instantiated into a class by a following new method.  The
+__ctalkCreateArgA () function is more specialized so it can be
+used when performing method cache fixups.
+
+>>>__ctalkCDoubleToObj (doubled)
+Create a Float object from a C float or double.
+
+>>>__ctalkCharRadixToChar (char *s)
+Return the character as a C char that is represented by the
+formatted argument.
+
+If s contains a number of more than one digit, then it is
+converted from an integer to the ASCII code of a character.
+
+>>>__ctalkCharRadixToCharASCII (char *s)
+Return a C string with a lexically correct character - a character
+enclosed in single quotes - from the formatted argument.  If s
+is already a character, then no conversion is done.
+
+If s contains a decimal number of more than one digit, then it
+is converted from a decimal integer to a character.
+
+>>>__ctalkCFUNCReturnClass (CFUNC *fn, char *buf)
+Return in buf the name of the class that corresponds to
+fn's return type.
+
+>>>__ctalkCIntToObj (int i)
+Create an Integer object from a C int.
+
+>>>__ctalkCLongLongToObj (long long int l)
+Create a LongInteger object from a C long long int.
+
+>>>__ctalkClassMethodInitReturnClass (char *rcvr_class, char *method_name, char *return_class)
+Set the return class of method in rcvr_class to return_class.
+
+>>>__ctalkClassMethodParam (char *rcvrclassname, char *methodname, OBJECT *(*selector_fn)(), char *paramclass, char *paramname, int param_is_pointer)
+Define a method parameter when initializing a class method. Normally
+the compiler generates this call for inclusion in @code{__ctalk_init
+()} for the method initialization at run time.
+
+>>>__ctalkClassObject (OBJECT *object)
+Returns the class object of the argument.
+
+>>>__ctalkClassVariableObject (OBJECT *var)
+Return the object that var is a class variable of, or NULL.
+
+>>>__ctalkFree (void *p)
+This is an API wrapper for Ctalk's memory free routines.  Much of the
+old code in the class libraries still uses __xfree () (which now gets
+macroized to __ctalkFree () anyway), but you should use __ctalkFree ()
+in new class libraries.
+
+In cases where you prefer to call __xfree () directly, then you need
+to use the MEMADDR macro to cast the argument to a void **, i.e.,
+
+---------------------------------------------------------
+
+  char *my_buf;
+
+  ... do stuff ...
+
+  __xfree (MEMADDR(my_buf));
+
+---------------------------------------------------------
+
+which is what __ctalkFree () does automagically.
+
+>>>__ctalkLocalTime (long int utctime, int *seconds_return, int *minutes_return, int *hours_return, int *dom_return, int *mon_return, int *years_return, int *dow_return, int *doy_return, int *have_dst_return)
+Returns the system's local time in the arguments that return the
+current second, minute, hour, day of the month, month, year, day of the week, day of the year, and (T/F) whether the time uses daylight savings time.
+
+The first argument is the system's UTC time, as returned by the
+time () library function.
+
+>>>__ctalkCloseGLXPane (OBJECT *pane_object)
+Releases the pane's GLX context and the context's XVisualInfo
+struct, and deletes the pane_object's X11 window.
+
+>>>__ctalkCloseX11Pane (OBJECT *pane_object)
+Deletes and closes subpanes of a main X11 window.
+
+>>>__ctalkCopyPaneStreams (OBJECT *src, OBJECT *dest)
+Copy the src inputHandle and outputHandle values
+to dest.
+
+>>>__ctalkCopyCVariable (CVAR *c)
+Return a CVAR * to a copy of the argument.
+
+>>>__ctalkCopyObject (OBJREF_T src, OBJREF_T dest)
+Return an OBJECT * to a copy of the argument.
+
+Note: When copying normal objects, you can translate them to
+OBJREF_T types with the OBJREF macro.  When copying
+method arguments, it is necessary to alias the argument to an object.
+See at (class Array) and atPut (class
+AssociativeArray) for examples.
+
+>>>__ctalkCPrintFmtToCtalkFmt (char *c_fmt, char *ctalk_fmt)
+Translate a C printf(3) type format string to a Ctalk
+compatible format string.  The function translates the
+format characters [diouxXeEfFgGaAcsp], but it does
+not perform translations of field widths or precisions.
+
+>>>__ctalkCreateArgEntry (void)
+Used internally to create an ARG type, which maintains a method's
+argument entries.
+
+>>>__ctalkCreateArgEntryInit (OBJECT *obj)
+Creates an internal method argument entry and initializes the entry to
+the argument object.
+
+>>>__ctalkDeleteArgEntry (ARG *arg)
+Delete a method ARG entry.
+
+>>>__ctalkCreateObject (char *name, char *class, char *superclass, int scope)
+Create an object without instance variables with name name 
+of class class and superclass superclass with scope scope.
+
+>>>__ctalkCreateObjectInit (char *name, char *class, char *superclass, int scope, char *value)
+Create an object with name name of class class and
+superclass superclass with scope scope and value
+value.
+
+For more information about how to use __ctalkCreateObjectInit, refer
+to the examples in  and other examples in this manual.
+
+>>>__ctalkCreateWinBuffer (int x_size, int y_size, int cell_size)
+Create a buffer for a Pane object's window.
+
+>>>__ctalkCreateGLXMainWindow (OBJECT * pane_object)
+Normally called by the initialize method in class
+GLXCanvasPane, creates a X11 window with a GLX visual.
+The
+visual's default attributes are: GLX_RGBA, GLX_DEPTH_SIZE,
+24 bits per pixel, and GLX_DOUBLEBUFFER.  These attributes are
+adjustable via the instance variables in GLXCanvasPane class.
+
+The self_object argument must be an instance of GLXCanvasPane
+class.  This function fills in the object's visualInfoPtr instance
+variable with a pointer to the XVisualInfo structure specified
+by self_object.
+
+
+Called by the initialize methods (class X11Pane) to
+create a X window.  Returns the window system's ID for the window, an
+int. 
+
+char *title)
+Similar to __ctalkCreateX11MainWindow, except that if title
+is non-null, the function uses it to set the new window's title.  Returns
+the X resource ID of the new window, an int.  
+
+Application programs can provide a window geometry specification which
+is used to set the window's size and placement
+
+
+If a program doesn't specify a window size, then default size is
+250x250 pixels.  If the program doesn't specify a location for the
+window, then this function tries to do something intelligent with the
+initial window placement.  
+
+>>>__ctalkCriticalExceptionInternal (MESSAGE *orig, EXCEPTION ex, char *text)
+Raise a critical exception at run time.  The argument orig
+should be NULL.  This function should be called from a method.
+This function saves a snapshot of the calling method's
+run-time context.
+
+For an example, see raiseCriticalException (class
+SysErrnoException) in the Ctalk class library, which calls
+__ctalkCriticalSysErrExceptionInternal, below.
+
+>>>__ctalkCriticalSysErrExceptionInternal (MESSAGE *orig, int errno, char *text)
+A convenience function that calls
+__ctalkCriticalExceptionInternal with the Ctalk exception that
+corresponds to errno, the C library's error macro.
+
+>>>__ctalkCVARReturnClass (CVAR *var, char *buf)
+Return in buf the name of the class that corresponds to
+var's data type.
+
+>>>__ctalkDecimalIntegerToChar (int n, char *buf)
+Formats the ASCII 8-bit character representation of n as the
+first character in buf, and returns (char)n as its return
+value. If n is greater than 255 (0xff hex), returns the
+formatted character (char)(n & 255).
+
+>>>__ctalkDecimalIntegerToASCII (int i, char *s)
+Format an ASCII representation of i, a decimal integer, in s.
+
+>>>__ctalkDecimalLongLongToASCII (long long int l, char *s)
+Format an ASCII representation of l, a decimal long long
+integer, in s.
+
+>>>__ctalkDefaultSignalHandler (int signo)
+Set the handler of signal signo to the system's
+default handler.
+
+>>>__ctalkDefineClassMethod (char *class, char *name, OBJECT *(*)(fn), int required_args)
+
+Define a class method in class class with name name, which
+calls the function fn, and requires required_args arguments.
+
+>>>__ctalkDefineClassVariable (char *class, char *name, char *varclass, char *init_expr)
+
+Define a class variable in class class with name.  
+The variable is an object of class varclass with the initial
+value init_expr.
+
+>>>__ctalkDefineInstanceMethod (char *class, char *name, OBJECT *(*)(fn), int required_args)
+
+Define an instance method in class class with name name, which
+calls the function fn, and requires required_args arguments.
+
+>>>__ctalkDefineInstanceVariable (char *class, char *name, char *varclass, char *init_expr)
+
+Define an instance variable in class class with name.  
+The variable is an object of class varclass with the initial
+value init_expr.
+
+>>>__ctalkDefinedClassMethodObject (OBJECT *rcvr, char *classname, char *method_name)
+Initialize a Method object from the class method
+method_name from class classname.  Note that this function
+only works for methods that are already defined.  
+
+>>>__ctalkDefinedInstanceMethodObject (OBJECT *rcvr, char *classname, char *method_name)
+Initialize a Method object from the instance method
+method_name from class classname.  Note that this function
+only works for methods that are already defined.  
+
+>>>__ctalkDefineTemplateMethod (char *classname, char *name, OBJECT *(*cfunc)(), int required_args, int n_args)
+Defines a template method.  First calls __ctalkDefineClassMethod (), then
+performs additional initialization needed for templates.
+
+>>>__ctalkDeleteLastExceptionInternal (void)
+Deletes the most recent exception from Ctalk's internal exception list.
+
+>>>__ctalkDeleteObject (OBJECT *object)
+Delete an object, and any objects it refers to, if they are not
+referenced elsewhere.  It's a good idea to call __objRefCntZero
+first.  The object then won't be showing any extra references.
+
+Zeroing the reference count first causes the function to delete the
+object completely.  It bypasses Ctalk's internal mechanisms
+that decide when objects are no longer needed.  Don't use these
+functions unless you know where the object and any objects it refers
+to are declared.
+
+It should seldom be necessary to remove an object from a particular
+scope manually anyway.  But in that case, call __objRefCntDec
+instead, and then let Ctalk try to clean up the object when it goes
+out of scope.
+
+For example, to delete a scratch object using C, 
+
+---------------------------------------------------------
+
+Object new tmpObject;
+OBJECT *tmpObject_alias;
+
+tmpObject_alias = tmpObject;
+
+__objRefCntZero (OBJREF(tmpObject_alias));
+__ctalkDeleteObject(tmpObject_alias);
+
+---------------------------------------------------------
+
+Translating the object to C should work in all cases, regardless of
+the surrounding code.  Of course, you can also use the delete
+method (class Object) with many simple C expressions.
+
+---------------------------------------------------------
+
+Object tmpObject;
+OBJECT *tmpObject_alias;
+
+tmpObject delete;
+
+emph{..or..}
+
+tmpObject_alias delete;
+
+emph{..or even this expression..}
+
+tmpObject_alias -> instancevars delete;
+
+---------------------------------------------------------
+
+Deletes obj if there are no references to it, or if this is the
+last reference to the object.  In this case, the function works
+similarly to __ctalkDeleteObject.  Otherwise, the function
+decreases the object's reference count by 1.
+
+>>>__ctalkDeleteObjectList (OBJECT *object)
+Delete an object and any objects that link to it.
+
+>>>__ctalkDeleteWinBuffer (OBJECT *paneBuffer_instance_var)
+Deletes a paneBuffer backing store allocated when a
+subclass of Pane creates an object.
+
+>>>__ctalkDocDir (void)
+Returns a char * that contains the path where the
+Ctalk-specific documentation is installed on the system (i.e.,
+documentation other than man pages and Texinfo manuals).
+
+>>>__ctalkDoubleToASCII (double d, char *s)
+Format an ASCII representation of d, a double, in s.  Returns
+s.
+
+>>>__ctalkEnterArgBlockScope (void)
+Ctalk inserts this call at the beginning of argument blocks.  Checks
+that the block call is the result of an inline method call and sets
+the run-time stack's RTINFO structure to indicate a block call with
+the correct stack frame for the block's scope.
+
+>>>__ctalkExec(char *cmdline, OBJECT *strObject)
+Executes the command line given as the argument and waits for the
+subprocess to finish.  If the strObject argument is non-NULL,
+the function saves the subprocesses' standard output as the object's
+value.  Normally, strObject should be a String
+object.
+
+If the strObject argument is NULL, __ctalkExec reads and
+prints the subprogram's standard output to the terminal's standard
+output.
+
+__ctalkExec supports the redirection operators > or
+>>, which send the subprocess's standard output to the file
+given as the redirection operator's target. If cmdLine is a
+shell script, it is executed by a sub-shell using the system(3)
+library function.
+
+>>>__ctalkExitArgBlockScope (void)
+Ctalk inserts this function, which is currenly a no-op, as the last
+function call in an argument block.
+
+>>>__ctalkErrorExit (void)
+Cleans up the program's immediate object environment before a call
+to the C exit(3) function.
+
+>>>__ctalkEvalExpr (char *expr)
+Evaluate expr and return an OBJECT * to the result.
+
+>>>__ctalkEvalExprU (char *expr)
+Like __ctalkEvalExpr, above, but __ctalkEvalExprU
+returns a C NULL instead of a null result object when an expression
+evaluates to 0.
+
+>>>__ctalkExceptionInternal (MESSAGE *msg, EXCEPTION e, char *text)
+Generate an exception of type e.  Exceptions are listed in
+except.h, and in the description of Exception
+class.  If msg is non-NULL, which is usually
+the case when the compiler generates and exception, the function
+records the line and column number of the exception.  If text is
+non-NULL, the exception handler adds the text to the exception record,
+so it can be displayed when the program handles the exception.
+
+Programs should handle run-time exceptions as soon as possible after
+returning from a method.  The function
+__ctalkHandleRunTimeExceptionInternal is the normal exception
+handler, and __ctalkTrapExceptionInternal determines whether 
+an exception has occurred.
+
+>>>__ctalkFindClassVariable (char *varname, int warn)
+Search the class library for first occurrence of the class variable
+varname.  
+
+If warn is TRUE, issues a warning if the variable is not found.
+
+>>>__ctalkFindMethodByName (OBJECT **object, const char *name, int warn)
+Returns the first instance or class method name if it exists in
+object's class or superclasses, or NULL if a method with that
+name isn't found.  If warn is true, prints a warning message if
+the method isn't found.
+
+>>>__ctalkFindPrefixMethodByName (OBJECT **rcvr, const char *name, int warn)
+Looks up a classes' instance method that matches name which has
+the prefix attribute set.  If warn is true, prints a
+warning if the method is not found.
+
+>>>__ctalkExceptionNotifyInternal (I_EXCEPTION *i)
+The handler function of most exceptions.  Prints a message including
+any text provided as an argument to __ctalkExceptionInternal.
+
+>>>__ctalkFilePtrFromStr (char *sformatted_ptr)
+Like __ctalkGenericPtrFromStr (), below, converts a string
+containing a formatted hexadecimal number to a pointer, and also
+checks that the pointer is a valid file.   
+
+The function returns a void * in order to keep Ctalk's header
+inclusion simple, or NULL if the argument does not contain a valid
+hexadecimal number, or if the pointer does not point to a valid file.
+
+This function can also set errno in case of an error.
+
+Because the function returns a void * an app or method must
+perform the cast from  void * to File * when it calls
+this function.
+
+>>>__ctalkFindClassMethodByFn (OBJECT **rcvr_p, OBJECT *(*fn)(), int warn)
+Finds a class method by calling __ctalkGetClassMethodByFn for
+the method's receiver and then the receivers of previous method calls.
+On success, returns the method, and rcvr_p contains the address
+of the method's receiver.
+
+If warn is TRUE, issues a warning if the method is not found.
+
+>>>__ctalkFindClassMethodByName (OBJECT **rcvr_p, char *name, int warn)
+Finds a class method by by calling __ctalkGetClassMethodByName
+for the method's receiver and then the receivers of previous method
+calls.  On success, returns the method, and rcvr_p contains the
+address of the method's receiver.
+
+If warn is TRUE, issues a warning if the method is not found.
+
+>>>__ctalkFindInstanceMethodByFn (OBJECT **rcvr_p, char *name, int warn)
+Finds an instance method by calling __ctalkGetInstanceMethodByFn for
+the method's receiver and then the receivers of previous method calls.
+On success, returns the method, and rcvr_p contains the address
+of the method's receiver.
+
+If warn is TRUE, issues a warning if the method is not found.
+
+>>>__ctalkFindInstanceMethodByName (OBJECT **rcvr_p, char *name, int warn)
+Finds an instance method by by calling __ctalkGetInstanceMethodByName
+for the method's receiver and then the receivers of previous method
+calls.  On success, returns the method, and rcvr_p contains the
+address of the method's receiver.
+
+If warn is TRUE, issues a warning if the method is not found.
+
+>>>__ctalkSaveCVARArrayResource (char *name, int initializer_size, void *var)
+Saves an Array object with the contents of var in a method's
+object pool.
+
+>>>__ctalkSaveCVARResource (char *name)
+Saves the contents of C variable name in a method's object pool.
+
+>>>__ctalkSaveOBJECTMemberResource (OBJECT *object)
+Saves an OBJECT * member to a method's resource pool.
+
+>>>__ctalkSleep (int usecs)
+Put a program to sleep for usecs microseconds.  The operating
+system restores the program to a running state no sooner than that
+amount of time has elapsed.
+
+>>>__ctalkSort (OBJECT *collection, bool sortdescending):__ctalkSortByName (OBJECT *collection, bool sortdescending)
+Sorts a collection's members into ascending or descending order.
+__ctalkSort performs the sort using the collection members'
+values, while __ctalkSortByName uses the members' names.
+
+The algorithm used is very simple minded, although due to the
+mechanics of finding earlier/later collection members, it is as fast
+as divide-and-conquer algorithms for small or medium sized
+collections.  For large collections it is probably more practical to
+sort the collection as an OBJECT ** array and create a new list
+based on the collection members' sorted order.
+
+However, it is almost always faster to add members to collections in
+the order you want them sorted rather than trying to re-arrange the
+collection later.  For this, refer to the methods in the
+SortedList class 
+
+>>>__ctalkStrToPtr (char *ptr)
+Converts a formatted hexadecimal number to a void *.  The
+function __ctalkGenericPtrFromStr, below, performs some extra
+validation.
+
+>>>__ctalkGenericPtrFromStr (char *s)
+A wrapper function for __ctalkStrToPtr () that
+performs some extra validation of the string argument.  These functions
+convert a string containing a formatted hexadecimal number (e.g., 
+"0xnnnnnn" or ``"0XNNNNNN" into a void *.  Both
+of the functions return a void *, or NULL if the string does not
+contain a valid hexadecimal number.
+
+>>>__ctalkGetCallingFnObject (char *name, char *classname)
+When used within Object : become, returns the object with the name name in the class classname from become's calling function.  Also adjusts its caller indexes if become is called within an argument block.
+
+>>>__ctalkGetCallingMethodObject (char *name, char *classname)
+When used within Object : become, returns the object with the name name in the class classname from become's calling method.  Also adjusts its caller indexes if become is called within an argument block.
+
+>>>__ctalkGetCArg (OBJECT *obj)
+Retrieves the CVAR of the C variable named by obj.
+
+>>>__ctalkGetInstanceMethodByFn (OBJECT *class_object, OBJECT *(*fn)(void), int warn)
+Returns the method that defines function fn from class_object, or
+NULL if the method doesn't exist.  If warn is true, prints a warning
+message if the method isn't found.
+
+>>>__ctalkGetInstanceMethodByName (OBJECT *class_object, const char *name, int warn)
+Returns the method named name from class_object, or NULL
+if the class doesn't define a method with that name.  If warn is
+true, prints a warning message if the method isn't found.
+
+>>>__ctalkGetReceiverPtr (void)
+Returns an int with the current value of the receiver stack
+pointer.
+
+>>>__ctalkGetRS (void)
+Returns a char with the current record separator.  The record
+separator determines, among other uses, how regular expression
+characters act at line endings. 
+
+>>>__ctalkGetRunTimeException (void)
+Remove the first exception from the exception queue and return the
+exception's message as a char *.
+
+>>>__ctalkGetTemplateCallerCVAR (char * name)
+If called from within a function template, looks up the CVAR
+name in the calling function or method.  This function returns a
+temporary object with the name and class, superclass, and value that
+correspond to the CVAR's data type.  The return object persists
+until the next time this function is called.
+
+>>>__ctalkGetClass (char * classname)
+Get the class object for classname.
+
+>>>__ctalkGetClassMethodByFn (OBJECT *rcvr, OBJECT *(*fn)(void), int warn)
+Return a class method of rcvr's class with the run-time function
+fn. 
+
+If warn is TRUE, issue a warning if the method is not found.
+
+>>>__ctalkGetClassMethodByName (OBJECT *rcvr, char *name, int warn)
+Return a class method of rcvr's class with the name name. 
+
+If warn is TRUE, issue a warning if the method is not found.
+
+>>>__ctalkGetExprParserAt (int idx)
+Return the expression parser, which is a struct EXPR_PARSER
+typedef, at stack index idx.
+
+>>>__ctalkGetExprParserPtr (void)
+Return the expression parser pointer, and int.
+
+>>>__ctalkGetClassVariable (OBJECT *receiver, char *varname, int)
+warn)
+Return the class variable named varname from the
+receiver's class object, or NULL if the variable does
+not exist.  If warn is TRUE, issue a warning
+message if the variable is not found.
+
+>>>__ctalkGetExceptionTrace (void)
+Return TRUE if a program has enabled exception walkbacks,
+FALSE otherwise.
+
+>>>__ctalkGetInstanceVariable (OBJECT *receiver, char *varname, int)
+warn) Return the instance variable named varname
+from the receiver, or NULL if the variable does not
+exist.  If warn is TRUE, issue a warning
+message if the variable is not found.
+
+>>>__ctalkGetInstanceVariableByName (char *receiver_name, char *varname, int)
+warn) Return the instance variable named varname from the
+object named by receiver_name, or NULL if the variable
+does not exist.  If warn is TRUE, issue a warning message
+if the variable is not found.
+
+>>>__ctalkGetPrefixMethodByName (OBJECT *class_object, const char *name, int warn)
+Returns the method named name from class_object that has
+the prefix attribute set, or NULL if the class doesn't define a
+prefix method with that name.  If warn is true, prints a warning
+message if the method isn't found.
+
+>>>__ctalkGetTypeDef (char * name)
+Return the CVAR of the typedef name.
+
+>>>__ctalkGetX11KeySym (int keycode, int shift_state, int keypress)
+Returns an int with the keyboard mapping of a keypress in X
+applications.  This allows programs to distinguish between modifier
+keypresses (e.g., shift, control, and alt), and alphanumeric
+keypresses.
+
+The first and second parameters are taken from an XKeyPressEvent or
+XKeyReleaseEvent structure.  The third parameter, keypress,
+should be true for Keypress events and false for keyrelease events.
+
+For alphanumeric keys, this function does not automatically modify the
+ASCII code of a key that is pressed when the shift key (or any other
+modifier key) is pressed.  That is, pressing A and a
+both return the ASCII value 97.  It is up to the program to record
+whether the shift key is pressed at the same time, and to provide the
+shifted character itself if necessary.
+
+Refer to the run method in GLXCanvasPane class for an
+example.
+
+This function uses XGetKeyboardMapping(3) internally.
+
+>>>__ctalkGLEW20 (void)
+Returns a boolean value of true if the GLEW library supports version
+2.0 extensions, mainly for OpenGL programs that use shaders.  Programs must
+call the __ctalkInitGLEW function before using this function.
+
+
+>>>__ctalkGlobalObjectBecome (OBJECT *old, OBJECT *new)
+Called when the receiver of Object : become is a global object.
+
+>>>__ctalkGlobFiles (char *pattern, OBJECT *list)
+If the system's C libraries support file globbing with the glob
+library function, __ctalkGlobFiles returns the file and
+directory pathnames that match pattern in the List object
+given as the list argument.  
+
+For information about how the C library matches file patterns, refer
+to the glob(3) and related manual pages.
+
+>>>__ctalkGLUTVersion (void):__ctalkGLUTCreateMainWindow (char *title):__ctalkGLUTInitWindowGeometry (int x, int y, int width, int height):__ctalkGLUTInit (int argc, char **argv):__ctalkGLUTRun (void):__ctalkGLUTInstallDisplayFn (void (*fn)()):__ctalkGLUTInstallReshapeFn (void (*fn)(int, int)):__ctalkGLUTInstallIdleFn (void (*fn)()):__ctalkGLUTInstallOverlayDisplayFunc (void (*fn)()):__ctalkGLUTInstallKeyboardFunc (void (*fn)(unsigned char, int, int)):__ctalkGLUTInstallMouseFunc (void (*fn)(int, int, int, int)):__ctalkGLUTInstallMotionFunc (void (*fn)(int, int)):__ctalkGLUTInstallPassiveMotionFunc (void (*fn)(int, int)):__ctalkGLUTInstallVisibilityFunc (void (*fn)(int)):__ctalkGLUTInstallEntryFunc (void (*fn)(int)):__ctalkGLUTInstallSpecialFunc (void (*fn)(int, int, int)):__ctalkGLUTInstallSpaceballMotionFunc (void (*fn)(int, int, int)):__ctalkGLUTInstallSpaceballRotateFunc (void (*fn)(int, int, int)):__ctalkGLUTInstallSpaceballButtonFunc (void (*fn)(int, int)):__ctalkGLUTInstallButtonBoxFunc (void (*fn)(int, int)):__ctalkGLUTInstallDialsFunc (void (*fn)(int, int)):__ctalkGLUTInstallTabletMotionFunc (void (*fn)(int, int, int, int)):__ctalkGLUTInstallMenuStatusFunc (void (*fn)(int, int, int)):__ctalkGLUTInstallMenuStateFunc (void (*fn)(int)):__ctalkGLUTInstallMenuStateFunc (void (*fn)(int)):__ctalkGLUTSphere (double, int, int, int):__ctalkGLUTCube (double, int):__ctalkGLUTCone (double, double, int, int, int):__ctalkGLUTTorus (double, double, int, int, int):__ctalkGLUTDodecahedron (int):__ctalkGLUTOctahedron (int):__ctalkGLUTTetrahedron (int):__ctalkGLUTIcosahedron (int):__ctalkGLUTTeapot (double, int):__ctalkGLUTFullScreen (void):__ctalkGLUTPosition (int, int):__ctalkGLUTReshape (int, int):__ctalkGLUTWindowID (char *window_name)
+The functions that make up Ctalk's glue layer for the GLUT API.  For
+their use, refer to the methods in GLUTApplication class.
+
+>>>__ctalkGLXAlpha (float alpha)
+Sets the alpha (opacity) channel for outline text rendering.
+The default is 1.0.
+
+>>>__ctalkGLXDrawText (char *text)
+This is another convenience function that draws text on a
+GLXCanvasPane using a X font that the program registered with
+the pane's GLX context via a previous call to
+__ctalkGLXUseXFont.
+
+The GLXCanvasPane class defines several methods that facilitate
+drawing with X fonts when using GLX. 
+
+>>>__ctalkGLXDrawTextFT (char *text, float x, float y)
+Draws text at the matrix coordinates given by the
+x,y arguments.  Programs should call at least
+__ctalkGLXUseFTFont before calling this function.
+
+>>>__ctalkGLXExtensionsString (void)
+Returns a char * containing the extensions supported glX.
+
+>>>__ctalkGLXExtensionSupported (char *extName)
+Returns a boolean value of True if the system's glX extension
+supports extName, False otherwise.
+
+>>>__ctalkGLXFrameRate (void)
+Returns a float with the frames per second of the calling
+program.  The function averages the rate over each interval of
+approximately five seconds.
+
+>>>__ctalkGLXFreeFTFont (void)
+Frees the font and library data from a previous call to
+__ctalkGLXUseFTFont.  
+
+>>>__ctalkGLXFreeXFont (void)
+Frees X font data that was allocated by a previous call to
+__ctalkGLXUseXFont.  The GLXCanvasPane class defines
+several methods that facilitate drawing with X fonts when using GLX.
+
+
+>>>__ctalkGLXFullScreen (OBJECT *selfObject, char *winTitle)
+Toggles the window's full screen mode on and off.
+      
+
+>>>__ctalkGLXNamedColorFT (char *colorname)
+Sets the foreground color for drawing text with Freetype fonts
+to the named X11 color given as the argument.
+
+>>>__ctalkGLXPixelHeightFT (int pxheight)
+Sets the height of the current Freetype face in use to the
+pixel height given as the argument.
+
+>>>__ctalkGLXRefreshRate (void)
+Returns a float with the display's refresh rate if the OpenGL
+installation supports the GLX_OML_sync_control extension.  If
+OpenGL doesn't support GLX_OML_sync_control, the function prints
+a warning message on the terminal and returns -1.
+
+>>>__ctalkGLXSwapBuffers (OBJECT *glxpane_object)
+This is an API-level wrapper for the GLXSwapBuffers library function.
+
+>>>__ctalkGLXSwapControl (int interval)
+Sets the swap buffer synchronization to 1/interval.  If interval is 0,
+disables buffer swap synchronization. If the machine's OpenGL does not
+support the GLX_MESA_swap_control extension, the function is a
+no-op.  Returns 0 on success, -1 if the extension is not supported.
+
+>>>__ctalkGLXTextWidth (char *text)
+Returns an int with the width in pixels of text rendered
+in the current font.  The program must first have selected a X
+font using __ctalkGLXUseFon.  If no font is selected, the
+function returns -1.
+
+>>>__ctalkGLXUseFTFont (String fontfilename)
+Initializes the Freetype library and loads the font from
+the file given as the argument.  Use __ctalkGLXFreeFTFont
+to release the font data before calling this function again
+when changing fonts.
+
+>>>__ctalkGLXUseXFont (OBJECT *glxCanvasPaneObject, char *fontname)
+This is a convenience function that registers the X font,
+fontname for use with glxCanvasPaneObject, first by
+retrieving the X font data for fontname, then registering the
+font using glXUseXFont(3).
+
+After the program has finished drawing with the font, the program
+should call __ctalkGLXFreeXFont.
+
+The GLXCanvasPane class defines several methods that facilitate
+drawing with X fonts when using GLX. 
+
+>>>__ctalkGLXFullScreen (void)
+Returns a boolean value of true if the window is using
+Freetype fonts, false otherwise.
+
+>>>__ctalkGLXWindowPos2i (int x, int y)
+This is a wrapper for the glWindowPos2i function, which several
+methods in GLXCanvasPane class use.
+
+Because glWindowPos2i is an extension in many GL implementations,
+Ctalk checks for the function's presence when compiling the libraries.
+
+If the GL implementation does not provide glWindowPos2i, then
+any Ctalk program that tries to use this function (or one of the
+methods that call it), prints an error message and exits.
+
+>>>__ctalkGLXWinXOrg (void):__ctalkGLXWinYOrg (void):__ctalkGLXWinXSize (void):__ctalkGLXWinYSize (void)
+These functions return an int with the window's current origin
+and size.
+
+>>>__ctalkGUIPaneDrawCircleBasic (int window_id, int gc, int center_x, int center_y, int radius, int fill, int pen_width, int alpha char *fg_color_name, char *bg_color_name)
+Draws a circle centered at center_x,center_y with radius
+radius. The dimensions are given in pixels.  If filled is
+true, then the function draws a filled circle; otherwise, the circle's
+edge has the width pen_width.
+
+This function is a synonym for __ctalkX11PaneDrawCircleBasic.
+
+>>>__ctalkGUIPaneClearRectangle (OBJECT *pane_object, int x, int y, int width, int height)
+Clear a rectangular region in a GUI Pane object. Also clear
+the region in any buffers associated with the object.
+
+>>>__ctalkGUIPaneClearWindow (OBJECT *pane_object)
+Clear a pane object's window.
+
+>>>__ctalkGUIPaneDrawLine (OBJECT *pane_object, OBJECT *line_object, OBJECT *pen_object)
+Draw a line specified by line_object (an instance of
+Line class) using pen_object (an instance of Pen
+class).
+
+>>>__ctalkX11PaneDrawLineBasic (int drawable_id, int gc_ptr, int x_start, int y_start, int x_end, int y_end, int pen_width, int alpha, char *pen_color)
+Draw a line between the points (x_start,y_start) and (x_end, y_end)
+with the color, and transparency using the drawable ID, graphics
+context, and pen color, width, and transparency given as arguments.
+
+This function is a synonym for __ctalkX11PaneDrawPointBasic.
+
+>>>__ctalkGUIPaneDrawPoint (OBJECT *pane_object, OBJECT *point_object, OBJECT *pen_object)
+Draw a point on pane_object specified by
+point_object using pen_object.
+
+>>>__ctalkGUIPaneDrawRectangle (OBJECT *pane_object, OBJECT *rectangle_object, OBJECT *pen_object, int fill)
+Draw a rectangle on pane_object specified by
+rectangle_object using pen_object.  If
+fill is non-zero, draw a filled rectangle.
+
+>>>__ctalkGUIPanePutStr (OBJECT *pane_object, int x, int y, char *string)
+Display String object string at coordinates
+x,y on pane_object.  You can select the
+font with the font method in class X11Pane.
+This function relies on instance variables defined in
+X11Pane class.  The __ctalkX11PanePutStrBasic
+function, below, provides a more flexible interface to the X
+libraries.
+
+>>>__ctalkGUIPaneRefresh (OBJECT *pane_object, int srcX, int srcY, int srcWidth, int srcHeight, int destX, int destY)
+Refresh the Pane object by updating the visible window with
+pane_object's buffers and, if necessary, notifying the
+GUI library that the window has been updated.
+
+>>>__ctalkGUISetBackground (OBJECT *pane_object, char *color)
+Set the background of a pane's window to color.  This
+function is intended only for objects that have
+an actual window; e.g., X11Pane objects.  For all
+other visual types, like pixmaps, use
+__ctalkX11SetBackgroundBasic.
+
+>>>__ctalkX11TextFromData (int drawable_id, int GD_ptr, char *text)
+Displays text on drawable_id.
+
+>>>__ctalkX11TextWidth (char *fontDesc, char *text)
+Returns an int with the width in screen pixels of the
+text argument when rendered in the font named by fontDesc.
+There is more information about how to use fonts in the sections
+that discuss the X graphics classes. 
+
+>>>__ctalkHandleRunTimeException (void)
+Execute the exception handler for a pending exception.  The
+handle method (class Exception) calls this function.
+
+
+>>>__ctalkHandleRunTimeExceptionInternal (void)
+Execute the exception handler for a pending exception.  If the
+exception is generated by an expression, execute the exception handler 
+only if further expressions or subexpressions need to be evaluated.
+
+>>>__ctalkHaveFTFaceBasic (void)
+Returns TRUE if an application has created a new FreeType2 font face,
+FALSE otherwise.  This is a lower level library function that
+apps should not need to use directly, and may go away in the future.
+
+>>>__ctalkHexIntegerToASCII (unsigned int ptr, char *s)
+Format a hexadecimal representation of ptr in s.  The return
+value is the formatted string in s.
+
+On 64-bit machines, the prototype is: 
+
+---------------------------------------------------------
+
+char *__ctalkHexIntegerToASCII (unsigned long long int ptr, char *buf)
+
+---------------------------------------------------------
+
+>>>__ctalkIgnoreSignal (int signo)
+Set the handler for signo to ignore the signal.
+
+>>>__ctalkIncKeyRef (OBJECT *object, int inc, int op):__ctalkIncStringRef (OBJECT *object, int idx, int op)
+Increment the reference to the value of object, a String
+or Key object, or one of its subclasses, by idx.  If
+idx is negative, decrements the reference to the value of the
+receiver.  If the reference is before or after the start or end of the
+receiver's value, further uses of the object return NULL.
+
+The argument op can be one of the following constants, which are
+defined in ctalkdefs.h.
+
+  - TAG_REF_PREFIX
+  Increments (or decrements) the value of the receiver immediately. 
+  Normally this is used for prefix ++ and -- operators,
+  and also += and -= operators.
+  
+  - TAG_REF_POSTFIX
+  Increments (or decrements) the value of the receiver after its
+  value is accessed.  Used normally for postfix ++ and --
+  operators.
+  
+  - TAG_REF_TEMP
+  Adds a temporary reference that is cleared after the receiver is
+  next read.  Normally you would use this for expressions that assign
+  the reference to another object, as in this example.
+  
+---------------------------------------------------------
+  
+  String new str1;
+  String new str2;
+  
+  str1 = "Hello, world!";
+  
+  str2 = str1 + 3;
+  
+---------------------------------------------------------
+  
+  The object str2 is assigned the calculated reference.  The
+  value of str1 is unaffected.
+  
+
+>>>__ctalkInitGLEW (void)
+Initialize the GLEW library.  Programs must call this function
+before performing any operations that use OpenGL extensions.
+
+>>>__ctalkInlineMethod (OBJECT *rcvr, METHOD *method, int n_args, ...)
+Call a method or block of code that is an argument to another method.
+The class of rcvr and the class of method do not need to
+be the same.  Currently, only the map method uses inline method
+calls.  For an example of the __ctalkInlineMethod ()'s use, see
+map (implemented by the List, Array, and
+AssociativeArray classes).  This function can (and should) be
+used to implement inline method messages or code blocks when streaming
+over collections.
+
+The n_args argument specifies the number of arguments to be passed
+to the target method.  Currently __ctalkInlineMethod () supports
+0 - 6 arguments.
+
+>>>__ctalkIntRadixToDecimalASCII (char *intbuf)
+Return a C string with the integer formatted in intbuf formatted
+as a decimal (base 10) integer.
+
+>>>__ctalkInstallHandler (int signo, OBJECT *(*method_c_function)())
+Set the handler of signal signo to
+method_c_function.  The prototype of
+method_c_function is similar to the intermediate C prototype of
+Ctalk's methods.  Signal handlers installed with this
+function reset the handler to the default after each use,
+except for handlers on DJGPP platforms.
+
+>>>__ctalkInstallPrefix (void)
+Returns a char * with the top-level directory where Ctalk is
+installed.  Ctalk's installation uses this directory as the top-level
+directory of its installation layout; for example, in relative terms,
+this is where Ctalk's various components get installed:
+
+---------------------------------------------------------
+
+Executables:            emph{prefixdir}code{/bin}
+Libraries:              emph{prefixdir}code{/lib}
+Class Libraries:        emph{prefixdir}code{/include/ctalk}
+Texinfo Manuals:        emph{prefixdir}code{share/info}
+Manual Pages:           emph{prefixdir}code{/share/man}
+Searchable Docs:        emph{prefixdir}code{/share/ctalk}
+
+---------------------------------------------------------
+
+>>>__ctalkIntanceMethodInitReturnClass (char *rcvrclassname, char *methodname, char *returnclassname)
+Set the return class of method methodname of class
+rcvrclassname to returnclassname.
+
+>>>__ctalkInstanceVarsFromClassObject (OBJECT *obj)
+Add the instance variables defined by obj's class object.
+
+>>>__ctalkInstanceVarIsCallersReceiver (void)
+Used by Object: become. Returns True if the receiver object is
+an instance variable, False otherwise.
+
+>>>__ctalkInitFTLib (void)
+Initialize the system's FreeType2 library.  Returns 0 if
+successful, ERROR (-1) if unsuccessful or if the
+library isn't available.  This is a lower level function
+that should not normally be needed by apps directly, and may
+go away in the future.
+
+>>>__ctalkInstanceMethodParam (char *rcvrclassname, char *methodname, OBJECT *(*selector_fn)(), char *paramclass, char *paramname, int param_is_pointer)
+Define a method parameter when initializing a method. Normally the compiler
+generates this call for inclusion in __ctalk_init () for the method
+initialization at run time.
+
+>>>__ctalkIntFromCharConstant (char *str)
+Returns the int value of the character constant str.  Recognizes
+all of the escape sequences that Ctalk uses, whether the constant is enclosed
+in single quotes or not.  Also recognizes backslash escape sequences and
+the following control character constants.
+
+---------------------------------------------------------
+
+Escape Sequence    Int Value
+\0                 0
+\a                 1
+\b                 2
+\e                 27
+\f                 6
+\n                 10
+\r                 13
+\t                 9
+\v                 11
+
+---------------------------------------------------------
+
+The \e escape sequence is an extension to the C language
+standard.
+
+>>>__ctalkIsClassVariableOf (char *class, char *varname)
+Returns TRUE if varname is a class variable of
+class, FALSE otherwise.
+
+>>>__ctalkIsCallersReceiver (void)
+Used by Object : become to determine if an object is the
+calling method's receiver.
+
+>>>__ctalkIsDir (char *path)
+Returns TRUE if path is a directory, FALSE
+otherwise.
+
+>>>__ctalkIsInstanceMethod (OBJECT *self_object, char *method_name):__ctalkIsClassMethod (OBJECT *self_object, char *method_name)
+The functions return True if the method given by method_name is
+an instance or class method, respectively, in self_object's
+class.
+
+>>>__ctalkIsInstanceVariableOf (char *class, char *varname)
+Returns TRUE if varname is an instance variable of
+class, FALSE otherwise.
+
+>>>__ctalkIsObject (OBJECT *o)
+Return TRUE if if o is a valid object, FALSE otherwise.
+
+>>>__ctalkIsSubClassOf (char *classname, char *superclassname)
+Return TRUE if classname is a subclass of
+superclassname, FALSE otherwise.
+
+>>>__ctalkLastMatchLength (void)
+Return the length of the match from the last call to __ctalkMatchText,
+below.
+
+>>>__ctalkLibcFnWithMethodVarArgs (int (*libcfn)(), METHOD *method, char *libcfn_return_class)
+Call the C library function libcfn using with its template
+method method.  For C library functions that use stdarg.h
+variable arguments, libcfn_return_class should be
+Integer.
+
+When evaluating an expression, the currently executing method is
+contained in the current
+EXPR_PARSER.   
+
+Note: This version of Ctalk only supports
+variable-argument functions on 32-bit Intel platforms.  If you try to
+use a variable-argument function on another hardware platform, Ctalk
+issues a warning and returns NULL.
+
+>>>__ctalkLogMessage (char *, ...)
+Formats the message given as the argument and writes the
+message to the system's syslog facility.
+
+>>>__ctalkLongLongRadixToDecimal (char *s)
+Convert the radix of the formatted long long int in s to 
+decimal and return a string containing the formatted @code{long long
+int.}  Note: Do not use this function in new code.  It's been
+replaced by __ctalkLongLongToDecimalASCII, below.
+
+>>>__ctalkLongLongToDecimalASCII (char *number_in, char * decimal_out)
+Convert the radix of the ASCII formatted long long int in
+number_in to decimal and format the decimal integer in
+decimal_out.  The radix of number_in may be decimal,
+octal, hexadecimal, or binary.  The function also returns a @code{char
+*} to decimal_out.
+
+>>>__ctalkMatchAt (Integer n):__ctalkMatchIndexAt (Integer n)
+Returns, respectively, the text, or the character index matched by the
+n'th parenthesized subexpression during a previous call to
+__ctalkMatchText (i.e., a backreference).  The argument, N,
+is 0 for the first parenthesized subexpression, 1
+for the next subexpression, and so on. If the n'th pattern didn't
+match any text, returns NULL. 
+
+>>>__ctalkMatchText (char *pattern, char *text, long long int *offsets)
+Find the occurences of pattern in text.  Returns the index
+of each match in the offsets array, with the list terminated by
+-1.  Returns the number of matches, or -1 if there are no matches.
+
+>>>__ctalkMatchPrintToks (bool printToks)
+If printToks is true, then Ctalk prints the regular
+expression tokens and the matching text for every regular
+expression match, which can be useful for debugging regular
+expressions.
+
+>>>__ctalkMapGLXWindow (OBJECT *glxcanvaspane_object)
+Maps a GLXCanvasPane's window to the display and creates
+a GLXContext for the window, and makes the GLXContext current.
+
+Saves the GLXContext pointer in the receiver's glxContextPtr
+instance variable. 
+
+>>>__ctalkMapX11Window (OBJECT *x11pane_object)
+The X library interface of the map (class X11Pane)
+method. 
+
+>>>__ctalkMethodObjectMessage (OBJECT *rcvr, OBJECT *method_instance)
+Perform a method call by sending rcvr the message defined by
+method_instance, which is a previously defined Method
+object.  
+
+The function returns 0 on success, -1 on error.
+
+For examples of Method object calls, 
+
+>>>__ctalkMethodObjectMessage (OBJECT *rcvr, OBJECT *method_instance, OBJECT *arg1, OBJECT *arg2)
+Perform a method call by sending rcvr the message defined by
+method_instance, which is a previously defined Method
+object.
+
+The parameters arg1 and arg2 are the arguments
+to the method instance.  Method objects with two arguments
+are commonly used in graphical event dispatchers, particularly
+in X11PaneDispatcher class.  This helps simplify the
+event dispatcher methods.
+
+The function returns 0 on success, -1 on error.
+
+For examples of Method object calls, 
+
+>>>__ctalkMethodReturnClass (char *classname)
+Set the return class of an instance or class method during method
+initialization.
+
+>>>__ctalkNArgs (void)
+Returns an int with the number of arguments passed to the
+current method.
+
+>>>__ctalkNMatches (void)
+Returns an int with the number of matches from the
+last call to __ctalkMatchText.
+
+>>>__ctalkNewFTFace (void)
+Initialize a new FreeType2 face object.  This is a lower level library
+function that apps should not need to use directly, and may go away in
+the future.
+
+>>>__ctalkNewSignalEventInternal (int signo, int pid, char *data)
+Generate and queue a SignalEvent object for signal signo
+with process ID pid.  The data argument is a String
+object that the program can use to pass information back to the
+application. 
+
+>>>__ctalkNonLocalArgBlkReturn (void)
+Returns a bool value of true or false to an argument
+block's parent method to indicate whether the argument block
+executed a return statement.
+
+>>>__ctalkObjValPtr (OBJECT *o, void *ptr)
+Set the value of the object o to ptr.
+
+>>>__ctalkPeekExceptionTrace (void)
+Returns a char * with the text of the most recent exception and
+its stack trace.
+
+>>>__ctalkPeekRunTimeException (void)
+Returns a char * with the text of the most recent
+exception.
+
+>>>__ctalkPendingException (void)
+A convenience method for __ctalkTrapException.  Returns
+TRUE if an exception is pending, FALSE otherwise.
+
+>>>__ctalkPrintExceptionTrace (void)
+Print a walkback of the current exception's copy of the program call
+stack.  
+
+>>>__ctalkPrintObject (OBJECT *object)
+Print the object given by the argument, and its instance variables, to
+standard output.
+
+>>>__ctalkPrintObjectByName (OBJECT *object_name)
+Print the object named by object_name to the standard output.
+
+>>>__ctalkProcessWait (int child_processid, int *child_return_value_out, int *child_term_sig_out, int *errno_out)
+Checks the status of the child process specified by child_processid.
+
+If the return value of __ctalkProcessWait is 0, then there is
+no change in the child processes' status to report.  A return value
+equal to child_processid indicates that the child process has
+exited.  If the return value is -1, then there was an error either in
+the process that called __ctalkProcessWait, the child process,
+or both.
+
+When __ctalkProcessWait's return value is equal to
+child_processid, the function returns the child
+processes' return value in child_return_value_out.  If the
+child process was terminated by an uncaught signal, the signal
+number is returned in child_term_sig_out.
+
+If the function's return value is -1, then function returns
+the system's error code in errno_out.
+
+>>>__ctalkRaiseX11Window (OBJECT *x11pane_object)
+The X library interface of the raise (class X11Pane)
+method. 
+
+>>>__ctalkReceiverReceiverBecome (OBJECT *object)
+Used by become (class Object) to change the
+calling method's receiver to the object given as the argument.
+
+>>>__ctalkReferenceObject (OBJECT *obj, OBJECT *reffed_obj)
+Sets obj's value to reffed_obj's hexadecimal address.
+Also incrememts reffed_obj's reference count by 1 and adds
+VAR_REF_OBJECT to its scope.
+
+>>>__ctalkRegisterArgBlkReturn (int return_code, OBJECT *return_object)
+This function gets called when Ctalk encounters a return statement in
+an argument block.  The first argument is the return code of the
+argument block itself (typically an Integer object with a value
+of -2, which signals the map method that the argument block has
+requested a return from the parent function or method), and the second
+argument is the object that is to be returned by the caller.  
+
+The following example should hopefully explain how these functions
+work together.  The comments indicate where the compiler inserted
+these functions.
+
+@c test/expect/examples/mapstring3.c
+---------------------------------------------------------
+
+int main () {
+  String new str;
+
+  str = "Hello, world!";
+
+  str map {
+    if (self == 'o') {
+      break;
+    }
+    printf (" ", self);
+  }
+  printf ("\n");
+
+  str map {
+    switch (self)
+      {
+      case 'a':
+      case 'e':
+      case 'i':
+      case 'o':
+      case 'u':
+	if (self == 'o') {
+	  printf ("\n");
+	  return 11;          /* __ctalkRegisterArgBlkReturn inserted   */
+	}                    /* here.  The String map method, which is */
+	break;                /* the argument block's direct caller,    */
+      }                      /* contains a __ctalkArgBlkSetCallerReturn*/
+    (Character *)self -= 32;  /* function call.                         */
+    printf (" ", self);
+  }
+  printf ("\n");
+}
+
+
+/* After the argument block call, the compiler inserts a 
+   construct like the following:   
+
+    if (__ctalkNonLocalArgBlkReturn ()) {
+        return __ctalkToCInteger (__ctalkArgBlkReturnVal (), 1);
+    }
+
+  This retrieves the argument block's return value if any,
+  and returns from the calling function.
+*/
+---------------------------------------------------------
+
+The String : map method contains an example of how an argument
+block can signal a return from the function or method that called it.
+Refer also to the __ctalkArgBlkSetCallerReturn and
+__ctalkArgBlkClearCallerReturn functions above.
+
+>>>__ctalkRegisterBoolReturn (int t-or-f-arg)
+Returns a boolean object with a true or false value depending
+on the value of t-or-f-arg.  If the Boolean class variables
+boolTrue or boolFalse are defined, returns one of
+those objects.  Otherwise, creates a Boolean object with
+the value true or false.
+
+>>>__ctalkRegisterCharPtrReturn (char *var)
+Saves a C char * method return value to the method's
+resource pool.
+
+>>>__ctalkRegisterCharPtrReturn (char var)
+Saves a C char method return value to the method's
+resource pool.
+
+>>>(char *type, char *qualifier, char *qualifier2, char *qualifier3, char *qualifier4, char *storage_class, char *name, int n_derefs, int attrs, int is_unsigned, int scope)
+Register a C typedef with an application.  This function is typically
+used by __ctalk_init to register typedefs defined in C include
+files and elsewhere.
+
+>>>__ctalkRegisterExtraObject (OBJECT *created_object)
+Save an object retrieved by a function so it may be referred to later.
+This function registers each object only once and does not adjust the
+object's reference count or scope.  The
+__ctalkRegisterExtraObject function silently ignores request to
+register global and class objects.  Refer to the entry for
+__ctalkRegisterUserObject, below.
+
+>>>__ctalkRegisterFloatReturn (double d)
+Registers a C double return value as a Float method
+resource object.  Note that the C libraries do not automatically
+convert C floats to doubles, so if you register a C
+float as a method resource, you need to cast it to a
+double first.
+
+>>>__ctalkRegisterIntReturn (int returnval)
+Registers a C int method return value as an Integer
+method resource object.
+
+>>>__ctalkRegisterIntReturn (long long int returnval)
+Registers a C long long int method return value as a
+LongInteger method resource.
+
+>>>__ctalkRegisterUserFunctionName (char *name)
+Registers the names of C functions in the program, mainly for
+diagnostic messages. This function is added automatically to
+__ctalk_init whenever a C function in the source code
+is parsed and is called at the start of a program.
+
+>>>__ctalkRegisterUserObject (OBJECT *created_object)
+Save objects created by a method so they may be referred to
+later.  New objects registered by this function have a
+reference count of 1, and have the additional scope
+METHOD_USER_OBJECT.  This function is also used by
+many of the methodReturn* macros, and if necessary
+you can included it in a method if you need to register an
+object in some non-standard manner. @xref{Returning method
+values}.
+
+Note that global objects and class objects do not need to be
+registered.  In fact, registering such objects as method
+resources can confuse the object's entries in their
+respective dictionaries, because method resources have a
+separate dictionary of their own.  If a method tries to
+register a class object or global object,
+__ctalkRegisterUserObject silently ignores the
+request.
+
+
+>>>__ctalkReplaceVarEntry (VARENTRY *varentry, OBJECT *new_object)
+This function has been superceded.  If you want to attach an Object to
+another tag, it's only necessary to use an assignment statement.  See
+__ctalkAliasReceiver () for an example
+
+>>>__ctalkRtGetMethod (void)
+Returns the currently executing method as a METHOD * from the
+call stack, or NULL if called from within a C function.
+
+>>>__ctalkRtReceiver (OBJECT *receiver_object)
+Sets the call stack's receiver to receiver_object.  The function
+however, does not alter the currently executing method's receiver on
+the receiver stack.
+
+>>>__ctalkRtReceiverObject (void)
+Returns the currently executing method's receiver object from
+the call stack.
+
+>>>__ctalkRtSaveSourceFileName (char *fn)
+Called during the initialization of a function or method to
+store the name of its source file.
+
+>>>__ctalkRtGetMethodFn (void)
+Returns the C function pointer (an OBJECT *(*)() of the currently
+executing method, or NULL if called from within a C function.
+
+>>>__ctalkRtMethodClass (OBJECT *class_object)
+Sets the class object of the currently executing method to class_object.
+
+>>>(OBJECT *class_object)
+Returns the class object of the currently executing method.
+
+>>>__ctalkSearchBuffer (char *pattern, char *buffer, long long *offsets)
+Finds all occurrences of pattern in buffer, and
+returns the positions of the matches in offsets, terminated by -1.
+
+>>>__ctalkSelectXFontFace (int drawable_id, int gc_ptr, int face)
+Selects the typeface of the currently selected font, if available,
+which should have been loaded with a call like
+__ctalkX11UseFontBasic, or the equivalent calls for
+FreeType fonts.
+
+The argument, face, may be one of the following.
+
+---------------------------------------------------------
+
+X_FACE_REGULAR
+X_FACE_BOLD
+X_FACE_ITALIC
+X_FACE_BOLD_ITALIC
+
+---------------------------------------------------------
+
+>>>__ctalkSelfPrintOn (void)
+Print the calling method's arguments to the receiver.  This 
+function is called directly by printOn (class String)
+and similar methods. 
+
+>>>__ctalkSetExceptionTrace (int val)
+Enable or disable exception method traces in handle (class
+Exception) and other methods. 
+
+>>>__ctalkSetObjectName (OBJECT *object, char *name)
+Sets the name of object to name.
+
+>>>__ctalkSetObjectScope (OBJECT *object, int scope)
+Set the scope of object to scope.  Note that many of
+Ctalk's scopes are only used internally.  The scopes that are useful
+in methods are defined in ctalkdefs.h.  Those definitions
+are listed here along with their values. 
+
+---------------------------------------------------------
+
+GLOBAL_VAR          (1 << 0)
+LOCAL_VAR           (1 << 1)
+CREATED_PARAM       (1 << 6)
+CVAR_VAR_ALIAS_COPY (1 << 7)
+VAR_REF_OBJECT      (1 << 9)
+METHOD_USER_OBJECT  (1 << 10)
+
+---------------------------------------------------------
+
+
+>>>__ctalkSetObjectValue (OBJECT *object, char *value)
+This is a wrapper for __ctalkSetObjectValueVar (), below, which
+was used in earlier versions of the class libraries.  You should use
+__ctalkSetObjectValueVar () instead.
+
+>>>__ctalkSetObjectValueAddr (OBJECT *object, void *mem_addr, int data_length)
+Set object's value to a pointer to the memory area
+mem_addr.  The object must be a member of Vector class or one of
+its subclasses.  The function also sets the object length instance
+variable, and adds OBJECT_VALUE_IS_MEMORY_VECTOR to its attributes, and
+registers the vector * address.
+
+>>>__ctalkSetObjectValueBuf (OBJECT *object, char *buf)
+Set the value instance variable to the buffer buf.
+Unlike __ctalkSetObjectValue () and
+__ctalkSetObjectValueVar (), this function replaces the value
+of object with buf, even if buf is empty, so you can
+add a random-length buffer to object.
+
+>>>__ctalkSetObjectValueVar (OBJECT *object, char *value)
+Set the value of object to value.  If value is
+NULL, sets object's value to Ctalk's (null) 
+string.
+
+>>>__ctalkSetObjPtr (OBJECT *object, void *p)
+Save the pointer p in object.
+
+>>>__ctalkSetRS (char record_separator_char)
+Set's the current program's record separator character, which
+determines, among other things, how regular expression metacharacters
+work with line endings. 
+
+>>>__ctalkSignalHandlerBasic (int signo)
+Provides a basic signal handler that is more robust than the methods
+in SignalHandler class, but less flexible.  Causes the
+application to terminate and print a walkback trace if enabled.
+
+Applications can use __ctalkInstallHandler () to install the
+signal handler.  In this case it works similarly to a method with a C
+calling protocol.  Here is the installExitHandlerBasic method
+from Application class.
+
+---------------------------------------------------------
+
+Application instanceMethod installExitHandlerBasic (void) {
+  __ctalkInstallHandler
+    (__ctalkSystemSignalNumber ("SIGINT"),
+     (OBJECT *(*)())__ctalkSignalHandlerBasic);
+						    
+  return NULL;
+}
+
+---------------------------------------------------------
+
+>>>__ctalkSpawn (char *command, int restrict_io)
+The __ctalkSpawn function launches the program named
+by command as a daemon process, and then returns to
+the parent program and continues execution of the parent.
+
+The function returns the process id of the child process.
+
+The daemon process runs as a true daemon - that is, without a
+controlling terminal, and without the standard input, output, or error
+channels.  All communication between the daemon and the parent program
+should take place with UNIX interprocess communication facilities.
+
+If restrict_io is non-zero, the program changes the daemon
+processes' working directory to / and sets its umask to
+0.
+
+Traditionally, a parent program exits immediately after spawning a
+daemon process.  But __ctalkSpawn maintains the session process
+- the process that handles the session and I/O initialization before
+it launches the daemon. The session process stays active until the
+parent process exits and orphans it.  Then the session process exits
+also, leaving the daemon to run completely in the background until it
+is killed.  That means, while the parent program is running, there can
+be three entries in the system's process table, when viewed
+with a program like @command{ps} or @command{top}.  However, it also
+mimimizes the possibility of causing zombie processes should any part
+of the program quit unexpectedly.
+
+You should note that __ctalkSpawn does not use a shell or any
+shell facilities to exec the daemon process, which means the function
+doesn't support I/O redirection or globbing.  If you want the parent
+process to handle the child processes' I/O, refer to the
+__ctalkExec function. 
+
+>>>__ctalkStringifyName (OBJECT *src, OBJECT *dest)
+When called by a function like String : =, performs some
+munging of different types of String objects in order to keep the
+API consistent for different types of String objects.
+
+>>>__ctalkSplitText (char *text, OBJECT *list_out)
+Splits a text buffer into word tokens, and returns the tokens
+as members of list_out.  This function preserves newlines
+and spaces, and places HTML-style format tags in their own tokens.
+This is used by classes like X11TextPane to split its text
+buffer before displaying the wrapped text. 
+
+>>>__ctalkStrToPtr (char *s)
+If s is a C string formatted as a hexadecimal number 
+with the format 0xnnnnnnn, return a C void * 
+pointer with that address.
+
+>>>__ctalkSysErrExceptionInternal (MESSAGE *orig, int errno, char *text)
+Generates an exception base on errno with the text text.
+Ctalk translates errno in an exception that represents the C library's
+errno error definitions.  The orig argument provides the line
+and column number where the exception occurred.  If NULL, the exception
+doesn't record the line and column information.
+
+>>>__ctalkSystemSignalName (int signo)
+Returns a string containing a mnemonic name like
+SIGINT or SIGHUP that corresponds to
+signo.  Includes the mnemonics of the common signals
+defined by POSIX standards.
+
+>>>__ctalkSymbolReferenceByName (OBJECT *object)
+Used in Symbol : = and similar methods returns a boolean value
+of true if the object (the argument to the method normally) was
+retrieved by its name, or false if the argument is the result of
+pointer math or indirection.  This allows the method to determine
+whether it needs to perform additional indirection or pointer math on
+the argument before assigning it the the receiver.
+
+>>>__ctalkSystemSignalNumber (char *signame)
+For a signal named signame, return the number
+system-dependent number of the signal.  The function defines
+names POSIX 1990 signals on most systems.  Refer to the
+system's signal(2) (or similar) manual page for
+information.
+
+>>>__ctalkTemplateCallerCVARCleanup (void)
+Cleans up after a __ctalkGetTemplateCallerCVAR
+call.   Ctalk calls this function
+internally; you should not need to use it in your own programs.
+
+Note that this function does not know about parameter substitution.  If
+you want to print an object that is an argument to a method, use the
+ARG(n) macro, and reference the name member.
+
+---------------------------------------------------------
+__ctalkPrintObject(ARG(0)->__o_name);
+---------------------------------------------------------
+
+>>>__ctalkTerminalHeight (void):__ctalkTerminalWidth (void)
+Returns the height and width of the terminal in character rows and
+columns.  If the terminal does not support reporting its size, these
+functions return 0.
+
+>>>__ctalkToCArrayElement (OBJECT *o)
+Translate the value of an Integer, Character,
+String, or LongInteger array element to a void *
+that points to its corresponding C data type.
+
+>>>__ctalkToCCharPtr (OBJECT *obj, int keep)
+Returns the value of obj as a C char *.  If keep is
+zero, deletes obj if possible.
+
+>>>__ctalkToCDouble (OBJECT *obj)
+Returns the value of obj as a C double.
+
+>>>__ctalkToCIntArrayElement (OBJECT *obj)
+Returns the value of obj as a C int.  This function
+has mostly been superceded by __ctalkToCInteger (below).
+
+>>>__ctalkToCInteger (OBJECT *obj)
+Returns the value of obj as a C int.  The value can be a
+binary, octal, decimal, or hexadecimal number.  Prints a warning
+message if the value is not a valid number or is out of range.
+
+>>>__ctalkTrapException (void)
+If there is a run-time exception pending, returns the first exception
+in Ctalk's internal format.  Otherwise, returns NULL.
+
+>>>__ctalkTrapExceptionInternal (void)
+Similar to __ctalkTrapException, except that
+it works with the passes in the compiler as well as
+the run time library.
+
+>>>__ctalkObjectPrintOn (OBJECT *object)
+Print the calling method's arguments to the argument's value
+instance variable.  This function is called directly by printOn
+(class ANSITerminalStream) and similar
+methods. 
+
+>>>__ctalkOpenX11InputClient (OBJECT *X11TerminalStream_object)
+Start a GUI program's input client in the background.  The input client
+receives input events, like mouse motion and keypresses, and window events,
+like resize notifications from the X display server, and sends the information
+to the application program so that it can queue InputEvent objects which
+the app can then process.
+
+The argument is a X11TerminalStream object, which is normally created
+with a X11Pane object, and which programs can refer to by the
+X11Pane object's inputStream instance variable.  
+
+This is the lower-level function that the openEventStream
+(class X11Pane) method uses to begin communicating with the X
+display server.  For an example, refer to the X11TerminalStream
+section. 
+
+>>>__ctalkUNIXSocketOpenReader (char *socketpath)
+Opens a UNIX domain socket, binds the socket to the path given
+by socketpath, and places the socket in listening mode.
+
+Returns the file descriptor of the new socket on success, or -1 if an error
+occured, in which case the C library sets the variable errno.
+
+>>>__ctalkUNIXSocketOpenWriter (char *socketpath)
+Opens a UNIX domain socket and connects to the socket given by
+socketpath.
+
+Returns the file descriptor of the new socket on success, or -1
+if an error occurs, in which case the C library sets the variable
+errno.
+
+>>>__ctalkUNIXSocketRead (int sockfd, void * buf_out)
+Reads data from the socket given by sockfd.  On success, returns
+the data read in buf_out and the return value is the number of
+bytes read.  On error returns -1 and the C library sets the variable
+errno.
+
+>>>__ctalkUNIXSocketShutdown (int sockfd, int how)
+This function is a wrapper for the C library's shutdown
+function.  Shuts down the socket identified by the sockfd
+argument.  The second argument, how, can be either
+SHUT_RD, SHUT_WR, or SHUT_RW.  These constants are defined in
+UNIXNetworkStream class and described in the shutdown(1)
+manual page.
+
+The function returns 0 on success, or -1 if an error occurred.
+
+>>>__ctalkUNIXSocketWrite (int sockfd, void * data, int length)
+Writes length bytes of data to the socket given by sockfd.
+
+On success returns the number of bytes written, or returns -1 on error,
+in which case the C library sets the variable errno.
+
+>>>__ctalkUTCTime (void)
+Returns an int with the system's UTC time.  This function is
+currently a wrapper for the time(2) function.  Because
+time(2)'s argument is an int *, it can often be more
+reliable to use __ctalkUTCTime and let the library worry about
+the argument's storage.  There is also a template for time(2)
+if you want to use the function directly in complex expressions.
+
+>>>__ctalkWarning (char *fmt, ...)
+Prints a formatted message to the terminal.  Unlike
+_warning and other functions, does not add line numbers
+or input file information to the output.
+
+>>>__ctalkWrapText (unsigned int drawable, unsigned int gc_ptr, OBJECT *text_list, int pane_width, int lmargin)
+Formats the text in text_list to be displayed between
+lmargin and pane_width (the right edge of the drawing
+surface given as the first argument..  The text_list list should
+have been generated by __ctalkSplitText.  The
+__ctalkWrapText function uses the current typeface to determine
+character widths.  If no font or typeface is selected, uses the
+default font, ``fixed'' to format the text.
+
+>>>__ctalkX11CloseClient (OBJECT *pane_object)
+Closes the main program's connection to the X11 client and exits the
+client process.
+
+>>>__ctalkX11CloseParentPane (OBJECT *pane_object)
+Closes and deletes an application's main X11 window, and its buffers
+and other data.  Does not delete subpanes - see __ctalkCloseX11Pane ()
+(above) to delete subpanes.  Applications should delete subpanes before
+closing and deleting the main window.  For an example of the functions'
+use, refer to the method X11Pane : deleteAndClose. 
+
+>>>__ctalkClearBufferRectangle (OBJECT *pane_object, int x, int y, int width height)
+Clear a rectangle in pane_object's pane buffer starting at
+X,Y, with width width and height height.  Note that
+this function is being phased out in favor of
+__ctalkX11ClearRectangleBasic, which does not rely on
+hard-coded instance variable names.
+
+
+>>>__ctalkX11ClearRectangleBasic (int visual_id, int gc_ptr, int x, int y, int width, int height)
+Clear a rectangle of a visual type like a pixmap to the
+background color.
+
+>>>__ctalkX11Colormap (void)
+Returns the X resource ID of the display's default 
+colormap.  It's contained in a library function because
+the X headers define some of the DefaultColormap's 
+dependent macros after DefaultColormap, which is not 
+compatible with the ctpp preprocessor.
+
+>>>__ctalkX11CopyPixmapBasic (int dest_drawable_id, int dest_gc_ptr, int src_drawable_id, int src_x_org, int src_y_org, int src_width, int src_height, int dest_x_org, int dest_y_org)
+Copies the drawable src_drawable_id to dest_drawable_id,
+with the dimensions of the source graphic given by src_x_org,
+src_y_org, src_width, and src_height.  The image is
+drawn with its upper left-hand corner positioned at dest_x_org,
+dest_y_org on the destination drawable.
+
+This function is called by X11CanvasPane : copy.  For
+an example, refer the X11CanvasPane classes' description.
+
+
+>>>__ctalkX11CreateGC (int drawable)
+Create a X GC and return its address as a void *.
+
+>>>__ctalkX11CreatePixmap (int x_drawable, int width, int height, int depth)
+reate a X pixmap and return its X resource ID as an unsigned int.
+
+>>>__ctalkX11CreatePaneBuffer (OBJECT *pane_object, int width, int height, int depth)
+Create the buffers for a pane object's X window.  Applications
+normally call this function when the pane object is created or when a
+subpane is attached to a parent pane.  This function sets the pane_object's
+paneBuffer and paneBackingStore instance variables.
+
+>>>__ctalkX11DeletePixmap (int drawable_id)
+Delete the server-side pixmap whose ID is given as the argument.
+
+>>>__ctalkX11Display (void)
+Return a pointer to the X display, opening the display
+if necessary.
+
+>>>__ctalkX11DisplayHeight (void)
+Returns an int with the display's height in pixels.
+
+>>>__ctalkX11DisplayWidth (void)
+Returns an int with the display's width in pixels.
+
+>>>__ctalkX11FontCursor (OBJECT *cursor_object, int cursor_id)
+Set cursor_object's value to a X11 cursor_id.  Cursor ID's
+are defined by the X server in the include file
+X11/cursorfont.h.  
+
+
+>>>__ctalkX11FreeGC (int gc_addr)
+Free the X11 graphics context pointed to by gc_addr.  The address
+of the GC is given as an int which does not require any special
+handling by methods; the library function casts gc_addr to a 
+GC *.
+
+>>>__ctalkX11FreePaneBuffer (OBJECT *pane_object)
+Release the server-side buffers used by pane_object.  Note that
+this function is being phased out; programs should use
+__ctalkX11DeletePixmap, which does not rely on hard-coded
+instance variable names.
+
+>>>__ctalkX11FreeSizeHints (void)
+Frees the data allocated by __ctalkX11SetSizeHints (), below.
+
+>>>__ctalkX11GetSizeHints (int win_id, int *x_org_return, int *y_org_return, int *width_return, int *height_return, int *win_gravity_return, int *flags_return)
+Get the actual size and placement of the window, as reported by the X
+server, after the window is created, normally with __ctalkCreateX11MainWindow ().
+
+>>>__ctalkX11InputClient (OBJECT *streamobject int fd)
+The X11TerminalStream input client.  This function is not used
+directly by any method but is a process of the
+__ctalkOpenX11InputClient function, above.
+
+>>>__ctalkX11MakeEvent (OBJECT *eventobject_value_var, OBJECT *inputqueue)
+Encapsulates much of the function of the @mnm{X11TerminalStream :
+queueInput} method: receives the data for an X event from the X11 input client and saves it in an InputEvent object, then queues the InputEvent object in the X11TerminalStream's inputQueue.
+
+>>>__ctalkX11MoveWindow (OBJECT *pane_object, int x, int y)
+Move pane_object's window so that its origin is at X,Y.
+
+>>>__ctalkX11OpenInputClient (OBJECT *streamobject)
+The library interface of the X11TerminalStream class's input
+client. This function is called by openInputClient (class
+X11TerminalStream).  The streamobject argument is a
+X11TerminalStream object, generally the stream created by
+new (class X11Pane).  
+
+>>>__ctalkX11ParseGeometry (char *geomString, int* x, int* y, int* y, int* width, int* height)
+Parses a X11 geometry string and returns the values specified in the x, y, width, or height variables.  If the geometry string does not specify one of these values, sets the corresponding variable to zero.
+
+For information about the format of a X11 geometry specification, refer to the
+XParseGeometry(3) manual page.
+
+>>>__ctalkX11PaneDrawCircleBasic (int window_id, int gc, int center_x, int center_y, int radius, int fill, int pen_width, int alpha, char *fg_color_name, char * bg_color_name)
+Draws a circle centered at center_x,center_y with radius radius. The dimensions are given in pixels.  If filled is true, then the function
+draws a filled circle; otherwise, the circle's edge has the width pen_width.
+
+This function is a synonym for __ctalkGUIPaneDrawCircleBasic.
+
+>>>__ctalkX11PanePutStr (OBJECT *pane_object, int x, int y, char *str)
+Displays str at window coordinates x,y on
+pane_object's drawable in the pane's current font.  If
+pane_object is buffered, writes the string to the pane's
+buffers, and the string is displayed at the next refresh method
+call.  
+
+Note that this method is slowly being superceded because it relies on
+instance variable names that are defined in several class libraries.
+If the application uses different drawables than pane_object's
+window surface or its buffers, use __ctalkX11PanePutStrBasic
+instead.
+
+>>>__ctalkX11SetSizeHints (int x, int y, intp width, int height, int geom_flags)
+Set the window size hints based on the window dimensions set by the
+application.  The geom_flags argument has the format provided by
+the __ctalkX11ParseGeometry () function, above.  Normally this 
+function is called by a X11Pane* class when initializing a window.
+
+If an application calls this function, it must also call
+__ctalkX11FreeSizeHints (), above.
+
+>>>__ctalkX11ResizePaneBuffer (OBJECT *pane_object, int width, int height)
+Resize pane_object's buffers to width width and height
+height.  New programs should use __ctalkX11ResizePixmap,
+which does not rely on hard-coded instance variable names.
+
+>>>__ctalkX11ResizePixmap (int, parent_visual_id, int self_xid, int gc, int old_width, int old_height, int new_width, int new_height, int depth, int *new_pixmap_return)
+Create a new Pixmap with the dimensions new_width and
+new_height that contains the contents of the original
+pixmap.  Return the X ID of the new pixmap in new_pixmap_return.
+
+>>>__ctalkX11ResizeWindow (OBJECT *pane_object, int width, int height, int depth)
+Resize a pane object's X window.  This function adjusts the object's width and
+height instance variables and buffers if the object defines
+them. @emph{Note: Do not use this function with windows that
+use X11Bitmap objects for buffers.  This function will
+eventually be phased out.  Use the methods in X11Bitmap
+class instead.} 
+
+>>>__ctalkX11PaneClearRectangle (OBJECT *pane_object, int  x, int y, int width, int height)
+Clears a rectangle in pane_object's window.  Note that this
+function is deprecated - it relies on the Pane object having specific
+instance variables.  New programs should use
+__ctalkX11PaneClearRectangleBasic instead.
+
+>>>__ctalkX11PaneDrawLine (OBJECT *pane_object, OBJECT *line_object, OBJECT *pen_object)
+Draw a line on the drawable identified by pane_object
+ with the endpoints given by line_object
+ with the line width and color defined in pen_object
+  This function is a synonym for
+__ctalkGUIPaneDrawLine on systems with a X Window System display.
+
+>>>__ctalkX11PaneDrawLineBasic (int drawable_id, int gc_ptr, int x_start, int y_start, int x_end, int y_end, int pen_width, int alpha, char *pen_color)
+Draw a line between the points (x_start,y_start) and (x_end, y_end)
+with the color, and transparency using the drawable ID, graphics
+context, and pen color, width, and transparency given as arguments.
+
+>>>__ctalkX11PaneDrawPoint (OBJECT *pane_object, OBJECT *point_object, OBJECT *pen_object)
+Draw a point on the drawable id given in pane_object
+ with the location given by point_object
+ with the radius and color given by pen_object
+  This function is a synonym for __ctalkGUIPaneDrawPoint
+on systems that use the X Window system.
+
+>>>__ctalkX11PaneDrawPointBasic (int drawable_id, int gc_ptr, int x, int y, int pen_width, int alpha, char *pen_color)
+Draw a point of the size, position, color, and transparency using the
+drawable ID, graphics context, and Pen color, transparency, and width
+given as arguments.
+
+>>>__ctalkX11PaneClearWindow (OBJECT *pane_object)
+Clears pane_object's window.  Note that this function is
+deprecated - it relies on the Pane object having specific instance
+variables.  New programs should use 
+
+>>>__ctalkX11PaneDrawRectangle (OBJECT *pane_object, OBJECT *rectangle_object, OBJECT *pen_object, Integer fill)
+Draw a rectangle on the drawable identified by pane_object
+ with the dimensions given by rectangle_object
+ and with the line width and color given by
+pen_object   If fill is true, draw a filled
+rectangle.
+
+>>>__ctalkX11PanePutStrBasic (int visual_id,int gc_ptr, int x, int y, char *text)
+Write the string text on the drawable named by visual_id at
+X,Y using the graphics context pointed to by gc_ptr.  If the
+drawable is a X11CanvasPane buffer, the text will not be visible
+until the next call to the pane's refresh method.
+
+>>>__ctalkX11PaneRefresh (OBJECT *pane_object, int src_x_org, int src_y_org, int src_width, int src_height, int dest_x_org, int dest_y_org)
+If pane_object is a buffered pane, copy the contents of the pane
+buffer(s) within the rectangle given by src_x_org, src_y_org,
+src_width, src_height to the visible window at dest_x,
+dest_y.
+
+>>>__ctalkX11QueryFont (OBJECT *font_object, char *xlfd)
+Fills in font_object's ascent, descent,
+maxWidth, height, and fontDesc instance variables
+with the font metrics returned by the X server for the font given by
+xlfd.
+
+>>>__ctalkX11SetBackground (OBJECT *pane_object, char *color_name)
+Set pane_object's background color to color_name.  This
+function is being phased out because it uses named instance variables
+of pane_object.  Programs should use
+__ctalkX11SetBackgroundBasic (), below, instead.
+
+>>>__ctalkX11SetBackgroundBasic (int visual_xid, int gc_ptr, char *color)
+Sets the background color of any class with a X11 visual and 
+graphics context.
+
+>>>__ctalkX11SetForegroundBasic (int visual_xid, int gc_ptr, char *color)
+Sets the foreground color of any class with a X11 visual and 
+graphics context.
+
+>>>__ctalkX11SetResource (int drawable_id, char *resource_name, char *resource_value)
+Sets the X11 resource resource_name to resource_value for
+the drawable identified by drawable_id.
+
+>>>__ctalkX11SetWMNameProp (OBJECT *pane_object, char *name)
+Sets the WMName property pane_object's window to name.
+This is the window property that window managers use to set the window
+frame's title.
+
+>>>__ctalkX11UseCursor (OBJECT *pane_object, OBJECT *cursor_object)
+Sets the X11 cursor of pane_object to
+cursor_object. 
+
+>>>__ctalkX11UseFont ()
+Do not use this function - it relies on specific instance
+variable names.  Use __ctalkX11UseFontBasic, below, instead.
+
+>>>__ctalkX11UseXRender (bool b)
+If b is true, draw using the X Render entension if it
+is available.  If b is false, use Xlib for drawing
+even if X Render is available.
+
+>>>__ctalkX11UseFontBasic (int drawable_id, int gc_ptr, char *font_desc)
+Sets the font of the graphics context gc_ptr and
+drawable drawable_id for further string printing
+operations.  See use in X11Bitmap class, where the
+GC pointer, which is an opaque object, is encoded as an
+int, in order to avoid confusion with OBJECT *'s.
+
+>>>__ctalkX11UsingXRender (void)
+Returns a boolean value of True if the program is using the X Render
+extension for drawing, False otherwise.  To use the X Render
+extension, the extension and its supporting libraries must be
+available when the Ctalk libraries are built, and the program has not
+changed the default setting, normally via __ctalkX11UseRender,
+above.
+
+>>>__ctalkX11XPMFromData (int drawable_id, int gc_ptr, int x_org, int y_org, char **xpm_data)
+Draw a X pixmap at the x,y position on the drawable named by
+drawable_id.  The xpm_data argument is the declaration of
+the data given in a XPM file, and has the C data type char **.
+
+>>>__ctalkX11XPMInfo (char **xpm_data, int *width_ret, int *height_ret, int *n_colors_ret, int *chars_per_color_ret)
+Returns the width, height, number of colors, and characters per color of the
+XPM data referred to by xpm_data
+
+>>>__ctalkXPMToGLTexture (char **xpm_data, unsigned short int alpha, int *width_out, int *height_out, void **texel_data_out):__ctalkXPMToGLXTexture (char **xpm_data, unsigned short int alpha, int *width_out, int *height_out, void **texel_data_out)
+Read the XPM data pointed to by xpm_data, and return the OpenGL
+texture data pointed to by texel_data_out.  
+
+The alpha parameter defines the texture data transparency
+and should be in the range 0 - 0xffff.  The alpha channel's effect
+may not be apparent in the image that is displayed, because OpenGL
+has its own set of functions to perform texture blending.
+
+For Mesa OpenGL implementations, like those found on Linux systems,
+textures have the format GL_RGBA and the data type
+GL_UNSIGNED_INT_8_8_8_8.  To define a basic 2-dimensional texture to
+the OpenGL API, use an OpenGL function like this.
+
+---------------------------------------------------------
+
+glTexImage2D (GL_TEXTURE_2D, 0, GL_RGBA, my_width, my_height, 0,
+              GL_RGBA, GL_UNSIGNED_INT_8_8_8_8, my_texel_data);
+
+---------------------------------------------------------
+
+Apple OpenGL implmentations use a different internal format, so a
+program would define a texture from the __ctalkXPMToGLXTexture
+function's output like this.
+
+---------------------------------------------------------
+
+glTexImage2D (GL_TEXTURE_2D, 0, GL_RGBA, my_width, my_height, 0,
+              GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, my_texel_data);
+
+---------------------------------------------------------
+
+Note that the function does not make any changes for 1-dimensional or
+3-dimensional textures, nor for textures that might be rendered as
+mipmaps.  The specific texture parameters depend on the nature of the
+texture and the surface that it's applied to... in most cases, though
+OpenGL works best with a XPM that has a geometry that is an even
+multiple of 2; e.g., 512x512 or 1024x1024 pixels.
+
+Both functions are similar, and generic enough to work with any
+OpenGL toolkit - the main difference is that either of the functions
+can be implemented for either a GLUT or GLX development environemnt
+independently, and that the GLX version is compatible with 64-bit
+machines.
+
+
+>>>__ctalkXftAscent (void)
+Returns an int with the currently selected font's height
+in pixels above the baseline.
+
+>>>__ctalkXftAscent (void)
+Returns an int with the currently selected font's height
+in pixels below the baseline.
+
+>>>__ctalkXftFgRed (void):__ctalkXftFgGreen (void):__ctalkXftFgBlue (void):__ctalkXftFgAlpha (void)
+Returns int values 0-0xffff for the selected font's red,
+green, blue, and alpha values.
+
+>>>__ctalkXftRed (unsigned short val):__ctalkXftGreen (unsigned short val):__ctalkXftBlue (unsigned short val):__ctalkXftAlpha (unsigned short val)
+Set the current Xft font's foreground color channels individually.
+The value of the argument must be between 0 and 65535 (0xffff hex).
+
+>>>__ctalkXftFontPathFirst (char *pattern)
+Return the path of the first font file that matches pattern.
+If pattern is * or an empty string (""), return
+the first path of all the fonts that are available to the library.
+
+>>>__ctalkXftFontPathNext (void)
+Return a string containing the path of the next font file that matches
+the pattern given to __ctalkXftFontPathFirst (), above.
+
+>>>__ctalkXftSelectedFontDescriptor (void)
+Return the font descriptor of the selected font as a char *.
+
+>>>__ctalkXftGetStringDimensions (char *str, int *x, int *y, int *width, int *height)
+Return the x and y origin, and width and height of str in the
+currently selected FreeType font.  Because the dimensions are
+absolute, x and y are normally 0.  If the Xft library is
+not initialized or not available, the function returns 0 for all of
+the dimensions.
+
+>>>__ctalkXftHeight (void)
+Returns an int with the font's height above and below
+the baseline in pixels, and including any additional vertical
+spacing.
+
+>>>__ctalkXftInitLib (void)
+Initializes the Freetype outline font library.  If the system is not
+configured to use outline fonts  then the
+function prints a message and exits the program.
+
+>>>__ctalkXftInitialized (void)
+Returns TRUE if the FreeType font library is available and
+initialized, FALSE otherwise.
+
+>>>__ctalkXftListFontsFirst (char *xftpattern)
+Initializes the FreeType library to list fonts and returns a
+char * that contains the first font descriptor that contains
+the string xftpattern.  If xftpattern is emtpy ("")
+or *, then the function returns the first font, and the
+following calls to __ctalkXftListFontsNext () match all of the
+fonts available to the FreeType library.
+
+>>>__ctalkXftListFontsNext (void)
+Returns a char * with the next matching font descriptor of
+a font listing initialized by __ctalkXftListFontsFirst ().
+
+>>>__ctalkXftListFontsNext (void)
+Cleans up after a series of list fonts function calls.
+
+>>>__ctalkXftMajorVersion (void)
+Returns an int with the Xft library's major version number.
+
+>>>__ctalkXftMaxAdvance (void)
+Returns an int with the maximum horizontal dimension in pixels
+of any of the selected font's characters.
+
+>>>__ctalkXftMinorVersion (void)
+Returns an int with the Xft library's minor version number.
+
+>>>__ctalkXftQualifyFontName (char *pattern)
+Return the qualified font name string for pattern.
+
+>>>__ctalkXftRevision (void)
+Returns an int with the Xft library's revision number.
+
+>>>__ctalkXftSelectedFamily (void)
+Returns a char * string that contains family of the selected
+font.
+
+>>>__ctalkXftSelectedPointSize (void)
+Return the point size of the selected font as a C double.
+
+>>>__ctalkXftSelectedSlant (void)
+Returns an int that contains slant of the selected
+font.
+
+>>>__ctalkXftSelectedSlant (void)
+Returns an int that contains slant of the selected
+font.
+
+>>>__ctalkXftSelectedFontDescriptor (void)
+Returns a char * string that contains the descriptor of the
+selected font.
+
+>>>__ctalkXftSelectedFontDescriptor (void)
+Returns a char * string that contains the file path descriptor
+of the selected font.
+
+>>>__ctalkXftSelectFont (char *family, int slant, int weight, int dpi, double point_size)
+Selects the FreeType font that matches the arguments.  Returns 0 if
+successful in matching the font given by the arguments.  If no
+matching font is found, the current font does not change, and the
+method returns -1. The selectFont method (class
+X11FreeTypeFont contains a description of the parameters
+recognized by the function.  
+
+>>>__ctalkXftSelectFontFromXLFD (char *xlfd)
+Selects fonts in the FreeType font library using a XLFD specification.
+When selecting outline fonts: the libraries use the fields: family,
+weight, slant, dpi-x, and pixel height. An example XLFD would be the
+following.
+
+---------------------------------------------------------
+
+-*-Nimbus Sans L-medium-r-*-*-12-72-*-*-*-*-*-*
+
+---------------------------------------------------------
+
+Note that the function does not translate between bitmap and outline
+font families - the font libraries pick the closest match to the font
+metrics given in the XLFD, regardless of type style.
+
+Also, the outline font libraries use a single dpi metric for both the
+vertical and horizontal resolution, so only the resx field of
+the XLFD is actually used.
+
+>>>__ctalkXftSetForegrounc (int red, int green, int blue, int alpha)
+Sets the red, green, blue, and alpha values for the selected font.  The
+values are ints and have a range of 0-0xffff.
+
+>>>__ctalkXftSetForegroundFromNamedColor (String colorName)
+Sets the selected outline font's red, green, and blue values from
+the named X11 color given as the argument.
+
+>>>__ctalkXftVersion (void)
+Returns an int with the Xft library's version number,
+which is (__ctalkXftMajorVersion () * 10000) + (__ctalkXftMinorVersion * 100) +
+__ctalkXftRevsion ().
+
+>>>__ctalk_arg (char *rcvr, char *method,void *arg)
+Define an argument for the following __ctalk_method () call.  
+
+>>>__ctalk_arg_cleanup (OBJECT *result)
+Remove an argument used by the previous method call.  If used within
+an expression, then result, the return object of the previous
+method call, may not be NULL.  If used after a @code{__ctalk_method
+()} call, then result may be NULL.
+
+>>>__ctalk_arg_internal (int n_th_arg)
+Return the n_th_arg that method was called with, as an
+OBJECT *.  The first argument's index on the stack is 0 within
+the caller's argument frame, and the last argument is @var{method ->
+n_params} - 1.
+
+>>>__ctalk_arg_value_internal (int n_th_arg)
+Return the value object of the n_th_arg that method was called
+with, as an OBJECT *, if available.  If it isn't (for example, if 
+the value instance variable is used as an argument alone, and not the parent
+object), then the function returns the argument object.
+
+As with __ctalk_arg_internal (), The first argument's index on
+the stack is 0 within the caller's argument frame, and the last
+argument is method -> n_params - 1.
+
+>>>__ctalk_arg_pop (void):__ctalk_arg_pop_deref (void)
+Removes and returns the last object pushed onto the argument stack.
+__ctalk_arg_pop_deref also decreases the object's reference
+count by one.
+
+>>>__ctalk_class_initialize (void)
+Called by __ctalk_init () to perform any neeeded initialization the
+before any classes are defined.
+
+>>>__ctalk_define_class (ARG**args)
+The primitive method that Ctalk executes when it encounters the
+class keyword.
+
+>>>__ctalk_dictionary_add (OBJECT*object)
+Add an object to the Ctalk global dictionary, or, if the object
+is a class object, to the class library.
+
+>>>__ctalk_exitFn (int app_exit)
+Called just before a return statement when returning from a C
+function.  If the function is main, then app_exit should
+be non-zero, to indicate that the program is finished, and to clean up
+the global objects and the class library.
+
+>>>__ctalk_initFn (void)
+Called at the beginning of a function to register the function's
+name.
+
+>>>__ctalk_initLocalObjects (void)
+Called during method or function initialization to delete
+old local objects before creating new objects.
+
+>>>__ctalk_get_object (char *name, char *classname)
+Retrieves the object name.  If classname is non-null,
+retrieves the object by name and class.
+
+>>>__ctalk_init (char *program_name)
+Initialize the Ctalk class libraries when the program starts.  The argument,
+program_name is normally argv[0].
+
+>>>__ctalk_method (char *rcvr_object_name, OBJECT *(method_fn *)(), char *method_name)
+Perform a simple Ctalk method call, in places where the call can be
+used after one or more calls to __ctalk_arg and followed by
+__ctalk_arg_cleanup.  For complex expressions or expressions
+occurring within control structures, Ctalk normally uses
+__ctalkEvalExpr instead.
+
+>>>__ctalk_new_object (ARG **args)
+The primitive function that is called by the new method.
+
+>>>__ctalk_primitive_method (char *rcvr_name, char *method_name, int attrs)
+Call primitive method method_name with receiver
+rcvr_name. The attrs argument can be METHOD_SUPER_ATTR,
+which uses the receiver's superclass as the receiver redirects the
+method's arguments to a superclass method.
+
+>>>__ctalk_process_exitFn (int app_exit)
+Similar to __ctalk_exitFn, above, except that the function is
+meant to be invoked by child processes on exit, so it does not try to
+manage other child processes.
+
+>>>__ctalk_receiver_pop (void)
+Pops the most recent receiver object off the receiver stack
+and returns it.
+
+>>>__ctalk_receiver_push (OBJECT *object)
+Push object onto the receiver stack, without changing
+its reference count.  This can be useful in conjunction with
+__ctalk_receiver_pop to quickly retrieve the current
+receiver object.
+
+---------------------------------------------------------
+
+ currentReceiver = __ctalk_receiver_pop ();
+ __ctalk_receiver_push (currentReceiver);
+
+---------------------------------------------------------
+
+>>>__ctalk_register_c_method_arg (char *decl, char *type, char *qualifier, char *qualifier2, char *storage_class, char *name, int type_attrs, int n_derefs, int initializer_size, int scope, int attrs, void *var)
+Registers a C variable for use as an argument in the following method
+call.  The arguments provide the information given by the variable's
+declaration so that it can be re-created by Ctalk.  The last
+parameter, var, contains the address of the actual C variable in
+memory.
+
+There are also abbreviated versions of
+__ctalk_register_c_method_arg,
+__ctalk_register_c_method_arg_b|c|d, which work similarly but don't
+try to handle syntax elements that aren't present in the variable's
+declaration.
+
+>>>__ctalk_self_internal (void)
+Return the current method's receiver object as an OBJECT *.
+
+>>>__ctalk_self_internal (void)
+Return the current method receiver's value instance variable as
+an OBJECT * if it exists, or the receiver object otherwise (for
+example, if the receiver is the value instance variable itself
+instead of the parent object).
+
+>>>__ctalk_set_global (char *name, char *classname)
+Adds the object name of class classname to ctalk's global
+dictionary.  This function is normally called during program initialization.
+
+>>>__ctalk_set_local (OBJECT *obj):__ctalk_set_local_by_name (char *obj_name)
+Make obj a method- or function-local object.  This function is
+normally called during a method or function's initialization when the
+local objects are created with a new method.  The
+__ctalk_set_local_by_name function is similar, except that it
+retrieves the global object by looking up its name in the global
+dictionary.
+
+>>>__ctalk_to_c_char (OBJECT *obj)
+Returns the value of obj as a C char if possible.  If the
+value is an ASCII code, converts the value to the actual char.
+
+>>>__ctalk_to_c_char_ptr (OBJECT *obj)
+Returns the value of obj as a C char *.  This
+function has been mostly replaced by __ctalkToCCharPtr,
+which you should use instead.
+
+>>>__ctalk_to_c_double (OBJECT *obj)
+Returns the value of obj as a C double.  This function
+performs the conversion with the C library function strtod.
+Currently only supports the translation of base 10 values.
+
+>>>__ctalk_to_c_int (OBJECT *obj)
+Returns the value of obj as a C int.  This function
+handles values in hexadecimal, octal, using the C library function
+strtol, and binary, using Ctalk's internal routines.  Also
+handles ASCII-to-char conversions if the argument is a
+Character object.
+
+>>>__ctalk_to_c_longlong (OBJECT *obj)
+Returns the value of obj, which is normally an
+instance of LongInteger class, as a C long long int.
+This function uses the C library function strtoll to perform
+the conversion.  Currently only handles LongInteger object
+values in base 10.
+
+>>>__ctalk_to_c_ptr (OBJECT *o)
+Translate the value of an object into a C void *.  If the
+value isn't a pointer, then return the address of the value in memory.
+
+>>>__ctalk_to_c_ptr_u (OBJECT *o)
+Translate the value of an object into a C void *.  This
+is an unbuffered verson of __ctalk_to_c_ptr (), above.  That
+is, if the value of the object is an empty string, (NULL), or
+0x0, it returns NULL. This allows you to compare objects to 
+NULLs in C expressions without the generating compiler warnings.
+
+@idxclscite {X11TextEditorPane}
+
+>>>__edittext_delete_char (OBJECT *x11texteditorpane_object):__edittext_insert_at_point (OBJECT *x11texteditorpane_object, int keycode, int shift_state, int keypress):__edittext_line_end (OBJECT *x11texteditorpane_object):__edittext_line_start (OBJECT *x11texteditorpane_object):__edittext_next_char (OBJECT *x11texteditorpane_object):__edittext_next_line (OBJECT *x11texteditorpane_object):__edittext_next_page (OBJECT *x11texteditorpane_object):__edittext_prev_char (OBJECT *x11texteditorpane_object):__edittext_prev_line (OBJECT *x11texteditorpane_object):__edittext_prev_page (OBJECT *x11texteditorpane_object):__edittext_text_start (OBJECT *x11texteditorpane_object):__edittext_text_end (OBJECT *x11texteditorpane_object):__edittext_point_to_click (OBJECT *x11texteditorpane_object, int pointer_x, int pointer_y):__edittext_index_from_pointer (OBJECT *x11texteditorpane_object, int pointer_x, int pointer_y):__edittext_insert_str_at_point (OBJECT *x11texteditorpan_object, char *):__edittext_get_primary_selection (OBJECT *x11texteditorpan_object, void **buf_out, int *size_out):__edittext_set_selection_owner (OBJECT *x11texteditorpane_object)
+Text editing functions used by X11TextEditorPane objects.
+For more information, refer to the X11TextEditorPane section.
+
+
+>>>_error (char *fmt, ...)
+Display an error message and exit the program.
+
+>>>__inspector_trace (int stack_index):__inspect_get_arg (int stack_index):__inspect_get_receiver (int stack_index):__inspect_get_global (char *obj_name):__inspect_get_local (int stack_index, char *obj_name):__receiver_trace (int stack_index):__inspect_globals (void):__inspect_locals (void):__inspect_short_help (void):__inspect_long_help (void)
+Functions used internally by Ctalk's object inspector.  The function
+parameters are designed to be consistent with the syntax of the
+inspector commands, although not every function makes use of them.
+For details refer to the inspect(3ctalk) manual page, the
+inspectors section of the ctalktools.info Texinfo
+manual, and the inspect method in ObjectInspector class.
+
+>>>__rt_init_library_paths (void)
+Initialize Ctalk's library paths.  The function first checks the value
+of the CLASSLIBDIRS environment variable for a colon-separated
+list of directories, then adds the location of classlibdir which
+is configured when Ctalk is built, and classlibdirctalk.
+
+>>>__warning_trace (void)
+A generic stack trace function that prints a trace of the call
+stack wherever it is inserted in a program.
+
+>>>__xalloc (int size)
+Allocates a block of memory of size characters and returns
+a pointer to the memory.  If the alloc call fails, generates an
+_error message and exits the program.
+
+>>>__xfree (void **addr)
+Frees the block of memory pointed to by *addr, then sets
+the addr to to NULL.  *addr must be a block of memory
+previously allocated by __xalloc, above, or a similar malloc
+call.  When used in a program, wrapping addr in the MEMADDR()
+macro provides the correct dereferencing for the allocated memory and its
+pointer.  The example shows how the MEMADDR() macro is used.
+
+---------------------------------------------------------
+
+char *my_ptr;
+
+my_ptr = (char *)__xalloc (BUF_SIZE);
+
+emph{... do stuff ...}
+
+__xfree (MEMADDR(my_ptr));
+
+---------------------------------------------------------
+
+>>>__xrealloc (void **addr, int size)
+Re-allocates the block of memory pointed to by *addr to size.
+If size is larger than the original block of memory, the contents
+of addr are preserved.  As with __xfree, above, the
+MEMADDR macro provides the correct dereferencing for the
+reference to addr.
+
+>>>_warning (char *fmt, ...)
+Print a warning message.
+
+>>>__objRefCntInc (obj_ref)
+
+Increment the reference count of an object and its instance variables.
+This function takes an object reference as its argument.  You can use the
+OBJREF macro to cast the object to an object reference.
+
+>>>__objRefCntDec (obj_ref)
+
+Decrement the reference count of an object and its instance variables.
+As with all of the __objRefCnt* functions,
+__objRefCntDec takes an object reference as its argument.  You
+can use the OBJREF macro to cast the object to an object
+reference.
+
+>>>__objRefCntSet (obj_ref, int refcount)
+
+Set the reference count of an object and its instance variables to
+refcnt.  As with all of the __objRefCnt* functions,
+__objRefCntDec takes an object reference as its argument.  You
+can use the OBJREF macro to cast the object to an object
+reference.
+
+Note: __objRefCntSet will not set an object's reference
+count to zero.  That is, if you give 0 as the second argument,
+the call has no effect.  Use __objRefCntZero instead.  That
+might sound silly, but it's much more reliable overall, in a
+programming-by-contract way.
+
+>>>__objRefCntZero (obj_ref)
+
+Set the reference count of an object and its instance variables to
+0 (zero).  As with all of the __objRefCnt* functions,
+__objRefCntZero takes an object reference as its argument.  You
+can use the OBJREF macro to cast the object to an object
+reference.  
+
+You should not need to use this function unless you're
+completely deleting an object.  Refer to the
+__ctalkDeleteObject function for more information.
+
+
+>>>__refObj (OBJECT **obj1, OBJECT **obj2)
+Assign obj2 to obj1.  If obj1 already points to an
+object, decrement its reference count.  Increment the reference count
+of obj2 by 1.  When calling functions that use OBJECT **
+arguments, they correspond to the OBJREF_T typedef, and Ctalk defines
+the macro OBJREF() to cast an object to an OBJREF_T.
+
+>>>_store_int (OBJECT *receiver, OBJECT *arg)
+This is a primitive that stores the value of arg in
+receiver, which is an Integer.  Checks the class of arg,
+and if arg is not an Integer, converts it to an Integer
+value.  If receiver a pointer to a value, then it stores arg
+as a fully-fledged object.
+
+>>>BOOLVAL(IntegerOrBoolValue)
+This macro returns the value of an Integer or Boolean
+object, or any of Boolean's subclasses (or just about any other
+scalar value), as a C bool.  For an example of its use, refer to
+the entry for the 
+
+>>>INTVAL(IntegerObjectValue)
+A macro that returns the value of an Integer object, or any of
+Integer's subclasses, as a C int.  Uses an @code{OBJECT
+*'s} __o_value member directly, as in this example.
+
+---------------------------------------------------------
+
+OBJECT *my_int_object_alias = myInt;
+
+int a = INTVAL(my_int_object_alias -> __o_value);
+
+---------------------------------------------------------
+
+>>>is_zero_q (char *str)
+Returns a bool if the number represented by the string
+evaluates to zero, false otherwise.
+
+>>>LLVAL(LongIntegerValue)
+A macro that returns the value of a LongInteger object, or any
+of LongInteger's subclasses, as a C long long int. For an
+example of its use, refer to the entry for the 
+
+>>>obj_ref_str (char *str)
+If str contains a formatted hexadecimal number of the
+format 0xnnnnnn that points to an object,
+return an OBJECT * reference to the object,
+NULL otherwise.
+
+>>>str_is_zero_q (char *str)
+Like is_zero_q, above, except that it also checks for an empty
+string (and returns true), as well as a string that contains only the
+digit 0, which causes the function to return false.
+
+>>>substrcat (char *dest, char *src, int start_index, int end_index)
+Concatenate the substring of src from start_index to
+end_index to dest.
+
+>>>substrcpy (char *dest, char *src, int start_index, int end_index)
+Copy a substring of src from start_index to
+end_index to dest.
+
+>>>SYMTOOBJ (SymbolValue)
+This is another macro that converts a Symbol's reference to an
+OBJECT *.  This macro can be used on the right-hand side of an
+assignment statement. 
+
+---------------------------------------------------------
+
+if ((value_object =
+    SYMTOOBJ((self_object -> instancevars) ? 
+             (self_object -> instancevars -> __o_value) : 
+             (self_object -> __o_value))) != NULL) {
+      return value_object;
+    }
+
+---------------------------------------------------------
+
+>>>SYMVAL(SymbolValue)
+A macro that returns the value of a Symbol object, or any of
+Symbol's subclasses, as a C uintptr_t *, which is guaranteed
+to be valid for 32- and 64-bit machines.
+
+However, due to the way that pointers work in C, SYMVAL only
+works on the left-hand side of an assignment; you just need a cast
+(for example to OBJECT *) in order to avoid compiler warnings
+when it appears on the right-hand side of an assignment. Here is an
+example:
+
+---------------------------------------------------------
+
+SYMVAL(object_alias->__o_value) = (OBJECT *)some_ptr;
+
+---------------------------------------------------------
+
+However, if he label on the right-hand side is also a Symbol,
+the Symbol class duplicates the address that the operand points
+to, not the operand itself.
+
+---------------------------------------------------------
+
+SYMVAL(object_alias->__o_value) = SYMVAL(some_ptr -> __o_value);
+
+---------------------------------------------------------
+
+For another, perhaps more basic, example of the macro's use, refer to
+the entry for the 
+
+
+>>>OBJREF(obj)
+Creates a reference to an object.  This macro returns an @code{OBJECT
+**}, but using the macro allows the definition of an object reference
+to change without affecting too much code.  OBJREF is used with
+the __objRefCnt* functions, and in other places.
+
+>>>TRIM_LITERAL(s)
+A macro that trims the quotes from a literal string.  It expands to 
+substrcpy (s, @var{s, 1, strlen (s) - 2)}.
+
+>>>TRIM_CHAR(c)
+A macro that trims the quotes from a literal character.  It expands to 
+substrcpy (c, @var{c, 1, strlen (c) - 2)}
+
+>>>TRIM_CHAR_BUF(s)
+A macro that trims nested single quotes from a literal character.
+TRIM_CHAR_BUF also checks whether a single quote (') is
+the actual character.
+
+>>>xfopen (const char *path, const char *mode):xmemcpy (void *s, const void *s, size_t):xmemmove (void *s, const void *s, size_t):xmemset (void *s, int c, size_t n):xsprintf (char *s, const char *fmt, ...):xstrcat (char *d, const char *s):xstrncat (char *d, const char *s, size_t):xstrcpy (char *d, const char *s):xstrncpy (char *d, const char *, size_t)
+These are portable wrappers for systems that #define their own
+(possibly more secure) versions of library functions.  For the exact
+prototype and definition, you should consult the system's manual page
+for the corresponding library function (e.g., strcpy(3) for the
+definition of xstrcpy).
+

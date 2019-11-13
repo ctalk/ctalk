@@ -1,0 +1,202 @@
+2011-10-06
+	- Explicitly set the scope of new class objects to GLOBAL_VAR,
+	regardless of where new classes get introduced into
+	the program.
+	- __have_bitmap_buffers (x11lib.c) checks whether
+	the object is the value or parent object.
+2011-10-07
+	- __ctalk_initLocalObjects (rt_methd.c) checks
+	whether a local variable is aliased elsewhere before
+	deleting it.  See the note in rt_methd.c.
+	- Removed test for valid ASCII character from 
+	<< and >> in Character class.
+	- Added orig_object_rec to VARENTRY, so we can
+	quickly tell if a label has been aliased by another
+	object.  Added check to find if local or global
+	object is aliased in a method but declared in a
+	scope before the current scope.  If it is, then we
+	don't delete it when the method's local variables
+	get initialized.  Local objects only for now, so
+	changes limited to rt_methd.c, rt_obj.c, and
+	object.h.
+2011-10-08
+	- Update exception traces in rt_trace.c and except.c
+	to not print __ctblk* methods.
+	- Added stack adjustments in become.c for variables when 
+	Object : become is called via an inline block.
+	- map in List, Array and AssociativeArray classes
+	now checks for the last control block argument in
+	cases of non-successive recursive calls.
+2011-10-14
+	- Added is_declared_outside_method in rt_methd.c.
+	- Updated X11Pane and X11PaneDispatcher classes to
+	use the, "children," list inherited from Pane class 
+	for a single sub-pane, and removed the childPane
+	instance variable.
+2011-10-15
+	- Added states in paramstate.h.
+2011-10-18
+        - Fixed off by one error in argument stack frame for 
+        methods called recursively.
+2011-10-22
+	- Ctpp 1.0.67.
+2011-10-26
+	- Added is_declared_outside_method in 
+	cleanup_reffed_object () in rtnewobj.c.
+2011-10-28
+	- Added another look for the beginning of the stack
+	start when tracking to the beginning of an aggregate
+	expression in cvar_is_method_receiver ()
+	(resolve.c).
+2011-10-29
+	- Check for n_args > 0 when deleting method args in
+	__ctalk_method () (rt_methd.c).
+	- Changed statements that could cause warnings in 
+	abs, difftime, strncat, strncmp, and strncpy templates.
+2011-11-01
+	- Added direct translation for a method return class
+	of, "Object," when expression begins with, 
+	EVAL_EXPR_FN ("__ctalkEvalExpr"), in 
+	obj_2_c_wrapper_trans () (objtoc.c).
+	- Constant receiver cleanup in __ctalk_arg () 
+	(rt_args.c).
+	- Added recurse3.c and recurse4.c test programs.
+2011-11-02
+	- Added preprocessor #if statements for 
+	__SIZEOF_POINTER__ in ANSIYesNoBoxPane,
+	ANSIButtonPane, and ANSITerminalPane.
+2011-11-03
+	- Added a look for class variables in 
+	__ctalk_get_object () (rt_obj.c).
+2011-11-04
+	- Snapshot for 0.0.97b 20111104.
+	- Updated signal_handler_basic () in Application
+	class to only signal the application's process 
+	group.
+	- __ctalkX11SetBackground () and X11Pane::background.
+2011-11-05
+	- Built-in ctpp define __SIZEOF_POINTER__ as 8 on
+	x86_64-amd64 machines that define it natively.
+	- Added EVAL_STATUS_VAR_REF and check for 
+	VAR_REF_OBJECT eval results in __method_arg ().
+2011-11-08
+	- Added __ctalkGUISetBackground function and X11Pane
+	: background method.
+	- Added X11Cursor class and grabMove cursor method,
+	and useCursor and defaultCursor methods in X11Pane
+	class.
+2011-11-09
+	- Check for an object that is subscripted before
+	emitting a warning for multiple subscripts in
+	resolve ().
+	- Minimum check whether a subscript expression is part of a
+	function argument in is_c_var_declaration_msg ().
+	- Added another object does not understand message
+	warning in resolve ().
+2011-11-29
+	- Yet more fixes for SPARC in sformat.c.
+	- Added primitive_method_call_attr in rt_methd.c and
+	rtnewobj.c.  Cleanup in __ctalk_primitive_method and
+	new_object for objects that go receive more than one
+	"super new" message.
+2011-11-29
+	- Added X11Bitmap class.
+	- Basic functions for creating, deleting, and retrieving X
+	Pixmaps and GCs in lib/bitmap.c, X11Bitmap create
+	and delete instance methods.  Updated the gui libraries
+	use X11Bitmap's	xID instance variable.  
+	- Added __ctalkX11Display () and __ctalkX11Colormap 
+	library functions, and the xDisplay, xColormap, and 
+	classInit class variables in X11Pane class.
+2011-12-02
+	- __ctalkGUISetBackground now works only for pane
+	objects that have actual X windows; e.g., X11Pane 
+	objects. Added __ctalkX11SetBackgroundBasic, and 
+	__xlib_set_window_background and __xlib_change_gc
+	in guisetbackground.c and x11lib.c.
+	- Added clear method in X11Bitmap class, and updated 
+	the X11CanvasPane clearRectangle method, so both use
+	__ctalkX11ClearRectangleBasic. Added the background
+	method in X11CanvasPane.
+2011-12-03
+	- Reworking of X11CanvasPane : subPaneDestroy.
+	- Added subPaneNotify message to canvas-dots.c.
+	- Added check in eval_expr for instance and class 
+	variables and local and global objects shadowing
+	each other.  Instance and class variables have
+	precedence due to the fact that someone typed the 
+	instance or class variable's name immediately after 
+	typing its parent object's name, so we can assume
+	that's what the program means.
+	- Added margexprs24.c and check in eval_expr for 
+	the, "eval," keyword.  If, "eval," appears
+	*anywhere* in an expression that we've already
+	decided needs run-time evaluation, simply elide
+	it. Also check if an eval appears as an argument to
+	a printf format.
+2011-12-05
+	- Changed __ctalkGUIPaneRefresh and
+	__ctalkX11PaneRefresh to accept the dimensions of
+	the source rectangle and destination coordinates as
+	arguments.  Also changed the calling arguments for 
+	__xlib_refresh_window in x11lib.c.
+	- Some basic label checking in rt_self_expr ().
+2011-12-06
+	- Updated some error messages.
+	- Basic grab and move in X11CanvasPane.
+	- Updates to X11PaneDispatcher :: subPaneResize.
+	- Fix in __ctalkGetClassVariable ().
+2011-12-07
+	- Minor updates to X11CanvasPane and 
+	X11PaneDispatcher, mostly for smoother operation.
+	- Added fmt_rt_return_chk_fn_arg to handle a few
+	special object-to-C translation cases.
+2011-12-10
+	- Added guisetforeground.c and
+	__ctalkX11SetForegroundBasic () and added a
+	foreground GC change in __xlib_change_gc ()
+	(guisetforeground.c and x11lib.c).
+	- Added X11CanvasPane : foreground method.
+	- Use plain old obj_2_c_wrapper in 
+	class_variable_expression () (rexpr.c).
+	- Extra checking for class variable and method 
+	duplication in resolve ().  New version of
+	find_class_variable (), added
+	is_class_variable_message () (resolve.c and 
+	object.c).
+2011-12-12
+	- Walkback traces now display the names of
+	C functions.
+2011-12-13
+	- Updates to X11TextPane class.  Some of the 
+	GUI libraries still need to be incorporated 
+	into it.
+	- Release 0.0.97b-20111213
+2011-12-24
+	- self_object () (object.c) no longer adds "self" as
+	a local object.  Restricted
+	tok_can_begin_var_declaration () (parser.c), to
+	check for function names also.
+2011-12-27
+	- In need_rt_eval (), a dereference or period
+	operator with an object expression causes the
+	function to return True.
+2011-12-28
+	- Updated CVAR type in ctalklib to match cvar.h.
+	- Added cases in is_c_var_declaration_msg () and 
+	fmt_register_c_method_arg_call to handle struct 
+	*'s and struct * members.
+2011-12-29
+	- Added TOK_IS_DECLARED_C_VAR message attribute in
+	front end.
+	- Added X11CanvasPane : clear method and 
+	X11Bitmap : clearRectangle method.
+2011-12-30
+	- Added warn_unknown_c_type () in error.c, for
+	basic_class_from_cvar ().
+2011-12-31
+	- In __ctalkX11InputClient, added XCheckTypedEvent
+	to clear repeated events, and added check for actual
+	dimension change for ConfigureNotify events before
+	issuing a MOVENOTIFY or RESIZENOTIFY event to 
+	X11TerminalStream : queueInput.

@@ -1,0 +1,32 @@
+  a[rgs]            Print the argument stack.
+  b[acktrace]       Print the call stack.
+  br[ief]           Print brief object listings.
+  c[ontinue]        Leave the inspector and continue running the program.
+  g[lobals]         Print the global objects.
+  h[elp] | ?        Print this help information.
+  l[ocals] <n>      Print the local objects in frame <n>.
+  p[rint] [<args>]  Print the contents of the receiver, or the
+                    object selected by <args>
+                    <args> -> type = <a|g|l|r>
+                              frame = <stack frame>
+                              name = <object name>
+                    <addr>
+                    Ex: 
+                     > print l 512 myInt
+                       (Prints the local object \"myInt\" at stack
+                       frame 512.)
+                     > print a 510
+                       (Prints the argument at stack frame 510.  Giving
+                       the object's name isn't needed to identify the object.)
+                     > print g myGlobal
+                       (Prints the global object \"myGlobal.\")
+                     > print 0x456312a8
+                       (Prints the object at memory address
+                       0x456312a8.)
+  q[uit]         Exit the program.
+  r[eceivers]    Print the receiver stack.
+  v[erbose]      Display more detailed object listings.
+  Also refer to the inspector(3ctalk) manual page.  At a shell
+  prompt, type \"man inspector.\"  Information is also available
+  in the ctalktools Texinfo file.  Type \"info ctalktools\" at a
+  shell prompt.

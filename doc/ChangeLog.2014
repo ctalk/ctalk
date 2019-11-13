@@ -1,0 +1,1339 @@
+2014-01-15
+	- Added configure.in warning if makeinfo is missing.
+2014-01-16
+	- Updated configuration for libtool 2.4.2 and
+	autoconf 2.69. Renamed configure.in to configure.ac.
+	Added libtool m4 macros and m4 directory.
+2014-02-06
+	- Added ctpp 1.0.70.  Added ctpp's new configure and
+	builtin options to ctalk's configure.ac, added tools
+	subdir and updated builtin macro generator.
+	- Changed LIST -> sig member and HASH* -> sig members
+	to ints.
+2014-02-11
+	- Added sanity checks to is_c_fn_declaration () to
+	prevent buffer overflows for very long declarations.
+	- Changed ARG -> sig and PARAM -> sig to ints.
+2014-02-16
+	- Updated is_typecast_expr () to provide a slightly more
+	intelligent warning.
+	- Updated initializer_end ()'s exit condition to work
+	right.
+	- Added __builtin_bswap32 and __builtin_bswap64 to
+	is_gnuc_builtin_type ().
+	- Changed METHOD -> sig to ints.
+2014-02-17
+	- Added a case in is_c_var_declaration_msg for
+	GNU attributes after a struct/union/enum tag.
+2014-02-21
+	- Added undefined_class_or_receiver_x exception, and
+	a few checks for method before setting an
+	exception on a following label.
+2014-02-22
+	- Changed ctcc and ctdb to ctcc.in and ctdb.in, and added
+	tools/lcflags.sh to create ctcc and ctdb with compile options
+	from ./configure.
+	- Fixed PENDING type to use an int .sig member.
+	- Updates in classes/ctalklib and classes/ctalklib.in.
+	- Ctcc and ctdb also use the values of CFLAGS, LDFLAGS,
+	and CTFLAGS if they are set in the environment.
+2014-02-23
+	- Add a message attribute for the parser when a token
+	is a printf format argument.  Added FMT_ARG_CTYPE enum,
+	and is_format_arg_ctype () function to check it when
+	outputting a C translation function for collection
+	members.  Added wrapper functions for
+	__ctalkToCArrayElement to cast the value to the
+	appropriate C return type.  For now, these  are wrappers
+	for C function arguments, like printf statements, where
+	we don't know in advance the class of the Array member,
+	but the parser casts the object to the C type of the
+	C function (or printf format) anyway. More recent versions of
+	GCC can emit a lot of warnings about this, so this allows us
+	to get the C context correct at least, even though we have to
+	let Ctalk check for an incorrect or inappropriate Array member
+	class somewhere else.
+	- Open the output file when starting, and close it when
+	exiting, instead of re-opening it for every write in
+	__fileout ().
+2014-02-24
+	- Changed addressof1.c int test/expect to reflect the
+	semantics of Symbol objects better.
+	- Basic check for C syntax and then processing when there is a
+	possible method name shadowing a C variable in
+	expressions with complex receivers: e.g.:
+	"printf ("%d\n", (s_term_a + s_term_b) length);" in resolve (),
+	and do the same for the statements when they occur in methods,
+	where we also have to account for method parameters.
+	- Check for a collection class in a printf argument in
+	class_variable_expression (), and method_call () for
+	compound method statements also.
+2014-03-06
+	- Updated argblk.c so it provides a unique identifier for argument
+	blocks when they are cached with methods between runs.
+	- Updated fn_tmpl.c so it doesn't output templates with a cached
+	method.
+	- check_user_args () in libdeps.c only looks at -I and -s
+	command line options when looking at library dependencies to
+	determine whether generate a new cached method.
+	- Added premethod.c to read cached methods, perform minor fixups,
+	and write the methods to output along with the global init info.
+	Made changes to look first for a cached method and then write out
+	compiled methods in primitives.c, and made minor changes in method.c,
+	read.c, main.c, include.c, output.c, and ctalk.h.
+2014-03-08
+	- eval_expr () saves the result of a method call, to help
+	methods	check for repeated calls in initLocalObjects ().
+	- Load a basic class from the library if necessary in
+	const_expr_class ().
+2014-03-09
+	- When loading a basic class library in register_c_var ()
+	(called from eval_arg (), save and restore the output buffer
+	pointers.
+	- Removed #include <time.h> from Time class and added the
+	#include to ctalklib so time.h gets included only once.
+	- Write class and instance variable info to the cache
+	*.init files. Write the info to all of the methods for now,
+	so any of the methods can generate the class and instance variable
+	initialization, if its the first method of its class that's called
+	or fixed up.
+2014-03-11
+	- Added caching of class and instance variable information.
+	- Re-packed OBJECT structs, and adjusted MAXLABEL size everywhere
+	except ctpp.
+	- Fixed states of successive "%" characters in  printf format
+	functions in pattypes.c.
+	- If encountering a printf format argument in method_args (),
+	fixup the pointers if necessary when the arglist or entire
+	expression is enclosed in parentheses.
+	- X11Pane::new now has the colormap handle declared as an
+	int, to avoid any dependencies with the X header file
+	typedefs.
+	- Added test/expect/printfmt[123].c.
+	- In message_class (), look for a method prototype of the
+	same class before looking up the method in order to avoid a
+	recursive library search.
+2014-03-12
+	- Moved caps.sh to tools/ subdirectory.  Added X headers
+	capabilities #define and #include to ctalklib, to be
+	configured from generated config.h by tools/caps.sh.
+	- Renamed Font class to DisplayFont and Time class to CTime
+	to avoid name collisions with Xlib typedefs.
+	- Added --progress, --nopreload, and --clearpreload command line
+	options.
+2014-03-13
+	- Changed doc/texinfo.tex to style.tex and made some local
+	modifications so PDF manuals use more readable typefaces than
+	plain cmr8.
+	- Added overloaded * prefix operator to Symbol class, and
+	getvalue1.c test program.
+2014-03-14
+	- Added fmt_fixup_info (), and just write a fixup
+	line marker at the frame start when eval_arg () encounters a
+	method in an argument expression.  Updated output_pre_method ()
+	to look for the fixups and output a preloaded method
+	immediately.  Added checks in output_imported_methods (),
+	unbuffer_function_output (), and output_pre_method ().
+2014-03-15
+	- Changes from gcc13: Check for FIXUPROOT in set_line_info ()) and
+	make sure that a stray fixup marker doesn't set an input file
+	name.  A little streamlining in output_imported_methods ().
+2014-03-16
+	- Added deferred evaluation for a method whose prototype is defined
+	in a basic class's superclass while the superclass is still being
+	parsed. Added is_superclass_method_proto (), and updated
+	default_method () and resolve () to use it, so far.
+	- Changed __objRefCntInc () and __objRefCntDec () to non-inline,
+	return int, and added asm () calls so that calls to them don't get
+	optimized out.
+	- Added simplified Integer::= method.
+	- Replaced the DELETE_OBJECT_LIST macro with
+	delete_object_list_internal ().
+2014-03-17
+	- Added __objRefCntZero to ignore reference count minimums when
+	necessary, like when cleaning up the class library before
+	exiting, and in __ctalkAddClassVariable (), when we want to
+	completely delete the previous variable.
+	- Changed the superclass of Boolean to Object, so it's safe
+	to "require" nearly anywhere, without worrying whether the
+	parent class is already loaded.  Boolean must be required and
+	then defined in __ctalk_init (), in order for the return classes
+	to work right at run time.
+2014-03-18
+	- At end of parsing, check that return classes of methods are
+	defined, and load the class if necessary.
+2014-03-19
+	- For method arguments created in __ctalkCreateArg (), zero
+	the arguments before deleting in __ctalk_arg_cleanup (),
+	also in __ctalk_initLocalObjects (), __ctalkAddInstanceVariable (),
+	__delete_fn_local_objs (), and sometimes
+	__delete_method_local_objs ().
+	- Added NEWMETHOD type for the new_methods stack, to hold extra
+	method structures, like argument blocks currently.  Added argblks
+	to NEWMETHOD structure.
+2014-03-20
+	- Write argument block info to <method>.init cache files and write
+	argument block initizations to expanded init_info structure in
+	premethod.c
+	- Added __ctalkCreateArgA function as an alias specifically for
+	arguments to, "new," in init blocks.
+	- Fix in new_class_method () to generate class method definition
+	in global init.
+2014-03-21
+	- Added file preclass.c and functions to  write class info and
+	instance and class variariable info to *.class files in the cache.
+	- Call library_search () from load_cached_class () if we
+	encounter a not-yet-defined (or not being defined) class in a local
+	object constructor.  Also, if we use cached class info, also load
+	all of the preloaded methods for that class.
+	- Updated define_class () to use a preloaded class definition if
+	possible.
+	- In simple_self_return_expr (), if the expression is a single
+	"self" token, use __ctalk_self_internal (), which is faster than
+	__ctalkEvalExpr ().
+	- Trying TerminalStream class without #including termios.h,
+	which can cause duplicate declarations if used with
+	ANSITerminalStream class, which needs it.  Added #ifdefs to the
+	ASCII constants in ANSITerminalStream class to avoid a warning in
+	case they're already defined by a C include file somewhere.
+	- Added class_deps_updated () function to check the library
+	dependencies of a cached class definition, and re-parse the
+	class if necessary.  Doesn't affect methods included from
+	cache fixups, though.  See the comments in premethod.c,
+	cache_method_src_to_output ().
+2014-03-22
+	- When checking return classes in primitives.c, also look
+	with get_class_object () to find any classes declared in the
+	source input, which are not cached by a library search.
+	- Updated ltime.c and lclock.c in the programs/ subdirectory
+	for the renamed CTime class.
+	- Added method_deps_updated () in libdeps.c, and checks for
+	library dependencies when parsing new methods in primitives.c.
+2014-03-23
+	- Added a lot of calls to __objRefCntZero () in rtclslib.c cleanup
+	routines, and in cleanup_reffed_object ().
+	- Added another call to __objRefCntZero in Collection::atPut, and
+	changed the addInstanceVariable message to a direct call to
+	__ctalkAddInstanceVariable (), which is faster, and the args are
+	already translated to C, anyway.
+	- In __delete_method_local_objs (), also check a varentry's
+	local_object_rec when cleaning up the libraries.
+	- Fixed Character::set_value again.
+	- Added test program array2.c.
+2014-03-25
+	- Temporary argument cleanup in eval_expr ().
+	- Added __ctalkSignalHandlerBasic () function, to
+	replace signal_handler_basic () in Application class,
+	at least until the method preloading can handle C
+	functions in class libraries.
+	- Replaced many calls to __ctalkDeleteObject () with
+	Object::delete method.
+2014-03-26
+	- Added yet more calls to __objRefCntZero () in
+	__ctalkAddInstanceVariable (), __restore_rt_info (),
+	functions in become.c, rtclslib.c, DELETE_VAR_LIST
+	macro in object.h, AssociativeArray::new, List::pop,
+	List::popItemRef, List::unshift. SignalEvent::classInit,
+	Object::copy, WriteFileStream::writeFormat, String::readFormat,
+	and, of course, Object::delete.
+	- Fixed Integer::= and Float::= to handle type conversions
+	using C.  Added __ctalkToCDouble () as a synonym for the older
+	__ctalk_to_c_double ().
+	- Fixed X11PaneDispatcher::subPaneMove so that it moves only
+	the main window, not the subpanes.  Removed some unneeded
+	statements from X11PaneDispatcher::handleSubPaneEvent.
+2014-03-27
+	- Added method preloading during installation.
+2014-03-28
+	- Release 0.0.97-2014-03-28
+2014-03-29
+	- Added RCVR_TOK_IS_STRUCT_EXPR attribute to method
+	messages in cvar_is_method_receiver ().  Added CVAR
+	registration for multi-token struct expressions in
+	register_c_receiver_var (). In cvar_is_method_receiver (),
+	set the receiver_obj's name to the entire struct expression.
+	- Added cvarrcvr30-34.c test cases.
+2014-03-31
+	- Added use_new_c_rval_semantics () and terminal_rexpr () in
+	rexpr.c, so we can use simpler semantics when making object-to-C
+	assignments.  Minor changes to List::pushItemRef method.
+	- Updated self_object () so self does not try to make a cast
+	when a printf format is "%p" or "%#x".
+	- Test programs cassign1.c and cassign2.c.
+2014-04-01
+	- Added lrint* function templates and lrint* test programs.
+	- Added getpid () output to most temp files.  Preprocess
+	ctalklib directly from the library copy instead of writing a
+	separate temp file.
+	- Check the date on a class file in the library before updating
+	the class's initialization info in the cache. Don't update if the
+	cache is already more recent.
+2014-04-02
+	- Ctpp: In preprocess () (preprocess.c), add a line marker at
+	the beginning of the input, after -input directives from the command
+	line are processed, and before any further move-includes are
+	performed.  This is the same as the fix in the ctpp distribution.
+	- Sped up the code in ismethd.c.  Some speedups in rt_op.c
+	and rt_obj.c, and code cleanup.
+2014-04-03
+	- Re-arranged a call to eval_op_precedence () in eval_expr.
+	- Removed a call to is_macro_keyword () in _rt_op_context ().
+	- Fixed a line dimension bug in __xlib_draw_line ().
+	- Removed old text pane code from X11Pane::initialize.
+	- When finished with method args in eval_expr (), check if
+	the ARG entry is still there and __xfree () if necessary.
+2014-04-04
+	- Added warn parameter to class_object_search () and library_search ()
+	to warn about circular class loading when necessary.
+	- Added self_without_receiver_x exception in self_object () to
+	catch, "self," used within functions or within global scope,
+	or when a method is declared incorrectly and parsed as a C
+	function.
+2014-04-05
+	- Release 0.0.97-2014-04-05.
+2014-04-07
+	- In __ctalk_to_c_ptr (), check for a pointer and issue a warning
+	if necessary if the object is a scalar class like Integer or
+	LongInteger.
+	- In default_method (), use the value of an object's instance
+	variable if possible if the object's value is needed by a
+	control structure.
+	- In self_class_or_instance_variable_lookahead (), check
+	for another message after a, "value," message before returning
+	false.
+	- Updated obj_expr_is_arg () to handle open parens at the start
+	of an individual argument.
+2014-04-08
+	- Added Magnitude::- (unary minus) method.
+	- Added fn_param9.c and margexprs25.c test programs.
+2014-04-09
+	- Minor bugfixes in method.c and mthdrf.c.
+	- Minor bugfixes in method_from_prototype ().
+	- In method_from_prototype (), new_instance_method (),
+	and new_class_method (), two methods must have the same
+	name, number of parameters and the prefix, varargs or
+	no_init attributes, to be considered duplicate methods.
+	This allows us, so far, to overload a normal method and
+	a prefix method in the same class.
+	- Added match_method () function in method.c, to
+	facilitate defining the criteria for matching method
+	definitions, instead of just the class and name.
+2014-04-10
+	- Added the method selector to the parameters of
+	__ctalkInstanceMethodParam (), and updated the compiler
+	to generate the call with the method selector.
+	- Added __ctalkClassMethodParam () library function.
+	- Add a selector to primitive methods - not strictly needed -
+	- so we can look them up the same way we look up other methods.
+	- Minor speedups in get_instance_method.
+2014-04-12
+	- Fill in the method's rcvr_class_obj member in the compiler
+	so we can match it later when looking up the method.
+	- Added n_params_wanted parameter to get_instance_method ()
+	and get_class_method ().
+	- Added method_arglist_n_args () to check the number of
+	arguments in a method expression so the method retrieval
+	can match the number of parameters.  Added check for instance
+	and class variable receivers in resolve_arg_2 ().
+	- Added test for number of parameters and varargs and
+	prefix attributes in match_method ().
+	- Added a method parameter lookup in the first loop of
+	eval_expr () if the expression is within a method.
+	- Added the overload1.c example program and a section about
+	overloading in the Ctalk Reference.
+	- Change the priority of adding a class variable definition to
+	__ctalk_init () so class variable definitions occur at the same
+	time as the instance variable definitions when the program is run.
+2014-04-13
+	- Fixed prefix12.c and prefix13.c to at least give the right results,
+	even with a few extra messages and parens.
+	- In eval_expr (), don't create placeholder objects for whitespace
+	characters.  Created a class object cache for objects created for
+	constant tokens.
+	- In eval_arg (), when looking for a compound method expression,
+	try also without looking for a specific return type.
+	- Added tests for duplicate objects in __ctalkRegisterUserObject (),
+	which helps avoid cross linking of old objects.
+2014-04-14
+	- In cvar_object (), don't copy objects from CVAR aliases - doesn't
+	seem to be needed.  The fn might need to adjust the reference
+	count based on the scope of the object.
+	- In delete_all_objs_expr_frame (), add __objRefCntZero () calls,
+	and clear temp object attributes.
+	- In delete_object_list_internal (), check for list members
+	that had the prev link zeroed from elsewhere, and if there are,
+	then run through the list again.
+	- In method_arglist_n_args (), use a greedy match if the
+	argument list can be delimited by a comma, and we have
+	already found the method.
+	- Added CTFLAG environment variable parsing, and add to
+	command line arguments.
+2014-04-15
+	- Removed the XCopyArea () call from __x11_resize_pixmap ().
+	- Started to remove some of the extra refresh method calls from
+	the drawing primitives in X11CanvasPane class.
+2014-04-16
+	- Include <readline/readline.h> in ctalklib if available.
+	- In cvar_receiver () and resolve () check if a series of
+	<label> <label> <label> messages contains a C data type,
+	instead of going through is_c_var_declaration_msg ()
+	again.
+	- Added Symbol::basicObject method and basicobject1.c test
+	program.
+2014-04-17
+	- Added mthdrep.c, and report_method_argument_mismatch (),
+	and find first/find next instance method functions.
+	- Release 0.0.97-2014-04017.
+2014-04-21
+	- Condensed ismethd_get_instance_method_by_name (), so
+	the second loop isn't needed.
+2014-04-22
+	- Changed __ctalk_receiver_push|pop_ref|deref () to
+	just __ctalk_receiver_push|pop () in places where the
+	functions together simply fetch the receiver from
+	__ctalk_receivers.
+	- Minor changes in __objRefCntInc () and __objRefCntDec ().
+	- In __ctalkRegisterUserObject (), increased
+	MAX_USER_OBJECT_RESOURCES to 64, and call __objRefCntZero ()
+	to simply delete objects when the list is full.
+	- Removed extra __ctalk_isMethod () call from
+	is_aggregate_type ().  Added continue statment after second
+	is_aggregate_type () call.
+	- Added stack start index to __prev_tok_is_instancevar_ref ()
+	function so the fn doesn't need to look it up again.
+	- Added n_user_objs member to METHOD typedef, and use it to
+	set the limit on the list size in __ctalkRegisterUserObject ().
+2014-04-23
+	- Added classvarhash and hash_class_var () and
+	hash_remove_class_var ().  Added to __ctalkAddClassVariable ()
+	and __ctalkDefineClassVariable ().  Rewrote
+	__ctalk_find_classvar () __ctalkFindClassVariable () to look
+	up class vars in classvarhash.
+	- Reversed the scroll up/scroll down keys in X11TextPane to
+	the more conventional direction of moving the viewport, not the
+	text.
+	- Began to add the pointermotion event handlers in
+	X11PaneDispatcher and X11CanvasPane classes.  Not documented
+	yet.
+	- Added rint and round CFunction templates and rint[1-4].c and
+	round[1-4].c test programs.
+	- Added "super" lookup to __ctalk_get_object () if within an
+	argument block.
+2014-04-24
+	- Added super_argblk_expr ().
+2014-04-25
+	- Cleaned up X11Pane::subPaneNotify.
+	- Removed the __ctalk_get_object () call from
+	is_aggregate_type ().
+	- Added superclass lookup in __ctalk_find_classvar ().
+	- Small cleanups in eval_expr ().
+	- Added a register storage class to the checksum in
+	_hash_key (), other cleanups.
+	- Added a list head pointer for the buf_from_return_list ()
+	list.
+2014-04-26
+	- Updated the methods example program to list the class lib
+	search path in the help message.
+	- Added typdefshash. removed __get_rt_typedef () and use
+	only __ctalkGetTypedef ().
+	- Fixed a method, "wrong number of arguments..." warning
+	in method args so it also handles expressions in functions.
+	- Added errmsgs.c for all of the complex error message
+	handlers.
+	- Added start of compound method fixup to method_args ().
+	- If eval_arg sees an ambiguous compound method with "Any"
+	return class, scan for a token that ends the argument list
+	instead of trying to use method_arglist_limit () a.k.a,
+	this makes the match greedier.
+2014-04-27
+	- Output a method argument of class arg_rt_expr in
+	receiver_context as well as c_argument_context in
+	method_call ().
+	- Speed up looking for expression objects in for_stmt ().
+	- After outputing a for loop terminating expression, mark
+	the original messages as evaluated and output.
+	- Declare that Array::size returns an Integer.
+	- Added method return class check in complex_expr_class ().
+	- Added the tools/methods subdirectory for the methods utility.
+	Added Makefile.am rules to build a Ctalk program with the
+	file extension .ca into an executable.
+	- Fixed, for the moment at least, a bug in __ctalkSearchBuffer ()
+	where the compiler may or may not decrement a loop iterator after
+	finishing the loop.
+2014-04-28
+	-  Added method_self_arg_rt_expr (), which outputs faster library
+	code for simple "self" and "self value" expressions than calling
+	method_arg_rt_expr ();  Also added __ctalk_self_internal_value ()
+	library function.
+	- Also added method_param_arg_rt_expr () which outputs faster
+	code for simple method parameter expressions. Added the
+	__ctalk_arg_internal_value () function.
+	- Added ctalklib_path () to find ctalklib in any directory
+	named by a -I option, as well as $CLASSLIBDIR.
+	- Moved get_clib_template_file () from the library to include.c
+	and search the paths named by the -I command line options also.
+2014-04-29
+	- Moved tools/ build tools to build/ subdirectory so we can use
+	the tools/ subdirectory for Ctalk language utilities only.
+	- Added calls to __delete_last_method_return_resource_cvar ()
+	at all exits to __ctalkSaveCVARResource ().
+	- In rt_self_expr (), use __ctalk_self_internal () for an
+	expression with, "self," alone.
+2014-04-30
+	- Added attrs member to OBJECT typedef, and the OBJECT_IS_VALUE_VAR
+	attribute.  Set in __ctalkCreateObjectInit () and read, so far,
+	in places in ismethd.c.  This avoids having to str_eq for the
+	name of the "value" variable all the time - just checking the
+	first instance variable for an object's value class isn't valid for
+	collection objects like	Lists.
+2014-05-01
+	- Updated methods.ca and added methods.1 man page.
+	- Removed the value variables from __ctalk_define_class (),
+	where they're not needed.
+	- Added __ctalk_get_object_2 (), for a quicker lookup when
+	looking for arguments to a "new" method.
+2014-05-02
+	- In rt_obj_arg, use __ctalk_arg_internal (n) for arguments
+	to the method being compiled that are used as single-token
+	C function arguments.
+	- Moved srcbuf stuff in new_instance_method () so it only
+	gets used when actually compiling a new method.
+	- Check for "self" alone in rt_obj_arg (), and output
+	__ctalk_self_internal () for it.
+2014-05-03
+	- Check for value instance variables in __ctalkRegisterUserObject (),
+	and register the parent object instead to avoid cross linking.
+	- Added is_single_token_method_param (), and simple_param_accessor (),
+	to access method parameters with __ctalk_arg_internal (), instead
+	of calling __ctalkEvalExpr ().
+	- Super within an argument block looks up the call stack - so it's
+	always the "self" of the enclosing method.  If the argument block
+	is within a function, then super refers to the reciever of the
+	method that iterates over the block.  Added argblk_super_expr (),
+	__ctalkIsArgBlkScope (), and argblk_rcvr_object () functions.
+	Addition check in __ctalk_get_object () whether super's target
+	appears within a method or a function.  Added argblk[9-11].c test
+	programs.
+2014-05-04
+	- Added a temporary save buffer to rt_self_expr (), in case
+	the function needs to parse a new method.
+	- Updated ANSITextBoxPane and ANSIButtonPane classes, including
+	re-ordering the methods - order still matters, in cases where
+	the parser needs to fetch a method from a prototype.
+2014-05-05
+	- Changed method_proto_is_output () to use only the new
+	method selectors, and moved it up higher in
+	new_instance_method ().  Added to new_class_method ().
+	- Added __fileout_import (), in order to possibly re-sequence
+	imported methods from the library and from prototypes without
+	needing to worry about interfering with the tempio buffering.
+	- Added superclass variable lookup to
+	self_class_or_instance_variable_lookahead ().
+	- In eval_expr (), a message with an object created from a
+	CVAR has the attribute TOK_OBJ_IS_CREATED_PARAM|TOK_IS_DECLARED_C_VAR.
+	Check for this in places like __expr_receiver_backtrack ().
+2014-05-06
+	- Updates to ANSITextBoxPane class.
+	- Added ansitextboxpane.c test program in test/expect/examples.
+	- Added check to fn_param_declarations for an empty parameter
+	list:  "(<space>*)"
+2014-05-08
+	- Added cvartab.c and functions to collect cvar tab entries and
+	initialization statements. Added cvar global alias output to
+	unbuffer_argblk (), added cvar alias init and aliases to buffered
+	method type and fns to save the cvartab init statemets.  Output
+	init in method init blocks in unbuffer_method_statements (), and
+	check for CVARs in argument blocks in resolve (), and argument
+	block statements beginning with, "self."
+	- Added cvartab functions to handle argument blocks in C
+	functions.
+	- Added "else" keyword check in object_context ().
+	- Updated lclock.c example program to hide the cursor between
+	draws (mostly) and to flash the colons.
+	- Cleaned up the code int X11PaneDispatcher : handleSubPaneEvent.
+	- In __ctalk_method_from_object (), silently ignore a reference
+	to a superclass method that is not a replacement for the method
+	object's method.  Still trying this out.
+	- Use __objRefCntInc () directly in __ctalk_receiver_push_ref ().
+	- Added __obj_ref_cnt_store () to set object reference counts,
+	and only calculate the new reference count once in __objRefCntInc ()
+	and __objRefCntDec () before calling __obj_ref_cnt_store ().
+2014-05-10
+	- Release 0.0.97 2014-05-10
+2104-05-11
+	- Updated dup_message () in libctpp/message.c to resize messages
+	contents with strdup () when the length of the contents > MAXLABEL.
+2014-05-12
+	- Added guixpm.c with __ctalkX11XPMFromData () library function,
+	and functions in x11lib.c to draw the pixmap.  Added method,
+	X11Bitmap : pixmapFromData, which works when overloaded, but
+	apps should still be careful with the run-time argument
+	overloading machine.
+	- In cvar_object, a char ** gets objectified as a Symbol. The
+	object gets the attribute OBJECT_VALUE_IS_C_CHAR_PTR_PTR. Check
+	for the attribute in __ctalk_to_c_ptr ().
+	- Added ctxlogo.ca in the tools/ subdirectory, and added
+	installation to top-level Makefile.am.
+	- Added check for, "continue," keyword in argument blocks.
+	Added argblk12.c and argblk13.c to test it.
+2014-05-16
+	- Added required_args argument to __ctalk*MethodInitReturnClass ().
+2014-05-17
+	- Added __rt_method_arglist_n_args () to calculate the number
+	of method arguments declared in an expression, for the first
+	method in an expression.  Called from eval_expr ().  Check
+	the number of arguments further down in eval_expr ().
+	Added a warning message and small backtrack in eval_expr () so
+	the expression can try to get evaluated instead of
+	just returning.
+	- Release 0.0.97 2014-05-17
+	- Rewrote __ctalkInstanceMethodInitReturnClass () to use
+	a method's selector to look up a method.
+2014-05-18
+	- Added another arg count fixup to eval_expr (), after a
+	call to __is_instvar_of_method_return ().
+2104-05-19
+	- Added __is_sign () function for lexical () to check
+	the preceding token to decide whether a + or - is a
+	non-terminal token or part of the following number as
+	a terminal token.
+	- Updated ANSIWidgetPane and ANISTextEntryPane.
+	- Swapped some of the up/down scroll keys in X11TextPane again.
+	- Cleaned up the code in lexical ().
+	- In libctpp/lex.c, added the _MPUT2CHAR() and _MPUT3CHAR () macros.
+	Cleaned up op_follows_noeval () call, and added other checks
+	from lib/lex.c.
+	- Added the ANSITerminalPane : terminalWidth and
+	ANSITerminalPane : terminalHeight methods, and the
+	__ctalkTerminalWidth () and __ctalkTerminalHeight () library
+	functions.
+2014-05-20
+	- Added build directory scripts to set the cache permissions
+	after building classes and tools.  Updated configure.ac and
+	Makefile.am
+	- Updates to __rt_method_args ().
+2014-05-21
+	- Removed a warning from __ctalk_to_c_ptr (), and adjusted
+	the variable sizes to avoid truncations.
+	- Added the cmdLineArgs instance variable in Application
+	class and the parseArgs instance method.
+	- Added PointerMotionmask to the X servers event mask.
+	- Added the defineRegion instance method to X11CanvasPane class.
+	- Updates to for_predicates () to make sure that the function
+	stores the token indexes for each clause, and added a warning
+	message.
+	- Added the __ctalkX11ParseGeometry () library function and
+	the Application : parseX11Geometry instance method, and
+	the Application instance variables winXOrg, winYOrg,
+	winWidth, winHeight, and geomFlags.
+	- Added subscript cvar registration in rt_self_expr ().
+	- Check for a subscript alias in __fmt_c_method_arg_call ().
+	- If possible, use the receiver's value instance variable
+	in Array : map.
+	- Added margexprs26.c test program.
+2014-05-22
+	- Added window geometry option to ctxlogo.ca, and the
+	program now parses the arguments using a Ctalk method.
+2014-05-23
+	- Added several cases to argblk_super_expr (), to handle
+	super as C expression arguments.  Added super1.c test program.
+2014-05-24
+	- Added __ctalkX11SetSizeHints (), __ctalkX11GetSizeHints (),
+	__ctalkX11FreeSizeHints (), and an overloaded
+	X11Pane : initialize method that takes as an argument the
+	geometry flags set by Application : parseX11Geometry.
+	__ctalkCreateX11MainWindow () allows the window manager to
+	set the window's position unless it is given expressly as
+	an argument.  Added yet another form of initialize that uses
+	only the window's width and height as arguments, and leaves
+	the window positioning to the window manager.
+2014-05-25
+	- Added params required argument to __ctalk_arg ().
+	- Changed Boolean typedef to bool.
+	- Added || and && methods to Boolean class.
+	- Added the CTime : isAM method.
+2014-05-26
+	- Added localtime.c for localtime*() C library functions.
+	Added __ctalkLocalTime () library function.
+2014-06-03
+	- Reverted method_param_arg_rt_expr () call, which causes
+	a serious memory leak, to method_arg_rt_expr () in
+	resolve ().
+	- Added the current parser level to ARGBLK typedef and
+	the current_parser_level () function in parser.c.  Set the
+	argblk parser level in create_argblk (), and check it
+	in argblk_end () along with the argblk's stack end_idx.
+2014-06-04
+	- Moved arg_is_constant () out of the eval loop in eval_arg (),
+	and added have_constant_arg (t/f).
+	- In register_c_var (), look for subscript expressions where
+	members are structs and the terminal token is a struct member;
+	e.g., a[n].mbr, or a[n] -> mbr.
+2014-06-05
+	- In validate_type_declarations, check for an array of structs
+	declaration.
+	- In is_aggregate_type (rt_expr.c), do the run time check for
+	an array of structs or struct *'s; e.g., a[n].mbr, or
+	a[n] -> mbr.
+2014-06-06
+	- Added error location message to register_c_var () in method.c.
+	- In resolve (), make sure the method message is a label before
+	creating a "<n> follows a numeric constant receiver." exception.
+	- In get_method_arg_cvars () (rt_cvar.c), also check the terminal
+	token of a complex aggregate type.
+	- Added attrs parameter to __ctalk_register_c_method_arg (),
+	and set for CVAR_ATTR_STRUCT_MBR in the compiler, and checked
+	in get_method_arg_cvars () in the run time.  Fixed
+	find_struct_members () in cparse.c to set the
+	CVAR_ATTR_STRUCT_MBR attribute for each CVAR in a struct member
+	declaration with multiple tags.
+	- Added margexprs27.c test program.
+	- Minor change in register_c_var () to not confuse labels
+	within subscripts with labels that are struct members in
+	the same variable; e.g.,
+	<struct_tag_label>[<subscript_label>].<struct_member_label>
+	- Added margexprs28.c test program.
+	- Changed the top-level Makefile to set the user's cache
+	permissions immediately after preloading the methods.
+2014-06-07
+	- Release 0.0.97 2014-06-07.
+	- In cleanup_reffed_object (), don't decrement a global
+	object's reference count to less than 1.  Also check for
+	CREATED_PARAM scope specifically and delete those objects.
+	- Included updates from ctpp 1.0.72.
+2014-06-08
+	- Rewrote ObjectInspector : formatObject to use, "super."
+2014-06-09
+	- Updated validate type declarations to recognize 1 or
+	more subscripts.
+	- Added margexprs29.c test program.
+2014-06-10
+	- Updated register_c_variable () to prevent re-parsing of
+	subscript expressions.
+	- Updated subscr_expr () for simple arrays.
+	- Added margexprs30.c test program.
+	- Added subscr_expr_struct () for simple arrays of structs,
+	and rewrote cvar_register_output () so it can call
+	subscr_expr_struct ().
+2014-06-11
+	- Added SUBSCRIPT typedef and subscripts[] stack in
+	subscr.c.  Fill in in register_c_variable ().
+	- Added margexprs31.c example program.
+	- Added a fixup for a cross-linked saved method resource
+	in _cleanup_temporary_objects ().
+	- Removed extra calls to __objRefCntZero () in
+	__call_delete_object_internal ().
+	- Check for objects with ARG_VAR scope in
+	cleanup_reffed_object ().
+2014-06-12
+	- Updated subscript_expr () to handle multiple subscripts.
+	- Updated cvar_object () to check for a CVAR_ATTR_ARRAY_DECL
+	attribute to decide whether to use an array pointer or the
+	int value.
+	- Added margexprs32.c test program.
+	- Updated subscript_expr_struct () to handle multiple subscripts.
+	- Added margexprs33.c test program.
+2014-06-14
+	- Added undefined_arg_label_first_label_warning in errmsgs.c.
+	- In subscript_expr_struct (), copy all tokens up to the first
+	OPENBLOCK token before doing the subscript substitutions.
+	- Added margexprs34.c test program.
+2014-06-15
+	- Added block_start_idx and block_end_idx to SUBSCRIPT
+	typedef.
+	- Rewrote IS_CVAR() macro to check for NULL.
+	- Added is_struct_or_union () and get_struct_defn ()
+	factored out from register_c_var ().
+	- In subsript_expr_struct (), collect all tokens before
+	the first opening block before doing anything else. If there
+	is more than one subscript, and they are not contiguous, then
+	collect the tokens between the subscripts also.
+	- Added margexprs35.c test program.
+	- Factored out register_struct_terminal () from register_c_var (),
+	and moved it to subscr.c.  Moved cvar_register_output () to
+	subscr.c.
+	- Call register_struct_terminal () recursively if the terminal
+	token refers to another struct.
+	- Added margexprs36.c and margexprs37.c test programs.
+	- In __ctalkCreateMainWindow () set wm_hints.input to
+	True for window managers that use it.
+	- Added X11Pane : setResources method and
+	__ctalkX11SetResource () library function.
+	- In build/preload.sh, use the cache directory determined
+	during configuration, instead deriving it from whatever
+	$HOME directory is current during installation.
+	- Updated the build and documentation in the programs
+	subdirectory.
+2014-06-17
+	- Release 0.0.97 2014-06-17.
+2014-06-19
+	- In method_args (), clear subscript_object_expr somewhere after
+	some of the calls to eval_arg (), after preventing a redundant
+	__ctalk_arg () call in the output, and at the end of method_args ()
+	if necessary.
+	- In subscript_expr () and subscript_expr_struct (), calculate
+	the effective dereference levels the same as in
+	__fmt_c_method_arg_call ().
+	- Clear the memory buffer in guixpm.c on each call, and check
+	the success of the read in __xlib_xpm_from_data ().
+	- Added the borderWidth instance variable to X11Pane class,
+	retrieved in __ctalkCreateX11MainWindow ().
+2014-06-20
+	- __ctalkANSITerminalPanePutChar () writes the character
+	to the screen using the current graphics mode, as well as
+	to the pane buffer.
+	- In find_first_instance_method (), match the method using
+	only the name, not the entire selector.
+	- In lexical (), treat a '"' sequence the same as a '\"' sequence;
+	i.e., don't register the double quote as a string delimiter and
+	generate a bunch of spurious warnings.
+	- In lexical (), scan past comments when checking for mismatched
+	quotes if we're lexing an unpreprocessed file.  Added
+	find_c_comment_close () and find_cpp_comment_close ().
+2014-06-21
+	- Tokenize an entire C comment and save it in one message, then
+	skip past it.  If needed, resize them message to hold the entire
+	comment.
+	- In __ctalk_arg (), don't set an ARG_VAR's value if the
+	arg was create from a String LITERAL token, and eval_expr ()
+	has already trimmed the quotes from the token when creating
+	the object.
+2014-06-22
+	- Store the number of arguments declared in an expression in the
+	method message.  Added the attr_data member to the MESSAGE typedef,
+	and the DATA_IS_NR_ARGS_DECLARED message attribute.
+	- super_argblk_expr () now basically handles expressions that
+	contain instance variables.
+	- In *_cvar_tab_init_stmt (), add an explicit cast for
+	char *, char ** etc objects to prevent warnings.
+	- Minor changes for using, "super," in an argument block alone
+	as a function argument.
+	- Added register_argblk_c_vars_1 () in complexmethd.c, called
+	by super_argblk_expr ().
+2014-06-23
+	- Cleanups in ANSITextBoxPane : refresh.
+	- Added check for TOK_VALUE_OBJ_IS_RECEIVER in
+	__expr_receiver_backtrack (), in rt_expr.c, to check for
+	created parameters that are, for example, created from constant
+	tokens to the left of methods.
+	- Added ctrlblk_pred_rt_expr () call in super_argblk_expr (),
+	and updated the function pass code to match the method pass
+	code as much as possible.
+	- Fill in super handlers for argument blocks in C functions
+	for super appearing in a C context.
+2014-06-24
+	- Added C argument context handler for super in an argument
+	block within a C function.  Added test programs
+	argblk[14-16].c
+2014-06-25
+	- Added ANSILabelPane and ANSIListBoxPane classes.
+	- Call register_argblk_c_vars_1 () from ctrlblk_pred_rt_expr ()
+	for any if, while, or switch statement that occurs within an
+	argument block.
+2014-06-26
+	- Minor fixups in eval_expr () to set the number of arguments
+	required for <method> <instancevar> and <method> <method>
+	expressions.
+	- Release 0.0.97 2014-06-26
+2014-06-27
+	- Added XCheckTypedWindowEvent () to a few of the event
+	handlers in __ctalkX11InputClient ().
+	- Updated the ConfigureNotify handler in __ctalkX11InputClient ()
+	to handle possible move/resize or resize-alone events,
+	compatilbility with some window managers.
+	Made event_to_client () function for when the handler
+	needs to do a socket write more conveniently.
+	- Added buttonpress check in __ctalkX11InputClient ().
+	- Updated top-level Makefile.am to always use the cache
+	directory in the home directory of the user that ran the
+	configure script.  Also updated tools/ctxlogo/Makefile
+	and tools/methods/Makefile to install to configure's
+	$BINDIR.
+2014-06-28
+	- Trimmed extra code out of __refObj ().
+2014-06-29
+	- When exiting from a quoted char constant in lexical (), make
+	sure we don't have an escape char (i.e., '\') registered.
+	- Check for stdbool.h in the configure script and use that to
+	define the bool type if it's available.
+	- Some cleanups in lexical ().
+2014-06-30
+	- Yet another fixup in eval_expr () for number of args declared
+	if the token after a method is unevaluated and needs to be a
+	created parameter - in which case, for now at least, the
+	fn should look for a method with ANY_ARGS.
+	- When copying a new object's value in
+	__ctalk_copy_object_internal_from_parent (), also copy the
+	attributes.
+2014-07-01
+	- Moved method wrong number of arguments warning from
+	eval_expr () to method_wrong_number_of_arguments_warning ()
+	in rt_error.c, and added a call to __warning_trace ().
+	Also added method_wrong_number_of_arguments_prefix_error ()
+	in rt_error.c.
+	- Added method_is_postfix_of_cvar () in pattypes.c, to check
+	for a fixup for a CVAR receiver in eval_expr ().
+2014-07-02
+	- Added ANSIScrollPane class.
+2014-07-03
+	- Issuing a self within a constructor warning no longer
+	requires the verbose command line option.
+	- In pass_error_line () (error.c), subtract 1 from the
+	method start line, because the parser already numbers the
+	method's first line as 1 during the method pass.
+	- Added is_new_method_name () in method.c.
+	- Fix in lexical () to recognize a period followed by a
+	digit as a number.
+	- In is_c_var_declaration_msg (), don't try to parse
+	a message that has been evaled and output.
+	- Fixed is_printf_fmt () and __call_printon_fn_w_args ()
+	to handle an escaped percent sign ("%%").
+2014-07-04
+	- Added ANSIProgressBarPane class.
+	- Added scrollbar.c and progressbar.c test programs in
+	test/expect/examples, and run-progbar.c and run-sbar.c
+	test programs in test/expect.
+	- Added X11CanvasPane : refreshReframe, which adjusts
+	the pane within the view.  X11CanvasPane : refresh simply
+	redraws the pane with the coordinates given to attachTo.
+	Overloaded X11CanvasPane : attachTo to take three arguments,
+	including the x and y positions of the pane within the
+	window; and five arguments, to set the x and y position
+	within the window, and the width and height of the pane.
+	- Fixed minor bug in Rectangle : dimension.
+	- Added X11Cursor : scrollArrow method, and library code
+	in __ctalkX11FontCursor ().
+2014-07-05
+	- Added get_instance_variable_series (), called by resolve ().
+	- In method_call (), use complex_expr_class () for all
+	c_context and c_argument_context translations.
+	- Added fn_param10.c test program.
+2014-07-06
+	- Added get_self_instance_variable_series () in object.c, and
+	expr_contains_method_msg () in rt_expr.c.  In rt_self_expr (),
+	check for an instance variable expression that is a printf
+	argument and use complex_expr_class () to determine the C
+	translation separately from the rest of the translation loop.
+	- Added fn_param11.c test program.
+	- Added an arg check in method_wrong_number_of_arguments_prefix_error()
+	in rt_error.c.
+2014-07-08
+	- Release 2014-07-08.
+2014-07-10
+	- Changed the name of the method.local_object_ptr variable to
+	method.nth_local_ptr. Updated M_LOCAL_VAR_LIST and M_LOCAL_OBJ_LIST
+	macros.
+2014-07-11
+	- Fixed delete_extra_local_objects () to check the currently
+	exiting expression parser for the result of an expression.
+2104-07-12
+	- Updated xhello.c example program to print "xPane fontVar fontDesc,"
+	instead of "xPane font fontDesc."
+	- In __ctalkDeleteObjectInternal (), changed the number of
+	cleanup deletion levels from MAXARGS to MAX_CLEANUP_LEVELS,
+	and added a message if the limit is exceeded.
+	- Added --without-circular-object-reference-warnings to configure,
+	and updated rt_obj.c.
+	- Added last_varentry () inline function to find the last
+	VARENTRY of a var list.
+	- Code cleanup in __ctalk_initLocalObjects ().
+2014-07-13
+	- Added math_op_does_not_understand_error () for a more
+	understandable error message in __rt_math_op ().
+	- Added the Boolean : = method.
+	- Code cleanup in c_param_expr_arg ().
+	- Added get_param_instance_variable_series_class (),
+	called from c_param_expr_arg ().
+2014-07-14
+	- In rt_self_expr (), output C variable registration
+	functions at the start of the frame.
+2014-07-15
+	- In object.c, added get_method_param_obj (), called from
+	eval_arg ().  Added a warning in eval_arg () if the next
+	label after the first token in an argument isn't defined,
+	except within argument blocks, which still need to be deferred
+	until run time.  Also skip over METHOD_ARG_TERM_MSG_TYPE
+	tokens.
+	- Added new_method_param_newline_count () and param_newline_count ()
+	in primitives.c.  Added n_param_newlines member to NEW_METHOD
+	typedef.  In parse (), adjust the line number to compensate for
+	the number of newlines in the source parameter list at the start
+	of the method body.
+2014-07-16
+	- Added cvar_alias_min_refcount_check () in rt_args.c, to check
+	whether a CVAR's reference count can or needs to be further
+	decremented after returning from a method call. Added cvararg1.c
+	test program.
+2014-07-17
+	- In find_expression_limit (), check for a printf format
+	argument (with the attribute TOK_IS_PRINTF_ARG set in the
+	first message of the expression) when checking whether the
+	expression is a function argument.
+2014-07-18
+	- Check for a single-token LABEL expression after the first
+	loop in eval_expr (), and just return that, skipping the
+	second loop and cleanup completely.
+	- Added __rcvr_ref_cnt_store () in rt_rcvr.c and
+	__arg_ref_cnt_store () in rt_args.c for tighter integration
+	with the push/pop functions that use them, and to make it
+	easier to profile other reference count operations.
+2014-07-19
+	- Added GC to __C_type_conv[] table in src/objtoc.c.
+	- In ctxlogo.ca, use X11CanvasPane : refreshReframe to refresh
+	the window.
+	- In get_self_instance_variable_series (), use
+	instantiate_self_object () to create an actual "self"
+	object.  Make sure that the first instance variable
+	message has its receiver_msg and receiver_obj members
+	set to it.
+	- In rt_self_expr (), fixed complex_expr_class () call
+	for an instance variable series as a printf argument to
+	point to the "self" message.
+	- Updated generic instance var clause in complex_expr_class ()
+	for new instance variable series token linkages.
+2014-07-20
+	- Added is_superclass_method_proto () label lookup in
+	rt_self_expr ().
+	- Use get_instance_variable () in get_self_instance_variable_series (),
+	which checks for variables in superclasses.
+2104-07-21
+	- Added self_instvar_series_internal () to rt_self_expr ()
+	to check instance variables within expressions.
+	- Added warning to require_class if the class named in
+	the operand isn't found.
+	- In rt_self_expr (), added is_expr_method () call to handle
+	method messages separately from instance variable messages.
+	- Look up class variables in get_self_instance_variable_series (),
+	and use get_instance_variable and get_class_variable (), which
+	looks for variables in superclasses, in	get_instance_variable_series ()
+	also.
+2014-07-23
+	- ANSIScrollingListBoxPane class.
+	- Updated ANSIScrollBar class so the thumb drawing area is
+	always within the scroll bar viewable area.
+2014-07-24
+	- Added ansilistbox.c test program.
+	- Added X11ScrollBarPane class and scrollbar.c example
+	program.
+	- In subscript_expr (), check for a char expr[] subscript when
+	registering a char * C variable and adjust the register_c_var
+	library	call.
+2014-07-25
+	- Release 0.0.97 2014-07-25.
+2014-07-28
+	- Updated Object : isNullValue to check the "value" instance
+	variable also.
+2014-07-29
+	- Added check in rt_self_expr () for labels that don't use
+	self as the receiver.  Added functions is_aggregate_member (),
+	is_instancevar_of_param (), tok_follows_method_message_label (),
+	get_new_method_param_instance_variable_series (),
+	and save_param_as_method_object ().
+	- Added exception trace printing to
+	__ctalkUndefinedMethodReferenceException ().
+	- Added arglist_syntax_error_msg () in errmsgs.c, called from
+	method_args ().
+2014-07-30
+	- Updated is_argblk_expr2 () to recognize both LABEL and
+	METHODMSGLABEL tokens in an expression that execs an
+	argument block.
+	- In eval_arg () check for a <class_object> <class_variable>
+	label sequence.
+2014-07-31
+	- Updated SignalEventClass to use the standard List class
+	methods, and also updated __ctalkNewSignalEventInternal ()
+	to create a List class compatible event object.
+	- Added method_args_wrong_number_of_arguments_2 () which
+	prints the bad argument expression as well as the warning
+	message.
+2014-08-01
+	- In eval_keyword_expr (), added check for eval statement in a
+	control block, and wrap expression in a __ctalkToCInteger ()
+	call if the expression is preceded by a unary operator or an
+	opening parenthesis.
+	- In method_args (), check for an argument that shadows a
+	C function or variable if the method's receiver object is a
+	class object; i.e., the	method is a primitive method.
+	- In resolve (), check for an object label that shadows a C
+	symbol before processing as a C expression.
+2014-08-02
+	- Added check_expr_c_vars () in rt_expr.c, to replace the
+	CVAR code in rt_self_expr ().  Also added in eval_keyword_expr ().
+	- Added fmt_register_argblk_c_vars_1 () to be called from
+	eval_keyword_expr ().
+	- Fixed List : size to give a result counting from 1 if the
+	list is not empty.  Added list1.c and list2.c test programs.
+2014-08-03
+	- Added argument_context handler to eval_keyword_expr ().
+2014-08-06
+	- Simplified, fixed, and updated ANSIScrollPane, ANSIListBoxPane,
+	and ANSIScrollingListBoxPane.
+2014-08-07
+	- Added another argument_context handler to rt_self_expr () and
+	use_new_c_rval_semantics_b () in rexpr.c to handle translations
+	to C lvalues.
+	- Added argument_context_handler with use_new_rval_semantics_b ()
+	and register_argblk_c_vars_1 ()	to argblk_super_expr ().  Added
+	argblk17.c test program.
+2014-08-08
+	- Added check for argument block cvar aliases in object_context ().
+	- Added lval_idx_from_arg_start () in rexpr.c to return the
+	stack index of an lvalue when evaluating its argument.
+	- Added c_argument_context handler for cvar lvalues in
+	argblk_super_expr ().
+	- Updated IS_LIST () macro and added some null pointer checking
+	in generate_init () in fninit.c.
+2014-08-10
+	- Removed unlink_global_cvar () calls from new_object () and
+	method_param (), added get_global_var_not_shadowed () to handler
+	objects and parameters shadowing global C variables in resolve ()
+	ctrlblk_pred_rt_expr (), fmt_default_ctrlblk_expr (), rt_expr (),
+	rt_obj_arg (), so far.
+2014-08-11
+	- In ctrlblk_pred_rt_expr (), use fmt_default_ctrlblk_expr ()
+	for predicates containing instance variable expressions also.
+	- Added check for local objects in get_global_var_not_shadowed ()
+	and added calls in register_c_receiver_var () and register_c_var ()
+	in method.c.
+2014-08-14
+	- Updated ARGBLK typedef so each argument block has its own
+	buffer.  Minor changes in argblk.c and rt_argblk.c to support
+	nested argument	blocks.  Added argblk[18-20].c test programs.
+	- Made List : push and List : pushItemRef, and List : pop and
+	List : popItemRef the same methods.
+2014-08-15
+	- Many changes in the run-time library to support objects that
+	are not declared anywhere but are only referenced by another object.
+2014-08-17
+	- Updates to List class to make the methods push work like
+	pushItemRef and pop work like popItemRef.  Updates also to shift
+	and unshift.  Added the Key : listItem method.
+2014-08-18
+	- In __copy_object_internal (), set the reference count of the
+	top-level target object from the top-level source object directly.
+	Minor update in _cleanup_temporary_objects () in rttmpobj.c  and
+	__become_this_object () and __ctalkCallingInstanceVarBecome ()
+	in become.c to perform an extra reference count decrement.
+	- Updated Method : withArgs to use push instead of pushItemRef.
+2014-08-19
+	- Updated Collection and AssociativeArray classes to use
+	a reference to the content's object directly.  Updates to
+	test programs, mostly changing map to the mapKey method.
+	- In __ctalkToCCharPtr () (objtoc.c), if the argument is NULL,
+	return an empty string, to help prevent C library functions
+	from segfaulting immediately.
+	- Updated Array : atPut and Array : at, so that Array class still
+	uses the old method of storing and retrieving collection objects.
+2014-08-20
+	- In eval_expr (), add an OBJ_IS_INSTANCE_VAR attribute to
+	instance variable messages that have a created instancevar
+	object, and add CREATED_PARAM to the object's scope.
+	- In fixup_forward_receiver_obj (), add case to call
+	__objRefCntZero () before calling delete_all_objs_expr_frame ()
+	for in instance variable message that immediately follows a
+	method message. in rt_expr.c. Also check for VAR_REF_OBJECT
+	scope when deleting objects that also have a CREATED_PARAM
+	scope.
+	- Added another terminal instance variable test in
+	expr_result_object () in rt_expr.c.
+2014-08-20
+	- Minor changes to __ctalkNewSignalEventInternal in event.c.
+2014-08-21
+	- Added op_is_prefix_op () in pattypes.c, called from eval_expr ().
+	- Updated cvarrcvr2.c test program to provide better test results.
+2014-08-22
+	- Release 2014-08-22.
+2014-08-24
+	- Added xftlib.c and --with-libxft configure option.
+2014-08-25
+	- Added ctpp sources with UINTEGER and ULONG tokens and unsigned
+	math updates.
+2014-08-26
+	- In enum_decl () (enum.c), added states for line markers in
+	the enum body.
+	- In typedef_var (), don't simply return if no already existing
+	type is given.
+	- Check for incomplete typedef labels in add_function () (cvars.c).
+	- At the end of resolve_incomplete_types () (cvars.c), add any
+	still-unresolved typedefs to the declared_global_variables hash
+	so the compiler can still find them quickly.
+2014-08-27
+	- In if_stmt () (control.c) make sure that any non-whitespace
+	character can begin the code block after the predicate.
+2014-08-28
+	- Moved List : isEmtpy and List : size to Collection.  Also
+	moved AssociativeArray : keyExists to Collection.  Added
+	keyexists1.c test program.
+	- Added Collection : removeAt and assocdel1.c test program.
+2014-08-30
+	- Added METHOD_USER_OBJECT scope to objects saved with
+	__ctalkRegisterExtraObject () (rt_obj.c).
+	- In Collection : atPut, save objects that don't have either
+	GLOBAL_VAR or LOCAL_VAR scope with __ctalkRegisterExtraObject ().
+	- Added assocdel[2-3].c test programs.
+	- Added find_self_unary_expr_limits () (pattypes.c), and check
+	for prefix operators if self is a printf argument.
+2014-08-31
+	- Check for a prefix operator at the beginning of resolve ()
+	(resolve.c).
+	- In need_rt_eval () (rexpr.c), make sure we look for all of
+	the C unary operators before, "self."
+	- Updated prefix_method_attr () (resolve.c) to return a value.
+2014-08-31
+	- In fixup_forward_receiver_obj () (lib/rt_expr.c), if the
+	message following a method is an instance or class variable
+	that has the same name as another method, fix up the tokentype
+	and attributes of the instance/class variable message.
+2014-09-01
+	- Added find_leading_tok_idx () and open_paren_is_arglist_start ()
+	(pattypes.c), called from rt_self_expr (), so far.
+	- Updated prefix_method_expr_a () to collect complex expressions
+	using fmt_rt_epxr (), and check for leading tokens with
+	find_leading_tok_idx ().  Update to expr_contains_method_msg ()
+	to ignore method arglist delimiters.
+2014-09-02
+	- Release 2014-09-02.
+2014-09-28
+	- Added the Symbol : removeValue method.
+2014-10-05
+	- Fixed bugs in ANSIProgressBarPane.
+	- Changed version number to 0.55.
+	- Added more portable version if inst_group.sh in build
+	subdirectory.
+	- Updated ctalklib.in and caps.sh to make readline.h and Xlib.h
+	inclusion more reliable.
+2014-10-10
+	- Release 0.55 2014-10-10.
+2014-10-13
+	- OS X compatibility fixes.
+2014-10-14
+	- Updated Magnitude : asSymbol to increase the target object's
+	reference count by one.
+2014-10-15
+	- Added Object : incReferenceCount and Object : decReferenceCount
+	methods.
+2014-10-16
+	- Added removevalue1.c test program.
+2014-10-18
+`	- Added prefix[22-23].c test programs.
+2014-10-19
+	- Added prefix[24-32].c test programs.
+2014-10-21
+	- Added Collection : head method.
+2014-10-22
+	- Release 0.55 2014-10-22.
+2014-10-24
+	- Removed Symbol : name, which is redundant with Object : name.
+	- Added Object : hasPointerContext method.
+2014-10-25
+	- Updated Symbol : = and added Symbol : getValue.
+2014-10-28
+	- Updated inspect1.c test program.
+2014-10-29
+	- Updated prefix13.c test program.
+2014-10-30
+	- Updated symderef3.c test program.
+2014-10-31
+	- Updated deref1.c test program.
+	- Updated getvalue1.c test program.
+	- Updated sgetval1.c test program.
+2014-11-01
+	- Updated prefix12.c test program.
+	- Updated symderef1.c and symderef2.c test programs.
+	- Added prefixsym.c example program and run-prefixsym.c test
+	program.
+	- Added build/check_path.sh.
+2014-11-02
+	- Updated Integer : =.
+	- Typo fixes and updates in ANSIScrollingListBoxPane,
+	ANSIScrollPane, ANSILabelPane, and ANSIButtonPane classes.
+2014-11-03
+	- Updated cvarrcvr1.c test program.
+2014-11-04
+	- Release 0.0.55 2014-11-04.
+2014-11-05
+	- Added X11FreeTypeFont class.
+	- __ctalkQualifyXftFontName () library function and
+	X11FreeTypeFont : qualiftyName method.
+2014-11-06
+	- Added __ctalkXftInitLib () library function and
+	X11FreeTypeFont : initFontLib method.
+	- Added __ctalkXftInitialized () library function.
+	- Added __ctalkXftListFontsFirst (), __ctalkXftListFontsNext (),
+	and __ctalkXftListFontsEnd () library functions.
+	- Added X11FreeTypeFont : listFonts method.
+2014-11-07
+	- Added __ctalkXftSelectedFontDescriptor () and X11FreeTypeFont :
+	selectedFont method.
+	- Added xfthello.c demonstration program.
+2014-11-08
+	- Added __ctalkXftGetStringDimensions () and X11FreeTypeFont :
+	textWidth and X11FreeTypeFont : textHeight methods.
+	- Updated x11textpane.c example program to optionally
+	use the Xft library.
+	- Added __ctalkXftSelectFont () and X11FreeTypeFont : selectFont
+	methods.
+	- Added X11FreeTypeFont : saveSelectedFont and
+	__ctalkXftSelectedFamily (), __ctalkXftSelectedSlant (),
+	__ctalkXftSelectedWeight (), __ctalkXftSelectedDPI (),
+	and __ctalkXftSelectedPointSize () functions.
+2014-11-10
+	- Added X11FreeTypeFont : RGBAColor method.
+2014-11-14
+	- Updated String : + to change a non-string argument to a String
+	using Object : asString.
+2014-11-16
+	- Added Object : basicNew method.
+2014-11-19
+	- Updated xspiro.c demonstration program.
+2014-11-20
+	- Updated X11CanvasPane : subPaneResize method.
+	- Added TreeNode class.
+	- Added classcast1.c test program.
+2104-11-22
+	- Added classcast2.c test program.
+2014-11-24
+	- Added classcast3.c test program.
+	- Added TreeNode : format method.
+2014-11-26
+	- Added List : map with two arguments.
+2014-11-28
+	- Updated classcast2.c test program.
+	- Added List : map with two arguments.
+	- Added TreeNode : format.
+2014-11-30
+	- Updated TreeNode : map.
+2014-12-01
+	- Added examples/tree1.c and examples/tree2.c example programs,
+	and run-tree1.c and run-tree2.c test programs.
+2014-12-02
+	- Added TreeNode : print method.
+	- Added String : += method.
+2014-12-03
+	- Added ctpp 1.0.74 updates.
+2014-12-05
+	- Release 0.0.55 2014-12-05.
+2014-12-10
+	- Added --without-language-tools option to ./configure.
+2014-12-11
+	- Added the __ctalkXftSelectedFontPathFirst (),
+	__ctalkXftSelectedFontPathNext (),
+	and __ctalkXftSelectedFontPath () library functions.
+	- Added X11Pane : putTransformedStrXY method.
+	- Added Object : asFloat method.
+2014-12-24
+	Release 0.0.55 2014-12-24.
+2014-12-25
+	- Added search10.c test program.
+2014-12-26
+	- Updated String : split to use accept a String as the delimiter
+	pattern.
+	- Added Object : callStackTrace method.
+2014-12-29
+	- Added Integer : ++ (prefix) method.
+2015-01-01
+	- Added CTime : = method.
+	- Updated timeclient.c and timesignal.c example programs.
+2015-01-02
+	- Release 0.0.55 2015-01-02.
+

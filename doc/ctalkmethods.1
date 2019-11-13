@@ -1,0 +1,1099 @@
+.\" $Id: ctalkmethods.1,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $
+.\"
+.\" This file is part of ctalk.
+.\" Copyright © 2005-2015 Robert Kiesling, rk3314042@gmail.com.
+.\" Permission is granted to copy this software provided that this copyright
+.\" notice is included in all source code modules.
+.\" 
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation; either version 2 of the License, or
+.\" (at your option) any later version.
+.\" 
+.\" This program is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\" 
+.\" You should have received a copy of the GNU General Public License
+.\" along with this program; if not, write to the Free Software Foundation, 
+.\" Inc., 51 Franklin St., Fifth Floor, Boston, MA 02110-1301 USA.
+
+.TH CTALKMETHODS 1 "2019-10-03"
+.SH NAME
+ctalkmethods \- How to use objects in Ctalk methods.
+.SH DESCRIPTION
+This manual page describes some of the language features
+that
+.B Ctalk
+provides to work with objects when writing methods.  Many of
+these features also work within C functions.  It also provides
+an overview of how methods interact with
+.B Ctalk's
+internal structures, and how to debug methods at the C source
+code level using a debugger like
+.BR gdb "(1)."
+
+In general,
+.B Ctalk
+provides both a high level set of
+.B Ctalk
+statements, and a low level, C language interface to work with objects
+and C variables.  In some cases, the two are interchangeable, and in
+some cases
+.B Ctalk
+can use both application programming interfaces in the same
+expression.
+
+In order to make this clearer, here are two example methods. One
+of them uses the
+.B Ctalk
+language, and the other uses the C library API.  However, these two
+methods function similarly.
+
+This method is written completely in
+.B Ctalk.
+
+.in +5
+Integer instanceMethod + add (Magnitude i) {
+.br
+  "Return the sum of the receiver and the argument."
+.br
+
+  if (i is Integer) {
+.br
+    return self + i;
+.br
+  } else {
+.br
+    return self + i asInteger;
+.br
+  }
+.br
+}
+.in -5
+
+The following example shows the method translated into
+.B Ctalk's
+low-level C API, which can use the C addition operator
+directly.
+
+.in +5
+Integer instanceMethod + add (Magnitude i) {
+.br
+  "Return the sum of the receiver and argument."
+.br
+
+  int a, result;
+.br
+
+  if (i is Integer) {
+.br
+    return INTVAL(__ctalk_self_internal_value () -> __o_value)
+.br
+      + INTVAL(ARG(0) -> __o_value);
+.br
+  } else {
+.br
+    a = i asInteger;
+.br
+    result = INTVAL(__ctalk_self_internal_value () -> __o_value)
+.br
+      + a;
+.br
+    return result;
+.br
+  }
+.br
+}
+.in -5
+
+.B Ctalk
+is still a work in progress.  There could be many tasks for which you
+might want to use the
+.B Ctalk
+library functions directly.  The second example is actually the
+.B Ctalk
+compiler's translation from higher level
+.B Ctalk
+expressions into C code.  This, incidentally is how programs can use,
+for example, addition (the + C operator), in a method that is bound to
+the addition operator in higher level expressions, line the first
+example above.
+
+The following
+sections describe
+.B Ctalk's
+C language Application Programming Interface.
+
+The following sections describe each of these language features in
+more detail.
+
+.SH HIGH LEVEL API
+
+The high-level API should appear straightforward.  The only
+issue that is worth noting is that the class of the method's
+parameter, \fIMagnitude,\fP is different than the class of
+receiver, which is \fIInteger.\fP  In this case,
+.B Ctalk
+prints a warning, and continues compiling the method.
+
+.in +5
+mapi3.c:6: in method, Integer : myAdd:
+.br
+mapi3.c:6: Warning: Operand class, "Magnitude," is different than receiver class, "Integer."
+.br
+mapi3.c:6: in method, Integer : myAdd:
+.br
+mapi3.c:6: Warning: The method should perform the necessary class conversion(s) to the receiver's class.
+.br
+mapi3.c:8: in method, Integer : myAdd:
+.br
+mapi3.c:8: Warning: Operand class, "Magnitude," is different than receiver class, "Integer."
+.br
+mapi3.c:8: in method, Integer : myAdd:
+.br
+mapi3.c:8: Warning: The method should perform the necessary class conversion(s) to the receiver's class.
+.in -5
+
+.B Ctalk
+doesn't exit with an error, but the compiler treats the mismatch as
+being resolvable when the program runs; that is, it's up to the
+programmer to make sure that the necessary conversion(s) are present
+in the method.
+
+If the compiler can't set the operand's type directly, as in this
+case, it uses \fIInteger\fP as the default class of the operand.  The
+compiler then defers the conversion of the actual numeric types until
+run time.
+
+The source file name, \fImapi3.c,\fP by the way, is the file name of
+the example method above in the \fItest/expect\fP subdirectory.
+
+.B Ctalk
+translates C data types to the corresponding class in parameter lists
+if they're present.  For example, this method declares the parameter
+\fIf\fP using the C type \fIdouble.\fP
+
+.in +5
+Float instanceMethod + add (double f) {
+.br
+  "Return the sum of the receiver and the argument."
+.br
+
+  if (f is Float) {
+.br
+    return self + f;
+.br
+  } else {
+.br
+    return self + f asFloat;
+.br
+  }
+.br
+}
+.in -5
+
+Compiling this method doesn't produce a warning, because
+the C type \fIdouble\fP translates directly into
+.B Ctalk's
+\fIFloat\fP class.
+
+Many of 
+.B Ctalk's
+base classes correspond directly to basic C types.  They
+are shown here.
+
+.in +5
+          C Type           Ctalk Class
+.br	  
+          ------           -----------
+.br	  
+          int              Integer
+.br	  
+          long long int    LongInteger
+.br
+          double           Float
+.br	  
+          bool             Boolean
+.br	  
+          char             Character
+.br	  
+          char *           String
+.br
+          void *           Symbol
+
+.in -5
+
+Also, the type of warning shown above only applies to methods that
+overload math operators, where a program needs to deal with specific
+numeric types. These expressions can also use pointers and aggregate
+types that can be expressed as a basic type, like ints and long ints,
+even though programs that add pointers generally follow the semantics
+of pointer math.
+
+As an aid to debugging,
+.B Ctalk
+provides the \fIObjectInspector\fP class to view object's values
+when a program is run.  Refer to the
+.BR inspect "(3ctalk)"
+manual page.
+
+.SH TRANSLATING BETWEEN CTALK AND C
+
+In most cases, you can assign
+.B Ctalk
+objects to C variables and vice versa.  Here are a few examples.
+
+.in +5
+int int_a;
+.br
+Integer new myObj;
+
+
+myObj = int_a;
+.in -5
+
+or,
+
+.in +5
+int_a = myObj;
+.in -5
+
+You can also use objects as parameters to C library functions,
+or to assign a function's return value, or as a function argument.
+
+.in +5
+
+myObj = strlen ("Hello, world!");
+
+.in -5
+or,
+.in +5
+
+myObj = strlen (myString);
+
+.in -5
+
+You can also use C variables as method receivers and arguments.
+
+.in +5
+int my_int;
+.br
+char str[25], *s;
+
+strcpy (str, "1234");
+.br
+s = str;
+.br
+my_int = s asInteger;
+.br
+printf ("%d\\n", my_int);
+.in -5
+or,
+.in +5
+int my_int;
+.br
+char c;
+
+c = 65;
+
+my_int = ++c asInteger;
+.br
+printf ("%d\\n", my_int);
+.in -5
+
+or, as another example,
+
+.in +5
+int i_term;
+.br
+Array new myArray;
+
+i_term = 0;
+.br
+myArray atPut i_term, "Element at 0";
+
+i_term = 1;
+.br
+myArray atPut (i_term, "Element at 1");
+.in -5
+
+
+
+
+.SH OVERVIEW OF THE C LANGUAGE API
+
+Within a method's scope, there are four general ways that the method
+might refer to objects.  They are:
+
+.in +5
+- The method's receiver; i.e.,
+.B self.
+
+- Global or local objects that are created with the \fInew\fP
+method.
+
+- Arguments to the method, which are referred to by the
+parameters in the method's declaration.
+
+- Objects whose value is another object.  The classes \fISymbol\fP and
+\fIKey\fP (and any subclasses of them) are primarily responsible for
+managing object references.
+
+.in -5
+
+The \fICtalk Language Reference\fP describes each of the functions and
+macros used to manage objects in C, as well as the C language OBJECT
+typedef.  For convenience, they are described here.
+
+.TP 5
+__ctalk_self_internal ()
+.TP 5
+__ctalk_self_internal_value ()
+These return the object that is the receiver of the method, either
+the parent object, or its \fIvalue\fP instance variable.
+.TP 5
+__ctalk_arg_internal (\fIn\fP)
+Returns the \fInth\fP argument of the method.
+.TP 5
+ARG(\fIn\fP)
+A macro that is shorthand for \fI__ctalk_arg_internal.\fP
+.TP 5
+__ctalkGetObject (\fIname, classname\fP)
+Return object \fIname\fP in class \fIclassname.\fP  If
+\fIclassname\fP is NULL, return the first object of any
+class with that name.
+.TP 5
+INTVAL
+.TP 5
+LLVAL
+.TP 5
+BOOLVAL
+.TP 5
+SYMVAL
+Macros that translate an object's value into its corresponding
+C type.
+
+All of the functions, and the SYMVAL macro, return a C OBJECT *.
+Here is the definition of an OBJECT structure.
+
+.in +5
+struct _object {
+.br
+  int sig;
+.br
+  char __o_name[MAXLABEL];
+.br
+  char __o_classname[MAXLABEL];
+.br
+  OBJECT *__o_class;
+.br
+  char __o_superclassname[MAXLABEL];
+.br
+  OBJECT *__o_superclass;
+.br
+  OBJECT *__o_p_obj;
+.br
+  VARTAG *__o_vartags;
+.br
+  char *__o_value;
+.br
+  METHOD *instance_methods,
+    *class_methods;
+.br
+  int scope;
+.br
+  int nrefs;
+.br
+  struct _object *classvars;
+.br
+  struct _object *instancevars;    
+.br
+  struct _object *next;
+.br
+  struct _object *prev;
+.br
+  int attrs;
+.br
+};
+.in -5
+
+Since it's important to be familiar with OBJECT *'s when working
+in C, many of the following examples describe the OBJECT typedef's
+members in detail.
+
+.SH A METHOD WRITTEN IN C
+
+This section describes C interface of the method above in detail.
+Here it is again.
+
+.in +5
+Integer instanceMethod + add (Magnitude i) {
+.br
+  "Return the sum of the receiver and argument."
+.br
+
+  int a, result;
+.br
+
+  if (i is Integer) {
+.br
+    return INTVAL(__ctalk_self_internal_value () -> __o_value)
+.br
+      + INTVAL(ARG(0) -> __o_value);
+.br
+  } else {
+.br
+    a = i asInteger;
+.br
+    result = INTVAL(__ctalk_self_internal_value () -> __o_value)
+.br
+      + a;
+.br
+    return result;
+.br
+  }
+.br
+}
+.in -5
+
+The first line declares the method and its parameter list.
+
+.in +5
+Integer instanceMethod + add (Magnitude i) {
+.in -5
+
+The declaration begins with the method's member class, in this case
+\fIInteger.\fP Following the member class name is the
+\fIinstanceMethod\fP keyword, which indicates that the statement is
+declaring an instance method in class \fIInteger.\fP If we were
+declaring a class method, the \fIclassMethod\fP keyword would appear
+here.
+
+Following the \fIinstanceMethod\fP keyword is the name of the method.
+The plus sign (+) declares that the method responds to the
+mathematical addition sign (+) message wherever it appears.  The name
+a method responds to is called its \fIselector.\fP Using a numeric
+operator as the selector is optional, and necessary only when the
+selector is composed of one or more non-label characters; that is, a
+math operator.
+
+In any case, the next field in the declaration, here the \fIadd\fP
+label, is necessary when
+.B Ctalk
+translates the method into a C function to be compiled.  This
+entry in the declaration must be a valid C label, which is
+used when
+.B Ctalk
+translates the method into a C function to be compiled.
+The section, 
+.B TRANSLATING METHOD NAMES TO FUNCTION NAMES,
+below, describes this in more detail.
+
+Following the method name is the parameter list, enclosed in
+parentheses.
+.B Ctalk
+allows method parameters to be declared like C parameters,
+using C data types, or as objects preceded by their member
+class name, in this case, "Magnitude i."
+
+.B Ctalk
+is not a strongly typed language, so it is flexible in what class a
+parameter might be declared as.  Here the argument \fIi\fP is declared
+as a member of class \fIMagnitude,\fP which is the superclass of any
+class that represents a quantity; for example, \fIIntegers, Floats,
+LongIntegers, Characters\fP and \fPStrings.\fP
+
+As mentioned in the section,
+.B HIGH LEVEL API,
+above, this example should print a warning that the receiver's
+class and parameter's class are not the same.  The compiler
+will interpret the expressions as if the parameter were
+the default class, \fIInteger,\fP and defer resolving the
+actual numeric types until run time.
+
+This allows the compiler to make sure that the methods used in
+expressions are defined for the parameter.  In this case,
+\fIMagnitude\fP class defines many methods that perform
+conversions between classes, like the \fIasInteger\fP method,
+which we'll get to in a moment.
+
+The next line:
+
+.in +5
+  "Return the sum of the receiver and argument."
+.in -5
+
+is a string or comment that documents the method.  The text may be
+enclosed by quotes, as in this example, or by the C comment delimiters
+/* and */, or as a C++ type comment, where each line begins with a //
+delimiter.  This allows methods to have a documentation string, and
+also contain comments further on in the method, and which might only
+be necessary for programmers, and which need not be included in the
+method's documentation which is visible when browsing methods.
+
+The next line,
+
+.in +5
+int a, result;
+.in -5
+
+simply declares some local C variables that the method uses.
+
+After that, the line,
+
+.in +5
+if (i is Integer) {
+.in -5
+
+determines whether we can add the argument, \fIi,\fP directly
+to the receiver, \fIself,\fP or whether we need to perform
+a conversion of the argument to \fIInteger\fP class.  More
+on that in a moment.
+
+If the \fIif\fP statement above is true, then all we need to
+do is add the values of the receiver and the argument.
+
+.in +5
+return INTVAL(__ctalk_self_internal_value () -> __o_value)
+.br
+  + INTVAL(ARG(0) -> __o_value);
+.in -5
+
+The reason we add the
+
+.in +5
+-> __o_value
+.in -5
+
+references after __ctalk_self_internal_value and ARG(0) is that both
+of these return a complete object.  However, in these expressions,
+we're interested only in their values as C types, which is what the
+__o_value member stores.  The INTVAL macro simply assures that the
+compiler treats __o_value members as a storage area for a C int.
+(It's actually a cast to an int *.)
+
+It's worth mentioning at this point why it's necessary to have two
+functions, __ctalk_self_internal and __ctalk_self_internal_value.
+The first, __ctalk_self_internal, returns the complete receiver
+object.  This is necessary when the method works with a complete
+object; for example, the method creates a reference to it in some
+other object.
+
+However, in this case, __ctalk_self_internal_value returns the
+object's \fIvalue\fP instance variable.  All objects have a
+\fIvalue\fP variable, which stores the object's actual value.
+
+The class of the \fIvalue\fP instance variable always corresponds
+to a C type in classes that translate directly to them; in this
+case the class of the \fIvalue\fP variable will always be
+\fIInteger.\fP
+
+It is not necessarily the case that the parent object and the
+\fIvalue\fP instance variable have the same class.  A common example
+is any instance variable.  These use the class that they are members
+of as the class of the parent object, while the class of the
+variable's own \fIvalue\fP instance variable can be declared
+separately.
+
+.in +5
+
+-----------------
+.br
+|               |
+.br
+| Parent Object |        The class is, for example, 
+.br
+|               |         "FileStream."
+.br
+-----------------
+.br
+        |
+.br	
+-----------------
+.br
+|    value      |
+.br
+|   instance    |        The class is, "Integer"
+.br
+|   variable    |
+.br
+-----------------
+	
+
+.in -5
+
+So in cases where we want to use the value of an object in a C
+expression, it is almost always the case that the expression needs to
+use the \fIvalue\fP instance variable, whose member \fI__o_value\fP
+contains the object's value.
+
+Macros like \fIINTVAL\fP help translate the value into a C type.
+Again, to return the value of an \fIInteger\fP receiver as a C int,
+the method would use an expression like this one.
+
+.in +5
+INTVAL(__ctalk_self_internal_value () -> __o_value)
+.in -5
+
+Macros like INTVAL and LLVAL are basically typecast expressions that
+tell the compiler to treat the object's __o_value member as a 
+buffer for the object's corresponding C type.
+
+Finally, the
+.B Ctalk
+compiler wraps the entire expression in function that creates an
+object from our result and stores it internally if necessary.  In
+cases where we want the function to return an \fIInteger\fP, that
+function is __ctalkRegisterIntReturn.  This creates the OBJECT * that
+is the type that all methods return.  The functions that return
+objects that correspond to a C data type listed here.
+
+.in +5
+__ctalkRegisterBoolReturn
+.br
+__ctalkRegisterCharReturn
+.br
+__ctalkRegisterCharPtrReturn
+.br
+__ctalkRegisterFloatReturn
+.br
+__ctalkRegisterLongLongIntReturn
+.in -5
+ 
+Here, for completeness, is the fully translated statement.
+
+.in +5
+return __ctalkRegisterIntReturn
+.br
+   (INTVAL__ctalk_self_internal_value () -> __o_value)
+.br
+   + (INTVAL__ctalk_arg_value_internal (0) -> __o_value));
+.in -5
+
+.SH DEBUGGING
+
+This section provides a brief overview of working with a
+.B Ctalk
+program when it's translated to C.
+
+First, you need to prepare
+.B Ctalk
+and the programs it builds for debugging.  Refer to the section,
+.B PREPARING PROGRAMS FOR DEBUGGING.
+
+After compiling the program with
+.B ctdb,
+it's possible to use
+.BR gdb "(1)"
+to examine the program using the intermediate C output.
+For example, here's a transcript
+of a brief
+.BR gdb "(1)"
+session.
+
+.in +5
+$ gdb myprog
+.br
+(gdb) break main
+.br
+(gdb) r
+.in -5
+
+This stops the programs execution at the start of the function
+\fImain,\fP and from there you can single step through each line of
+the C output.
+
+To break on a method, you need to use the C identifier of
+that method as a breakpoint.  The next section,
+.B TRANSLATING METHOD NAMES TO FUNCTION NAMES,
+describes how
+.B Ctalk
+translates method declarations into C identifiers that a
+C compiler can use.
+
+For example, to break on the Integer : + method, you would
+enter this.
+
+.in +5
+(gdb) break Integer_instance_add_1
+.in -5
+
+The functions in the
+.B Ctalk
+library API return data from
+.B Ctalk's
+internal stacks.  When debugging, you can examine that data
+directly.
+
+The function __ctalk_self_interal simply returns the most recent entry
+that is pushed onto the __ctalk_receivers stack, which pushes the receiver
+of each nested method call; You can examine the __ctalk_receivers
+stack directly in
+.BR gdb "(1)",
+for example,
+
+.in +5
+(gdb) print __ctalk_receivers
+.br
+$2 = {0x0 <repeats 512 times>, 0x485e9948}
+.in -5
+
+Similarly, the __ctalk_arg_internal function returns the \fIn\fPth
+most recent argument pushed onto the argument stack, __ctalk_argstack.
+
+.in +5
+(gdb) print __ctalk_argstack
+.br
+$3 = {0x0 <repeats 511 times>, 0x48691820, 0x48682df0}
+.in -5
+
+Objects declared in a global scope are kept in a list called
+__ctalk_dictionary.  The lists that keep objects in any scope
+are lists of VARENTRYs.  The VARENTRY type performs functions
+like object aliasing, when objects are assigned to a different
+identifier, and when iterating through the object's value, which
+is valid in many agregate classes.
+
+More importantly for us, it maintains pointers to the objects
+that we want to examine.  For example, this transcript displays
+a global object (the formatting is altered to make the transcript
+more readable).
+
+.in +5
+(gdb) print __ctalk_dictionary
+.br
+$6 = (VARENTRY *) 0x485e5bf0
+.br
+
+(gdb) print *__ctalk_dictionary
+.br
+$7 = {sig = 10658466, var_decl = 0x485e5c20,
+.br
+var_object = 0x485e1b60, orig_object_rec = 0x0,
+.br
+i = 0xffffffff, i_post = 0xffffffff, i_temp = 0xffffffff, 
+.br
+del_cnt = 0, is_local = false, next = 0x485e2c00, prev = 0x0}
+.br
+
+(gdb) print *__ctalk_dictionary->var_object
+.br
+$8 = {sig = 13882323, __o_name = "digit0",'\000' <repeats 249 times>, 
+.br
+__o_classname = '\000' <repeats 255 times>, __o_class = 0x4857f820, 
+.br
+__o_superclassname = '\000' <repeats 255 times>,
+.br
+__o_superclass = 0x483ab648, 
+.br
+__o_p_obj = 0x0, __o_vartags = 0x485e2390,
+.br
+__o_value = 0x485e2370 "(null)", 
+.br
+instance_methods = 0x0, class_methods = 0x0, scope = 1, nrefs = 1, 
+.br
+classvars = 0x0, instancevars = 0x485e1f68, next = 0x0,
+.br
+prev = 0x0, attrs = 0}
+.in -5
+
+Examining a locally declared object is more involved.  Method and
+function calls are maintained in a structure called the __call_stack,
+maintains a set of RT_INFO structures, each of which contains either a
+METHOD or RT_FN type depending on whether the call was to a method or
+a function. In turn, each method and function maintains a list of
+VARENTRY structures of the objects that have been declared within the
+function or method's scope.  Here is a transcript of examining a local
+object.
+
+
+.in +5
+(gdb) print __call_stack
+.br
+$20 =
+.br
+{0x0 <repeats 510 times>, 0x4867f5b8, 0x485f8ed8, 0x485ea898}
+
+
+(gdb) print *__call_stack[510]
+.br
+$21 = {source_file = '\000' <repeats 4095 times>,
+.br
+rcvr_obj = 0x4867e578,
+.br
+rcvr_class_obj = 0x483ab648,
+.br
+method_class_obj = 0x0,
+.br
+method = 0x483af518, 
+.br
+method_fn = 0x8056763 <Array_instance_set_value_1>,
+.br
+_rt_fn = 0x0, classlib_read = false, inline_call = false,
+.br
+block_scope = false, rt_methd_ptr = 0, _arg_frame_top = 512,
+.br
+_block_frame_top = 0, _successive_call = 0,
+.br
+local_object_cache = {0x0 <repeats 512 times>}, 
+.br
+arg_active_tag = 0x0,
+.br
+arg_text = "500000L", '\000' <repeats 8184 times>, 
+.br
+local_obj_cache_ptr = 0}
+
+
+(gdb) print *__call_stack[510]->method
+.br
+$22 = {sig = 15921906, name = "=", '\000' <repeats 254 times>, 
+.br
+selector = '\000' <repeats 255 times>, 
+.br
+returnclass = "Array", '\000' <repeats 250 times>,
+.br
+rcvr_class_obj = 0x483ab648, 
+.br
+cfunc = 0x8056763 <Array_instance_set_value_1>,
+.br
+src = 0x0,
+.br
+params = {0x483aa5e8, 0x0 <repeats 511 times>},
+.br
+n_params = 1, varargs = 0, prefix = 0, no_init = 0, 
+.br
+n_args = 1, primitive = 0, attrs = 0, error_line = 0,
+.br
+error_column = 0, arg_frame_top = 511, rcvr_frame_top = 0,
+.br
+imported = false, queued = false, 
+.br
+args = {0x486930d0, 0x0 <repeats 511 times>},
+.br
+local_objects = {{
+.br
+vars = 0x48690978, objs = 0x48690978}, {vars = 0x0, 
+.br
+objs = 0x0} <repeats 511 times>},
+.br
+nth_local_ptr = 0, user_objects = 0x0, 
+.br
+user_object_ptr = 0x0, n_user_objs = 0, local_cvars = 0x0, next = 0x483b1078, 
+.br
+prev = 0x483ad9b8}
+
+
+(gdb) print *__call_stack[510]->method->local_objects.vars
+.br
+$23 = {sig = 10658466, var_decl = 0x486909a8, var_object = 0x48688330,
+.br
+orig_object_rec = 0x48688330, i = 0xffffffff, i_post = 0xffffffff, 
+.br
+i_temp = 0xffffffff, del_cnt = 0, is_local = false, next = 0x48690bb8, prev = 0x0}
+
+
+(gdb)
+.br
+print *__call_stack[510]->method->local_objects.vars->var_object
+.br
+
+$24 = {sig = 13882323,
+.br
+__o_name = "argSize", '\000' <repeats 248 times>, 
+.br
+__o_classname = '\000' <repeats 255 times>, __o_class = 0x48258820, 
+.br
+__o_superclassname = '\000' <repeats 255 times>,
+.br
+__o_superclass = 0x4825bcb0, 
+.br
+__o_p_obj = 0x0, __o_vartags = 0x48675898,
+.br
+__o_value = 0x4868b8c8 "\t", 
+.br
+instance_methods = 0x0, class_methods = 0x0, scope = 2, nrefs = 1, 
+.br
+classvars = 0x0, instancevars = 0x4868e818, next = 0x0,
+.br
+prev = 0x0, attrs = 8388608, pad = '\000' <repeats 195 times>}
+.in -5
+
+In order to debug the
+.B Ctalk
+compiler, in cases where you want to check its code generation,
+it's normally necessary to stop the compiler at a specific
+function or method.  Refer to the section,
+.B STOPPING THE COMPILER AT FUNCTIONS AND METHODS.
+
+.SH TRANSLATING METHOD NAMES TO FUNCTION NAMES
+When debugging, it's useful to know what a translated method's C
+function name is.  The function that
+.B Ctalk
+creates has the name which is a combination of the class name,
+the label \fIinstance\fP or \fIclass\fP, the method's name, and
+the number of parameters the method declares.
+
+These functions are output by the
+.B Ctalk
+compiler, and they are valid C function names, so that the C compiler
+can translate the methods into an executable program.
+
+So for example, a method declared like the following: 
+
+.in +5
+Integer instanceMethod + add (Magnitude i) ...
+.in -5
+
+generates this C label in the output.
+
+.in +5
+Integer_instance_add_1 
+.in -5
+
+A class method like this one,
+
+.in +5
+FileStream classMethod initClass (void)
+.in -5
+
+becomes this.
+
+.in +5
+FileStream_class_initClass_0
+.in -5
+
+Note that the generated functions always have a \fIvoid\fP parameter
+list.  That's because, when
+.B Ctalk
+calls a method, it has already placed the arguments on the
+__ctalk_argstack stack, where the function \fI__ctalk_arg_internal\fP
+or the \fIARG(n)\fP macro can retrieve them.  
+
+.B Ctalk
+also needs to define whether a method is a prefix method, or whether
+the method accepts a variable number of arguments.  It does this by
+using a \fIp\fP or \fIv\fP, respectively.
+
+So this method, which is equivalent to the operator in a C
+expression like this one:
+
+.in +5
+++myInt;
+.in -5
+
+must use the \fI__prefix__\fP keyword as its argument list,
+
+.in +5
+Integer instanceMethod ++ increment (__prefix__)
+.in -5
+
+and it generates this declaration in the output.
+
+.in +5
+Integer_instance_increment_p (void)
+.in -5
+
+Similarly, a method with an ellipsis as its parameter list,
+like this one,
+
+.in +5
+String instanceMethod printOn (...)
+.in -5
+
+becomes this is the output
+
+.in +5
+String_instance_printOn_v (void)
+.in -5
+
+.SH PREPARING PROGRAMS FOR DEBUGGING
+
+To debug a method at the C level, it's first necessary to build the
+program with its intermediate C output, so debuggers like
+.BR gdb "(1)"
+can use the line information of the C file.  The program
+.BR ctdb "(1)"
+provides the option \fI-k\fP to retain the C intermediate
+file.  This is the basic form of using
+.BR ctdb "(1)"
+to build a debugging version of the program.
+
+.in +5
+$ ctdb -k myprog.ca -o myprog
+.in -5
+
+Incidentally, if you plan to examine the internals of
+.B Ctalk
+itself, it is practically necessary to turn off optimization
+when building
+.B Ctalk.
+This allows the source code and the machine code to maintain
+a one-to-one correspondence; optimization, on the other hand,
+re-arranges the output and can make debugging with a source
+level debugger like
+.BR gdb "(1)"
+difficult or even impossible.
+
+To do this, configure and build
+.B Ctalk
+with the --without-optimization option:
+
+.in +5
+$ ./configure --without-optimization
+.in -5
+
+
+Refer to the documentation in the
+.B Ctalk
+source code distribution for more information.  
+
+.SH STOPPING THE COMPILER AT FUNCTIONS AND METHODS
+
+When debugging the
+.B Ctalk
+compiler, it's often necessary to set a breakpoint when the compiler
+begins to compile a specifc function or method.  To do this, open
+the file \fIinclude/break.h\fP in a text editor, then uncomment and
+edit one of the following definitons.
+
+.TP 5
+.B METHOD_BREAK
+Break when beginning to compile the method defined here.  It's
+necessary to use the method's C name as the definition.  Refer
+to
+.B TRANSLATING METHOD NAMES TO FUNCTION NAMES,
+above.
+.TP 5
+.B MAIN_BREAK
+Break when beginning to compile the function \fImain.\fP
+.TP 5
+.B FUNCTION_BREAK
+Break at the function that this macro is defined to.
+
+In the case of
+.B METHOD_BREAK
+and
+.B FUNCTION_BREAK,
+you need to edit the definitions to the name of the
+function or method, enclosed in quotes.  For example:
+
+.in +5
+#define METHOD_BREAK "Integer_instance_add_1"
+
+or
+
+#define FUNCTION_BREAK "myFunc"
+.in -5
+
+.SH AUTHORS
+.B Ctalk 
+is written and maintained by Robert Kiesling,
+.br
+rk3314042@gmail.com.  The
+.B Ctalk
+Web site is at
+.br
+http://sourceforge.net/projects/ctalk/.
+

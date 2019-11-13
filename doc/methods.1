@@ -1,0 +1,149 @@
+.\" $Id: methods.1,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $
+.\"
+.\" This file is part of ctalk.
+.\" Copyright © 2014-2016 Robert Kiesling, rk3314042@gmail.com.
+.\" Permission is granted to copy this software provided that this copyright
+.\" notice is included in all source code modules.
+.\" 
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation; either version 2 of the License, or
+.\" (at your option) any later version.
+.\" 
+.\" This program is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\" 
+.\" You should have received a copy of the GNU General Public License
+.\" along with this program; if not, write to the Free Software Foundation, 
+.\" Inc., 51 Franklin St., Fifth Floor, Boston, MA 02110-1301 USA.
+
+.TH METHODS 1 "2016-07-11"
+.SH NAME
+methods \- List the methods of a Ctalk class.
+.SH SYNOPSIS
+.B methods
+[
+.B -h | --help
+] | [
+.B -c
+] [
+.B -d
+] [
+.B -i
+] [
+.B -p
+] \fIclassname\fP
+
+.SH DESCRIPTION
+.B Methods
+lists the methods of a Ctalk class, and optionally their prototypes
+and documentation.
+
+.B Methods 
+uses the Object class's method, "methods," to perform a pattern search
+on the class's library file for method names.  The program can display
+either a list of the classes' method selectors, or the classes' method
+prototypes, or the methods' documentation, or both.
+
+.SH OPTIONS
+.TP 8
+.B -b
+Print a brief listing of the method names (the default).
+.TP 8
+.B -c
+List class methods.  
+.TP 8
+.B -d
+Print the method's documentation.  The text of the documentation is
+contained in the method body directly after the opening brace and can
+be formatted as either C or C++ style comments, or a string enclosed
+in double quotes.  Refer to the \fICtalk Language Reference\fP for
+details.
+.TP 8
+.B -h
+Display a help message and exit.  Also lists the directories that
+Ctalk searches for its class libraries.
+.TP 8
+.B --help
+The same as 
+.B -h.
+.TP 8
+.B -i
+List instance methods (the default).
+.TP 8
+.B -p
+Print the method's argument list and return class if it is declared
+with a "returnObjectClass" keyword. 
+
+.SH ENVIRONMENT
+.B Methods, 
+like
+.B Ctalk,
+uses the value of 
+.B CLASSLIBDIRS
+to add additional directories to
+its class search path.  
+.B CLASSLIBDIRS's
+value is a colon
+separated list of directories; i.e., 
+\fI<dir1>\fP:\fI<dir2>\fP:\fI<dir3>.\fP
+
+.SH BUGS
+Commented out methods can sometimes fool the program, as can nested
+double quotes in documentation strings.  The program also does not
+skip methods that are enclosed in "#if 0 ... #endif" directives.
+
+Also, 
+.B methods
+use the Application : methodSource method to retrieve a method's
+source code.  Prototypes in documentation strings can fool Application
+: methodSource into thinking a new method starts there, so the program
+retrieves only part of the method's source code.
+
+To prevent partial source code listings, instead of writing this in a
+documentation string:
+
+.RS 4
+"The prototype is:
+.br
+Array instanceMethod <my-method-name> "
+.RE
+
+Write something like this:
+
+.RS 4
+"The prototype is:
+.br
+<Array-class-object> instanceMethod <my-method-name> "
+.RE
+
+The second example won't be mistaken for a method declaration.
+
+.SH SEE ALSO
+.BR classdoc "(1)",
+.BR classes "(1)",
+.BR ctalk "(1)",
+.BR methods "(1)",
+.BR methodsource "(1)".
+
+The Texinfo documentation also describes the
+.B Ctalk
+tools.  The shell command
+
+  $ info ctalktools
+
+displays the documentation on machines that have
+GNU Texinfo installed.
+
+.SH AUTHORS
+.B Ctalk 
+and
+.B methods
+are written and maintained by Robert Kiesling,
+.br
+rk3314042@gmail.com.   The Web site
+http://sf.net/projects/ctalk
+contains information about current releases.
+

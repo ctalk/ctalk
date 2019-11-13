@@ -1,0 +1,533 @@
+2015-01-01
+	- Added CTime : = method.
+	- Updated timeclient.c and timesignal.c example programs.
+2015-01-02
+	- Release 0.0.55 2015-01-02.
+2015-01-03
+	- Moved ReadFileStream : closeStream to FileStream class,
+	and removed ReadFileStream :  closeStream and WriteFileStream :
+	closeStream.
+	- Moved dirent.h inclusion from DirectoryStream class to
+	ctalklib.  Removed the other includes because they're
+	redundant with ctalklib.  Moved DIRECTORY_LIB_ERROR #define
+	to ctalkdefs.h and #included ctalkdefs.h in DirectoryStream
+	class.
+2015-01-05
+	- Changed wregex.c to use a global matchlength character,
+	and __ctalkLastMatchLength () library function.
+	- Added Exception : deleteLastException method, and library
+	function __ctalkDeleteLastExceptionInternal ().
+2015-01-08
+	- Added argblk[21-23].c and argblk22.c test programs.
+2015-01-09
+	- format_method () now checks for the "exit" keyword and outputs
+	a __ctalk_exitFn (1) call.
+2015-01-10
+	- Added argblk24.c and argblk25.c test programs.
+2015-01-11
+	- Added argblk26.c and argblk27.c test programs.
+2015-01-13
+	- Added argblk28 and argblk29.c test programs.
+	- Updated String : = method to use __ctalkAliasObject ().
+2015-01-15
+	- Updated __ctalkANSITerminalPaneRefresh () (panelib.c) to
+	completely fill a row to the width of the pane even when there
+	is no border or shadow on the right margin.
+	- Added ANSIScrollingListBoxPane methods withBorder, noBorder,
+	withShadow and noShadow.
+	- Added ANSIYesNoBoxPane methods withBorder, noBorder,
+	withShadow and noShadow.
+2015-01-16
+	- Added __ctalkStringifyName (), called by String : =, etc.
+2015-01-17
+	- In object.h, updated MAX_USER_OBJECT_RESOURCES to MAXARGS (512).
+2015-01-21
+	- Added __ctalkAliasReceiver () as a safer wrapper for
+	__ctalkAliasObject ().
+2015-01-23
+	- Added static return_buf as an alternative to the
+	return_valptrs list (lib/objtoc.c), and the RETURN_VALPTRS
+	#define in ctalk.h.
+2015-01-24
+	- Replaced all occurrences of __ctalk_to_c_char_ptr ()
+	in libctalk.so and the compiler with STRING_TRANS_FN (currently
+	__ctalkToCCharPtr ()).
+2015-01-31
+	- Release 0.0.55 2015-01-31
+2015-02-28
+	- Release 0.0.55 2015-02-28.
+	- Simplified the Character methods * and /.
+2015-03-05
+	- Added argblk30.c test program.
+2015-03-06
+	- Added automatic check for the compiler's -pthread option.
+	- Added floor (), floorf () and floorl () templates, and floor*.c
+	test programs.
+	- Added Application : methodSource method.
+	- Added String : tokenize method.
+	- Added prefix33.c test program.
+	- Added tok1.c test program.
+2015-03-07
+	- Cleaned up __ctalkToCInteger ().
+	- Added Collection : delete method.
+2015-03-08
+	- Removed calls to Object : isNullValue from the class library.
+	- Updates to programs/lclock.c.
+	- Miscellaneous fixups for running multiple Ctalks.
+2015-03-09
+	- Added SIGINT (Ctrl-C) handler which restores the terminal
+	parameters when exiting.
+2015-03-11
+	- Added for4.c test program.
+2015-03-12
+	- Fixed Object : = to return the argument.
+	- Fix in Application : methodSource.
+2015-03-13
+	- Added a call to basicNew at several places in
+	String : tokenize, to dynamically allocate new tokens.
+2015-03-16
+	- Added methdsrc.c example program and run-methdsrc.c test program.
+2015-03-17
+	- Release 0.0.55 2015-03-17.
+2015-03-22
+	- Added test/expect/list-tests/biglist1.c test program.
+2015-03-23
+	- Added biglist2.c test program.
+	- Updated Application : methodSource to use String : tokenize and
+	return the output unformatted.
+	- Updated String : tokenize to place punctuation in a separate
+	token, except for '_' characters, which are part of labels.
+	- Added Application : methodPrototypes method.
+2015-03-24
+	- Added the Application : methodPrototypes method.
+	- Added the mthdproto.c example program.
+2015-03-25
+	- Added the String : tokenizeLine method.
+	- FileStream : closeStream explicity clears the receiver's
+	FILE *, so the object cleanup routines don't treat it as an
+	OBJECT *.
+2015-03-27
+	- Release 0.0.55 2015-03-27.
+2015-03-28
+	- Removed the extra fill-in of String literal args from
+	__ctalk_arg ().
+	- Added lib/tag.c and include/vartag.h files.
+2015-03-30
+	-Rewrote Object : copy to use __ctalkAliasObject ().
+2015-03-31
+	- Rewrote formatObject8.c test program.
+2015-04-01
+	- Better -Wno-long-double check, mostly for Darwin PowerPC.
+2015-04-06
+	- Added var1.c  and var2.c test programs.
+2015-04-07
+	- Added ctalkintro (1) manual page.
+	- Added (void *) i to VARENTRY typedef.
+2015-04-09
+	- Added istring1.c test program.
+	- Added String : ++ (postfix) method.
+2015-04-10
+	- Added istring2.c test program.
+2015-04-11
+	- Added istring3.c test program.
+2015-04-12
+	- Added String : -- (decrement) method.
+	- Added istring4.c and istring5.c test program.
+	- Added String : -- and String : ++ prefix methods.
+	- Added istring6.c test program.
+2015-04-14
+	- Added istring7.c test program.
+2015-04-15
+	- Added istring8.c and istring9.c test programs.
+2015-04-17
+	- Added istring10.c.
+2015-04-21
+	- Added margexprs38.c test program.
+2015-04-22
+	- In String : + , if the argument is an Integer, perform a
+	pointer addition on the value by calling __ctalkIncStringRef ().
+	- Added istring[11-13].c test programs.
+2015-04-23
+	- Added "__thread" GCC storage class in lib/keyword.c.
+2015-04-24
+	- Added String : - method.
+2015-04-24
+	- Added istring14.c test program.
+2015-04-29
+	- Added String : -= method.
+	- Added istring15.c and istring16.c test programs.
+2015-04-02
+	- Added  String : chomp method.
+	- Added the chaser.c example program.
+2015-04-03
+	- Added more robust String : subString method.
+2015-04-05
+	- Added istring17.c and istring18.c test programs.
+	- Removed Key : = so now Keys can use Symbol : =.
+	- Made Collection : * a synonym for Collection : head.
+2015-04-06
+	- Added icol1.c test program.
+2015-05-08
+	- Added Key : ++ and Key : -- (prefix) method.
+	- Added icol[2-4].c test programs.
+2015-05-09
+	- Added Key : ++ (postfix) method.
+	- Added icol5.c test program.
+2015-05-10
+	- Added icol6.c test program.
+2015-05-12
+	- Added icol[7-10].c test programs.
+2015-05-13
+	- Added Object : isSubClassOf ().
+	- Added issubclass1.c test program.
+	- Updates to prefix[2-5].c.
+2015-05-16
+n	- Added Key : +, Key : -, Key : +=, and Key -= methods.
+	- Added icol11.c test program.
+	- Added tree3.c example program and run-tree3.c test program.
+2015-05-17
+	- In Collection : delete, check for an empty Collection.
+	- Updated Object : methods method.
+2015-05-23
+	- Updated methods example program, with prototypes.
+	- Added blurb1.c test program.
+2015-05-24
+	- Added an argument to Object : methods to find class methods
+	instead of instance methods.  Updated methods program to use
+	it.
+	- The methods app now skips comment lines that occur outside
+	of methods, and macros that appear anywhere.
+	- Also added printing of C++ docstrings to the methods utility.
+	- Added Object : ! prefix method.
+	- Added condexprs3.c test program.
+2015-05-25
+	- Added the -d option to the methods app.
+	- Added warning messages to Stream class for methods that
+	overload math operators.
+2015-05-26
+	- Release 0.0.55 2015-05-26.
+	- Added X11Bitmap methods xpmWidthFromData, xpmHeightFromData,
+	xpmColorsFromData, and xpmCharsPerColorFromData, and library
+	function __ctalkX11XPMInfo (guixpm.c).
+2015-05-27
+	- Added Integer : *= and Integer /= methods.
+2015-05-28
+	- Added lib/glutlib.c
+2015-05-30
+	- Added symfp[1-2].c test programs.
+2015-06-01
+	- Added symfp3.c test program.
+	- Updated ctenv.c demonstration program in the programs/cgi
+	directory.
+	- Updated CGIApp : parseQueryString method.
+2015-06-02
+	- Added condexprs4.c test program.
+2015-06-03
+	- Added Key : detach method.
+2015-06-04
+	- Added TreeNode : search.
+	- Added tree4.c example program and run-tree4.c test program.
+2015-06-08
+	- Added clsvars[3-4].c test programs.
+2015-06-10
+	- Added examples/tree5.c and run-tree5.c test programs.
+2015-06-12
+	- Updated the EXPR_PARSER typedef, and added a #define for backward
+	compatibility in ctalklib and the C function template files.
+2015-06-14
+	- If a method contains a void return expression, add
+	a NULL (eval_return_expr () (return.c)).
+2015-06-16
+	- Added the --without-cleanup-errors configure option.
+2015-06-17
+	- Updated TreeNode : print and TreeNode : format to handle
+	depth-first tree traversals.
+2015-06-18
+	- Added ClassLibraryTree class, test/expect/examples/classes.c,
+	and test/expect/run-classes.c.
+2015-06-21
+	- Added classes app and documentation.
+2015-06-22
+	- Added ctalkGLUTdefs.h include file.
+2015-06-23
+	- Added GLUTApplication class.
+2015-06-25
+	- Added shape drawing methods to GLUTApplication class.
+	- Added programs/glut subdirectory, and the tetra.ca and
+	delta.ca example programs, and README file.
+	- Added GLUTApplication : position and GLUTApplication : reshape
+	methods.
+	- Updates to ctalkGLUTdefs.h.
+	- Minor updates to programs/cgi/wiki.c and programs/cgi/pageName.c.
+	- Minor update to X11TextPane : attachTo, to add a better check
+	for an uninitialized font.
+2015-06-26
+	- Release 0.0.55 2015-06-26
+2015-06-29
+	- Added separate double, long double, float, and long float
+	registration in __ctalk_register_c_method_arg ().
+	- Added the methods Float : += and Float : -=, Float : *=, and
+	Float : /=.
+2015-06-01
+	- Added Object : == and Object : != methods.
+2015-06-02
+	- Updates X11TextPane class to check the fontVar's fontId
+	more specifically, now necessary with some of the semantics
+	Ctalk now uses for interpreting the TRUE/FALSE value of objects.
+	- Added Collection : tail method.
+	- Added List : mapRev method.
+	- Added GLUTApplication methods defineAnimationFn and
+	defineTimerFn.
+	- Minor updates to test/expect/examples-x11/x11textpane.c.
+2015-07-03
+	- Release 0.0.55 2015-07-03
+2015-07-04
+	- Update to test/ctrlstrc.c to check
+	if (...) {...} else if (...) {...} constructs.
+2015-07-10
+	- Release 0.0.55 2015-07-10
+2015-07-11
+	- Added printf[4-5].c test program.
+2015-07-13
+	- Simplified many of the methods in Float class.
+2015-07-14
+	- Added build/chcacheperms.sh shell script.
+2015-07-15
+	- If a method overloads a leading ! operator in a control block
+	predicate, then include the operator in the run-time expression;
+	otherwise, leave it outside of the Ctalk expression so the
+	compiler interprets it as a C operator.
+2015-07-19
+	- Minor fixups to methods utility.
+2015-07-20
+	- Added support for character constants in String : atPut.
+2015-07-21
+	- Added nullchar[1-2].c test programs.
+2015-07-22
+	- Added ObjectInspector : inspect method.
+	- Added Object : inspect method.
+	- Added Collection : + method.
+	- Added collectionadd1.c test program.
+2015-07-24
+	- Release 0.0.56 2015-07-23.
+2015-07-26
+	- Updated __xfree () (rtxalloc.c) to take a void ** argument,
+	and added the MEMADDR () macro (ctalk.h).  Added __ctalkFree ()
+	for the API and macroized to replace __xfree () in ctalkdefs.h.
+2015-07-27
+	- Changes from ctpp 1.0.75.
+	- Moved osxbuiltins.sh script to build/ subdirectory.
+2015-07-30
+	- Added test/expect/tui directory and simple-method-proto-*.c
+	and proto-returnclass-*.c test programs.
+2015-07-31
+	- Added user prototype functions in mthdrf.c.
+2015-08-02
+	- Added objassign1.c test program.
+2015-08-05
+	- Added some simple Emacs Lisp functions to display
+	classes and methods with or without docs in doc/classes.el,
+	doc/methods-brief.el, and doc/methods-full.el.
+	- Added objassign2.c test program.
+2015-08-06
+	- Added objassign3.c test program.
+2015-08-07
+	- Added Exception : peek method.
+	- Updated Object : methods to help handle declarations that
+	span multiple lines.
+	- Updated the methods utility.
+2015-08-08
+	- Added String : matchRegex method, and made String :
+	search a synonym for matchRegex.
+	- Added String : matchLength method.
+	- Added regexslash1.c and regexslash2.c test programs.
+	- Added inspect (3ctalk) manual page.
+	- In __ctalkMatchText (), a '$' matches the search to
+	the end of a string or to the end of a line - the
+	character before a '\0', '\n', or '\r' character.
+2015-08-09
+	- Removed the String : isNull method, which is redundant.
+2015-08-10
+	- Added the promptString instance variable to ObjectInspector,
+	and the overloaded inspect methods in Object and ObjectInspector
+	class which let the user give the prompt string as its
+	argument.
+	- Added the attrs and tag object deref identifiers.
+	- Added the verbose instance variable ot ObjectInspector class.
+2015-08-11
+	- Added an inspector section to the ctalktools Texinfo file.
+2015-08-14
+	- Release 2015-08-14.
+2015-08-18
+	- GLUTApplication : initGLUT now calls Application : parseArgs
+	so the command line arguments appear in the Application :
+	cmdLineArgs instance variable.
+2015-08-19
+	- Added if7.c test program.
+2015-08-20
+	- Added if8.c, if9.c, and if10.c test programs.
+2015-08-21
+	- Added qsearch1.c test program.
+2015-08-23
+ 	- Changed the name of ObjectInspectors from, "ins," to the more
+	understandable, "inspector," in the Object : inspect methods.
+	- New wregex.c and re_lex.c.
+2015-08-24
+	- Added search11.c and search12.c test programs.
+2015-08-25
+	- Made List : push faster.
+	- Added parent instance variable to X11TerminalStream class.
+2015-08-28
+	- Added the MEMADDR () macro to ctalkdefs.h.
+2015-08-30
+	- Added the class variables boolTrue and boolFalse to Boolean
+	class.  Rewrote __ctalkRegisterBoolReturn () to return them
+	if available (e.g., when using new versions of the class
+	libraries), or to create a Boolean object on the fly if not
+	available, which is the previous way that methods returned
+	true or false.
+2015-09-02
+	- Added goto[1-4].c test programs.
+	- Added __ctalkIntFromCharConstant () library function.
+2015-09-03
+	- Updated Application : methodSource to be faster and return
+	the source code of the method as a copy of the source text.
+	- Updated String : == and String : != to use fewer comparisons
+	when either operand == 0.
+2015-09-05
+	- Added if11.c test program.
+2015-09-07
+	- Faster version of Application : methodSource method.
+2015-09-08
+	- Updates to __ctalkRegisterBoolReturn ().
+	- Update to methods.ca utility so it doesn't get fooled by
+	braces that are part of an expression.
+2015-09-09
+	- Updates to the top-level Makefile installation.
+	- Added methodsource language utility and docs.
+2015-09-11
+	- Added support for class docstrings in ClassLibraryTree : init.
+	- Updated the docs to mention documentation strings.
+2105-09-12
+	- Updates in var_definition () (primitives.c) to support
+	docstrings in instance and class variable declarations.
+	- Added Application : classDocString method.
+	- Added classdoc utility program.
+	- Added documentation strings to instance and class variable
+	definitions.
+2015-08-14
+	- Updated the functions in ismethd.c to use a hash to look
+	up method labels.
+2015-09-17
+	- Changed String : atPut's return class to String.
+	- Added command line options and verbose output to
+	classdoc.  Updated the classdoc man page, etc.
+2015-09-18
+	- Updated ClassLibraryTree : init to use a regex for its
+	class declaration matching.
+2015-09-19
+	- Added membervars language utility and Application :
+	membervars method.
+2015-09-20
+	- Added missing semicolon warning in has_class_declaration ()
+	(class.c).
+2015-09-22
+	- Added application specific record_separator in
+	wregex.c.
+	- Updated the token matching in wregex.c to check for
+	end-of-line and end-of-string anchors for '^' and '$'
+	metacharacters.
+	- Updated String : + and String : += to accept Integer,
+	LongInteger, and Float arguments as String offsets
+	for pointer math.
+	- Added regexslash3.c test program.
+2015-09-24
+	- Added library functions __ctalkGetRS () and __ctalkSetRS (), and
+	the methods String : setRS and String : getRS, plus updates to
+	ctalk.texi describing the record separator character.
+2015-09-25
+	- Release 0.0.56 2015-09-25.
+	- Updated Object : className to check for a class Object.
+	- Updated Object : classObject to check for a Class object,
+	a String object with the classes' name, or any other object
+	which we should return the classname for.
+	- Updated Object : name and Object superClassName.
+	- Added return[8-12].c test programs to check both new and
+	legacy (with __ctalk_self_internal ()) expressions.
+	- Updated CTime : utcTime.
+2015-10-29
+	- Added template for time (2) function.
+	- Added time[1-3].c test programs.
+	- Added time4.c test program.
+	- Added --printtemplates command line option.
+	- Added time[5-7].c test programs.
+	- Added fnnames.5ctalk manual page.
+	- Added templates.5ctalk manual page.
+	- Added a template for rand(3).
+2015-11-07
+	- Updated Object : hasPointerContext and Object : isNull to
+	return Boolean objects.
+2015-11-08
+	- Added return13.c test program.
+2015-11-10
+	- String : getEnv returns an empty string, "", if it doesn't
+	find the environment variable given as its argument.
+	- Changed file mode of WriteFileStream : openOn to "r+".
+	That means you can also read from a WriteFileStream.
+	- Added FileStream : seekTo, FileStream : seekToEnd, and
+	FileStream : seekToBeginning.
+	- Added --printtemplates to ctdb and ctcc's options.
+2015-11-11
+	- Added the template utility program, template (1) man
+	page, and the template section in ctalktools.texi.
+	- Added Array : asString.
+	- Added array4.c test program.
+2015-11-12
+	- Release 0.56 2015-11-12.
+2015-11-14
+	- Added String : charPosR method.
+2015-11-15
+	- Added margexprs[39-42].c test programs.
+2015-11-16
+	- Added test programs margexprs[43-44].c.
+2015-11-19
+	- Added crcvr3.c test program.
+2015-11-20
+	- Updated margexprs34.c to avoid a "Argument shadows C variable"
+	warning.
+2015-12-04
+	- In Collection : delete, check that the collection item is
+	still a valid object.
+	-  Added the String : contains method.
+2015-12-07
+	- Changed the atoi () call in Magnitude : invert_prefix
+	to strtol ().
+	- Added Integer : ! (invert_prefix) method.
+	- Added str_is_zero_q () library function (sformat.c), for use
+	by the STR_IS_NULL macro and elsewhere (ctalkdefs.h).
+	- Added the TRIM_LITERAL macro to ctalkdefs.h.
+2015-12-09
+	- Changed the class of boolTrue and boolFalse to Boolean.
+	- Added Boolean : ! method.
+2015-12-11
+	- Symbol : setEqual now returns the receiver.
+2015-12-13
+	- Added margexprs45.c and icol14.c test programs.
+2015-12-14
+	-  Added symderef[4-5].c test programs.
+2015-12-19
+	- Added classcast[4-5].c test programs.
+2015-12-21
+	- Updated programs/glut/texture.ca with a nicer texture.
+2015-12-24
+	- Updated the time template (classes/libc/t) to define
+	one argument.
+2015-12-25
+	- Cleaned up Integer : = method.
+2015-12-26
+	- Added classcast6.c test program.
+2015-12-28
+	- Added list3.c and classcast7.c test programs.
+2015-12-29
+	- In __ctalkXPMToGLTexture () (glutlib.c), handle 48-bit
+	RGB specifications.

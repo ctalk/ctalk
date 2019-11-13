@@ -1,0 +1,521 @@
+.\" $Id: ctalkclasses.1,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $
+.\"
+.\" This file is part of ctalk.
+.\" Copyright © 2016 Robert Kiesling, rk3314042@gmail.com.
+.\" Permission is granted to copy this software provided that this copyright
+.\" notice is included in all source code modules.
+.\" 
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation; either version 2 of the License, or
+.\" (at your option) any later version.
+.\" 
+.\" This program is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\" 
+.\" You should have received a copy of the GNU General Public License
+.\" along with this program; if not, write to the Free Software Foundation, 
+.\" Inc., 51 Franklin St., Fifth Floor, Boston, MA 02110-1301 USA.
+
+.TH CTALKCLASSES 1 "2016-04-08"
+.SH NAME
+ctalkclasses \- The Ctalk Class Library
+
+The
+.B Ctalk
+language includes following basic classes, which are installed with the
+compiler and libraries.  Most of the classes' definitions provide
+documentation, which you can view with the
+.B classdoc
+utility.  For example, the shell command,
+
+.in +5
+classdoc List
+.in -5
+
+displays the List classes' documentation.
+
+Object
+.br
+ Pane
+.br 
+  ANSITerminalPane
+.br
+   ANSIWidgetPane
+.br   
+    ANSIYesNoBoxPane
+.br    
+    ANSIMessageBoxPane
+.br    
+    ANSIScrollPane
+.br    
+    ANSILabelPane
+.br    
+    ANSIListBoxPane
+.br    
+    ANSITextBoxPane
+.br    
+    ANSITextEntryPane
+.br    
+    ANSIButtonPane
+.br    
+    ANSIProgressBarPane
+.br    
+    ANSIScrollingListBoxPane
+.br    
+  X11Pane
+.br  
+   X11PaneDispatcher
+.br   
+    X11TextPane
+.br    
+    X11ScrollBarPane
+.br    
+    X11CanvasPane
+.br    
+ Magnitude
+.br 
+  Integer
+.br  
+   CTime
+.br   
+    CalendarTime
+.br    
+  Float
+.br  
+  Character
+.br  
+   String
+.br   
+  Point
+.br  
+   Line
+.br   
+    Rectangle
+.br    
+   Circle
+.br   
+  LongInteger
+.br  
+  Pen
+.br  
+ Boolean
+.br 
+ Event
+.br 
+  ApplicationEvent
+.br  
+  Exception
+.br  
+   SystemErrnoException
+.br   
+  SignalEvent
+.br  
+   SignalHandler
+.br   
+  InputEvent
+.br  
+  Application
+.br  
+   ClassLibraryTree
+.br   
+   GLUTApplication
+.br   
+   ObjectInspector
+.br   
+   LibrarySearch
+.br   
+ Method
+.br 
+ ArgumentList
+.br 
+ Symbol
+.br 
+  Vector
+.br  
+  Key
+.br  
+ Bitmap
+.br 
+  DisplayFont
+.br  
+   X11FreeTypeFont
+.br   
+   X11Font
+.br   
+    X11Cursor
+.br    
+  X11Bitmap
+.br  
+   X11Pixmap
+.br
+ Collection
+.br 
+  List
+.br  
+   AssociativeArray
+.br   
+  Stream
+.br  
+   FileStream
+.br   
+    DirectoryStream
+.br    
+    ReadFileStream
+.br    
+    ReadWriteFileStream
+.br    
+    WriteFileStream
+.br    
+   TerminalStream
+.br   
+    X11TerminalStream
+.br    
+    ANSITerminalStream
+.br    
+    Win32TerminalStream
+.br
+   NetworkStream
+.br
+    UNIXNetworkStream
+.br    
+  Array
+.br  
+  TreeNode
+
+
+.SH CLASS DIRECTORIES
+
+Normally the base classes are installed in the
+directory \fI<prefix>/include/ctalk.\fP  For example, the default
+installation stores the base classes in \fI/usr/local/include/ctalk\fP.
+
+This is where
+.B Ctalk
+looks for its classes if you don't provide the compiler with any
+other information.  However, you can add directories to
+.B Ctalk's
+class search path by giving the \fI-I\fP option to
+.B ctalk,
+.B ctcc,
+or
+.B ctdb.
+
+If you write a new class and it is located in the same directory
+as the program you're building, you can add the current directory
+to
+.B Ctalk's
+class search path like this.
+
+.B  $ ctalk -I . myprog.ca -o myprog.i
+
+.B  $ ctcc -I . myprog.ca -o myprog
+
+.B  $ ctdb -I . myprog.ca -o myprog
+
+You can also add directories to the path defined in the
+.B CLASSLIBDIRS
+environment variable, which contains a colon separated list
+of directories, similar to the format of the
+.B PATH
+environment variable.
+
+You can find the current class search directories by compiling and
+running this program.
+
+int main () {
+
+  Application new pathApp;
+
+  printf ("%s\\n", pathApp classSearchPath);
+
+}
+
+Typing
+
+.in +5
+methods --help"
+.in -5
+
+at a shell prompt also displays the class search path.
+
+.SH WRITING CLASSES
+
+A class definition file has the same name as the class it defines.
+The file must contain at least the classes' declaration.  To do
+this, use the \fIclass\fP
+keyword to declare a new class.
+
+  String class WordWrappedString;
+
+This statement declares a new class with
+the name
+.B WordWrappedString,
+a rather brief example class that prints text between left and right
+margins.  The declaration identifies
+.B WordWrappedString
+as a subclass of
+.B String
+class.
+
+(Note: The top-level 
+.B Object
+class doesn't contain this declaration, because
+.B Object
+class has no superclass and is loaded automatically whenever a
+.B Ctalk
+program starts.)
+
+To add documentation to a classes' declarations, refer to the
+\fIMethods > Documentation\fP section of the \fICtalk Language
+Reference.\fP
+
+You can also, by the way, declare new classes within source files.  In
+that case, the classes' scope is limited to the source file and any
+source files that you compile along with it.
+
+After the class definition, the class defines any instance and class
+variables that it needs.  To define instance and class variables,
+.B Ctalk
+uses the keywords \fIinstanceVariable\fP and \fIclassVariable.\fP
+
+  WordWrappedString instanceVariable length Integer 0;
+.br
+  WordWrappedString classVariable leftMargin Integer 0;
+.br
+  WordWrappedString classVariable rightMargin Integer 0;
+.br
+  WordWrappedString classVariable leftMarginText String "";
+
+These four lines declare an instance variable and three class variables
+of class Integer and String, and their initial values.
+
+After the class and instance variable declarations, the class defines
+its methods, using the keywords \fIinstanceMethod\fP and
+\fIclassMethod.\fP
+
+Below is the complete, if rather brief, class file.  For more
+information about how to write methods, refer to the \fIMethods\fP
+section of the \fICtalk Language Reference.\fP
+
+ String class WordWrappedString;
+
+ WordWrappedString instanceVariable remaining Integer 0;
+.br
+ WordWrappedString classVariable leftMargin Integer 0;
+.br
+ WordWrappedString classVariable rightMargin Integer 0;
+.br
+ WordWrappedString classVariable leftMarginText String "";
+
+ WordWrappedString classMethod classInit (void) {
+.br
+  "Class initialization only needs to initialize the
+.br
+   stdoutStream file stream so we can print to the terminal."
+.br
+  WriteFileStream classInit;
+.br
+ }
+
+ WordWrappedString classMethod setMargins (Integer leftMarginArg,
+.br
+					  Integer rightMarginArg) {
+.br
+  Integer new i;
+.br
+  self leftMargin = leftMarginArg;
+.br
+  self rightMargin = rightMarginArg;
+
+  self leftMarginText = "";
+.br
+  for (i = 0; i < self leftMargin; ++i) {
+.br
+    self leftMarginText += " ";
+.br
+  }
+
+ }
+
+WordWrappedString instanceMethod output (void) {
+
+  stdoutStream printOn "%s%s\\n", self leftMarginText, self;
+
+}
+
+ WordWrappedString instanceMethod outputWithMargins (void) {
+
+  Integer new lineLength;
+.br
+  Integer new lineStart;
+.br
+  WordWrappedString new lineText;
+
+  lineLength = self rightMargin - self leftMargin;
+.br
+  self remaining = self length;
+.br
+  lineStart = 0;
+.br
+  while (self remaining > lineLength) {
+.br
+    lineText = self subString lineStart, lineLength;
+.br
+    lineText output;
+.br
+    lineStart += lineLength;
+.br
+    self remaining -= lineLength;
+.br
+  }
+.br
+  lineText = self subString ((self length) - (self remaining)), 
+.br
+                             lineLength;
+.br
+  lineText output;
+.br
+ }
+
+Here's an example program that uses WordWrappedString class.
+
+ int main () {
+
+.br
+  WordWrappedString new str;
+.br
+  WordWrappedString classInit;
+.br
+  WordWrappedString setMargins 10, 45;
+
+  str = "We do not claim that the portrait herewith presented ";
+.br
+  str += "is probable; we confine ourselves to stating that ";
+.br
+  str += "it resembles the original.  -- Les Miserables.";
+
+  str outputWithMargins;
+.br
+ }
+
+If the function \fImain\fP is in an input file named \fIlesmis.ca,\fP
+the following shell command builds the executable, assuming that the
+WordWrappedString class file is in the same directory as \fIlesmis.ca\fP.
+
+ $ ctcc -I . lesmis.ca -o lesmis
+
+When run, the
+.B lesmis
+program should produce output like this.
+
+
+          We do not claim that the portrait h
+.br
+          erewith presented is probable; we c
+.br
+          onfine ourselves to stating that it
+.br
+           resembles the original.  -- Les Mi
+.br
+          serables.
+
+To extend the class, for example, to print text with the line breaks
+at spaces and newlines, it's only necessary to modify the methods in
+the WordWrappedString class file.
+
+
+.SH SUBCLASSING
+
+Choosing the correct superclass for a new class can save considerable
+work, because the new class inherits the methods, and instance and
+class variables, from its superclasses.
+
+For example, to add features to a math operator, you might add a class
+with Integer class as its superclass.  Here's an example,
+PositiveInteger class, that generates an exception if a math operation
+would produce a negative result.  To accomplish that, it is only
+necessary to add an Exception object to the subtraction operator
+(\fI-\fP).  PositiveInteger class inherits all of the other math
+operators from its superclass, Integer.
+
+ Integer class PositiveInteger;
+
+ PositiveInteger instanceMethod - subtract (int operand) {
+.br
+  Exception new e;
+.br
+  returnObjectClass Integer;
+.br
+  int i, rcvr_value, operand_value;
+.br
+  rcvr_value = self value;
+.br
+  operand_value = operand value;
+.br
+  if ((rcvr_value - operand_value) < 0) {
+.br
+    e raiseException INVALID_OPERAND_X, "Negative result for PositiveInteger";
+.br
+    i = 0;
+.br
+  } else {
+.br
+    i = rcvr_value - operand_value;
+.br
+  }
+.br
+  return i;
+.br
+ }
+
+Here is an example of the PositiveInteger classes' use.
+
+ int main () {
+.br
+  Exception new e;
+.br
+  PositiveInteger new p;
+
+  p = 1;
+
+  printf ("%d\\n", p + 1);
+
+  printf ("%d\\n", p - 2);
+.br
+  if (e pending)
+.br
+    e handle;
+ }
+
+.SH SEE ALSO
+.BR classdoc "(1),
+.BR classes "(1)",
+.BR cpp "(1)",
+.BR ctalk "(1)",
+.BR ctalkclasses "(1)",
+.BR ctcc "(1)",
+.BR ctdb "(1)",
+.BR ctpp "(1)",
+.BR gcc "(1)",
+.BR info "(1)",
+.BR inspect "(3ctalk)",
+.BR membervars "(1)",
+.BR methods "(1)",
+.BR methodsource "(1)",
+.BR pdftex "(1)",
+.BR searchlib "(1)",
+.BR template "(1)",
+.BR tex "(1)".
+
+.SH AUTHORS
+.B Ctalk 
+is written and maintained by Robert Kiesling,
+.br
+rk3314042@gmail.com.  The
+.B Ctalk
+Web site is at
+.br
+http://sourceforge.net/projects/ctalk/.

@@ -1,0 +1,33 @@
+Building the Ctalk Documentation
+
+This directory contains the Ctalk manual pages and documentation.
+Autoconf formats and installs the Texinfo manuals and manual pages
+automatically.
+
+You can read the Texinfo files with the "info" reader program
+or in GNU Emac's *info* directory.
+
+ $ info ./ctalk.info
+ $ info ./tutorial.info
+ $ info ./ctalktools.info
+ $ info ./ctpp.info
+
+To build the text, HTML, versions of the documentation refer to
+the makeinfo (1) manual page, which, if it isn't present on the
+system, is available as an optional package (look for packages
+that say either, "makeinfo" or "texinfo").
+
+To make Postscript and PDF versions of the documentation, you'll need
+to have TeX and its associated programs.  Once you have TeX installed,
+you can build a PDF version of the tutorial with the following shell
+commands (the commands need to be repeated so that TeX can resolve
+all of the index and cross reference page numbers accurately).
+
+  $ pdftex tutorial.texi
+  $ texindex tutorial.??
+  $ pdftex tutorial.texi
+  $ texindex tutorial.??
+  $ pdftex tutorial.texi
+  $ texindex tutorial.??
+  
+

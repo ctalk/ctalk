@@ -1,0 +1,437 @@
+.\" $Id: ctalk.1,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $
+.\"
+.\" This file is part of ctalk.
+.\" Copyright © 2005-2015 Robert Kiesling, rk3314042@gmail.com.
+.\" Permission is granted to copy this software provided that this copyright
+.\" notice is included in all source code modules.
+.\" 
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation; either version 2 of the License, or
+.\" (at your option) any later version.
+.\" 
+.\" This program is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\" 
+.\" You should have received a copy of the GNU General Public License
+.\" along with this program; if not, write to the Free Software Foundation, 
+.\" Inc., 51 Franklin St., Fifth Floor, Boston, MA 02110-1301 USA.
+
+.TH CTALK 1 "2018-02-11"
+.SH NAME
+ctalk \- The Ctalk programming language.
+.SH SYNOPSIS
+.B ctalk
+[
+.B -h | --help
+] | [
+.B -E
+] [
+.B -I \fIdir\fP
+] [
+.B -P
+] [
+.B -V
+] [
+.B -v
+] [
+.B -s \fIdir\fP
+] [
+.B -o \fIoutfile\fP
+] [
+.B --clearpreload
+] [
+.B --keeppragmas
+] [ 
+.B --nolibinc
+] [
+.B --nopreload
+] [
+.B --printlibdirs
+] [
+.B --printtemplates
+] [
+.B --dots
+] [
+.B --warnclasslibs
+] [
+.B --warnextension
+] [
+.B --warnduplicatenames
+] ]
+.B --warnunresolvedselfexpr
+] \fIinput_files\fP
+
+.SH DESCRIPTION
+.B Ctalk 
+is an extension of the C language that adds object oriented
+features to C.
+The
+.B Ctalk
+package provides a compiler, class libraries, and run-time libraries,
+which work together with a system's C compiler and run-time libraries.
+
+The
+.B Ctalk
+compiler translates a
+.B Ctalk
+source module into a compilable C program which includes the
+.B Ctalk
+Application Programming Interface that provides support for
+objects, classes, and methods, and the 
+.B Ctalk
+run-time libraries
+add class and object support when the program is run.
+
+The example programs in the source code distribution, including
+\fIdemos/hello.c\fP and others, provide simple examples of the
+language.
+
+The 
+.BR ctalkintro "(1)"
+manual page provides a quick introduction to the language, and
+the
+.BR ctalkclasses "(1")
+manual page describes the class libraries.  On UNIX and Linux systems,
+the manual pages should be available once Ctalk is installed.  They
+are:
+
+.in +5
+ctalkintro - How to use the Ctalk compiler.
+.br
+ctalkclasses - Class library introduction.
+.br
+ctalkmethods - How to use the Ctalk libraries with objects.
+.br
+ctalkregex - Ctalk's pattern matching operators.
+.in -5
+
+You can view the manual pages by typing
+
+.in +5
+$ man ctalkclasses
+.in -5
+
+(for example) at a shell prompt.
+
+In addition, the \fIdoc\fP directory in the source code distribution
+contains a Texinfo manual and tutorial which provide a description
+of the language, class libraries, and methods.  On UNIX and Linux
+systems, the documents should be available as part of the Texinfo
+documentation library after
+.B Ctalk
+is installed.  If not, issuing the shell command
+
+.in +5
+info tutorial.info
+.in -5
+
+while in the \fIdoc\fP directory displays the
+.B Ctalk
+tutorial using the GNU Texinfo reader.
+
+.SH OPTIONS
+.TP 8
+.B --clearpreload
+Clear the preloaded method cache.  If this option is used alone,
+clear the cache and exit.  For information about 
+.B Ctalk's
+class preloading, see 
+.B CLASS AND METHOD PRELOADING,
+below.
+.TP 8
+.B --dots
+Print dots to the standard output to indicate 
+.B Ctalk's
+progress during compilation.
+.TP 8
+.B -E
+Preprocess the input files and write the output to stdout, or the
+file given as the argument to 
+.B -o, 
+and exit.  When used with the 
+.B --nolibinc
+option, 
+.B ctalk 
+behaves much like 
+.BR cpp "(1)".
+.TP 8
+.B -h\fP, \fB--help
+Print a help message and exit.
+.TP 8
+.B -I \fIdirectory\fP
+Include \fIdirectory\fP in 
+.B ctalk's 
+include search path.
+.TP 8
+.B --keeppragmas
+Write pragmas, declared either with the \fI#pragma\fP preprocessor
+directive or \fI_Pragma\fP keyword, untranslated to the output.
+Ctalk ignores (and elides) pragmas that apply to floating point math
+and code generation operations.  This option allows the pragmas to be
+passed on to the compiler.
+.TP 8
+.B --nolibinc
+Do not include ctalk's library include files in the program
+input.  This option does not affect the inclusion of the
+compiler's system header files.
+.TP 8
+.B --nopreload
+Parse and output all methods in the source input instead of using
+preloaded methods, and do not write methods to the preload cache.
+This option is useful when you want to avoid overwriting methods that
+are already cached with (possibly) conflicting methods; for example,
+when developing new classes and when running more than one
+.B Ctalk
+process at a time. (Running multiple
+.B Ctalk
+processes with caching under different user accounts is usually okay,
+though, because
+.B Ctalk
+caches methods separately for each user.)  See
+.B CLASS AND METHOD PRELOADING,
+below.
+
+This option has no effect on the output.  It simply causes the
+.B Ctalk
+compiler to run more slowly.  See the
+.B --progress
+option, below.
+.TP 8
+.B -o \fIfilename\fP
+Write output to \fIfilename\fP instead of standard output.
+.TP 8
+.B --progress
+Print dots to indicate 
+.B Ctalk's
+progress during compilation.
+.TP 8
+.B -P
+Do not include line number information in the output.  This
+option is useful for compilers that do not recognize GCC
+line markers, and for debugging the library and methods.
+.TP 8
+.B -V 
+Print version information and exit.
+.TP 8
+.B -v
+Print verbose warnings.  This option also sets the 
+.B --warnextension, --warnduplicatenames,
+and
+.B --warnunresolvedselfexpr
+options.
+.TP 8
+.B --verbose
+Same as
+.B -v.
+.TP 8
+.B -s \fIdirectory\fP
+Include \fIdirectory\fP in the search path for the compiler's
+system include files.  For GCC, this is normally 
+\fI/usr/lib/gcc-lib/\fPtarget\fI/\fPversion\fI/include/.\fP
+.TP 8
+.B --printlibdirs
+Print the directories that Ctalk searches for class libraries and
+exit.  Ctalk searches directories in the following order: 1)
+Directories given as arguments to the 
+.B -I
+command line option, above; 2) Directories named in the CLASSLIBDIRS
+environment variable; and 3) Ctalk's standard class library directory,
+which is defined when Ctalk is built and installed.  In addition, for
+each search directory, if a subdirectory named \fIctalk\fP exists,
+then Ctalk searches that subdirectory also.
+.TP 8
+.B --printtemplates
+Print the templates that the compiler caches when reading template
+files.  The
+.BR templates "(5ctalk)"
+manual page describes
+.B Ctalk's
+template file format.
+.TP 8
+.B --warnclasslibs
+Print the class libraries as they are being loaded.  With
+the 
+.B -v 
+option, print even more information.
+.TP 8
+.B --warnextension
+Print warnings for unknown compiler specific extensions.
+.B Ctalk
+currently recognizes only GCC extensions.
+.TP 8
+.B --warnduplicatenames
+Print a warning if an object name duplicates a C variable's name.
+Ctalk detects when a program duplicates C variable names anywhere in a
+program, and in most cases can make an intelligent decision about how
+to handle it, and this warning can occur if a C variable with the same
+name as an object occurs anywhere, even if the variable and the object
+are not in the same scope.  This option has no effect on error messages.
+.TP 8
+.B --warnunresolvedselfexpr
+Prints warnings if \fIself\fP appears in an argument block
+with either an instance variable label or an unresolvable method
+label following it.  In expressions like these, the class of each
+element of a collection, when represented by \fIself\fP within
+the argument block, often can't be determined until run time.  You can
+specify a class for \fIself\fP by
+placing a class cast expression (described in the \fICtalk Language
+Reference\fP) before the \fIself\fP keyword.
+
+For example, if a program contains an expression like this:
+
+List new textLines;
+
+   \fIThe program adds items to textLines\fP...
+
+textLines map {
+.br
+  if (self length > 0) {
+.br
+    \fIdo something\fP...
+.br	
+  }
+.br  
+}
+
+Then the expression, "self length" would generate a warning due to the
+label, \fIlength,\fP because the class membership of, "self," which
+represents each successive element of the, \fItextLines,\fP list,
+normally isn't determined until run time, and so the receiver class of
+\fIlength\fP is also undetermined.
+
+However, if you know that \fItextLines\fP contains only String
+objects, then you can add a class cast expression in the argument
+block.
+
+textLines map {
+.br
+  if ((String *)self length > 0) {
+.br
+    \fIdo something\fP...
+.br	
+  }
+.br  
+}
+
+This tells the program to treat \fIlength's\fP receiver, "self," as a
+String object, so it's possible to determine, before the program is
+actually executed, whether, "self length," is a valid expression.
+
+.SH CLASS LIBRARIES
+.B Ctalk
+keeps its class libraries in $PREFIX/include/ctalk.  The installation
+process determines the actual directory when 
+.B Ctalk
+is configured.  You can tell
+.B Ctalk 
+to look for class libraries in other directories with the 
+.B -I\fI<dir>\fP
+option, described above. 
+.B Ctalk
+also looks for the 
+.B CLASSLIBDIRS
+environment variable to determine its class library search path.
+See, \fIENVIRONMENT,\fP below.
+
+.SH CLASS AND METHOD PRELOADING
+When
+.B Ctalk 
+first compiles a class and its methods, it saves the compiled code,
+with information to re-initialize the objects, to a library directory, which
+is currently \fI$HOME/.ctalk/libcache.\fP
+
+.B Ctalk 
+uses those classes and methods until the following occur:
+.B a) 
+You update the class library and make it more recent than the 
+cached version; 
+.B b)
+You change the command line options which affect how
+.B Ctalk 
+compiles classes and methods; or
+.B c)
+You use the 
+.B --clearpreload 
+option to clear the cache and save new classes and methods.
+
+Preloading works most reliably when the entire cache is cleared and
+rewritten, using the 
+.B --clearpreload
+option.  You can guage somewhat the progress of compilation with
+the 
+.B --progress
+command line option.  If you want to see the effect of an update 
+first, the 
+.B --nopreload
+option builds programs without using cached classes and methods, and
+without updating the cached classes and methods.
+
+.B Ctalk,
+at present, only checks the library dependencies when the library
+is parsed from an input file.  At this point, though, if a class or 
+any methods are required by another cached method, 
+.B Ctalk
+can not always, at this point, backtrack to recompile the class.  This
+is not as severe a restriction as it sounds at first; the percentage
+of code that comes from the source input is much smaller the amount of
+code used in the class libraries.  It's unlikely that small changes in the 
+class libraries would be noticeable.  
+
+In any case, creating subclasses of the library classes, which you can
+generally reference directly in the input source, provides dependency
+checking without needing to worry about multiple levels of class
+library references.  It's yet another good reason to use subclassing
+when writing programs.
+
+.SH ENVIRONMENT
+.B Ctalk
+uses the value of 
+.B CLASSLIBDIRS
+to add additional directories to
+its class search path.  
+.B CLASSLIBDIRS's
+value is a colon
+separated list of directories to search; i.e., 
+\fI<dir1>\fP:\fI<dir2>\fP:\fI<dir3>.\fP
+
+The
+.B CTFLAGS
+environment variable, if set, can contain options for
+.B Ctalk.
+.B Ctalk
+parses
+.B CTFLAGS
+before the options on the command line, so the command line options
+take precedence over the options in
+.B CTFLAGS.
+
+.SH SEE ALSO
+.BR classdoc "(1)",
+.BR classes "(1)",
+.BR cpp "(1)",
+.BR ctalkintro "(1)",
+.BR ctpp "(1)",
+.BR ctcc "(1)",
+.BR ctdb "(1)",
+.BR ctxlogo "(1)",
+.BR fnnames "(5ctalk)"
+.BR gcc "(1)",
+.BR inspect "(3ctalk)",
+.BR membervars "(1)",
+.BR methods "(1)",
+.BR methodsource "(1)",
+.BR templates "(1)",
+.BR templates "(5ctalk)".
+
+.SH AUTHORS
+.B Ctalk 
+is written and maintained by Robert Kiesling,
+.br
+rk3314042@gmail.com.  The
+.B Ctalk
+Web site is at
+.br
+http://sourceforge.net/projects/ctalk/.

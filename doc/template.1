@@ -1,0 +1,122 @@
+.\" $Id: template.1,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $
+.\"
+.\" This file is part of ctalk.
+.\" Copyright © 2015 Robert Kiesling, rk3314042@gmail.com.
+.\" Permission is granted to copy this software provided that this copyright
+.\" notice is included in all source code modules.
+.\" 
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation; either version 2 of the License, or
+.\" (at your option) any later version.
+.\" 
+.\" This program is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\" 
+.\" You should have received a copy of the GNU General Public License
+.\" along with this program; if not, write to the Free Software Foundation, 
+.\" Inc., 51 Franklin St., Fifth Floor, Boston, MA 02110-1301 USA.
+
+.TH TEMPLATE 1 "2016-03-15"
+.SH NAME
+template \- Add a Ctalk Template Method to a User's Template Library
+.SH SYNOPSIS
+.B template -c
+| 
+.B -r
+|
+\fIactual_name\fP \fIapi_name\fP \fItemplate_file\fP
+
+.SH DESCRIPTION
+.B Template
+is a simple utility that adds a template file to a user's local
+template library and registers the template so that the
+.B Ctalk
+compiler can refer to it whenever the compiler encounters the
+template's function name.
+
+For a description of a template method's format, refer to the
+.BR templates "(5ctalk)"
+manual page.
+
+The
+.B template
+program takes three arguments: the name of the template's function after
+preprocessing, the template function's name in the application programming
+interface, and the file name of the template to be added.  
+
+In most cases, the \fIactual_name\fP and \fIapi_name\fP arguments are
+the same.  For example, to add a template for the function
+.B myPrintMsg,
+contained in the file \fImyprintmsg.tmpl,\fP you would use a
+command like this.
+
+  template myPrintMsg myPrintMsg myprintmsg.tmpl
+
+The separate \fIactual_name\fP argument is necessary in cases where a
+function name is actually a macro definition. In that case, the
+function name that appears in the source code after preprocessing may
+not be the same as the function's API name.
+
+For example, on Linux systems, the function
+.BR getc "(3)"
+is a macro definition for the actual function
+.B _IO_getc,
+which is the identifier that appears in the source file after
+preprocessing.  In that case, a command to register a template
+for
+.BR getc "(3)"
+might look something like this.
+
+  template _IO_getc getc getc.tmpl
+
+.SH OPTIONS
+.TP 8
+.B -c
+Create a new \fIfnnames\fP registry file if it doesn't exist.
+.B Template
+normally creates the \fIfnnames\fP file if it doesn't find one,
+but this option also creates an empty \fIfnnames\fP file without adding
+a template.  For example:
+
+  template -c
+  
+.TP 8
+.B -r
+Replace an existing template registry, \fIfnnames,\fP with a new, empty
+registry. The contents of the old file, if any, are not
+preserved.  To replace an existing template registry, use the following
+command.
+
+  template -r
+
+.SH BUGS
+Probably a few.
+.B Template,
+like
+.B Ctalk
+and any other language that uses a C preprocessor, has a very limited
+idea of a template definition's format, as well as the format of the
+template registry.  For a description of a template definition's
+format, refer to the
+.BR template "(5ctalk)"
+manual page, and the \fITemplate\fP section of the \fICtalk Language
+Reference.\fP
+
+.SH SEE ALSO
+.BR ctalk "(1)",
+.BR fnnames "(5ctalk)",
+.BR templates "(5ctalk)".
+
+.SH AUTHORS
+.B Ctalk
+and
+.B template
+are written and maintained by Robert Kiesling,
+.br
+rk3314042@gmail.com.
+
+
+

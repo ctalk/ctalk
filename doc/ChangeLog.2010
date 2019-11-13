@@ -1,0 +1,529 @@
+2010-01-07
+	- The function is_aggregate_type checks for both objects and
+	methods preceding a dereference operator.  Check for arguments and
+	parameter definitions that duplicate C variable names, and issue
+	warning with --warnduplicatenames option.  New = method in
+	Character and Integer classes.
+2010-01-14
+	- Method argument frames for variable argument methods, including
+	updates to __ctalkSelfPrintOn ().
+2010-01-19
+	- Object : mapInstanceVariables method and a lot of
+	expression analysis for inline methods that have
+	method parameters and object references as their receivers.
+2010-01-19
+	- __ctalkCopyObject handles value instance variables alone
+	differently than complete objects.  
+2010-01-24
+	- Check for a message that refers specifically to an 
+	instance variable or reference to an instance
+	variable before using the complete object as a reference.
+2010-02-02
+	- Object : mapClassVariables method.
+2010-02-05
+	- ObjectInspector class and basic formatObject
+	method.
+	- Object : dump method.
+2010-02-06
+	- Added rt_signal.c and library functions there.
+	Signals now use SA_RESETHAND, so the signal handlers
+	must be reset after each usage.  Rewrote
+	SignalEvent, SignalHandler, and Application classes.
+2010-02-07
+	- Added check in method_args for a label terminator
+	(':') before the beginning of a frame.  Insert
+	method arg call just after terminator.
+2010-02-09
+	- Added separate called by __ctalkEvalExpr to delete
+	temporary objects from an expression, and perform
+	fixups and adjust token attributes after message
+	fixups.
+2010-02-10
+	- Added a timeout to the select() call in
+	X11TerminalStream : queueInput.
+	- Changed the X11Pane : raise method to raiseWindow
+	to avoid warnings about the C raise () function.
+	- Xspiro.c example program for Linux and OS X.
+2010-02-12
+	- Release 0.0.96a 20100212.
+2010-02-15
+	- Removed duplicate pane dimension accessors from x11lib.c.
+	- Control block level removal with parser level removal 
+	check in parser.c.  
+2010-02-16
+	- Updates to handle deletion of temporary object and instance
+	variable references.
+2010-02-18
+	- Updates to __rt_method_args to recognize
+	pre-evaled arguments.
+2010-02-19
+	- Release 0.0.96a 20100219.
+2010-02-23
+	- Code cleanup in X11 library files.
+	- Fixups for expressions that contain unresolved
+	object references.
+	- Release 0.0.96a 20100223.
+2010-02-25
+	- Additional check for instance variable messages that
+	have the same name as objects in resolve ().
+	- Fixes to mapvars1.c test program, addition of mapvars3.c, 
+	and updates to the tutorial.
+	- Release 0.0.96a 20100225
+2010-02-26
+	- Additional method label check in eval_arg ().
+	- In method_call () function, catch ambiguous operand exception
+	in receiver context.
+2010-02-27
+	- Release 0.0.96a 20100227.
+2010-03-02
+	- X11 library functions in bitmap.c use existing graphics
+	contexts.
+	- Better evaluation of inline expressions that are stdarg function
+	arguments.
+	- Backward compatibility updates for __ctalkX11... and
+	__ctalkGUI... functions.
+	- Release 0.0.96a 20100302.
+2010-03-06
+	- Added xspiro-basic.c example program, even though it isn't
+	strictly an example.
+2010-03-08
+	- Added __ctalkX11ErrorHandler, updated x11lib warning messages,
+	and added --without-x-protocol-errors and --without-x11-warnings 
+	build options.
+	- Release 0.0.96a 20100308.
+2010-03-12
+	- Added guiputstr.c, and combined __ctalkX11PanePutStr and
+	__ctalkX11TextPanePutStr into __ctalkGUIPanePutStr.
+	- An error on a bind () call in the x11lib.c now
+	causes the program to exit.
+	- Cleaned up __xlib_set_wm_name_prop.
+	- In method.c, an ambiguous arg catch also tries to
+	clean up argument object.s
+2010-03-13
+	- Updates for __ctalkGUIDrawLine and __ctalkGUIDrawRectangle.
+	- Release 0.0.96a 20100313.
+2010-03-14
+	- Added Rectangle : clear, X11Pane : clearRectangle, and
+	X11CanvasPane : clearRectangle methods, and __updated the
+	__ctalkX11ClearRectangle library function to
+	__ctalkGUIPaneClearRectangle which handles both buffered and
+	unbuffered pane windows.
+	- Release 0.0.96a 20100314.
+2010-03-15
+	- Updates in pattern.c and pattypes.c for printf formats that
+	contain random leading characters, and fixes elsewhere.
+2010-03-16
+	- Release 0.0.96a 20100316.
+2010-03-17
+	- Ctpp 1.0.57.
+	- OS specific test for off_t type.
+2010-03-18
+	- When formatting method and function intialization
+	blocks, check for unary operators as the first token
+	of the function or method body.
+	- Release 0.0.96a 20100318.
+2010-03-23
+	- Ctpp 1.0.58.
+	- Updates to preprocess () for OS X popen ().
+2010-03-25
+	- Added Apple math.h predefined builtins and keyword
+	check.
+2010-03-26
+	- Ctpp 1.0.59.
+2010-03-27
+	- Ctpp 1.0.60.	
+	- Release 0.0.96a 20100327.
+2010-03-29
+	- Moved check for function defined by header to final function
+	closure in parser.c from fnbuf.c.
+	- Check the header files in libkern/* for function declarations
+	and add headers from osxbuiltins.sh.
+2010-03-30
+	- Release 0.0.96a 20100330.
+2010-03-31
+	- Exception for cases where unknown label follows a
+	constant receiver.
+	- Release 0.0.96a 20100331.
+2010-04-02
+	- Added is_ptr_fmt_arg and is_ptr_fmt in pattypes.c, 
+          more support for pointer stdarg formats in method.c,
+	  arg.c, and objtoc.c.
+	- Object : addressOf method and eval semantics.
+2010-04-03
+	- Symbol : deref and Object : addressOf methods.
+2010-04-05
+	- More error checking in argument parsing and saving 
+	user options.
+2010-04-06
+	- Added stack buffer for successive method call local objects, and
+	save results of later method calls as extra objects.
+2010-04-07
+	- Release 0.0.96a 20100407.
+2010-04-08
+	- Minor fixes for object cleanup on local object
+	stack.
+	- Release 0.0.96a 20100408.
+	- C context check for complex method expressions.
+	- Ctpp 1.0.61.
+2010-04-09
+	- Resolve () now sets the OBJ_IS_INSTANCE_VAR attribute on a
+	message, so routines called by method_call () can use it to
+	determine if a complex expression needs to be evaluated at run 
+	time.
+	- eval_arg () now uses run-time evaluation of
+	complex method expressions that are stdar arguments
+	that return defined classes.
+2010-04-10
+	- Method_args () changes arguments of arg_obj_tok
+	class to arg_rt_expr, which are handled in
+	method_call.
+2010-04-12
+	- Release 0.0.96a 20100412.
+2010-04-17
+	- Ctpp 1.0.62.  Support for GCC 4.5.x stdint.h
+	wrappers.
+	- Relase 0.0.96a 20100417.
+2010-04-23
+	- Updated, context sensitive exceptions in resolve (), 
+	String : envVarExists method.  Another sanity check
+	for valid receivers in __rt_method_args, other
+	updates to handle invalid input files.
+	- Release 0.0.96a 20100423.
+2010-04-23
+	- _error () now calls __ctalk_exitFn () for class lib cleanup, and
+	has a call to clean up temporary objects in the expression parser.
+	Changed cleanup () to cleanup_temp_files () for cleaning up files
+	in the ./ tmp directory.
+2010-04-24
+	- Added extra test in is_c_var_declaration_msg () for function and 
+	control structures which contain "... ) {..." states.
+2010-04-25
+	- Insert missing return statements in format_method ().
+	- Added __ctalkClassLibPath (), check for CLASSLIBDIRS
+	environment variable, and add paths to classlibdir in the 
+	front end and at run time.
+2010-04-26
+	- Release 0.0.96a 20100426
+2010-04-27
+	- Application : classSearchPath method, update to --printlibdirs
+	command line option, tests and examples, and documentation updates
+	for library search paths.
+2010-04-28
+	- Added support for break statements in argument blocks.
+	- Added Object : libraryPath method.
+2010-04-29
+	- Release 0.0.96a 20100429.
+2010-05-02
+	- Updates to method_arglist_limit_2 and 
+	compound_method_limit.
+2010-05-04
+	- Added have_possible_global_var_method_dup_label in 
+	is_c_var_declaration_msg () to check for duplicat method 
+	names and *global variables only*.
+	- Release 0.0.96a 20100504.
+	- Added Object : classObject method.
+2010-05-05
+	- Don't use deref or period as method arglist terminators
+	in METHOD_ARG_TERM_MESSAGE_TYPE, and include as C 
+	operator characters in IS_C_OP_CHAR.  Updates in
+	default_method ().  Minor updates to
+	is_c_var_declaration_msg ().
+2010-05-06
+	- Release 0.0.96a 20100506.
+2010-05-07
+	- The function resolve () moved to separated source
+	module and repeated code moved into functions.
+	Basic updates for constant receivers and receiver
+	expressions.
+2010-05-08
+	- Ctdb and ctcc no longer print long double warnings on OS X.
+	- Added methods String : charPos, and a basic version 
+	of Object : methods.  
+	- Check for an actual filestream address in
+	FileStream : streamEof.
+	- Minor fixes in pattypes.c, rt_error.c, and lex.h.
+2010-05-10
+	- Release 0.0.96a 20100510.  
+	- More constant receiver support in methods in
+	resolve.c, a check for a method using a tokens value
+	object if necessary, support for simple constant
+	expressions when used as receivers, better handling
+	of method resource objects that are used as
+	arguments elsewhere in a program. 
+2010-05-11
+	- Updated Object : methods and method.c sample program.
+	- Added faster version of String : split, written
+	partially in C.
+	- Release 0.0.96a 20100511.
+2010-05-13
+	- Added __ctalkSearchBuffer library function and
+	String : search method.
+2010-05-16
+	- Additions for syntax checks is_in_rcvr_subexpr,
+	and semantic check for receiver at start of block
+	body in is_in_rcvr_subexpr_obj_check ().
+	- Release 0.0.96a 20100516.
+2010-05-19
+	- Updates in is_c_var_declaration_msg to check for
+	struct member before issuing duplicate label
+	warning.
+	- Paren check in __rt_method_args for each argument,
+	and sanity checks for NULL arguments.
+2010-05-20
+	- Reliability updates in Magnitude : asInteger and 
+	substrcpy ().
+	- Release 0.0.96a 20100520.
+2010-05-21
+	- String : search now returns the number of matches
+	it finds.
+	- fn_param () now checks for variable arguments.
+	- resolve2 () looks up the number of arguments for a
+	complex argument from a method prototype if necessary.
+2010-05-22
+	- Minor fix to is_int_fmt () for 'l' modifier.
+2010-05-23
+	- Character arithmetic methods interpret Integer and LongInteger
+	operands as ints and long long ints; LongInteger arithmetic
+	methods promote Character operands to LongIntegers; and Integer
+	arithmetic methods parse literal Character operands.
+	- Updated Ctalk version of String : split that can accept either a
+	Character or multi-character String as a delimiter.  Refer to the
+	comments in String class.
+	- Release 0.0.96a 20100523.
+2010-05-24
+	- Added __argstack_error_cleanup () to remove arguments
+	from the stack when exiting via __error (), and check for
+	remaining arguments stored in methods in 
+	__ctalkClassDictionaryCleanup ().
+2010-05-30
+	- Updated all of the methodReturnSelf and
+	methodReturnNULL macros in the class library and
+	example programs and documentation.
+2010-06-01
+	- The ctalk/test/expect/cttest shell script now uses gccmajorver.sh
+	to determine compiler version.
+	- If run-time object is derived from a FILE *, set
+	class to FileStream and scope to
+	CVAR_VAR_ALIAS_COPY, to prevent attempted free ()
+	of the original FILE *.  Update for cFprint template.
+2010-06-04
+	- C variable declarations now set attributes
+	independently for each variable tag.
+2010-06-06
+	- Automatic code and object generation for simple method
+	returns includind self, TRUE, and FALSE.
+	- Support for C variables, self and method paramters
+	in receiver expressions.
+	- Release 0.0.96a 20100606.
+2010-06-08
+	- Replaced the remaining methodReturnTrue macros and updated all
+	of the single-token arg methodReturnObject* macros with simple
+	return statements.  
+	- Updates for DJGPP, which can't tell the difference between 0 and
+	NULL.  This means that methods like map, for example, which depend
+	on __ctalkInlineMethod's target method to return a NULL value,
+	need to be modified.  See the comments in map in 
+	List|Array|AssociativeArray for ways to cope with it.
+	- Updated all of the example and test programs and documentation
+	with standard C return expressions that we have implemented 
+	translations for.
+2010-06-09
+	- Release 0.0.96a 20100609.
+2010-06-15
+	- Faster version of IS_OBJECT except for SPARC
+	builds.
+	- Resolve () issues an ambiguous operand exception
+	for unprototyped functions and undefined methods
+	that use parentheses around the argument list.
+	- More thorough cleanup and reference count checking
+	of object references in rtnewobj.c and rt_expr.c.
+	- Release 0.0.96a 20100615.
+2010-06-23
+	- Moved Integer : asString to Object : asString.
+	Cleaned up Float, String, Symbol, and Object classes
+	for use with built-in saving of OBJECT * return
+	values.
+	- Automatic code generation and internal updates
+	that allow methods to save C OBJECT *'s as method
+	resources.
+	- Release 0.0.96a 20100623.
+2010-06-25
+	- Added wregex.c and __ctalkMatchText wildcard 
+	pattern matching.
+2010-06-27
+	- Automatic code generation for basic C type to object
+	resources in method return values.
+	- Release 0.0.96a 20100627.
+2010-06-29
+	- Ctpp 1.0.63, and support in Ctalk's lexer for 
+	hexadecimal floating point constants, and configuration options 
+	for signed hexadecimal and octal warning messages.
+2010-06-30
+	- Class library cleanup, and rewriting of methods in
+	Character class.
+	- Release 0.0.96a 20100630.
+2010-07-03
+	- Ctpp 1.0.64.
+	- Added OBJREF_IS_OBJECT macro in rtobjref.c.
+	- Check for other types of control structures that
+	occur within __asm__ blocks in constrcvr.c.
+	- Release 0.0.96a 20100704.
+2010-07-11
+	- The __ctalk_isMethod function and associated functions now
+	have their own file.
+	- Handlers in return.c for expressions that return basic 
+	C types associated with classes.
+	- Updates in resolve.c to handle extra C variables, which are 
+	normally skipped, in receiver expressions.
+	- Release 0.0.96a 2010711.
+2010-07-12
+	- The functions is_struct_or_union_expr and struct_or_union_expr
+	now handle <fn> () -> and <fn> () . expressions.
+2010-07-16
+	- The struct_member_from_expr () function checks more closely
+	a typedef'd members, and also uses only the typedef'd
+	member if the label is the final token in  the expression.
+2010-07-18
+	- Handlers added to eval_return_expr () for struct dereferences,
+	expressions that begin with C functions that return types
+	translatable to standard classes, NULL (if defined as
+	((void *)0)), and expressions that begin with the eval keyword.
+	Expressions that begin with array members have yet to be handled 
+	directly, but they can be cast to a basic C type or OBJECT *, or 
+	evaled.
+	- Release 0.0.96a 20100718.
+2010-07-22
+	- Automatic code generation for methods that return C subscripted
+	arrays.
+	- Release 0.0.96a 20100722.
+2010-07-26
+	- Check for actual end of constant receiver expressions in 
+	method_call ()..
+	- Replaced current_parser () function with CURRENT_PARSER 
+	macro.
+	- Message re-use for repeated characters and static error 
+	location update in tokenize ().
+	- Test for characters not allowed in function declarations
+	in is_c_function_declaration (), and removal of extra 
+	code because is_c_function_declaration does not actually
+	need to set a frame at a method declaration.  Refer to
+	the comments in cparse.c.
+	- Extra parenthesis check in is_typecast_expr ().
+	- Release 0.0.96a 20100726.
+2010-08-02
+	- Method __prefix__ attribute and unary prefix operator overloading 
+	for simple expressions containing a C variable or object with a 
+	single prefix operator.
+2010-08-03
+	- Support for simple C variable receivers in expressions handled by 
+	__method_call ().
+	- Updated Magnitude : asInteger.
+2010-08-04
+	- Release 0.0.96a 20100803.
+2010-08-10
+	- Run-time support for Collection class initialization from 
+	subscripted C variables.
+	- Minor compatibility and bug fixes for GCC 4.5.1.
+	- Added Collection : *, Magnitude : * and String : * methods to 
+	overload C's unary dereference (*) operator.
+	- Release 0.0.96a 20100810.
+2010-08-14
+	- Added ! method (Magnitude class) to overload C ! unary operator, 
+	and still further internal updates to support overloading unary 
+	operators. 
+	- Release 0.0.96a 20100814.
+2010-08-19
+	- Added support for overloading C unary operators &,
+	~, ++, and --.
+	- Release 0.0.96a 20100815.
+2010-08-27
+	- Added support for overloading the C sizeof
+	operator (class Object) on 32-bit systems - refer to the
+	comments in the Object class library.
+	- Added exception and default stack trace in become (class
+	Object) for NULL arguments.
+	- Minor bugfixes and code cleanup in lexical ().
+	- Release 0.0.96a 20100827.
+2010-09-13
+	- Better support for subscripted C variables in constant expressions 
+	that are used as receivers.
+	- Release 0.0.96a 20100913.
+2010-09-20
+	- Added support for prefix ++ and -- in method
+	arguments for simple scalar C variables, and
+	margexprs7.c - margexprs15.c test programs. 
+	Evaluation fixups for margexprs4.c.  
+2010-09-22
+	- Ctpp 1.0.65.
+2010-09-24
+	- Added support for postfix ++ and -- in method
+	arguments for simple scalar C variables, and
+	margexprs16.c and margexprs17.c test programs.
+2010-09-25
+	Release 0.0.96a 20100925.
+2010-09-28
+	- Ctpp 1.0.66.
+	- Added additional support for subscript receivers
+	and subscrrcvr1.c test program.
+2010-10-02
+	- Added additional support for C variables as
+	receivers and cvarrcvr1.c.
+2010-10-03
+	Release 0.0.96a 20100925.
+2010-10-12
+	- Added LVAL_UNIQUE_ALIAS internal scope, 
+	SUBEXPR_CREATED_RECEIVER cleanup, updates for 
+	implicit function declarators, and compatibility
+	updates.
+	- Release 0.0.96a 20101012.
+2010-10-16
+	- Added ++ and -- postfix methods in Character,
+	Integer, and LongInteger classes.  Handle 
+	multiple ++ and -- operator expressions in
+	rt_expr.c.  Added postfix1.c and postfix2.c 
+	test programs.
+2010-10-18
+	- Added ++ and -- support for simple C variable receivers,
+	and cvarrcvr4.c test program.
+2010-10-19
+	- Release 0.0.96a 20101019.
+2010-10-22
+	- Added r_messages stack in mthdref.c and increased
+	size of var_messages stack in cvars.c.  
+2010-10-24
+	- Added SUBSCRIPT_OBJECT_ALIAS scope in output.c and
+	rt_cvar.c, and cvarrcvr5.c, cvarrcvr6.c,
+	cvarrcvr7.c, and cvarrcvr8.c test programs.
+2010-10-29
+	- Support for prefix and postfix (++|--) C operators with C array
+	elements as receivers, and test programs cvarrcvr9.c,
+	cvarrcvr10.c, and cvarrcvr11.c.
+	- Release 0.0.96a 20101029.
+2010-11-16
+	- Updated the comments in some of the cvarrcvr*.c
+	test scripts and added a to-do list for release
+	0.0.97a in the NEWS file.
+2010-11-18
+	- Added actual receiver_msg backtrack to an array label in
+	method_call ().  Updated cvarrcvr7.c test program to
+	check that a label as an array subscript is handled correctly.
+2010-11-21
+	- Struct declarations with multiple tags but without
+	a type tag now inherit the struct member CVARs of
+	the struct definition and struct definition
+	attributes for each tag's CVAR.
+2010-12-02
+	- Added the cvarrcvr12.c - cvarrcvr29.c test scripts
+	and support for struct elements as receivers.
+	Updated margexprs17.c - margexpr19.c to handle more
+	complex prefix operator expressions.  Added
+	margexprs20.c - margexprs22.c for basic support of
+	subscripts and structs in method arguments.  Added
+	front end and library support for all of this.  See
+	the NEWS file for more about C variable and operator
+	overloading and evaluation.
+2010-12-03
+	Release 0.0.96a.
+	
+	
+	

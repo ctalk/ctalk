@@ -1,0 +1,115 @@
+.\" $Id: classes.1,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $
+.\"
+.\" This file is part of ctalk.
+.\" Copyright © 2014-2015 Robert Kiesling, rk3314042@gmail.com.
+.\" Permission is granted to copy this software provided that this copyright
+.\" notice is included in all source code modules.
+.\" 
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation; either version 2 of the License, or
+.\" (at your option) any later version.
+.\" 
+.\" This program is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\" 
+.\" You should have received a copy of the GNU General Public License
+.\" along with this program; if not, write to the Free Software Foundation, 
+.\" Inc., 51 Franklin St., Fifth Floor, Boston, MA 02110-1301 USA.
+
+.TH CLASSES 1 "2016-05-14"
+.SH NAME
+classes \- List the Ctalk classes for a system and a user.
+.SH SYNOPSIS
+.B classes
+[
+.B -h | --help
+] [
+.B -q
+]
+
+.SH DESCRIPTION
+.B Classes
+lists the classes present on a machine, both in Ctalk's 
+system-wide class directory(s), and in any directories named by
+the
+.B CLASSLIBDIRS
+environment variable.  Refer to the section,
+.B ENVIRONMENT,
+below.
+
+If the class directories contain files that declare classes
+with duplicate names, the
+.B classes
+program lists only the first file it encounters.
+
+.SH OPTIONS
+.TP 8
+.B -h
+Display a help message and exit.  Also lists the directories that
+Ctalk searches for its class libraries.
+.TP 8
+.B --help
+The same as 
+.B -h.
+.TP 8
+.B -q
+Don't print dots to indicate the program's progress.
+
+.SH ENVIRONMENT
+.B Classes, 
+like
+.B Ctalk,
+uses the value of 
+.B CLASSLIBDIRS
+to add additional directories to
+its class search path.  
+.B CLASSLIBDIRS's
+value is a colon
+separated list of directories, similar to the format of the
+.B PATH
+environment variable; i.e., 
+\fI<dir1>\fP:\fI<dir2>\fP:\fI<dir3>.\fP
+
+.SH BUGS
+.B Classes,
+in order to be as fast as possible, only parses class declarations 
+that appear on one line; e.g.:
+
+  <superclassname> class <classname>;
+
+If the class declaration includes a documentation string, however, the
+documentation string may appear on separate lines, since
+.B classes
+doesn't parse it.
+
+.SH SEE ALSO
+.BR classdoc "(1)",
+.BR ctalk "(1)",
+.BR methods "(1)",
+.BR methodsource "(1)".
+
+The Texinfo documentation also describes the
+.B Ctalk
+tools.  The shell command
+
+  $ info ctalktools
+
+displays the documentation on machines that have
+GNU Texinfo installed.
+
+.SH AUTHORS
+.B Ctalk 
+and
+.B classes
+are written and maintained by Robert Kiesling,
+.br
+rk3314042@gmail.com.  The latest 
+.B Ctalk
+release and programs written in
+.B Ctalk
+are available at
+http://sf.net/projects/ctalk/.
+

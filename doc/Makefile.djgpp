@@ -1,0 +1,17 @@
+# $Id: Makefile.djgpp,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $
+#
+# Makefile for DJGPP and GNU make.  No-ops because DJGPP
+# does not install info and man pages in UNIX-ly locations.
+#
+
+CMD=cmd /C
+
+all:
+
+
+inst:
+
+
+clean:
+	$(CMD) del *~
+	

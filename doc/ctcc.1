@@ -1,0 +1,155 @@
+.\" $Id: ctcc.1,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $
+.\"
+.\" This file is part of Ctalk.
+.\" Copyright © 2005-2012 Robert Kiesling, rkiesling@users.sourceforge.net.
+.\" Permission is granted to copy this software provided that this copyright
+.\" notice is included in all source code modules.
+.\" 
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation; either version 2 of the License, or
+.\" (at your option) any later version.
+.\" 
+.\" This program is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\" 
+.\" You should have received a copy of the GNU General Public License
+.\" along with this program; if not, write to the Free Software Foundation, 
+.\" Inc., 51 Franklin St., Fifth Floor, Boston, MA 02110-1301 USA.
+
+.TH CTCC 1 "2014-03-13"
+.SH NAME
+ctcc \- Compile Ctalk programs.
+.SH SYNOPSIS
+.B ctcc
+[
+.B -h
+] | [
+.B -c
+] [
+.B --clearpreload
+] [
+.B -I \fIdir\fP
+] [
+.B -k
+] [
+.B -m
+] [
+.B --nopreload
+] [
+.B --progress
+] [
+.B -x
+] [
+.B -o \fIoutput_file\fP
+]
+.B \fIinput_files\fP
+
+.SH DESCRIPTION
+.B Ctcc
+compiles Ctalk executable programs from one or more Ctalk
+input files.  If the 
+.B -o
+option is not given, the name of the resulting executable
+program is 
+.I ctalk.out.
+
+The Texinfo manual, \fICtalk Language Reference,\fP and the 
+.BR ctalk "(1)"
+manual page describe all of the Ctalk command line options.
+
+If you need to compile a program for debugging, 
+.B ctdb 
+compiles Ctalk executables so they can be examined with
+.B gdb.
+
+.SH OPTIONS
+.TP 8
+.B -c
+Compile the input file only; don't link the \fI.o\fP output file.
+.TP 8
+.B --clearpreload
+Add 
+.B --clearpreload
+to Ctalk's options.  The option clears the preloaded method cache.
+If given with no other options, clear the preloaded methods and 
+exit.
+.TP 8
+.B -h
+Print a help message and exit.
+
+.TP 8
+.B -I \fIdir\fP
+Add directory to Ctalk search path.
+
+.TP 8
+.B -k
+Keep temporary files.
+
+.TP 8
+.B -m
+Link program with
+.B libm
+by adding
+.B -lm 
+to the linker flags.
+
+.TP 8
+.B --nopreload
+Add
+.B --nopreload 
+to Ctalk's options.  Do not use preloaded methods, and do not
+write methods to the preloaded method cache.
+
+.TP 8
+.B --progress
+Add 
+.B --progress
+to Ctalk's options.  Display Ctalk's progress by printing 
+dots on the screen.
+
+.TP 8
+.B -o \fIoutput_file\fP
+Name the executable \fIoutput_file.\fP  If this option is
+not given, the default output file name is \fIctalk.out.\fP
+
+.TP 8
+.B -x
+Link with X Window System libraries by adding 
+.B -lX11 -lXext
+to the linker flags.  The option also adds a generic 
+directory path to search for the libraries.  If LD_LIBRARY_PATH is set
+in the environment, then that path is used to search for all
+libraries.
+
+.SH ENVIRONMENT
+.B Ctpp,
+like
+.B Ctalk,
+uses the value of \fICLASSLIBDIRS\fP to add additional directories to
+its class search path.  \fICLASSLIBDIRS's\fP value is a colon
+separated list of directories to search; i.e., 
+\fI<dir1>\fP:\fI<dir2>\fP:\fI<dir3>.\fP
+
+.B Ctcc
+also uses the values of \fICFLAGS,\fP \fILDFLAGS,\fP and 
+\fICTFLAGS\fP if they are set in the environment.  In that case,
+.B ctcc
+prepends their values to the options for the compiler, the linker, and 
+.B Ctalk.
+
+
+.SH SEE ALSO
+.BR gcc "(1)",
+.BR cpp "(1)"
+.BR ctalk "(1)",
+.BR ctpp "(1)",
+.BR ctdb "(1)",
+.BR gdb "(1)".
+
+.SH AUTHORS
+.B Ctpp 
+is written and maintained by Robert Kiesling, rk3314042@gmail.com.
+

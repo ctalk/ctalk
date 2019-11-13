@@ -1,0 +1,72 @@
+.\" $Id: methodsource.1,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $
+.\"
+.\" This file is part of ctalk.
+.\" Copyright © 2015 Robert Kiesling, rk3314042@gmail.com.
+.\" Permission is granted to copy this software provided that this copyright
+.\" notice is included in all source code modules.
+.\" 
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation; either version 2 of the License, or
+.\" (at your option) any later version.
+.\" 
+.\" This program is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\" 
+.\" You should have received a copy of the GNU General Public License
+.\" along with this program; if not, write to the Free Software Foundation, 
+.\" Inc., 51 Franklin St., Fifth Floor, Boston, MA 02110-1301 USA.
+
+.TH METHODSOURCE 1 "2015-09-09"
+.SH NAME
+methodsource \- Display a method's source code.
+.SH SYNOPSIS
+.B methods
+\fIclassname\fP \fImethodname\fP
+
+.SH DESCRIPTION
+.B Methodsource
+displays the source code of the method named on the command line.
+If the method is overloaded, then
+.B methodsource
+displays all of the methods with that name.
+
+.SH ENVIRONMENT
+.B Methodsource, 
+like
+.B Ctalk,
+uses the value of 
+.B CLASSLIBDIRS
+to add additional directories to
+its class search path.  
+.B CLASSLIBDIRS's
+value is a colon
+separated list of directories; i.e., 
+\fI<dir1>\fP:\fI<dir2>\fP:\fI<dir3>.\fP
+
+.SH SEE ALSO
+.BR ctalk "(1)",
+.BR classes "(1)",
+.BR methods "(1)".
+
+The Texinfo documentation also describes the
+.B Ctalk
+tools.  The shell command
+
+  $ info ctalktools
+
+displays the documentation on machines that have
+GNU Texinfo installed.
+
+.SH AUTHORS
+.B Ctalk 
+and
+.B methodsource
+are written and maintained by Robert Kiesling,
+.br
+rk3314042@gmail.com.   The Web site
+http://sf.net/projects/ctalk
+contains information about current releases.
+

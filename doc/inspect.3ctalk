@@ -1,0 +1,272 @@
+.\" $Id: inspect.3ctalk,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $
+.\"
+.\" This file is part of ctalk.
+.\" Copyright © 2005-2015 Robert Kiesling, rk3314042@gmail.com.
+.\" Permission is granted to copy this software provided that this copyright
+.\" notice is included in all source code modules.
+.\" 
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation; either version 2 of the License, or
+.\" (at your option) any later version.
+.\" 
+.\" This program is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\" 
+.\" You should have received a copy of the GNU General Public License
+.\" along with this program; if not, write to the Free Software Foundation, 
+.\" Inc., 51 Franklin St., Fifth Floor, Boston, MA 02110-1301 USA.
+
+.TH INSPECT 3ctalk "2015-08-10"
+.SH NAME
+inspect \- Ctalk Interactive Object Inspector 
+.SH SYNOPSIS
+Object new myObj;
+.br
+myObj inspect;
+.br
+myObj inspect \fI<promptStr\fP;
+
+.SH DESCRIPTION
+The Ctalk inspector lets you stop a program, examine objects in
+the program's execution path, and then optionally continue or exit
+the program.
+
+To enter the inspector, send an object the
+.B inspect
+message.  The
+.B inspect
+method in Object class is a shortcut for the
+.B inspect
+method
+in ObjectInspector class, which contains the actual inspector
+methods.  That allows 
+.B inspect
+to be accessible to any object.
+
+The Object : inspect method can take an argument, which is the
+string it displays as the command prompt.  You can also change
+the default command prompt by setting the instance variable
+\fIpromptStr\fP to your prompt.  Refer to the section, INSTANCE VARIABLES,
+below.
+
+Without any arguments, when the program enters the inspector, it
+displays its default command prompt
+
+>
+
+where the user enters inspector commands.  The section,
+.B INSPECTOR COMMANDS,
+below, describes the commands.
+
+The inspector examines objects on Ctalk's receiver, argument, and
+call stacks.  Refer to the section
+.B A BRIEF INSPECTOR TUTORIAL,
+below, for a description.
+
+.SH INSPECTOR COMMANDS
+These are the commands the inspector recognizes.
+.TP 8
+.B a | args [\fIframe\fP]
+Prints the argument stack, or, with stack index \fIframe,\fP the
+object at argument stack frame \fIframe.\fP
+.TP 8
+.B b
+Prints the call stack; i.e. the command displays a walkback of the
+method and function call sequence.
+.TP 8
+.B br | brief
+Display brief object listings.
+.TP 8
+.B c
+Exits the inspector and continues running the program.
+.TP 8
+.B g | globals
+Prints the global objects.
+.TP 8
+.B h | help | ?
+Prints a summary of the inspector commands.
+.TP 8
+.B l \fIframe\fP
+Prints a summary of the local objects in stack frame \fIframe.\fP
+.TP 8
+.B p | print [\fIoptions\fP]
+Print an object's contents.  When used without any options, prints
+the receiver object's contents.
+
+.RS 8
+The options that the
+.B print
+command recognizes are:
+.TP 8
+.B a \fIframe\fP
+Print the object on the argument stack at frame \fIframe.\fP
+.TP 8
+.B g [\fIname\fP]
+Print a summary of the global objects.  If \fIname\fP is given, print
+the contents of the global object \fIname.\fP
+.TP 8
+.B l \fIframe\fP [\fIname\fP]
+Print a summary of the local objects at stack frame \fIframe.\fP
+If \fIname\fP is given, print the contents of local object \fIname.\fP
+.TP 8
+.B r \fIframe\fP
+Print the receiver at receiver stack frame \fIframe.\fP
+.TP 8
+.B \fIaddr\fP
+Print the object at \fIaddr,\fP where \fIaddr\fP is the
+formatted hexadecimal address of an object in memory
+(e.g., 0x48663268).
+
+For example:
+
+.RS 4
+.B > p l 512
+.RS 4
+Print a summary of the local objects at stack frame 512.
+.RE
+.B > p l 510 myObject
+.RS 4
+Print the contents of the local object
+.B myObject
+at stack frame 510
+.RE
+
+.B > p a 508
+.RS 4
+Print the object on the argument stack at stack frame 508.
+.RE
+.RE
+.RE
+.TP 8
+.B q | quit
+Quit the inspector and exit the program.
+.TP 8
+.B r | receivers [\fIframe\fP]
+Print a summary of the receiver stack, or with a \fIframe\fP stack index, 
+the object at receiver stack frame \fIframe.\fP
+.TP 8
+.B v | verbose
+Display more detailed object listings.
+
+.SH A BRIEF INSPECTOR TUTORIAL
+
+Internally, a running
+.B Ctalk
+program uses three stacks to manage the objects that are in use.  They
+are the call stack, the receiver stack, and the argument stack.
+
+The receiver stack stores the receiver of each method call, the argument
+stack stores the arguments for each method call, if there are any, and
+the call stack contains the function and method call sequence of the
+program.
+
+Each stack has an initial index of 512, and each entry on the stack
+causes the index to decrease by one.
+
+The indexes of these stacks can operate independently of each other.
+For example, a C function call is recorded on the call stack but not
+the receiver stack (that is, methods have receivers, C functions
+don't).  The argument stack can store any number of arguments for each
+method call.
+
+Local objects are available on the call stack entry which records the method
+or function where they're declared.  For example, if the function \fImain ()\fP
+declares a String object \fIs,\fP you can find it with a sequence of 
+commands like these.
+
+.B > b
+.br
+b
+.br
+        512.    main ()
+.br
+        511.    Object : inspect
+.br
+        510.    ObjectInspector : inspect
+.br
+.B > l 512
+.br
+l 512
+.br
+        0x4882c8c8      s <String> : (null) <String>
+.br
+.B > p l 512 s
+.br
+p l 512 s
+.br
+name:       s
+.br
+class:      String (0x48688240)
+.br
+superclass: Character (0x48644630)
+.br
+value:      (null) (String)
+.br
+
+That is, the \fImain ()\fP function is always at call stack index 512
+(it's the first function that's called by C programs), and is the
+topmost function displayed by the
+.B b
+command.  The
+.B l 512
+command prints a summary of the local objects declared by the
+method or function at call stack index 512 (i.e., \fImain ()\fP),
+and the command
+.B p l 512 s
+prints the contents of \fIs\fP declared in the function \fImain ()\fP,
+which, again, is at call stack index 512.
+
+The inspector can also display global objects with the
+.B g
+or
+.B global
+command.
+
+> g
+.br
+g
+.br
+        0x49e555d0      myGlobalObject <Object> : (null) <Object>
+.br
+        0x49e59960      globalStr <String> : global string value <String>
+
+To print a more detailed description of a global object use
+.B p g \fIobjectname\fP
+
+> p g globalStr
+.br
+p g globalStr
+.br
+name:       globalStr
+.br
+class:      String (0x49ca32a8)
+.br
+superclass: Character (0x49c5f698)
+.br
+value:      global string value (String)
+
+.SH INSTANCE VARIABLES
+The
+.B promptString
+instance variable is a String object with the text of the inspector's
+command prompt.  It defaults to "> ".  
+
+The
+.B verbose
+instance variable, a Boolean object, displays more complete listings
+of objects if set to True.  Its default value is False.
+
+.SH SEE ALSO
+.BR ctalk "(1)",
+.BR ctalkintro "(1)".
+
+.SH AUTHORS
+.B Ctalk 
+and the ObjectInspector class are written and maintained by Robert
+Kiesling, rk3314042@gmail.com.  The latest Ctalk release and information
+is available on the Ctalk Web Site:
+.br
+http://sf.net/projects/ctalk/.

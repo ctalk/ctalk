@@ -1,0 +1,94 @@
+.\" $Id: membervars.1,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $
+.\"
+.\" This file is part of ctalk.
+.\" Copyright © 2015 Robert Kiesling, rk3314042@gmail.com.
+.\" Permission is granted to copy this software provided that this copyright
+.\" notice is included in all source code modules.
+.\" 
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation; either version 2 of the License, or
+.\" (at your option) any later version.
+.\" 
+.\" This program is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\" 
+.\" You should have received a copy of the GNU General Public License
+.\" along with this program; if not, write to the Free Software Foundation, 
+.\" Inc., 51 Franklin St., Fifth Floor, Boston, MA 02110-1301 USA.
+
+.TH MEMBERVARS 1 "2015-09-16"
+.SH NAME
+membervars \- Display a Ctalk class's instance and class variables.
+.SH SYNOPSIS
+.B membervars 
+[
+.B -h
+] | [
+.B \fIclassname\fP
+]
+
+.SH DESCRIPTION
+.B Membervars
+displays the instance and class variables declared in the class
+given as the argument.  When the declaration includes optional
+elements,
+.B membervars
+includes those elements also.
+
+.SH OPTIONS
+.TP 8
+.B -h
+Print a help message and exit.
+
+
+.SH ENVIRONMENT
+.B Membervars,
+like
+.B Ctalk,
+uses the value of 
+.B CLASSLIBDIRS
+to add additional directories to
+its class search path.  
+.B CLASSLIBDIRS's
+value is a colon
+separated list of directories; i.e., 
+\fI<dir1>\fP:\fI<dir2>\fP:\fI<dir3>.\fP
+
+.SH BUGS
+To make the program as fast as possible,
+.B membervars
+only recognizes declarations that appear on a single line, except for
+the variable's documentation string. If the declaration contains a
+documentation string, then
+.B membervars
+includes the variable's documentation even if it spans multiple lines.
+
+.SH SEE ALSO
+.BR ctalk "(1)",
+.BR classdoc "(1)",
+.BR classes "(1)",
+.BR methods "(1)",
+.BR methodsource "(1)".
+
+The Texinfo documentation also describes the
+.B Ctalk
+tools.  The shell command
+
+  $ info ctalktools
+
+displays the documentation on machines that have
+GNU Texinfo installed.
+
+.SH AUTHORS
+.B Ctalk 
+and
+.B methodsource
+are written and maintained by Robert Kiesling,
+.br
+rk3314042@gmail.com.   The Web site
+http://sf.net/projects/ctalk
+contains information about current releases.
+

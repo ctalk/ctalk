@@ -1,0 +1,368 @@
+2018-01-02
+	- Added a another warning, in has_class_description, if a class
+	is included without its superclass (class.c).
+2018-01-03
+	- Added a call to __ctalkInstanceVarsFromClassObject in
+	ReadFileStream : classInit and WriteFileStream : classInit.
+2018-01-16
+	- Added ident[1-10].c test programs.
+	- Added the __ctalkCBoolToObj library function.
+2018-01-20
+	- Updated Object : == to return true if the receiver and
+	the argument are the same object, or if the value of
+	both objects is (null).  Also updated Object : != to
+	check identity also.
+2018-01-21
+	- Added the paramset[1-2].c test programs.
+2018-01-25
+	- Added compatibility fixes for resizing windows with Cinammon,
+	Compiz, and Xfce window managers.
+	- Changed the class of the argument to X11TextPane : attachTo to
+	X11PaneDispatcher.
+2018-01-26
+	- Added the X11Cursor : arrow method.
+	- Added a wait cursor to the x11textpane.c demo program.
+2018-01-28
+	- Added the X11TextPane : deleteText method.
+	- Added the __ctalkSelectFontFromFontConfig library
+	function (xftlib.c).
+	- Added the X11FreeTypeFont : selectFontFromFontConfig
+	method.
+2018-01-29
+	- Added the String : isXLFD method.
+2018-01-31
+	- Release 0.60 2018-01-31
+2018-02-03
+	- Added a direct exit with value of 1 from Application :
+	methodSource if the class file is not found.
+2018-02-04
+	- Added Application : __escapeMethodName, called by
+	Application : methodSource to escape metacharacters in
+	method names.
+2018-02-06
+	- Added support for the '|' pattern matching metacharacter.
+2018-02-11
+	- Added the ctalkregex.1 manual page.
+2018-02-13
+	- Updated build/gcccaps.sh and the autoconf scripts
+	to check for the compiler's compatibility with the
+	-Wno-format-overflow option, which can produce
+	warnings with some versions of GCC 7.
+2018-02-17
+	- Added the __ctalkToCLongInteger library function.
+2018-02-18
+	- Added the printfmt4.c test program.
+2018-02-19
+	- Added run-matchref3.c and examples/matchref3.c test
+	programs.
+2018-02-27
+	- Relase 0.0.61 2018-02-27
+2018-03-01
+	- Added SortedList class, and the pushAscending
+	instance method.
+	- Added the sortedlist[1-4].c test programs.
+2018-03-03
+	- Added the SortedList : pushDescending instance
+	method.
+	- Added the sortedlist[5-8].c test programs.
+	- Added __ctalkSort and __ctalkSortByName library functions.
+	- Added the List methods: sortAscending, sortDescending,
+	sortAscendingByName, and sortDescendingByName.
+	- Added the lsort[1-4].c test programs.
+2018-03-04
+	- Added the SortedList methods init, =, append, and +=.
+	- Added the test programs sortedlistinit[1-10].c
+2018-03-05
+	- Added the DirectoryStream : sortedDirectoryList method.
+2018-03-07
+	- Added case[5-6].c test programs.
+2018-03-08
+	- Added sterp[1-4].c test programs.
+2018-03-11
+	- Added the examples/patmatch1.c and the
+	run-patmatch1.c test programs.
+	- Added the __ctalkNMatches library function.
+	- Added the String : nMatches method.
+2018-03-13
+	- Added text/expect/examples/backref1.c and
+	test/expect/run-backref1.c
+2018-04-05
+	- Added TCPIPV6NetworkStream class, and the
+	classes' createSocketBasic and readText instance methods.
+2018-04-06
+	- Added the TCPIPV6NetworkStream methods readVec, writeText,
+	writeVec, and closeSock.
+2018-04-08
+	- Added a check in handle_mcct_expr (mcct.c) for whether
+	the expression includes the opening paren before splicing
+	one in.
+	- Updated TCPIPNetworkStream : hostToAddress to check for
+	a null result from gethostbyname, and to raise an exception
+	in that case.
+2018-04-10
+	- Added the TCPIPV6NetworkStream : addrInfo method and
+	the TCPIPNetworkStream : addrInfo method.
+	- Added the demos/net subdirectory, and added the example
+	programs addr4.ca and addr6.ca.
+	- Added TCPIPV6NetworkStreamWriter class, and the
+	openOn methods.
+2018-04-12
+	- Added TCPIPV6NetworkStreamReader class, and the methods
+	openOn and acceptSock.
+	- Added ip6reader.ca and ip6writer.ca demo programs
+	in demos/net.
+2018-04-14
+	- Added __ctalkMatchPrintToks (wregex.c), and the
+	String : printMatchToks method.
+2018-04-15
+	- Added the examples/mypatprog.c and run-mypatprog.c
+	test programs.
+	- Added the ip4reader.ca and ip4writer.ca programs
+	in demos/net.
+	- Added the String: systemErrnoStr method.
+2018-04-23
+	- Release 0.0.62 2018-04-23.
+2018-04-26
+	- Added the FileStream : renameFile method.
+2018-05-06
+	- Added the X11TextEditorPane class file.
+	- Added the X11TextEditorPane : new and
+	X11TextEditorPane : subPaneKbdInput methods.
+	- Added the X11TextEditorPane : shiftState instance
+	variable and updated subPaneKbdInput for Control
+	key press and release events.
+2018-05-17
+	- Added ctpp version 1.0.87.
+2018-05-20
+	- Added a check for the compiler -Wrestrict option to
+	configure.ac and, if possible, a -Wno-restrict option
+	in all of Makefile.am files. Also added a check for
+	the -Wno-stringop-overflow warning, and added the option
+	to the Makefile.am files.
+	- Cleaned up the -Wno-format-overflow option check in
+	build/gcccaps.sh.
+2018-05-27
+2018-05-29
+	- Code updates for GCC 8.1.0's warning messages.
+2018-06-02
+	- Release 0.0.62 2018-06-02.
+2018-06-04
+	- Updated CalendarTime : zoneInfo for OS X compatibility.
+2018-06-10
+	- Added check for GL/glx.h to configure.ac, and -DHAVE_GLX_H
+	to Makefiles if the header is present, and updated the report
+	at the end of ./configure.  Also added the --with-glx-includes
+	and --with-glx-lib options to configure, and updated the README
+	file to document these options.
+	- Added GLXCanvasPane class.
+2018-06-12
+	- Added the GLXCanvasPane : initialize (2 arguments) and
+	GLXCanvasPane : map instance methods.
+	- Added the GLXCanvasPane : visualInfoPtr and GLXCanvasPane :
+	glxContextPtr instance variables.
+2018-06-14
+	- Added __ctalkCloseGLXPane library function, and the
+	GLXCanvasPane : deleteAndClose method.
+	- Added the __ctalkGLXSwapBuffers library function
+	and the GLXCanvasPane : swapBuffers method.
+2018-06-15
+	- Added the GLXCanvasPane : initialize method with four
+	and five arguments.
+	- Added the GLXCanvasPane : displayPtr instance variable.
+	- Added the GLXCanvasPane : run instance method.
+2018-06-16
+	- Added the GLXCanvasPane instance variables:
+	visualDoubleBuffer, VisualRGBA, and visualDepthSize.
+2018-06-18
+	- Added the GLXCanvasPane instance variables: visualBufferSize,
+	visualStereo, visualAuxBuffers, visualRedSize, visualBlueSize,
+	visualGreenSize, visualAlphaSize, and visualStencilPlanes,
+	visualGreenAccumSize, visualRedAccumSize, visualBlueAccumSize,
+	and visualAlphaAccumSize.
+2018-07-02
+	- Updated ctpp to version 1.0.88.
+2018-07-07
+	- Added the __ctalkGetX11KeySym library function.
+	- Added the GLXCanvasPane : shiftState instance variable,
+	and updated the GLXCanvasPane : run method to update it.
+2018-07-08
+	- Added the GLXCanvasPane : onKeyPress method and the
+	keyPressHandler instance variable.
+	- Also added the GLXCanvasPane : onExpose, onIdle,
+	onTimerTick, and onAnimation methods, and the exposeHandler,
+	idleHandler, timerTickHandler, and animationHandler callback
+	instance variables.
+	- Added the GLXCanvasPane timerMSec instance variable.
+	- Added the GLXCanvasPane buttonState instance variable.
+	- Added the Method : setCallbackName instance method.
+	- Added the Method : isInitialized instance variable.
+2018-07-10
+	- Added the GLXCanvasPane : onResize method and the
+	resizeHandler instance variable.
+2018-07-12
+	- Added fn_param13.c test program.
+2018-07-15
+	- Added fn_param14.c test program.
+2018-07-16
+	- Added the demos/glx subdirectory and the glx.ca demonstration
+	program.
+	- Added the GLXCanvasPane : pointerMotionHandler instance variable
+	and the	onPointerMotion instance method.
+2018-07-18
+	- Updated the Tutorial to include GLXCanvasPane class.
+2018-07-23
+	- Release 0.0.62 2018-07-23.
+2018-09-09
+	- Added the __ctalkGLXUseXFont, __ctalkGLXFreeXFont, and
+	__ctalkGLXDrawText library functions (glxlib.c).
+	- Added the GLXCanvasPane methods useXFont, drawText,
+	drawTextW, and freeXFont.
+	- Added the demos/glx/xfont.ca demo program.
+	- Added the GLXCanvasPane instance variables xLineHeight
+	and xMaxCharWidth.
+	- Added the __ctalkGLXWindowPos2i library function.
+	[
+	- Added the receiver object as a parameter to __ctalkGLXUseXFont
+	(glxlib.c).
+	- Added GLubyte, GLbyte, GLuint, and GLint to the
+	__C_type_conv table in src/objtoc.c.
+	- In format_obj_lval_fn_expr (c_rval.c), check if a return
+	qualifier is, "const," and add a typecast before the function
+	if there isn't already one in order to avoid a compiler
+	warning (String return class only so far).
+	- Added a check for glWindowPos2i in libGL in configure.ac.
+	- In is_self_or_super_instance_var_series, start checking
+	at the token preceding the label we're interested in
+	(object.c).
+	]
+2018-09-14
+	- Added mthdrcvr1.c test program.
+2018-09-16
+	- Added split4.c test program.
+	- Added the GLXCanvasPane : textWidth instance method.
+	- Added the Integer : asDecimalString, asHexString, and
+	asString methods.
+	- Added the GLXCanvasPane : colormap instance variable.
+2018-09-17
+	- Added the glxexts.ca example program in demos/glx.
+2018-09-18
+	- Added configure.ac check for GL/glew.h and -DHAVE_GLEW_H
+	in the lib/Makefile.am flags.
+	- Added a check for libGLEW and -lGLEW to all the linker
+	flags.
+2018-09-19
+	- Release 0.0.62 2018-09-19.
+2018-09-24
+	- Added return14.c test program.
+2018-10-07
+	- Added the demos/glx/glxchaser.ca example program.
+2018-10-22
+	- Updated demos/xhello.c to use the generic "fixed"
+	font.
+2018-10-24
+	- Removed test/expect/examples-x11/dots.c,
+	test/expect/examples-x11/point-draw.c, and
+	test/expect/x11-tests/x11canvaspane.c, which no
+	longer work on many desktops.
+	- Renamed test/expect/x11-tests/x11canvaspane.c to
+	test/expect/examples-x11/canvas.c.
+2018-10-30
+	- Updated FileStream : statStream and FileStream :
+	statFile to return an Integer with the result of the
+	stat(2) call (FileStream).
+2018-10-31
+	- Added ifargcheck[1-2].c test programs.
+2018-11-07
+	- Fixed an incorrect label in FileStream : renameFile.
+	- Added argblk34.c test program.
+2018-11-08
+	- Added the __ctalkCreateX11MainWindowTitle library function,
+	and the X11Pane : initialize method with six arguments.
+2018-11-09
+	- Added the X11Font : maxLBearing and maxRBearing instance
+	variables, and	updated __ctalkX11QueryFont to fill in their
+	values.
+2018-11-10
+	- Added the demos/x11 subdirectory and moved xhello.c
+	and xspiro.c into it.
+	- Added the demos/x11/ctedit.ca demonstration program.
+2018-11-11
+	- Renamed the the local ftFont objects in X11TextPane :
+	attachTo and X11TextPane : font to avoid name conflicts
+	with global objects.
+	- Added printf6.c test program.
+2018-11-12
+	- Added the library functions __ctalkXftAscent,
+	__ctalkXftDescent, __ctalkXftHeight, and
+	__ctalkXftMaxAdvance (xftlib.c).
+	- Also added the X11FreeTypeFont instance variables
+	ascent, descent, height, and maxAdvance (X11FreeTypeFont).
+2018-11-18
+	- Added the qcond1.c test program.
+2018-11-20
+	- Updated __ctalkInitFontLib to search for the font config
+	files that are named in the recent Xft documentation (xftlib.c).
+	- Added bitfield1.c test program.
+2018-11-24
+	- Added a check in X11FreeTypeFont : initFontLib to ensure
+	that the library is initialized correctly.
+	- Added error messages in xftlib.c if the system can't find
+	a fonts.conf file, or the library can't open a basic outline
+	font.
+2018-11-26
+	- Release 0.0.63 2018-11-26.
+2018-12-07
+	- Updated Float : - (prefix), LongInteger : - (prefix), and
+	Magnitude : - (prefix) to remove the extra strcpy calls.
+2018-12-08
+	- Added the macro CHAR_CONSTANT_VALUE.
+2018-12-09
+	- Changed the name of __ctalkCharRadixToChar to
+	__ctalkCharRadixToCharASCII.  Added the library function
+	__ctalkCharRadixToChar, which returns a C char (radixof.c).
+	- Changed the name of __ctalkIntRadixToDecimal to
+	__ctalkIntRadixToDecimalASCII. Added __ctalkIntRadixToDecimal,
+	which returns a C int (radixof.c).
+2018-12-10
+	- Cleanup in TCPIPNetworkStream : createSocketBasic.
+2018-12-15
+	- Added margexprs[50-52].c test programs.
+2018-12-16
+	- Cleanup in TCPIPNetworkStreamReader, TCPIPNetworkStreamWriter,
+	TCPIPV6NetworkStreamReader, and TCPIPV6NetworkStreamWriter.
+	- Added printon4.c and printf7.c test programs.
+2018-12-20
+	- Added printf[8-9].c test programs.
+2018-12-22
+2018-12-24
+	- Added margexprs[53-54].c test programs.
+2018-12-26
+	- Updated __ctalkDoubleToASCII to return the formatted
+	string (ctdtoa.c).
+	- Added lib/strsecure.h, and the compatibility
+	wrappers for secure stdio.h and string.h functions:
+	xstrcpy and xsprintf (from the header definitions of
+	snprintf, vsprintf, memcpy, memmove, memset, stpcpy,
+	strncpy, strcat, and strncat).
+2018-12-27
+	- Cleanup in ANSIButtonPane, ANSILabelPane, ANSIListBoxPane,
+	ANSIProgressBarPane, ANSIMessageBoxPane,
+	ANSIScrollingListBoxPane, ANSIScrollPane, ANSITerminalPane,
+	and ANSITextBoxPane classes.
+2018-12-28
+	- Cleanup of ANSITextEntryPane, ANSIYesNoBoxPane, and Boolean
+	classes.
+	- Cleanup of CTime and Key classes.
+	- Cleanup of Character ++ and --.
+	- Cleanup of LongInteger ++ and --.
+	- Added LongInteger ++ and -- (prefix).  Removed the
+	LongInteger clauses from Magnitude: ++ an -- (prefix).
+	- Removed the Integer clauses from Magnitude ++ and --
+	(prefix).  Added the Integer -- (prefix) method.
+2018-12-29
+	- Removed the Magnitude ++ and -- (prefix) methods.
+	Added Character ++ and -- (prefix) methods.
+	- Symbol xsprintf cleanup.
+2018-12-30
+	- Added clsvars5.c test program.
+	- Updated xsprintf calls in X11Pane.

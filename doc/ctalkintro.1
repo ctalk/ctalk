@@ -1,0 +1,322 @@
+.\" $Id: ctalkintro.1,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $
+.\"
+.\" This file is part of ctalk.
+.\" Copyright © 2015 Robert Kiesling, rk3314042@gmail.com.
+.\" Permission is granted to copy this software provided that this copyright
+.\" notice is included in all source code modules.
+.\" 
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation; either version 2 of the License, or
+.\" (at your option) any later version.
+.\" 
+.\" This program is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\" 
+.\" You should have received a copy of the GNU General Public License
+.\" along with this program; if not, write to the Free Software Foundation, 
+.\" Inc., 51 Franklin St., Fifth Floor, Boston, MA 02110-1301 USA.
+
+.TH CTALK INTRODUCTION 1 "2016-03-15"
+.SH NAME
+ctalkintro \- Introduction to the Ctalk compiler and language.
+.SH SYNOPSIS
+.B ctalk
+[
+.B \fIoptions\fP
+]
+
+.B ctcc
+[
+.B \fIoptions\fP
+]
+
+.B ctdb
+[
+.B \fIoptions\fP
+]
+
+This manual page provides a brief tutorial on using the
+.B Ctalk
+compiler and language. The
+.B Ctalk
+distribution also contains a tutorial and language reference which
+provide a detailed description of the language and class libraries.
+For more information about them, refer to the
+.B DOCUMENTATION
+section, below.
+
+The 
+.B Ctalk
+compiler is similar to other compilers in that you normally run it from the
+shell prompt. The
+.B Ctalk
+language is an extension to C; and as such, the compiler works with a
+C compiler, normally the GNU C compiler, GCC, in order to produce
+executable programs.
+
+That means it's possible to run
+.B Ctalk
+directly from the shell prompt, in order to create programs.  To build
+more involved programs, though, it is generally more convenient to use
+the
+.B Ctalk
+compiler in conjunction with other build tools.
+
+To build a simple program, like
+.B Ctalk's
+"Hello, world!" example program, type the following lines and save
+them in a file (you can also find this example in the
+\fIdemos/hello.c\fP file in the source distribution):
+
+
+int main () {
+
+  WriteFileStream classInit;
+
+  stdoutStream printOn "Hello, world!\\n";
+
+  exit (0);
+
+}
+
+Then, the easiest way to build a program is to use the
+.B ctcc
+command (which runs the
+.B Ctalk
+compiler).
+
+.br
+.B $ ctcc hello.c -o hello
+
+Then you can run the program with the command:
+
+.br
+.B $ ./hello
+
+It's highly recommended that you use either the
+.B ctcc
+program, or its debugging companion, 
+.B ctdb,
+when first using
+.B Ctalk.
+These two programs compile the source code with the
+.B Ctalk
+compiler and then perform the additional steps necessary to compile
+the source code into an object file and link it with the machine's
+libraries to produce an executable program.
+
+.B Ctalk's
+installation process determines which options and libraries are
+necessary to build executables on a particular system, and the installation
+process adds the correct options to
+.B ctcc
+and
+.B ctdb
+for the machine's configuration.
+
+Both
+.B ctcc
+and
+.B ctdb
+provide many options for various types of executable programs.  For a
+description of the options, refer to the
+.BR ctcc "(1)"
+or
+.BR ctdb "(1)"
+manual pages. 
+
+.SH MORE EXAMPLES
+
+You can find the \fIhello.c\fP program and many others in the
+\fIdemos\fP subdirectory of the
+.B Ctalk
+source code distribution.  You can build them individually with
+.B ctcc, 
+or simply type
+
+.br
+.B $ make
+
+at the shell prompt.  The file \fIREADME\fP in the \fIdemos\fP
+subdirectory contains a description of the programs.
+
+.SH FILE EXTENSIONS
+
+Incidentally, you can use either the
+.B .c
+file extension with source files that are the input to
+.B ctcc
+and
+.B ctdb,
+or the
+.B .ca
+extension, which indicates specifically that the file is a
+.B Ctalk
+source file.
+
+The difference becomes important when compiling both C and Ctalk
+source modules in the same build process, and then the
+.B .ca
+extension tells the system's build tools to use the
+.B Ctalk
+compiler to compile a 
+.B Ctalk
+source module.
+
+Again, for more detailed information, refer to the information listed
+in the
+.B DOCUMENTATION
+section, below.
+
+.SH CLASS LIBRARIES
+
+In order to do anything useful with
+.B Ctalk
+you need to have at least a
+basic understanding of the organization of the class libraries.  
+
+There's a detailed description of the class libraries in the
+.BR ctalkclasses "(1)"
+manual page.
+
+The following sections describe some of
+.B Ctalk's
+utility programs and how to use them to navigate through the class
+libraries.
+
+.SH LANGUAGE UTILITIES
+
+After
+installing
+.B Ctalk,
+the method
+.B classSearchPath
+provides the class library's location(s), which can include more than
+one directory.  To view the search path, you can use a simple
+program like this one.
+
+int main () {
+
+  Application new pathApp;
+
+  printf ("%s\\n", pathApp classSearchPath);
+
+}
+
+.B Ctalk's
+classes are located in these directories.  Each class's file has the
+same name as the class that it defines.
+
+The utility program,
+.B methods,
+also displays the search path if you give it the --help option.
+
+  $ methods --help
+
+Ctalk's language tools suite includes the following programs.  Each
+of them also has its own manual page.
+
+.TP 8
+.B classes
+The
+.B classes
+program displays the Ctalk classes that are available on the system.
+.TP 8
+.B classdoc
+Displays a class's documentation string, if the class provides one.
+.TP 8
+.B inspect
+A description and tutorial of Ctalk's run-time object inspector.
+.TP 8
+.B membervars
+Displays a class's instance and class variables and documentation,
+if any.
+.TP 8
+.B methods
+Lists a class's methods and the methods' documentation.
+.TP 8
+.B methodsource
+Displays the source code of methods.
+.TP 8
+.B searchlib
+Searches the class and run time library documentation for an
+identifier string or regular expression.
+.TP 8
+.B template
+Adds user defined function templates to the Ctalk library and
+maintains a user specific template registry.
+
+.TP 0
+The  language utilities are described more fully in the
+.B classdoc, classes, inspect, membervars, searchlib, template, methods,
+and 
+.B methodsource
+manual pages. 
+
+.SH DOCUMENTATION
+
+In addition to the manual pages, the
+.B Ctalk
+distribution contains a tutorial, a language reference, and a separate
+manual that describes many of the language utilities included
+in the
+.B Ctalk
+distribution.
+
+On UNIX and Linux systems, the installation process adds these manuals
+to the GNU Texinfo library if the system provides one.  If not, you
+can use GNU
+.B info
+to view the manuals in the \fIdoc\fP subdirectory with the following
+shell commands.  
+
+.B $ info ./ctalk.info
+
+.B $ info ./tutorial.info
+
+.B $ info ./ctalktools.info
+
+In addition, some sites that provide the
+.B Ctalk
+distribution also some of the documentation, for example the Ctalk
+Tutorial, in PDF format, which you can download and read separately.
+
+The GNU Texinfo format is compatible with formatters
+like 
+.B TeX
+and 
+.B pdftex
+which you can use to produce printed output.
+
+.SH SEE ALSO
+.BR classdoc "(1),
+.BR classes "(1)",
+.BR cpp "(1)",
+.BR ctalk "(1)",
+.BR ctalkclasses "(1)",
+.BR ctcc "(1)",
+.BR ctdb "(1)",
+.BR ctpp "(1)",
+.BR gcc "(1)",
+.BR info "(1)",
+.BR inspect "(3ctalk)",
+.BR membervars "(1)",
+.BR methods "(1)",
+.BR methodsource "(1)",
+.BR pdftex "(1)",
+.BR searchlib "(1)",
+.BR template "(1)",
+.BR tex "(1)".
+
+.SH AUTHORS
+.B Ctalk 
+is written and maintained by Robert Kiesling,
+.br
+rk3314042@gmail.com.  The
+.B Ctalk
+Web site is at
+.br
+http://sourceforge.net/projects/ctalk/.

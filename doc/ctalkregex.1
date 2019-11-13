@@ -1,0 +1,363 @@
+.\" $Id: ctalkregex.1,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $
+.\"
+.\" This file is part of ctalk.
+.\" Copyright © 2018 Robert Kiesling, rk3314042@gmail.com.
+.\" Permission is granted to copy this software provided that this copyright
+.\" notice is included in all source code modules.
+.\" 
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation; either version 2 of the License, or
+.\" (at your option) any later version.
+.\" 
+.\" This program is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\" 
+.\" You should have received a copy of the GNU General Public License
+.\" along with this program; if not, write to the Free Software Foundation, 
+.\" Inc., 51 Franklin St., Fifth Floor, Boston, MA 02110-1301 USA.
+
+.TH CTALK 1 "2018-03-11"
+.SH NAME
+ctalkregex \- Ctalk regular expressions and pattern matching.
+
+.SH DESCRIPTION
+.B Ctalk's
+libraries provide metacharacters that support a subset of the pattern
+matching operations listed in the POSIX 2.8 definition, and described
+in the
+.BR regex "(7)"
+manual page.
+
+In addition, to facilitate pattern definition and matching,
+.B Ctalk
+supports \fIpatterns\fP as a constant type, as well as operators
+specifically implemented to match patterns.  They are described
+in the section, PATTERNS, below.
+
+.B Ctalk
+can also print the results of a pattern tokenization and the
+text each token matches, which may be helpful when debugging
+regular expressions.  Refer to the section, DEBUGGING PATTERNS,
+below.
+
+.SH REGULAR EXPRESSION METACHARACTERS
+
+.B Ctalk
+supports the following metacharacters.
+
+.TP 8
+.B .
+Matches any single character.
+.TP 8
+.B ^
+Matches the beginning of the receiver text.
+.TP 8
+.B $
+Matches the end of the receiver text.
+.TP 8
+.B *
+Matches zero or more occurrences of the preceding character or
+expression.
+.TP 8
+.B +
+Matches one or more occurrences of the preceding character or
+expression.
+.TP 8
+.B ?
+Matches zero or one occurrences of the preceding character or
+expression.
+.TP 8
+.B \\\\
+Escapes the following character so that it is interpreted literally.
+For example, the sequence,
+
+    \\*
+
+is interpreted as a literal asterisk.  Because
+.B Ctalk's
+lexical analysis also performs this task, the backslash must
+be escaped also.  This example shows how the definition would
+appear in a program.
+
+    pat = "\\\\*";
+
+
+.TP 8
+.B ( )
+Begin and end a pattern \fIbackreference.\fP When the pattern enclosed
+by the parentheses matches text in the receiver, the matched text is
+recorded and may be retrieved by the program with the matchAt and
+matchIndexAt methods in \fIString\fP class.
+
+In certain cases, like the expressions on either side of the
+"|" metacharacter,
+.B Ctalk
+treats text enclosed by parentheses as a complete pattern expression.
+
+.TP 8
+.B \\\\W
+.TP 8
+.B \\\\d
+.TP 8
+.B \\\\p
+.TP 8
+.B \\\\w
+.TP 8
+.B \\\\l
+In patterns these escape sequences match a single character of
+the type defined by the sequence. The escape sequences match
+the following character classes.
+
+     \\W		'Word' Characters (A-Z, a-z)
+     \\d		Decimal Digits (0-9)
+     \\p		Punctuation (any other character)
+     \\w		White Space (space, \\t, \\n, \\f, \\v)
+     \\l		'Label' Characters (A-Z, a-z, 0-9, _)
+     \\x		Hexadecimal Digits (0-9, A-F, a-f, x, X)
+
+.TP 8
+.B |
+Matches either the expression on the right or left of the |
+metacharacter.  Here are some examples of expressions using
+the | metacharacter.
+
+    a|b
+    a*|b*
+    a+|b+
+    \W+|\d+
+    (ab)|(cd)
+
+When matching alternate expressions, using * in the expressions can
+produce unexpected results because a * can provide a zero-length
+match, and the | metacharacter is most useful when there is some text
+to be matched.
+
+If one or both expressions are enclosed in parentheses, then the
+expression that matches is treated as a backreference, and the program
+can retrieve the match information.  The methods that work with
+backreferences are described in \fICtalk Language Reference.\fP
+
+This example program shows how to retrieve information about matched
+text saved as backreferences.
+
+
+	int main () {
+.br	
+	  String new s, pat;
+.br
+	  Array new matches;
+.br
+	  Integer new n_matches, n_th_match;
+
+	  pat = "-(mo)|(ho)use";
+
+	  s = "-mouse-house-";
+
+	  n_matches = s matchRegex pat, matches;
+
+	  for (n_th_match = 0; n_th_match < n_matches;
+.br
+	    ++n_th_match) {
+.br	
+	    printf ("Matched %s at character index %ld.\n",
+.br	    
+		    s matchAt n_th_match,
+.br		    
+		    s matchIndexAt n_th_match);
+.br		    
+	  }
+
+	  matches delete;
+
+	}
+
+
+.SH PATTERNS
+
+When writing a regular expression, it's necessary to take into account
+all of the processing that String objects encounter when they are
+evaluated, before they reach the Ctalk library's regular expression
+parser.  To help facilitiate lexical analysis and parsing, Ctalk also
+provides \fIpattern strings,\fP which allow Ctalk to defer the
+evaluation of a pattern until the regular expression parser actually
+performs the text matching.
+
+Ctalk also provides operators that provide shorthand methods to match
+patterns with text, the =~ and !~ operators.  They're described in the
+\fICtalk Language Reference.\fP
+
+At this point, pattern constants may only follow a =~ or !~ operator.
+You can, however, retrieve the information about the match using the
+matchIndexAt and matchAt methods in String class.  There is an example
+given below that uses these methods to display pattern match
+information.  As with Strings that are used as patterns, you must
+enclose the pattern in '(' and ')' characters in order to create a
+backreference.
+
+The most obvious example of how a pattern provides an advantage for
+text matching is when writing backslash escapes.  To make a backslash
+appear in a pattern string, you need to write at least two backslashes
+in order for a backslash to appear when it's needed to escape another
+character.  If you want to match an escaped backslash, then you need
+to write at least four backslashes.
+
+  String         Pattern
+.br  
+  "\\*"          /\*/        # Matches a literal '*'.
+.br  
+  "\\\\*"        /\\*/       # Matches the expression '\*'.
+
+To create a pattern, you delimit the characters of the pattern with
+slashes (//) instead of double quotes.  Other delimiters can
+signify patterns also if the pattern starts with a "m" character,
+followed by the delimiter character, which must be non-alphanumeric.
+
+There is no single rule that governs how often @code{String} objects
+are evaluated when a program runs.  So writing patterns helps take
+some of the work out of testing an application's pattern matching
+routines.
+
+Here is an example program that matches a pattern in a String object.
+Notice that the '?' character only needs one backslash in the expression
+to escape it.
+
+     int main () {
+.br     
+       String new s;
+.br
+       Integer new n_offsets;
+.br
+       Integer new i;
+
+       s = "Hello?";
+
+       if (s =~ /(o\?)/) {
+.br
+         i = 0;
+.br
+         n_offsets = s nMatches;
+.br
+         while (i < n_offsets) {
+.br
+           printf ("%d: %s\n", s matchIndexAt i, s matchAt i);
+.br
+           ++i;
+.br
+         }
+.br
+       }
+.br
+     }
+
+.SH DEBUGGING PATTERNS
+
+Ctalk allows you to view the parsed pattern tokens, and the
+text that each token matches.  Token printing is enabled using the
+printMatchToks method, like this.
+
+myString printMatchToks TRUE;
+
+When token printing is enabled, then Ctalk's pattern matching routines
+print the tokens of the pattern and the text that each token matches
+after every pattern match attempt.
+
+If we have a program like the following:
+
+int main () {
+.br
+  String new s;
+
+  s printMatchToks TRUE;
+
+  s = "192.168.0.1";
+
+  if (s =~ /\d+\.(\d+)\.\d+\.\d+/) {
+.br
+    printf ("match!\n");
+.br
+  }
+.br
+}
+
+Then, when this program is run with token printing enabled, the
+output should look similar to this.
+
+joeuser@myhost:~$ ./mypatprogram 
+.br
+PATTERN: /\d+\.(\d+)\.\d+\.\d+/         TEXT: "192.168.0.1"
+.br
+TOK: d+         (character class)               MATCH: "192"
+.br
+TOK: .          (literal character)             MATCH: "."
+.br
+TOK: (          (backreference start)           MATCH: ""
+.br
+TOK: d+         (character class)               MATCH: "168"
+.br
+TOK: )          (backreference end)             MATCH: ""
+.br
+TOK: .          (literal character)             MATCH: "."
+.br
+TOK: d+         (character class)               MATCH: "0"
+.br
+TOK: .          (literal character)             MATCH: "."
+.br
+TOK: d+         (character class)               MATCH: "1"
+.br
+match!
+.br
+joeuser@myhost:~$ 
+
+The processed token text is followed by any attributes that the
+regular expression parser finds (for example, then a pattern like
+\fI\\d+\fP becomes the token \fId+\fP with the attribute of a
+character class identifier, or the \fI(\fP and \fI)\fP characters'
+backreference attributes).  Then, finally, the library prints the text
+that matches each token.
+
+Successful matches have text matched by each token in the
+pattern (except for zero-length metacharacters like \fI(\fP,
+\fI)\fP, \fI^\fP, or \fI$\fP).
+
+Unsuccessful matches, however, may display text that matches where you
+don't expect it.  That's because the regular expression parser scans
+along the entire length of the text, trying to match the first pattern
+token, then the second pattern token, and so on.
+
+Although this doesn't always pinpoint the exact place that a match
+first failed, it can provide a roadmap to build a complex pattern from
+simpler, perhaps single-metachar patterns, which shows what the regular
+expression parser is doing internally.
+
+
+.SH SEE ALSO
+.BR classdoc "(1)",
+.BR classes "(1)",
+.BR cpp "(1)",
+.BR ctalkintro "(1)",
+.BR ctpp "(1)",
+.BR ctcc "(1)",
+.BR ctdb "(1)",
+.BR ctxlogo "(1)",
+.BR fnnames "(5ctalk)"
+.BR gcc "(1)",
+.BR inspect "(3ctalk)",
+.BR membervars "(1)",
+.BR methods "(1)",
+.BR methodsource "(1)",
+.BR templates "(1)",
+.BR templates "(5ctalk)".
+.BR regex "(7)"
+
+.SH AUTHORS
+.B Ctalk 
+is written and maintained by Robert Kiesling,
+.br
+rk3314042@gmail.com.  The
+.B Ctalk
+Web site is at
+.br
+http://sourceforge.net/projects/ctalk/.

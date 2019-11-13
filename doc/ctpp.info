@@ -1,0 +1,1397 @@
+This is ctpp.info, produced by makeinfo version 6.3 from ctpp.texi.
+
+INFO-DIR-SECTION Ctalk
+START-INFO-DIR-ENTRY
+* ctpp: (ctpp).	      The Ctalk C preprocessor.
+END-INFO-DIR-ENTRY
+
+This file documents ctpp version 1.0.74.
+
+Copyright (C) 2005-2011 Robert Kiesling, rkies@cpan.org.
+
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.1 or
+any later version published by the Free Software Foundation; with no
+Invariant Sections, with no Front-Cover Texts, and with no Back-Cover
+Texts.  A copy of the license is included in the section entitled
+"Copying."
+
+
+File: ctpp.info,  Node: Top,  Next: About,  Prev: (dir),  Up: (dir)
+
+Introduction to ctpp
+********************
+
+This manual describes ctpp, the Ctalk C preprocessor, version 1.0.74.
+
+* Menu:
+
+* About::          An overview of ctpp.
+* Options::        Command line options.
+* Include::        C header files.
+* Macros::         Macro definitions and processing.
+* Directives::     The macro directives that ctpp recognizes.
+* Copying::        The GNU Free Documentation License.
+* Index::
+
+
+File: ctpp.info,  Node: About,  Next: Options,  Prev: Top,  Up: Top
+
+About ctpp
+==========
+
+Ctpp is the Ctalk language's preprocessor.  The preprocessor follows the
+C preprocessing conventions of ISO C (C99).  Ctpp provides GNU C
+compatible extensions, and also extensions of its own.
+
+Ctpp's command line options are compatible with GNU cpp.  Unlike GNU
+cpp, however, ctpp does not provide support for other dialects of C,
+like Objective C or C++.  However, the preprocessor recognizes the
+command line options for those dialects.
+
+Ctpp attempts to comply with C99 as much as possible.  It has been
+tested only with operating system-specific implementations of the
+library headers and macros described in the C99 standard.  Ctpp also
+does not implement macro substitutions in #include statements.
+
+
+File: ctpp.info,  Node: Options,  Next: Include,  Prev: About,  Up: Top
+
+Command Line Options
+====================
+
+Ctpp's command line syntax is:
+     ctpp [options] [infile|-] [outfile|-]
+
+The table below lists the options that ctpp recognizes.
+
+'-$'
+     Warn if '$' is an identifier character.  This is a legacy option
+     because '$' is commonly used in identifier names on some operating
+     systems.  This option defines the '__CTPP_WARNDOLLAR_OPT__'
+     built-in macro.
+
+'-APREDICATE[VALUE]'
+     Assert that macro PREDICATE has the value VALUE.  If VALUE is
+     omitted, it defaults to, "1."
+
+     The form '-A-' undefines all predefined macros and assertions.
+
+     The preprocessor tests assertions with the '#assert' directive,
+     which is a GNU 'cpp' extension.  *Note Macros::.
+
+'-ansi'
+     Included for compatibility with GNU cpp.  For ctpp, it is
+     equivalent to the 'lang-c' or 'std='<C LANGUAGE STANDARDS, given
+     below.
+
+'-C'
+     Pass comments through to the output.  This option defines the
+     '__CTPP_KEEPCOMMENTS_OPT__' built-in macro.
+
+'-DNAME[=DEFINITION]'
+     Define macro NAME as DEFINITION.  If DEFINITION is omitted, it
+     defaults to, "1," so the preprocessor can test the macro with '#if'
+     or '#ifdef'.
+
+'-dD'
+     Include preprocessor '#define' statements in the output.  This
+     option defines the '__CTPP_DEFINESTOOUTPUT_OPT__' built-in macro.
+
+'-dF FILE'
+     After processing the input, write the macro defintions to FILE.
+     This option defines the '__CTPP_DEFINESTOFILE_OPT__' built-in
+     macro.
+
+'-dM'
+     Instead of writing output to a file, output the macro definitions
+     to standard output.  This option defines the
+     '__CTPP_DEFINESONLY_OPT__' built-in macro.
+
+'-dN'
+     Instead of writing output to a file, output the macro names only,
+     without their definitions, to standard output.  This option defines
+     the '__CTPP_DEFINENAMESSONLY_OPT__' built-in macro.
+
+'-fpreprocessed'
+     Treat the input file as already preprocessed.  This option defines
+     the '__CTPP_PRE_PREPROCESSED_OPT__' built-in macro.
+
+'-gcc'
+     On systems that use 'gcc' as the compiler, define the macros
+     '__GNUC__, __GNUC_MINOR,' and '__GNUC_PATCHLEVEL__'.  This option
+     defines the '__CTPP_GCC_MACROS_OPT__' built-in macro.  Ctpp enables
+     this option by default.
+
+'-I DIR'
+     Search DIR for files included with the '#include' directive.
+
+'-I-'
+     Inhibit the search of directories specified with previous '-I'
+     command line statements to files included with '#include"FILE"',
+     but not files included with '#include<FILE>'.
+
+     Directories specified after the '-I-' option with '-I DIR' are
+     searched for all included files.
+
+'-idirafter DIR'
+     Include DIR in the secondary include path list.
+
+'-imacros FILE'
+     Include macro definitions from FILE before processing the input
+     file.
+
+'-iprefix PREFIX'
+     Use PREFIX as the prefix to directories specified with
+     '-iwithprefix'.
+
+'-isystem DIR'
+     Add DIR to the list of system include directories to search for
+     included files.  Directories specified with '-isystem' are added to
+     the search list after directories that are specified with the '-I'
+     option.
+
+     The '-isystem' option is used mainly to add system include
+     directories when using ctpp with non-standard compiler
+     configurations.  The '-nostdinc' option does not affect directories
+     included with '-isystem'.
+
+'--lang-c++'
+     Adds C++ library include directories to the preprocessor's include
+     search path.  This option defines the '__CTPP_LANG_CPLUSPLUS_OPT__'
+     built-in macro.
+
+'-H'
+     Print the paths of header files as they are included, indented to
+     indicate the level of include nesting.  This option defines the
+     '__CTPP_PRINT_HEADERS_OPT__' built-in macro.
+
+'-h'
+'-help'
+'--help'
+     Print a help message and exit.
+
+'-M [-MG]'
+     Instead of outputting the preprocessed source, generate to standard
+     output a 'make' rule to build the source file.  '-MG' directs the
+     preprocessor to assume that missing header files are generated
+     files and exist in the same directory as the source file.  The
+     '-M'N command line options define the '__CTPP_MAKERULES_OPT__'
+     built-in macro.
+
+'-MD FILE'
+     Generate a 'make' rule, and save the rule in FILE.
+
+'-MM'
+     Generate a 'make' rule to build the source file, but include header
+     dependencies only for files included with '#include"FILE"', and not
+     '#include<FILE>'.  '-MMD FILE' is the same as '-MM', but ctpp
+     writes the make rule to FILE instead of standard output.
+
+'-MQ TARGET'
+     A synonym for '-MT', included for compatibility with GNU cpp.
+     Unlike GNU cpp, ctpp does not expand or quote target expressions or
+     special characters.
+
+'-MT TARGET'
+     Use TARGET as the target of the make rule output by ctpp.  If a
+     target is not specified, it is the base name of the input file with
+     the extension '.o'.
+
+'-move-includes'
+     Move '#include' preprocessor directives to the beginning of the
+     input before preprocessing.
+
+     The '-move-includes' option does not check for conditional
+     branches, so an '#include' directive can be moved outside of a
+     conditional clause.
+
+     This option defines the '__CTPP_MOVEINCLUDES_OPT__' built-in macro.
+
+'-no-gcc'
+     On systems that use 'gcc' as the compiler, don't define the macros
+     '__GNUC__, __GNUC_MINOR__', or '__GNUC_PATCHLEVEL__.'
+
+'-nostdinc'
+     Do not search system include directories for include files.  This
+     option defines the '__CTPP_NOSTDINC_OPT__' built-in macro.
+
+'-o OUTPUT_FILE'
+     Write the preprocessor output to OUTPUT_FILE.
+
+'-traditional'
+     Suppresses the definition of macros defined by command line
+     options.
+
+'-traditional-cpp'
+     Same as '-traditional'
+
+'-P'
+     Do not generate line number information in the output.  This option
+     defines the '__CTPP_NOLINEMARKER_OPT__' built-in macro.
+
+'-no-include'
+     Do not expand include files.  Macro definitions and other
+     preprocessing directives in the include file are taken into
+     account, but the expanded include file does not appear in the
+     output.
+
+     This option implies -P.
+
+'-no-simple-macros'
+     Do not expand simple macros (macros without arguments).
+     Definitions for simple macros are also retained in the output.
+     This option defines the '__CTPP_NO_SIMPLE_MACROS_OPT__' built-in
+     macro.
+
+'-std=LANGUAGE-STANDARD'
+     Included for compatibility with GNU cpp.  The following
+     LANGUAGE-STANDARD values cause ctpp to follow ANSI and ISO language
+     guidelines: 'iso9899:1990', 'c89', 'iso9899:199409',
+     'iso9899:1999', 'c99', 'iso9899:199x', 'c9x', 'gnu89', 'gnu99', and
+     'gnu9x'.
+
+     The following LANGUAGE-STANDARD values cause ctpp to follow C++
+     language standards: 'c++98', and 'gnu++98'.
+
+'-target-help'
+     Print a message displaying ctpp's command line options and exit.
+
+'-trigraphs'
+     Translate trigraphs into their ASCII equivalents.  This option
+     defines the '__CTPP_USE_TRIGRAPHS_OPT__' built-in macro.
+
+'-U SYMBOL'
+     Undefine macro SYMBOL before processing the main input file.
+
+'-u'
+'-undef'
+     Undefine system and compiler specific built-in macros before
+     processing.  Does not affect macros defined with the '-imacros' or
+     '-include' options, or macros defined with the '-D' command line
+     option.
+
+'-v'
+     Print ctpp's version number and the list of include paths before
+     preprocessing the input.
+
+'-version'
+     Print ctpp's version number before preprocessing the input file.
+
+'--version'
+     Print ctpp's version number and exit.
+
+'-w'
+     Suppress all warning messages, including messages generated by
+     other -WTYPE options.  This option defines the
+     '__CTPP_NO_WARNINGS_OPT__' built-in macro.
+
+'-Wall'
+     Issue warning messages about all preprocessor statements that do
+     not conform with C99, including the deprecated macro keywords
+     '#ident' and '#sccs', and the use of extension keywords like
+     '#assert', '#unassert', and '#warning', and macro expansions in
+     '#error' and '#warning' messages.
+
+     '-Wall' also includes '-Wcomment', '-Wtrigraphs', '-Wundef', and
+     '-$'.
+
+     This option defines the '__CTPP_WARNNESTEDCOMMENTS_OPT__',
+     '__CTPP_WARNUNDEFSYMBOLS_OPT__', and '__CTPP_WARN_TRIGRAPHS_OPT__'
+     built-in macros.
+
+'-Wcomment'
+'-Wcomments'
+     Warn if a comment start character sequence appears within a
+     comment.  This option defines the '__CTPP_WARNNESTEDCOMMENTS_OPT__'
+     built-in macro.
+
+'-Werror'
+     Treat warnings as errors.  If a warning is encountered, handle it
+     as an error and discontinue processing.
+
+'-Wmissing-args'
+     Warns if a symbol with the same name as a macro that requires
+     arguments is encountered.  This option defines the
+     '__CTPP_WARN_MISSING_ARGS_OPT__' macro.
+
+'-Wtrigraphs'
+     Print a warning when the preprocessor encounters a trigraph
+     sequence, if trigraphs are enabled.
+
+'-Wundef'
+     Print a warning message if a symbol is undefined.  GNU 'cpp'
+     silently evaluates undefined symbols to FALSE, and this is the
+     default behavior of ctpp.
+
+'-Wunused-macros'
+     Print a warning message if a symbol is unused when it is undefined,
+     or after the input file is processed.  This option defines the
+     '__CTPP_WARN_UNUSED_OPT__' built-in macro.
+
+'-x LANG'
+     LANG can be either 'c', 'c++', 'objective-c', or
+     'assembler-with-cpp'.  These options are equivalent to the
+     '-lang-'X options.  Becuae C is ctpp's default language, only '-x'
+     C++ has any effect.
+
+Ctpp also recognizes the the following options for compatibility with
+GNU 'cpp', but they are no-ops: '-ansi', '-CC', '-fno-show-column',
+'-lang-c', '-lang-objc', '-lang-objc++', '-lint', '-nostdinc++',
+'-pedantic', '-pedantic-errors', '-remap', '-Wendif-labels', '-Wimport',
+'-Wsystem-headers', and '-Wtraditional'.
+
+Ctpp does not implement the following options and will exit:
+'-iwithprefixbefore', '-ftabstop', and '-std'.
+
+
+File: ctpp.info,  Node: Include,  Next: Macros,  Prev: Options,  Up: Top
+
+Including Header Files
+======================
+
+The most common task of the preprocessor is to include library header
+files in the source code file.  These files normally have the extension
+'.h'.  The preprocessor replaces '#include' macro directives with the
+text of a header file, which contains common definitions of system or
+program variables and macros.  C99 specifies preprocessor inclusions
+include both library and program specific header files.
+
+An '#include' statement with the following form:
+     #include <stdio.h>
+
+causes the preprocessor to search the system's library directories for
+the header file.  An '#include' statement with the following form:
+     #include "mymacros.h"
+
+Primary Include Paths
+---------------------
+
+The location of library header files depends on the operating system.
+On POSIX systems, the distributed library header files are normally in
+'/usr/include', and local library files are in '/usr/local/include'.
+Ctpp always includes these directories in the search path for header
+files, so the preprocessor searches these directories:
+       /usr/local/include
+       /usr/include
+
+Ctpp adds directories named with the '-I' option to the end of the list
+of directory paths.  *Note Options::.
+
+Note that the preprocessor always searches '/usr/local/include' first,
+so that it includes a locally modified header file in
+'/usr/local/include' if a file of the same name exists in
+'/usr/include'.
+
+_Note:_ This release support GCC 4.5.x's 'stdint.h' wrappers.  This can
+still cause problems with symbol redefinitions when using legacy header
+files.  If you encounter such a problem, please let the authors know,
+and we will try to provide a compatibilit fix for 'ctpp'.
+
+GCC Library Paths
+-----------------
+
+If the system's target compiler is GNU GCC, machine specific include
+files are in 'LIBDIR/gcc-lib/TARGET/VERSION/include'.  If the compiler
+is GCC 2.95.4 and the system is a PC compatible with GNU/Linux
+installed, the path for the compiler's include files would be:
+       /usr/lib/gcc-lib/i386-linux/2.95.4/include
+GCC also can use the path '/usr/TARGET/include'.  For compatibility with
+GCC, the search path for library files is as follows
+       /usr/local/include
+       /usr/lib/gcc-lib/i386-linux/2.95.4/include
+       /usr/i386-linux/include
+       /usr/include
+
+Again, ctpp adds directories named with the '-I' option to the directory
+search list.  *Note Options::.
+
+Secondary Include Paths
+.......................
+
+For compatibility with GNU 'cpp', ctpp also includes a secondary include
+path list, which you can use in complex build processes.  The secondary
+include path list is determined by ctpp's command line options.  *Note
+Options::.
+
+Environment Variable Paths
+--------------------------
+
+You can also tell the preprocessor to include library search paths by
+setting environment variables.  If defined, the preprocessor adds the
+directory paths named in the environment variables 'CPATH',
+'C_INCLUDE_PATH', and 'CPLUS_INCLUDE_PATH' to its list of include
+directory paths.
+
+The values of these variables are one or more paths, separated by colons
+(':'), similar to the format of the 'PATH' environment variable.
+
+With the default language options, which tell ctpp to process ANSI and
+ISO C99 input, the preprocessor adds the paths defined by 'CPATH' and
+'C_INCLUDE_PATH' to the include path list after the preprocessor's
+built-in search path list.  With '-lang-c++' as a command line option,
+the preprocessor adds the directories defined in 'CPLUS_INCLUDE_PATH'.
+
+Ctpp also checks the environment variable 'GCC_LIBDIR' for the GNU C
+compiler include directory.  The value should be the path of the
+compiler's include subdirectory.
+
+When looking for the compiler's include directory, ctpp first checks
+'GCC_LIBDIR', then the library directory configured when ctpp was built,
+if any, then the directory named by the GCC compiler.
+
+
+File: ctpp.info,  Node: Macros,  Next: Directives,  Prev: Include,  Up: Top
+
+Macro Definitions
+=================
+
+Ctpp follows the C99 guidelines for macro replacements.  When you define
+a macro, with '-D' and other command line options *note Options::, or
+with the '#define' directive in the input file *note Directives::, the
+preprocessor replaces the macro name with its replacement text wherever
+it appears in the output.
+       #define HOST_OS linux-gnu
+
+       #if HOST_OS == linux-gnu
+       printf ("Your operating system is GNU/Linux.\n");
+       #endif
+
+     ===>
+
+       #if linux-gnu == linux-gnu
+       printf ("Your operating system is GNU/Linux.\n");
+       #endif
+
+
+If you define only the name of a macro without replacement text, its
+definition is, "1."  The preprocessor can then test its value in
+conditionals.
+
+Macro Arguments
+---------------
+
+You can also provide macros with argument replacements.  When the
+preprocessor replaces the macro text, it also replaces the parameters in
+the macro definition with the macro arguments in the input text.  Here
+is an example, with the macro expansion.
+        #define MAX(a,b) ((a) > (b) ? (a) : (b))
+
+        printf ("%d is greater.\n", MAX(1,3));
+
+     ===>
+
+        printf ("%d is greater.\n", ((1) > (3) ? (1) : (3)));
+
+
+When writing a macro definition, it is often a good idea to enclose
+macros and parameters in parentheses, so that the preprocessor
+interprets the macro and its arguments as complete expressions and not
+as part of another expression.
+
+Quoting and Concatenation
+-------------------------
+
+The '#' operator, when used within a macro, quotes the text immediately
+following it.  The '##' operator concatenates the text before and after
+it.
+
+        #define PLAN_NAME(n) _PLAN_NAME(Plan##n)
+        #define _PLAN_NAME(n) #n
+
+        printf ("Attached is a copy of %s.\n", PLAN_NAME(B))
+
+     ===>
+
+        printf ("Attached is a copy of %s.\n", _PLAN_NAME(PlanB))
+
+     ===>
+
+        printf ("Attached is a copy of %s.\n", "PlanB")
+
+
+Note that the C standard requires that preprocessors rescan macro
+replacements, so you can replace a macro with another macro, as in this
+example.
+
+Variadic Macros
+---------------
+
+Variadic macros accept argument lists with a variable number of
+arguments.  If an ellipsis ('...') occurs in the parameter definition of
+a macro, then the preprocessor replaces the placeholder ('__VA_ARGS__')
+in the body of the macro with the list of arguments given when the macro
+is expanded.
+
+        #define stdprintf(...) printf (stdout, __VA_ARGS__)
+
+        #define MAJOR_VERSION 3
+        #define MINOR_VERSION 4
+
+        stdprintf ("%d.%d", MAJOR_VERSION, MINOR_VERSION);
+
+     ===>
+
+        printf (stdout, "%d.%d", 3, 4);
+
+
+Ctpp attempts to avoid making assumptions about white space and
+precedence when expanding macro arguments, beyond what is specified by C
+language standards.  For example, if a concatenation operator ('##')
+occurs within a parameter list, ctpp deletes the white space between the
+arguments and the operator.  However, when pasting and quoting tokens,
+ctpp follows a left-to-right order of evaluation, and the preprocessor
+rescans the arguments after replacing them.  You need to take care that
+the results are what you intended.
+
+        stdprintf ("%f", MAJOR_VERSION##.##MINOR_VERSION);
+
+     ===>
+
+        printf (stderr, "%f", 3##.##3);
+
+     ===>
+
+        printf (stderr, "%f", 3.3);
+
+
+Note that the following will _not_ work:
+
+        stdprintf ("%s", #MAJOR_VERSION##.##MINOR_VERSION);
+
+     ===>
+
+        stdprintf (stdout, "%s", "3".3);
+
+
+However, ctpp can quote an entire variable argument list.  So the
+following example works as you might expect.
+     #define stdprintstr(...) printf (stdout, "%s," #__VA_ARGS__)
+
+     #define MAJOR_VERSION 3
+     #define MINOR_VERSION 4
+
+     stdprintstr (Hello, world!);
+
+When replacing a macro with variable arguments, the macro '__NARGS__'
+expands to the number of arguments in the macro call.  Here is a simple
+example
+     #define __N(...) (__NARGS__)
+
+     int main () {
+       printf ("%d arguments\n", __N(a, b, c));
+     }
+
+Predefined Macros
+-----------------
+
+The C standard specifies that preprocessors define internal macros that
+provide information about the input text.  Preprocessors also commonly
+define macros that provide information about the compiler and operating
+system.
+
+Ctpp provides the following built-in macros.
+
+'__FILE__'
+     Expands to a string with the name of the input file.
+
+'__LINE__'
+     Expands to a decimal digit with the number of the line in the input
+     file that ctpp is processing.
+
+'__DATE__'
+     Expands to a string with the current date.
+
+'__TIME__'
+     Expands to a string with the current time.
+
+     In the replacement list of a variadic macro, expands to the number
+     of arguments the macro was called with.
+
+Ctpp also provides the ability to define compiler, machine, and
+operating specific macros.  For examples, look in 'ctpp/config', and
+read the comments in 'ctpp/builtins.c'.
+
+
+File: ctpp.info,  Node: Directives,  Next: Copying,  Prev: Macros,  Up: Top
+
+Preprocessing Directives
+========================
+
+Preprocessors use directives to include library files, define macros,
+display information, and conditionally process or exclude segments of
+the input text.  The directives start with a pound sign '#' in the first
+column of a line, and the directives and their arguments continue to the
+end of the line.
+
+Ctpp provides the directives defined by the C99 standard, as well as
+extensions to that standard.
+
+'#assert PRED[(VALUE)]'
+
+     The '#assert' directive defines an assertion.  Each assertion
+     predicate has an optional defined value, which can be either a
+     token or an expression.  You can test assertions in the input by
+     preceding the predicate with a pound ('#') sign.
+
+            #assert system (unix)
+
+            #if #system (unix)
+            .
+            .
+            .
+            #endif
+
+     If the assertion fails, the preprocessor calls abort () and
+     terminates.
+
+     In addition to tokens, you can also use expressions as assertion
+     values.  Here is a simple example.
+
+            #assert gcc_version (2)
+
+            #if #gcc_version (__GNUC__)
+            .
+            .
+            .
+            #endif
+
+     If you test an assertion predicate without a value, the
+     preprocessor evaluates the predicate to true for _any_ value of the
+     assertion.
+
+     '#assert' is an extension to C99.  If you use the '-Wall' option,
+     ctpp prints a warning if the directive appears in the input text.
+
+'#define SYMBOL [VALUE]'
+
+     Defines a macro that replaces SYMBOL with VALUE wherever SYMBOL
+     appears in the input text.  Macro replacement is discussed in a
+     previous section.  *Note Macros::.
+
+'#elif EXPR'
+
+     When used as an additional conditional branch after an '#if'
+     directive, includes input text until the next '#elif', '#else', or
+     '#endif' if previous '#if' and '#elif' expressions evaluate to
+     False and EXPR evaluates to True.
+
+'#else'
+
+     When used as an additional conditional branch after an '#if' or
+     '#elif' directive, includes the input text until the next '#endif'
+     if the previous conditional expressions evaluate to False.
+
+'#endif'
+
+     Ends a section of conditional text from the preceding '#if',
+     '#ifdef', '#ifndef', '#elif', or '#else' directive.
+
+'#error MESSAGE'
+
+     Prints an error message on the terminal and terminates
+     preprocessing.
+
+     Note that '#error' expands macro tokens in its argument.  This is
+     an extension to standard C and generates a warning message if
+     '-Wall' is present as a command line option.
+
+'#ident'
+
+     The '#ident' directive is deprecated and should not be used in new
+     code.  If '-Wall' is present as a command line option, ctpp
+     generates a warning message if the directive appears in the input
+     text.
+
+'#if EXPR'
+
+     If EXPR evaluates to True, include the input text in the output
+     until the next '#elif', '#else', or '#endif' directive.
+
+     You can also use '#if' to test whether a symbol is defined, in a
+     manner similar to '#ifdef', by using the 'define' function in an
+     expression.  The following statements function identically.
+             #if defined (__GNUC__)
+
+             #ifdef __GNUC__
+
+'#ifdef EXPR'
+
+     If EXPR is defined include the input text until the next '#else' or
+     '#elif' directive.
+
+'#ifndef EXPR'
+
+     Operates similarly to '#ifdef', but the conditional evaluates to
+     True of EXPR evaluates to False.
+
+'#line ARGS'
+
+     The '#line' directive adjusts the line number and, optionally, the
+     name of the input file.  The directive can have the following
+     forms.
+
+     '#line N'
+          The directive numbers all lines beginning with the following
+          line beginning with N, which is a decimal integer.
+
+     '#line N FILE'
+          Numbers the following lines beginning with N, and sets the
+          name of the input file to FILE, which is a quoted string.
+
+     '#line ARGS'
+          The preprocessor expands ARGS before adjusting the line number
+          and input file name.  ARGS must expand to one of the previous
+          forms.
+
+'#include INCLUDE_FILENAME|ARGS'
+
+     Replaces the directive with the text of the file named in the
+     argument.  The argument has several forms depending on which
+     directories need to be searched for the file, and command line
+     options direct ctpp to search additional include file directories.
+     *Note Include::.
+
+     If ARGS is an expression, it must expand to the name of an include
+     file as described above.
+
+'#include_here INCLUDE_FILENAME|ARGS'
+
+     The '#include_next' directive replaces the text of the directive
+     with the file named in its argument, at exactly the point where the
+     directive occurs in the input.
+
+     Using '#include_next' might sometimes be necessary, because many
+     compilers (including Ctalk) perform some type of macro compaction.
+     This can cause '#include'd' files to be re-ordered, which means
+     that a conditional expression like the following might not be
+     valid, if the compiler compacts (and re-orders) the definitions
+     from 'this_defs.h'.
+
+
+          #ifdef _THIS_           // Might not be work, depending on the
+          #include "this_defs.h"  // macro context and the compiler.
+          #endif
+
+
+     Using '#include_here' insures that the directive, and the
+     definitions that replace it, occur within the '#ifdef'...  '#endif'
+     clause.
+
+
+          #ifdef _THIS_                // This should always be a valid
+          #include_here "this_defs.h"  // expression.
+          #endif
+
+
+'#include_next INCLUDE_FILENAME|ARGS'
+
+     The '#include_next' directive replaces the text of the directive
+     with the file named in its argument.  If ctpp included a header
+     file with the same name earlier, '#include_next' searches the
+     include directories after the directory with contains the first
+     include file.
+
+     If ARGS is an expression, it must expand to the name of an include
+     file.  *Note Include::.
+
+     '#include_next' is an extension to C99.  If you use the '-Wall'
+     option, ctpp prints a warning if the directive appears in the input
+     text.
+
+'#pragma'
+
+     The '#pragma' directive recognizes the GNU GCC pragmas that apply
+     to preprocessing.
+
+     '#pragma GCC dependency ARGS'
+
+          Causes the preprocessor to issue a warning if a file given as
+          an argument has been updated more recently than the input
+          text.
+
+     '#pragma GCC poison ARGS'
+
+          Causes the preprocessor to stop processing and exit if it
+          encounters any of the identifiers in the input text that are
+          given as arguments to the pragma.
+
+     The '_Pragma' operator takes as its argument a literal string which
+     is identical to the arguments that would be given to a '#pragma'
+     directive.
+
+'#undef MACRO_SYMBOL'
+
+     Undefines a macro defined by an earlier '#define' directive.
+
+'#warning MESSAGE'
+
+     The '#warning' preprocessor directive prints a message to standard
+     output and continues processing the input.
+
+     '#warning' is an extension to C99.  If you use the '-Wall' option,
+     ctpp prints a warning if the directive appears in the input text.
+     If '-Wall' is given on the command line, and the argument contains
+     macros to be expanded, ctpp also issues a warning in this case.
+
+'#import'
+'#sccs'
+'#unassert'
+
+     The '#import', '#sccs', and '#unassert' preprocessor directives are
+     deprecated and should not be used in new code.
+
+
+File: ctpp.info,  Node: Copying,  Next: Index,  Prev: Directives,  Up: Top
+
+GNU Free Documentation License
+==============================
+
+     		GNU Free Documentation License
+     		  Version 1.2, November 2002
+
+
+      Copyright (C) 2000,2001,2002  Free Software Foundation, Inc.
+          51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+      Everyone is permitted to copy and distribute verbatim copies
+      of this license document, but changing it is not allowed.
+
+
+     0. PREAMBLE
+
+     The purpose of this License is to make a manual, textbook, or other
+     functional and useful document "free" in the sense of freedom: to
+     assure everyone the effective freedom to copy and redistribute it,
+     with or without modifying it, either commercially or noncommercially.
+     Secondarily, this License preserves for the author and publisher a way
+     to get credit for their work, while not being considered responsible
+     for modifications made by others.
+
+     This License is a kind of "copyleft", which means that derivative
+     works of the document must themselves be free in the same sense.  It
+     complements the GNU General Public License, which is a copyleft
+     license designed for free software.
+
+     We have designed this License in order to use it for manuals for free
+     software, because free software needs free documentation: a free
+     program should come with manuals providing the same freedoms that the
+     software does.  But this License is not limited to software manuals;
+     it can be used for any textual work, regardless of subject matter or
+     whether it is published as a printed book.  We recommend this License
+     principally for works whose purpose is instruction or reference.
+
+
+     1. APPLICABILITY AND DEFINITIONS
+
+     This License applies to any manual or other work, in any medium, that
+     contains a notice placed by the copyright holder saying it can be
+     distributed under the terms of this License.  Such a notice grants a
+     world-wide, royalty-free license, unlimited in duration, to use that
+     work under the conditions stated herein.  The "Document", below,
+     refers to any such manual or work.  Any member of the public is a
+     licensee, and is addressed as "you".  You accept the license if you
+     copy, modify or distribute the work in a way requiring permission
+     under copyright law.
+
+     A "Modified Version" of the Document means any work containing the
+     Document or a portion of it, either copied verbatim, or with
+     modifications and/or translated into another language.
+
+     A "Secondary Section" is a named appendix or a front-matter section of
+     the Document that deals exclusively with the relationship of the
+     publishers or authors of the Document to the Document's overall subject
+     (or to related matters) and contains nothing that could fall directly
+     within that overall subject.  (Thus, if the Document is in part a
+     textbook of mathematics, a Secondary Section may not explain any
+     mathematics.)  The relationship could be a matter of historical
+     connection with the subject or with related matters, or of legal,
+     commercial, philosophical, ethical or political position regarding
+     them.
+
+     The "Invariant Sections" are certain Secondary Sections whose titles
+     are designated, as being those of Invariant Sections, in the notice
+     that says that the Document is released under this License.  If a
+     section does not fit the above definition of Secondary then it is not
+     allowed to be designated as Invariant.  The Document may contain zero
+     Invariant Sections.  If the Document does not identify any Invariant
+     Sections then there are none.
+
+     The "Cover Texts" are certain short passages of text that are listed,
+     as Front-Cover Texts or Back-Cover Texts, in the notice that says that
+     the Document is released under this License.  A Front-Cover Text may
+     be at most 5 words, and a Back-Cover Text may be at most 25 words.
+
+     A "Transparent" copy of the Document means a machine-readable copy,
+     represented in a format whose specification is available to the
+     general public, that is suitable for revising the document
+     straightforwardly with generic text editors or (for images composed of
+     pixels) generic paint programs or (for drawings) some widely available
+     drawing editor, and that is suitable for input to text formatters or
+     for automatic translation to a variety of formats suitable for input
+     to text formatters.  A copy made in an otherwise Transparent file
+     format whose markup, or absence of markup, has been arranged to thwart
+     or discourage subsequent modification by readers is not Transparent.
+     An image format is not Transparent if used for any substantial amount
+     of text.  A copy that is not "Transparent" is called "Opaque".
+
+     Examples of suitable formats for Transparent copies include plain
+     ASCII without markup, Texinfo input format, LaTeX input format, SGML
+     or XML using a publicly available DTD, and standard-conforming simple
+     HTML, PostScript or PDF designed for human modification.  Examples of
+     transparent image formats include PNG, XCF and JPG.  Opaque formats
+     include proprietary formats that can be read and edited only by
+     proprietary word processors, SGML or XML for which the DTD and/or
+     processing tools are not generally available, and the
+     machine-generated HTML, PostScript or PDF produced by some word
+     processors for output purposes only.
+
+     The "Title Page" means, for a printed book, the title page itself,
+     plus such following pages as are needed to hold, legibly, the material
+     this License requires to appear in the title page.  For works in
+     formats which do not have any title page as such, "Title Page" means
+     the text near the most prominent appearance of the work's title,
+     preceding the beginning of the body of the text.
+
+     A section "Entitled XYZ" means a named subunit of the Document whose
+     title either is precisely XYZ or contains XYZ in parentheses following
+     text that translates XYZ in another language.  (Here XYZ stands for a
+     specific section name mentioned below, such as "Acknowledgements",
+     "Dedications", "Endorsements", or "History".)  To "Preserve the Title"
+     of such a section when you modify the Document means that it remains a
+     section "Entitled XYZ" according to this definition.
+
+     The Document may include Warranty Disclaimers next to the notice which
+     states that this License applies to the Document.  These Warranty
+     Disclaimers are considered to be included by reference in this
+     License, but only as regards disclaiming warranties: any other
+     implication that these Warranty Disclaimers may have is void and has
+     no effect on the meaning of this License.
+
+
+     2. VERBATIM COPYING
+
+     You may copy and distribute the Document in any medium, either
+     commercially or noncommercially, provided that this License, the
+     copyright notices, and the license notice saying this License applies
+     to the Document are reproduced in all copies, and that you add no other
+     conditions whatsoever to those of this License.  You may not use
+     technical measures to obstruct or control the reading or further
+     copying of the copies you make or distribute.  However, you may accept
+     compensation in exchange for copies.  If you distribute a large enough
+     number of copies you must also follow the conditions in section 3.
+
+     You may also lend copies, under the same conditions stated above, and
+     you may publicly display copies.
+
+
+     3. COPYING IN QUANTITY
+
+     If you publish printed copies (or copies in media that commonly have
+     printed covers) of the Document, numbering more than 100, and the
+     Document's license notice requires Cover Texts, you must enclose the
+     copies in covers that carry, clearly and legibly, all these Cover
+     Texts: Front-Cover Texts on the front cover, and Back-Cover Texts on
+     the back cover.  Both covers must also clearly and legibly identify
+     you as the publisher of these copies.  The front cover must present
+     the full title with all words of the title equally prominent and
+     visible.  You may add other material on the covers in addition.
+     Copying with changes limited to the covers, as long as they preserve
+     the title of the Document and satisfy these conditions, can be treated
+     as verbatim copying in other respects.
+
+     If the required texts for either cover are too voluminous to fit
+     legibly, you should put the first ones listed (as many as fit
+     reasonably) on the actual cover, and continue the rest onto adjacent
+     pages.
+
+     If you publish or distribute Opaque copies of the Document numbering
+     more than 100, you must either include a machine-readable Transparent
+     copy along with each Opaque copy, or state in or with each Opaque copy
+     a computer-network location from which the general network-using
+     public has access to download using public-standard network protocols
+     a complete Transparent copy of the Document, free of added material.
+     If you use the latter option, you must take reasonably prudent steps,
+     when you begin distribution of Opaque copies in quantity, to ensure
+     that this Transparent copy will remain thus accessible at the stated
+     location until at least one year after the last time you distribute an
+     Opaque copy (directly or through your agents or retailers) of that
+     edition to the public.
+
+     It is requested, but not required, that you contact the authors of the
+     Document well before redistributing any large number of copies, to give
+     them a chance to provide you with an updated version of the Document.
+
+
+     4. MODIFICATIONS
+
+     You may copy and distribute a Modified Version of the Document under
+     the conditions of sections 2 and 3 above, provided that you release
+     the Modified Version under precisely this License, with the Modified
+     Version filling the role of the Document, thus licensing distribution
+     and modification of the Modified Version to whoever possesses a copy
+     of it.  In addition, you must do these things in the Modified Version:
+
+     A. Use in the Title Page (and on the covers, if any) a title distinct
+        from that of the Document, and from those of previous versions
+        (which should, if there were any, be listed in the History section
+        of the Document).  You may use the same title as a previous version
+        if the original publisher of that version gives permission.
+     B. List on the Title Page, as authors, one or more persons or entities
+        responsible for authorship of the modifications in the Modified
+        Version, together with at least five of the principal authors of the
+        Document (all of its principal authors, if it has fewer than five),
+        unless they release you from this requirement.
+     C. State on the Title page the name of the publisher of the
+        Modified Version, as the publisher.
+     D. Preserve all the copyright notices of the Document.
+     E. Add an appropriate copyright notice for your modifications
+        adjacent to the other copyright notices.
+     F. Include, immediately after the copyright notices, a license notice
+        giving the public permission to use the Modified Version under the
+        terms of this License, in the form shown in the Addendum below.
+     G. Preserve in that license notice the full lists of Invariant Sections
+        and required Cover Texts given in the Document's license notice.
+     H. Include an unaltered copy of this License.
+     I. Preserve the section Entitled "History", Preserve its Title, and add
+        to it an item stating at least the title, year, new authors, and
+        publisher of the Modified Version as given on the Title Page.  If
+        there is no section Entitled "History" in the Document, create one
+        stating the title, year, authors, and publisher of the Document as
+        given on its Title Page, then add an item describing the Modified
+        Version as stated in the previous sentence.
+     J. Preserve the network location, if any, given in the Document for
+        public access to a Transparent copy of the Document, and likewise
+        the network locations given in the Document for previous versions
+        it was based on.  These may be placed in the "History" section.
+        You may omit a network location for a work that was published at
+        least four years before the Document itself, or if the original
+        publisher of the version it refers to gives permission.
+     K. For any section Entitled "Acknowledgements" or "Dedications",
+        Preserve the Title of the section, and preserve in the section all
+        the substance and tone of each of the contributor acknowledgements
+        and/or dedications given therein.
+     L. Preserve all the Invariant Sections of the Document,
+        unaltered in their text and in their titles.  Section numbers
+        or the equivalent are not considered part of the section titles.
+     M. Delete any section Entitled "Endorsements".  Such a section
+        may not be included in the Modified Version.
+     N. Do not retitle any existing section to be Entitled "Endorsements"
+        or to conflict in title with any Invariant Section.
+     O. Preserve any Warranty Disclaimers.
+
+     If the Modified Version includes new front-matter sections or
+     appendices that qualify as Secondary Sections and contain no material
+     copied from the Document, you may at your option designate some or all
+     of these sections as invariant.  To do this, add their titles to the
+     list of Invariant Sections in the Modified Version's license notice.
+     These titles must be distinct from any other section titles.
+
+     You may add a section Entitled "Endorsements", provided it contains
+     nothing but endorsements of your Modified Version by various
+     parties--for example, statements of peer review or that the text has
+     been approved by an organization as the authoritative definition of a
+     standard.
+
+     You may add a passage of up to five words as a Front-Cover Text, and a
+     passage of up to 25 words as a Back-Cover Text, to the end of the list
+     of Cover Texts in the Modified Version.  Only one passage of
+     Front-Cover Text and one of Back-Cover Text may be added by (or
+     through arrangements made by) any one entity.  If the Document already
+     includes a cover text for the same cover, previously added by you or
+     by arrangement made by the same entity you are acting on behalf of,
+     you may not add another; but you may replace the old one, on explicit
+     permission from the previous publisher that added the old one.
+
+     The author(s) and publisher(s) of the Document do not by this License
+     give permission to use their names for publicity for or to assert or
+     imply endorsement of any Modified Version.
+
+
+     5. COMBINING DOCUMENTS
+
+     You may combine the Document with other documents released under this
+     License, under the terms defined in section 4 above for modified
+     versions, provided that you include in the combination all of the
+     Invariant Sections of all of the original documents, unmodified, and
+     list them all as Invariant Sections of your combined work in its
+     license notice, and that you preserve all their Warranty Disclaimers.
+
+     The combined work need only contain one copy of this License, and
+     multiple identical Invariant Sections may be replaced with a single
+     copy.  If there are multiple Invariant Sections with the same name but
+     different contents, make the title of each such section unique by
+     adding at the end of it, in parentheses, the name of the original
+     author or publisher of that section if known, or else a unique number.
+     Make the same adjustment to the section titles in the list of
+     Invariant Sections in the license notice of the combined work.
+
+     In the combination, you must combine any sections Entitled "History"
+     in the various original documents, forming one section Entitled
+     "History"; likewise combine any sections Entitled "Acknowledgements",
+     and any sections Entitled "Dedications".  You must delete all sections
+     Entitled "Endorsements".
+
+
+     6. COLLECTIONS OF DOCUMENTS
+
+     You may make a collection consisting of the Document and other documents
+     released under this License, and replace the individual copies of this
+     License in the various documents with a single copy that is included in
+     the collection, provided that you follow the rules of this License for
+     verbatim copying of each of the documents in all other respects.
+
+     You may extract a single document from such a collection, and distribute
+     it individually under this License, provided you insert a copy of this
+     License into the extracted document, and follow this License in all
+     other respects regarding verbatim copying of that document.
+
+
+     7. AGGREGATION WITH INDEPENDENT WORKS
+
+     A compilation of the Document or its derivatives with other separate
+     and independent documents or works, in or on a volume of a storage or
+     distribution medium, is called an "aggregate" if the copyright
+     resulting from the compilation is not used to limit the legal rights
+     of the compilation's users beyond what the individual works permit.
+     When the Document is included in an aggregate, this License does not
+     apply to the other works in the aggregate which are not themselves
+     derivative works of the Document.
+
+     If the Cover Text requirement of section 3 is applicable to these
+     copies of the Document, then if the Document is less than one half of
+     the entire aggregate, the Document's Cover Texts may be placed on
+     covers that bracket the Document within the aggregate, or the
+     electronic equivalent of covers if the Document is in electronic form.
+     Otherwise they must appear on printed covers that bracket the whole
+     aggregate.
+
+
+     8. TRANSLATION
+
+     Translation is considered a kind of modification, so you may
+     distribute translations of the Document under the terms of section 4.
+     Replacing Invariant Sections with translations requires special
+     permission from their copyright holders, but you may include
+     translations of some or all Invariant Sections in addition to the
+     original versions of these Invariant Sections.  You may include a
+     translation of this License, and all the license notices in the
+     Document, and any Warranty Disclaimers, provided that you also include
+     the original English version of this License and the original versions
+     of those notices and disclaimers.  In case of a disagreement between
+     the translation and the original version of this License or a notice
+     or disclaimer, the original version will prevail.
+
+     If a section in the Document is Entitled "Acknowledgements",
+     "Dedications", or "History", the requirement (section 4) to Preserve
+     its Title (section 1) will typically require changing the actual
+     title.
+
+
+     9. TERMINATION
+
+     You may not copy, modify, sublicense, or distribute the Document except
+     as expressly provided for under this License.  Any other attempt to
+     copy, modify, sublicense or distribute the Document is void, and will
+     automatically terminate your rights under this License.  However,
+     parties who have received copies, or rights, from you under this
+     License will not have their licenses terminated so long as such
+     parties remain in full compliance.
+
+
+     10. FUTURE REVISIONS OF THIS LICENSE
+
+     The Free Software Foundation may publish new, revised versions
+     of the GNU Free Documentation License from time to time.  Such new
+     versions will be similar in spirit to the present version, but may
+     differ in detail to address new problems or concerns.  See
+     http://www.gnu.org/copyleft/.
+
+     Each version of the License is given a distinguishing version number.
+     If the Document specifies that a particular numbered version of this
+     License "or any later version" applies to it, you have the option of
+     following the terms and conditions either of that specified version or
+     of any later version that has been published (not as a draft) by the
+     Free Software Foundation.  If the Document does not specify a version
+     number of this License, you may choose any version ever published (not
+     as a draft) by the Free Software Foundation.
+
+
+     ADDENDUM: How to use this License for your documents
+
+     To use this License in a document you have written, include a copy of
+     the License in the document and put the following copyright and
+     license notices just after the title page:
+
+         Copyright (c)  YEAR  YOUR NAME.
+         Permission is granted to copy, distribute and/or modify this document
+         under the terms of the GNU Free Documentation License, Version 1.2
+         or any later version published by the Free Software Foundation;
+         with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
+         A copy of the license is included in the section entitled "GNU
+         Free Documentation License".
+
+     If you have Invariant Sections, Front-Cover Texts and Back-Cover Texts,
+     replace the "with...Texts." line with this:
+
+         with the Invariant Sections being LIST THEIR TITLES, with the
+         Front-Cover Texts being LIST, and with the Back-Cover Texts being LIST.
+
+     If you have Invariant Sections without Cover Texts, or some other
+     combination of the three, merge those two alternatives to suit the
+     situation.
+
+     If your document contains nontrivial examples of program code, we
+     recommend releasing these examples in parallel under your choice of
+     free software license, such as the GNU General Public License,
+     to permit their use in free software.
+
+
+
+File: ctpp.info,  Node: Index,  Prev: Copying,  Up: Top
+
+Index
+*****
+
+ [index ]
+* Menu:
+
+* #assert preprocessor directive:        Directives.          (line  15)
+* #define preprocessing directive:       Directives.          (line  51)
+* #elif preprocessing directive:         Directives.          (line  57)
+* #else preprocessing directive:         Directives.          (line  64)
+* #endif preprocessing directive:        Directives.          (line  70)
+* #error preprocessing directive:        Directives.          (line  75)
+* #ident preprocessing directive:        Directives.          (line  84)
+* #if preprocessing directive:           Directives.          (line  91)
+* #ifdef preprocessing directive:        Directives.          (line 103)
+* #ifndef preprocessing directive:       Directives.          (line 108)
+* #import preprocessor directive:        Directives.          (line 222)
+* #include preprocessor directive:       Directives.          (line 132)
+* #include_here preprocessor directive:  Directives.          (line 143)
+* #include_next preprocessor directive:  Directives.          (line 172)
+* #line preprocessor directive:          Directives.          (line 113)
+* #pragma GCC dependency:                Directives.          (line 192)
+* #pragma GCC poison:                    Directives.          (line 198)
+* #pragma preprocessor directive:        Directives.          (line 187)
+* #sccs preprocessor directive:          Directives.          (line 223)
+* #unassert preprocessor directive:      Directives.          (line 224)
+* #undef preprocessing directive:        Directives.          (line 208)
+* #warning preprocessor directive:       Directives.          (line 212)
+* -$ command line option:                Options.             (line  11)
+* -A command line option:                Options.             (line  17)
+* -ansi command line option:             Options.             (line  26)
+* -C command line option:                Options.             (line  31)
+* -D command line option:                Options.             (line  35)
+* -dD command line option:               Options.             (line  40)
+* -dF command line option:               Options.             (line  44)
+* -dM command line option:               Options.             (line  49)
+* -dN command line option:               Options.             (line  54)
+* -fpreprocessed command line option:    Options.             (line  59)
+* -gcc command line option:              Options.             (line  63)
+* -H command line option:                Options.             (line 107)
+* -h command line option:                Options.             (line 112)
+* -help command line option:             Options.             (line 112)
+* -help command line option <1>:         Options.             (line 112)
+* -I command line option:                Options.             (line  69)
+* -I- command line option:               Options.             (line  72)
+* -idirafter command line option:        Options.             (line  80)
+* -imacros command line option:          Options.             (line  83)
+* -iprefix command line option:          Options.             (line  87)
+* -isystem command line option:          Options.             (line  91)
+* -lang-c++ command line option:         Options.             (line 102)
+* -M command line option:                Options.             (line 117)
+* -MD command line option:               Options.             (line 125)
+* -MM command line option:               Options.             (line 128)
+* -move-includes command line option:    Options.             (line 144)
+* -MQ command line option:               Options.             (line 134)
+* -MT command line option:               Options.             (line 139)
+* -no-gcc command line option:           Options.             (line 154)
+* -no-include command line option:       Options.             (line 176)
+* -no-simple-macros command line option: Options.             (line 184)
+* -nostdinc command line option:         Options.             (line 158)
+* -o command line option:                Options.             (line 162)
+* -P command line option:                Options.             (line 172)
+* -std command line option:              Options.             (line 190)
+* -target-help command line option:      Options.             (line 200)
+* -traditional command line options:     Options.             (line 165)
+* -traditional-cpp command line option:  Options.             (line 169)
+* -trigraphs command line option:        Options.             (line 203)
+* -U command line option:                Options.             (line 207)
+* -u command line option:                Options.             (line 210)
+* -undef command line option:            Options.             (line 210)
+* -v command line option:                Options.             (line 217)
+* -version command line option:          Options.             (line 221)
+* -version command line option <1>:      Options.             (line 224)
+* -w command line option:                Options.             (line 227)
+* -Wall command line option:             Options.             (line 232)
+* -Wcomment command line option:         Options.             (line 246)
+* -Wcomments command line option:        Options.             (line 246)
+* -Werror command line option.:          Options.             (line 252)
+* -Wmissing-args command line option:    Options.             (line 256)
+* -Wtrigraphs command line option:       Options.             (line 261)
+* -Wundef command line option:           Options.             (line 265)
+* -Wunused-macros command line option:   Options.             (line 270)
+* -x command line option:                Options.             (line 275)
+* _Pragma operator:                      Directives.          (line 187)
+* __CTPP_DEFINENAMESSONLY_OPT__ macro:   Options.             (line  54)
+* __CTPP_DEFINESONLY_OPT__ macro:        Options.             (line  49)
+* __CTPP_DEFINESTOFILE_OPT__ macro:      Options.             (line  44)
+* __CTPP_DEFINESTOOUTPUT_OPT__ macro:    Options.             (line  40)
+* __CTPP_GCC_MACROS_OPT__ macro:         Options.             (line  63)
+* __CTPP_KEEPCOMMENTS_OPT__ macro:       Options.             (line  31)
+* __CTPP_LANG_CPLUSPLUS_OPT__ macro:     Options.             (line 102)
+* __CTPP_MAKERULES_OPT__ macro:          Options.             (line 117)
+* __CTPP_MOVEINCLUDES_OPT__ macro:       Options.             (line 144)
+* __CTPP_NOLINEMARKER_OPT__ macro:       Options.             (line 172)
+* __CTPP_NOSTDINC_OPT__ macro:           Options.             (line 158)
+* __CTPP_NO_SIMPLE_MACROS_OPT__ macro:   Options.             (line 184)
+* __CTPP_NO_WARNINGS_OPT__ macro:        Options.             (line 227)
+* __CTPP_PRE_PREPROCESSED_OPT__ macro:   Options.             (line  59)
+* __CTPP_PRINT_HEADERS_OPT__ macro:      Options.             (line 107)
+* __CTPP_USE_TRIGRAPHS_OPT__ macro:      Options.             (line 203)
+* __CTPP_WARNDOLLAR_OPT__ macro:         Options.             (line  11)
+* __CTPP_WARNNESTEDCOMMENTS_OPT__ macro: Options.             (line 232)
+* __CTPP_WARNNESTEDCOMMENTS_OPT__ macro <1>: Options.         (line 246)
+* __CTPP_WARNUNDEFSYMBOLS_OPT__ macro:   Options.             (line 232)
+* __CTPP_WARN_MISSING_ARGS_OPT__ macro:  Options.             (line 256)
+* __CTPP_WARN_TRIGRAPHS_OPT__ macro:     Options.             (line 232)
+* __CTPP_WARN_UNUSED_OPT__ macro:        Options.             (line 270)
+* __DATE__ macro:                        Macros.              (line 159)
+* __FILE__ macro:                        Macros.              (line 152)
+* __LINE__ macro:                        Macros.              (line 155)
+* __NARGS__ macro:                       Macros.              (line 133)
+* __NARGS__ macro <1>:                   Macros.              (line 165)
+* __TIME__ macro:                        Macros.              (line 162)
+* Command line options:                  Options.             (line   6)
+* CPATH environment variable:            Include.             (line  73)
+* CPLUS_INCLUDE_PATH environment variable: Include.           (line  73)
+* C_INCLUDE_PATH environment variable:   Include.             (line  73)
+* defined operator:                      Directives.          (line  91)
+* Environment variable paths:            Include.             (line  73)
+* GCC_LIBDIR environment variable:       Include.             (line  73)
+* GNU Free Documentation License:        Copying.             (line   6)
+* Header files:                          Include.             (line   6)
+* Include path environment variables:    Include.             (line  73)
+* Include paths:                         Include.             (line   6)
+* Library header files:                  Include.             (line   6)
+* Macro Arguments:                       Macros.              (line  31)
+* Macro Concatenation:                   Macros.              (line  52)
+* Macro Quoting:                         Macros.              (line  52)
+* Macros:                                Macros.              (line   6)
+* Predefined macros:                     Macros.              (line 142)
+* Preprocessing directives:              Directives.          (line   6)
+* Variadic macros:                       Macros.              (line  77)
+
+
+
+Tag Table:
+Node: Top638
+Node: About1129
+Node: Options1930
+Node: Include12001
+Node: Macros15965
+Node: Directives20987
+Node: Copying28619
+Node: Index50805
+
+End Tag Table

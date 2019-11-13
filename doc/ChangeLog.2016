@@ -1,0 +1,573 @@
+2016-01-01
+	- Added icol14.c test program.
+2016-01-06
+	- In List : push, set the scope of the key to the scope
+	of the receiver.
+2016-01-09
+	- Added file lib/htoa.c and library function
+	__ctalkReferenceObject ().
+	- Added Key : =.
+2016-01-10
+	- Updated List : push and List : unshift to use
+	__ctalkReferenceObject (), and Collection : atPut.
+2016-01-13
+	- Added icol[15-16].c test programs.
+2016-01-14
+	- Added icol[17-18].c test program.
+2016-01-16
+	- Added margexprs46.c test program.
+2016-01-17
+	- Added 48- and 32-bit color support to __xlib_xpm_from_data ()
+	(x11lib.c), and 32-bit color support to __ctalkXPMToGLTexture ()
+	(glutlib.c).
+2016-01-18
+	- Added while8.c test program.
+2016-01-19
+	- Added while9.c test program.
+2016-01-20
+	- Added argblk31.c test program.
+2016-01-24
+	- Added argblk32.c test program.
+2016-01-25
+	- Added argblk33.c test program.
+2016-01-28
+	- Release 0.0.56 2016-01-28.
+2016-02-05
+	- Updated sprintf calls to strcatx in the compiler.
+2016-02-07
+	- Added margexprs47.c test program.
+	- Updated Symbol : getValue to return self if the address
+	doesn't point to an object.  In that case, __ctalk_to_c_ptr
+	does the work of converting it to a C pointer.  The method
+	still generates an exception.
+2016-02-10
+	- Added array[5-6].c test programs.
+2015-02-16
+	- Added icol[19-20].c test programs.
+2015-02-20
+	- Added prefix34.c test program.
+2015-02-23
+	- Added doc/libdoc and updated top-level Makefile.am to
+	install it.
+2015-02-24
+	- Added searchlib.ca to the tools subdirectory, added a
+	man page, updated ctalktools.texi, and updated the config
+	to build and install it.
+2015-02-25
+	- Added the utilities classdoc, membervars, and searchlib
+	to the test/expect/examples subdirectory and added test harness
+	programs in test/expect for them.
+2016-03-15
+	- Added the -c and -r options to the template utility.
+2016-03-16
+	- Updated searchlib.ca to match the keyword marker (">>>")
+	separately from the keyword, so the search does not need
+	to be anchored on the start of the keyword.
+2016-03-19
+	- Added struct2.c test program.
+2016-03-24
+	- Added prefix35.c test program.
+2016-03-27
+	- Added __ctalkLongLongToDecimalASCII (radixof.c).
+2016-03-29
+	- Added margexprs48.c test program.
+2016-03-31
+	- Added margexprs49.c test program.
+2016-04-03
+	- Added ctalkclasses.1 manual page.
+2016-04-05
+	- Added cmplmaa[4-5].c test programs.
+2016-04-11
+	- Updated configure.ac so that the --without-x option also
+	sets --without-libxft and --without-glut.
+2016-04-13
+	- Updated programs/cgi/CGIApp class to translate CR and LF
+	character encodings.
+	- Removed programs/cgi/wiki.c.
+2016-04-14
+	- Release 0.0.56 2016-04-14.
+2016-04-16
+	- Added examples/wwstring.c and run-wwstring.c test programs.
+	- Added CLASSNAME and SUPERCLASSNAME macros to include/ctalk.h,
+	classes/ctalkdefs.h, classes/ctalklib.in, and classes/ctldjgpp.
+2016-04-22
+	- Updated the __o_classname member to the CLASSNAME macro
+	in libctalk.
+2016-04-26
+	- Added USE_CLASSNAME_STR and USE_SUPERCLASSNAME_STR defines
+	(ctalk.h), used in the run-time library.
+	- Added SUPERCLASSNAME macro in ctalklib.in, ctldjgpp, ctalk.h,
+	and ctalkdefs.h
+2016-04-30
+	- Added the closeRequest instance variable and a check for
+	it in test/expect/examples-x11/x11textpane.c, and updated
+	the X11TextPane section of the Ctalk Reference.
+2016-05-03
+	- Added split[1-3].c test programs.
+2016-05-06
+	- Updated the example DirectoryStream class example program
+	in the Language Reference.
+	- Added the glob1.c example in test/expect/examples and the
+	run-glob1.c test program in test/expect.
+2016-05-08
+	- Added binary[1-3].c test programs.
+2016-05-09
+	- Added Vector class, and ReadFileStream : readVec and
+	WriteFileStream : writeVec methods.
+	- Added vec1.c and run-vec1.c test programs.
+2016-05-11
+	- In the tools subdirectory save the output of each tool's build
+	in the file <toolname>.err.  Updated the top level Makefile.am
+	distclean-local target to delete them.
+2016-05-12
+	- Release 0.0.56 2016-05-12.
+2016-05-14
+	- Added Vector : basicNew with 2, 3, and 5 arguments.
+	- Updated ClassLibraryTree : init to skip duplicate
+	class names.
+2016-05-15
+	- Changed the second parameter to __ctalkSetObjectValueBuf
+	to void *, so the compiler doesn't automagically treat the
+	argument as a string to be cached by __ctalkToCCharPtr, but
+	instead handles it directly by __ctalk_to_c_ptr.  The compiler
+	now translates void * and void ** C variables as the value
+	of an object that is a member of Symbol class or its
+	subclasses.
+2016-05-17
+	- Added __ctalkSetObjectValueAddr (rtnewobj.c), to set
+	the buffer and length instance variable, and attributes,
+	of Vector objects.
+2016-05-18
+	- Added examples/vec1.c, expect/vec1.c, and veccontains1.c
+	test programs.
+	- Added the Vector : contains method.
+2016-05-19
+	- Added the Vector : asString method.
+2016-05-22
+	- Updated the GCC optimization settings to -O3 for the Ctalk
+	compiler and libraries when building under Linux.
+2016-05-23
+	- Added Vector : + (concat), Vector : += (concatRcvr),
+	and Vector : contains (2 parameter) methods.
+	- Added vecconcat[1-3].c test programs.
+2016-05-24
+	- Added instvars3.c test program.
+2016-05-27
+	- Added Integer : |= and Integer : &= methods.
+	- Added __ctalkNArgs library function.
+	- Added List : init and List : =.
+	- Added listinit1.c and listinit2.c test programs.
+2016-04-05
+	- Added objderef10.c and objderef11.c test programs.
+2016-06-13
+	- Added objderef12.c test program.
+2016-06-14
+	- Updated Object : is and Object : isSubClassOf so they
+	don't call Object : ->.
+2016-06-16
+	- Object : is and Object : isSubClassOf now take class
+	objects as arguments.
+	- Added Object : isClassObject method.
+	- Updated issubclass1.c test program.
+	- Added objderef13.c test program.
+2016-06-18
+	- Added __ctalkEvalExprU (lib/rt_expr.c), which returns a
+	C NULL instead of a null result object.
+	- Added objderef14.c test program.
+2016-06-20
+	- Added objderef[15-16].c test programs.
+2016-06-22
+	- Added objderef17.c and objderef18.c test programs.
+2016-06-24
+	- Added objderef[19-21].c test programs.
+2016-06-29
+	- Added refobj[1-2].c test programs.
+2016-06-30
+	- Added refobj[3-5].c test programs.
+2016-07-01
+	- Added refobj[6-7].c test program.
+2016-07-03
+	- Added the Integer instance methods: %= and ^=.
+	- Added the LongInteger instance methods: %=, ^=,
+	%=, and |=.
+	- Added a String : contains method for two parameters.
+	- Updated List : init and List : = to delete the old
+	list members.
+	- Added listinit[3-6].c test programs.
+2016-07-04
+	- Added List : append and List : += methods.
+	- Added listinit[7-10].c test programs.
+	- Added AssociativeArray : init and AssociativeArray : =
+	methods.
+	- Added assocarrayinit[1-4].c test programs.
+2016-07-07
+	- Added AssociativeArray : append and AssociativeArray : +=
+	methods.
+	- Added assocarrayinit[5-9].c test programs.
+2016-07-10
+	- Added Application : methodDocString method.
+	- Updated the "new" Object : methods method to match
+	declarations as:
+
+	    ^ *<classname> *("instanceMethod"|"classMethod")
+	- Updated the methods utility program and man page.
+	- Added initcollection.c example program and
+	run-initcollection.c text program.
+2016-07-12
+	- Added String : map method.
+	- Added mapstring1.c and mapstring2.c in test/expect/examples,
+	and run-mapstring1.c and run-mapstring2.c test programs.
+	- Added maplist[1-3].c programs in test/expect/examples,
+	and run-maplist[1-3].c test programs.
+	- Added the outputBuffer instance variable to ANSIButtonPane
+	class, and updated the Ctalk Reference ANSIButtonPane
+	section.
+2016-07-13
+	- Minor update to programs/cgi/ctcheckquery.c to use
+	AssociativeArray : mapKeys to display key/value pairs.
+	- Updated programs/ctrep.c to use String : map.
+2016-07-14
+	- Updated the methodsource utility to parse a partial
+	prototype if run under the Ctalk browser for Emacs.
+2016-07-15
+	- Release 0.0.56 2016-07-15.
+2016-07-17
+	- More updates for the methodsource utility.
+2016-07-22
+	- Added the X11CanvasPane : copy method and the
+	__ctalkX11CopyPixmapBasic library function.
+2016-07-23
+	- Changed the return value of __ctalkDecimalIntegerToASCII to
+	char *, so the function can be used in-line.
+	- Added __ctalkHexIntegerToASCII, which is a wrapper for
+	htoa (htoa.c).
+	- Updated the X11CanvasPane : copy method to write
+	to the receiver's paneBuffer, and added the
+	X11CanvasPane : directCopy method that copies a
+	X11Bitmap directly to the window.
+2016-07-27
+	- Added __ctalkX11PaneDrawCircleBasic and
+	__ctalkGUIPaneDrawCircleBasic (lib/xcircle.c).
+	- Added test/expect/examples-x11/xcircletest.c and
+	test/expect/examples-x11/canvas-circle.c.
+	- Added Circle class and the Circle : draw method for two
+	and three arguments, and X11CanvasPane : drawCircle for two
+	and three arguments.
+2016-07-28
+	- Added X11CanvasPane : drawLine for one and two arguments, using
+	pre-initialized Line and Pen objects.  Also added drawLine for
+	five arguments, giving the endpoints of the line and a Pen argument.
+2016-07-31
+	- Updates to the mkdir template so it matches the mkdir([2-3])
+	prototype.
+2016-08-02
+	- Added lib/xrender.c source module, and updated
+	__xlib_draw_line to use XRender to draw antialiased lines.
+	- Added fn_param12.c test program.
+2016-08-04
+	- Added extern1.c test program.
+2016-08-05
+	- Added the alpha instance variable definition to Pen class.
+2016-08-06
+	- Added Magnitude : asFloat instance method.
+2016-08-07
+	- Added x11Font : textWidth method and __ctalkX11TextWidth
+	library function.
+	- Updated X11Bitmap : putStr with overloaded parameters
+	that allow programs to specify the font and color to
+	render the text.
+	- Also overloaded X11CanvasPane : putStrXY to use
+	XLFD and colorname parameters.
+2016-08-08
+	- Added the API functions __ctalkXftSetForegroundFromNamedColor,
+	__ctalkXftRed, __ctalkXftGreen, __ctalkXftBlue, and
+	__ctalkXftAlpha.
+	- Added the X11FreeTypeFont methods namedX11Color,
+	red, green, blue, and alpha.
+2016-08-09
+	- Added __ctalkX11DisplayWidth and __ctalkX11DisplayHeight
+	library functions.
+	- Also added X11Pane : displayHeight and X11Pane :
+	displayWidth methods.
+	- Added the eventMask instance variable to
+	X11TerminalStream class.
+2016-08-10
+	- Added --with-xrender-includes configure option.
+2016-08-11
+	- Updated ctpp to version 1.0.80.
+2016-08-12
+	- Updated the ANSITerminalStream : setTty arguments
+	in test/expect/examples/ansiterminalstream3.c to a
+	quoted char constant now that eval_arg has an undefined
+	label warning message there: i.e., N to 'N'.
+	- Moved __xlib_draw_circle and all of the supporting
+	functions to xrender.c, and updated to use X Render
+	drawing if available.
+2016-08-13
+	- Updated X11FreeTypeFont : selectFont to return 0 on success, -1
+	on error.
+2016-08-15
+	- Added __ctalkX11UseXRender api function, and the
+	Application : useXRender and X11Pane : useXRender
+	methods.
+2016-08-16
+	- Release 0.0.56 2016-08-16.
+	- Added CalendarTime class.
+	- Added the examples/isotime.c test program.
+2016-08-21
+	- Moved ttyDevice instance variable from
+	ANSITerminalStream to TerminalStream.
+2016-08-26
+	- Added super2.c test program.
+2016-08-27
+	- Added case[1-2].c test programs.
+2016-08-28
+	- Added case3.c test program.
+2016-09-03
+	- Added the Character methods +=, -=, *=, and /=.
+2016-09-04
+	- Added the __ctalkDecimalIntegerToChar library function.
+	- Added the mapstring1.c test program.
+	- Added  the Character methods |=, &=, ^=, and %=.
+2016-09-06
+	- Added __ctalkRegisterArgBlkReturn API function
+	(rt_return.c).
+2016-09-07
+	- Added examples/mapstring3.c and run-mapstring3 test programs.
+	- Added list[4-5].c test programs.
+2016-09-08
+	- Added the -c option to ctdb and ctcc.
+2016-09-09
+	- Release 0.0.56 2016-09-09.
+2016-09-12
+	- Added a GLUTApplication : xpmToTexture method with
+	an extra alpha argument.
+2016-09-15
+	- Updated ctpp to version 1.0.81.
+2016-09-17
+	- Added __ctalkGLUTWindowID API function, and
+	GLUTApplication : windowID method.
+2016-09-18
+	- Added classlibdoc file and installation.
+	- Added texblend.ca GLUT demonstration program.
+2016-09-21
+	- Added cvarrcvr35.c test program.
+2016-09-22
+	- In String : at, if the index is greater than the receiver
+	string length, return a Character object with the NUL byte at
+	the end of the receiver as its value.
+	- Added String : asList instance method.
+	- Added case4.c test program.
+	- Added nullchar3.c test program.
+2016-09-24
+	- Added LibrarySearch class.
+2016-09-25
+	- Removed the -I <prefix>/include/ctalk from the ctcc
+	and ctdb CTALKFLAGS.
+	- Added LibrarySearch : cAPIFunctionSearch and
+	LibrarySearch : methodSearch methods
+	- Updated search.ca program to use the LibrarySearch :
+	cAPIFunctionSearch as the default, and a "-m" option,
+	which selects a method search using the LibrarySearch :
+	methodSearch method.
+	- Added the __ctalkInstallPrefix API function, and the
+	Application : installPrefix instance method.
+2016-09-27
+	- Added compiler and preprocessor support for the Perl-style
+	=~ (match) and !~ (no-match) operators.  Added the tokens
+	to method_decl_msg_states (method.c).  Also updated the
+	state ranges for the new operators.
+	- Added the readline headers, if available, to ctalklib.in.
+	- Updated the ctxlogo Makefile to use only one target when
+	doing a "make install" of the distribution.
+2016-09-28
+	- More match/nomatch updates to eval_expr (rt_expr.c),
+	IS_C_OP and IS_C_OP_TOKEN_NOEVAL (lex.h).
+	- Added String =~ and String !~ methods.  Updated
+	String section and Pattern Matching subsection.
+	- Added List : asString method.
+2016-09-28
+	- Updated the prefix20.c test program to remove
+	the expression "!~!i", which now is interpreted
+	as an operator and a right-hand operand.
+2016-09-30
+	- Added the C library functions __ctalkMatchAt and
+	__ctalkMatchIndexAt (wregex.c).  Also added the
+	String : matchAt and String : matchIndexAt methods.
+2016-10-02
+	- Updated ctpp to 1.0.83.
+2016-10-03
+	- Added pat[1-2].c, examples/matchref[1-2].c, and
+	run-matchref[1-2].c test programs.
+2016-10-05
+	- Added __ctalkExec and __ctalkLogMessage library functions.
+2016-10-06
+	- Added Application : execC method.
+	- Added environment variable translation to expand_path
+	(for one variable).
+	- Added basic support for > and >> redirection operators.
+	- Added execC method with 2 arguments.
+	- Added examples/execbin1.c and run-execbin1.c test programs.
+2016-10-11
+	- Updated configure's library version number to match the Ctalk
+	version number.
+2016-10-14
+	- Release 0.0.57 2016-10-14.
+2016-10-17
+	- Changed the circular-object-reference warnings default from
+	display warnings to don't display warnings.
+	- Moved x11textpane.c from examples-x11 to programs subdirectory
+	and updated it.
+	- Updated X11TextPane : displayText to use the selected font's
+	ascent and descent as well as line height.
+	- Added X11TextPane : addText.
+2016-10-18
+	- Updated X11TextPane : displayText to use super in part of the
+	argblk.
+	- Added the programs/x11textpane.c demonstration program.
+2016-10-31
+	- Updated ctpp preprocessor to 1.0.84.
+2016-11-01
+	- Added the CalendarTime : cTimeString method.
+2016-11-02
+	- Added the instance variables timeZone, tzStd, tzDst, and
+	gmtOff to CalendarTime class.  Added the code in the
+	localTime method to fill in these variables.
+2016-11-03
+	- Added the CalendarTime : zoneInfo and isoTimeString methods,
+	and the CalendarTime : haveDst instance variable.
+2016-11-06
+	- Added the character classes \a, \d, \w, \p, \l, and \x
+	in wregex.c
+2016-11-08
+	- Added __ctalkSpawn library function (lib/process.c),
+	and the lib/spawn_bin.c source file and the spawn_bin
+	internal function.
+	- Added the Application : spawnC method.
+	- Added support for <b> and <i> format tags to wrap_redisplay
+	(textcx.c).
+2016-11-10
+	- Added __ctalkSplitText library function.
+2016-11-11
+	- Added __ctalkWrapText (textcx.c), and __ctalkSelectXFontFace
+	(xlibfont.c).
+	- Added the faceRegular, faceBold, faceItalic, and faceBoldItalic
+	methods to X11Bitmap and X11TextPane classes.
+	- Updated X11TextPane class to use a wrapped buffer from a
+	String object with Xlib fonts.
+	- Added the X11FreeTypeFont : libIsInitialized method.
+2016-11-12
+	- In X11TextPane class added the lineHeight and leading
+	instance variables.  Added lineHeight calculations for
+	ftFonts to the attachTo and font methods.
+2016-11-17
+	- Changed the class of the X11Pane : container instance
+	variable to Symbol, and updated the X11PaneDispatcher :
+	attachTo method.
+	- In X11TextPane : attachTo, set the main Pane eventMask.
+2016-11-18
+	- Cleaned up the unresolved eval delay warning messages.
+	- Added class casts to X11TextPane, X11CanvasPane, and
+	X11PaneDispatcher classes to prevent the warnings.
+	- Updated __ctalkSelectXFontFace to select FreeType fonts
+	if the xft libraries are initialized.
+2016-11-19
+	- Added the displaytext.c demo program.
+2016-11-21
+	- Added Control-Q and Control-Z beginning and end of
+	text to X11TextPane.
+	- Added escapedTag instance variable to TextBox
+	class (in X11TextPane class ), which gets checked
+	by __ctalkWordWrap, to determine if we want to interpret
+	the tag or if it's escaped and we simply want to display
+	it.
+	- Added the <center> and </center> format tags to
+	__ctalkWrapText.
+	- Added the cmdLineArgc instance variable to Application
+	class.
+	- Added the ability to read a file to the x11textpane.c
+	demo program.  Also added check for MS DOS line endings
+	in textcx.c.
+2016-11-22
+	- Added X11TextPane support for scrolling by screenfuls
+	with the Control-V and Control-T keys.  Added the
+	X11TextPane instance variables scrollHeight and
+	scrollMargin.
+2016-11-23
+	- The configure script now has the default definitions:
+	-DWITHOUT_X_PROTOCOL_ERRORS and -DWITHOUT_X11_WARNINGS,
+	which are now only sometimes useful for debugging.
+	- Added the __ctalkXftSelectFontFromXLFD library function.
+2016-11-28
+	- Added if[12|13].c test programs.
+2016-12-01
+	- Added an error check looking for the DISPLAY environment
+	and an error message and exit if a X program can't find it.
+2016-12-02
+	- Internal updates to X11CanvasPane and X11PaneDispatcher
+	classes.
+2016-12-03
+	- Release 0.0.56 2016-12-03
+2016-12-07
+	- Added the background parameter to __ctalkMethodObjectMessage.
+2016-12-12
+	- Added examples/background1.c and run-bg1.c test programs.
+	- Added the programs/ipc subdirectory and the example
+	program programs/ipc/timedisplay.
+2016-12-13
+	- Added Escape window close to programs/xspiro.c.
+	- Changed the name of the programs subdirectory to
+	demos.
+2016-12-14
+	- Added NetworkStream and UNIXNetworkStream classes.
+2016-12-15
+	- Added __ctalkBackgroundMethodObjectMessage (rt_vmthd.c).
+2016-12-16
+	- Removed SignalEvent : = because it's redundant now.
+	- Cleanup in SignalEvent : nextEvent.
+	- Added __ctalkProcessWait (rt_vmthd.c).
+	- Added SignalHandler : sigName, sigNum, and
+	waitStatus methods.
+2016-12-22
+	- Updated SignalEvent : nextEvent to return the next
+	SignalEvent directly.
+2016-12-24
+	- Updated X11PaneDispatcher : subPaneMove and
+	subPaneResize.
+	- Moved point drawing stuff to xrender.c, and
+	added the pen alpha instance variable to the
+	drawing parameters in __ctalkGUIPaneDrawPoint
+	(guidrawpoint.c).
+2016-12-25
+	- Added parentDrawable instance variable to
+	X11Bitmap objects, which is set in
+	X11Bitmap : create.
+	- Added the __ctalkX11UsingXRender API function,
+	and the usingXRender method in X11Pane and
+	Application.
+	- Added the X11Cursor : watch method.
+2016-12-26
+	- Added the Application : getPID method.
+	- Added the UNIXNetworkStream : socketPrefix
+	class variable, the UNIXNetworkStream instance
+	variables sock, socketBaseName, and socketPath,
+	and the instance method UNIXNetworkStream
+	: makeSocketPath.
+	- Added UNIXNetworkStreamReader and
+	UNIXNetworkStreamWriter classes, and the
+	instance methods:
+	UNIXNetworkStreamReader : open,
+	UNIXNetworkStreamReader : sockRead,
+	UNIXNetworkStreamWriter : open, and
+	UNIXNetworkStreamWriter : sockWrite.
+	- Added the demos/ipc/sockread.c and
+	demos/ipc/sockwrite.c programs.
+2016-12-27
+	- Added UNIXNetworkStream : closeSocket.
+2016-12-29
+	- Added the openOn methods in UNIXNetworkStreamReader and
+	UNIXNetworkStreamWriter.
+	- Added the demos/ipc/sockproc.c program.
+
+
+

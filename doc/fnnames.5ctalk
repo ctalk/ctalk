@@ -1,0 +1,87 @@
+.\" $Id: fnnames.5ctalk,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $
+.\"
+.\" This file is part of Ctalk.
+.\" Copyright © 2015 Robert Kiesling, rk3314042@gmail.com.
+.\" Permission is granted to copy this software provided that this copyright
+.\" notice is included in all source code modules.
+.\" 
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation; either version 2 of the License, or
+.\" (at your option) any later version.
+.\" 
+.\" This program is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\" 
+.\" You should have received a copy of the GNU General Public License
+.\" along with this program; if not, write to the Free Software Foundation, 
+.\" Inc., 51 Franklin St., Fifth Floor, Boston, MA 02110-1301 USA.
+
+.TH FNNAMES 5ctalk "2016-03-15"
+.SH NAME
+fnnames \- Ctalk Template Registry File
+
+.SH DESCRIPTION
+The
+.B fnnames
+file contains the names and aliases of local templates.  The
+mechanism for looking up local templates is similar to
+.B Ctalk's
+internal mechanism for looking up templates for C library functions,
+except that the C library registry is part of Ctalk's run time
+library.
+
+.B Ctalk
+creates a \fIfnnames\fP file if it doesn't find one.  If you want to replace an existing
+or missing fnnames file, giving the
+.B -c
+or
+.B -r
+option to
+.B template(1)
+also creates a new \fIfnnames\fP file.
+
+The
+.B fnnames
+file consists of a series of lines with the format:
+
+  <\fIfunction_actual_name\fP>,<\fIfunction_api_name\fP>
+
+The \fIfunction_actual_name\fP entry is the name of the C function
+after preprocessing.  For example, if there is a template for the C
+function \fIgetc(3),\fP which is a macro for \fI_IO_getc\fP on Linux
+systems, then the entry for the \fIgetc\fP template would look like
+this,
+
+  _IO_getc,getc
+
+because \fI_IO_getc\fP would be the name of the function that appears
+in the preprocessed source module's output.
+
+In most cases, however, \fIfunction_actual_name\fP and
+\fIfunction_api_name\fP are the same.
+
+Lines beginning with a pound sign ('#') are treated as comments and
+ignored, as are blank lines (lines that contain only a newline ('\\n')
+character.
+
+.SH SEE ALSO
+.BR ctalk "(1)",
+.BR template "(1)"
+.BR templates "(5ctalk)"
+
+There is also information about templates and the 
+.B fnnames 
+file in the \fITemplates\fP section of the \fICtalk Language
+Reference.\fP  The \fICFuncton\fP section
+provides a (normally up-to-date) list of Ctalk's templates for the
+C standard library.
+
+.SH AUTHORS
+.B Ctalk
+is written and maintained by Robert Kiesling,
+.br
+rk3314042@gmail.com.
+

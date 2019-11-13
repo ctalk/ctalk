@@ -1,0 +1,701 @@
+.\" $Id: ctpp.1,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $
+.\"
+.\" This file is part of ctpp
+.\" Copyright © 2005-2011 Robert Kiesling, rkies@cpan.org.
+.\" Permission is granted to copy this software provided that this copyright
+.\" notice is included in all source code modules.
+.\" 
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation; either version 2 of the License, or
+.\" (at your option) any later version.
+.\" 
+.\" This program is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\" 
+.\" You should have received a copy of the GNU General Public License
+.\" along with this program; if not, write to the Free Software Foundation, 
+.\" Inc., 51 Franklin St., Fifth Floor, Boston, MA 02110-1301 USA.
+
+.TH CTPP 1 2014-01-28
+.SH NAME
+ctpp \- Ctalk C preprocessor.
+.SH SYNOPSIS
+.B ctpp
+[\fB-$\fP] 
+[\fB-A\fPpredicate[(value)]]
+[\fB-ansi\fP]
+[\fB-C\fP]
+[\fB-CC\fP]
+[\fB-D\fPname[=definition]
+[\fB-dD\fP]
+[\fB-dF \fIfile\fP]
+[\fB-dM\fP]
+[\fB-dN\fP]
+[\fB-fno-show-column\fP]
+[\fB-fpreprocessed\fP]
+[\fB-gcc\fP]
+[\fB-H\fP]
+[\fB-h\fP|\fB-help\fP]
+[\fB-I\fP\fIdir\fP]
+[\fB-I-\fP]
+[\fB-idirafter\fP \fIdir\fP]
+[\fB-imacros\fP \fIfile\fP]
+[\fB-include\fP \fIfile\fP]
+[\fB-iprefix\fP \fIprefix\fP]
+[\fB-isystem\fP \fIdir\fP]
+[\fB-iwithprefix\fP \fIdir\fP]
+[\fB-lang-c\fP]
+[\fB-lang-c++\fP]
+[\fB-lang-objc\fP]
+[\fB-lang-objc++\fP]
+[\fB-lint\fP]
+[\fB-M\fP [\fB-MG\fP]]
+[\fB-MD\fP \fIfile\fP]
+[\fB-MM\fP]
+[\fB-MMD\fP \fIfile\fP]
+[\fB-MQ\fP \fItarget\fP]
+[\fB-MT\fP \fItarget\fP]
+[\fB-move-includes\fP]
+[\fB-no-gcc\fP]
+[\fB-no-include\fP]
+[\fB-no-simple-macros\fP]
+[\fB-nostdinc\fP]
+[\fB-nostdinc++\fP]
+[\fB-P\fP]
+[\fB-pedantic\fP]
+[\fB-pedantic-errors\fP]
+[\fB-std=<\fIlang-std\fP>\fP]
+[\fB-remap\fP]
+[\fP-target-help\fP]
+[\fB-traditional\fP]
+[\fP-traditional-cpp\fP]
+[\fB-trigraphs\fP]
+[\fB-U \fIsymbol\fP]
+[\fB-u|-undef\fP]
+[\fB-v\fP]
+[\fB-version\fP]
+[\fB--version\fP]
+[\fB-w\fP]
+[\fB-Wall\fP]
+[\fB-Wcomment\fP]
+[\fB-Wendif-labels\fP]
+[\fB-Werror\fP]
+[\fB-Wimport\fP]
+[\fB-Wmissing-args\fP]
+[\fB-Wsystem-headers\fP]
+[\fB-Wtraditional\fP]
+[\fB-Wtrigraphs\fP]
+[\fB-Wundef\fP]
+[\fB-Wunused-macros\fP]
+[\fB-x\fP \fIlang\fP]
+[infile|-]
+[\fB-o\fP]
+[outfile|-]
+
+.SH DESCRIPTION
+.B Ctpp
+is the 
+.BR ctalk "(1)"
+C preprocessor.  
+.B Ctalk
+uses 
+.B ctpp
+to preprocess input.  However, 
+.B ctpp
+can be used on its own.  When run from the command line,
+.B ctpp
+is functionally similar to 
+.BR cpp "(1)".
+
+.SH OPTIONS
+.TP 8
+.B -$
+Warn if '$' is an identifier character.  This is a legacy
+option.
+.B Ctpp
+attempts to match identifiers with characters other than 
+[0-9A-Za-z_$].  For example, 
+.B ctpp
+interprets \fIi386-linux-gnu\fP, if
+the label is defined as a macro, as an identifier, not as 
+the expression \fIi386 - linux - gnu.\fP
+.TP 8
+.B -A\fIpredicate\fP[(\fIvalue\fP)]]
+Assert that the macro, \fIpredicate,\fP has the value, \fIvalue.\fP  If
+\fIvalue\fP is omitted, the value defaults to, "1."
+
+Preprocessor assertions are a GNU extension.
+For information about how to use them, see the GNU 
+.BR cpp "(1)"
+Texinfo manual.
+
+The form, "-A-," undefines all predefined macros and assertions.
+
+.TP 8
+.B -ansi
+Included for compatibility with GNU
+.BR cpp "(1)".
+Forctpp, -ansi is a synonym for 
+.B -lang-c
+and 
+.B -std=\fP<\fIISO and ANSI standards\fP>, 
+given below.
+
+.TP 8
+.B -C
+Pass comments through to the output.
+.TP 8
+.B -D\fPname[=definition]
+Define macro \fIname\fP as \fIdefinition.\fP If
+\fIdefinition\fP is omitted, the macro definition is set to
+"1," so the preprocessor can test the macro with
+\fB#if\fP or \fB#ifdef.\fP
+.TP 8
+.B -dD
+Include preprocessor \fB#define\fP statements in the output.
+
+.TP 8
+.B -dF \fIfile\fP
+After processing the input, write the macro definitions to
+\fIfile.\fP
+
+.TP 8
+.B -dM
+Instead of writing the output to a file, output the macro
+definitions to standard output.
+
+.TP 8
+.B -dN
+Instead of writing the output to a file, output the macro
+names only, without their defintions, to standard output.
+
+.TP 8
+.B -fpreprocessed
+Treat the input file as already preprocessed.
+
+.TP 8
+.B -gcc
+Define the GNU C macros 
+.B __GNUC__, __GNUC_MINOR__,
+and
+.B __GNUC_PATCHLEVEL__,
+if the compiler defines them.  Ctpp enables this option by
+default.
+
+.TP 8
+.B -H
+Print the paths of header files as they are included in 
+the input, indented to indicate the level of include nesting.
+.TP 8
+.B -h
+Print a help message and exit.
+.TP 8
+.B -help
+The same as 
+.B -h.
+
+.TP 8
+.B -I \fIdir\fP
+Search \fIdir\fP for files included with the 
+.B #include 
+directive.
+.TP 8
+.B -I-
+Inhibit the search of directories specified with previous 
+.B -I
+options to files included with 
+.B #include"\fIfile\fP",
+but not files included with
+.B #include<\fIfile\fP>.
+
+Directories specified
+after the
+.B -I-
+option with
+.B -I \fIdir\fP
+are searched for all included files.
+.TP 8
+.B -idirafter \fIdir\fP
+Include \fIdir\fP in the secondary include path list.
+.TP 8
+.B -imacros \fIfile\fP
+Include macro definitions from \fIfile\fP before processing
+the input files.
+.TP 8
+.B -include \fIfile\fP
+Include and process \fIfile\fP before the source
+file.
+
+.TP 8
+.B -iprefix \fIprefix\fP
+Add the directory \fIprefix\fP to directories specified
+with
+.B -iwithprefix.
+
+.TP 8
+.B -isystem \fIdir\fP
+Add \fIdir\fP to the list of system include directories to
+search for included files.  Directories specified with 
+.B -isystem 
+are added to the search list after directories that are
+specified with the 
+.B -I \fIdir\fP
+option.  
+
+The
+.B -isystem
+option is used mainly to add system include directories when using 
+.B ctpp 
+with non-standard compiler configurations.  The
+.B -nostdinc
+option does not affect directories included with
+.B -isystem.
+
+Ctpp determines the compiler version when it is built and
+installed.  If there is more than one compiler installed 
+on the system, then you need to use 
+.B -isystem
+to specify the library include path of a compiler different 
+than the compiler that built ctpp.
+
+.TP 8
+.B -iwithprefix \fIdir\fP
+Add \fIdir\fP with the prefix specified by 
+.B -iprefix
+to the secondary include path.
+
+.TP 8
+.B -lang-c
+Include ANSI and ISO C header files directories in the
+include search path.
+
+.TP 8
+.B -lang-c++
+Also search C++ system library directories for C++
+header files.
+
+.TP 8
+.B -M [-MG]
+Instead of outputting the preprocessed source, generate to
+standard output a
+.BR make "(1)"
+rule to build the source file.  
+.B -MG
+directs the preprocessor to assume that missing header files
+are generated files and exist in the same directory as the
+source file.
+.TP 8
+.B -MD \fIfile\fP
+Generate a \fBmake\fP rule to build the source module, and
+save the rule in \fIfile.\fP
+.TP 8
+.B -MM
+Generate a \fBmake\fP rule to build the source file, but
+include header dependencies only for files included
+with
+.B #include"\fIfile\fP", 
+and not
+.B #include<\fIfile\fP>.
+.B -MMD \fIfile\fP
+is the same as 
+.B -MM,
+but 
+.B ctpp
+writes the make rule to \fIfile\fP instead of
+standard output.
+
+.TP 8
+.B -MQ \fItarget\fP
+A synonym for
+.B -MT,
+included for compatibility with GNU
+.BR cpp "(1)".
+Unlike GNU cpp, ctpp does not expand or quote user defined 
+.BR make "(1)"
+targets or special characters.
+
+.TP 8
+.B -MT \fItarget\fP
+Use \fItarget\fP as the target of the 
+.BR make "(1)"
+rule output by
+ctpp.  If not specified, the default target is the base name of
+the input file with the extension, ".o."
+
+.TP 8
+.B -move-includes
+Move #include directives to the beginning of the input
+before preprocessing.
+
+The -move-includes option does not check for conditional
+branches, so an #include within a conditional clause can be
+moved outside of the conditional.
+
+.TP 8
+.B -no-gcc
+Do not define the macros
+.B __GNUC__, __GNUC_MINOR__,
+and
+.B __GNUC_PATCHLEVEL__.
+
+.TP 8
+.B -nostdinc
+Do not search system include directories
+for header files.
+.TP 8
+.B -o \fIouput_file\fP
+Write the preprocessor output to \fIoutput_file.\fP
+.TP 8
+.B -no-include
+Do not expand include files.  Macro definitions and other preprocessing
+directives in the include file are still taken into account, but the
+expanded include file does not appear in the output.
+
+This option implies -P.
+
+.TP
+.B -no-simple-macros
+Do not expand simple macros (macros without arguments).  Definitions for simple
+macros are also retained in the output.
+
+.TP 8
+.B -P
+Do not generate line number information in the output.
+
+.TP 8
+.B -std=\fIlang-std\fP
+This option is included for compatibility with GNU
+.BR cpp "(1)".
+The following values for \fIlang-std\fP cause ctpp to
+follow ANSI and ISO C standards: 
+.B iso9899:1990, c89, iso9899:199409, iso9899:1999, c99, iso9899:199x,
+.B c9x, gnu89, gnu99, 
+and
+.B gnu9x.
+The following \fIlang-std\fP values cause ctpp to follow C++ standards:
+.B c++98,
+and,
+.B gnu++98.
+
+.TP 8
+.B -target-help
+Print a message displaying ctpp's command line options and exit.
+
+.TP 8
+.B -traditional
+.B -traditional-cpp
+Suppress the definition of built-in macros defined by 
+command line options. See COMMAND LINE OPTIONS AND BUILT-IN 
+MACROS, below.
+
+.TP 8
+.B -trigraphs
+Translate trigraph sequences into their ASCII equivalents.
+
+.TP 8
+.B -U \fIsymbol\fP
+Undefine macro \fIsymbol\fP before processing the main input
+file.
+.TP 8
+.B -u
+.TP 8
+.B -undef
+Undefine system and compiler specific built-in macros before
+processing.  Does not affect macros included with the 
+.B -imacros
+or 
+.B -include
+options, or macros defined with the
+.B -D 
+command line option.
+
+.TP 8
+.B -v
+Print ctpp's version number and the include search paths
+before processing the input file.
+.TP 8
+.B -version
+Print ctpp's version number before processing the input
+file.
+.TP 8
+.B --version
+Print ctpp's version number and exit.
+
+.TP 8
+.B -w
+Suppress all warning messages, including warnings generated
+by other
+.B -W\fIclass\fP
+options.
+
+.TP 8
+.B -Wall
+Issue warning messages about all preprocessor statements
+that do not conform with C99, including the deprecated macro
+keywords
+.B #ident
+and
+.B #sccs
+keywords, the use of the extension keywords
+.B #assert,
+.B #unassert,
+and
+.B #warning;
+and macro expansions in #warning and #error messages.
+
+.B -Wall
+also includes
+.B -Wcomment, -Wtrigraphs, -Wundef, 
+and
+.B -$.
+
+.TP 8
+.B -Wcomment
+.TP 8
+.B -Wcomments
+Warn if a comment start character sequence appears within 
+another comment.
+
+.TP 8
+.B -Werror
+Turn warnings into errors.  If a warning is encountered,
+handle it as an error and terminate processing.
+
+.TP 8
+.B -Wmissing-args
+Warns if a symbol with the same name as a macro that requires
+arguments is encountered.
+
+.TP 8
+.B -Wtrigraphs
+Print a warning when the preprocessor encounters a trigraph
+sequence, if trigraphs are enabled.
+
+.TP 8
+.B -Wundef
+Print a warning message if a symbol is undefined.  GNU
+.BR cpp "(1)"
+silently evaluates undefined symbols to
+\fIfalse,\fP and this is also the default behavior of
+\fBctpp.\fP
+
+.TP 8
+.B -Wunused-macros
+Warn if a symbol is unused when it is undefined, or 
+after the input file is processed.
+
+.TP 8
+.B -x c
+.TP 8
+.B -x c++
+.TP 8
+.B -x objective-c
+.TP 8
+.B -x assembler-with-cpp
+These are equivalent to the 
+.B -lang-\fIx\fP
+options.  In ctpp,
+.B -x c
+is the default, and only
+.B -x c++
+has any effect.  
+
+.SH ENVIRONMENT
+
+Ctpp also recognizes some environment variables that allow you 
+to set options in the environment instead of by command line 
+options.
+
+.TP 8
+.B CPATH
+.TP 8
+.B C_INCLUDE_PATH
+.TP 8
+.B CPLUS_INCLUDE_PATH
+If present in the environment, ctpp adds the directories given by
+these environment variables to the library include search
+path list after the system's library include directories.
+Because
+.B ctpp
+uses the
+.B -lang-c
+option by default, it always looks for paths given by the
+.B CPATH
+variable.  If 
+.B -lang-c++
+is enabled, then ctpp
+checks 
+.B CPLUS_INCLUDE_PATH
+instead of 
+.B C_INCLUDE_PATH
+
+.TP 8
+.B GCC_LIBDIR
+Ctpp also checks for the environment variable 
+.B GCC_LIBDIR
+before looking for the compiler's system library directory.
+This should be the full path to the compiler include
+directory.  
+
+When looking for the GCC include directory, ctpp first
+checks the value of GCC_LIBDIR, then the path specified when
+ctpp was built, if any, then the library path in the GCC
+configuration.
+
+.SH COMMAND LINE OPTIONS AND BUILT-IN MACROS
+
+Many command line options also set built-in macros.  If
+\fI-$\fP is present on the command line, for example, then
+.B ctpp 
+can test for it using the built-in macro 
+__CTPP_WARNDOLLAR_OPT__, as in the following code sample.
+
+#ifdef __CTPP_WARNDOLLAR_OPT__
+.br
+  \fIDo something....\fP
+.br
+#else
+.br
+  \fIDo something else....\fP
+.br
+#endif
+
+The builtin macros' values are set to 1.  If the option is
+not present on the command line, the macro is undefined.
+
+The options,
+.B -traditional
+and 
+.B -traditional-cpp
+suppress the definition of all of these options.
+
+These are the options that define built-in macros.
+
+.TP 8
+.B -$
+__CTPP_WARNDOLLAR_OPT__
+.TP 8
+.B -C
+__CTPP_KEEPCOMMENTS_OPT__
+.TP 8
+.B -H
+__CTPP_PRINT_HEADERS_OPT__
+.TP 8
+.B -M
+__CTPP_MAKERULES_OPT__
+.TP 8
+.B -P
+__CTPP_NOLINEMARKER_OPT__
+.TP 8
+.B --Wall
+__CTPP_WARNNESTEDCOMMENTS_OPT__,
+__CTPP_WARNUNDEFSYMBOLS_OPT__, and 
+__CTPP_WARN_TRIGRAPHS_OPT__
+.TP 8
+.B --Wcomments
+__CTPP_WARNNESTEDCOMMENTS_OPT__
+.TP 8
+.B --Werror
+__CTPP_WARNINGS_TO_ERRORS_OPT__
+.TP 8
+.B --Wmissing-args
+__CTPP_WARN_MISSING_ARGS_OPT__
+.TP 8
+.B --Wunused-macros
+__CTPP_WARN_UNUSED_OPT__
+.TP 8
+.B -dD
+__CTPP_DEFINESTOOUTPUT_OPT__
+.TP 8
+.B -dF
+__CTPP_DEFINESTOFILE_OPT__
+.TP 8
+.B -dM
+__CTPP_DEFINESONLY_OPT__
+.TP 8
+.B -dN
+__CTPP_DEFINENAMESSONLY_OPT__
+.TP 8
+.B --fpreprocessed
+__CTPP_PRE_PREPROCESSED_OPT__
+.TP 8
+.B --gcc
+__CTPP_GCC_MACROS_OPT__
+.TP 8
+.B --keeppragmas
+__CTPP_KEEP_PRAGMA_OPT__
+.TP 8
+.B --lang-c++
+__CTPP_LANG_CPLUSPLUS_OPT__
+.TP 8
+.B --move-includes
+__CTPP_MOVE_INCLUDES_OPT__
+.TP 8
+.B --no-include
+__CTPP_NO_INCLUDE_OPT__ and __CTPP_NO_LINEMARKER_OPT__
+.TP 8
+.B --no-simple-macros
+__CTPP_NO_SIMPLE_MACROS_OPT__
+.TP 8
+.B --nostdinc
+__CTPP_NOSTDINC_OPT__
+.TP 8
+.B --trigraphs
+__CTPP_USE_TRIGRAPHS_OPT__
+.TP 8
+.B -w
+__CTPP_NO_WARNINGS_OPT__
+
+.SH COMPILER COMPATIBILITY
+
+.B Ctpp 
+recognizes the following options for compatibility with
+GNU 
+.BR cpp "(1)",
+but they are no-ops:
+.B -CC,
+.B -fno-show-column,
+.B -lang-objc,
+.B -lang-objc++,
+.B -lint,
+.B -nostdinc++,
+.B -pedantic,
+.B -pedantic-errors,
+.B -remap,
+.B -Wendif-labels,
+.B -Wimport,
+.B -Wsystem-headers,
+.B -Wtraditional.
+
+The following options are not implemented and cause
+ctpp to exit with an error:
+.B -iwithprefixbefore,
+and,
+.B -ftabstop.
+
+.B Ctpp's 
+build environment provides the HOST_OS and HOST_CPU
+#defines at compile time.  You can use them to include
+built-in macro definitions by creating a host-specific
+header file in the \fIconfig\fP subdirectory of the main
+ctpp source.  See \fIconfig/linux-gnu-x86.h\fP for an
+example.
+
+You must also create a function to add the host-specific
+definitions to the preprocessor's macro name space, as well as
+definitions specified by C99 (or whatever standard you want
+to comply with).  See the comments in \fIbuiltins.c\fP in
+the \fIctpp\fP source directory for more information.
+
+.SH BUG REPORTS
+.TP 0
+Please report bugs to rkies@cpan.org.
+
+.SH SEE ALSO
+.BR ctalk "(1)",
+.BR cpp "(1)",
+.BR gcc "(1)",
+.BR make "(1)".

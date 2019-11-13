@@ -1,0 +1,1356 @@
+\input texinfo @c -*-texinfo-*-
+@c $Id: ctalktools.texi,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $
+@c %**start of header  
+@setfilename ctalktools.info
+@settitle Ctalk Tools and Utilities
+@setchapternewpage odd
+@paragraphindent 0
+@c %**end of header
+
+@set VERSION 0.0.56
+
+@macro idxfncite{fnname}
+@cite{\fnname\} C function
+@end macro
+
+@macro idxclscite{fnname}
+(@code{\fnname\} class)
+@end macro
+
+@macro mnm{methodname}
+@code{\methodname\}
+@end macro
+
+@macro flnm{filename}
+@code{\filename\}
+@end macro
+
+@dircategory Ctalk
+@direntry
+* ctalk-tools: (ctalktools).	Other utilties in the Ctalk package.
+@end direntry
+
+@node Top, , (dir), (dir)
+
+@menu
+
+@heading Ctalk Tools
+
+Ctalk provides a number of tools that help you build and debug Ctalk
+programs.  The installation process configures and installs the tools
+in the same directories as Ctalk. The tools use many of Ctalk's
+options, and provide additional options for working with executable
+programs and libraries.
+
+* ctcc::                              Make executables from Ctalk source 
+                                      programs.
+* ctdb::                              Build executables for debugging.
+* ctxlogo::                           Demonstration program for X.
+* methods::                           Display the methods in a class.
+* membervars::                        Displays a class's instance and class
+                                      variables.
+* classdoc::                          Print a class's documentation.
+* classes::                           Display the available Ctalk classes.
+* methodsource::                      Display the source code of a method.
+* inspectors::                        Inspectors allow you to examine objects
+                                      while a program is running.
+* searchlib::                         Search the documentation of Ctalk's C
+                                      library API.
+* template::                          Add a template method to a user's
+                                      template library.
+* Copying::                           Ctalk is free software.
+* GNU Free Documentation License::    Copying and distributing this manual.
+* Index::
+@end menu
+
+@node ctcc, ctdb, Top, Top
+
+@heading @command{ctcc}
+@cindex @command{ctcc} command
+
+The @command{ctcc} program compiles and links a Ctalk source file into an
+executable program.  At a minimum, @code{ctcc} takes the name of a
+Ctalk source file as its input.
+
+@example
+
+$ ctcc hello.ca
+
+@end example
+
+@command{ctcc} creates an executable program named @flnm{ctcc.out}.
+
+If you want to give the executable a different name, use the @samp{-o} option.
+
+@example
+
+$ ctcc hello.ca -o hello
+
+@end example
+
+@subheading Options
+
+@table @samp
+
+@cindex @samp{-c} option @command{ctcc}
+@item -c
+Compile the input file only; don't link the @samp{.o} output file.
+
+@cindex @samp{--clearpreload} option @command{ctcc}
+@item --clearpreload 
+Clear preloaded methods from Ctalk's method cache and re-compile the methods that the program needs.
+
+@cindex @samp{-h} option @command{ctcc}
+@cindex @samp{--help} option @command{ctcc}
+@item -h
+@item --help
+Print a help message and exit.
+
+@cindex @samp{-I} option @command{ctcc}
+@item -I @emph{dir}
+Add @emph{dir} to the Ctalk library search path.
+
+@cindex @samp{-m} option @command{ctcc}
+@item -m
+Build the executable program with the system's math libraries by adding 
+@samp{-lm} to the linker flags.
+
+@cindex @samp{--nopreload} option @command{ctcc}
+@item --nopreload
+Do not use preloaded methods; i.e., recompile all of the program's methods.  
+Also, do not cache the new methods.
+
+@cindex @samp{-o} option @command{ctcc}
+@item -o @flnm{filename}
+Name the executable program @flnm{filename}.  The default is @flnm{ctcc.out}.
+
+@cindex @samp{--progress} option @command{ctcc}
+@item --progress
+Print dots on the screen to indicate Ctalk's progress.
+
+@cindex @samp{-x} option @command{ctcc}
+@item -x
+Link a program with the X Window System libraries.
+
+@end table
+
+
+@node ctdb, Copying, ctxlogo, Top
+
+@heading @code{ctdb}
+
+@command{ctdb} creates an executable program from a Ctalk source file,
+and allows you to keep the intermediate files in order to debug the program.
+
+@example
+
+$ ctdb hello.ca
+
+@end example
+
+@command{ctdb} creates an executable program named @flnm{ctdb.out}.
+
+If you want to give the executable a different name, and save the
+intermediate file to debug the program, use the @samp{-k} and
+@samp{-o} options.
+
+@example
+
+$ ctcc -k hello.ca -o hello
+
+@end example
+
+@cindex @command{gdb}
+Then, you can debug the Ctalk intermediate output using @command{gdb}.
+
+@subheading Options
+
+@table @samp
+
+@cindex @samp{-c} option @command{ctdb}
+@item -c
+Compile the input file only; don't link the @samp{.o} output file.
+
+@cindex @samp{--clearpreload} option @command{ctdb}
+@item --clearpreload 
+Clear preloaded methods from Ctalk's method cache and re-compile the methods that the program needs.
+
+@cindex @samp{-h} option @command{ctdb}
+@cindex @samp{--help} option @command{ctdb}
+@item -h
+@item --help
+Print a help message and exit.
+
+@cindex @samp{-I} option @command{ctdb}
+@item -I @emph{dir}
+Add @emph{dir} to the Ctalk library search path.
+
+@cindex @samp{-k} option @command{ctdb}
+@item @samp{-k}
+Keep the temporary files generated by the build for use when debugging
+with @command{gdb}.
+
+@cindex @samp{-m} option @command{ctdb}
+@item -m
+Build the executable program with the system's math libraries by adding 
+@samp{-lm} to the linker flags.
+
+@cindex @samp{--nopreload} option @command{ctdb}
+@item --nopreload
+Do not use preloaded methods; i.e., recompile all of the program's methods.  
+Also, do not cache the new methods.
+
+@cindex @samp{-o} option @command{ctdb}
+@item -o @flnm{filename}
+Name the executable program @flnm{filename}.  The default is @flnm{ctdb.out}.
+
+@cindex @samp{--progress} option @command{ctdb}
+@item --progress
+Print dots on the screen to indicate Ctalk's progress.
+
+@cindex @samp{-p} option @command{ctdb}
+@item -p
+Add @samp{-pg} to the compiler's options, to output profiling 
+information.
+
+@cindex @samp{-s} option @command{ctdb}
+@item -s
+Link the executable statically with @flnm{libctalk.a}.
+
+@cindex @samp{-x} option @command{ctdb}
+@item -x
+Link a program with the X Window System libraries.
+
+@end table
+
+@node ctxlogo, methods, ctdb, Top
+@iftex
+@chapter @command{ctxlogo}
+@end iftex
+@ifnottex
+@heading @command{ctxlogo}
+@end ifnottex
+@cindex @command{ctxlogo} command
+
+The @command{ctxlogo} program opens a X window and displays the X Window
+System logo with the Ctalk logo.
+
+For a brief description of @command{ctxlogo's} options, type
+@samp{ctxlogo --help} at the shell prompt, or refer to the 
+manual page. (Type, @samp{man ctxlogo} at the shell prompt.)
+
+@node methods, membervars, ctxlogo, Top
+@iftex
+@chapter @command{methods}
+@end iftex
+@ifnottex
+@heading @command{methods}
+@end ifnottex
+@cindex @command{methods} command
+
+The @command{methods} program lists the methods in the class you give
+as an argument on the command line, for example:
+
+@example
+
+$ methods Object
+
+@end example
+
+The command prints the methods in @code{Object} class. If the command
+has the form
+
+@example
+
+$ methods -p ReadFileStream
+
+@end example
+
+Then @command{methods} prints each methods' prototype.
+
+With the @samp{-d} command line option, @command{methods} prints
+each method's documentation.
+
+@example
+
+$ methods -d -p String
+
+@end example
+
+The @cite{methods(1)} manual page also provides information about
+the program and its options.
+
+@subheading Running @command{methods} in an Emacs Window
+
+The @code{doc/} subdirectory in the Ctalk distribution contains
+the files @code{methods-brief.el} and @code{methods-full.el}. 
+They define simple Emacs Lisp functions that display brief and full
+listings of a class's methods in an Emacs window.
+
+Here are the listings of the two functions.
+
+@example
+
+(defun methods-brief ()
+  (interactive)
+  (setq classname (read-from-minibuffer "Ctalk class: "))
+  (setq method-buffer-name (format "%s Methods | Brief Listing" classname))
+  (start-process "ctalk-methods-brief" method-buffer-name "methods" classname)
+  (set-buffer method-buffer-name)
+  (make-frame '((height . 35) (width . 40))))
+
+(defun methods-full ()
+  (interactive)
+  (setq classname (read-from-minibuffer "Ctalk class: "))
+  (setq method-buffer-name (format "%s Methods | Full Listing" classname))
+  (start-process "ctalk-methods-full" method-buffer-name "methods" 
+		 "-p" "-d" classname)
+  (set-buffer method-buffer-name)
+  (make-frame '((height . 35) (width . 65))))
+
+@end example
+
+To install the functions, read the files into an Emacs buffer, or cut
+and paste the text into a buffer, or add the functions to your .emacs
+file.
+
+Note that, depending on your operating system, you might need to
+substitute the command ``methods'' (the argument to the Lisp function
+@code{start-process} in the fifth line) with the full path name, e.g.,
+``/usr/local/bin/methods''.
+
+With the functions in a buffer, execute the Emacs command,
+
+@example
+
+ M-x eval-buffer
+
+@end example
+
+then, either
+
+@example
+
+ M-x methods-brief
+
+@end example
+
+or
+
+@example
+
+ M-x methods-full
+
+@end example
+
+More complete versions of these functions, as well as many other
+features, are available in the @flnm{ctalk-browser} package.
+
+@node membervars, classdoc, methods, Top
+@iftex
+@chapter @command{membervars}
+@end iftex
+@ifnottex
+@heading @command{membervars}
+@end ifnottex
+@cindex @command{membervars} command
+
+The @command{membervars} program displays the instance and class
+variables of the class named as its argument on the command line.
+
+@example
+
+  $ membervars X11Pane
+
+@end example  
+
+With the option @samp{-h}, @code{membervars} displays a brief
+help message and exits.
+
+For more information, the Ctalk package includes a
+@cite{membervars(1)} manual page that contains information about the
+program.
+
+@node classdoc, classes, membervars, Top
+@iftex
+@chapter @command{classdoc}
+@end iftex
+@ifnottex
+@heading @command{classdoc}
+@end ifnottex
+@cindex @command{classdoc} command
+
+The @command{classdoc} utility displays the documentation string
+of the class given as an argument.
+
+@example
+
+  $ classdoc Symbol
+
+@end example
+
+If the class contains a documentation string (see below), then
+classdoc outputs it to the terminal.
+
+Ctalk classes may optionally contain a documentation string in
+their declaration.  They syntax is:
+
+@example
+
+@var{superclassname} class @var{classname} @var{<docstring>};
+
+@end example
+
+Here is an example of a class declaration that contains a documentation
+string.
+
+@example
+
+FileStream class WriteFileStream   "Defines the methods and instance 
+variables that write data to files. Also defines the class variables 
+stdoutStream and stderrStream, which are the object representation 
+of the standard output and standard error streams.";
+
+@end example
+
+@code{Classdoc} doesn't do any formatting of the documentation stream - it
+simply outputs the text between the quotes verbatim.
+
+@code{Classdoc} has several command line options that can provide
+additional information.  Refer to the @cite{classdoc(1)} manual page.
+
+@node classes, methodsource, classdoc, Top
+@iftex
+@chapter @command{classes}
+@end iftex
+@ifnottex
+@heading @command{classes}
+@end ifnottex
+@cindex @command{classes} command
+
+The @command{classes} program displays the Ctalk classes present on
+the system.  It displays the classes in Ctalk's default system-wide
+directory(s), and in any directories named by the @samp{CLASSLIBDIRS}
+environment variable.
+
+@subheading Options
+@table @code
+@item -h
+@item --help
+Display a help message and exit.  Also lists the directories that
+Ctalk searches for class libraries.
+@item -q
+Don't print dots to indicate @command{class's} progress.
+@end table
+
+@subheading Running @command{classes} in an Emacs Window
+
+The @code{doc/} subdirectory in the Ctalk distribution contains
+the file @code{classes.el}. 
+It defines a simple Emacs Lisp function that displays the @command{classes}
+output in an Emacs window.
+
+Here is a listing of the function.
+
+@example
+
+(defun classes ()
+  (interactive)
+  (start-process "ctalk-classes" "Ctalk Classes" "classes")
+  (set-buffer "Ctalk Classes")
+  (make-frame '((height . 35) (width . 40))))
+
+@end example
+
+To install the function, read the file into an Emacs buffer, or cut
+and paste the text into a buffer, or add the functions to your .emacs
+file.
+
+Note that, depending on your operating system, you might need to
+substitute the command ``classes'' (the argument to the Lisp function
+@code{start-process} in the third line) with the full path name, e.g.,
+``/usr/local/bin/classes''.
+
+With the function in a buffer, execute the Emacs command,
+
+@example
+
+ M-x eval-buffer
+
+@end example
+
+then,
+
+@example
+
+ M-x classes
+
+@end example
+
+
+
+@node methodsource, inspectors, classes, Top
+@iftex
+@chapter @command{methodsource}
+@end iftex
+@ifnottex
+@heading @command{methodsource}
+@end ifnottex
+@cindex @command{methodsource} command
+
+The @command{methodsource} program displays the source code of a method
+named on the command line.  Its arguments are the class name and method
+name of the method whose source you want to display.
+
+@example
+
+$ methodsource @var{class-name} @var{method-name}
+
+@end example
+
+If the method name is overloaded, then @command{methodsource} displays
+all of the methods with that name.
+
+@node inspectors, searchlib, methodsource, Top
+@iftex
+@chapter Object Inspectors
+@end iftex
+@ifnottex
+@heading Object Inspectors
+@end ifnottex
+@cindex Inspectors
+
+The instance method @mnm{inspect} provides an interactive object
+inspector that a program can call at any time.
+
+@menu
+* Invoking::                How to start an inspector within a program.
+* Commands::                A summary of the inspector's commands.
+* Tutorial::                A brief inspector tutorial.
+@end menu
+
+@node Invoking, Commands, , inspectors
+@iftex
+@heading Starting an Object Inspector
+@end iftex
+@ifnottex
+@subheading Starting an Object Inspector
+@end ifnottex
+@cindex Inspectors
+
+The @mnm{inspect} method is defined in two classes: the
+@code{ObjectInspector} class, which contains the actual inspector,
+and the @mnm{inspect} method in @code{Object} class, which is a 
+convenient way to invoke the inspector with any object.
+
+Sending an @mnm{inspect} message to a receiver is the preferred way to
+invoke the inspector, because it helps minimize additional overhead in
+the program.
+
+@example
+
+int main () @{
+
+  String new myStr;
+
+  myStr inspect;
+
+@}
+
+@end example
+
+Optionally, a program can also give @mnm{inspect} a @code{String}
+argument, which defines the text of the inspector's command prompt.
+
+@example
+
+int main () @{
+
+  String new myStr;
+
+  myStr inspect "main() > ";
+
+@}
+
+@end example
+
+Because each inspector is a unique instance of @code{ObjectInspector}
+class, a program can include the @code{inspect} method as often as
+necessary.  Giving each inspector a descriptive prompt helps to keep
+track of where in the program the inspector is called from.
+
+@node Commands, Tutorial, Invoking, inspectors
+@iftex
+@heading Inspector Commands
+@end iftex
+@ifnottex
+@subheading Inspector Commands
+@end ifnottex
+
+The following is a summary of the commands that the inspector uses.
+For more information about how the commands work within a program,
+refer to the inspector tutorial.  @xref{Tutorial}.
+
+@table  @code
+
+@item a[rgs] [@var{frame}]
+Prints a summary of the argument stack.  With a @var{frame} stack
+frame index, prints the object at stack frame @var{frame}.
+@item b[acktrace]
+Prints the call stack; i.e. the command displays a walkback of the
+method and function call sequence.
+@item br[ief]
+Display brief object listings.
+@item c[ontinue]
+Exits the inspector and continues running the program.
+@item g[lobals]
+Prints the global objects.
+@item h[elp] | ?
+Prints a summary of the inspector commands.
+@item l[ocals] @var{frame}
+Prints a summary of the local objects in stack frame @var{frame}.
+@item p[rint] [@var{args}]
+Print an object's contents.  When used without any options, prints
+the receiver object's contents.
+
+The options that the @samp{print} command recognizes are:
+@table @code
+@item a @var{frame}
+Print the object on the argument stack at frame @var{frame}.
+@item g [@var{name}]
+Print a summary of the global objects.  If @var{name} is given, print
+the contents of the global object @var{name}.
+@item l @var{frame} [@var{name}]
+Print a summary of the local objects at stack frame @var{frame}.
+If @var{name} is given, print the contents of local object @var{name}.
+@item r @var{frame}
+Print the receiver at receiver stack frame @var{frame}.
+@item @var{addr}
+Print the object at @var{addr}, where @var{addr} is the
+formatted hexadecimal address of an object in memory
+(e.g., 0x48663268).
+
+For example:
+
+@example
+
+  > p l 512
+
+@end example
+
+Print a summary of the local objects at stack frame 512.
+
+@example
+
+  > p l 510 myObject
+
+@end example
+
+Print the contents of the local object myObject at stack frame 510.
+
+@example
+
+  > p a 508
+
+@end example
+
+Print the object on the argument stack at stack frame 508.
+
+@end table
+
+
+@item q[uit]
+Quit the inspector and exit the program.
+@item r[eceivers] [@var{frame}]
+Print a summary of the receiver stack, or, with a stack frame argument
+@var{frame}, print the object at receiver stack frame @var{frame}.
+@item v[erbose]
+Display more detailed object listings.
+
+@end table
+
+@node Tutorial, , Commands, inspectors
+@iftex
+@heading Inspector Tutorial
+@end iftex
+@ifnottex
+@subheading Inspector Tutorial
+@end ifnottex
+
+Internally, a running Ctalk program uses three stacks to manage the
+objects that are in use.  They are the call stack, the receiver stack,
+and the argument stack.
+
+The receiver stack stores the receiver of each method call, the argument
+stack stores the arguments for each method call, if there are any, and
+the call stack contains the function and method call sequence of the
+program.
+
+Each stack has an initial index of 512, and each entry on the stack
+causes the index to decrease by one.
+
+The indexes of these stacks can operate independently of each other.
+For example, a C function call is recorded on the call stack but not
+the receiver stack (that is, methods have receivers, C functions
+don't).  The argument stack can store any number of arguments for each
+method call.
+
+Local objects are available on the call stack entry which records the method
+or function where they're declared.  For example, if the function @cite{main ()}
+declares a String object @code{s}, you can display it with a sequence of 
+commands like these.
+
+@example
+
+  > b
+  b
+        512.    main ()
+        511.    Object : inspect
+        510.    ObjectInspector : inspect
+  > l 512
+  l 512
+        0x4882c8c8      s <String> : (null) <String>
+  > p l 512 s
+  p l 512 s
+name:       s
+class:      String (0x48688240)
+superclass: Character (0x48644630)
+value:      (null) (String)
+
+@end example
+
+That is, the @cite{main ()} function is always at call stack index 512
+(it's the first function that's called by C programs), and is the
+topmost function displayed by the @samp{b} command.  The @samp{l 512}
+command prints a summary of the local objects declared by the method
+or function at call stack index 512 (i.e., @cite{main ()}), and the
+command @samp{p l 512 s} prints the contents of @code{s} declared in the
+function @cite{main ()}, which, again, is at call stack index 512.
+
+The inspector can also display global objects with the @samp{g} or
+@samp{global} command.
+
+@example
+  > g
+  g
+        0x49e555d0      myGlobalObject <Object> : (null) <Object>
+        0x49e59960      globalStr <String> : global string value <String>
+
+@end example
+
+To print a more detailed description of a global object use
+@samp{p g @var{objectname}}.
+
+@example
+
+  > p g globalStr
+  p g globalStr
+name:       globalStr
+class:      String (0x49ca32a8)
+superclass: Character (0x49c5f698)
+value:      global string value (String)
+
+@end example
+
+You can also print an object by giving its hexadecimal addres, starting
+with @samp{0x} or @samp{0X}.  This is useful when following object references.
+
+@example
+> b
+b
+        512.    main ()
+        511.    Object : inspect
+        510.    ObjectInspector : inspect
+        509.    ObjectInspector : __inspect_cmd_loop
+> l 512
+l 512
+        0x4a34cd50      l <List> : l <List>
+        0x4a34c7a0      p <Point> : (null) <Point>
+> p l 512 l
+p l 512 l
+name:       l
+class:      List (0x4a1fe200)
+superclass: Collection (0x4a1906b0)
+value:      l (List)
+instance variable:       keyObject
+class:                   Key (0x4a192a48)
+superclass:              Symbol (0x4a08d018)
+value:                   0x4a34fc98 (Key)
+instance variable:       keyObject
+class:                   Key (0x4a192a48)
+superclass:              Symbol (0x4a08d018)
+value:                   0x4a34f878 (Key)
+instance variable:       keyObject
+class:                   Key (0x4a192a48)
+superclass:              Symbol (0x4a08d018)
+value:                   0x4a352148 (Key)
+
+> p 0x4a352148
+p 0x4a352148
+name:       list element 3
+class:      String (0x4a1902a8)
+superclass: Character (0x4a14c698)
+value:      list element 3 (String)
+
+> 
+
+@end example
+
+In this example, the @cite{main ()} function contains a declaration of
+the @code{List}, @code{l}, which contains three instance variables
+that are the elements of the list (they're the instance variables with
+the name, @code{keyObject}).  The third @code{keyObject} contains a reference
+to the list's third element, at memory address @code{0x4a352148}.  We
+can print the list element directly by giving its address to the @samp{p}
+command, as in the command, @samp{p 0x4a352148}, above.
+
+
+@node searchlib, template, inspectors, Top
+@iftex
+@chapter The @command{searchlib} Utility
+@end iftex
+@ifnottex
+@heading The @command{searchlib} Utility
+@end ifnottex
+@cindex Searchlib utility
+
+The @command{searchlib} utility prints the documentation of Ctalk
+library functions or methods. To search the C application programming
+interface documentation, which is the default, enter the name of the
+function on the command line.  For example,
+
+@example
+
+  $ searchlib __ctalkDeleteObject
+
+__ctalkDeleteObject (OBJECT *object)
+Delete an object, and any objects it refers to, if they are not
+referenced elsewhere.  It's a good idea to call __objRefCntZero
+first.  The object then won't be showing any extra references.
+
+@end example
+
+If you want to search for a method or any part of a method's prototype,
+add the @samp{-m} option to the @code{searchlib} command line.
+
+You can also search using regular expressions.  For example,
+the pattern @samp{__ctalkGLUT.*} matches all of the API functions
+that begin with ``__ctalkGLUT.''
+
+Ctalk normally sets the library documentation location during
+installation.  By default, the documentation is installed as
+@flnm{<prefix>/share/ctalk/libdoc} and
+@flnm{<prefix>/share/ctalk/classlibdoc}, but you can use an alternate
+documentation file with the command line option @samp{-f}, as in this
+example.
+
+@example
+
+  $ searchlib -f mylibdoc __ctalkDelete.*
+
+@end example
+
+There is also information about @command{searchlib} and a concise list
+of options in the @cite{searchlib(1)} manual page.
+
+@node template, Copying, searchlib, Top
+@iftex
+@chapter The @command{template} Utility
+@end iftex
+@ifnottex
+@heading The @command{template} Utility
+@end ifnottex
+@cindex Template utility
+
+@command{Template} is a simple utility program that adds a Ctalk
+template method to a user's template library, and registers the
+template so the Ctalk compiler can refer to the template whenever the
+compiler encounters the template's function name.
+
+The @command{template} program takes three arguments: the name of the
+template's function after preprocessing, the template function's name
+in the application programming interface, and the file name of the
+template to be added.
+
+The command line syntax of @command{template} is this.
+
+@example
+
+  template @var{actual_fn} @var{api_fn} @var{template_file}
+
+@end example
+
+In most cases, the actual_name\fP and \fIapi_name\fP arguments are
+the same.  For example, to add a template for the function
+@cite{myPrintMsg},
+contained in the file @cite{myprintmsg.tmpl}, you would use a
+command like this.
+
+@example
+
+  template myPrintMsg myPrintMsg myprintmsg.tmpl
+
+@end example
+
+The separate @var{actual_name} argument is necessary in cases where a
+function name is actually a macro definition. In that case, the
+function name that appears in the source code after preprocessing may
+not be the same as the function's API name.
+
+For example, on Linux systems, the function @cite{getc(3)}
+is a macro definition for the actual function
+@cite{_IO_getc},
+which is the identifier that appears in the source file after
+preprocessing.  In that case, a command to register a template
+for @cite{getc (3)}
+might look something like this.
+
+@example
+
+  template _IO_getc getc getc.tmpl
+
+@end example
+
+@subheading Replacing a Template Registry File
+
+If the template registry file, @flnm{fnnames} gets damaged, you
+can replace it with the @samp{-c} or @samp{-r} options.  The first
+creates a @flnm{fnnames} registry file if it isn't present (Ctalk
+does the same thing if it doesn't find the template registry when
+it starts), and the second replaces and existing @flnm{fnnames}  files,
+although it doesn't preserve the previous registry's contents.
+For example:
+
+@example
+
+ $ template -c
+ template: Creating /home/rkiesling/.ctalk/templates/fnnames
+
+ @emph{... or ...}
+
+ $ template -r
+ template: Replacing /home/rkiesling/.ctalk/templates/fnnames
+
+@end example
+
+For information about the Ctalk template format, and the format of the
+@flnm{fnnames} template registry file, refer to the @cite{Templates}
+section of the @cite{Ctalk Language Reference}, and the manual pages
+@cite{templates(5ctalk)} and @cite{fnnames(5ctalk)}.
+
+@node Copying, GNU Free Documentation License, template, Top
+@iftex
+@chapter Copying
+@end iftex
+@ifnottex
+@heading Copying and Distributing Ctalk
+@end ifnottex
+@cindex Copying
+@cindex GNU General Public License
+@cindex GNU Lesser General Public License
+
+Ctalk is free software.  You can copy, distribute, and modify Ctalk
+under the terms of the GNU General Public License, Version 3 (see,
+@flnm{COPYING}, in the Ctalk distribution).  You can also distribute
+executable programs which link to the @command{ctalk} run time
+libraries under the terms of the GNU Lesser General Public License,
+Version 3 (@flnm{COPYING.LIB} in the Ctalk distribution).
+
+@node GNU Free Documentation License, Index, Copying, Top
+@iftex
+@chapter GNU Free Documentation License
+@end iftex
+@ifnottex
+@heading GNU Free Documentation License
+@end ifnottex
+@cindex GNU Free Documentation License
+@example
+
+                        Version 1.1, March 2000
+     Copyright (C) 2000  Free Software Foundation, Inc.
+     59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+     
+     Everyone is permitted to copy and distribute verbatim copies
+     of this license document, but changing it is not allowed.
+
+
+
+  0. PREAMBLE
+
+     The purpose of this License is to make a manual, textbook, or other
+     written document "free" in the sense of freedom: to assure everyone
+     the effective freedom to copy and redistribute it, with or without
+     modifying it, either commercially or noncommercially.  Secondarily,
+     this License preserves for the author and publisher a way to get
+     credit for their work, while not being considered responsible for
+     modifications made by others.
+
+     This License is a kind of "copyleft", which means that derivative
+     works of the document must themselves be free in the same sense.
+     It complements the GNU General Public License, which is a copyleft
+     license designed for free software.
+
+     We have designed this License in order to use it for manuals for
+     free software, because free software needs free documentation: a
+     free program should come with manuals providing the same freedoms
+     that the software does.  But this License is not limited to
+     software manuals; it can be used for any textual work, regardless
+     of subject matter or whether it is published as a printed book.
+     We recommend this License principally for works whose purpose is
+     instruction or reference.
+
+
+  1. APPLICABILITY AND DEFINITIONS
+
+     This License applies to any manual or other work that contains a
+     notice placed by the copyright holder saying it can be distributed
+     under the terms of this License.  The "Document", below, refers to
+     any such manual or work.  Any member of the public is a licensee,
+     and is addressed as "you."
+
+     A "Modified Version" of the Document means any work containing the
+     Document or a portion of it, either copied verbatim, or with
+     modifications and/or translated into another language.
+
+     A "Secondary Section" is a named appendix or a front-matter
+     section of the Document that deals exclusively with the
+     relationship of the publishers or authors of the Document to the
+     Document's overall subject (or to related matters) and contains
+     nothing that could fall directly within that overall subject.
+     (For example, if the Document is in part a textbook of
+     mathematics, a Secondary Section may not explain any mathematics.)
+     The relationship could be a matter of historical connection with
+     the subject or with related matters, or of legal, commercial,
+     philosophical, ethical or political position regarding them.
+
+     The "Invariant Sections" are certain Secondary Sections whose
+     titles are designated, as being those of Invariant Sections, in
+     the notice that says that the Document is released under this
+     License.
+
+     The "Cover Texts" are certain short passages of text that are
+     listed, as Front-Cover Texts or Back-Cover Texts, in the notice
+     that says that the Document is released under this License.
+
+     A "Transparent" copy of the Document means a machine-readable copy,
+     represented in a format whose specification is available to the
+     general public, whose contents can be viewed and edited directly
+     and straightforwardly with generic text editors or (for images
+     composed of pixels) generic paint programs or (for drawings) some
+     widely available drawing editor, and that is suitable for input to
+     text formatters or for automatic translation to a variety of
+     formats suitable for input to text formatters.  A copy made in an
+     otherwise Transparent file format whose markup has been designed
+     to thwart or discourage subsequent modification by readers is not
+     Transparent.  A copy that is not "Transparent" is called "Opaque."
+
+     Examples of suitable formats for Transparent copies include plain
+     ASCII without markup, Texinfo input format, LaTeX input format,
+     SGML or XML using a publicly available DTD, and
+     standard-conforming simple HTML designed for human modification.
+     Opaque formats include PostScript, PDF, proprietary formats that
+     can be read and edited only by proprietary word processors, SGML
+     or XML for which the DTD and/or processing tools are not generally
+     available, and the machine-generated HTML produced by some word
+     processors for output purposes only.
+
+     The "Title Page" means, for a printed book, the title page itself,
+     plus such following pages as are needed to hold, legibly, the
+     material this License requires to appear in the title page.  For
+     works in formats which do not have any title page as such, "Title
+     Page" means the text near the most prominent appearance of the
+     work's title, preceding the beginning of the body of the text.
+
+
+  2. VERBATIM COPYING
+
+     You may copy and distribute the Document in any medium, either
+     commercially or noncommercially, provided that this License, the
+     copyright notices, and the license notice saying this License
+     applies to the Document are reproduced in all copies, and that you
+     add no other conditions whatsoever to those of this License.  You
+     may not use technical measures to obstruct or control the reading
+     or further copying of the copies you make or distribute.  However,
+     you may accept compensation in exchange for copies.  If you
+     distribute a large enough number of copies you must also follow
+     the conditions in section 3.
+
+     You may also lend copies, under the same conditions stated above,
+     and you may publicly display copies.
+
+
+  3. COPYING IN QUANTITY
+
+     If you publish printed copies of the Document numbering more than
+     100, and the Document's license notice requires Cover Texts, you
+     must enclose the copies in covers that carry, clearly and legibly,
+     all these Cover Texts: Front-Cover Texts on the front cover, and
+     Back-Cover Texts on the back cover.  Both covers must also clearly
+     and legibly identify you as the publisher of these copies.  The
+     front cover must present the full title with all words of the
+     title equally prominent and visible.  You may add other material
+     on the covers in addition.  Copying with changes limited to the
+     covers, as long as they preserve the title of the Document and
+     satisfy these conditions, can be treated as verbatim copying in
+     other respects.
+
+     If the required texts for either cover are too voluminous to fit
+     legibly, you should put the first ones listed (as many as fit
+     reasonably) on the actual cover, and continue the rest onto
+     adjacent pages.
+
+     If you publish or distribute Opaque copies of the Document
+     numbering more than 100, you must either include a
+     machine-readable Transparent copy along with each Opaque copy, or
+     state in or with each Opaque copy a publicly-accessible
+     computer-network location containing a complete Transparent copy
+     of the Document, free of added material, which the general
+     network-using public has access to download anonymously at no
+     charge using public-standard network protocols.  If you use the
+     latter option, you must take reasonably prudent steps, when you
+     begin distribution of Opaque copies in quantity, to ensure that
+     this Transparent copy will remain thus accessible at the stated
+     location until at least one year after the last time you
+     distribute an Opaque copy (directly or through your agents or
+     retailers) of that edition to the public.
+
+     It is requested, but not required, that you contact the authors of
+     the Document well before redistributing any large number of
+     copies, to give them a chance to provide you with an updated
+     version of the Document.
+
+
+  4. MODIFICATIONS
+
+     You may copy and distribute a Modified Version of the Document
+     under the conditions of sections 2 and 3 above, provided that you
+     release the Modified Version under precisely this License, with
+     the Modified Version filling the role of the Document, thus
+     licensing distribution and modification of the Modified Version to
+     whoever possesses a copy of it.  In addition, you must do these
+     things in the Modified Version:
+
+     A. Use in the Title Page (and on the covers, if any) a title
+     distinct    from that of the Document, and from those of previous
+     versions    (which should, if there were any, be listed in the
+     History section    of the Document).  You may use the same title
+     as a previous version    if the original publisher of that version
+     gives permission.
+     B. List on the Title Page, as authors, one or more persons or
+     entities    responsible for authorship of the modifications in the
+     Modified    Version, together with at least five of the principal
+     authors of the    Document (all of its principal authors, if it
+     has less than five).
+     C. State on the Title page the name of the publisher of the
+     Modified Version, as the publisher.
+     D. Preserve all the copyright notices of the Document.
+     E. Add an appropriate copyright notice for your modifications
+     adjacent to the other copyright notices.
+     F. Include, immediately after the copyright notices, a license
+     notice    giving the public permission to use the Modified Version
+     under the    terms of this License, in the form shown in the
+     Addendum below.
+     G. Preserve in that license notice the full lists of Invariant
+     Sections    and required Cover Texts given in the Document's
+     license notice.
+     H. Include an unaltered copy of this License.
+     I. Preserve the section entitled "History", and its title, and add
+     to    it an item stating at least the title, year, new authors, and
+       publisher of the Modified Version as given on the Title Page.
+     If    there is no section entitled "History" in the Document,
+     create one    stating the title, year, authors, and publisher of
+     the Document as    given on its Title Page, then add an item
+     describing the Modified    Version as stated in the previous
+     sentence.
+     J. Preserve the network location, if any, given in the Document for
+       public access to a Transparent copy of the Document, and
+     likewise    the network locations given in the Document for
+     previous versions    it was based on.  These may be placed in the
+     "History" section.     You may omit a network location for a work
+     that was published at    least four years before the Document
+     itself, or if the original    publisher of the version it refers
+     to gives permission.
+     K. In any section entitled "Acknowledgements" or "Dedications",
+     preserve the section's title, and preserve in the section all the
+      substance and tone of each of the contributor acknowledgements
+     and/or dedications given therein.
+     L. Preserve all the Invariant Sections of the Document,
+     unaltered in their text and in their titles.  Section numbers
+     or the equivalent are not considered part of the section titles.
+     M. Delete any section entitled "Endorsements."  Such a section
+     may not be included in the Modified Version.
+     N. Do not retitle any existing section as "Endorsements"    or to
+     conflict in title with any Invariant Section.
+
+     If the Modified Version includes new front-matter sections or
+     appendices that qualify as Secondary Sections and contain no
+     material copied from the Document, you may at your option
+     designate some or all of these sections as invariant.  To do this,
+     add their titles to the list of Invariant Sections in the Modified
+     Version's license notice.  These titles must be distinct from any
+     other section titles.
+
+     You may add a section entitled "Endorsements", provided it contains
+     nothing but endorsements of your Modified Version by various
+     parties-for example, statements of peer review or that the text has
+     been approved by an organization as the authoritative definition
+     of a standard.
+
+     You may add a passage of up to five words as a Front-Cover Text,
+     and a passage of up to 25 words as a Back-Cover Text, to the end
+     of the list of Cover Texts in the Modified Version.  Only one
+     passage of Front-Cover Text and one of Back-Cover Text may be
+     added by (or through arrangements made by) any one entity.  If the
+     Document already includes a cover text for the same cover,
+     previously added by you or by arrangement made by the same entity
+     you are acting on behalf of, you may not add another; but you may
+     replace the old one, on explicit permission from the previous
+     publisher that added the old one.
+
+     The author(s) and publisher(s) of the Document do not by this
+     License give permission to use their names for publicity for or to
+     assert or imply endorsement of any Modified Version.
+
+
+  5. COMBINING DOCUMENTS
+
+     You may combine the Document with other documents released under
+     this License, under the terms defined in section 4 above for
+     modified versions, provided that you include in the combination
+     all of the Invariant Sections of all of the original documents,
+     unmodified, and list them all as Invariant Sections of your
+     combined work in its license notice.
+
+     The combined work need only contain one copy of this License, and
+     multiple identical Invariant Sections may be replaced with a single
+     copy.  If there are multiple Invariant Sections with the same name
+     but different contents, make the title of each such section unique
+     by adding at the end of it, in parentheses, the name of the
+     original author or publisher of that section if known, or else a
+     unique number.  Make the same adjustment to the section titles in
+     the list of Invariant Sections in the license notice of the
+     combined work.
+
+     In the combination, you must combine any sections entitled
+     "History" in the various original documents, forming one section
+     entitled "History"; likewise combine any sections entitled
+     "Acknowledgements", and any sections entitled "Dedications."  You
+     must delete all sections entitled "Endorsements."
+
+
+  6. COLLECTIONS OF DOCUMENTS
+
+     You may make a collection consisting of the Document and other
+     documents released under this License, and replace the individual
+     copies of this License in the various documents with a single copy
+     that is included in the collection, provided that you follow the
+     rules of this License for verbatim copying of each of the
+     documents in all other respects.
+
+     You may extract a single document from such a collection, and
+     distribute it individually under this License, provided you insert
+     a copy of this License into the extracted document, and follow
+     this License in all other respects regarding verbatim copying of
+     that document.
+
+
+  7. AGGREGATION WITH INDEPENDENT WORKS
+
+     A compilation of the Document or its derivatives with other
+     separate and independent documents or works, in or on a volume of
+     a storage or distribution medium, does not as a whole count as a
+     Modified Version of the Document, provided no compilation
+     copyright is claimed for the compilation.  Such a compilation is
+     called an "aggregate", and this License does not apply to the
+     other self-contained works thus compiled with the Document, on
+     account of their being thus compiled, if they are not themselves
+     derivative works of the Document.
+
+     If the Cover Text requirement of section 3 is applicable to these
+     copies of the Document, then if the Document is less than one
+     quarter of the entire aggregate, the Document's Cover Texts may be
+     placed on covers that surround only the Document within the
+     aggregate.  Otherwise they must appear on covers around the whole
+     aggregate.
+
+
+  8. TRANSLATION
+
+     Translation is considered a kind of modification, so you may
+     distribute translations of the Document under the terms of section
+     4.  Replacing Invariant Sections with translations requires special
+     permission from their copyright holders, but you may include
+     translations of some or all Invariant Sections in addition to the
+     original versions of these Invariant Sections.  You may include a
+     translation of this License provided that you also include the
+     original English version of this License.  In case of a
+     disagreement between the translation and the original English
+     version of this License, the original English version will prevail.
+
+
+  9. TERMINATION
+
+     You may not copy, modify, sublicense, or distribute the Document
+     except as expressly provided for under this License.  Any other
+     attempt to copy, modify, sublicense or distribute the Document is
+     void, and will automatically terminate your rights under this
+     License.  However, parties who have received copies, or rights,
+     from you under this License will not have their licenses
+     terminated so long as such parties remain in full compliance.
+
+
+ 10. FUTURE REVISIONS OF THIS LICENSE
+
+     The Free Software Foundation may publish new, revised versions of
+     the GNU Free Documentation License from time to time.  Such new
+     versions will be similar in spirit to the present version, but may
+     differ in detail to address new problems or concerns.  See
+     http://www.gnu.org/copyleft/.
+
+     Each version of the License is given a distinguishing version
+     number.  If the Document specifies that a particular numbered
+     version of this License "or any later version" applies to it, you
+     have the option of following the terms and conditions either of
+     that specified version or of any later version that has been
+     published (not as a draft) by the Free Software Foundation.  If
+     the Document does not specify a version number of this License,
+     you may choose any version ever published (not as a draft) by the
+     Free Software Foundation.
+
+
+ADDENDUM: How to use this License for your documents
+
+   To use this License in a document you have written, include a copy of
+the License in the document and put the following copyright and license
+notices just after the title page:
+
+     Copyright (C)  YEAR  YOUR NAME.
+     Permission is granted to copy, distribute and/or modify this document
+     under the terms of the GNU Free Documentation License, Version 1.1
+     or any later version published by the Free Software Foundation;
+     with the Invariant Sections being LIST THEIR TITLES, with the
+     Front-Cover Texts being LIST, and with the Back-Cover Texts being LIST.
+     A copy of the license is included in the section entitled "GNU
+     Free Documentation License."
+
+   If you have no Invariant Sections, write "with no Invariant Sections"
+instead of saying which ones are invariant.  If you have no Front-Cover
+Texts, write "no Front-Cover Texts" instead of "Front-Cover Texts being
+LIST"; likewise for Back-Cover Texts.
+
+   If your document contains nontrivial examples of program code, we
+recommend releasing these examples in parallel under your choice of
+free software license, such as the GNU General Public License, to
+permit their use in free software.
+
+@end example
+
+@c
+@c  INDEX
+@c
+@ifnottex
+@node Index, , GNU Free Documentation License, Top
+@end ifnottex
+@chapter Index
+@printindex cp
+@bye

@@ -1,0 +1,337 @@
+2017-01-01
+	- Updated CalendarTime : localTime for compatibility
+	with Apple's time zone info.
+2017-01-03
+	- Release 0.0.58 2017-01-03.
+2017-01-04
+	- Added the __ctalkX11PaneDrawPointBasic library function,
+	and the X11Bitmap : drawPoint method.
+2017-01-06
+	- Minor code cleanup in demos/lclock.c,	in
+	Integer : selectDigit.
+2017-01-12
+	- Changed the default outline face of the x11textpane.c
+	demo program to the more commonly found DejaVu Sans
+	regular.
+	- Added fixed tab spacing in __ctalkSplitText and
+	__ctalkWrapText	(textcx.c).
+2017-01-16
+	- Updated configure.ac and src/Makefile.am to add any
+	GUI libraries to the src/Makefile's linker flags.
+	- Updates to __ctalkSplitText and __ctalkWrapText (textcx.c).
+	- Updates to ctxlogo to use the X eventMask and to close
+	on a Esc keypress.
+2017-01-18
+	- Added istring19.c test program.
+2017-02-05
+	- Updated Exception : handle to return nothing.
+	- Updated Symbol : setValue so it only sets VAR_REF_OBJECT
+	scope when the argument's class isn't Symbol; i.e., when
+	we point to the complete argument object, not just its
+	value.
+2017-02-06
+	- Updated ReadFileStream : readLine and AssociativeArray :
+	keyAt to return string values directly.
+2017-03-08
+	- Added __ctalkX11PaneDrawLineBasic and __ctalkGUIPaneDrawLineBasic
+	and the X11Bitmap : drawLine methods.
+2017-03-10
+	- Release 0.0.58 2017-03-10.
+2017-03-12
+	- Added cvararg3.c test program.
+2017-03-15
+	- Added cvararg[6-7].c test programs.
+2017-03-28
+	- Updated X11TextPane : displayText to call the typeface methods
+	directly.
+2017-03-31
+	- Updated X11CanvasPane : subPaneResize.
+	- Added test/expect/examples-x11/circle-resize.c test program.
+2017-04-06
+	- Added UNIXNetworkStream : removeSocket, so
+	UNIXNetworkStream : closeSocket doesn't remove the
+	socket by itself.
+	- Added a separate check for a socket file's existence
+	in UNIXNetworkStreamWriter : open.
+	- Updated demos/ipc/sockread.c, to flush the output
+	without adding a newline, except when the data is
+	the "quit" command to exit the program. Also added
+	(hopefully) more informative instructions to sockwrite.
+2017-04-14
+	- Added --warnunresolvedselfexpr option.
+	- Updated ctrlblk_pred_rt_expr_self to check for
+	method labels also, and to print warnings for expressions
+	in argblks if the --warnunresolvedselfexpr option is
+	set.
+2017-04-15
+	- Added the --verbose option as a synonym for -v.
+2017-04-25
+	- Added no_fmt_trunc_warning, which is defined as
+	"-Wno-format-trunction -Wno-format-overflow" for GCC version
+	7.x. (configure.ac, ctpp/Makefile.am).
+	- Also added -Wno-strict-overflow for GCC 7.x
+	(configure.ac, src/Makefile.am)
+	- Added __float128 type to is_c_keyword, is_c_data_type,
+	and is_c_data_type_attr (keyword.c).
+2017-04-26
+	- Minor documentation and help message updates for
+	the template(1) man page and the template program.
+	- Updated the ctxlogo utility to handle resize events.
+	- Updated demos/ipc/sockwrite.c with yet more help
+	text.
+2017-04-27
+	- Added test/Makefile.gcc7 which handles some warnings
+	specific to GCC 7.x.
+2017-04-28
+	- Release 0.0.58 2017-04-28.
+2017-05-18
+	- Updated test/expect/run-bg1.c and
+	test/expect/examples/background1.c test program to omit
+	simulated keypress with some Darwin's more primitive
+	echo program.
+2017-05-19
+	- Updated Character : isPrint to prevent some compilers
+	from printing annoying warnings	about signedness.
+	- Updated get_object_cvar_struct_mbr to omit the
+	strcmp "struct" clause.
+2017-05-22
+	- Added an error message to __ctalkLibcFnWithMethodVarArgs for
+	Darwin PPC systems.
+2017-06-10
+	- Updated the configure script to add the X library
+	path to ctcc and ctdb if LD_LIBRARY_PATH is not set
+	in the environment on Darwin systems.
+2017-06-27
+	- Added __ctalkConsoleReadLine wrapper function
+	for the GNU readline libraries, used in String :
+	consoleReadLine (read.c).
+2017-06-30
+	- Added the doc/doctools directory, and added the
+	makelibdoc.pl and makeclassdoc.pl scripts.
+2017-07-03
+	- Added the TCPIPNetworkStream class.
+2017-07-05
+	- Added TCPIPNetworkStreamReader and
+	TCPIPNetworkStreamWriter classes, and
+	TCPIPNetworkStreamReader : openOn and
+	TCPIPNetworkStreamWriter : openOn methods.
+2017-07-07
+	- Added the TCPIPNetworkStream instance variable sock.
+	- Added TCPIPNetworkStream : createSocketBasic.
+2017-07-09
+	- Updated the openOn methods in TCPIPNetworkStreamReader
+	and TCPNetworkStreamWriter classes to raise a
+	SystemErrnoException if any of the networking functions
+	they call return an error.
+	- Updated TCPIPNetworkStreamReader : acceptSock to
+	use select to wait for connections.
+	- Added the TCPIPNetworkStreamReader : timeout instance
+	variable.
+2017-07-12
+	- Added TCPIPNetworkStream : readText,
+	TCPIPNetworkStream : writeText, and TCPIPNetworkStream :
+	closeSock instance methods.
+2017-07-13
+	- Added TCPIPNetworkStream : readVec and
+	TCPIPNetworkStream : writeVec instance methods.
+2017-07-14
+	- Updated the methods utility program to check for
+	duplicate method selectors, because the methodSource
+	method returns all methods that match a selector name
+	(i.e., it doesn't distinguish methods by the number of
+	arguments).
+2017-07-17
+	- Added the TCPIPNetworkStream : hostToAddress method.
+2017-07-18
+	- Release 0.0.59 2017-07-18.
+	- Added the if14.c test program.
+2017-07-28
+	- Added the if15.c test program.
+2017-07-29
+	- Added the if16.c test program.
+2017-07-30
+	- Added the if17.c test program.
+2017-07-31
+	- Added __ctalkMethodObjectMessage2Args and
+	__ctalkBackgroundMethodObjectMessage2Args library functions.
+	- Added Object : methodObjectMessage with three parameters.
+2017-08-03
+	- Added the if[18-19].c test programs.
+2017-08-05
+	- Added if[20-22].c test programs.
+2017-08-06
+	- Added if23.c test program.
+2017-08-07
+	- Added if24.c and if25.c test programs.
+2017-08-09
+	- Added if26.c and if27.c test programs.
+2017-08-10
+	- Added if[28-34].c test programs.
+2017-08-11
+	- Added if35.c test program.
+2017-08-13
+	- Added if36.c test program.
+2017-08-14
+	- Added if[37-43].c test programs.
+2017-08-15
+	- Added if44.c test program.
+2017-08-16
+	- Added if45.c test program.
+2017-08-17
+	- Added if46.c test program.
+2017-08-18
+	- Added if[47-52].c test programs.
+2017-08-20
+	- Added if53.c test program.
+2017-08-21
+	- Added if[54-61].c test programs.
+2017-08-23
+	- Added if[62-70].c test programs.
+2017-08-24
+	- Added if[71-79].c test programs.
+2017-08-25
+	- Added if[80-84].c test programs.
+2017-08-26
+	- Added if[85-93].c test programs.
+2017-08-29
+	- Added if[94-95].c test program.
+2017-08-30
+	- Added if96.c test program.
+2017-08-31
+	- Added if97.c test program.
+2017-09-01
+	- Added if[98-99].c test programs.
+2017-09-03
+	- Added if100.c test program.
+2017-09-04
+	- Added if101.c test program.
+2017-09-06
+	- Added if[102-103].c test programs.
+2017-09-07
+	- Added prefix36.c test program.
+	- Added Character : ~, and Character : ! instance methods.
+	- Updated Magnitude : - to handle Character receivers.
+2017-09-08
+	- Added if[104-105].c test programs.
+2017-09-10
+	- Added if[106-107].c test programs.
+2017-09-11
+	- Added if[108-109].c test programs.
+2017-09-12
+	- Added if[110-111].c test programs.
+2017-09-13
+	- Added if[112-113].c test programs.
+2017-09-14
+	- Added if[114-117].c test programs.
+2017-09-18
+	- Added postfix operator following method warning in
+	rcfo_check_token (ifexpr.c).
+	- Added if[118-119].c test programs.
+2017-09-20
+	- Added if[120-121].c test programs.
+2017-09-21
+	- Added if[122-123].c test programs.
+2017-09-22
+	- Added if[124-125].c test programs.
+2017-09-23
+	- Added list6.c test program.
+2017-09-24
+	- Added if[126-130].c test programs.
+2017-09-25
+	- Added if[131-133].c test programs.
+2017-09-26
+	- Added if[134-136].c test programs.
+2017-09-27
+	- Added if[137-140].c test programs.
+2017-09-29
+	- Added if141.c test program.
+2017-10-01
+	- Added if[142-143].c test programs.
+2017-10-02
+	- Added if[144-145].c test programs.
+2017-10-05
+	- Added if[146-148].c test programs.
+2017-10-06
+	- Added if149.c test program.
+2017-10-07
+	- Added if[150-151].c test programs.
+2017-10-08
+	- Added if152.c test program.
+2017-10-09
+	- Added if[153-158].c test programs.
+2017-10-10
+	- Added if[159-162].c test programs.
+2017-10-16
+	- Added array[8-9].c test programs.
+2017-10-18
+	- Added array[10-11].c test programs.
+2017-10-21
+	- Added array12.c test program.
+2017-10-22
+	- Added postfix3.c test program.
+2017-10-24
+	- Added postfix4.c test program.
+2017-10-26
+	- Added postfix5.c test program.
+2017-10-27
+	- Added if16[3-4].c test programs.
+2017-10-29
+	- Added compiler check for -Wno-pointer-to-int-cast to configure,
+	and added build/conftest.c test program.  Updated top-level
+	Makefile.am to include build/conftest.c.  Also updated
+	test/expect/cttest, which isn't going to be needed for a compiler
+	< 4.3 anyway.
+2017-11-01
+	- Added if16[5-7].c test programs.
+2017-11-01
+	- Added if[168-172].c test programs.
+2017-11-08
+	- Added the src/mcct.c module, which contains all of the
+	mcct expression class functions that were in ifexpr.c.
+	- Added if173.c test program.
+2017-11-10
+	- Added if17[4-5].c test program.
+2017-11-11
+	- Added if176.c test program.
+2017-11-12
+	- Added if[177-180].c test programs.
+2017-11-13
+	- Added if[181-182].c test programs.
+2017-11-15
+	- Updated cvarrcvr[30-31].c test programs for correct
+	operator precedence evaluation.
+2017-11-22
+	- Added a warning about super appearing in an argument block
+	within a C function in __ctalk_get_object (rt_obj.c).
+2017-11-23
+	- Added an unresolved label warning in eval_expr
+	(rt_expr.c).
+2017-11-24
+	- Added if18[3-4].c test programs.
+2017-11-29
+	- Added if18[5-6].c test programs.
+2017-12-01
+	- Added if18[7-8].c test program.
+2017-12-12
+	- Added write-back for scalar C variables (int, long int,
+	and long long int) that call ++ and -- methods.
+	- Added postfix[6-12].c test programs.
+2017-12-16
+	- Added postfix[13-16].c test programs.
+2017-12-17
+	- Added postfix[17-18].c test programs.
+2017-12-18
+	- Added prefix[37-38].c test programs.
+2017-12-19
+	- Added prefix[39-45].c test programs.
+2017-12-21
+	- Added a warning message when a ++ or -- operator precedes
+	a method expression; i.e., <++|--><rcvr_label> <method_label>.
+2017-12-23
+	- Added prefix[46-49].c test programs.
+2017-12-24
+	- Added prefix[50-55].c and postfix[19-24].c test programs.
+2017-12-28
+	- Added error message for subscripted ints, etc. that use
+	unary ++ or -- in argument blocks.
+	- Added prefix[56-64].c and postfix[25-34].c test programs.

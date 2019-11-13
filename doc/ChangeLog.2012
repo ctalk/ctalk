@@ -1,0 +1,92 @@
+2012-01-05
+	- In is_c_var_declaration_msg (), checks for
+	LABEL token before trying to find existing objects,
+	class names, method names, etc.
+2012-01-07
+	- Removed check for CVAR_ATTR_STRUCT_TYPE_TAG_ATTR
+	in get_local_var (), and replaced calls to
+	get_local_var () with calls to get_local_struct_defn
+	in method_call () and cvar_is_method_receiver ().
+	Also did the same with get_global_struct_defn ().
+2012-01-09
+	- Added TOK_IS_DECLARED_CVAR attribute, set in
+	resolve () to avoid repeating a call to
+	is_c_var_declaration_msg in parser_pass ().
+2012-01-14
+	- Added check for assignments in argument lists 
+	in rt_expr () in the front end.
+	- In resolve, m_actual_method always points to 
+	a message sender.  Changed name to m_sender, and
+	changed the name of idx_actual_method to sender_idx.
+	- Moved instance_vars_from_class_object () to
+	primitives.c and made "static inline," because
+	it is only used for class member variable 
+	definition.  Provisionally removed call to 
+	__ctalkFindMemberClass.
+2012-01-17
+	- Added instantiate_self_object () in object.c and
+	call from self_object () and resolve ().  - In
+	copy_object_internal_from_parent (),
+	(rt_obj.c), if we encounter a circular parent
+	reference, where an instance variable references its
+	parent object, simply increase the reference count
+	of the parent object, instead of trying to duplicate
+	the object.
+2012-01-18
+	- Change for context case for labels following a
+	CLOSEBLOCK token in object_context () (rexpr.c).
+	- Change to unresolve_eval_delay_warning_2
+	(error.c), to reflect the actual classes of the method
+	where the warning occurs and the receiver object.
+2012-01-19
+	- Updates to X11TextPane to use X11Bitmap class
+	objects for window buffers.
+	- Updates to __ctalkGUIPanePutStr and __xlib_put_str
+	(), to only clear the area of the text before
+	drawing string, not the entire width of the pane.
+	- Added __ctalkX11UseFontBasic function and
+	X11Bitmap : font method.
+2012-01-20
+	- Added __ctalkX11PanePutStrBasic in guiputstr.c.
+	- Added X11Bitmap : putStr method.
+	- Updated X11TextPane to use the X11Bitmap :
+	putStr method.
+	- Minor fix in rt_self_expr (rt_expr.c), so that 
+	the function returns an expression in some cases
+	when a function prototype is missing.
+2012-01-21
+	- In resolve_arg2 (arg.c) added a warning for 
+	a method that shadows an instance variable, except
+	for the, "value," instance variable and method.
+2012-01-23
+	- Changed the, "font," instance variable in
+	X11TextPane to, "fontVar," and changed the,
+	"fontDesc," instance variable to, "fontDescStr," and
+	made changes in x11lib.c and guiputstr.c.
+	- Updates to X11TextPane to use X11Bitmap buffers,
+	and set the font and background from the pane
+	buffers.
+	- Release 0.0.97b-20120123.
+2012-06-09
+	- Added builtins.sh and updated builtin macro configuration 
+	from ctpp 1.0.68.  Files updated include builtins.sh, configure.in
+	top Makefile.am, ctpp/builtins.c and ctpp/ccompat.c.
+2012-06-12
+	- Added classes/ctalklib.in and caps.sh to add system-specific
+	capabilities to ctalklib.  Added HAVE_GNU_READLINE to ctalklib.
+	Added the String::consoleReadLine method, and 
+	programs/readlinetest.c
+2012-06-13
+	- Updated need_rt_eval () (rexpr.c) to handle a case of 
+	self <math_op> <c_function>, which gets translated into a simple
+	argument call using __ctalk_arg (), etc, instead of 
+	__ctalkEvalExpr.
+2012-06-15
+	- Added ctpp 1.0.69.
+2012-06-19
+	- Added check for parent object references in 
+	__delete_char_ptr_arg () (lib/objtoc.c).
+	- Release 0.0.97b 20120619.
+	
+	
+	

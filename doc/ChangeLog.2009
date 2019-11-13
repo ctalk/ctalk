@@ -1,0 +1,589 @@
+2009-01-01
+	- Moved ChangeLog to ChangeLog.2008.
+	- Rewritten Associative and Collection methods without
+	  __ctalkTo* calls, and method arguments used as function
+	  arguments without ARG(n) macros.
+2009-01-04
+        - Added check for recursive typedef lookups, and EXCEPTION
+	  object-to-c conversion.
+        - Handle simple receiver-message expressions that are C 
+	  function arguments.
+	- Class library cleanup for objects as argument expressions,
+	  except in WriteFileStream : openOn.
+	- Release 0.0.92a.
+2009-01-06
+	- Check for cases where a struct typedef declaration 
+	  is the same as the tag in have_declaration ().
+2009-01-07
+	- Added Win32TerminalStream : getCh, and ANSITermianlStream :
+	  getCh, restoreTerm, and rawMode, and instance variables
+	  for storing terminal parameters.
+2009-01-08
+	- Handle complex while conditions in ctrlblk_pred_rt_expr ()
+	  with the same routines that handle if conditions, instead
+	  of loop_block_end ().  ctrlblk_pred_rt_expr () sets 
+	  C_CTRL_BLK -> pred_expr_evaled to TRUE for if, while,
+	  and switch conditions.
+	- Added rt_self_expr to check for self expressions that 
+	  are function arguments.
+2009-01-09
+	- Added InputEvent class, InputEvent : new, TerminalStream : 
+	  queueInputEvent, and many class and instance variables 
+	  in TerminalStream and ANSITerminalStream classes to
+	  handle an input event queue.
+	- The have_declaration () function now also checks for instance
+	  and class variable messages if there is a method receiver 
+	  class object.
+2009-01-10
+	- Object : become and library functions __ctalkGetCallingFnObject,
+	  __ctalkGetCallingMethodObject, __ctalkCallingFnBecome, and
+	  __ctalkCallingMethodBecome.
+2009-01-11
+	- Release 0.0.93a rc1.
+2009-01-13
+	- If and while predicates now do not end at frame boundaries 
+	  in if_stmt and while_stmt.
+2009-01-14
+	- ctalk_get_object does not check the calling function for 
+	  an object.
+	- get_class_library_definition stops after finding the 
+	  class definition.
+	- Simplified List with value variable, and List compatibility
+	  fixes for Solaris.
+	- Added test for int printf formats in obj_2_c_wrapper_trans,
+	  etc.
+2009-01-17
+	- Object copy routines in become.c now maintain __o_varentry 
+	  pointers and scope for the replacement objects.  They also 
+	  search a variable list for an actual object in case the 
+	  object has been replaced several times.
+	- __rt_method_args and eval_expr set the reference count of the 
+	  entire object if the arg val object or message object is an 
+	  instance variable of a publicly visible object.
+2009-01-18
+	- Check the class of an argument's value object in 
+	  __scalar_fmt_conv.
+	- Added is_instance_method_or_variable function in method.c.
+	- Added nextInputEvent : TerminalStream method, and input
+	  event queueing in ANSITerminalStream class.
+	- Release 0.0.93a rc2.
+2009-01-19
+	- Changed all occurrences of OBJ_REF_STR macro to 
+	  obj_ref_str function.
+2009-01-20
+	- Added type_conv_name function and added to is_c_type
+	  function to check for C type names.
+2009-01-21
+	- Updated Win32TerminalStream class.
+	- ctpp 1.0.46.
+2009-01-23
+	- Added or updated Win32TerminalStream method getCh, and added
+	  printOn, openInputQueue, biosKey, and getShiftState.  Added DOS
+	  function handling for extended keys in getCh and input event
+	  queueing.  Added the scancode.c example program.
+2009-01-24
+	- Added struct_member_from_expr () and rewrote 
+	  fmt_register_c_method_arg_call.  Added checks for
+	  structs and unions in front-end rt_expr and rt_self_expr.
+2009-01-25
+	- Added generic_obj_str () and object-to-c translation in
+	  fmt_c_fn_args_expr ().
+	- Release 0.0.93a rc3.
+2009-01-26
+	- Added delete_arg_object () and add ARG_VARS in front end
+	  to parser methodobjects.
+2009-01-27
+	- Changed definition of FN_TMPL to avoid calling strdup and 
+	  free every time a template is redefined.
+	- Expressions that use a method parameter as a receiver 
+	  have syntax-only case in method_arg_accessor_fn_c.
+	- Added is_fmt_arg and check for format arguments in
+	  object_context.
+2009-01-30
+	- Added instvar1.c and instvar2.c test programs and 
+	  bugfixes.
+	- Added c_param_expr_arg function.
+2009-01-31
+	- Added __basic_type_of () for C variable registration,
+	  Object-to-C translation in rt_self_expr (), 
+2009-02-01
+	- Release 0.0.93a.
+2009-02-03
+	- Added expr_result_object to set eval_status.
+2009-02-04
+	- __ctalkSysErrExceptionInternal etc. functions now use 
+	  the text from strerror () for error messages.
+2009-02-06
+	- __basic_type_of performs multiple lookups until 
+	  it finds a terminal type definition or a definition
+	  in __C_type_conv.  cvar_object also uses definitions of
+	  FILE from _C_type_conv. Added obj_expr_is_fn and 
+	  rt_obj_arg to translate individual function arguments
+	  in resolve.  Cleaned up FileStream : statStream, and 
+	  removed the calls to statStream from the *FileStream 
+	  classInit methods.
+2009-02-07
+	- Added FileStream : exists method.  Rewrote wiki.c with
+	  new decodePostData method and added exists message in 
+	  getWikiPage method.
+	- Added TerminalStream method isATty, and ANSITerminalStream 
+	  methods openOn, closeStream, and setTty, and added support
+	  for serial terminal streams.
+	- Release 0.0.94a rc1.
+2009-02-09
+	- Added gccmajorver.sh shell script and configure.in
+	  test for GCC version-specific optimization flags.
+2009-02-10
+	- Compatibity fixes cCTime template and fabs () for Solaris.
+	- Check for empty parameter lists in function prototypes and
+	  warning if a function definition doesn't have paramter 
+	  definitions.
+	- Compatibility fix for Solaris LongInteger formatting in 
+	  __scalar_fmt_conv.
+2009-02-11
+	- Added double printf format translation, refactored printf
+	  arg translation for self and object expressions.
+	- Save call stack in run-time exceptions.
+2009-02-12
+	- Find_expression limit call to obj_expr_is_arg to check for 
+	  function arguments.
+	- Object to C function argument translation in self_object.
+	- Updates to EVAL_STATUS_* attributes.
+	- Added __ctalkCallMethodFn for rt_expr.
+	- Rewrote Integer : = to fix memory leaks.
+2009-02-13
+	- Added Exception : printExceptionTrace, Object : 
+	  enableExceptionTrace, Object : disableExceptionTrace,
+	  Object : traceEnabled, and Object : printSelf methods.
+	  Rewrote __ctalkPrintObject to take an object, and 
+	  added __ctalkPrintObjectByName.
+	- Added new Pane and Point classes.
+2009-02-15
+	- Release 0.0.94a rc2.
+2009-02-16
+	- Added subexpr_rcvr_arg and is_arg_expr paramters to eval_expr
+	  instead of globals or simply token value objects.
+2009-02-17
+	- Added user_objects list in methods, and updated
+	  __ctalkClassDictionaryCleanup to delete them on exit.  
+	  Added __ctalkRegisterUserObject to the methodReturn*
+	  macros to register objects there, and 
+	  methodReturnLongInteger and methodReturnBoolean macros.
+	  Updated String and LongInteger classes.
+2009-02-18
+	- Added __ctalkInstanceVarsFromClassObject call in itself
+	  to populate complex instance variables.
+	- __ctalk_isMethod, rt_expr, and __ctalkIsCallerReceiver
+	  now check for an object with the same class as its parent
+	  object, and a value instance variable for determining the 
+	  class of the object's value.
+2009-02-21
+	- Point, Pane, ANSITerminalPane, and List : pushItemRef 
+	  methods and library API.
+2009-02-22
+	- Handle instance variable receiver expressions in become.c.
+	- Release 0.0.94a rc3.
+2009-02-24
+	- Fixes to become.c.
+	- Check for a literal in is_c_variable ().
+2009-02-25
+	- __ctalk_method no longer changes the class of a new
+	  objects value variable.
+	- CGIApp : parseQueryString handles empty queries correctly.
+2009-02-27
+	- Speedups and changes to __ctalkFindInstanceMethodByName.
+	- Scalar typecasts now get evaluated everywhere possible.
+	- typecast_ptr_expr does not check exceptions when called
+	  itself from __ctalkEvalExpr.
+	- List : popItemRef method.
+	- ANSITerminalPane graphics methods and panelib.c functions.
+2009-02-28
+	- Added cleanup_dictionary function.
+	- Class library cleanups and updates.
+	- Front end now checks for the end of a struct or union
+	  expression and reads the entire expression only once.
+2009-03-01
+	- Release 0.0.94a.
+2009-03-04
+	- parse () now adjusts line numbering for line markers 
+	  from the preprocessor.
+2009-03-05
+	- Added undefined_label_check in resolve () and the handlers
+	  in src/rt_expr.c.  Added visible_line parameter to 
+	  __ctalkExceptionInternal for cases when a sub-parser 
+	  generates an exception.
+2009-03-06
+        - Added __ctalkGetInstanceVariableComplex.
+	- Object : become now handles NULL arguments without 
+	  crashing.
+2009-03-07
+        - Evaluate value messages as a special case of a receiver 
+	  expression's terminal token.
+        - When translating an expression to C, check if the expression 
+	  is the start of an if or while condition.
+	- Added X11 library support, X11Pane class, and compatibility 
+	  with non-X builds.
+2009-03-08
+	- Release 0.0.95a rc1.
+2009-03-11
+	- Ctpp 1.0.47.
+2009-03-15
+	- Added ctpp 1.0.47, and adjusted the read () call from popen
+	  for Solaris's alignment.
+	- Check for additional separators either inside or outside
+	  parens in rt_arglist_limit.
+	- Added X11TerminalStream class and updates to InputEvent
+	  and X11Pane classes, and x11lib.c.  
+	  __call_printon_fn_w_args ().
+	- Test version - using C declarations in instance variable 
+	  definitions.  Refer to the comments in var_definition in 
+	  src/primitives.c.
+	- Release 0.0.95a rc2.
+2009-03-25
+	- Many changes in rt_expr.c and rt_arg.c to handle cases where 
+	  an instance variable message follows a method and implement
+	  run-time handling of evaluation where receivers are the results
+	  of method messages.
+	- X11Pane paneBuffer deletion in X11Pane and and ANSITerminalPane.
+	- X fixed font support as the default in X11Pane windows,
+	  and methods for printing text on the window's default 
+	  drawable and setting the window title.
+	- Added the xhello.c demonstration program.
+	- Increased DJGPP heap size.
+	- Release 0.0.95a rc3.
+2009-04-05
+	- ANSIWidgetPane and ANSITextEntryPane classes.
+	- Release 0.0.95a rc4.
+2009-04-12
+	- Added Pane : paneBackingStore instance variable and support
+	  in panelib.c.
+	- Handle additional cases in __ctalk_isMethod, method_call, 
+	  __ctalk_method, and __ctalkAddInstanceVariable.
+	- Updated to ctpp 1.0.48.
+	- Release 0.0.95a rc5.
+2009-04-16
+	- Added RT_CLEANUP_MODE type.  Added to _cleanup_temporary_objects ().
+	- Fixed while block framing for blocks not enclosed by braces.
+	- Added method output queuing from get_method for just-in-time
+	  non-superclass lookup cases.
+	- Added example programs from the documentation to the test
+	  subdirectories.
+	- Ctpp 1.0.49.
+2009-04-19
+        - C Type casts can also be used to declare an instance
+	  or class variable's class.
+        - Also look for a method using the value's class in 
+	  __ctalk_method.
+        - Side scrolling in ANSITextEntryPane.
+        - ANSIButtonPane and ANSIMessageBoxPane classes.
+	- Release 0.0.95a rc6.
+2009-04-26
+	- Ctpp 1.0.50.
+	- Added String : isNull.
+	- Retrieve class objects and methods using the value
+	  instance variable's class in rt_args ().
+	- Added verbose warning if "self" appears within a 
+	  constructor.
+	- When parsing a C variable initialize, check whether
+	  the initializer contains objects.
+	- Fixes in __ctalk_to_c_ptr () in lib/objtoc.c.
+	- Make sure class and superclass of instance variables
+	  are filled in when adding with add_instance_variables ().
+	- ANSIYesNoBoxPane class and many updates for serial 
+	  terminals in ANSIWidgetPane and other subclasses.
+	- Release 0.0.95a rc7.
+2009-05-07
+	- Added eval keyword.
+	- __ctalkCopyPaneStreams library function for use with parent
+	  methods. 
+	- __ctalkDeleteObject now checks for circular object references.
+	- ANSITextBoxPane class.
+	- Lots of cleanups and bug fixes.
+	- Release 0.0.95a rc8.
+2009-05-16
+        - Added more checks in resolve for expressions that contain self.
+        - Added more checks in method_args and eval_args for forward
+	  method references, and check for recursive method resolution.
+        - Added readFormat methods in String and ReadFileStream classes.
+	- Release 0.0.95a.
+2009-05-24
+	- Added a value buffer pool in lib/objtoc.c to handle multiple 
+	  object-to-C translations in a single function call.
+	- Added Method class and simple virtual method call protocol.
+	- Define parameters for default primitive methods.
+	- Speedups in rtobjref.c and rt_methd.c, and increase in 
+	  the number of frames in the front end.
+	- Added __ctalkANSIClearPaneLine library function as a faster
+	  way than a method to clear a line within a text pane.
+	- Workarounds in ANSITerminalStream for line-map warning messages.
+	- Release 0.0.96a rc1.
+2009-06-02
+	- Added writable arguments for functions like sscanf and sprintf.
+	- __ctalkCopyObject now adds instance variables to the destination
+	  object manually, so it can handle multiple instance variables
+	  that have the same name.
+	- Implemented code blocks as arguments for methods like map.
+	- Release 0.0.96a rc2.
+2009-06-16
+	- Updated ctdb, ctcc, and cttest shell scripts, 
+	  programs/Makefile, and test/Makefile to format 
+	  LD_LIBRARY_PATH as one library search directory for 
+	  each -L argument, for compatibility with all Bourne-type 
+	  shells and build tools.
+	- CGIApp : getServerEnv class now uses environ builtin to
+	  get server's environment.
+	- Updated replace_argblk () in argblk.c to avoid a double
+	  free () when the block contains self.
+2009-06-17
+	- Added METHOD_USER_OBJECT scope and temporary object deletion
+	  case in _cleanup_temporary objects that does not trash 
+	  a method's user_object list.
+	- TOK_OBJ_IS_ARG_W_FOLLOWING_EXPR message attribute and case
+	  where single-token arg is followed by a math
+	  operator, and add receiver_obj and receiver_msg
+	  pointers for cases of sequences of multiple
+	  operators.
+2009-06-18 
+	- Fill in receiver_msg and receiver_obj links for 
+	  expressions with successive methods in eval_expr.
+	- Added __xrealloc library function and dynamic
+	  buffer allocation in String : atPut.
+	- Rewrote cttest to use the ctalk binary and
+	  libraries from their build directories.  
+	- Added dejagnu skeleton directories below test,
+	  with Makefile.am and copy of cttest.
+2009-06-19
+	- Added updated Exception and SystemErrnoException
+	  classes.  
+	- Calculate method error and warning line numbers from 
+	  absolute line of method sub-parser called by new*method
+	  plus method start line in superior parser.
+2009-06-20
+	- Rewrote String : + to dynamically allocate space for
+	  operands of unknow size.
+	- Added browser display of errors in wiki.c.  Rewrote
+	  getServerEnv to use environ global variable.
+	- Added readAll.c and readChar.c tests in 
+	  test/expect/read-tests.
+2009-06-21
+	- Rewrote String : split to call substrcpy ()
+	  directly, for compatibility with GNU compilers
+	  before version 3, and also for speed.  Substrcpy ()
+	  declaration only uses restrict with GCC versions 
+	  3 and later.
+	- Added fn_prototype_param_declarations ()
+	  (fn_param.c), to recognize parameter declarations
+	  that have only a single token without a tag.
+	- Added basic check target in top-level Makefile.
+2009-06-22
+	- Cleanup in wiki.c and CGIApp and ReadFileStream :
+	  readRec method.  Variable length buffers in 
+	  String : subString. Cleanup in String : asInteger.
+	- When adding a local object, make sure it isn't
+	  also a temporary methodobject.
+2009-06-23
+	- for_stmt () now checks for loop blocks not
+	  enclosed in braces even if they are in the same
+	  frame as the loop predicate.
+	- In preprocess (), very recent version of GCC on 
+	  Linux now also read from the ctpp process using 
+	  size int characters, which should help prevent
+	  printing the preprocessor output as garbage due to
+	  library or version skew.
+	- Added __ctalkX11IOErrorHandler in lib/x11lib.c.
+2009-06-24
+	- Function delete_parserinfo has a check for 
+	  leftover CVARs.
+2009-06-25
+	- Rewrote function buffering so output goes directly
+	  to a buffer instead of an intermediate queue, and 
+	  output_global_init produces output independently of 
+	  function buffering.
+2009-06-27
+	- x11lib.c client IPC framework.  Added shmem.c and use 
+	  shared memory data for X client exit.  Fixed font load 
+	  and unload (or at least unloads the font info) when 
+	  opening and closing the display.  Signal handling for 
+	  Linux and Solaris.  UNIX socket with independent 
+	  file descriptor.  (NOTE: This library and X11Pane 
+	  class are still being revised, and are still not 
+	  compatible with recent X libraries and window managers
+	  (e.g.; GNOME).  This release contains the previous version 
+	  of X11Pane and x11lib.c).
+	- Class lib initialization now allocates more memory in
+	  the program's data segment.
+2009-06-29
+	- Check for expr_check pass when looking for super
+	  and other message receivers, and if a label is a 
+	  pending class name.  Complex while loop predicate 
+	  expressions are treated like normal expressions, 
+	  and fixed framing for while loops that don't have 
+	  braces.
+2009-06-02
+	- Release 0.0.96a rc 3.
+2009-06-05
+	- Ctpp 1.0.52.
+	- Updated x11lib.c for recent versions of Linux.  
+	  Please refer to the comments in lib/x11lib.c.
+	- Release 0.0.96a rc 3.1.
+2009-07-11
+	- Ctpp 1.0.53.
+2009-07-15
+	- Check for function parameter context in 
+	  collection_context ().
+2009-07-16
+	- Mac OS X / Darwin PowerPC compatibility updates.
+	  Removed most references to long doubles, or 
+	  placed results in doubles if necesary.  Added
+	  preprocessor defines elsewhere, created atoll 
+	  macro for DJGPP and Apple.  Removed as many 
+	  references to long double as possible from 
+	  the library and test programs.  Check for input
+	  from C header file before adding function init
+	  and exit blocks.  Compatibility updates for 
+	  Time, Application, and ANSITerminalStream classes, 
+	  cttest shell script, and atoll workarounds, and
+	  check for Mach executables in is_binary_file ().
+2009-07-19
+	- X11Pane and x11lib.c compatibility updates for 
+	  Linux/GNOME.  Added Pen, Line, and Rectangle 
+	  classes, with X11Pane drawing methods.  Added
+	  drawing methods to Point class.  Added clearWindow
+	  and clearRectangle methods to X11Pane class.
+	  Added MOVENOTIFY and RESIZENOTIFY InputEvent 
+	  types.
+	- Release 0.0.96a rc4.
+2009-07-21
+	- x11lib.c GC reuse... Point class updates, window 
+	  title defaults to argv[0] basename.
+2009-07-26
+	- Updated make_req macro that adds function-specific
+	  data in addition to request header, and wait_req
+	  macro.  Added fontDesc instance variable and
+	  support for user specified font.
+	- If-else statement evaluation now prevents
+          macro expansions that result in a semicolon before
+	  an else keyword.
+	- Release 0.0.96a rc4.1.
+2009-08-03
+	- X11Font class, useFont method, X11Font class, and
+	  bitmap.c library routines.
+2009-08-06
+	- Reset parser's control block state at the last
+	  token of a default: statement.
+2009-08-07
+	- Updated Symbol : =; Added Symbol : symbolReference, 
+	  and Symbol : getValue;
+2009-08-09
+	- Compatibility fixes in rt_stdargs.c for OS X.
+2009-09-14
+	- Added Bitmap, Font, X11Font, and X11PaneDispatcher
+	  classes and methods.  Added support backing
+	  pixmaps and XK keyboard translation in x11lib.c
+	  and bitmap.c.
+	- Updated argument frame handling to handle
+	  recursive method calls and multiple occurrences 
+	  of a method on the call stack.
+	- Added warnings and stack traces for NULL arguments
+	  and cross-linked objects.
+	- Added scope adjustments so that METHOD_USER_OBJECT
+	  scope only appears within the original objects, 
+	  not copies.  Added user object registration to 
+	  many methods and templates.
+	- Added backtracking in eval_expr and
+	  need_defined_receiver for expressions that use 
+	  compound receivers.
+2009-09-20
+	- X11TextPane class with basic window manager
+	  support.
+	- Release 0.0.96a 20090920
+2009-10-15
+	- X11TextPane and library compatibility updates
+	  for SPARC Solaris and GNOME window managers.
+2009-10-16
+	- Release 0.0.96a 20091016.
+2009-10-29
+	- Handle typedef dereferences (e.g., OBJECT *) in method
+	  arguments, compatibility fixes for Darwin and DJGPP.
+	  Simplified handling of preprocessed class libraries and
+	  library dependencies.
+2009-11-03
+	- Recover from recursive object copies if there is a 
+	  circular reference in very complex objects.  
+	  Print warning and trace.
+2009-11-04
+	- Check for circular references of reffed parent 
+	  objects when copying, and increase the reference
+          count of the referenced object instead of copying
+          for the target object.	
+2009-11-05
+	- Handle instance variable expressions in argument
+	  block predicates.
+2009-11-06
+	- Handle control block predicates - expression checks -
+	  within argument blocks.  
+2009-11-08
+	- Rewritten X11TextPane : displayText.
+        - Check for system atoll () and use ctalk's atoll ()
+	  if not present.
+	- Ctpp 1.0.54.
+2009-11-08
+	- Build on Mac OS X 10.3.9.  
+2009-11-10
+	- Ctpp 1.0.55.
+2009-11-14
+	- When resolving objects, check whether a C function 
+	  is shadowed by a method.
+2009-11-17
+	- Parsing for do-while and while loops with and without braces
+	  when they are used as if blocks that are not themselves enclosed 
+	  by braces.
+2009-11-18
+	- Release 0.0.96a 20091118
+2009-11-23
+	- Added chkatoi () function and a check for the
+	  range of new visual resource ids when resizing 
+	  windows.
+2009-11-25
+	- Added expose event handlers in X11PaneDispatcher 
+	  and X11TextPane classes.
+2009-11-26
+	- Added n and p keys to X11TextPane motion keys.  
+2009-11-29
+	- Retry a failed X11 resize request, if the resize
+	  returns invalid resized buffers.
+2009-11-30
+	- In rt_methd (), check if the receiver is different
+	  after a method call.  Integer : = uses Object : copy
+	  instand of Object : become.
+2009-12-01
+	- Added Application : installExitHandlerBasic and 
+	  Application : installAbortHandlerBasic.
+2009-12-02
+	- Added depth instance variable to X11Pane class, and
+	  set to screen depth when window is created with library
+	  functions in x11lib.c and bitmap.c.  
+2009-12-13
+	- Object : -> method and test for struct members in 
+	  get_method_arg_cvars ().  Registering a class or
+	  global object using a C variable alias uses the
+	  actual internally instead of creating an internal
+	  copy.
+2009-12-17
+	- X11CanvasPane class and basic draw methods and event
+	  handlers.  The x11canvaspane.c test program.
+	- Release 0.0.96a 20091217.
+2009-12-25
+	- Code cleanup: Added sigemptyset to basic signal
+	  handlers.  Delete X11 GC references so 
+	  __ctalkDeleteObjectInternal doesn't try to read
+	  them as objects later.  Updated X11Pane : 
+	  deleteAndClose to handle subpanes.  Added 
+	  delete_all_objs in rt_expr.c. Updated 
+	  Character, Collection, and FileStream classes to 
+	  register objects.
+2009-12-31
+	- Lots of memory warning cleanups and rewritten 
+	  Object : copy that doesn't overwrite the receiver's
+	  C alias (can cause SIGABRT).
+	

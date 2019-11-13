@@ -1,0 +1,99 @@
+.\" $Id: searchlib.1,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $
+.\"
+.\" This file is part of ctalk.
+.\" Copyright © 2015 Robert Kiesling, rk3314042@gmail.com.
+.\" Permission is granted to copy this software provided that this copyright
+.\" notice is included in all source code modules.
+.\" 
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation; either version 2 of the License, or
+.\" (at your option) any later version.
+.\" 
+.\" This program is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\" 
+.\" You should have received a copy of the GNU General Public License
+.\" along with this program; if not, write to the Free Software Foundation, 
+.\" Inc., 51 Franklin St., Fifth Floor, Boston, MA 02110-1301 USA.
+
+.TH SEARCHLIB 1 "2016-09-25"
+.SH NAME
+searchlib \- Search the Ctalk library documentation.
+.SH SYNOPSIS
+.B searchlib 
+[
+.B -h
+] | [
+.B -f \fIdocfile\fP
+] | [
+.B -m
+]
+\fIsearchpattern\fP
+
+.SH DESCRIPTION
+.B Searclib
+searches the 
+.B Ctalk
+documentation for the application programming interface
+functions or methods that match the search pattern given on the
+command line, and displays the results along with the description
+of each function or method.
+
+The default is to search for a C library function.  
+If the
+.B -m
+option is given,
+.B searchlib
+searches the class library documentation for matches to
+any of the methods' prototypes (see below).
+
+
+.SH OPTIONS
+.TP 8
+.B -f \fIpath\fP
+The path to the library's API documentation.  In a normal
+.B Ctalk
+installation, this is \fI<prefix>/share/ctalk/libdoc,\fP and
+\fI<prefix>/share/ctalk/classlibdoc.\fP
+.TP 8
+.B -h
+Print a help message and exit.
+.TP 8
+.B -m
+Search the class library for a method.  The class library
+documentation is formatted so that all of a method's prototype
+may be searched for a string or regular expression.  The
+format of a method prototype in the documentation is:
+
+  <receiver_class>::<method_selector> (<argument_list>)
+
+
+.SH SEE ALSO
+.BR ctalk "(1)",
+.BR classes "(1)",
+.BR membervars "(1)",
+.BR methods "(1)",
+.BR methodsource "(1)".
+
+The Texinfo documentation also describes the
+.B Ctalk
+tools.  The shell command
+
+  $ info ctalktools
+
+displays the documentation on machines that have
+GNU Texinfo installed.
+
+.SH AUTHORS
+.B Ctalk 
+and
+.B searchlib
+are written and maintained by Robert Kiesling,
+.br
+rk3314042@gmail.com.   The Web site
+http://sf.net/projects/ctalk
+contains information about current releases.
+

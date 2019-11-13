@@ -1,0 +1,193 @@
+.\" $Id: templates.5ctalk,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $
+.\"
+.\" This file is part of Ctalk.
+.\" Copyright © 2015 Robert Kiesling, rk3314042@gmail.com.
+.\" Permission is granted to copy this software provided that this copyright
+.\" notice is included in all source code modules.
+.\" 
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation; either version 2 of the License, or
+.\" (at your option) any later version.
+.\" 
+.\" This program is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\" 
+.\" You should have received a copy of the GNU General Public License
+.\" along with this program; if not, write to the Free Software Foundation, 
+.\" Inc., 51 Franklin St., Fifth Floor, Boston, MA 02110-1301 USA.
+
+.TH TEMPLATES 5ctalk "2015-10-22"
+.SH NAME
+templates \- Ctalk Method Wrappers for C Language Routines
+
+.SH DESCRIPTION
+
+Templates are 
+.B Ctalk's
+method wrappers for C routines.  The
+.B Ctalk
+compiler substitutes a template method call in places where a C
+function call would be inconsistent or simply impossible.  Templates
+also provide an interface to C functions that write to their
+arguments, like
+.BR scanf "(3)".
+
+.B Ctalk 
+provides a library of built-in templates that correspond to the standard
+C library's functions, and their use is often transparent.  For example, 
+using 
+.BR atoi "(3)"
+in a complex
+expression causes the compiler to substitute a call to 
+.BR atoi "(3)"'s
+template method.
+
+Ctalk adds user defined templates to the output in the same manner.
+However, templates do not need to have a one-to-one correspondence
+with actual C functions.  A template can have any name and contain
+any C language statement or statements that it needs.
+
+.SH TEMPLATE USAGE
+
+Templates are almost always necessary in complex expressions that
+contain mixed
+.B Ctalk
+objects and C variables; for example, when such an expression
+appears in an \fIif\fP predicate, 
+.B Ctalk 
+always substitutes a template for the C function if a template is
+available.
+
+  if ((myInt = atoi (10)) == 10) {
+     \fI... do something ... \fP
+  }
+
+.B Ctalk
+also uses templates when a C function appears on the right-hand side of
+an assignment.
+
+  myRandomInt = rand ();
+
+  or
+
+  self = atoi (numberStringArg);
+
+
+Programs can also use templates directly, because they are class
+methods of the pseudo-class \fICFunction.\fP
+
+  CFunction myPrintStr (myMsg);
+
+Of course, if a template provides a wrapper for a C function of the
+same name, then C statements can still use the C function directly.
+Templates often share the same name as the C functions that they
+provide wrappers for, but a template can also have any name and
+contain any C statement that it needs.
+
+.SH TEMPLATE FORMAT
+
+A template is basically a multiple line macro that #defines the
+template function name and function body for the function given in the
+source input.
+
+.B Ctalk
+forms the template's name by uppercasing the first letter of
+the function name and prepending a 'c' to it.  In this example, the actual
+name of the \fImyPrintMsg\fP template function is \fIcMyPrintMsg.\fP
+
+Here is the complete definition of the \fImyPrintMsg\fP template.
+
+#define myPrintMsg \\n\\
+.br
+cMyPrintMsg (char *text) {\\n\\
+.br
+  char buf[255]; \\n\\
+.br
+  int result; \\n\\
+.br
+  if (__ctalkIsObject(ARG(0))) { \\n\\
+.br
+    result = printf ("myPrintMsg: %s\n", \\n\\
+.br
+                      __ctalkToCCharPtr(ARG(0), 1)); \\n\\
+.br
+    __ctalkDecimalIntegerToASCII (result, buf); \\n\\
+.br
+    return __ctalkCreateObjectInit ("result", "Integer", \\n\\
+.br
+                                    "Magnitude", LOCAL_VAR, buf); \\n\\
+.br
+  } else { \\n\\
+.br
+    __ctalkDecimalIntegerToASCII (-1, buf); \\n\\
+.br
+    return __ctalkCreateObjectInit ("result", "Integer", \\n\\
+.br
+                                    "Magnitude", LOCAL_VAR, buf); \\n\\
+.br
+    __ctalkRegisterUserObject (objresult); \n\
+.br
+    return objresult; \n\
+.br
+  } \\n\\
+.br
+}
+
+The most obvious feature to note is that each template line ends with
+the character sequence "\\n\\."  This allows the template's lines to
+be joined during preprocessing, yet preserves the function's newline
+characters.  This allows templates to have the same form as a C
+function and contain any C language statement that the template needs.
+
+A program must also provide a prototype of the template.  In this case
+one of the program's source files must contain a function prototype
+like this one.
+
+OBJECT *myPrintMsg (char *);
+
+This allows
+.B Ctalk
+to determine the number and type of arguments that the template needs.
+Templates, like methods, always return an OBJECT * (or NULL), and the
+template's parameter list must match the prototype's parameter list.
+
+For a full description of how each of the template's statements and
+API function calls work, refer to the \fITemplates\fP section of the
+\fICtalk Language Reference.\fP
+
+.SH TEMPLATE STORAGE AND RETRIEVAL
+
+.B Ctalk
+stores the templates for many C library functions in a subdirectory of
+the class library called \fIlibc.\fP User-defined templates are stored
+in a user's \fI$HOME/.ctalk/templates\fP directory, in a file named for the
+first letter of the template's name.  So the template \fImyPrintMsg\fP
+would be stored in the file, \fI$HOME/.ctalk/tempates/m,\fP along with all of
+the other templates whose name begins with 'm'.
+
+The registry for C library templates is part of the Ctalk run time
+library.  User-defined templates, however, use a file named
+\fI$HOME/.ctalk/templates/fnnames\fP as the template registry.  Information
+about the format of the \fIfnnames\fP file is contained in the
+.BR fnnames "(5ctalk)"
+manual page.
+
+.SH SEE ALSO
+.BR ctalk "(1)",
+.BR fnnames "(5ctalk)",
+.BR template "(1)"
+
+There is also more information about the template API in the \fITemplates\fP
+section of the \fICtalk Language Reference.\fP  The \fICFuncton\fP section
+provides a (normally up-to-date) list of Ctalk's templates for the
+C standard library.
+
+.SH AUTHORS
+.B Ctalk
+is written and maintained by Robert Kiesling, 
+.br
+rk3314042@gmail.com.
+

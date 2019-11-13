@@ -1,0 +1,1714 @@
+2005-09-21
+	Initial autoconf release.
+2005-09-26
+	Method argument handling, and output collection of
+	generated code.
+2006-02-17
+	Release 0.02 with preprocessor that is C99 compliant, 
+	with the exception of wide character strings, the omission 
+	of the enclosing function's name in #assert messages, 
+	and variable macro arguments.
+2006-05-03
+	Release 0.03 which provides base classes that correspond to 
+	native C data types, methods that provide basic operations,
+	much improved expression parsing for ctalk expressions, and a
+	ctalk object to C data type interface.
+2006-05-09
+	Bugfix release 0.04.
+2006-07-05
+	Release 0.05.
+2006-09-09
+	Release 0.06.
+2006-09-15
+	Bugfix release 0.07.
+2006-10-25
+	Release 0.08, with yet more expression parsing, classes, methods,
+	and bugfixes.
+2007-07-16
+        Changed to external ctpp preprocessor.
+2007-07-24
+	Ctpp 1.0.3.
+2007-07-25
+	Ctpp 1.0.4.
+2007-07-27
+	Ctpp 1.0.5.
+2007-07-30
+	Ctpp 1.0.6.
+2007-08-03
+	Ctpp 1.0.7.
+2007-08-06
+	Ctpp 1.0.8.
+2007-08-11
+	- Added, "value," instance variable as the default in all
+	  class definitions, and a check in eval_expr () for 
+	  results that are only instance variable, in which case
+	  the function creates a new object with a copy of the
+	  instance variable result of another method call.  Added
+	  the library function __ctalkIsInstanceVariableOf () to
+	  check for the presence of an instance variable.
+	- Ctpp 1.0.9.
+2007-08-13
+	- __ctalkEvalExpr now does a better job if figuring out
+	  if a method returns an object or only an instance 
+	  variable.
+2007-08-16
+	- Added unary arithmetic in rt_expr.c for constant 
+	  expressions.
+	- Added getChar (class Character) method.
+	- Fixed == and != methods (class Character) to test 
+	  the values of the arguments, and not just pointers.
+	- Added ctwc sample program.
+	- Ctpp 1.0.10.
+	- Release 0.0.9.
+2007-09-04
+	- Updated for GCC 4.1.2 and autoconf 1.9.6.
+2007-09-05
+	- Ctpp 1.0.14.
+2007-09-07
+	- Macro caching.
+	- Updates for DJGPP.
+	- Find_declaration_end () also checks for function declarations.
+2007-09-09
+	- Generate_c_to_obj_call in src/ctoobj.c checks both global_var
+	  and functions namespaces for defined functions, adds better
+	  warning messages for undefined functions and return classes.
+	- Have_type_prefix in cparse.c now checks for the main parser
+	  stack before using frame pointers.
+	- Added, "include once," section in ctalk.texi.
+2007-09-10
+	- Fixed bug in __ctalk_exitFn.
+	- Added system-dependent ctpp executable names.
+	- Added macro cache in preprocess_template ().
+	- Use stdio EOF definition in Character getChar method.
+2007-09-11
+	- Add typedefs to CFunction return class evaluation for 
+	  function CVARS in ctoobj.c.
+	- In eval_arg () (method.c), create a CFunction object only
+	  with the part of the expression that is  the function and
+	  its arguments.
+2007-09-12
+	- Ctpp 1.0.16.
+	- Added void type to Object class in param_class (), and 
+	  Integer class default.
+	- __ctalkIsObject () library function.
+	- Cleanup of atof, atoi, atol, atoll, and strlen function 
+	  templates.
+2007-09-13
+	- Check the return value of pclose () after preprocessing, and
+	  exit if ctpp generates an error.
+	- Added test/expect subdirectory for test scripts, and
+	  removed test/expr.c.
+2007-09-14 
+	- Added argv0.exp, argv0.c, argv.c, and argv.exp in 
+	  test/expect.
+	- Added test/ and test/expect directory contents to EXTRA_DIST
+	  in top-level Makefile.am. Subdirectory test/ contains a 
+	  non-autoconf Makefile.
+	- Added better ctpp warning for inability to find the GCC 
+	  library subdirectory, and the GCC_LIBDIR environment 
+	  variable has its own section in ctpp(1).
+	- Added noinst_HEADERS in top_builddir Makefile.am.
+	- Release 0.0.10a.
+2007-09-15
+	- Replaced all termination blocks in for loops with __ctalkEvalExpr
+	  and __ctalk_register_c_method_arg when necessary.
+2007-09-16
+	- Added test programs for1.c, for2,c, for1.exp, and for2.exp.
+2007-09-17
+	- The loop block start index of for loops without braces enclosing
+	  the loop block is now the token after the closing parenthesis
+	  of the predicate, so that the block start is always in the
+	  same frame as the predicate.
+	- Function fmt_rt_expr () to handles run-time expressions where
+	  objects are only in the right-hand term of the expression.
+	  Added for for loop termination predicates.
+	- Release 0.0.11a.
+2007-09-18
+	- Fixed up while loop code so the predicates always evaluate
+	  into run time expressions, either evaluated in default_method
+	  (), if the expression begins with a C variable and operator,
+	  or in loop_block_end () in loop.c.  
+	- Added while1,c, while1.exp, while2.c, while2.exp, while3.c, and
+	  while3.exp in test/expect.
+2007-09-19
+	- Added do1.c, do1.exp, do2.c, do2.exp, do3.c, and do3.exp in
+	  test/expect.
+	- Added format_rt_expr () in loop_pred_end for do - while loops.
+	- Replaced rt expression code for while loops with 
+	  format_rt_expr () in loop_block_start ().
+2007-09-20
+	- Use format_rt_expr () in if predicates and case clauses,
+	  in ctrlblk_pred_rt_expr () and default_method ().
+	- Added if1.c and if1.exp in test/expect.
+2007-09-20
+	- Added instanceVariable and classVariable primitive methods
+	  in the interpreter, and __ctalkDefineInstanceVariable and
+	  __ctalkDefineClassVariable in the run time library.
+	- Escape quotes and remove newlines from __ctalkEvalExpr 
+	  expression arguments.  Removing newlines works around
+	  a bug in some GCC versions.
+	- Release 0.0.12a.
+2007-09-21
+	- Removed old super code.  Added compound_method () in method.c 
+	  for, "super," modifier.	  
+2007-09-22
+	- Updated method_call () in method.c and default_method () in 
+	  rexpr.c for compound methods.
+2007-09-23
+        - Use rt_library_method_call () instead of fmt_method_call ().
+	- Added get_class_method () and is_class_method (), and added
+	  class method lookups to the instance method lookups in 
+	  method.c, class.c, and rexpr.c; and changed method lookup
+	  errors to exceptions.
+2007-09-24
+	- Added argument promotion in __ctalk_primitive_method ()
+	  for super *primitive* methods, and __super_move_args () in 
+	  rt_methd.c, and many other fixes for superclass primitive
+	  methods.
+2007-09-25
+	- Added class-specific constructors ("new" methods) to function 
+	  initialization.
+2007-09-27
+	- Added chash.c and chash.h.
+2007-09-29
+	- Use __ctalkEvalExpr to evaluate objects with null_context
+	  contexts at run time in resolve_arg ().
+2007-10-01
+	- Substitute __ctalk_arg_internal () calls in new_object if
+	  the argument is a method parameter.  Calls to format the
+	  __ctalk_arg_internal () calls correctly for __ctalk_arg (),
+	  __ctalk_primitive_method (), __ctalk_method (), and 
+	  __ctalk_set_local ().
+	- Add the result objects of constructor calls to the global
+	  dictionary in __ctalk_method (), rt_methd.c.
+	- Added get_class_variable () function in object.c.
+2007-10-02
+	- Fixed class variable access functions and made sure that
+	  all primitive methods get treated similarly, except for,
+	  "new."  Fixes to handle class objects and objects with 
+	  value classes different than the object's class.
+2007-10-03
+	- Added __ctalkInstanceVariablesFromClass and related functions 
+	  in the interpreter and run time library.
+	- Added instance variables mode, dev, rdev, size, atime, mtime,
+	  ctime, and pos to FileStream class definition.
+2007-10-04
+	- Added size and stat methods (class FileStream).
+2007-10-05
+	- Added = method (class FileStream).
+	- Added readChar, readLine, and openOn methods and 
+	  stdinStream class variable (class ReadFileStream).
+2007-10-06
+	- Added close method (class ReadFileStream).
+	- Ctpp 1.0.17.
+	- Added class WriteFileStream methods classInit, value,
+	  new, openOn, close, writeChar, and write, and 
+	  stdoutStrea and stderrStream class variables.
+	- Changed the arg() macro in ctalklib and ctldjgpp to
+	  ARG().
+	- Changed __ctalk_set_local () so it takes an OBJECT
+	  as its first parameter, so the name doesn't get
+	  confused with the value.
+	- Added errno instance variable to the FileStream
+	  class definition.
+	- Release 0.0.13a.
+2007-10-12	
+	- Speedups - fixed gnu_attributes to stop at first semicolon;
+	  temporarily removed the global_cvar search from get_function.
+	- Added _hash_all () in chash.c.
+2007-10-13
+	- Added __ctalkDecimalIntegerToASCII and __reverse in 
+	  lib/ctitoa.c.  Replaced all sprintf () statements in
+	  classes/Integer.
+	- Fixed bug in __set_left_operand_value () and 
+	  _cleanup_temporary_objects () (rt_expr.c).
+2007-10-14
+	- Added compatibility function gnuc_fix_empty_extern ()
+	  to elide empty declarations that cause compiler warnings.
+	- Fixed a bug in remove_method_arg_cvar () that prevented
+	  retrieving a function's local C variable (rt_cvar.c).
+	- Removed the formatting of __ctalkEvalExpr call into
+	  array subscripts in subscript_expr () (rexpr.c).  
+	  Subscript_expr () now creates a template that derives
+	  an integer subscript from the ctalk expression, and uses
+	  that to set the method argument to the correct array 
+	  element.
+	- Added leading_unary_op () (control.c) which sets the 
+	  start of an if statement predicate to the leading 
+	  operator if one exists, or simply the original start
+	  (usually the opening parenthesis).  Does not handle
+	  predicates that start with semicolons, so only works
+	  in if, while, and do statements.
+	- Added while4.exp, while4.c, do4.exp, and do4.c in
+	  test/expect to check negated object predicates.
+2007-10-16
+	- Added streq.c.
+	- Added class and superclass OBJECT * members to OBJECT 
+	  type.  Use the superclass OBJECT * in obj_method_by_fn (), 
+	  and __ctalk_get_object () (rt_obj.c); and in the method
+	  find method functions in method.c.
+	- Basic syntax checking of instanceVariable arguments 
+	  (primitives.c).
+	- Changed the names of the FileStream instance variables so
+	  they do not conflict with stdio names.
+	- Added exceptions for glibc error numbers 1-34, using the text
+	  of asm-generic/errno-base.h, with gettext macros.
+	- __ctalkSysErrExceptionInternal calls __ctalkExceptionInternal.
+	- Added FileStream: eof method.
+	- Added end-of-file checks for ReadFileStream methods, and
+	  exceptions generated by __ctalkSysErrExceptionInternal if
+	  there is an error.
+2007-10-17
+	- Code cleanup for lint-type warnings, bugfix that re-initializes
+	  e_class in _eval_expr () (rt_expr.c).
+	- Release 0.0.14a.
+	
+2007-10-22
+	- Ctpp 1.0.19. Changes to configuration files: Added the
+	  gccincdir.sh script to add the path during configuration
+	  to the ctpp AM_CFLAGS without needing to specify the
+	  path as an option to configure.  Added the gccincdir.sh
+	  script to EXTRA_DIST in Makefile.am.
+	- Fixed a memory allocation bug in create_tmp () (tempio.c).
+2007-10-25
+	- Minor speedup in get_global_var () (cvars.c).
+	- Ctpp 1.0.20.
+	- Use buffered file I/O in tmp_to_output () (tempio.c).
+	- String: ReadAll method, and speedups in String: length 
+	  and String: at.
+	- Speedup in test/ctwc.c.
+	- Release 0.0.15a.
+2007-10-26
+	- Added ctpp -move-includes option in preprocess () for input 
+	  file.
+2007-10-29
+	- Ctpp 1.0.21.
+	- Avoided some lint-like warnings with variable 
+	  initializations.
+2007-10-30
+	- Use register variables in check_state () (parser.c),
+	  added DELETE_C_VARIABLES macro (ctalk.h), and other
+	  minor speedups.
+2007-10-31
+	- Added -finline-functions optimizatin in src/Makefile.am,
+	  lib/Makefile.am, and configure.in.  Also added 
+	  -without-inline-functions option to configure.in.
+2007-11-02
+	- Release 0.0.16a.
+	- Added arg.c, with arglist_limit ().
+2007-10-08
+	- Global_constructor_arg () function (arg.c).
+2007-10-09
+	- Character : asString method.
+	- Added is_global_constructor () (cvars.c) to check for global
+	  constructors when registering variables.
+	- Added ctrep.c example program.
+	- Release 0.0.17a.
+2007-10-11
+	- Added state checks for loops in while_stmt (control.c), and 
+	  insert a closing brace if necessary in loop_block_end (loop.c).
+2007-11-12
+	- Ctpp 1.0.22.
+	- Updated copyright notices and standard autoconf include files.
+	- Release 1.0.18a.
+2007-11-15
+	- Added __ctalkDecimalLongLongToASCII (ctlltoa.c).
+	- ReadFileStream and WriteFileStream methods set streamPos.
+	- Updated reference manual.
+2007-11-16
+	- Release 0.0.19a.
+2007-11-17
+	- Tutorial introduction.
+2007-11-18
+	- Added ctalk-docs.tar.gz and docs-clean targets in
+	  doc/Makefile.am.
+2007-11-25
+	- Ctpp 1.0.26.
+	- Updated test/hello.c to use stdoutStream.
+	- Added template cache in fn_tmpl.c.
+	- Added clib_fn_rt_expr () (fn_tmpl.c) to format run-time
+	  template expressions.
+2007-11-26
+	- Added test scripts for libc functions abs, atoi, atol,
+	  atoll, and atof, with 1) simple expressions, 2) complex 
+	  expressions that require a template, and 3) complex 
+	  expressions with an object as the argument; in 
+	  test/expect.
+	- Added test scripts for libm functions acos, acosh, asin, and
+	  asinh with 1) simple expressions, 2) complex expressions that 
+	  require a template, 3) complex expressions with a C variable 
+	  as the argument, and 4) complex expressions with an object 
+	  as the argument.
+	- Added long long int to OBJECT conversion functions 
+	  __ctalkCLongLongToObj () (lib/ctoobj.c), and
+	  c_longlong_to_obj_call () (src/ctoobj.c).
+	- Added parser stack unwinding when looking for local objects
+	  and C variables that are arguments to C functions.
+2007-11-27
+	- Fixed bug in is_c_var_declaration_msg () (cparse.c) to record
+	  dereference levels correctly.
+	- Added = method in Symbol class.
+	- Added test scripts for asctime, cbrt, ceil, cos, and cosh libc 
+	  functions with 1) simple expressions, 2) complex expressions 
+	  that require a template, 3) complex expressions with a C 
+	  variable as the argument, and 4) complex expressions with an 
+	  object as the argument.
+	- Added ctime libc function tests in test/expect for simple
+	  expressions and Symbol object arguments.
+	- Fixed fn_return_class () (ctoobj.c) warning messages.
+	- Release 0.0.20a.
+2007-11-28
+	- Added test/expect scripts for difftime, erf, erfc, exp, and
+	  expm1 libc functions.
+2007-11-29
+	- Rewrote test/expect/abs3.* and added test/expect/abs4.c 
+	  and test/expect/abs4.exp.
+	- Added test scripts for fabs and fabsf libm function with 1) 
+	  simple expressions, 2) complex expressions that require a 
+	  template, 3) complex expressions with a C variable as the 
+	  argument, and 4) complex expressions with an object as the 
+	  argument.
+	- Release 0.0.21a.
+2007-12-03
+	- Ctpp 1.0.27.
+	- Added expr_paren_check () (control.c) to check that if
+	  statements have complete sets of parentheses.
+	- Added test scripts for libc function strlen templates.
+	- Fixed expression parsing bugs in control.c (while loops)
+	  and rt_args.c (parenthesized argument lists end after 
+	  IS_C_OP_TOKEN_NOEVAL), and __ctalk_to_c_int () 
+	  (lib/objtoc.c) now handles Character -> int conversions
+	  automagically.
+	- Added currently executing method to EXPR_PARSER typedef.
+	- Added __ctalkGetExprParserPtr and __ctalkGetExprParserAt
+	  API functions.
+2007-12-05
+	- Added stack code for stdargs calls in rt_stdarg.c, and
+	  arg checking for stdargs function calls without a stream
+	  arg (scanf) and with stream args (sscanf and fscanf).
+	- Added templates for fprintf, fscanf, scanf, sscanf, and 
+	  sprintf.
+	- Added test scripts for fprintf, fscanf, sprintf, and 
+	  sscanf.
+	- Release 0.0.22a.
+2007-12-09
+	- Added __ctalkLongLongRadixToDecimal and 
+	  __ctalkIntRadixToDecimal library functions.
+	- Added radix conversion in = (Integer and LongInteger 
+	  classes). 
+	- LongInteger and Integer set_value methods convert the
+	  value to decimal.
+	- Added <<, >>, &, |, ^, <, >, >=, <=, ||, &&, invert, 
+	  and bitComp methods to LongInteger.
+2007-12-10
+	- Added radix conversion in asCharacter (Magnitude) 
+	  and = (Character) methods.
+	- Removed asCharacter (class Character) method.  asCharacter
+	  is only implemented in class Magnitude.
+	- Added +, -, *, /, &, |, ^, <, >, <=, >=, ||, &&, >>, <<, 
+	  invert, and bitComp Character methods.
+	- Added <, >, <=, >=, &&, and || Float methods.
+	- Added support for binary constants.
+	- Release 0.0.23a.
+2007-12-11
+	- Added find_subscript_declaration_end () (cparse.c).
+	- Added templates and test scripts for C library functions 
+	  strcat, strcmp, strcpy, strncat, strncmp, and strncpy.
+	- Added classes Event, Exception, and SysErrnoException,
+	  and added raiseException (class SysErrnoException) to
+	  methods in ReadFileStream and WriteFileStream classes.
+2007-12-12
+	- Updated doc/Makefile targets to generate PDF from the
+	  Texinfo manuals.
+	- Added API functions __ctalkPendingException (), 
+	  __ctalkTrapException (), and 
+	  __ctalkHandleRunTimeException (), to be called from methods
+	  and which do not check the expression parser level.
+	- Added isDir method (class FileStream).
+	- Simple check for a directory entry in openOn (classes WriteFileStream
+	  and ReadFileStream).
+	- Release 0.0.24a.
+2007-12-13
+	- Removed is_c_symbol () and call from parser, and re-arranged
+	  have_declaration so get_global_var () is not called as often.
+	- Added output_method () to output methods in the source file
+	  immediately.
+	- Release 0.0.25a.
+2007-12-14
+	- Removed a lot of library_include flags and mark all methods
+	  as imported so methods in the source text get buffered 
+	  correctly.
+	- Added check for Ctalk keywords in declarations in 
+	  is_c_var_declaration_msg (). Only check for Ctalk keyword
+	  if there is no data type in the declaration.
+	- Release 0.0.26a.
+	- Added extra check for struct members in method_args () to avoid
+	  unneeded warning messages.
+	- Inlined the functions in keyword.c for small speedup.
+2007-12-15
+	- Removed fn_args.c.
+	- Added rt_eval for Collection subclass (e.g., Array) expressions that
+	  have arguments.
+2007-12-16
+	- Moved sample programs to programs/ subdirectory.
+	- Added separate ctalk-test tarball to dist-* targets in 
+	  Makefile.am.
+	- Release 0.0.27a.
+2007-12-17
+	- Added __ctalk_to_c_array_element, which returns a void pointer.
+	- Fixed __ctalkAddInstanceVariable to replace complex variables
+	  of different names.  The reference count of the replacement
+	  variable's instance variables is set independently to the 
+	  reference count of all of the original variable's reference
+	  counts.
+	- Fixed a numeric overflow bug in __ctalkDecimalLongLongToASCII
+	  (ctlltoa.c).
+	- Check for subclasses of Integer also when doing object->C 
+	  translations in both lib/objtoc.c and src/objtoc.c.
+	- Added Time class.
+	- Added raiseCriticalException (class SystemErrnoException).
+	- Release 0.0.28a.
+2007-12-18
+	- Added __call_stack , __save_rt_info (), and __restore_rt_info(),
+	  in rtinfo.c. Removed local calling context objects from 
+	  eval_expr () and __ctalk_method (), and call these two functions 
+	  instead.
+	- Added subclass checks to the object-to-C translations in 
+	  lib/objtoc.c and src/objtoc.c.
+	- Added __ctalkCriticalSysErrExceptionInternal () and 
+	  __ctalkCriticalExceptionInternal () (lib/except.c).
+	- Added checks for the critical flag in eval_expr () and
+	  __ctalkEvalExpr () so a critical exception is handled 
+	  at the level of the call to __ctalkEvalExpr () 
+	  (rt_expr.c).
+2007-12-19
+	- Added text data arguments to raiseException and 
+	  raiseCriticalException (class SysErrnoException).
+	- Added "%s" formats for exception data to enoent_x and
+	  eperm_x (lib/except.c).
+	- Added ctdb script in src subdirectory.
+	- Fixed a bug in for_predicates () (control.c).
+	- Added __save_rt_info () and __restore_rt_info () in 
+	  _rt_math_op ().
+	- Added = method (Array class).
+	- Added check for stack end in is_aggregate_type () 
+	  (rt_expr.c).
+	- Release 0.0.29a.
+2007-12-20
+	- Started file I/O section in tutorial.texi.
+2007-12-22
+        - Added a separate class primitive method argument function in 
+	  primitives.c.
+	- Added lookups for class methods in rt_expr.c and rt_methd.c.
+	- Fixed a reference counting bug in __ctalkAddInstanceVariable.
+	- Fixed a bug in FileStream : eof argument list.
+	- Added check whether an object exists in the global dictionary
+	  before trying to remove it in __ctalk_remove_object () 
+	  (rt_obj.c).
+	- Changed ctrep.c so that it uses WriteFileStream : writeChar
+	  to write space characters - write outputChar asString does not 
+	  get recognized (yet).
+2007-12-23
+	- Added ctcc script.
+	- Release 0.0.30a.
+2007-12-24
+	- Added packed attribute for OBJECT type for __GNUC__ >= 3.
+	  OBJECT member name is now allocated as part of the struct 
+	  instead of a char *.
+2007-12-25
+	- Added param_is_fnptr () to check for a (*fnptr)() argument 
+	  in is_c_function_declaration.
+	- Added expr_check check in method_args () before looking for
+	  further frames.
+	- Added __ctalkPrintObject (lib/except.c) for object debugging.
+	- Added declared_global_variable hash and 
+	  global_var_is_declared () (cvars.c) for faster lookup of 
+	  declared variables.
+	- Added __ctalkInlineMethod () (lib/rt_methd.c) and 
+	  Array : map.
+2007-12-26
+	- Added different optimization flags for the libraries
+	  and the parser, and the --without-optimization 
+	  configure option.
+2007-12-27
+	- Added Integer : mod and LongInteger : mod methods, and states 
+	  for modulus (%) operator.
+	- Added another check for method labels in eval_expr,
+	  in the re-evaluation loop.
+	- Added ltime.c example program.
+	- Added Exception : raiseException and Exception : 
+	  raiseCriticalException methods.
+2007-12-28
+	- Release 0.0.31a.
+2007-12-30
+	- Removed unused variables in Exception.
+	- Check for method_names as declared labels in 
+	  have_declaration () (cparse.c).
+	- __ctalk_GetParamByName () no longer causes an error if a method
+	  is not found.
+2007-12-31
+	- Added checks for class variables in the first loop of 
+	  eval_expr () and cleanup_temporary_variables (rt_expr.c), 
+	  and a check for a class or instance variable message in
+	  the re-evaluation loop of eval_expr ().
+	- Fixed __ctalkAddClassVariable (rtobjvar.c).
+	- Added (OBJECT *(*)()) cast generate_fn_template_init ()
+	  (fn_tmpl.c).
+	- Added template and test scripts for strchr C library 
+	  function.
+	- Release 0.0.32a.
+2008-01-01
+	- Documentation updates, and ctcc and ctdb manual pages.
+2008-01-02
+	- Added conditional compilation to all assembler sections
+	  in rt_stdarg.c.
+2008-01-04
+	- Compatibility changes for Solaris 8, and ctypes-sunos.c
+	  test program.
+2008-01-05
+	- Added incomplete typedef resolution in cvars.c and cparse.c.
+	- Renamed __source_file () to __ctalkRtSaveSourceFileName and
+	  removed source_file[] buffer from run time code to avoid
+	  name space collisions with SunOS linker..
+2008-01-08
+	- LongInteger on Sparc-Solaris uses atol () instead of atoll () for
+	  its conversion functions.
+	- Use the expression parser frame when scanning back in 
+	  eval_expr (). 
+	- Release 0.0.33a.
+2008-01-10
+	- Added Sparc 32-bit support in rt_stdargs.c.
+	- Added check for LD_LIBRARY_PATH in ctcc, ctdb, and 
+	  test/Makefile.
+	- Added reference count increment for subexpression result
+	  object in eval_expr () (rt_expr.c).
+2008-01-11
+	- Added templates and test scripts for sin() and sqrt () C 
+	  library function.
+	- Check for library_input during method pass when looking up
+	  source file name in source_filename () (error.c).
+	- Added format C expression method argument calls for 
+	  arguments that contain complex C function expressions.
+2008-01-12
+	- Added method class object to RTINFO types, for use in 
+	  methods where the receiver class can be different than the 
+	  method's class.
+	- Changed library_pathname () call to source_filename () in
+	  generate_method_init () (methodbuf.c), which checks for 
+	  library input when returning the name of the input file.
+2008-01-13
+	- Release 0.0.34a.
+2008-01-14
+	- Added Sparc stdin, stdout, and stderr definitions in 
+	  ReadFileStream and WriteFileStream.
+2008-01-15
+	- Added checks for sunOS incomplete types in cvars.c and 
+	  cparse.c.  struct_def_from_typedef now creates duplicate
+	  struct member definitions.  Incomplete type resolution in 
+	  library_search () (class.c).
+	- Portable output of LD_LIBRARY_PATH in test/Makefile, 
+	  src/ctcc, and src/ctdb.
+	- Added streamPath instance variable in FileStream class, 
+	  set in openOn (ReadFileStream and WriteFileStream classes), 
+	  and replaced fstat with stat(3) in stat (FileStream class) 
+	  because it is more portable.
+2008-01-16
+	- Renamed __ctalkGetClassVariable, which does not require a receiver, 
+	  to __ctalkFindClassVariable, and added __ctalkGetClassVariable 
+	  similar to __ctalkGetInstanceVariable, which require receivers.
+	- Added methodReturn macros and modified ltime.c, Object, and
+	  Integer classes to use them.
+2008-01-17
+	- Added check in format_method () (methodbuf.c) for the intial 
+	  token of the method body being an opening brace, immediately 
+	  following the opening brace of the method declaration.
+2008-01-18
+	- Release 0.0.35a.
+2008-01-21
+	- Added -h, -k, and -m options to ctcc and ctdb.
+2008-01-22
+	- Check for leading sign in radix_of () (radixof.c).
+	- Float boolean operators return Integers using 
+	  methodReturnTrue and methodReturnFalse.
+	- Added check in if_stmt () (control.c) for end of 
+	  message stack if there are no braces.
+2008-01-23
+	- Added acosh, asinh, and atanh prototypes in ctalklib for SPARC.
+	- Added atanh C math library test scripts.
+	- Removed asctime C library test scripts temporarily until there
+	  is a class corresponding to the struct tm * argument.
+	- Fixed bug in __ctalkCharRadixToChar, and check for error return
+	  value in functions in radixof.c that call radix_of ().
+	- Release 0.0.36a.
+2008-01-24
+	- Rewritten String : length method that uses methodReturnInteger.
+2008-01-26
+	- In eval_arg () (method.c), check that the struct_defn
+	  CVAR is not NULL before looking for struct members.
+	- Added clause in fileout () (output.c) which calls __fileout ()
+	  specifically during a library pass.
+	- Added Time: gmTime, cTime, timeZoneName, haveDST, and
+	  timeZoneOffset methods.
+	- In is_c_var_declaration_msg () (cparse.c), add the result of
+	  find_n_subscripts to the existing n_derefs.
+	- Rewrote Array : size using C so that it doesn't depend on
+	  the array elements evaluating to true.
+	- Added --with-profiling option to configure.in.
+2008-01-27
+	- Minor speedup in get_typedef () (cvars.c).
+	- Minor fixes in test/ctypes-sunos.c and test/Makefile.
+	- Added 02 optimization for libctalk.
+	- Release 0.0.37a.
+	- When replacing an instance variable in 
+	  __ctalkAddInstanceVariable () (rtobjvar.c), compare the
+	  existing variables with the "name" parameter, and set the
+	  replacement variable's name to the "name" parameter.
+	- Classes SignalEvent and SignalHandler, and SignalHandler
+	  methods new and setSigNo.
+2008-01-28
+	- Evaluate the initial values in var_definition () (primitives.c)
+	  if the variable class is numeric.
+	- SignalHandler methods for POSIX signals, ignoreSignal, and 
+	  defaultHandler.
+2008-01-29
+	- Added __c_arg__ method parameter attribute.
+	- Added noMethodInit keyword.
+	- SignalHandler method installHandler.
+	- Release 0.0.38a.
+2008-01-31
+	- Added better check for attribute statement errors 
+	  in parser_pass ().
+	- Use prevlangmsg () to back up the stack index at the
+	  end of a subscripted declaration in is_c_var_declaration_msg ()
+	  (cparse.c).
+	- Added SignalHandler methods raiseSignal and signalProcessID.
+	- Added the timesignal.c and timeclient.c programs.
+	- Added List class and methods new and value.
+2008-02-01
+	- Added __refObj, __objRefCntInc, and __objRefCntDec prototypes
+	  in ctalklib and ctldjgpp.
+	- Added List methods push, pop, shift, unshift, and map.
+	- Added basiclist.c test program and basiclist target in
+	  test/Makefile.
+	- Added SunOS signal handlers in SigHandler methods ignoreSignal,
+	  defaultHandler, and installHandler.
+	- Release 0.0.39a.
+2008-02-02
+	- Fixed method searches and typos in Array : map and List : map.
+	- Use methodReturnObject in List : new.
+	- Added check for CVAR name, type, and qualifier for struct 
+	  declarations in get_global_var () (cvars.c).
+	- Removed __ctalkMethodReturnClass from method init template.
+	- Replaced get_global_var () with global_var_is_declared () in
+	  object_context () (rexpr.c), and gnuc_fix_empty_extern () 
+	  (ccompat.c).
+	- Added typedef_is_declared (), and replaced get_typedef ()
+	  in is_c_derived_type () (cvars.c), and IS_DEFINED_LABEL
+	  macro (ctalk.h).
+2008-02-03
+	- Added CVAR_ATTR_ENUM for enums (cvar.h and enum.c).
+	- Add enums using add_variable_from_cvar (), and exclude
+	  enums from incomplete type replacement in 
+	  add_variable_from_cvar ().  Check for CVAR_ATTR_ENUM
+	  when scanning for enum declarations in is_enum_member () 
+	  (cvars.c).
+	- When adding a list of variables from a declaration of 
+	  multiple variables, make sure that each variable in the
+	  list gets added to declared_global_variables hash.
+	- Check for last frame cases in while_stmt () (control.c).
+	  Also check for empty while block (semicolon only) before
+	  adding closing brace in loop_blk_end () (loop.c).
+	- Release 0.0.40a.
+2008-02-05
+	- Added lib/event.c.
+	- Added class_object_search () for variable class in
+	  var_definition (), and value-to-string
+	  conversion for Collection class and subclass objects
+	  in var_definition () (primitives.c).
+2008-02-06
+	- Added error return for method not found in __ctalk_arg ()
+	  (rt_args.c).
+	- Check for a C function as the first operand of a C operator
+	  in object_context (), and if so, return c_argument_context
+	  (rexpr.c).
+	- Added methodReturnObjectName in ctalklib and ctldjgpp.
+2008-02-08
+	- Added check for CTYPE token in object_context () (rexpr.c).
+	- Changed param name of WriteFileStream : new to avoid name
+	  collision.
+	- Changed OBJECT type member names.
+	- Check for a GNU attribute in add_incomplete_type () (cvars.c).
+	- Scan past GNU __attribute__ arguments in
+  	  is_c_var_declaration_msg () (cparse.c).
+	- Use the class of a superclass method as the receiver when
+	  the superclass method is not a primitive when generating 
+	  a constructor call in new_object () (primitives.c).
+	- Rewrote var_definition () (primitives.c).
+2008-02-09
+	- In __method_call () (rt_methd.c), if the method is a 
+	  constructor and the calling method is also a constructor,
+	  set the result object's class and superclass to the
+	  class and superclass of the calling method.
+	- Set s.sa_flags to 0 in SignalHandler : installHandler
+	  when setting a handler using sigaction ().
+	- Updated GNUC_PACKED_STRUCT to only include __attribute__
+	  ((packed)) for i386/Linux (object.h, ctalklib, ctldjgpp).
+	- Release 0.0.41a.
+2008-02-11
+	- Added String : writeFormat and WriteFileStream : 
+	  writeFormat methods.
+	- Add check for C prefix operator in object_context () 
+	  (rexpr.c), and is_c_prefix_op () (cparse.c).
+	- Added classes/libc/p template library and printf 
+	  template.
+	- Updated __call_fn_w_args_fmtarg* for SPARC to 
+	  call fprintf, sprintf, fscanf, and sscanf with 
+	  successive arguments. Added typecasts to avoid
+	  warnings. (rt_stdarg.c).
+	- Added require ArgumentList to ctalklib and ctldjgpp.
+2008-02-12
+	- Method_param () checks for typedefs and now generates
+	  exceptions for unmapped types.
+	- The SPARC inplementation of sscanf skips trailing
+	  whitespace in the format string.
+	- Added printf template and test scripts.
+2008-02-13
+	- Added STDARG_CALL_INFO type in stdargcall.h and 
+	  replaced static globals for stdargs library calls.
+	- Added __ctalkCPrintFmtToCtalkFmt (sformat.c), and
+	  used the function in writeFormat (String and 
+	  WriteFileStream classes).
+2008-02-14
+	- Release 0.0.42a.
+	- Added ApplicationEvent methods new and getPID.
+	- Added evaluation of C functions (that have templates) 
+	  that are method arguments.
+	- Added template and test script for getpid() C library
+	  function.
+	- Added eval_expr handler for NULL return from 
+	  eval_subexpr - caused by empty set of parentheses 
+	  (rt_expr.c).
+2008-02-16
+	- Added List : isEmtpy method, and make sure the list
+	  value is set to NULL after removing the last elements 
+	  of the list in pop and unshift methods.
+	- Define class and instance variables after the
+	  class and method initialization.  Call class constructor
+	  for instance variable definition, and superclass 
+	  constructor for class variable definitions, and add
+	  class instance variables to the class variable manually.
+2008-02-17
+	- Fixed bug in __ctalkGetClassVariable to actually 
+	  look for class variables.
+	- Added class_variable_expression function (rexpr.c) to
+	  handle argument epressions <classname> <classvarname>, 
+	  and warning parameter in get_class_variable (object.c).
+2008-02-18
+	- Release 0.0.43a.
+	- Moved common routines from __ctalkDefineInstanceVariable
+	  and __ctalkDefineClassVariable to local functions.
+2008-02-19
+	- In __ctalk_to_c_int (objtoc.c), a zero length buffer
+	  evaluates to zero, for all classes but Integer and 
+	  Character.
+	- Added classInit method to SignalEvent to create empty
+	  pending events list, and rewrote SignalEvent methods
+	  and __ctalkNewSignalEventInternal (event.c) to handle
+	  empty event lists and lists with one item.
+	- In define_class_variable and define_instance_variable
+	  (primitives.c), include better checking for incomplete
+	  variable definitions.
+	- expand_path (statfile.c) expands leading . and .. to 
+	  current directory and parent directory, and appends
+	  any directory after the leading dots to the expanded
+	  path.
+	- find_library_include (include.c) uses the array 
+	  library_include_paths again, so it can do find_next
+	  searches correctly.
+2008-02-20
+	- In fn_output_context, if the previous token is the
+	  name of the method, then the function output is 
+	  the value of the argument.
+	- In fn_output_context (rexpr.c), don't use c_fn_args
+	  to rewrite the function arguments.
+	- In method_args (method.c), don't rewrite a complex
+	  function expression from the input tokens after 
+	  the expression has been translated.
+	- In format_method (methodbuf.c), don't output past the
+	  end of a variable declaration.  Increment the stack
+	  index again so that it points to the token immediately
+	  after the declaration on the next iteration.
+	- In __ctalk_get_object (rt_obj.c), when looking up a
+	  class variable, also check the class name if provided.
+	- Added timeclient2.c example program.
+2008-02-21
+	- Added fn_arg_expression and split_args in arg.c, 
+	  and use them in eval_arg (method.c).
+	- Added subscript_var_basename and deref_var_basename
+	  in cparse.c.
+	- Release 0.0.44a.
+2008-02-25
+	- Added fn_param1.exp test script.
+2008-03-14
+	- Replaced tempnam library function (tempio.c) with 
+	  __tempname in tempname.c.
+	- Added __rand_ext to ctpp output names, and let
+	  preprocess () fill in ctpp output file name.
+	- Modified preprocess_to_output for global ctpp_ofn.
+	- Added warning for function in object expression
+	  (fn_tmpl.c).
+	- Use global ctpp_ofn_template for preprocessed templates, 
+	  and use that name when caching preprocessed templates.
+	- Add param definition CVARS in add_function (cvars.c).
+2008-03-15
+	- Added ufntmpl.h include file for fn_tmpl.c
+	- In ctrlblk_pred_rt_expr (control.c), if-statement expressions that 
+	  contain user function template expressions get simpler 
+	  formatting using fmt_user_fn_rt_expr () (rexpr.c).
+	- In __set_right_operand_value (), check that an old value_obj
+	  is deleted only once (rt_expr.c).
+	- Added __ctalkDoubleToASCII library function (ctdtoa.c).
+	- Added if2.c and if2.exp test scripts.
+2008-03-16
+	- Don't try to delete arg_objects in fn_arg_expression if they 
+	  are a global or local object or a class variable (arg.c).
+	- Add param to is_c_var_declaration_msg to ignore oop names when
+	  checking for valid declarations in other name spaces, like
+	  function parameter declarations (cparse.c).
+	- Added basic_class_from_cvar in objtoc.c.
+	- Added obj_arg_to_c_expr for objects that are arguments to
+	  C functions (library functions only at the moment.) 
+	  (arg.c).
+2008-03-17
+	- Added cbrt prototype to the __EXTENSIONS__
+	  prototypes in ctalklib.
+	- In lexical (), tokenize an ampersand as an
+	  address-of operator if it is the first character
+	  in a buffer (lex.c).
+	- Check for leading unary ops in eval_arg ()
+	  (method.c).
+	- Rewrote fn_arg_expression and added
+	  obj_arg_to_c_expr function (arg.c).
+2008-03-18
+	- Rewrote fn_param_cvars without
+	  is_c_var_declaration_msg (), so it can handle
+	  parameter declarations that don't have tags.
+	- Obj_arg_to_c_expr only prints warnings of objects
+	  as arguments if it is not parsing a control block
+	  expression or doing an expr_check pass.
+	- Added is_translatable_basic_class () (objtoc.c).
+	- In obj_arg_to_c_expr, if we can't find the type of
+	  the argument, use the class of the object if it 
+	  translates into a C type.
+2008-03-19
+        - Added SunOS extension prototypes in ctalklib.
+	- Check for constant expression in eval_arg ()
+	  (method.c).
+	- Handle arguments that contain "self" as the receiver
+	  in fn_arg_expression.
+	- Build SPARC libraries without -O<n> optimization,
+	  because it breaks the the rt_stdarg.c code.
+	- Release 0.0.45a.
+2008-03-23
+	- Check for stack end index in check_state, instead
+	  of comparing actual messages (parser.c).
+	- Changed state diagrams from three columns to two
+	  columns, and check_state to use addition to calculate
+	  the next state transition instead of multiplication
+	  (parser.c, cparse.c, method.c, and enum.c).
+	- Added cases for constant function arguments in
+	  fn_param_declarations () (cparse.c).
+2008-03-24
+	- Added library functions __ctalkGetTypeDef (), 
+	  __ctalkGetTemplateCallerCVAR (), and 
+	  __ctalkTemplateCallerCVARCleanup (), 
+	  __ctalkCVARReturnClass (), and 
+	  __ctalkCFUNCReturnClass ().
+	- Added local variables in user function templates
+	  for simple variable expressions (*.c).
+	- Updated fn_param_declarations () for typecasts
+	  (cparse.c).
+	- Changed is_typecast () to __rt_is_typecast () 
+	  (lib/typecast.c).
+	- Added fn_param2.c and fn_param2.exp, and updated
+	  many functions for typecasts in function parameters.
+	- In eval_expr (), check if a math operator is also a 
+	  method, and use a method if one is available.
+2008-03-25
+	- Added state in enum_decl for a comma after the 
+	  final enum member (enum.c).
+2008-03-26
+	- Ctpp 1.0.29.
+	- Fixed bug under Solaris 10 in get_clib_template_fn ()
+	  (clibtmpl.c).
+	- Added fn_param[3-5].c and fn_param[3-5].exp test scripts.
+2008-03-27
+	- Added struct pointer attributes and code to register 
+	  aggregate types in user function arguments (cvar.c, 
+	  ufntmpl.c, method.c, and elsewhere).  Test cases in 
+	  test/expect/fn_param2.c.
+2008-03-29
+	- If an enum type and tag are different register and look
+	  for the enum using both labels.
+	- Added _hash_get_obj and _hash_put_obj, and added obj 
+	  member to HLIST type.  Use _hash_get_obj and 
+	  _hash_put_obj with declared_typedefs and declared_functions.
+	  Use CVAR objects from the hash unless they are incomplete
+	  types which need to be rechecked during the var registration
+	  pass.
+2008-03-30
+	- Minor updates to __ctalk_to_c_array_element (objtoc.c) and
+	  array1.c and arra1.exp test scripts.
+	- Release 0.0.46a.
+2008-03-31
+	- Smaller find_library_include (include.c) with speedups and
+	  tests for unsuccessful find_next searches.
+	- Also check for method parameters when checking for object
+	  names in is_c_var_declaration_msg () (cparse.c).
+	- Save the argument frame top (the last argument on the arg
+	  stack) when pushing a method or function call.  Push 
+	  functions onto the call stack as well as methods, instead of 
+	  saving them in a separate list.  Updated __ctalk_arg_internal 
+	  to use the argument frame pointer, and 
+	  __ctalkGetTemplateCallerCVAR (rt_cvar.c).
+2008-04-01
+	- String : getEnv method.
+	- In fn_template_is_cached, use strncmp for more exact match.
+	- Skip other subexpressions when checking context in 
+	  object_context (rexpr.c).
+2008-04-02
+	- Changed method names so they don't shadow functions: 
+	  stat, eof (FileStream); write, close (WriteFileStream);
+	  close (ReadFileStream);
+	- Create an object directly instead of calling 
+	  __var_primitive_constructor __ctalkDefineClassVariable
+          and __ctalkDefineInstanceVariable (rtobjvar.c).
+	- Delete global CVAR entries that are actually method
+	  parameters or arguments to the class primitive method.
+2008-04-04
+	- Object_context handles aggregate variable expressions in 
+	  argument lists.
+	- Updates for ctrlblk_pred_rt_expr and clib_fn_template.
+	- Check that there is a new method when looking for
+	  parameter labels in label_is_defined (object.c).
+2008-04-05
+	- In get_local_var check for both struct types and tags
+	  (cvars.c).
+	- Moved timeclient2.c to timeclient.c.
+	- Added get_global_struct_defn and get_local_struct_defn
+	  (cvars.c).
+2008-04-06
+	- Rewrote clib_fn_expr for multiple expressions for one
+	  template.
+	- Added getenv* test scripts.
+        - Fixed buffer overrun in List : push and List : shift.
+	- Release 0.0.47a.
+2008-04-19
+	- Added check for legal incomplete types that use the same type
+	  and tag, and incomplete type entries when they are added to the
+	  typedefs hash.
+	- Use the actual number of arguments in c_tmpl_fn_args and 
+	  fmt_template_rt_expr, so the function works with library 
+	  functions that use stdargs (fn_tmpl.c).  Also, don't register 
+	  an argument at the closing paren if the argument list is empty.
+	- Added __C_type_conv table to basic_class_from_cvar, and check
+	  for aliased C data types (objtoc.c).
+	- Generate undefined label exceptions while parsing methods as
+	  well as input text in resolve (class.c).
+2008-04-20
+	- Added fmt_c_fn_obj_args_expr (arg.c).
+	- Release 0.0.48a.
+	- Removed extra *_obj hash functions (chash.c, cvars.c, ...). 
+	- Handle duplicate type instances in resolve_incomplete_types 
+	  (cvars.c).
+2008-04-21
+	- Don't add a global variable to a hash if it is a duplicate
+	  struct definition.
+	- Added enum_hash for use in is_enum_member (cvars.c).
+	- Added unlink_global_cvar in cvar.c, and unlink parameters
+	  that are registered as global variables (primitives.c).
+	- Simplified the expression in ctalkReturnObject macro
+	  (ctalklib).
+	- Removed is_global_constructor function (cvars.c).
+2008-04-22
+	- Added is_c_data_type_attr and type_attrs (keyword.c).
+	- Added type_attrs to CVAR struct, and use in cvar_return_class 
+	  (ctoobj.c).
+	- Use cvar_return_class in method_param (primitives.c).   
+	  Cvar_return_class returns a zero-length buffer if the type
+	  or the type it aliases does not have a standard attribute.
+	- Added return_type_attrs to CFUNC type, and FN_DECLARATOR
+	  type (cvar.h).
+	- Use function return attributes in add_function (cvars.c).
+2008-04-23
+	- Moved fn_param_states to fn_param.c. Moved extern_declaration 
+	  to extern.c.
+	- Also check for a function declaration in 
+	  gnuc_fix_empty_extern (ccompat.c).
+	- Extern_declaration checks whether the declaration is a function,
+	  and if so adds a CFUNC to the functions hashtab.
+	- Removed unneeded function get_fn_cvar_declaration.
+	- More speedups in check_state (parser.c).
+2008-04-24
+	- Delete CVARs that registered objects based on syntax
+	  alone in new_object (primitives.c).
+2008-04-25
+	- Moved check for a GNU attribute into a clause in 
+	  is_c_var_declaration_msg (cparse.c).
+	- Don't set message tokentype or name except for 
+	  the argument token message in method_arg_accessor_fn
+	  (method.c).
+2008-04-27
+	- Ctpp 1.0.30.
+	- Release 0.0.49.
+2008-04-28
+	- In preprocess, do not use -move-includes preprocessor switch
+	  with Cygwin (main.c).
+	- Added GNU attribute handling in is_c_fn_declaration_msg
+	  (cparse.c).
+	- Added Windows case-sensitive version of file_exists
+	  (statfile.c).
+2008-05-01
+	- Added check for a missing open parenthesis in a declaration,
+	  in is_c_var_declaration_msg (cparse.c).
+	- Compatibility updates for Cygwin GCC 3.4.4 (ctalklib, 
+	  test/Makefile, ...).
+	- Added handler for anonymous inner structs and unions in
+	  find_struct members (cparse.c).
+2008-05-02
+	- Compatibility fixes for DJGPP 2.0.3 (GCC 4.2).
+2008-05-05
+	- Release 0.0.50a.
+2008-05-07
+	- More Compatibility fixes for Cygwin.
+2008-05-09
+	- Ctpp 1.0.32.
+2008-05-11
+	- Changes in init_library_paths (include.c, main.c).
+	- Added separate include file for function declaration 
+	  states, instead of parameter states.
+	- Release 0.0.51a.
+2008-05-12
+	- Changed optimization flags check from host_cpu to
+	  build variable.
+2008-05-13
+	- Added DejaGNU options to Makefile.am's.
+2008-05-16
+	- Added complex_method_statement (complexmethd.c).
+	- Check for the end of the stack in check_state (parser.c).
+	- Change the return values and prototypes of 
+	  __ctalkRtSaveSourceFileName, __ctalk_initFn, and 
+	  __ctalk_exitFn so they can be included in functions 
+	  in header files before the prototypes and not generate 
+	  warning messages.
+2008-05-18
+	- Message attribute with bit masks for instance
+	  and class variable messages (message.h, message.c),
+	  Expression method calls can use the value of an
+	  instance or class variable (rt_expr.c).  Keep
+	  index of receiver token for compound messages.
+	- Cygwin compatibility updates in Time class,
+	  lib/rt_stdarg.c, and programs/timeclient.c.
+	- Temporary compatibility fix in cparse.c for Solaris 
+	  2.10 namespace collison.
+2008-05-19
+	- Release 0.0.52a.
+	- Fixed a bug in collect_expression (lex.c).
+	- Moved parser *_rt_expr () functions to rt_expr.c.
+2008-05-20
+	- Added object-to-c translation for complex messages.
+2008-05-21
+	- Added Key class.
+2008-05-22
+	- Added C variable argument registration in rt_expr
+	  (rt_expr.c).
+	- Rewrote AssociativeArray class to use Key objects.
+2008-05-23
+	- Ctpp 1.0.33.
+	- Added programs/cgi subdirectory, and CGIApp class
+	  and ctenv.c program.
+2008-05-24
+	- Added __ctalkToCIntArrayElement and a check for 
+	  Integer class of Array element.  (src/objtoc.c
+	  and lib/objtoc.c).
+2008-05-25
+	- Added collection_context and is_simple_subscript
+	  to determine if a collection element needs an
+	  integer return value.
+	- In __ctalkInlineMethod, check whether a method
+	  has deleted its entry on the call stack if the
+	  method happened to call __ctalk_exitFn (rt_methd.c).
+	- Release 0.0.53a.
+2008-05-26
+	- Wrap input file paths in quotes in preprocess () for
+	  DJGPP.
+2008-05-27
+	- Ctpp 1.0.34.
+	- Added FILE_READ_MODE, FILE_WRITE_MODE, and 
+	  FILE_APPEND_MODE macros for systems that normally
+	  perform text-mode file I/O.
+	- Updated classes/Makefile.djgpp 
+2008-05-31
+	- Lots of bugfixes and compatibility updates for the 
+	  DJGPP version.
+2008-06-01
+	- Release 0.0.54a.
+2008-06-04
+	- Additions for char pointer printf translations from Collection
+	  class members.
+2008-06-06
+	- Added method_used_before_define_x exception and 
+	  __ctalkUndefinedMethodReferenceException handler.
+2008-06-08
+	- Release 0.0.55a.
+2008-06-12
+	- Fixed find_expression_limit (lex.c) for closing parens that are 
+	  not part of an argument list.  __rt_arglist_limit now checks
+	  that the number of arguments matches the number of method 
+	  parameters in certain cases.
+	- Release 0.0.56a.
+2008-06-15
+	- Some code cleanup, additional case for looking up a primitive 
+	  super method from a direct subclass of Object.
+	- Added ctcheckquery.c example program.
+2008-06-16
+	- Release 0.0.57a.
+2008-06-20
+	- Ctpp 1.0.35.
+	- Added message resizing and handle double backslashes when parsing
+	  strings in lexical (lex.c).
+2008-06-21
+	- Updated stdargs function calls in rt_stdargs.c and is_printf_fmt
+	  in pattern.c.
+2008-06-22
+	- Added httpecho.c demonstration program and HTTP character entity 
+	  escapes in CGIApp class.
+2008-06-23
+	- Release 0.0.58a.
+2008-06-29
+        - Improved method argument parsing.
+	- Release 0.0.59a.
+2008-07-02
+	- Added lookahead for arrays with multiple subscripts in 
+	  eval_arg () and index and lookahead for leading unary
+	  operator and C variable base name in eval_arg () and
+	  register_c_variable () (method.c).
+	- Changed CVAR evaluation to use n_derefs struct member.
+2008-07-05
+	- Removed ptr and ptrptr members from CVAR type.
+	- Ctpp 1.0.36.
+2008-07-06
+	- Check for cases of functions with trailing expressions
+	  in is_c_fn_declaration_msg () (cparse.c) and in 
+	  ctrlblk_pred_rt_expr () (control.c).
+	- Check for method varargs in method_arglist_limit ()
+	  (arg.c).
+	- Check for CFUNCs also in fmt_libc_fn_rt_expr () 
+	  (rt_expr.c).
+	- Check for method overloading operator in eval_expr ()
+	  (rt_expr.c).
+	- Lookaheads in __rt_is_typecast (typecast.c).
+	- Seek for actual cast in typecast_ptr_expr (typecast.c).
+	- Evaluate arg as typecast if it is a typecast expression
+	  in rt_method_args (rt_args.c).
+	- Release 0.0.60a.
+2008-07-08
+	- Extra code for the methods == and != (class String) to handle
+	  NULL and NULLSTR cases.
+2008-07-09
+	- Added user_fn_arg_declarations in ufntmpl.c and fixed 
+	  declaration_expr_from_cvar to use n_derefs in cvars.c.
+2008-07-10
+	- Rewrote == and != (Character class) to return Integer and 
+	  perform explicit promotion to ints when making comparisons.
+	- Changed register_user_arg_cvars to register_user_args and
+	  added translation for argument objects (ufntmpl.c).
+	- In default_method, only attempt to evaluate objects within
+	  control structure predicates, not the entire predicate
+	  expression.
+	- Release 0.0.61a.
+2008-07-11
+	- Added hex-to-pointer conversion in __ctalk_to_c_char_ptr.
+	- Format function arguments in the runtime expression in
+	  fmt_user_fn_template_rt_expr. 
+	- Add a __ctalk_to_* wrapper in default_method whenever an 
+	  object appears within a conditional statement alone.
+	- CHAR_PTR_FN_RETURN_TMPL returns a String with a value 
+	  of NULL if the user C function returns NULL.
+	- Moved generate_user_fn_template_init from fn_tmpl.c
+	  to ufntmpl.c, and set template params to the number
+	  of args in the calling expression.
+	- The format conversion for generic pointers uses 
+	  the %#x specifier to print a "0x" hexadecimal prefix
+	  in m_print_val (val.c).
+	- Added condexprs1.c and condexprs2.c test programs.
+2008-07-12
+	- DirectoryStream methods mkDir and rmDir, and 
+	  CTALK_DIRECTORY_MODE macro in ctalklib.
+	- Added object-to-c translation for simple class
+	  variable expressions in C context, and warning for 
+	  unknown nonterminal statements in 
+	  class_variable_expression () (rexpr.c).
+	- Added atPut method (class String).
+2008-07-13
+	- Updated = (class String) to deal with instance and class
+	  variable values alone.
+	- Release 0.0.62a.
+2008-07-15
+	- Added signal builtin type for DJGPP.
+2008-07-17
+	- Ctpp 1.0.37.
+2008-07-19
+	- Many minor fixes to prevent memory leaks.  Added array 
+	  initializers in __rt_method_args.
+2008-07-21
+	- Release 0.0.63a.
+2008-07-22
+	- Removed extra object copy from new_object.
+	- Added l, L, and f formats to _format_string.
+	- Changes to == and != (class Character) and  
+	  asInteger (class Float and Magnitude), and 
+          cbool1.c test program.
+2008-07-23
+	- Added asString (class Integer) method.
+2008-07-25
+	- Updated _var_constructor and 
+	  __ctalkDefineClassVariable for complex classes.
+2008-07-26
+	- Added object-to-c translation for class variable
+	  expressions.
+2008-07-27
+	- Many fixes for class variable expressions.
+	- Release 0.0.64a.
+2008-08-01
+	- Ctpp 1.0.39.
+2008-08-02
+	- More changes for class variable expressions.
+2008-08-03
+	- DirectoryStream methods chDir and getCwd, 
+	  templates cRmdir, cMkdir, cChdir, and cGetCwd; 
+	  and test script dir1.c.
+2008-08-04
+	- Release 0.0.65a.
+2008-08-08
+	- Ctpp 1.0.40.
+	- Added Boolean class, and method walkback in rt_args.c.
+	- Added mdt2.c example program.
+2008-08-09
+	- Added DirectoryStream : directoryList method.
+	- Removed example program sections from ctalk.info, and 
+	  added utils.info and web.info.
+2008-08-10
+        - Added AssociativeArray : keyAt method and Key : getValue 
+	  method.
+	- Added pageName.c example program.
+	- Release 0.0.66a.
+2008-08-14
+	- Ctpp 1.0.41.
+2008-08-16
+	- Minor bugfixes, memory leak checking, compatibility fixes 
+	  for DJGPP, and installation notes for Cygwin.
+2008-08-17
+	- Updated pageName.c Web app.
+	- Added String : match and String : matchCase methods.
+	- Release 0.0.67a.
+2008-08-21
+	- Ctpp 1.0.42.
+2008-08-22
+	- Speedups in class lookups, and method creation and 
+	  and deletion.
+2008-08-24
+	- Argument expression parsing in rt_args.c, and code 
+	  cleanup in Solaris.
+	- Release 0.0.68a.
+2008-08-25
+	- Added __ctalkSetObjectValueBuf () function and rewrote
+	  String : writeFormat to use it.
+2008-08-26
+	- Added malloc/free lists for debugging in rtxalloc.c.
+	- Added methodparam member to PARSER to clean up
+	  method parameter objects quickly when done parsing
+	  methods.
+2008-08-28
+	- Object cleanup for miscellaneous method objects and
+	  objects created during expression checks.
+2008-08-29
+	- Ctpp 1.0.43.
+	- Cleanup of CVAR cleanup during object and parameter
+	  creation.
+	- Improved handling of C variable initializers.
+	- Fixed empty while loop bug.
+2008-08-31
+	- Improved object constructor in run time library.
+	- Release 0.0.69a.
+2008-09-03
+	- Many bug and compatibility fixes.
+	- Release 0.0.70a.
+2008-09-05
+	- Ctpp 1.0.44.
+2008-09-07
+	- Improved creation and deletion of local and temporary
+	  argument objects and class and method memory management.
+	- Release 0.0.71a.
+2008-09-08
+	- Added __ctalkToCInteger function.
+	- Check for instance and class variable METHODMSG tokens
+	  in eval_expr.
+2008-09-09
+	- Better argument ref counting and deletion in rt_args.c 
+	  and rt_expr.c. 
+2008-09-10
+	- ReadFileStream : readAll now handles input from stdin.
+	- Release 0.0.72a.
+2008-09-14
+	- Many object creation and deletion and memory leak fixes.
+	- Lclock.c example program.
+	- Release 0.0.73a.
+2008-09-18
+	- Compatibility fixes for older GCC and Solaris versions.
+	- Complex global objects now get initialized correctly.
+2008-09-21
+	- Added a pointer for instance variables' parent objects
+	  for better handling of reference counts when instance
+	  variables appear as method arguments, __ctalkCopyObject
+	  adds a parent reference for instance variable copies
+	  if the references exist in the source object's instance
+	  variables.
+	- AssociativeArray : atPut now makes a copy of the value
+	  object as well as the key object.
+	- Release 0.0.74a.
+2008-09-22
+	- Key : setValue makes a copy of the value object and
+	  sets the reference count to the key.  
+	  AssociativeArray : atPut and other methods then do not
+	  need to worry about making a copy of the value object.
+	- Call __ctalkDeleteObjectInternal on value references
+	  also from within __ctalkDeleteObjectInternal.
+2008-09-23
+	- Adjusted object ref *printf and *scanf formats for 
+	  Solaris.
+	- Added additional case for setting expression values
+	  in eval_expr ().
+	- Updated List : pop and List : unshift to decrement
+	  items' reference counts manually.
+	- __ctalkAddInstanceVariable now adds copies of the
+	  original variable for any random variable that it
+	  needs to replace.
+2008-09-24
+	- Added inline_call variable to RTINFO.  
+	- Added __ctalkIsInlineCall and __ctalkCallerIsInlineCall.
+	  Inline calls now record the actual receiver class of the
+	  method when making an inline call.
+	- Added an OBJECT * reference to METHOD's for a method's
+	  receiver class.
+	- Updated the code in ctenv.c and ctenv.c example programs.
+	- Delete class objects when exiting, and arg objects during 
+	  expression check passes.
+	- Release 0.0.75a.
+2008-09-26
+	- Added checks for method used before definition exceptions
+	  in the input file(s).
+	- default_method called at the end of a stack no longer 
+	  exits with an error.
+	- Added wrong_number_of_arguments_x exception and 
+	  removed elif_w_o_if_x exception.
+2008-09-27
+	- Minor bugfixes and expression analysis improvements.
+	- Release 0.0.76a.
+2008-10-06
+	- Moved AssociativeArray : at and AssociativeArray : atPut
+	  to Collection class.  Use Object : addInstanceVariable
+	  in atPut when adding elements to Collection objects.
+	- __ctalkObjectValueClass now sets the value's __o_class
+	  and __o_superclass.  eval_expr checks the method 
+	  in the caller frame when looking up superclass methods.
+	- The receiver lookup in method_call looks back to the
+	  start of the frame.
+	- In need_rt_eval (), all expressions with super qualify 
+	  as complex expressions.
+	- Release 0.0.77a.
+2008-10-10
+	- __ctalkCopyObject now copies object references also.
+2008-10-11
+	- Don't change the reference counts of supexpression
+	  results that are the receiver of the main expression.
+	- __ctalkDeleteObjectInternal now unlinks only the target object 
+	  if necessary, and __ctalk_arg_pop_deref checks for ARG_VARS
+	  whose reference counts reach zero.  
+	  __ctalkDeleteObjectInternal derefs object references and 
+	  deletes them using _cleanup_temporary_objects if the refcount 
+	  is zero.
+2008-10-12
+	- Function cvar_object creates copies of objects referenced
+	  by CVARs, with the original's scope|CVAR_VAR_ALIAS_COPY.  
+	  eval_expr () sets M_TOK_OBJ_IS_CREATED_PARAM for the message.
+	- Clean up cvar object reference copies for argument objects that 
+	  are not also expression or subexpression results in 
+	  cvar_object_ref_cleanup.
+	- Object : name and Object : className now store the String
+	  objects as instance variables when creating them.
+	- Release 0.0.78a.
+2008-10-13
+	- Save subexpression results for the same level of expression
+	  parsing on a stack in eval_expr () so they can be referred to 
+	  or deleted when eval_expr () at that level exits.
+2008-10-14
+	- Math operators not within a subexpression end an
+	  argument list in __rt_arglist_limit ().
+	- Use snprintf in cvar_object () to prevent buffer overruns
+	  for uninitialized floats and doubles, and added fdiv1.c
+	  test program.
+	- Solaris compatibility fixes in FileStream class.
+	- Release 0.0.79a.
+2008-10-17
+	- Added method_arg_rt_expr for self expressions that
+	  are arguments.
+2008-10-18
+	- Compatibility fix for Solaris in save_method_object ().
+	- API changes to the following methods: 
+	   Character : =  
+	   Character : isLower 
+	   Character : isUpper
+	   Character : isXDigit
+	   Character : isSpace
+	   Character : toUpper
+	   Character : toLower
+	   Integer : = and 
+	   String : at
+	- __rt_arglist_limit now checks for an operator as the
+	  primary method when checking for operators as argument
+	  limits and re-lexes the primary method token in case the
+	  token type is METHODMSGLABEL.  __rt_method_args 
+	  checks for two consecutive labels and changes the 
+	  next label to METHODMSGLABEL if necessary.
+	- eval_expr creates a complete ARG_VAR object if it 
+	  encounters an instance variable message followed by a 
+	  method.
+2008-10-19
+	- Added object_is_deletable and object_is_decrementable
+	  functions in _cleanup_temporary_objects and 
+	  __ctalk_arg_cleanup.  __ctalk_arg_cleanup now returns
+	  the reference count of the argument that was just 
+	  cleaned up, or 0 if the argument is deleted.
+	- Release 0.0.80a.
+2008-10-21
+	- Fixes for incomplete C type handling, and better
+	  checks to prevent global Ctalk statements from 
+	  being interpreted as C declarations, tests
+	  for redefinition of objects, and more flexible handling
+	  of incomplete typedefs and C declarations.
+	- Handle undefined receivers in subexpressions as exceptions, 
+	  and some exception recovery in eval_expr ().
+	- Some Object to C int translations now use __ctalkToCInteger
+	  when only a C integer is required as the result.
+2008-10-22
+	- Release 0.0.81a.
+	- Do not create undefined receiver exceptions for "super"
+	  in eval_expr ().
+	- Speedups to __ctalkCreateArg.
+2008-10-23
+	- delete_object () now checks whether the object is
+	  a local object and unlinks it if necessary.
+	- Make sure that user function template parameters
+	  are deleted correctly.
+	- Compatibility fixes for Solaris.
+	- Rewrote Array : at and Array : atPut to use 
+	  Collection : at and Collection : atPut.
+	- Added Application class.
+	- Updates to ctcheckquery.c
+2008-10-25
+	- Save and restore stack indexes when searching for
+	  classes in var_definition.
+2008-10-26
+	- Added __ctalkInstanceVarsFromClassObject to 
+	  primitive constructor.
+2008-10-27
+	- Release 0.0.82a.
+2008-10-28
+	- Added Collection : getValue to allow inline
+	  methods to only define collections as receivers
+	  before run time.
+	- Save miscellaneous method argument objects as 
+	  methodobjects so they can be deleted when the 
+	  parser exits. 
+	- Scan back from an opening parenthesis in
+	  basename_cmp if there is whitespace between
+	  the end of the label and start of the argument
+	  list.
+	- Changed the params in bnamecmp.c and keyword.c 
+	  to const char *.  Also changed params in
+	  _hash_get, _hash_remove, and _hash_key,
+	  and added typecasts in basename_cmp for
+	  substrcpy calls, and is_method_name and
+	  is_method_selector in method.c.  Use
+	  is_method_name and is_method_selector in
+	  have_declaration in cparse.c.
+        - Lots of code cleanup.
+2008-10-29
+	- Minor speedups and object deletion fixes in the 
+	  ctalk library.
+	- Release 0.0.83a.
+2008-10-30
+	- Added __ctalkDeleteObjectList. 
+	- Rewrote __ctalk_set_local ().
+2008-10-31
+	- Added Object : copy method.
+2008-11-01
+	- Replaced TRIM_CHAR with TRIM_CHAR_BUF macro. 
+	- Added VARENTRY type and changed global and 
+	  local object spaces to use VARENTRY's, and
+	  changed method API to return objects for 
+	  VARENTRY names and classnames.
+2008-11-02
+	- Release 0.0.84a.
+2008-11-03
+	- Added better checking for missing semicolons
+	  at the end of expressions.
+	- Added AssociativeArray : keyExists method.
+2008-11-05
+	- Added wiki.c example program and minor reliability
+	  improvements in the interpreter.
+	- WriteFileStream : openOn now uses 
+	  __ctalkSysErrExceptionInternal to output error
+	  messages.
+2008-11-06
+	- Rewrote OBJ_REF_STR macro to recognize 0x0 values.
+	- Character : asString now returns a String for 
+	  clases other than Character and Integer.
+	- fmt_c_fn_obj_args_expr checks for the correct 
+	  number of arguments.
+	- Release 0.0.85a.
+2008-11-08
+	- Preprocessed class library cacheing.
+2008-11-10
+	- Class and instance variable initializer fixes.
+	- Release 0.0.86a.
+2008-11-16
+	- Created 0.0.87a release branch.
+	- __ctalkClassDictionaryCleanup now deletes 
+	  the __ctalk_dictionary variable list.
+	- Character : asString uses a dynamically allocated
+	  buffer.
+	- Removed stdbool.h from the ctypes-sunos.c test program
+	  so Solaris 10 include files don't require GCC's 
+	  rewritten header files.
+	- Release 0.0.87a.
+2008-11-21
+        - Eval_expr now checks for instance variables as results
+	  when determining whether to delete subexpression result
+	  objects.
+	- __ctalk_arg also checks for instance variables as the 
+	  result of evaluating an argument expression.
+	- var_definition now handles translates expressions that
+	  evaluate to 0x0 correctly for String instance and class 
+	  variables.
+	- __ctalkAddInstanceVariable deletes extra copies of 
+	  random instance variable replacements.
+	- Save error number when calling stat () in statfile.c, 
+	  and omit success_x exception in except.c and except.h
+	  so the exception handlers can use error number exceptions
+	  sequentially with Ctalk exceptions, and better handling
+	  of NULL results when leaving __ctalkEvalExpr.
+        - EXCEPTION types for Ctalk and errno exceptions now are numbered
+	  correctly so the exception handlers can look them up 
+	  sequentially.
+        - Functions in statfile.c now save the system error
+	  number before calling stat ().
+2008-11-22
+	- rt_args () now has additional checks for collections as 
+	  receivers of argument expressions.
+	- The interpreter now checks for constants as arguments to
+	  C functions and deletes the objects after evaluating them.
+2008-11-23
+	- __ctalkToCCharPtr replaces __ctalk_to_c_char_ptr, and 
+	  deletes the result of evaluations that only need side
+	  effects.
+	- Lots of minor memory leak and extra pointer check fixes.
+	- Release 0.0.88a.
+2008-11-30
+	- Added String : printOn and WriteFileStream : printOn 
+	  methods.
+	- Compatibility fixes for Solaris.
+	- Many of object accounting and bug fixes.
+	- Win32TerminalStream class and ctalk-win32-xxx package.
+	- Release 0.0.89a.
+2008-12-07
+	- Added Symbol : name method.
+	- An argument method that can return "Any" class does not now 
+	  get a class lookup.
+	- If-statement predicates that contain functions now check 
+	  for leading tokens before the function label.
+	- Functions can now use "self" as an argument (in many cases
+	  at least).
+	- __ctalkSelfPrintOn to a String receiver no longer requires 
+	  a call to sprintf, and the function checks for additional 
+	  format tokens regardless of whether the token refers to 
+	  an argument.
+	- Added ANSITerminalStream class.
+	- find_expression_limit now handles end-of-stack conditions
+	  during expression checks.
+	- check_user_args now does a better job of determining whether
+	  the user has added or removed options.
+	- Removed excess inclusions of time.h and signal.h from classes
+	  and example programs, and added system-dependent definitions
+	  for time.h and signal.h.
+	- __ctalk_method now only deletes arguments for primitive 
+	  constructors.  Non-primitive constructors now include 
+	  a call to __ctalk_arg_pop_deref () when creating local objects.
+	- Release 0.0.90a rc1.
+2008-12-14
+	- Added VAR_REF_OBJECT scope.
+	- Updated obj_ref_from_str to use __ctalkStrToPtr, and added
+	  platform-specific conversions for __ctalkStrToPtr.
+	- Added check for valid call stack entry in __ctalkRtGetMethod ().
+	  Replaced obj_method_by_fn calls with __ctalkRtGetMethod in
+	  several functions.  Also check for the existence of parameter
+	  definitions when looking for template method parameters.
+	- eval_expr looks up methods using an instance or class variable's
+	  value object, uses the complete object as a receiver when
+	  making a method call.
+	- Check the class of value objects when looking up classes 
+	  and methods in __ctalk_method, ANSITerminalStream : new,
+	  __ctalkInstanceVarsFromClassObject, AssociativeArray : map,
+	  and several other places.
+	- Check for valid objects in __ctalkSetObjectScope.
+	- Release 0.0.90a.
+2008-12-18
+	- Added __ctalkObjectPrintOn, and argument checking for 
+	  *printOn functions.
+	- is_printf_fmt now recognizes the "X" conversion character.
+	- Added ANSITerminalStream : readLine and made the 
+	  ANSITerminalStream : printOn interface more consistent.
+	- Expressions that use "self" as a function arguments now 
+	  recognize instance and class variable messages.
+	- Just-in-time method parsing for class libraries.
+	- Release 0.0.91a rc1.
+2008-12-21
+	- Parser now adds __ctalk_init before exiting the topmost
+	  parser, and placement of __ctalk_init does not depend 
+	  on the parser reaching the end of main ().
+	- Release 0.0.91a.
+2008-12-24
+	- Preprocess () only adds ctalklib for the first input
+	  file.
+	- Output ctalk_init () just before the parser of the last 
+	  input file returns.
+2008-12-25
+	- Save input declarations for each input file.
+	- Keep preprocessor cache until all input files are 
+	  processed.
+2008-12-28
+	- Updated method arg accessor function translation.
+	- Typedefs still need to search the defined typedefs
+	  list in addition to the hashes.
+	- Handle multiple input files: unbuffer the global init
+	  before the return of the last parser, output ctalklib
+	  on the first input only, save preprocessor macros for
+	  each input file, updated options for ctdb and ctcc.
+	- Release 0.0.92a rc2.
+
+	  
+	 
+
+	
+	
