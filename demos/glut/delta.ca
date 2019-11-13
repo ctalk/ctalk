@@ -1,0 +1,300 @@
+/* $Id: delta.ca,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-c-*- */
+
+/*
+  This file is part of Ctalk.
+  Copyright © 2015 Robert Kiesling, rk3314042@gmail.com.
+  Permission is granted to copy this software provided that this copyright 
+  notice is included in all source code modules.
+
+  This program is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program; if not, write to the Free Software Foundation, 
+  Inc., 51 Franklin St., Fifth Floor, Boston, MA 02110-1301 USA.
+*/
+
+/* 
+   Demonstration that draws a Delta galactic fighter in front of a 
+   star field. 
+
+   Pressing [F1] toggles a full screen display.
+   Pressing [Esc] exits the program.
+*/
+
+/*
+  To build on OS X, use commands similar to the following.
+
+    $ ctalk -I /usr/X11R6/include delta.ca -o delta.i
+    $ gcc -framework GLUT delta.i -o delta -lctalk -lreadline \
+          -L/usr/X11R6/lib -lGL -lGLU
+
+ On Linux/UNIX, you should be simply be able to use the following
+ command to build the program.
+
+    $ ctcc -x delta.ca -o delta	  
+
+ */
+
+#ifndef ESC
+#define ESC 27
+#endif
+#define WINWIDTH 800
+#define WINHEIGHT 600
+
+GLUTApplication new delta;
+Boolean new isFullScreen;
+
+#include <ctalk/ctalkGLUTdefs.h>
+
+static float deltaVec[25][3] = {
+  // Main wing upper
+  {-1.5f, 0.2f, -1.5f},
+  {0.0f, 0.0f, 1.5f},
+  {1.5f, 0.2f, -1.5f},
+
+  // Main wing lower
+  {-1.5f, -0.0f, -1.5f},
+  {0.0f, 0.0f, 1.5f},
+  {1.5f, -0.0f, -1.5f},
+
+  // Starboard aft strut
+  {-1.5f, 0.2f, -1.5f},
+  {-1.5f, 0.0f, -1.5f},
+
+  // Port aft strut
+  {1.5f, 0.2f, -1.5f},
+  {1.5f, 0.0f, -1.5f},
+
+  // Starboard Nacelle
+  {-0.9f, 0.4f, -1.5f},
+  {-1.0f, -0.1f, -1.5f},
+  {-0.46f, 0.05f, 0.8f},
+  
+  // Port Nacelle
+  {0.9f, 0.4f, -1.5f},
+  {1.0f, -0.1f, -1.5f},
+  {0.46f, 0.05f, 0.8f},
+  
+  // Canopy
+  {-0.3f, 0.4f, -1.25f},
+  {0.0f, 0.05f, 0.8f},
+  {0.3f, 0.4f, -1.25f},
+
+  {-0.3f, 0.4f, -1.25f}, 
+  {-0.4f, 0.15f, -1.25f},
+  {0.0f, 0.05f, 0.8f},
+
+  {0.3f, 0.4f, -1.25f}, 
+  {0.4f, 0.15f, -1.25f},
+  {0.0f, 0.05f, 0.8f}
+};
+
+float angle = 0.0f;
+
+// Star field definitions and algorithms, adapted from the NeHe OpenGL series.
+#define N_STARS 150
+#define STAR_SPIN_INC 0.001f
+typedef struct {
+  int r, g, b;
+  int size;
+  GLfloat dist;
+  GLfloat angle;
+} stars;
+stars star_far[N_STARS];
+float angle_const[N_STARS];
+GLfloat zoom = -550.0f;
+GLfloat tilt = 90.0f;
+GLfloat spin;
+GLuint starPoint;
+
+void init_star (stars *s, int i) {
+  int iangle;
+  int c;
+  iangle = rand () % 360;
+  s -> angle = (float) iangle;
+  s -> dist=((float)i/N_STARS)*(4.0f * (zoom/2.0));
+
+  c = rand () % 256;
+
+  if ((i % 10) == 0) {
+    s -> r = 0; s -> g = 0; s -> b = c;
+  } else {
+    if ((i % 10) == 1) {
+      s -> r = 0; s -> g = c; s -> b = c;
+    } else {
+      s -> r = c; s -> g = c; s -> b = c;
+    }
+  }
+
+  s -> size = rand () % 2 + 1;
+}
+
+void BuildStarList (void) {
+  starPoint = glGenLists (1);
+  glNewList (starPoint, GL_COMPILE);
+
+  glBegin(GL_POINTS);
+  glNormal3f (0.0f, 0.0f, 1.0f);
+  glVertex3f(-0.1f,-0.1f, 0.0f);
+  glEnd();
+  glEndList ();
+}
+
+void DrawStars (void) {
+  GLfloat fOppCoord, fAdjCoord;
+  int loop;
+
+  glLoadIdentity ();
+
+  for (loop = 0; loop < N_STARS; loop++) {
+    glLoadIdentity ();
+
+    glTranslatef (0.0f, 0.0f, zoom);
+    glRotatef (tilt, 1.0f, 0.0f, 0.0f);
+
+    glRotatef (star_far[loop].angle, 0.0f, 1.0f, 0.0f);
+    glTranslatef (star_far[loop].dist, 0.0f, 0.0f);
+
+    // Return to the previous inclination angle.
+    glRotatef(-star_far[loop].angle,0.0f,1.0f,0.0f); 
+    glRotatef(-tilt,1.0f,0.0f,0.0f);    
+
+    glColor4ub(star_far[loop].r,star_far[loop].g,star_far[loop].b,255);
+    glPointSize (star_far[loop].size);
+
+    glCallList (starPoint);
+  }
+
+}
+
+GLUTApplication instanceMethod initStars (void) {
+  int loop;
+  for (loop = 0; loop < N_STARS; loop++) {
+    init_star (&star_far[loop], loop);
+    angle_const[loop] = (float)(loop / N_STARS) * 0.01f;
+  }
+  BuildStarList ();
+}
+
+void mydisplay (void) {
+  glEnable (GL_NORMALIZE);
+  glEnable(GL_DEPTH_TEST);
+  glClearColor(0.0, 0.0, 0.0, 1.0);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+  DrawStars ();
+
+  glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+  glLineWidth (1.5f);
+
+  glLoadIdentity ();
+  glColor4f (0.0f, 0.0f, 0.8f, 1.0f);
+
+  glTranslatef (0.0f, -0.5f, -4.0f);
+
+  glRotatef (angle, 0.0f, 1.0f, 0.0f);
+  glRotatef (10.0f, 1.0f, 0.0f, 0.0f);
+
+  glBegin (GL_TRIANGLES);
+  glVertex3fv (deltaVec[0]);
+  glVertex3fv (deltaVec[1]);
+  glVertex3fv (deltaVec[2]);
+  glVertex3fv (deltaVec[3]);
+  glVertex3fv (deltaVec[4]);
+  glVertex3fv (deltaVec[5]);
+  glEnd ();
+
+  // Aft struts
+  glBegin (GL_LINES);
+  glVertex3fv (deltaVec[6]);
+  glVertex3fv (deltaVec[7]);
+  glVertex3fv (deltaVec[8]);
+  glVertex3fv (deltaVec[9]);
+  glEnd ();
+
+  // Nacelles
+  glBegin (GL_POLYGON);
+  glVertex3fv (deltaVec[10]);
+  glVertex3fv (deltaVec[11]);
+  glVertex3fv (deltaVec[12]);
+  glEnd ();
+  glBegin (GL_POLYGON);
+  glVertex3fv (deltaVec[13]);
+  glVertex3fv (deltaVec[14]);
+  glVertex3fv (deltaVec[15]);
+  glEnd ();
+
+  // Canopy
+  glBegin (GL_TRIANGLES);
+  glVertex3fv (deltaVec[16]);
+  glVertex3fv (deltaVec[17]);
+  glVertex3fv (deltaVec[18]);
+  glVertex3fv (deltaVec[19]);
+  glVertex3fv (deltaVec[20]);
+  glVertex3fv (deltaVec[21]);
+  glVertex3fv (deltaVec[22]);
+  glVertex3fv (deltaVec[23]);
+  glVertex3fv (deltaVec[24]);
+  glEnd ();
+
+  glutSwapBuffers ();
+}
+
+void animation (void) {
+  angle += 0.2f;
+  if (angle >= 360.0f)
+    angle = 0.0f;
+  glutPostRedisplay();
+}
+
+void reshape (int w, int h) {
+  float ar = (float)w / (float)h;
+  glViewport(0, 0, w, h);
+  glMatrixMode(GL_PROJECTION);
+  glLoadIdentity();
+  gluPerspective (65.0, ar, 1.0f, -1000.0f);
+  glMatrixMode(GL_MODELVIEW);
+  glLoadIdentity();
+}
+
+void fn_key (int keycode, int x, int y) {
+  if (keycode == GLUT_KEY_F1) {
+    if (!isFullScreen) {
+      delta fullScreen;
+    } else {
+      delta reshape WINWIDTH, WINHEIGHT;
+    }
+  }
+  isFullScreen = !isFullScreen;
+}
+
+void key (unsigned char c, int x, int y) {
+  if (c == ESC)
+    exit (0);
+}
+
+int main (int argc, char **argv) {
+  delta initGLUT(argc, argv);
+  delta initWindow (WINWIDTH, WINHEIGHT);
+  delta createMainWindow ("Delta Fighter -- GLUTApplication Class");
+
+  delta initStars;
+
+  delta defineDisplayFn mydisplay;
+  delta defineIdleFn animation;
+  delta defineReshapeFn reshape;
+  delta defineSpecialFn fn_key;
+  delta defineKeyboardFn key;
+  delta installCallbackFns;
+
+  delta run;
+  
+}

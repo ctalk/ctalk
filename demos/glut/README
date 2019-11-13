@@ -1,0 +1,91 @@
+
+GLUT Support in Ctalk
+---------------------
+
+Ctalk works with GLUT on Linux/UNIX and Mac OS X platforms.  As usual,
+it's necessary to install the Linux or UNIX distribution's GLUT
+development packages in order to link programs with GLUT, and the
+OpenGL libraries that it uses.
+
+NOTE: GLUT is no longer included in many GNU/Linux distributions. A
+free implementation of the GLUT libraries, freeglut, is available at
+http://freeglut.sourceforge.net/.
+
+On Macintosh OS X platforms, GLUT is included as an application
+framework.  Ctalk doesn't support OS X application frameworks
+directly, but it includes the header file, ctalkGLUTdefs.h, which you
+can tailor to the system's needs if necessary.  You can include the
+GLUT and OpenGL definitions by adding a line like this to the Ctalk
+program.
+
+  #include <ctalk/ctalkGLUTdefs.h>
+
+It might be necessary to tailor this file to a specific machine's
+configuration - the distribution version is not intended to be definitive,
+but to allow extending the API if needed.
+
+Building Executables on Linux/UNIX
+----------------------------------
+
+With the standard installation packages, the necessary libraries should
+be added to the linker flags during configuration.  That allows you to
+build a program as usual.
+
+  $ ctcc -x glutprog.ca -o glutprog
+
+The configuration should also detect a GLUT installation from the
+source code when Ctalk is installed, but, again, getting a program to
+link with all of GLUT's platform-specific ancillary libraries may
+require some editing of the ctcc and ctdb programs.
+
+If the build process produces a link-related error due to a missing
+math function, then add -m to the ctcc command line.
+
+  $ ctcc -x -m glutprog.ca -o glutprog
+
+If ./configure for some reason *hasn't* detected the location of GLUT
+and its supporting libraries correctly, you can build the programs
+manually with a series of commands similar to the following.
+
+    $ ctalk -I /usr/X11R6/include glutprog.ca -o glutprog.i
+    $ gcc glutprog.i -o glutprog -lctalk -lreadline -lhistory \
+       -L/usr/X11R6/lib -lGL -lGLU -lglut
+
+Again, this example is not meant to be definitive, although you
+should be able to modify it for the system's configuration.
+
+
+Building Executables with OS X (and Darwin)
+-------------------------------------------
+
+The OS X/Darwin platform includes support for OpenGL both in the
+UNIX configuration and as an application framework.  At least some
+OS X distributions include GLUT as an application framework only.
+
+In this case, you can use the ctalkGLUTdefs.h file described above
+to add the framework's definitions to a file.
+
+To build an executable, you can also use the OpenGL headers and libraries
+that GLUT requires as a UNIX configuration.  To build the example programs,
+you might need to use a series of commands like these.
+
+  $ ctalk -I /usr/X11R6/include glutprog.ca -o glutprog.i
+  $ gcc -framework GLUT glutprog.i -o glutprog -lctalk -lreadline \
+       -L/usr/X11R6/lib -lGL -lGLU
+
+Again, this example is not meant to be definitive.  You might need to
+adjust it to the machine's configuration.
+
+Building Ctalk without GLUT
+---------------------------
+
+If you don't want your Ctalk installation to support GLUT, add the
+--with-glut=no option to configure when building Ctalk; e.g., 
+
+  $ ./configure --with-glut=no
+
+Bug Reports, Feedback, and Support
+----------------------------------
+
+Please contact the Ctalk authors at: rk3314042@gmail.com,
+or visit the Ctalk Web site: http://sf.net/projects/ctalk/.

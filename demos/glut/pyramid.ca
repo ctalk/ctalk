@@ -1,0 +1,176 @@
+/* $Id: pyramid.ca,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-c-*- */
+
+/*
+  This file is part of Ctalk.
+  Copyright © 2015 Robert Kiesling, rk3314042@gmail.com.
+  Permission is granted to copy this software provided that this copyright 
+  notice is included in all source code modules.
+
+  This program is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program; if not, write to the Free Software Foundation, 
+  Inc., 51 Franklin St., Fifth Floor, Boston, MA 02110-1301 USA.
+*/
+
+/*
+  Demonstration that draws a pyramid, manually rendered with
+  blended colors between vertexes. 
+
+  Pressing [F1] toggles a full screen display.
+  Pressing [Esc] exits the program.
+*/
+
+/*
+  To build manually with Linux/UNIX use a series of commands like the following.
+
+    $ ctalk pyramid.ca -o pyramid.i
+    $ gcc pyramid.i -o pyramid -lm -lctalk -lreadline -lhistory -lGL -lGLU -lglut
+
+  or simply,
+
+    $ ctcc -x -m pyramid.ca -o pyramid
+
+  On OS X, to build with the GLUT framework (but with the standard GL includes):
+
+    $ ctalk -I /usr/X11R6/include pyramid.ca -o pyramid.i
+    $ gcc -framework GLUT pyramid.i -o pyramid -lctalk -lreadline \
+        -L/usr/X11R6/lib -lGL -lGLU
+ */
+
+#ifndef ESC
+#define ESC 27
+#endif
+#define WINWIDTH 640
+#define WINHEIGHT 480
+
+GLUTApplication new pyramid;
+Boolean new isFullScreen;
+
+#include <ctalk/ctalkGLUTdefs.h>
+
+float face1[3][3] = {{0.0f, 2.0f, 0.0f},
+		     {-2.0f, -2.0f, 2.0f},
+		     {2.0f, -2.0f, 2.0f}};
+float face2[3][3] = {{0.0f, 2.0f, 0.0f},
+		     {2.0f, -2.0f, 2.0f},
+		     {2.0f, -2.0f, -2.0f}};
+float face3[3][3] = {{0.0f, 2.0f, 0.0f},
+		     {2.0f, -2.0f, -2.0f},
+		     {-2.0f, -2.0f, -2.0f}};
+float face4[3][3] = {{0.0f, 2.0f, 0.0f},
+		     {-2.0f, -2.0f, -2.0f},
+		     {-2.0f, -2.0f, 2.0f}};
+
+float base[4][3] = {{2.0f, -2.0f, 2.0f},
+		    {2.0f, -2.0f, -2.0f},
+		    {-2.0f, -2.0f, -2.0f},
+		    {-2.0f, -2.0f, 2.0f}};
+float angle = 0.0f;
+
+void mydisplay (void) {
+  glEnable (GL_NORMALIZE);
+  glEnable(GL_DEPTH_TEST);
+  glClearColor(0.0, 0.0, 0.0, 1.0);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+  glLineWidth (1.0f);
+
+  glLoadIdentity ();
+  glColor4f (1.0f, 1.0f, 1.0f, 1.0f);
+
+  glRotatef (angle, 0.0f, 1.0f, 0.0f);
+  glRotatef (10.0f, 0.0f, 0.0f, 1.0f);
+
+  glBegin (GL_TRIANGLES);
+  glColor3f (1.0f, 0.0f, 0.0f);
+  glVertex3fv (face1[0]);
+  glColor3f (0.0f, 1.0f, 0.0f);
+  glVertex3fv (face1[1]);
+  glColor3f (0.0f, 0.0f, 1.0f);
+  glVertex3fv (face1[2]);
+
+  glColor3f (1.0f, 0.0f, 0.0f);
+  glVertex3fv (face2[0]);
+  glColor3f (0.0f, 1.0f, 0.0f);
+  glVertex3fv (face2[1]);
+  glColor3f (0.0f, 0.0f, 1.0f);
+  glVertex3fv (face2[2]);
+			
+  glColor3f (1.0f, 0.0f, 0.0f);
+  glVertex3fv (face3[0]);
+  glColor3f (0.0f, 1.0f, 0.0f);
+  glVertex3fv (face3[1]);
+  glColor3f (0.0f, 0.0f, 1.0f);
+  glVertex3fv (face3[2]);
+			
+  glColor3f (1.0f, 0.0f, 0.0f);
+  glVertex3fv (face4[0]);
+  glColor3f (0.0f, 1.0f, 0.0f);
+  glVertex3fv (face4[1]);
+  glColor3f (0.0f, 0.0f, 1.0f);
+  glVertex3fv (face4[2]);
+  glEnd ();
+
+  glBegin (GL_QUADS);
+
+  glColor3f (1.0f, 0.0f, 0.0f);
+  glVertex3fv (base[0]);
+  glColor3f (0.0f, 1.0f, 0.0f);
+  glVertex3fv (base[1]);
+  glColor3f (0.0f, 0.0f, 1.0f);
+  glVertex3fv (base[2]);
+  glColor3f (1.0f, 0.0f, 1.0f);
+  glVertex3fv (base[3]);
+
+  glEnd ();
+
+  glutSwapBuffers ();
+}
+
+void animation (void) {
+  angle += 0.2f;
+  if (angle >= 360.0f)
+    angle = 0.0f;
+  glutPostRedisplay();
+}
+
+void fn_key (int keycode, int x, int y) {
+  if (keycode == GLUT_KEY_F1) {
+    if (!isFullScreen) {
+      pyramid fullScreen;
+    } else {
+      pyramid reshape WINWIDTH, WINHEIGHT;
+    }
+    isFullScreen = !isFullScreen;
+  }
+}
+
+void key (unsigned char c, int x, int y) {
+  if (c == ESC)
+    exit (0);
+}
+
+int main (int argc, char **argv) {
+  pyramid initGLUT(argc, argv);
+  pyramid initWindow (WINWIDTH, WINHEIGHT);
+  pyramid createMainWindow ("GLUTApplication Class");
+  pyramid defineDisplayFn mydisplay;
+  pyramid defineIdleFn animation;
+  pyramid defineSpecialFn fn_key;
+  pyramid defineKeyboardFn key;
+  pyramid installCallbackFns;
+
+  isFullScreen = False;
+
+  pyramid run;
+  
+}

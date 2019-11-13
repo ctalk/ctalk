@@ -1,0 +1,248 @@
+/* $Id: texture.ca,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-c-*- */
+
+/*
+  This file is part of Ctalk.
+  Copyright © 2015 Robert Kiesling, rk3314042@gmail.com.
+  Permission is granted to copy this software provided that this copyright 
+  notice is included in all source code modules.
+
+  This program is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program; if not, write to the Free Software Foundation, 
+  Inc., 51 Franklin St., Fifth Floor, Boston, MA 02110-1301 USA.
+*/
+
+/*
+  Demonstration that draws a tetrahedron with a texture.
+
+  Also uses some simple lighting and material properties which
+  make the texture appear more lifelike.
+
+  Pressing [F1] toggles a full screen display.
+  Pressing [Esc] exits the program.
+*/
+
+/*
+  To build manually with Linux/UNIX use a series of commands like the following.
+
+    $ ctalk texture.ca -o texture.i
+    $ gcc texture.i -o texture -lctalk -lreadline -lhistory -lGL -lGLU -lglut
+
+  or simply,
+
+    $ ctcc -x texture.ca -o texture
+
+  On OS X, to build with the GLUT framework (but with the standard GL includes):
+
+    $ ctalk -I /usr/X11R6/include texture.ca -o texture.i
+    $ gcc -framework GLUT texture.i -o texture -lctalk -lreadline \
+        -L/usr/X11R6/lib -lGL -lGLU
+ */
+
+#ifndef ESC
+#define ESC 27
+#endif
+#define WINWIDTH 640
+#define WINHEIGHT 480
+
+GLUTApplication new textureApp;
+Boolean new isFullScreen;
+
+
+#include "granite.xpm"
+#include <ctalk/ctalkGLUTdefs.h>
+
+float face1[3][3] = {{0.0f, 2.0f, 0.0f},
+		     {-2.0f, -2.0f, 2.0f},
+		     {2.0f, -2.0f, 2.0f}};
+float face2[3][3] = {{0.0f, 2.0f, 0.0f},
+		     {2.0f, -2.0f, 2.0f},
+		     {2.0f, -2.0f, -2.0f}};
+float face3[3][3] = {{0.0f, 2.0f, 0.0f},
+		     {2.0f, -2.0f, -2.0f},
+		     {-2.0f, -2.0f, -2.0f}};
+float face4[3][3] = {{0.0f, 2.0f, 0.0f},
+		     {-2.0f, -2.0f, -2.0f},
+		     {-2.0f, -2.0f, 2.0f}};
+
+float base[4][3] = {{2.0f, -2.0f, 2.0f},
+		    {2.0f, -2.0f, -2.0f},
+		    {-2.0f, -2.0f, -2.0f},
+		    {-2.0f, -2.0f, 2.0f}};
+float angle = 0.0f;
+
+/* 
+ *  The cross product of two vectors on a plane define the
+ *  plane's normal vector, which OpenGL uses for its
+ *  lighting and materials calculations.
+ */
+#define CROSS_PRODUCT_F(r,v1,v2) \
+  {r[0] = v1[1] * v2[2] - v2[1] * v1[2]; \
+  r[1] = -v1[0] * v2[2] + v2[0] * v1[2]; \
+  r[2] = v1[0] * v2[1] - v2[0] * v1[1]; }
+
+float normal1[3], normal2[3], normal3[3], normal4[3];
+
+void mydisplay (void) {
+  glEnable (GL_NORMALIZE);
+  glEnable(GL_DEPTH_TEST);
+  glClearColor(0.0, 0.0, 0.0, 1.0);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+  glLineWidth (1.0f);
+
+  glLoadIdentity ();
+  glColor4f (1.0f, 1.0f, 1.0f, 1.0f);
+
+  glRotatef (angle, 0.0f, 1.0f, 0.0f);
+  glRotatef (10.0f, 0.0f, 0.0f, 1.0f);
+
+  CROSS_PRODUCT_F (normal1, face1[0], face1[2]);
+  CROSS_PRODUCT_F (normal2, face2[0], face2[2]);
+  CROSS_PRODUCT_F (normal3, face3[0], face3[2]);
+  CROSS_PRODUCT_F (normal4, face4[0], face4[2]);
+
+  glBegin (GL_TRIANGLES);
+  glNormal3fv (normal1);
+  glTexCoord2f (0.5f, 0.0f);
+  glVertex3fv (face1[0]);
+  glTexCoord2f (0.0f, 1.0f);
+  glVertex3fv (face1[1]);
+  glTexCoord2f (1.0f, 1.0f);
+  glVertex3fv (face1[2]);
+
+  glNormal3fv (normal2);
+  glTexCoord2f (0.5f, 0.0f);
+  glVertex3fv (face2[0]);
+  glTexCoord2f (0.0f, 1.0f);
+  glVertex3fv (face2[1]);
+  glTexCoord2f (1.0f, 1.0f);
+  glVertex3fv (face2[2]);
+
+  glNormal3fv (normal3);
+  glTexCoord2f (0.5f, 0.0f);
+  glVertex3fv (face3[0]);
+  glTexCoord2f (0.0f, 1.0f);
+  glVertex3fv (face3[1]);
+  glTexCoord2f (1.0f, 1.0f);
+  glVertex3fv (face3[2]);
+
+  glNormal3fv (normal4);
+  glTexCoord2f (0.5f, 0.0f);
+  glVertex3fv (face4[0]);
+  glTexCoord2f (0.0f, 1.0f);
+  glVertex3fv (face4[1]);
+  glTexCoord2f (1.0f, 1.0f);
+  glVertex3fv (face4[2]);
+  glEnd ();
+
+  glBegin (GL_QUADS);
+
+  glTexCoord2f (0.0f, 0.0f);
+  glVertex3fv (base[0]);
+  glTexCoord2f (1.0f, 0.0f);
+  glVertex3fv (base[1]);
+  glTexCoord2f (1.0f, 1.0f);
+  glVertex3fv (base[2]);
+  glTexCoord2f (0.0f, 1.0f);
+  glVertex3fv (base[3]);
+
+  glEnd ();
+
+  glutSwapBuffers ();
+}
+
+void animation (void) {
+  angle += 0.2f;
+  if (angle >= 360.0f)
+    angle = 0.0f;
+  glutPostRedisplay();
+}
+
+void fn_key (int keycode, int x, int y) {
+  if (keycode == GLUT_KEY_F1) {
+    if (!isFullScreen) {
+      textureApp fullScreen;
+    } else {
+      textureApp reshape WINWIDTH, WINHEIGHT;
+    }
+  }
+  isFullScreen = !isFullScreen;
+}
+
+void key (unsigned char c, int x, int y) {
+  if (c == ESC)
+    exit (0);
+}
+
+/*
+ *  A slight bluish cast helps model natural light.
+ */
+float light_position[] = {1.0f, 20.0f, 10.0f, 1.0f};
+float ambient[] = {0.6f, 0.6f, 0.7f, 1.0f};
+float diffuse[] = {0.8f, 0.8f, 1.0f, 1.0f};
+float specular[] = {0.8f, 0.8f, 1.0f, 1.0f};
+float reflectance[] = {1.0f, 1.0f, 1.0f, 1.0f};
+
+GLUTApplication instanceMethod initLighting (void) {
+  glEnable (GL_LIGHTING);
+  glLightfv (GL_LIGHT0, GL_AMBIENT, ambient);
+  glLightfv (GL_LIGHT1, GL_DIFFUSE, diffuse);
+  glLightfv (GL_LIGHT1, GL_POSITION, light_position);
+  glLightfv (GL_LIGHT2, GL_SPECULAR, specular);
+  glLightfv (GL_LIGHT2, GL_POSITION, light_position);
+  glEnable (GL_LIGHT0);
+  glEnable (GL_LIGHT1);
+  glEnable (GL_LIGHT2);
+
+  glMaterialfv (GL_FRONT, GL_SPECULAR, reflectance);
+  glMateriali (GL_FRONT, GL_SHININESS, 64);
+
+  glEnable (GL_COLOR_MATERIAL);
+  glColorMaterial (GL_FRONT, GL_AMBIENT_AND_DIFFUSE);
+  glColor3ub (128, 128, 196);
+}
+
+GLUTApplication instanceMethod initTexture (void) {
+  Integer new textureWidth;
+  Integer new textureHeight;
+  Symbol new texelData;
+
+  self xpmToTexture granite_xpm, textureWidth, textureHeight, 
+    texelData;
+  glTexImage2D (GL_TEXTURE_2D, 0, GL_RGBA, textureWidth, textureHeight,
+		0, GL_RGBA, GL_UNSIGNED_INT_8_8_8_8, texelData);
+  glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+  glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+  glTexEnvi (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+  glEnable (GL_TEXTURE_2D);
+}
+
+int main (int argc, char **argv) {
+
+  textureApp initGLUT(argc, argv);
+  textureApp initWindow (WINWIDTH, WINHEIGHT);
+  textureApp createMainWindow ("Texture -- GLUTApplication Class");
+  textureApp defineDisplayFn mydisplay;
+  textureApp defineIdleFn animation;
+  textureApp defineSpecialFn fn_key;
+  textureApp defineKeyboardFn key;
+  textureApp installCallbackFns;
+
+  textureApp initTexture;
+  textureApp initLighting;
+
+  textureApp run;
+  
+}

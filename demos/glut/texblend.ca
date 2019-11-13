@@ -1,0 +1,444 @@
+/* $Id: texblend.ca,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-c-*- */
+
+/*
+  This file is part of Ctalk.
+  Copyright © 2016 Robert Kiesling, rk3314042@gmail.com.
+  Permission is granted to copy this software provided that this copyright 
+  notice is included in all source code modules.
+
+  This program is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program; if not, write to the Free Software Foundation, 
+  Inc., 51 Franklin St., Fifth Floor, Boston, MA 02110-1301 USA.
+*/
+
+/*
+  Demonstration of textures blended with the background.
+
+  Pressing [F1] toggles a full screen display.
+  Pressing [Esc] exits the program.
+*/
+
+/*
+  To build manually with Linux/UNIX use a series of commands like the following.
+
+    $ ctalk texblend.ca -o texblend.i
+    $ gcc texblend.i -o texblend -lctalk -lreadline -lhistory -lGL -lGLU -lglut
+
+  or simply,
+
+    $ ctcc -x texblend.ca -o texblend
+
+  On OS X, to build with the GLUT framework (but with the standard GL includes):
+
+    $ ctalk -I /usr/X11R6/include texblend.ca -o texblend.i
+    $ gcc -framework GLUT texblend.i -o texblend -lctalk -lreadline \
+        -L/usr/X11R6/lib -lGL -lGLU
+ */
+
+/* 
+ * Using a nebula texture:
+   Uncomment the #define below if you want the walls to have a 
+   nebulous surface.  Note that this texture contains a lot of
+   colors, so be prepared to wait for the program to build, unless
+   you have a very fast system. */
+/* #define NEBULA */
+
+#ifndef ESC
+#define ESC 27
+#endif
+#define WINWIDTH 800
+#define WINHEIGHT 600
+
+GLUTApplication new textureApp;
+Boolean new isFullScreen;
+
+#include <ctalk/ctalkGLUTdefs.h>
+
+#define NEBULA_COLOR   glColor4f (0.8f, 0.8f, 1.0f, 0.5f)
+#define STAR_COLOR     glColor4ub(star_far[loop].r,star_far[loop].g,star_far[loop].b,255)
+
+float fp_front[4][3] = {{-1.0f, 4.0f, 1.2f},
+			{-1.0f, -4.0f, 1.2f},
+			{1.0f, -4.0f, 1.2f},
+			{1.0f, 4.0f, 1.2f}};
+float fp_right[4][3] = {{1.0f, 4.0f, 1.2f},
+			{1.0f, 4.0f, 1.0f},
+			{1.0f, -4.0f, 1.0f},
+			{1.0f, -4.0f, 1.2f}};
+float fp_back[4][3] = {{-1.0f, 4.0f, 1.0f},
+		       {-1.0f, -4.0f, 1.0f},
+		       {1.0f, -4.0f, 1.0f},
+		       {1.0f, 4.0f, 1.0f}};
+float fp_left[4][3] = {{-1.0f, 4.0f,1.2f},
+		       {-1.0f, 4.0f, 1.0f},
+		       {-1.0f, -4.0f, 1.0f},
+		       {-1.0f, -4.0f, 1.2f}};
+float fp_top[4][3] = {{1.0f, 4.0f, 1.2f},
+		      {-1.0f, 4.0f, 1.2f},
+		      {-1.0f, 4.0f, 1.0f},
+		      {1.0f, 4.0f, 1.0f}};
+float fp_bottom[4][3] = {{1.0f, -4.0f, 1.2f},
+			 {-1.0f, -4.0f, 1.2f},
+			 {-1.0f, -4.0f, 1.0f},
+			 {1.0f, -4.0f, 1.0f}};
+
+float bp_front[4][3] = {{-1.0f, 4.0f, -1.2f},
+			{-1.0f, -4.0f, -1.2f},
+			{1.0f, -4.0f, -1.2f},
+			{1.0f, 4.0f, -1.2f}};
+float bp_right[4][3] = {{1.0f, 4.0f, -1.2f},
+			{1.0f, 4.0f, -1.0f},
+			{1.0f, -4.0f, -1.0f},
+			{1.0f, -4.0f, -1.2f}};
+float bp_back[4][3] = {{-1.0f, 4.0f, -1.0f},
+		       {-1.0f, -4.0f, -1.0f},
+		       {1.0f, -4.0f, -1.0f},
+		       {1.0f, 4.0f, -1.0f}};
+float bp_left[4][3] = {{-1.0f, 4.0f, -1.2f},
+		       {-1.0f, 4.0f, -1.0f},
+		       {-1.0f, -4.0f, -1.0f},
+		       {-1.0f, -4.0f, -1.2f}};
+float bp_top[4][3] = {{1.0f, 4.0f, -1.2f},
+		      {-1.0f, 4.0f, -1.2f},
+		      {-1.0f, 4.0f, -1.0f},
+		      {1.0f, 4.0f, -1.0f}};
+float bp_bottom[4][3] = {{1.0f, -4.0f, -1.2f},
+			 {-1.0f, -4.0f, -1.2f},
+			 {-1.0f, -4.0f, -1.0f},
+			 {1.0f, -4.0f, -1.0f}};
+
+float angle = 0.0f;
+
+/* 
+ *  The cross product of two vectors on a plane define the
+ *  plane's normal vector, which OpenGL uses for its
+ *  lighting and materials calculations.
+ */
+#define CROSS_PRODUCT_F(r,v1,v2) \
+  {r[0] = v1[1] * v2[2] - v2[1] * v1[2]; \
+  r[1] = -v1[0] * v2[2] + v2[0] * v1[2]; \
+  r[2] = v1[0] * v2[1] - v2[0] * v1[1]; }
+
+float normal1[3];
+
+void draw_gate (float angle) {
+  NEBULA_COLOR;
+  
+  glEnable (GL_BLEND);
+  glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  glEnable (GL_TEXTURE_2D);
+  glEnable (GL_LIGHTING);
+
+  glBegin (GL_QUADS);
+
+  /* front pylon */
+  glVertex3fv (fp_front[0]); glTexCoord2f (0.0, 0.0f);
+  glVertex3fv (fp_front[1]); glTexCoord2f (0.0f, 1.0f);
+  glVertex3fv (fp_front[2]); glTexCoord2f (1.0f, 1.0f);
+  glVertex3fv (fp_front[3]); glTexCoord2f (1.0f, 0.0f);
+
+  glVertex3fv (fp_right[0]); glTexCoord2f (1.0f, 0.0f);
+  glVertex3fv (fp_right[1]); glTexCoord2f (0.0f, 0.0f);
+  glVertex3fv (fp_right[2]); glTexCoord2f (0.0f, 1.0f);
+  glVertex3fv (fp_right[3]); glTexCoord2f (1.0f, 0.0f);
+
+  glVertex3fv (fp_back[0]); glTexCoord2f (0.0f, 1.0f);
+  glVertex3fv (fp_back[1]); glTexCoord2f (1.0f, 0.0f);
+  glVertex3fv (fp_back[2]); glTexCoord2f (1.0f, 1.0f);
+  glVertex3fv (fp_back[3]); glTexCoord2f (1.0f, 0.0f);
+
+  glVertex3fv (fp_left[0]); glTexCoord2f (1.0f, 0.0f);
+  glVertex3fv (fp_left[1]); glTexCoord2f (0.0f, 0.0f);
+  glVertex3fv (fp_left[2]); glTexCoord2f (0.0f, 1.0f);
+  glVertex3fv (fp_left[3]); glTexCoord2f (1.0f, 0.0f);
+
+  glVertex3fv (fp_top[0]); glTexCoord2f (1.0f, 0.0f);
+  glVertex3fv (fp_top[1]); glTexCoord2f (0.0f, 0.0f);
+  glVertex3fv (fp_top[2]); glTexCoord2f (0.0f, 1.0f);
+  glVertex3fv (fp_top[3]); glTexCoord2f (1.0f, 0.0f);
+
+  glVertex3fv (fp_bottom[0]); glTexCoord2f (1.0f, 0.0f);
+  glVertex3fv (fp_bottom[1]); glTexCoord2f (0.0f, 0.0f);
+  glVertex3fv (fp_bottom[2]); glTexCoord2f (0.0f, 1.0f);
+  glVertex3fv (fp_bottom[3]); glTexCoord2f (1.0f, 0.0f);
+
+  /* back pylon */
+  glVertex3fv (bp_front[0]); glTexCoord2f (0.0, 0.0f);
+  glVertex3fv (bp_front[1]); glTexCoord2f (0.0f, 1.0f);
+  glVertex3fv (bp_front[2]); glTexCoord2f (1.0f, 1.0f);
+  glVertex3fv (bp_front[3]); glTexCoord2f (1.0f, 0.0f);
+
+  glVertex3fv (bp_right[0]); glTexCoord2f (1.0f, 0.0f);
+  glVertex3fv (bp_right[1]); glTexCoord2f (0.0f, 0.0f);
+  glVertex3fv (bp_right[2]); glTexCoord2f (0.0f, 1.0f);
+  glVertex3fv (bp_right[3]); glTexCoord2f (1.0f, 0.0f);
+
+  glVertex3fv (bp_back[0]); glTexCoord2f (0.0f, 1.0f);
+  glVertex3fv (bp_back[1]); glTexCoord2f (1.0f, 0.0f);
+  glVertex3fv (bp_back[2]); glTexCoord2f (1.0f, 1.0f);
+  glVertex3fv (bp_back[3]); glTexCoord2f (1.0f, 0.0f);
+
+  glVertex3fv (bp_left[0]); glTexCoord2f (1.0f, 0.0f);
+  glVertex3fv (bp_left[1]); glTexCoord2f (0.0f, 0.0f);
+  glVertex3fv (bp_left[2]); glTexCoord2f (0.0f, 1.0f);
+  glVertex3fv (bp_left[3]); glTexCoord2f (1.0f, 0.0f);
+
+  glVertex3fv (bp_top[0]); glTexCoord2f (1.0f, 0.0f);
+  glVertex3fv (bp_top[1]); glTexCoord2f (0.0f, 0.0f);
+  glVertex3fv (bp_top[2]); glTexCoord2f (0.0f, 1.0f);
+  glVertex3fv (bp_top[3]); glTexCoord2f (1.0f, 0.0f);
+
+  glVertex3fv (bp_bottom[0]); glTexCoord2f (1.0f, 0.0f);
+  glVertex3fv (bp_bottom[1]); glTexCoord2f (0.0f, 0.0f);
+  glVertex3fv (bp_bottom[2]); glTexCoord2f (0.0f, 1.0f);
+  glVertex3fv (bp_bottom[3]); glTexCoord2f (1.0f, 0.0f);
+
+  glEnd ();
+
+  glDisable (GL_BLEND);
+  glDisable (GL_TEXTURE_2D);
+  glDisable (GL_LIGHTING);
+}
+
+// Star field definitions and algorithms, adapted from the NeHe OpenGL series.
+#define N_STARS 500
+#define STAR_SPIN_INC 0.001f
+typedef struct {
+  int r, g, b;
+  int size;
+  GLfloat dist;
+  GLfloat angle;
+} stars;
+stars star_far[N_STARS];
+float angle_const[N_STARS];
+GLfloat zoom = -550.0f;
+GLfloat tilt = 90.0f;
+GLfloat spin;
+GLuint starPoint;
+
+void init_star (stars *s, int i) {
+  int iangle;
+  int c;
+  iangle = rand () % 360;
+  s -> angle = (float) iangle;
+  s -> dist=((float)i/N_STARS)*(4.0f * (zoom/2.0));
+
+  c = rand () % 256;
+
+  if ((i % 10) == 0) {
+    s -> r = 0; s -> g = 0; s -> b = c;
+  } else {
+    if ((i % 10) == 1) {
+      s -> r = 0; s -> g = c; s -> b = c;
+    } else {
+      s -> r = c; s -> g = c; s -> b = c;
+    }
+  }
+
+  s -> size = rand () % 2 + 1;
+}
+
+void BuildStarList (void) {
+  starPoint = glGenLists (1);
+  glNewList (starPoint, GL_COMPILE);
+
+  glBegin(GL_POINTS);
+  glNormal3f (0.0f, 0.0f, 1.0f);
+  glVertex3f(-0.1f,-0.1f, 0.0f);
+  glEnd();
+  glEndList ();
+}
+
+void DrawStars (void) {
+  GLfloat fOppCoord, fAdjCoord;
+  int loop;
+
+  glLoadIdentity ();
+  
+  for (loop = 0; loop < N_STARS; loop++) {
+    glLoadIdentity ();
+
+    glTranslatef (0.0f, 0.0f, zoom);
+    glRotatef (tilt, 1.0f, 0.0f, 0.0f);
+
+    glRotatef (star_far[loop].angle, 0.0f, 1.0f, 0.0f);
+    glTranslatef (star_far[loop].dist, 0.0f, 0.0f);
+
+    // Return to the previous inclination angle.
+    glRotatef(-star_far[loop].angle,0.0f,1.0f,0.0f); 
+    glRotatef(-tilt,1.0f,0.0f,0.0f);    
+
+    STAR_COLOR;
+    glPointSize (star_far[loop].size);
+
+    glCallList (starPoint);
+  }
+  
+}
+
+void mydisplay (void) {
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+  DrawStars ();
+
+  glLoadIdentity ();
+
+  glColor4f (1.0f, 1.0f, 1.0f, 0.5f);
+
+#ifdef NEBULA
+  glTranslatef (0.0f, -0.25f, -9.0f);
+#else
+  glTranslatef (0.0f, -0.25f, -6.0f);
+#endif
+  glRotatef (angle, 0.0f, 1.0f, 0.0f);
+
+  draw_gate (angle);
+
+  glutSwapBuffers ();
+}
+
+void animation (void) {
+  angle += 0.2f;
+  if (angle >= 360.0f)
+    angle = 0.0f;
+  glutPostRedisplay();
+}
+
+void fn_key (int keycode, int x, int y) {
+  if (keycode == GLUT_KEY_F1) {
+    if (!isFullScreen) {
+      textureApp fullScreen;
+    } else {
+      textureApp reshape WINWIDTH, WINHEIGHT;
+    }
+  }
+  isFullScreen = !isFullScreen;
+}
+
+void key (unsigned char c, int x, int y) {
+  if (c == ESC)
+    exit (0);
+}
+
+float light_position[] = {1.0f, 5.0f, 5.0f, 0.0f};
+float light3_position[] = {1.0f, -5.0f, -5.0f, 1.0f};
+float light4_position[] = {1.0f, -5.0f, 2.5f, 1.0f};
+float light5_position[] = {-1.0f, -5.0f, 2.5f, 1.0f};
+float ambient[] = {0.9f, 0.9f, 1.0f, 1.0f};
+float diffuse[] = {0.8f, 0.8f, 1.0f, 1.0f};
+float specular[] = {0.8f, 0.8f, 1.0f, 1.0f};
+float reflectance[] = {1.0f, 1.0f, 1.0f, 1.0f};
+
+GLUTApplication instanceMethod initLighting (void) {
+  /* glEnable (GL_LIGHTING); */
+  glLightfv (GL_LIGHT0, GL_AMBIENT, ambient);
+  glLightfv (GL_LIGHT1, GL_DIFFUSE, diffuse);
+  glLightfv (GL_LIGHT1, GL_POSITION, light_position);
+  glLightfv (GL_LIGHT2, GL_SPECULAR, specular);
+  glLightfv (GL_LIGHT2, GL_POSITION, light_position);
+  glLightfv (GL_LIGHT3, GL_SPECULAR, specular);
+  glLightfv (GL_LIGHT3, GL_POSITION, light3_position);
+  glLightfv (GL_LIGHT4, GL_SPECULAR, specular);
+  glLightfv (GL_LIGHT4, GL_POSITION, light4_position);
+  glLightfv (GL_LIGHT5, GL_SPECULAR, specular);
+  glLightfv (GL_LIGHT5, GL_POSITION, light5_position);
+  glEnable (GL_LIGHT0);
+  glEnable (GL_LIGHT1);
+  glEnable (GL_LIGHT2);
+  glEnable (GL_LIGHT3);
+  glEnable (GL_LIGHT4);
+  glEnable (GL_LIGHT5);
+
+  glMaterialfv (GL_FRONT, GL_SPECULAR, reflectance);
+  glMateriali (GL_FRONT, GL_SHININESS, 128);
+
+  glEnable (GL_COLOR_MATERIAL);
+  glColorMaterial (GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
+  glColor3ub (128, 128, 196);
+}
+
+GLUTApplication instanceMethod initDrawing (void) {
+  glEnable (GL_NORMALIZE);
+  glClearColor(0.0, 0.0, 0.0, 1.0);
+  glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+}
+
+#ifdef NEBULA
+#include_here "nebula.xpm"
+#else
+#include_here "gray.xpm"
+#endif
+
+GLUTApplication instanceMethod initTexture (void) {
+  Integer new textureWidth;
+  Integer new textureHeight;
+  Symbol new texelData;
+
+#ifdef NEBULA
+  self xpmToTexture nebula_xpm, 0.5, textureWidth, textureHeight, 
+    texelData;
+#else
+  self xpmToTexture gray_xpm, 0.3, textureWidth, textureHeight, 
+    texelData;
+#endif
+  glTexImage2D (GL_TEXTURE_2D, 0, GL_RGBA, textureWidth, textureHeight,
+		0, GL_RGBA, GL_UNSIGNED_INT_8_8_8_8, texelData);
+  glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+  glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+  glTexEnvi (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+
+}
+
+void winReshape (int w, int h) {
+  float ar = (float)w / (float)h;
+  glViewport(0, 0, w, h);
+  glMatrixMode(GL_PROJECTION);
+  glLoadIdentity();
+  gluPerspective (65.0, ar, 1.0f, -1000.0f);
+  glMatrixMode(GL_MODELVIEW);
+  glLoadIdentity();
+}
+
+GLUTApplication instanceMethod initStars (void) {
+  int loop;
+  for (loop = 0; loop < N_STARS; loop++) {
+    init_star (&star_far[loop], loop);
+    angle_const[loop] = (float)(loop / N_STARS) * 0.01f;
+  }
+  BuildStarList ();
+}
+
+int main (int argc, char **argv) {
+
+  textureApp initGLUT(argc, argv);
+  textureApp initWindow (WINWIDTH, WINHEIGHT);
+  textureApp createMainWindow ("Texture Blending -- GLUTApplication Class");
+
+  textureApp initStars;
+
+  textureApp defineDisplayFn mydisplay;
+  textureApp defineReshapeFn winReshape;
+  textureApp defineIdleFn animation;
+  textureApp defineSpecialFn fn_key;
+  textureApp defineKeyboardFn key;
+  textureApp installCallbackFns;
+
+  textureApp initTexture;
+  textureApp initLighting;
+  textureApp initDrawing;
+
+  textureApp run;
+  
+}
