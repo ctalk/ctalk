@@ -1,0 +1,22 @@
+# $Id: Makefile.djgpp,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $
+
+BINARIES=textinput scancode
+
+CTALK=\djgpp\bin\ctalk
+CLASSES=../classes
+
+CC=gcc
+CCFLAGS=-g -O3
+
+programs: $(BINARIES)
+
+textinput: textinput.c
+	$(CTALK) textinput.c -o textinput.i ; \
+	$(CC) $(CCFLAGS) textinput.i -o textinput.exe -lctalk  ; \
+	del textinput.i
+
+scancode: scancode.c
+	$(CTALK) scancode.c -o scancode.i ; \
+	$(CC) $(CCFLAGS) scancode.i -o scancode.exe -lctalk  ; \
+	del scancode.i
+
