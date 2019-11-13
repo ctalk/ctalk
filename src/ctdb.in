@@ -1,0 +1,179 @@
+#!/bin/sh
+
+INPUTNAME=""
+CTALKBIN=`which ctalk`
+GCCBIN=`which gcc`
+KEEPTMPS="no"
+EXTRALIBS=
+STATIC="no"
+GCCFLAGS=
+COMPILEONLY="no"
+OUTFILENAME="ctdb.out"
+CTALKOUTPUT="ctalk.out.i"
+OBJOUTPUT="ctalk.out.o"
+INCLUDEFLAGS=""
+X_INCLUDEFLAGS=""
+LD_LIBRARY_OPT=`if [ $LD_LIBRARY_PATH ]; then echo $LD_LIBRARY_PATH | sed 's/:$//' | sed 's/^/-L/' | sed 's/:/ -L/g'; fi`
+
+#
+# Options set by configure.
+#
+CTALKFLAGS="-P @ac_ctalkflags@"
+CFLAGS="-Wno-nonnull @ac_cflags@"
+LDFLAGS="@ac_ldflags@"
+# X_LDFLAGS="@_xldflags@"
+CT_X_EXT_LDFLAGS="@ac_xldflags@"
+CT_X_CFLAGS="@ct_x_cflags@"
+
+GCCFLAGS=$CFLAGS
+
+if [ ! -z "$CFLAGS" ]; then
+    CT_CFLAGS="$CFLAGS "$CT_CFLAGS;
+fi
+
+if [ ! -z "$LDFLAGS" ]; then
+    CT_LDFLAGS="$LDFLAGS "$CT_LDFLAGS;
+fi
+
+
+# 
+# Ctalk reads CTFLAGS, so the 
+# script should not need to read it
+# here.
+#
+# if [ ! -z "$CTFLAGS" ]; then
+#    CTALKFLAGS="$CTFLAGS "$CTALKFLAGS;
+# fi
+
+# This is now set in configure.
+# Turn off the OSX version's long double warning.
+# if [ `uname -s` = Darwin ] ; then
+#    GCCFLAGS=$GCCFLAGS" -Wno-long-double"
+#fi
+
+help () {
+    echo "Usage: ctdb [-h] | <options> input-files"
+    echo "OPTIONS:"
+    echo "-c               Compile only; don't link the .o output file."
+    echo "--clearpreload   Add --clearpreload to Ctalk's options"
+    echo "-h               Print help and exit."
+    echo "-I <dir>         Add <dir> to Ctalk search path."
+    echo "-k               Keep temporary files."
+    echo "-m               Add -lm to linker flags."
+    echo "--nopreload      Add --nopreload to Ctalk's options."
+    echo "-o <name>        Save the output in file <name>.  The default is ctdb.out"
+    echo "--printtemplates Print the templates that the compiler caches (but does"
+    echo "                 not necessarily send to the output)."
+    echo "--progress       Add --progress to Ctalk's options."
+    echo "-p               Add -pg to the compiler flags."
+    echo "-s               Link statically with /usr/local/lib/libctalk.a."
+    echo "-x               Add the X Window System libraries to the linker flags."
+    echo
+    echo "You can also set options with the CFLAGS, CTFLAGS, and LDFLAGS"
+    echo "environment variables.  See, \"man ctdb,\" for details."
+    echo "Report bugs to: rk3314042@gmail.com."
+    exit 1;
+}
+
+if [ $# -eq 0 ] ; then help; fi
+
+while [ $# -ge 1 ] ; do
+    case $1 in
+	-c)
+          GCCFLAGS="-c "$GCCFLAGS;
+	  COMPILEONLY="yes";
+	  shift 1;
+	  ;;
+	-k)
+	  KEEPTMPS="yes";
+	  shift 1;
+	  ;;
+	-m)
+	  EXTRALIBS=$EXTRALIBS" -lm";
+	  shift 1;
+	  ;;
+        -x)
+	  if [ -z $LD_LIBRARY_PATH ]; then
+	      EXTRALIBS=$EXTRALIBS" -L/usr/X11R6/lib -lX11 -lXext $CT_X_EXT_LDFLAGS";
+	  else
+	      EXTRALIBS=$EXTRALIBS" -lX11 -lXext $CT_X_EXT_LDFLAGS";
+	  fi
+	  X_INCLUDEFLAGS="$CT_X_CFLAGS"
+          shift 1;
+          ;;
+	-h)
+	  help;
+	  ;;
+	--help)
+	  help;
+	  ;;
+	-I)
+	  shift 1;
+	  INCLUDEFLAGS=$INCLUDEFLAGS" -I $1 ";
+	  shift 1;
+	  ;;
+	-o)
+	  shift 1;
+	  OUTFILENAME=$1;
+	  CTALKOUTPUT=$OUTFILENAME".i";
+	  OBJOUTPUT=$OUTFILENAME".o";
+	  shift 1;
+	  ;;
+        -p)
+	  GCCFLAGS=$GCCFLAGS" -pg";
+	  shift 1;
+	  ;;
+	-s)
+	  STATIC="yes";
+	  shift 1;
+	  if [ `uname -s` = SunOS ] ; then
+	      EXTRALIBS=$EXTRALIBS" -lrt";
+	  fi
+	  ;;
+	  --nopreload)
+	  INCLUDEFLAGS=$INCLUDEFLAGS" --nopreload";
+	  shift 1;
+	  ;;
+	  --progress)
+	  INCLUDEFLAGS=$INCLUDEFLAGS" --progress";
+	  shift 1;
+	  ;;
+	  --printtemplates)
+	  INCLUDEFLAGS=$INCLUDEFLAGS" --progress";
+	  shift 1;
+	  ;;
+	  --clearpreload)
+	  INCLUDEFLAGS=$INCLUDEFLAGS" --clearpreload";
+	  shift 1;
+	  ;;
+	*)
+	  INPUTNAME=$INPUTNAME" $1 ";
+	  shift 1;
+	  ;;
+    esac
+done
+
+if [ -z "$INPUTNAME" ] ; then help; fi 
+
+if [ $COMPILEONLY = "yes" ] ; then
+
+echo "$CTALKBIN $INCLUDEFLAGS $X_INCLUDEFLAGS $CTALKFLAGS $INPUTNAME -o $CTALKOUTPUT && $GCCBIN $GCCFLAGS $CTALKOUTPUT -o $OUTFILENAME"
+$CTALKBIN $INCLUDEFLAGS $CTALKFLAGS $X_INCLUDEFLAGS $INPUTNAME -o $CTALKOUTPUT && $GCCBIN $GCCFLAGS $CTALKOUTPUT -o $OUTFILENAME
+
+elif [ $STATIC = "no" ] ; then
+
+echo "$CTALKBIN $INCLUDEFLAGS $CTALKFLAGS $X_INCLUDEFLAGS $INPUTNAME -o $CTALKOUTPUT && $GCCBIN $CTALKOUTPUT -c $GCCFLAGS -o $OBJOUTPUT && $GCCBIN $GCCFLAGS $OBJOUTPUT -o $OUTFILENAME $LDFLAGS -lctalk $LD_LIBRARY_OPT $EXTRALIBS"
+$CTALKBIN $INCLUDEFLAGS $CTALKFLAGS $X_INCLUDEFLAGS $INPUTNAME -o $CTALKOUTPUT && $GCCBIN $CTALKOUTPUT -c $GCCFLAGS -o $OBJOUTPUT && $GCCBIN $GCCFLAGS $OBJOUTPUT -o $OUTFILENAME $LDFLAGS -lctalk $LD_LIBRARY_OPT $EXTRALIBS
+
+elif [ $STATIC = "yes" ] ; then
+
+echo "$CTALKBIN $INCLUDEFLAGS $CTALKFLAGS $X_INCLUDEFLAGS $INPUTNAME -o $CTALKOUTPUT && $GCCBIN $GCCFLAGS $CTALKOUTPUT -o $OUTFILENAME $LDFLAGS /usr/local/lib/libctalk.a $LD_LIBRARY_OPT $EXTRALIBS "
+$CTALKBIN $INCLUDEFLAGS $CTALKFLAGS $X_INCLUDEFLAGS $INPUTNAME -o $CTALKOUTPUT && $GCCBIN $GCCFLAGS $CTALKOUTPUT -o $OUTFILENAME $LDFLAGS /usr/local/lib/libctalk.a $LD_LIBRARY_OPT $EXTRALIBS 
+
+fi
+
+if [ $KEEPTMPS = "no" ] ; then
+    rm -f $CTALKOUTPUT $OBJOUTPUT
+fi
+
+exit 0

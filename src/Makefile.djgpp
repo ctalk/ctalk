@@ -1,0 +1,58 @@
+# $Id: Makefile.djgpp,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $
+#
+# Makefile for DJGPP and GNU make.
+#
+
+#
+# Change the value of CMD if your system uses a 
+# different shell than cmd.exe
+#
+CMD=cmd /C
+
+#
+# Note that CLASSLIBDIR is the directory above the actual
+# class lib directory.  Ctalk appends PKGNAME automatically
+# during include and class library searches.
+#
+CDEFS=-DPKGNAME=\"ctalk\" -DCLASSLIBDIR=\"/djgpp/include/ctalk\" \
+	-DVERSION=\"0.0.96\" -DUSE_GCC_INCLUDES 
+
+LDFLAGS=-L../lib
+
+LIBS=-lctalk
+
+SOURCES=arg.c argblk.c argexprchk.c ccompat.c class.c collection.c \
+	      complexmethd.c control.c constrcvr.c cparse.c ctoobj.c \
+	      cvars.c enum.c error.c extern.c fn_tmpl.c fn_param.c fnbuf.c \
+	      fninit.c frame.c include.c libdeps.c loop.c main.c math.c \
+	      method.c methodbuf.c mthdrf.c mthdret.c object.c objtoc.c \
+	      op.c output.c parser.c pexcept.c prefixop.c primitives.c resolve.c \
+	      return.c rexpr.c rt_expr.c stack.c subexpr.c subscr.c symbol.c \
+	      	typecast_expr.c typecheck.c typeof.c ufntmpl.c 
+
+HEADERS=../include/argblk.h ../include/bufmthd.h ../include/chash.h \
+	../include/classlib.h ../include/ctalk.h ../include/ctrlblk.h \
+	../include/cvar.h ../include/defcls.h ../include/djgpp.h \
+	../include/fntmpl.h ../include/fnstate.h ../include/except.h \
+	../include/frame.h ../include/lex.h ../include/lextab.h \
+	../include/list.h ../include/message.h ../include/object.h \
+	../include/objtoc.h ../include/option.h ../include/parser.h \
+	../include/pending.h ../include/rt_expr.h ../include/rtinfo.h \
+	../include/stdargcall.h ../include/symbol.h ../include/typeof.h \
+	../include/ufntmpl.h ../include/x11defs.h
+
+BIN=ctalk.exe
+
+all: $(BIN)
+
+$(BIN): $(SOURCES) $(HEADERS)
+	gcc $(CDEFS) -g -Wall -I../include $(SOURCES) $(LDFLAGS) $(LIBS) \
+	-o $(BIN)
+
+clean:
+	$(CMD) if exist *.o del *.o
+	$(CMD) if exist $(BIN) del $(BIN)
+	$(CMD) if exist *~ del *~
+
+inst: $(BIN)
+	$(CMD) copy $(BIN) \djgpp\bin
