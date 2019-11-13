@@ -1,0 +1,33 @@
+Ctalk demonstration programs in the ipc subdirectory.
+
+sockread.c
+sockwrite.c
+           Reader and writer programs that demonstrate
+	   how to send and receive data over a UNIX
+	   domain socket. After compiling, start
+	   sockread at a shell prompt, then start
+	   sockwrite from a shell prompt in a
+	   different window or virtual terminal.
+
+sockproc.c
+           Provides a UNIX domain socket writer and
+	   reader in a single program that uses
+	   multiple processes.
+
+timeclient.c
+timesignal.c
+           Timeclient.c installs a signal handler that prints
+           the date and time.  Timesignal.c sends a SIGUSR2
+           signal to the timeclient process ID (or any other
+           process ID).  To build and use these programs,
+           see the comments in the source files.
+
+timedisplay.c
+	   Another time client/server demonstration, except
+	   that the client and the server are in a single
+	   program that uses multiple processes.
+	   
+Bug Reports, Feedback, and Support
+
+Please contact the Ctalk authors at: rk3314042@gmail.com,
+or visit the Ctalk Web site: http://sf.net/projects/ctalk/.
