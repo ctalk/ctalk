@@ -1,4 +1,4 @@
-/* $Id: rtinfo.c,v 1.3 2019/11/11 20:21:52 rkiesling Exp $ */
+/* $Id: rtinfo.c,v 1.8 2019/11/14 02:33:05 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -440,7 +440,7 @@ int __save_rt_info (OBJECT *__rcvr_obj, OBJECT *__rcvr_class_obj,
   r -> method_fn = rtinfo.method_fn = fn;
   r -> _arg_frame_top = __ctalk_arg_ptr + 1;
   strcpy (r -> arg_text, ctalk_arg_text ());
-  if (is_recursive_method_call (r -> method)) {
+  if (is_recursive_method_call (r -> method)) { /***/
     r -> local_object_cache[r -> local_obj_cache_ptr] = 
       M_LOCAL_VAR_LIST(r -> method);
     M_LOCAL_VAR_LIST(r -> method) = NULL;
@@ -601,6 +601,8 @@ void _delete_rtinfo (RT_INFO *r) {
  */
 int is_recursive_method_call (METHOD *m) {
   int i;
+  if (m == NULL)
+    return FALSE;
   for (i = __call_stack_ptr + 1; i <= MAXARGS; i++) {
     if (__call_stack[i] && (m == __call_stack[i]->method))
       return i;
