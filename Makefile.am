@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.5 2019/11/11 20:45:28 rkiesling Exp $
+# $Id: Makefile.am,v 1.6 2019/11/13 21:12:36 rkiesling Exp $
 
 SUBDIRS=classes doc libctpp ctpp lib src 
 HOST_OS=@host_os@
@@ -56,7 +56,8 @@ EXTRA_DIST=$(top_builddir)/build/gccincdir.sh \
 	$(top_builddir)/tools/searchlib/searchlib.ca \
 	$(top_builddir)/tools/searchlib/Makefile \
 	$(top_builddir)/doc/libdoc \
-	$(top_builddir)/doc/classlibdoc
+	$(top_builddir)/doc/classlibdoc \
+	$(top_builddir)/doc/doctools/*
 
 
 install-data-hook:
