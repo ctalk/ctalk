@@ -1,4 +1,4 @@
-.\" $Id: ctalk.1,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $
+.\" $Id: ctalk.1,v 1.3 2019/11/15 22:57:43 rkiesling Exp $
 .\"
 .\" This file is part of ctalk.
 .\" Copyright © 2005-2015 Robert Kiesling, rk3314042@gmail.com.
@@ -89,32 +89,57 @@ The example programs in the source code distribution, including
 \fIdemos/hello.c\fP and others, provide simple examples of the
 language.
 
-The 
-.BR ctalkintro "(1)"
-manual page provides a quick introduction to the language, and
-the
-.BR ctalkclasses "(1")
-manual page describes the class libraries.  On UNIX and Linux systems,
-the manual pages should be available once Ctalk is installed.  They
-are:
+There are a number of manual pages in the
+.B Ctalk
+package. On UNIX and Linux systems, the manual pages should be
+available once
+.B Ctalk
+is installed.  They are:
 
-.in +5
-ctalkintro - How to use the Ctalk compiler.
+\&     classdoc           Print a classes' documentation string.
 .br
-ctalkclasses - Class library introduction.
+\&     classes            Hierarchical display of the class library.
 .br
-ctalkmethods - How to use the Ctalk libraries with objects.
 .br
-ctalkregex - Ctalk's pattern matching operators.
-.in -5
+\&     ctalkclasses       Class library introduction.
+.br
+\&     ctalkintro         How to use the Ctalk compiler.
+.br
+\&     ctalkmethods       How to use the Ctalk libraries with objects.
+.br
+\&     ctalkregex         Ctalk's pattern matching operators.
+.br
+\&     ctcc               Build executable programs.
+.br
+\&     ctdb               Build programs for debugging.
+.br
+\&     ctpp               The Ctalk preprocessor.
+.br
+\&     ctxlogo            A GUI demonstration program.
+.br
+\&     fnnames            Format of the template method registry.
+.br
+\&     inspect            The ObjectInspector class.
+.br
+\&     membervars         List member variables of a class.
+.br
+\&     methods            List the methods of a class.
+.br
+\&     methodsource       Display a method's source code.
+.br
+\&     searchlib          Search the Ctalk documentation.
+.br
+\&     template           Registers a template method.
+.br
+\&     templates          Format of a Ctalk template.
 
-You can view the manual pages by typing
+You can view the manual pages by typing (for example)
 
 .in +5
 $ man ctalkclasses
 .in -5
 
-(for example) at a shell prompt.
+at a shell prompt.
 
 In addition, the \fIdoc\fP directory in the source code distribution
 contains a Texinfo manual and tutorial which provide a description
