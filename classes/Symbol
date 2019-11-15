@@ -1,4 +1,4 @@
-/* $Id: Symbol,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-c-*-*/
+/* $Id: Symbol,v 1.2 2019/11/15 00:18:45 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -81,6 +81,13 @@ Symbol instanceMethod removeValue (void) {
   } else if (IS_OBJECT(self_alias -> __o_p_obj) &&
 	     ((value_object =
 	       SYMTOOBJ(self_alias -> __o_p_obj -> __o_value)) != NULL)) {
+
+#ifdef __x86_64__  /* sanity check */
+    if (((unsigned long)self_alias -> __o_p_obj & 
+	 0xf00000000000) != 
+	((unsigned long)value_object & 0xf00000000000))
+      return NULL;
+#endif
 
     SYMTOOBJ(self_alias -> __o_p_obj -> __o_value) = NULL;
 
