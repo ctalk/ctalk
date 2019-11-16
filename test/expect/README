@@ -1,0 +1,45 @@
+Ctalk Test and Example Programs
+
+The comments in the scripts and the C source files describe each 
+test when necessary.
+
+The cttest shell script in this directory builds and runs test
+programs individually.  You can then redirect the output to a file, as
+in this example, which runs through all of the test programs.
+
+$ for i in *.c; do echo $i; ./cttest -v $i >>test.out 2>&1; done
+
+Cttest, as packaged, uses the GNU readline libraries.  If you built
+Ctalk without GNU readline, then edit the EXTRALIBS variable in cttest
+to omit them; i.e., to:
+
+  EXTRALIBS="-lm"
+
+At present, the tests ignore the -Wnonnull warning because of the way
+the Ctalk library macros work.  If you want to see these warnings, edit
+the GCCFLAGS variable.
+
+
+Example Program Tests
+---------------------
+
+The examples subdirectory contains example programs from the
+documentation.  You need to build these first in order to use the 
+run-<example-name>.c test programs.  Just type,
+
+$ cd examples
+$ for i in *.c; do ctcc $i -o `basename $i .c`; done
+
+There are also example programs from the documentation in the 
+examples-x11 subdirectory, and additional tests in the read-tests,
+split-tests, x11-tests, and tui subdirectories.
+
+Compiler Options
+----------------
+
+The file cttest.in in this directory uses compiler options
+that most modern GCC versions recognize.  If this doesn't
+work with your version of GCC, then you can either edit the
+options and/or live with warning messages in the test output.
+
+
