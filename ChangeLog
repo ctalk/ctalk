@@ -939,3 +939,19 @@
 2019-11-15
 	- Updated ctalk.1 with a list of all of the man pages
 	in the distribution.
+	- Added sections to the ctalkmethods.1 man page.
+	- Updated the cStrcat, cXstrcat, cStrcpy, and cXstrcpy
+	templates to reallocate	the target object's value to
+	fit the new string.
+	- Added the strcat4.c and strcpy3.c test programs.
+2019-11-17
+	[
+	- Updated c_tmpl_fn_args to zero out the
+	template_info_method.n_args member (fn_tmpl.c).
+	- Updated __delete_fn_local_objs to set
+	a VARENTRY -> orig_object_rec to NULL (rtinfo.c).
+	]
+	- Updated the templates cStrncpy, cXstrncpy, cStrncat,
+	and cXstrncat, to allocate memory for the destination string
+	if needed.
+	- Added strncpy3.c and strncat3.c test programs.

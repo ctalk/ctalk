@@ -1,4 +1,4 @@
-/* $Id: rtinfo.c,v 1.8 2019/11/14 02:33:05 rkiesling Exp $ */
+/* $Id: rtinfo.c,v 1.9 2019/11/17 15:29:00 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -274,6 +274,7 @@ static void __delete_fn_local_objs (RT_FN *r) {
 	  if (IS_OBJECT(v_ptr -> orig_object_rec)
 	      && (v_ptr -> orig_object_rec != v_ptr -> var_object)) {
 	    __ctalkDeleteObject (v_ptr -> orig_object_rec);
+	    v_ptr -> orig_object_rec = NULL; /***/
 	  } 
 	  cleanup_unlink_method_user_object (v_ptr);
 	  cleanup_non_local_object (v_ptr -> var_object, v_ptr);
@@ -285,9 +286,13 @@ static void __delete_fn_local_objs (RT_FN *r) {
 	  (v_ptr -> orig_object_rec != v_ptr -> var_object)) {
 	if (v_ptr -> orig_object_rec -> scope != GLOBAL_VAR) {
 	  __ctalkDeleteObject (v_ptr -> orig_object_rec);
-	} else {
+	}
+	v_ptr -> orig_object_rec = NULL;
+#if 0 /***/
+	else {
 	  v_ptr -> orig_object_rec = NULL;
 	}
+#endif	
       }
       delete_varentry (v_ptr);
       v_ptr = v_ptr_prev;

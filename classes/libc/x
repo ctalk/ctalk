@@ -1,4 +1,4 @@
-/* $Id: x,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-c-*-**/
+/* $Id: x,v 1.5 2019/11/17 18:35:41 rkiesling Exp $ -*-c-*-**/
 
 /*
   This file is part of Ctalk.
@@ -39,32 +39,84 @@ cXsprintf (char *__s, char *__fmt,...) {\n\
   return result_object; \n\
 }\n\
 
-#define xstrcat \n\
+#if 0 /***/
+#define xstrcat \n				\
 cXstrcat (char *__s1, char *__s2) { \n\
   if (__ctalkIsObject (ARG(0))) \n\
     xstrcat (__ctalk_to_c_char_ptr(ARG(1)),__ctalk_to_c_char_ptr (ARG(0))); \n\
   return ARG(1);\n\
 }
+#endif
+
+#define xstrcat \n\
+cXstrcat (char *__s1, char *__s2) { \n\
+  int len; \n\
+  len = strlen (__ctalk_to_c_char_ptr(ARG(1))) + \n\
+	     strlen (__ctalk_to_c_char_ptr(ARG(0))); \n\
+  if (IS_OBJECT(ARG(1) -> instancevars)) \n\
+    __xrealloc ((void **)&(ARG(1) -> instancevars -> __o_value), len);\n\
+  __xrealloc ((void **)&(ARG(1) -> __o_value), len); \n\
+  if (__ctalkIsObject (ARG(0))) \n\
+    strcat (__ctalk_to_c_char_ptr(ARG(1)),__ctalk_to_c_char_ptr (ARG(0))); \n\
+  return ARG(1);\n\
+}
 
 #define xstrcpy \n\
 cXstrcpy (char *__s1, char *__s2) { \n\
+  int len; \n\
+  len = strlen (__ctalk_to_c_char_ptr(ARG(0))); \n\
+  if (IS_OBJECT(ARG(1) -> instancevars)) \n\
+    __xrealloc ((void **)&(ARG(1) -> instancevars -> __o_value), len);\n\
+  __xrealloc ((void **)&(ARG(1) -> __o_value), len); \n\
   if (__ctalkIsObject (ARG(0))) \n\
     strcpy (__ctalk_to_c_char_ptr(ARG(1)),__ctalk_to_c_char_ptr (ARG(0))); \n\
   return ARG(1);\n\
 }
 
-#define xstrncat \n\
+#if 0 /***/
+#define xstrncat \n					\
 cXstrncat (char *__s1, char *__s2, int __n) { \n\
   if (__ctalkIsObject (ARG(0))) \n\
     xstrncat (__ctalk_to_c_char_ptr(ARG(2)),__ctalk_to_c_char_ptr (ARG(1)), __ctalk_to_c_int(ARG(0))); \n\
   return ARG(2);\n\
 }
+#endif
 
-#define xstrncpy \n\
+#define xstrncat \n\
+cXstrncat (char *__s1, char *__s2, int lenp) { \n\
+  int len; \n\
+  len = INTVAL(ARG(0) -> __o_value) + \n\
+	     strlen (ARG(2) -> __o_value); \n\
+  if (IS_OBJECT(ARG(1) -> instancevars)) \n\
+    __xrealloc ((void **)&(ARG(2) -> instancevars -> __o_value), len);\n\
+  __xrealloc ((void **)&(ARG(2) -> __o_value), len); \n\
+  if (__ctalkIsObject (ARG(1))) \n\
+    strncat (__ctalk_to_c_char_ptr(ARG(2)),__ctalk_to_c_char_ptr (ARG(1)),\n\
+	     len); \n\
+  return ARG(2);\n\
+}
+
+#if 0 /***/
+#define xstrncpy \n					\
 cXstrncpy (char *__s1, char *__s2, int __n) { \n\
   if (__ctalkIsObject (ARG(0))) \n\
     xstrncpy (__ctalk_to_c_char_ptr(ARG(2)),__ctalk_to_c_char_ptr (ARG(1)), __ctalk_to_c_int(ARG(0))); \n\
   return ARG(2);\n\
 }
+#endif
+
+#define xstrncpy \n\
+cXstrncpy (char *__s1, char *__s2, int lenp) { \n\
+  int len; \n\
+  len = INTVAL(ARG(0) -> __o_value); \n\
+  if (IS_OBJECT(ARG(1) -> instancevars)) \n\
+    __xrealloc ((void **)&(ARG(2) -> instancevars -> __o_value), len);\n\
+  __xrealloc ((void **)&(ARG(2) -> __o_value), len); \n\
+  if (__ctalkIsObject (ARG(1))) \n\
+    strncpy (__ctalk_to_c_char_ptr(ARG(2)),__ctalk_to_c_char_ptr (ARG(1)),\n\
+	     len); \n\
+  return ARG(2);\n\
+}
+
 
 

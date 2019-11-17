@@ -1,4 +1,4 @@
-/* $Id: fn_tmpl.c,v 1.3 2019/11/11 20:21:52 rkiesling Exp $ */
+/* $Id: fn_tmpl.c,v 1.4 2019/11/17 15:29:00 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -691,6 +691,8 @@ int c_tmpl_fn_args (MESSAGE_STACK messages, OBJECT *arg_object,
 	  arg_start_ptr = i;
       }
   }
+
+  template_info_method.n_args = 0; /***/
 
   if (!template_info_method.varargs &&
       (tmpl_argstrptr != template_info_method.n_params)) {
