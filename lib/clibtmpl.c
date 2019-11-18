@@ -1,8 +1,8 @@
-/* $Id: clibtmpl.c,v 1.1.1.1 2019/10/26 23:40:50 rkiesling Exp $ */
+/* $Id: clibtmpl.c,v 1.2 2019/11/18 21:26:00 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
-  Copyright © 2005-2016 Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2005-2016, 2019 Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
 
@@ -239,6 +239,14 @@ static struct _c99_writable_args {
   {"scanf",    "scanf"},
   {"sscanf",   "sscanf"},
   {"sprintf",  "sprintf"},
+  {"strcpy",   "strcpy"},
+  {"strcat",   "strcat"},
+  {"strncpy",  "strncpy"},
+  {"strncat",  "strncat"},
+  {"xstrcpy",  "xstrcpy"},
+  {"xstrcat",  "xstrcat"},
+  {"xstrncpy", "xstrncpy"},
+  {"xstrncat", "xstrncat"},
   {NULL, NULL}
 #endif  /* #ifdef __GNUC__ */
 };

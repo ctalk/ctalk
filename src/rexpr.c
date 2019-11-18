@@ -1,4 +1,4 @@
-/* $Id: rexpr.c,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ */
+/* $Id: rexpr.c,v 1.2 2019/11/18 21:26:00 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -961,7 +961,7 @@ int default_method (MSINFO *ms) {
   OBJECT_CONTEXT context;
   char buf[MAXMSG], expr_out_buf[MAXMSG], expr_out_buf_2[MAXMSG];
   char buf2[MAXMSG], mcbuf[MAXMSG];
-  int arg_idx, fn_idx, n_th_arg;
+  int arg_idx, fn_idx, n_th_arg, i, fn_arg_start_idx, fn_arg_end_idx;
   CFUNC *cfn;
   CVAR *param;
 
@@ -1163,6 +1163,25 @@ int default_method (MSINFO *ms) {
 	    ms -> tok, mcbuf), buf);
 	output_buffer (buf, ms -> tok);
       } else {
+	/* this is specifically for C function calls appearing in
+	   receiver context that need to use a template so they
+	   can handle writeable args */
+	if ((arg_idx =
+	     obj_expr_is_arg (ms -> messages, ms -> tok,
+			      ms -> stack_start, &fn_idx)) != ERROR) {
+	  if (libc_fn_needs_writable_args (M_NAME(ms -> messages[fn_idx]))) {
+	    template_call_from_CFunction_receiver 
+	      (ms -> messages, fn_idx);
+	    fn_arg_start_idx = nextlangmsg (ms -> messages, fn_idx);
+	    fn_arg_end_idx = match_paren (ms -> messages, fn_arg_start_idx,
+					  ms -> stack_ptr);
+	    for (i = fn_idx; i >= fn_arg_end_idx; i--) {
+	      ++ms -> messages[i] -> evaled;
+	      ++ms -> messages[i] -> output;
+	    }
+	    return SUCCESS;
+	  }
+	}
 	strcpy (buf, 
 		obj_2_c_wrapper_trans 
 		(ms -> messages, ms -> tok, m_obj, m_obj -> obj, m, 
