@@ -1,7 +1,7 @@
-.\" $Id: ctalkmethods.1,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $
+.\" $Id: ctalkmethods.1,v 1.5 2019/11/20 00:36:33 rkiesling Exp $
 .\"
 .\" This file is part of ctalk.
-.\" Copyright © 2005-2015 Robert Kiesling, rk3314042@gmail.com.
+.\" Copyright © 2019 Robert Kiesling, rk3314042@gmail.com.
 .\" Permission is granted to copy this software provided that this copyright
 .\" notice is included in all source code modules.
 .\" 
@@ -33,6 +33,35 @@ an overview of how methods interact with
 internal structures, and how to debug methods at the C source
 code level using a debugger like
 .BR gdb "(1)."
+
+.SS A Little About Methods
+
+Methods in
+.B Ctalk
+are similar to C functions, but they have a couple of significant additions.
+
+\&     - They are grouped by class, which means that any class can
+.br
+\&       have its own version of a method.  This also means that methods
+.br
+\&       can be inherited from a classes' superclass.
+.br
+\&     - Methods can overload math operators and parameter lists.
+
+\fIThe Ctalk Tutorial\fP contains an introduction which describes how
+methods use these features to work with objects within a class
+hierarchy.
+
+From the perspective of writing methods, though, it is important to
+remember that methods are translated directly into the C functions
+which comprise the executable program (with the exception of the
+function \fImain\fP).
+
+For details about how method receivers, selectors, and parameter lists
+get translated into functions, refer to the section, TRANSLATING
+METHOD NAMES TO FUNCTION NAMES, below.
+
+.SH THE METHOD API'S
 
 In general,
 .B Ctalk
@@ -319,8 +348,208 @@ i_term = 1;
 myArray atPut (i_term, "Element at 1");
 .in -5
 
+.SH TEMPLATES
 
+When
+.B Ctalk
+encounters a C function in an expression, it can substitute a 
+method that performs the same operation.  These functions are called
+.B Templates.  Ctalk
+provides templates for many of the C library's functions, like
+\fIatoi(3)\fP or \fIstrcpy(3).\fP
+.B Ctalk
+also allows you to add templates to the class library.
 
+Templates provide a way for programs to use C library functions in
+expressions with a linkage to the class library.  To make this clear,
+consider the following expression:
+
+.in +5
+if ((myInt = atoi ("2")) == 2) {
+.br
+\fI...program statements...\fP
+.br
+}
+.in -5
+
+.B Ctalk
+translates the \fIif\fP predicate into the following expression.
+
+.in +5
+__ctalkEvalExpr("(myInt = CFunction cAtoi (\\"2\\")) == 2")
+.in -5
+
+Instead of calling \fIatoi(3)\fP directly,
+.B Ctalk
+inserts a reference to the method \fIcAtoi.\fP  This method,
+like all templates, is a class method in the
+.B CFunction
+class.
+
+Then
+.B Ctalk
+inserts the body of the template after the function or method
+where the statement appears.  This is the definition of the
+\fIcAtoi\fP template.
+
+.in +5
+cAtoi (void *s) { \\n\\
+.br
+  char buf[MAXLABEL]; \\n\\
+.br  
+  if (__ctalkIsObject (ARG(0))) \\n\\
+.br  
+    sprintf (buf, "%d", atoi (__ctalk_to_c_char_ptr (ARG(0))));\\n\\
+.br    
+  else \\n\\
+.br  
+    sprintf (buf, "%d", atoi ((char *)ARG(0))); \\n\\
+.br    
+  return __ctalkCreateObjectInit ("result", "Integer", \\n\\
+.br  
+				     "Magnitude", LOCAL_VAR, buf); \\n\\
+.br				     
+}
+.in -5
+
+The format of templates is designed to make them easy to preprocess
+and insert directly into the output of a
+.B Ctalk
+program.
+
+One important point to mention right now is that the parameter list
+isn't used - the parameter list is there so the template can use
+basically the same prototype as the function it's replacing during
+compilation.  Templates, however, get their arguments from
+.B Ctalk's
+argument stack, which is discussed in detail below.
+
+Like the names of all C library templates, the \fIcAtoi\fP method's
+name is constructed by capitalizing the first letter of the C library
+function name and prepending the letter 'c' to it.
+
+.B Ctalk
+maintains a registry of templates. The manual pages
+.BR templates "(5ctalk)"
+and
+.BR fnnames "(5ctalk)"
+manual pages provide information about the formats of these files. The
+.BR template "(1)"
+program adds functions to
+.B Ctalk's
+template registry.
+
+There are other times when
+.B Ctalk
+uses templates instead of calling functions directly.  Among those are
+expressions where you want to write to objects that are used with C
+functions, for example,
+.BR strcat "(1)".
+An expression like the following would not work, because it only reads
+the objects given as the arguments.
+
+\&  atoi (myStrObj);
+
+This is normally okay, when we just want a C function to return a
+value, and the program can use the C function
+.BR atoi "(3)"
+verbatim after translating \fImyStrObj\fP into a C \fIchar *.\fP
+
+But in the case of a function like
+.BR strcat "(3)",
+we want to write the concatenated strings into the first object.  This
+is where we would use a template as a wrapper to the function.  (Actually,
+a program might also use \fIxstrcpy,\fP which is a wrapper for systems
+like MacOS, which inserts its own function calls into the
+.BR strcat "(3)"
+argument list.)
+
+The simplest way to get
+.B Ctalk
+to use the
+.BR strcat "(3)"
+template is to place it in an object expresion:
+
+\&     myStr = strcat (mySubStr1, mySubStr2);
+
+It's a little bit of a simplification to say that
+.B Ctalk
+substitutes the template function for the label \fIstrcat\fP and
+wraps the entire expression in quotes.  That's because we also
+want the String assignment (the '=' operator) to function 
+as we expect.  But in any case, the definition of the \fIcStrcat\fP
+template looks like this.
+
+\&     #define strcat \\n\\
+.br
+\&     cStrcat (char *__s1, char *__s2) { \\n\\
+.br
+\&       int len; \\n\\
+.br
+\&       len = strlen (__ctalk_to_c_char_ptr(ARG(1))) + \\n\\
+.br
+\&                   strlen (__ctalk_to_c_char_ptr(ARG(0))); \\n\\
+.br
+\&       if (IS_OBJECT(ARG(1) -> instancevars)) \\n\\
+.br
+\&         __xrealloc ((void **)&(ARG(1) -> instancevars -> __o_value), len);\\n\\
+.br
+\&       __xrealloc ((void **)&(ARG(1) -> __o_value), len); \\n\\
+.br
+\&       if (__ctalkIsObject (ARG(0))) \\n\\
+.br
+\&         strcat (__ctalk_to_c_char_ptr(ARG(1)), \\n\\
+.br
+\&                 __ctalk_to_c_char_ptr (ARG(0))); \\n\\
+.br
+\&     return ARG(1);\\n\\
+.br
+\&     }
+
+If we simply use the function on its own, like this:
+
+\&     strcat (mySubStr1, mySubStr2);
+
+Then
+.B Ctalk
+compiles the expression into this:
+
+\&     __ctalkEvalExpr("CFunction cStrcat (mySubStr1, mySubStr2)");
+
+So the
+.B Ctalk
+run time library can evaluate and execute the expression with the
+objects that are \fIstrcpy's\fP arguments.
+
+.SS  Wrapper Functions
+
+In the class libraries,
+.B Ctalk
+uses wrapper functions for common C library functions.  These
+functions are named similarly to the C functions and have the
+letter 'x' prepended to the name, and they have the same prototype as
+the C standard definition of the functions.
+
+For example, the wrapper function for
+.BR strcpy "(3)"
+is \fIxstrcpy,\fP and the wrapper function for
+.BR strcat "(3)"
+is \fIxstrcat.\fP There is a complete list of these wrapper functions
+in the \fICtalk Language Reference.\fP
+
+These functions allow the
+.B Ctalk
+class libraries to use the standard prototypes of the C library
+functions even when an operating system platform may substitute a
+different parameter list for the functions - the wrappers contain the
+OS specific details within the C portion of the
+.B Ctalk
+library.
+
+For many OS platforms, either a C library function or its wrapper
+function may be used interchangeably, but the wrapper functions help
+insure that the class libraries remain compatible if an OS should
+substitute its own version of a particular C library function.
 
 .SH OVERVIEW OF THE C LANGUAGE API
 
