@@ -1,4 +1,4 @@
-.\" $Id: ctalkmethods.1,v 1.6 2019/11/20 05:03:07 rkiesling Exp $
+.\" $Id: ctalkmethods.1,v 1.8 2019/11/20 15:50:58 rkiesling Exp $
 .\"
 .\" This file is part of ctalk.
 .\" Copyright © 2019 Robert Kiesling, rk3314042@gmail.com.
@@ -19,7 +19,7 @@
 .\" along with this program; if not, write to the Free Software Foundation, 
 .\" Inc., 51 Franklin St., Fifth Floor, Boston, MA 02110-1301 USA.
 
-.TH CTALKMETHODS 1 "2019-10-03"
+.TH CTALKMETHODS 1 "2019-11-20"
 .SH NAME
 ctalkmethods \- How to use objects in Ctalk methods.
 .SH DESCRIPTION
@@ -558,6 +558,16 @@ For many OS platforms, either a C library function or its wrapper
 function may be used interchangeably, but the wrapper functions help
 insure that the class libraries remain compatible if an OS should
 substitute its own version of a particular C library function.
+
+.SS User Defined Templates
+
+It's also possible to define and register templates for user- or
+program-specific functions.  The
+.BR templates "(5ctalk)"
+manual page contains more information about the how to write templates
+and how to register the templates with the class library.
+
+
 
 .SH OVERVIEW OF THE C LANGUAGE API
 

@@ -1,4 +1,4 @@
-.\" $Id: templates.5ctalk,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $
+.\" $Id: templates.5ctalk,v 1.2 2019/11/20 15:44:41 rkiesling Exp $
 .\"
 .\" This file is part of Ctalk.
 .\" Copyright © 2015 Robert Kiesling, rk3314042@gmail.com.
@@ -128,9 +128,9 @@ cMyPrintMsg (char *text) {\\n\\
 .br
                                     "Magnitude", LOCAL_VAR, buf); \\n\\
 .br
-    __ctalkRegisterUserObject (objresult); \n\
+    __ctalkRegisterUserObject (objresult); \\n\\
 .br
-    return objresult; \n\
+    return objresult; \\n\\
 .br
   } \\n\\
 .br
