@@ -1,4 +1,4 @@
-.\" $Id: ctalkmethods.1,v 1.5 2019/11/20 00:36:33 rkiesling Exp $
+.\" $Id: ctalkmethods.1,v 1.6 2019/11/20 05:03:07 rkiesling Exp $
 .\"
 .\" This file is part of ctalk.
 .\" Copyright © 2019 Robert Kiesling, rk3314042@gmail.com.
@@ -389,10 +389,12 @@ class.
 Then
 .B Ctalk
 inserts the body of the template after the function or method
-where the statement appears.  This is the definition of the
+where the function name appears.  This is the definition of the
 \fIcAtoi\fP template.
 
 .in +5
+#define atoi \\n\\
+.br
 cAtoi (void *s) { \\n\\
 .br
   char buf[MAXLABEL]; \\n\\
@@ -416,6 +418,12 @@ The format of templates is designed to make them easy to preprocess
 and insert directly into the output of a
 .B Ctalk
 program.
+
+The templates are preprocessed and added to the program only when the
+C function appears in a context that requires evaluation of the entire
+expression at run time, and the templates' preprocessing and
+evaluation occur after the body of the program and its include files
+have been preprocessed.
 
 One important point to mention right now is that the parameter list
 isn't used - the parameter list is there so the template can use
