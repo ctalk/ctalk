@@ -662,8 +662,8 @@ should help.
   --with-glew-includes=<dir>
   --with-glew-libs=<dir>
 
-If you're building Ctalk programs with ctdb, you'll probably encounter
-the warning messages similar to the following:
+If you're building Ctalk programs with ctdb, you might encounter
+warning messages similar to the following:
 
 ftfont.i:65081:6: warning: implicit declaration of function
                       '__ctalkRtSaveSourceFileName' is invalid in
@@ -683,9 +683,12 @@ These are normal and basically harmless. The declarations appear
 because MacOS defines C functions in its include files, which appear
 in Ctalk's intermediate files before Ctalk's API function prototypes.
 
-These warnings only appear when building Ctalk programs for debugging,
-due to the lack of C line number information in the intermediate files
-and should go away in a future release.
+These warnings are basically harmless.  They only appear when building
+Ctalk programs for debugging, due to the lack of C line number
+information in the intermediate files.  The programs that configure
+and build Ctalk for a specific systems should be able to register
+these functions, but the warnings may appear if the configuration
+process doesn't recognize some function in the include files.
 
 
 7. Building a Basic Version of Ctalk

@@ -1,4 +1,4 @@
-/* $Id: keyword.c,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ */
+/* $Id: keyword.c,v 1.2 2019/11/20 21:08:03 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -513,6 +513,8 @@ int is_apple_ppc_libkern_builtin (const char *s) {
 
 # include "osx_i386_builtins.h"
 
+/* somewhat of a misnomer - includes all functions defined in the
+   include files */
 int is_apple_i386_math_builtin (const char *s) {
   int i;
   for (i = 0; __osx_i386_math_builtins[i]; i++) {

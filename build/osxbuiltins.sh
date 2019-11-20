@@ -4,6 +4,8 @@
 # complicated by the fact that a header line can contain any number of
 # builtin labels.
 
+PERL=`which perl`
+
 function extract_builtins () {
     cat $1 | sed 's/ /\n/' | \
     sed 's/	/\n/' | \
@@ -25,11 +27,17 @@ for i in /usr/include/architecture/ppc/*; do \
       >build/builtin_names
     fi
 done
-for i in /usr/include/*.h; do \
-     extract_builtins $i >>build/builtin_names
+for i in /usr/include/*.h; do 
+    extract_builtins $i >>build/builtin_names;
+    if [ ! -z $PERL ]; then 
+	cat $i | perl build/fn_decl.pl >> build/builtin_names ;
+    fi ;
 done
 for i in /usr/include/sys/*.h; do \
     extract_builtins $i >>build/builtin_names
+    if [ ! -z $PERL ]; then 
+	cat $i | perl build/fn_decl.pl >> build/builtin_names ;
+    fi ;
 done
 
 echo "/* This is a machine generated file.  Please do not edit! */" >include/osx_ppc_builtins.h 
@@ -59,12 +67,6 @@ if [ -f /usr/include/architecture/i386/math.h ]; then
     extract_builtins /usr/include/architecture/i386/math.h \
 	>build/builtin_names
 fi
-for i in /usr/include/*.h; do \
-    extract_builtins $i >>build/builtin_names
-done
-for i in /usr/include/sys/*.h; do \
-    extract_builtins $i >>build/builtin_names
-done
 
 echo "/* This is a machine generated file.  Please do not edit! */" >include/osx_i386_builtins.h
 echo 'char *__osx_i386_math_builtins[] = {' >>include/osx_i386_builtins.h

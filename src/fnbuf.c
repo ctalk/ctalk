@@ -1,4 +1,4 @@
-/* $Id: fnbuf.c,v 1.5 2019/11/11 20:21:52 rkiesling Exp $ */
+/* $Id: fnbuf.c,v 1.6 2019/11/20 21:08:03 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -114,6 +114,13 @@ void begin_function_buffer (void) {
     global_init_statement (reg_call_buf, 3);
 #ifdef __APPLE__
     if (input_is_c_header () ||
+#ifdef __x86_64
+	is_apple_i386_math_builtin (fn_name) || /***/
+#else
+#  ifdef __ppc__
+	is_apple_ppc_math_builtin (fn_name) || /***/
+#  endif  
+#endif
 	strstr (fn_name, "__builtin_") ||
 	strstr (fn_name, "__inline_") ||
 	!strncmp (fn_name, "__darwin_", 9))

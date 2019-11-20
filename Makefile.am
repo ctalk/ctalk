@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.6 2019/11/13 21:12:36 rkiesling Exp $
+# $Id: Makefile.am,v 1.7 2019/11/20 20:50:43 rkiesling Exp $
 
 SUBDIRS=classes doc libctpp ctpp lib src 
 HOST_OS=@host_os@
@@ -101,6 +101,7 @@ distclean-local:
 	  $(top_builddir)/build/preload.i \
 	  $(top_builddir)/build/.x_h_path \
 	  $(top_builddir)/build/make_builtins \
+	  $(top_builddir)/build/builtin_names \
 	  $(top_builddir)/build/conftest ; \
 	  for t in `cat $(top_builddir)/tools/langtools`; do \
 	    $(SHELL) -c "rm -f $(top_builddir)/tools/$$t/$$t $(top_builddir)/tools/$$t/$$t.i $(top_builddir)/tools/$$t/gmon.out $(top_builddir)/tools/$$t/*.err "; \

@@ -14,7 +14,7 @@
 
 @SET_MAKE@
 
-# $Id: Makefile.in,v 1.10 2019/11/18 09:57:09 rkiesling Exp $
+# $Id: Makefile.in,v 1.11 2019/11/20 20:50:43 rkiesling Exp $
 
 VPATH = @srcdir@
 am__is_gnu_make = { \
@@ -950,6 +950,7 @@ distclean-local:
 	  $(top_builddir)/build/preload.i \
 	  $(top_builddir)/build/.x_h_path \
 	  $(top_builddir)/build/make_builtins \
+	  $(top_builddir)/build/builtin_names \
 	  $(top_builddir)/build/conftest ; \
 	  for t in `cat $(top_builddir)/tools/langtools`; do \
 	    $(SHELL) -c "rm -f $(top_builddir)/tools/$$t/$$t $(top_builddir)/tools/$$t/$$t.i $(top_builddir)/tools/$$t/gmon.out $(top_builddir)/tools/$$t/*.err "; \

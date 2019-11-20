@@ -1,4 +1,4 @@
-/* $Id: lclock.c,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ */
+/* $Id: lclock.c,v 1.2 2019/11/20 21:01:09 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -358,5 +358,6 @@ int args (int argc, char **argv) {
       exit_help ();
     }
   }
+  return 0;
 }
 
