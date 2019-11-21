@@ -1,7 +1,23 @@
 Ctalk Test and Example Programs
 
-The comments in the scripts and the C source files describe each 
-test when necessary.
+Note to GITHUB Users:
+--------------------
+
+The github.com distribution of Ctalk does not include the test suite
+because of Github's per-directory, 1000-file limit.  The test suite
+comprises approximately individual 1,200 programs and is still
+growing. The test and example files that are presented in the
+documentation, along with a few other programs, are included in the
+subdirectories, however.  
+
+The complete test suite is included in the source tarball, which is
+available, as always, at:
+
+     http://sourceforge.net/projects/ctalk
+
+
+The Test Suite
+--------------
 
 The cttest shell script in this directory builds and runs test
 programs individually.  You can then redirect the output to a file, as
@@ -9,15 +25,14 @@ in this example, which runs through all of the test programs.
 
 $ for i in *.c; do echo $i; ./cttest -v $i >>test.out 2>&1; done
 
-Cttest, as packaged, uses the GNU readline libraries.  If you built
-Ctalk without GNU readline, then edit the EXTRALIBS variable in cttest
-to omit them; i.e., to:
+Cttest, as configured, tries to get the libraries and compiler flags
+right for the system and the compiler, but it may require some
+editing, particularly the GCCFLAGS and EXTRALIBS definitions.
 
-  EXTRALIBS="-lm"
-
-At present, the tests ignore the -Wnonnull warning because of the way
-the Ctalk library macros work.  If you want to see these warnings, edit
-the GCCFLAGS variable.
+Since cttest is generated from cttest.in when building ctalk, the
+changes you make to cttest will not be permanent.  It saves a lot
+of headaches to store a custom cttest in a directory where it won't
+be overwritten or deleted.
 
 
 Example Program Tests
