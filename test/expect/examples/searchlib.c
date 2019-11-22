@@ -1,0 +1,111 @@
+/* $Id: searchlib.c,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ */
+
+/*
+  This file is part of Ctalk.
+  Copyright © 2016 Robert Kiesling, rk3314042@gmail.com.
+  Permission is granted to copy this software provided that this copyright
+  notice is included in all source code modules.
+
+  This program is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program; if not, write to the Free Software Foundation, 
+  Inc., 51 Franklin St., Fifth Floor, Boston, MA 02110-1301 USA.
+*/
+
+LibrarySearch new searchApp;
+
+String new userFilePath;
+String new pattern;
+String new cLibDocPath;
+String new classLibDocPath;
+Boolean new findMethod;
+
+void usage_exit (void) {
+  printf ("Usage: searchlib [-h] | [-m] [-f <docfile>] <searchterm>\n");
+  printf ("Please report bugs to: rk3314042@gmail.com.\n");
+  exit (1);
+}
+
+LibrarySearch instanceMethod apiDocPath (void) {
+  String new path;
+  returnObjectClass String;
+  path = (self installPrefix) + "/share/ctalk/libdoc";
+  return path;
+}
+
+LibrarySearch instanceMethod classDocPath (void) {
+  String new path;
+  returnObjectClass String;
+  path = (self installPrefix) + "/share/ctalk/classlibdoc";
+  return path;
+}
+
+Application instanceMethod searchOptions (void) {
+
+  Integer new i;
+  Integer new nParams;
+  String new param;
+  
+  nParams = self cmdLineArgs size;
+
+  for (i = 1; i < nParams; i++) {
+
+    param = self cmdLineArgs at i;
+
+    if (param == "-h") {
+      usage_exit ();
+    }
+    if (param == "-m") {
+      findMethod = true;
+    }
+    if (param == "-f") {
+      userFilePath = self cmdLineArgs at i + 1;
+      continue;
+    }
+    pattern = self cmdLineArgs at i;
+  }
+}
+
+int main (int argc, char **argv) {
+
+  String new textOut;
+  Exception new ex;
+
+  userFilePath = "";
+  findMethod = false;
+
+  searchApp parseArgs argc, argv;
+  searchApp searchOptions;
+
+  if (userFilePath length == 0) {
+    if (findMethod) {
+      classLibDocPath = searchApp classDocPath;
+    } else {
+      cLibDocPath = searchApp apiDocPath;
+    }
+  } else {
+    cLibDocPath = userFilePath;
+  }
+
+  if (findMethod) {
+    textOut = searchApp methodSearch classLibDocPath, pattern;
+  } else {
+    textOut = searchApp cAPIFunctionSearch cLibDocPath, pattern;
+  }
+  if (ex pending) {
+    ex handle;
+    exit (1);
+  }
+  printf ("%s", textOut);
+
+  exit (0);
+}

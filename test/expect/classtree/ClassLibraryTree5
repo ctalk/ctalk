@@ -1,0 +1,170 @@
+/* $Id: ClassLibraryTree5,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-c-*-*/
+
+/*
+  This file is part of Ctalk.
+  Copyright © 2015 Robert Kiesling, rk3314042@gmail.com.
+  Permission is granted to copy this software provided that this copyright
+  notice is included in all source code modules.
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+*/
+
+/*
+ *    ClassLibraryTree5 Class
+ */
+
+Application class ClassLibraryTree5; 
+
+Exception instanceMethod __silent_CLT_Exception (void) {
+  // Handle an exception silently.
+  self deleteLastException;
+  return NULL;
+}
+
+TreeNode instanceMethod addSubClasses (AssociativeArray subclassesArg) {
+  
+  Symbol new superclassPtr;
+  TreeNode new node;
+  TreeNode new tree;
+  AssociativeArray new subclasses;
+  String new superclassName;
+  String new superclassLabel;
+
+  if (subclassesArg size <= 1)
+    return NULL;
+
+  tree = self;
+
+  subclassesArg mapKeys {
+    tree search *self;
+    *superclassPtr = tree searchResult;
+    if (*superclassPtr) {
+      node = TreeNode basicNew self name, self name;
+      node setContent self name;
+      (*superclassPtr) addChild node;
+    } else {
+      superclassName = String basicNew (*self), (*self);
+      subclasses atPut (self name), superclassName;
+    }
+  }
+
+  eval tree addSubClasses subclasses;
+}
+
+ClassLibraryTree5 instanceMethod init (TreeNode classTree, Boolean verbose) {
+  AssociativeArray new classes;
+  DirectoryStream new dir;
+  ReadFileStream new readStream;
+  Array new classDirs;
+  List new classFiles;
+  String new classFilePath;   /* Path derived from the file name. */
+  String new classNamePath;   /* Path derived from the "class" declaration. */
+  String new textLine;
+  Array new searchLoc;
+  /***/
+  /*  Array new tokens; */
+  List new tokens;
+  Integer new nTokens;
+  Exception new ex;
+  String new className;
+  String new superClassName;
+  Symbol new superclassPtr;
+  Key new tok;
+  Key new lookahead;
+  Key new lookahead2;
+  Key new lookahead3;
+  Boolean new haveDeclaration;
+
+  ex installHandler __silent_CLT_Exception;
+
+  self classSearchPath split ':', classDirs;
+  classDirs map {
+    dir directoryList self, classFiles;
+    classFiles map {
+
+      if (self == "." || self == "..")
+	continue;
+
+      if (self matchCase "ctalklib")
+	continue;
+
+      if (self matchCase "ctalkdefs")
+	continue;
+
+      if (verbose) {
+	printf ("."); fflush (stdout);
+      }
+
+      className = self;
+
+      classFilePath = super + "/" + className;
+
+      readStream openOn classFilePath;
+      if (ex pending) {
+	ex handle;
+	continue;
+      }
+
+      haveDeclaration = False;
+
+      do {
+	textLine = readStream readLine;
+
+	if (textLine at 0 == EOF)
+	  break;
+
+	if (textLine search " class ", searchLoc) {
+
+	  textLine tokenize tokens;
+
+	  tok = *tokens;
+
+	  do {
+	    lookahead = tok + 1;
+	    if (*lookahead == "class") {
+	      lookahead2 = lookahead + 1;
+	      if (*lookahead2 == className) {
+		lookahead3 = lookahead2 + 1;
+		if (*lookahead3 == ";") {
+		  *superclassPtr = String basicNew *tok, *tok;
+		  classes atPut className, *superclassPtr;
+		  haveDeclaration = True;
+		  break;
+		}
+	      }
+	    }
+	    ++tok;
+	  } while (tok);
+
+	  tokens delete;
+	}
+
+	if (haveDeclaration)
+	  break;
+
+      } while (1);
+
+      readStream closeStream;
+
+    }
+  }
+
+  classTree setContent "Object";
+
+  classTree addSubClasses classes;
+
+  printf ("\n");
+
+}
