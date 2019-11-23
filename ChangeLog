@@ -974,4 +974,8 @@
 	]
 2019-11-21
 	- Added the demos/glx/glxchaserft.ca demonstration program.
+2019-11-22
+	- Added temporary glX context creation and deletion functions
+	so __ctalkGLXExtensionsString and __ctalkGLXExtensionSupported
+	don't need to have an open and mapped glX window (glxlib.c).
 
