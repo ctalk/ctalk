@@ -1,4 +1,4 @@
-.\" $Id: ctalkmethods.1,v 1.8 2019/11/20 15:50:58 rkiesling Exp $
+.\" $Id: ctalkmethods.1,v 1.9 2019/11/23 19:45:16 rkiesling Exp $
 .\"
 .\" This file is part of ctalk.
 .\" Copyright © 2019 Robert Kiesling, rk3314042@gmail.com.
@@ -18,6 +18,17 @@
 .\" You should have received a copy of the GNU General Public License
 .\" along with this program; if not, write to the Free Software Foundation, 
 .\" Inc., 51 Franklin St., Fifth Floor, Boston, MA 02110-1301 USA.
+.\"
+.\" Macros from Perl's pod2man preamble
+.de Vb \" Begin verbatim text
+.ft CW
+.nf
+.ne \\$1
+..
+.de Ve \" End verbatim text
+.ft R
+.fi
+..
 
 .TH CTALKMETHODS 1 "2019-11-20"
 .SH NAME
@@ -40,13 +51,12 @@ Methods in
 .B Ctalk
 are similar to C functions, but they have a couple of significant additions.
 
+.Vb 4
 \&     - They are grouped by class, which means that any class can
-.br
 \&       have its own version of a method.  This also means that methods
-.br
 \&       can be inherited from a classes' superclass.
-.br
 \&     - Methods can overload math operators and parameter lists.
+.Ve
 
 \fIThe Ctalk Tutorial\fP contains an introduction which describes how
 methods use these features to work with objects within a class
@@ -83,59 +93,39 @@ methods function similarly.
 This method is written completely in
 .B Ctalk.
 
-.in +5
-Integer instanceMethod + add (Magnitude i) {
-.br
-  "Return the sum of the receiver and the argument."
-.br
-
-  if (i is Integer) {
-.br
-    return self + i;
-.br
-  } else {
-.br
-    return self + i asInteger;
-.br
-  }
-.br
-}
-.in -5
+.Vb 4
+\&    Integer instanceMethod + add (Magnitude i) {
+\&      "Return the sum of the receiver and the argument."
+\&      if (i is Integer) {
+\&        return self + i;
+\&      } else {
+\&        return self + i asInteger;
+\&      }
+\&    }
+.Ve
 
 The following example shows the method translated into
 .B Ctalk's
 low-level C API, which can use the C addition operator
 directly.
 
-.in +5
-Integer instanceMethod + add (Magnitude i) {
-.br
-  "Return the sum of the receiver and argument."
-.br
-
-  int a, result;
-.br
-
-  if (i is Integer) {
-.br
-    return INTVAL(__ctalk_self_internal_value () -> __o_value)
-.br
-      + INTVAL(ARG(0) -> __o_value);
-.br
-  } else {
-.br
-    a = i asInteger;
-.br
-    result = INTVAL(__ctalk_self_internal_value () -> __o_value)
-.br
-      + a;
-.br
-    return result;
-.br
-  }
-.br
-}
-.in -5
+.Vb 4
+\&    Integer instanceMethod + add (Magnitude i) {
+\&      "Return the sum of the receiver and argument."
+\&
+\&      int a, result;
+\&
+\&      if (i is Integer) {
+\&        return INTVAL(__ctalk_self_internal_value () -> __o_value)
+\&          + INTVAL(ARG(0) -> __o_value);
+\&      } else {
+\&        a = i asInteger;
+\&        result = INTVAL(__ctalk_self_internal_value () -> __o_value)
+\&          + a;
+\&        return result;
+\&      }
+\&    }
+.Ve
 
 .B Ctalk
 is still a work in progress.  There could be many tasks for which you
@@ -267,6 +257,122 @@ provides the \fIObjectInspector\fP class to view object's values
 when a program is run.  Refer to the
 .BR inspect "(3ctalk)"
 manual page.
+
+.SH CONSTRUCTORS
+
+Like many other object oriented languages,
+.B Ctalk
+uses \fIconstructor methods\fP\(emthe method \fInew\fP\(emwhen
+declaring objects.  For example:
+
+.Vb 4
+\&    Integer new myInt;
+.Ve
+
+Declarations can construct multiple objects.
+
+.Vb 4
+\&    String new mySubStr1, mySubStr2;
+.Ve
+
+In each case, the statements create the new objects, and add any instance
+variables that the class and its superclasses declare to the new objects.
+
+There is another type of constructor method, which uses the selector
+\fIbasicNew,\fP to construct objects on the fly.  The \fIbasicNew\fP
+constructors are needed when constructing collections of objects, like
+\fILists\fP and \fIAssociativeArrays,\fP whose size isn't known
+beforehand.
+
+Programs that use the class \fITreeNode,\fP for example, use
+\fIbasicNew\fP methods when constructing its member lists.  Here's an
+example, from the class, \fIClassLibraryTree,\fP which constructs a
+list of subnodes on the fly.
+
+.Vb 4
+\&    TreeNode instanceMethod addSubClasses (AssociativeArray subclassesArg) {
+\&      "Called recursively to add classes to the tree after a
+\&       node's parent has been added."
+\&      Symbol new superclassPtr;
+\&      TreeNode new node;
+\&      TreeNode new tree;
+\&      AssociativeArray new subclasses;
+\&      String new superclassName;
+\&      String new superclassLabel;
+\&    
+\&      if (subclassesArg size <= 1)
+\&        return NULL;
+\&    
+\&      tree = self;
+\&    
+\&      subclassesArg mapKeys {
+\&        tree search *self;
+\&        *superclassPtr = tree searchResult;
+\&        if (*superclassPtr) {
+\&          node = TreeNode basicNew self name, self name;
+\&          node setContent self name;
+\&          (*superclassPtr) addChild node;
+\&        } else {
+\&          superclassName = String basicNew (*self), (*self);
+\&          subclasses atPut (self name), superclassName;
+\&        }
+\&      }
+\&    
+\&      eval tree addSubClasses subclasses;
+\&    }
+.Ve
+
+The method is called recursively for each set of subclasses that haven't been added below a particular superclass (the object \fIsuperclassPtr).
+
+The \fIbasicNew\fP methods are declared in \fIObject\fP and
+\fIVector\fP classes.  Typing the command,
+
+.Vb 4
+\&    $ methodsource Object basicNew
+.Ve
+
+displays the \fIbasicNew\fP methods declared in \fIObject\fP class.
+There are several of them, depending on how many arguments it's necessary
+to give when creating the new objects.
+
+For some reference, Here's the source of the 2-argument version of
+\fIbasicNew.\fP The method is written mainly in C.  The basics of the
+C language API are discussed below.  The functions that the method
+uses are described in the \fICtalk Language Reference.\fP
+
+.Vb 4
+\&    Object instanceMethod basicNew (char *name, char *value_expr) {
+\&      "Return a new object with the name and value given by
+\&      the arguments.  The new object has all of the
+\&      instance variables defined by the class object.  Also
+\&      set the object's value explicitly to make sure that
+\&      an instance variable didn't replace it.  The new
+\&      object has the scope LOCAL_VAR and has a reference
+\&      count of 1."
+\&      Exception new ex;
+\&      OBJECT *s;
+\&      returnObjectClass Any;
+\&    
+\&      if (self className != "Class") {
+\&        ex raiseException INVALID_RECEIVER_X, "\"basicNew\" with 2 arguments requires a class object as the receiver.";
+\&          return NULL;
+\&      }
+\&      
+\&    
+\&      s = __ctalkCreateObjectInit (name, self name, 
+\&                                   self superclassName,
+\&                                   LOCAL_VAR, value_expr);
+\&    
+\&      __ctalkInstanceVarsFromClassObject (s);
+\&      __ctalkAddBasicNewTag (s);
+\&      __objRefCntSet (&s, 1);
+\&    
+\&      return s;
+\&    }
+.Ve
+
+
+
 
 .SH TRANSLATING BETWEEN CTALK AND C
 
