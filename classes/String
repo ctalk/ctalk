@@ -1,4 +1,4 @@
-/* $Id: String,v 1.3 2019/10/30 02:10:14 rkiesling Exp $ -*-c-*- */
+/* $Id: String,v 1.4 2019/11/24 05:15:21 rkiesling Exp $ -*-c-*- */
 
 /*
   This file is part of Ctalk.
@@ -151,12 +151,16 @@ String instanceMethod += concatRcvr (Object sArg) {
   Object : asString to convert the argument to a String
   object if necessary."
   Exception new e;
-  char *buf, *end_ptr_1, *end_ptr_2;
+  char *end_ptr_1, *end_ptr_2;
   int l1, l2;
   OBJECT *op1, *op2;
 
   op1 = self value;
-  op2 = sArg value;
+  if (!sArg is String) {
+    op2 = sArg value asString;
+  } else {
+    op2 = sArg value;
+  }
 
   if (sArg is Integer) {
     __ctalkIncStringRef (self, sArg, TAG_REF_PREFIX);
@@ -166,39 +170,19 @@ String instanceMethod += concatRcvr (Object sArg) {
     return self;
   }
 
-  if (!sArg is String) {
-    op2 = sArg value asString;
+  if (!strcmp (op1 -> __o_value, NULLSTR)) {
+    op1 -> __o_value[0] = '\0';
   }
-  if (!strcmp (((op1 -> instancevars) ? 
-		op1 -> instancevars -> __o_value :
-		op1 -> __o_value), NULLSTR)) {
-    if (op1 -> instancevars) {
-      op1 -> instancevars -> __o_value[0] = '\0';
-    } else {
-      op1 -> __o_value[0] = '\0';
-    }
-  }
-  end_ptr_1 = 
-    index ((op1->instancevars) ? 
-	   op1->instancevars->__o_value :
-	   op1->__o_value, '\0');
-  end_ptr_2 = 
-    index ((op2->instancevars) ? 
-	   op2->instancevars->__o_value :
-	   op2->__o_value, '\0');
-  l1 = end_ptr_1 - ((op1->instancevars) ? op1->instancevars->__o_value :
-	op1->__o_value);
-  l2 = end_ptr_2 - ((op2->instancevars) ? op2->instancevars->__o_value :
-	op2->__o_value);
-  buf = __xalloc (l1 + l2 + 1);
-  xstrcpy (buf, (op1->instancevars) ? 
-	  op1->instancevars->__o_value :
-	  op1->__o_value);
-  xstrcat (buf, (op2->instancevars) ? 
-	  op2->instancevars->__o_value :
-	  op2->__o_value);
-  __ctalkSetObjectValue (op1, buf);
-  __ctalkFree (buf);
+
+  end_ptr_1 = index (op1 -> __o_value, '\0');
+  end_ptr_2 = index (op2 -> __o_value, '\0');
+  l1 = end_ptr_1 - op1 -> __o_value;
+  l2 = end_ptr_2 - op2 -> __o_value;
+
+  __xrealloc ((void **)&(op1 -> __o_value), l1 + l2 + 1);
+
+  xstrcat (op1 -> __o_value, op2 -> __o_value);
+
   return self;
 }
 
