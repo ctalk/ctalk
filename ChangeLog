@@ -978,4 +978,17 @@
 	- Added temporary glX context creation and deletion functions
 	so __ctalkGLXExtensionsString and __ctalkGLXExtensionSupported
 	don't need to have an open and mapped glX window (glxlib.c).
+2019-11-23
+	- Updated self streamPos to use binary long long value
+	in:
+	ReadFileStream : readChar
+	ReadFileStream : readLine
+	ReadFileStream : readAll
+	ReadFileStream : readRec
+	ReadFileStream : readVec
+	WriteFileStream : writeChar
+	WriteFileStream : writeStream
+	WriteFileStream : writeVec
+	- Added a section about constructors to the ctalkmethods.1
+	man page.
 
