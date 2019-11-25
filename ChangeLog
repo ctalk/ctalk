@@ -999,6 +999,10 @@
 	- Updated resolve to not raise an exception for an undefined
 	label during library pass (resolve.c).
 	]
-	- Updated String : tokenize to group more than one math op
-	character as a single token - e.g.; ++, <<, ->.
+2019-11-25
+	[
+	- Removed a __ctalkDecimalIntegerToASCII call from
+	SystemErrnoException : raiseException.
+	]
+
 

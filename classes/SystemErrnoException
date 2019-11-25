@@ -1,4 +1,4 @@
-/* $Id: SystemErrnoException,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-c-*- */
+/* $Id: SystemErrnoException,v 1.2 2019/11/25 12:04:57 rkiesling Exp $ -*-c-*- */
 
 /*
   This file is part of Ctalk.
@@ -63,7 +63,9 @@ SystemErrnoException instanceMethod raiseException (char *data) {
   returnObjectClass Integer;
   if (errno) {
     sysErrnoVar = __ctalkFindClassVariable ("sysErrno", TRUE);
-    __ctalkDecimalIntegerToASCII (errno, buf);
+    /* __ctalkDecimalIntegerToASCII (errno, buf); *//***/
+    INTVAL(sysErrnoVar -> __o_value) = errno;
+    INTVAL(sysErrnoVar -> instancevars -> __o_value) = errno;
     __ctalkSetObjectValueVar (sysErrnoVar, buf);
     __ctalkSysErrExceptionInternal (NULL, errno, data);
     return sysErrnoVar;
