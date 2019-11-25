@@ -992,4 +992,13 @@
 	- Added a section about constructors to the ctalkmethods.1
 	man page.
 	- Cleaned up String : +=.
+2019-11-24
+	[
+	- Updated undefined_label_check to return on a library_pass
+	call also (src/rt_expr.c).
+	- Updated resolve to not raise an exception for an undefined
+	label during library pass (resolve.c).
+	]
+	- Updated String : tokenize to group more than one math op
+	character as a single token - e.g.; ++, <<, ->.
 
