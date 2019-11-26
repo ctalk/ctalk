@@ -1,7 +1,38 @@
-Ctalk News - November 12, 2019
+Ctalk News - xxxx xx, 2019
 
-The Ctalk Home page: http://sourceforge.net/projects/ctalk.
-The Ctalk Wiki:      http://sourceforge.net/p/ctalk/wiki/Home.
+Ctalk Home page: http://sourceforge.net/projects/ctalk.
+Ctalk Wiki:      http://sourceforge.net/p/ctalk/wiki/Home.
+Github:          http://github.com/ctalk/ctalk
+
+
+What's New in Release 0.0.65 2019-xx-xx
+---------------------------------------
+
+- Ctalk is now available on Github.  To retrieve the repository,
+type:
+
+  git clone http://github.com/ctalk/ctalk
+
+The most recent Ctalk package is on the, "release," branch.  To use
+that branch, type,
+
+  git checkout release
+
+Changes for the next release are in the, "proposed," branch.  To work
+with the changes to be included in the next Ctalk package, type,
+
+  git checkout proposed
+
+That means changes for new releases will be available for review and
+testing much more quickly - hopefully within a few days after we
+commit the changes on the development machines.
+
+- The GLXCanvasPane methods extensions and hasExtension use an
+internal GLX context, so programs can use them without first creating
+a window and GLX context themselves.
+
+- The demonstration program, glxchaserft.ca, in the directory
+demos/glx.
 
 
 What's New in Release 0.0.65 2019-11-12

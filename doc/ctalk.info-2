@@ -789,6 +789,24 @@ caching, refer to *Note X11FreeTypeFont::.
 There is a demo program that renders Freetype fonts in the 'demos/glx'
 subdirectory of the Ctalk source package, 'ftfont.ca'.
 
+Display Synchronization
+-----------------------
+
+On OpenGL releases that support synchronization, 'GLXCanvasPane'
+applications can synchronize buffer swapping with the video display's
+refresh rate.  'GLXCanvasPane' class provides the methods
+'syncSwap,refreshRate,' and 'frameRate' which allow programs to adjust
+buffer swapping to match the video refresh rate.  The demonstration
+program, 'demos/glx/glxchaser.ca' provides an example of how to use
+these methods.
+
+To find out which GLX extensions the display server supports, the
+'extensions' method, below, returns the extensions as a 'String' object.
+
+Currently, video syncronization support is limited to MESA releases that
+provide the 'GLX_MESA_swap_control' and 'GLX_OML_sync_control'
+extensions.
+
 Instance Variables
 ..................
 
@@ -959,24 +977,6 @@ Instance Variables
      character for a X font that has been selected by 'useXFont'.  This
      value is read only.
 
-Display Synchronization
------------------------
-
-On OpenGL releases that support synchronization, 'GLXCanvasPane'
-applications can synchronize buffer swapping with the video display's
-refresh rate.  'GLXCanvasPane' class provides the methods
-'syncSwap,refreshRate,' and 'frameRate' which allow programs to adjust
-buffer swapping to match the video refresh rate.  The demonstration
-program, 'demos/glx/glxchaser.ca' provides an example of how to use
-these methods.
-
-To find out which GLX extensions the display server supports, the
-'extensions' method, below, returns the extensions as a 'String' object.
-
-Currently, video syncronization support is limited to MESA releases that
-provide the 'GLX_MESA_swap_control' and 'GLX_OML_sync_control'
-extensions.
-
 Instance Methods
 ................
 
@@ -1087,6 +1087,10 @@ Instance Methods
      program sets the window position itself.  If these arguments are
      zero, then the window manager or the user supplied window geometry
      determines the window placement.
+
+'hasExtension (String EXTENSIONNAME)'
+     Returns a 'Boolean' value of true if the system's OpenGL library
+     supports the GLX extension EXTENSIONNAME, false otherwise.
 
 'map (void)'
      Maps the 'GLXCanvasPane's' window to the display, and internally
