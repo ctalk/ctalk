@@ -1,4 +1,4 @@
-/* $Id: fsecure.c,v 1.2 2019/11/28 13:30:29 rkiesling Exp $ */
+/* $Id: fsecure.c,v 1.3 2019/11/28 22:16:21 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -36,4 +36,10 @@ int xfprintf (FILE *s, const char *fmt, ...) {
   va_list ap;
   va_start (ap, fmt);
   return vfprintf (s, fmt, ap);
+}
+
+int xfscanf (FILE *s, const char *fmt, ...) {
+  va_list ap;
+  va_start (ap, fmt);
+  return vfscanf (s, fmt, ap);
 }

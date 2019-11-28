@@ -1,4 +1,4 @@
-/* $Id: x,v 1.6 2019/11/28 17:01:57 rkiesling Exp $ -*-c-*-**/
+/* $Id: x,v 1.7 2019/11/28 22:16:21 rkiesling Exp $ -*-c-*-**/
 
 /*
   This file is part of Ctalk.
@@ -139,3 +139,15 @@ cXfprintf (FILE *f, char *fmt,...) {\n\
   __ctalkRegisterUserObject(result_object); \n\
   return result_object; \n\
 }\n\
+
+#define xfscanf \n\
+cXfscanf (FILE *s, char *fmt,...) {\n\
+  EXPR_PARSER *parser;  \n\
+  OBJECT *result_object; \n\
+  parser = __ctalkGetExprParserAt (__ctalkGetExprParserPtr ()); \n\
+  result_object = \n\
+    __ctalkLibcFnWithMethodVarArgs ((int (*)())fscanf, parser -> e_methods[parser->e_method_ptr-1], "Integer"); \n\
+  __ctalkRegisterUserObject(result_object); \n\
+  return result_object; \n\
+}\n\
+

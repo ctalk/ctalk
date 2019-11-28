@@ -2691,7 +2691,7 @@ A macro that trims nested single quotes from a literal character.
 TRIM_CHAR_BUF also checks whether a single quote (') is
 the actual character.
 
->>>xfopen (const char *path, const char *mode):xfprintf (FILE *stream, const char *fmt, ...):xmemcpy (void *s, const void *s, size_t):xmemmove (void *s, const void *s, size_t):xmemset (void *s, int c, size_t n):xsprintf (char *s, const char *fmt, ...):xstrcat (char *d, const char *s):xstrncat (char *d, const char *s, size_t):xstrcpy (char *d, const char *s):xstrncpy (char *d, const char *, size_t)
+>>>xfopen (const char *path, const char *mode):xfprintf (FILE *stream, const char *fmt, ...):xfscanf (FILE *stream, const char *fmt, ...):xmemcpy (void *s, const void *s, size_t):xmemmove (void *s, const void *s, size_t):xmemset (void *s, int c, size_t n):xsprintf (char *s, const char *fmt, ...):xstrcat (char *d, const char *s):xstrncat (char *d, const char *s, size_t):xstrcpy (char *d, const char *s):xstrncpy (char *d, const char *, size_t)
 These are portable wrappers for systems that #define their own
 (possibly more secure) versions of library functions.  For the exact
 prototype and definition, you should consult the system's manual page
