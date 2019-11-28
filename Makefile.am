@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.7 2019/11/20 20:50:43 rkiesling Exp $
+# $Id: Makefile.am,v 1.8 2019/11/28 17:32:52 rkiesling Exp $
 
 SUBDIRS=classes doc libctpp ctpp lib src 
 HOST_OS=@host_os@
@@ -35,6 +35,7 @@ EXTRA_DIST=$(top_builddir)/build/gccincdir.sh \
 	$(top_builddir)/build/conftest.c \
 	$(top_builddir)/build/glh.sh \
 	$(top_builddir)/build/have_llvm.sh \
+	$(top_builddir)/build/fn_decl.pl \
 	$(top_builddir)/m4/* \
 	$(top_builddir)/ChangeLog \
 	$(top_builddir)/tools/langtools \
