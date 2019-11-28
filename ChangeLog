@@ -974,4 +974,57 @@
 	]
 2019-11-21
 	- Added the demos/glx/glxchaserft.ca demonstration program.
+2019-11-22
+	- Added temporary glX context creation and deletion functions
+	so __ctalkGLXExtensionsString and __ctalkGLXExtensionSupported
+	don't need to have an open and mapped glX window (glxlib.c).
+2019-11-23
+	- Updated self streamPos to use binary long long value
+	in:
+	ReadFileStream : readChar
+	ReadFileStream : readLine
+	ReadFileStream : readAll
+	ReadFileStream : readRec
+	ReadFileStream : readVec
+	WriteFileStream : writeChar
+	WriteFileStream : writeStream
+	WriteFileStream : writeVec
+	- Added a section about constructors to the ctalkmethods.1
+	man page.
+	- Cleaned up String : +=.
+2019-11-24
+	[
+	- Updated undefined_label_check to return on a library_pass
+	call also (src/rt_expr.c).
+	- Updated resolve to not raise an exception for an undefined
+	label during library pass (resolve.c).
+	]
+2019-11-25
+	[
+	- Removed a __ctalkDecimalIntegerToASCII call from
+	SystemErrnoException : raiseException.
+	]
+	- Added the run-methods.c test program in test/expect
+	and the methods.c test program in test/expect/examples.
+	- Added the GLXCanvasPane : hasExtension method.
+2019-11-26
+	- Release 0.0.65 2019-11-27
+2019-11-27
+	[
+	- Updated fn_decl.pl to find definitions in
+	/usr/include/math.h on ash.
+	]
+2019-11-28
+	[
+	- Added xfprintf to c99_names and c99_writable_args
+	(lib/clibtmpl.c).
+	- Added build/fn_decl.pl to the top-level Makefile.am's
+	EXTRA_DIST list.
+	]
+	- Added xfprintf (fsecure.c), and cXfprintf
+	(classes/lib/x).
+	- Updated fprintf[1-4].c.
+	- Error message in register_user_args about support
+	for variable arguments in user templates (ufntmpl.c).
+
 

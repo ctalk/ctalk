@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.21 2019/11/11 03:21:00 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.23 2019/11/28 17:12:33 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -12118,6 +12118,24 @@ There is a demo program that renders Freetype fonts in the
 @flnm{demos/glx} subdirectory of the Ctalk source package,
 @flnm{ftfont.ca}.
 
+@subheading Display Synchronization
+
+On OpenGL releases that support synchronization, @code{GLXCanvasPane}
+applications can synchronize buffer swapping with the video display's
+refresh rate.  @code{GLXCanvasPane} class provides the methods
+@mnm{syncSwap,refreshRate,} and @mnm{frameRate} which allow programs
+to adjust buffer swapping to match the video refresh rate.  The
+demonstration program, @flnm{demos/glx/glxchaser.ca} provides an
+example of how to use these methods.
+
+To find out which GLX extensions the display server supports, the
+@mnm{extensions} method, below, returns the extensions as a
+@code{String} object.
+
+Currently, video syncronization support is limited to MESA releases
+that provide the @code{GLX_MESA_swap_control} and
+@code{GLX_OML_sync_control} extensions.
+
 @subsubheading Instance Variables
 
 @table @code
@@ -12332,24 +12350,6 @@ value is read only.
 
 @end table
 
-@subheading Display Synchronization
-
-On OpenGL releases that support synchronization, @code{GLXCanvasPane}
-applications can synchronize buffer swapping with the video display's
-refresh rate.  @code{GLXCanvasPane} class provides the methods
-@mnm{syncSwap,refreshRate,} and @mnm{frameRate} which allow programs
-to adjust buffer swapping to match the video refresh rate.  The
-demonstration program, @flnm{demos/glx/glxchaser.ca} provides an
-example of how to use these methods.
-
-To find out which GLX extensions the display server supports, the
-@mnm{extensions} method, below, returns the extensions as a
-@code{String} object.
-
-Currently, video syncronization support is limited to MESA releases
-that provide the @code{GLX_MESA_swap_control} and
-@code{GLX_OML_sync_control} extensions.
-
 @subsubheading Instance Methods
 
 @table @code
@@ -12475,6 +12475,11 @@ the program sets the window position itself.  If these arguments are
 zero, then the window manager or the user supplied window geometry
 determines the window placement.
 
+@cindex @mnm{hasExtension} instance method @idxclscite{GLXCanvasPane}
+@item hasExtension (@code{String} @var{extensionName})
+Returns a @code{Boolean} value of true if the system's OpenGL
+library supports the GLX extension @var{extensionName}, false
+otherwise.
 
 @cindex @mnm{map} instance method @idxclscite{GLXCanvasPane}
 @item map (@code{void})
@@ -20910,6 +20915,7 @@ A macro that trims nested single quotes from a literal character.
 the actual character.
 
 @idxlibfn{xfopen}
+@idxlibfn{xfprintf}
 @idxlibfn{xmemcpy}
 @idxlibfn{xmemmove}
 @idxlibfn{xmemset}
@@ -20919,6 +20925,7 @@ the actual character.
 @idxlibfn{xstrcat}
 @idxlibfn{xstrncat}
 @item xfopen (const char *path, const char *mode)
+@item xfprintf (FILE *stream, const char *fmt, ...)
 @item xmemcpy (void *s, const void *s, size_t)
 @item xmemmove (void *s, const void *s, size_t)
 @item xmemset (void *s, int c, size_t n)

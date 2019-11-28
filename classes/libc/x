@@ -1,4 +1,4 @@
-/* $Id: x,v 1.5 2019/11/17 18:35:41 rkiesling Exp $ -*-c-*-**/
+/* $Id: x,v 1.6 2019/11/28 17:01:57 rkiesling Exp $ -*-c-*-**/
 
 /*
   This file is part of Ctalk.
@@ -118,5 +118,24 @@ cXstrncpy (char *__s1, char *__s2, int lenp) { \n\
   return ARG(2);\n\
 }
 
-
-
+#define xfprintf \n\
+cXfprintf (FILE *f, char *fmt,...) {\n\
+  EXPR_PARSER *parser;  \n\
+  OBJECT *result_object; \n\
+  OBJECT *arg0; \n\
+  parser = __ctalkGetExprParserAt (__ctalkGetExprParserPtr ()); \n\
+  if (strcmp (ARG_CLASSNAME(parser->e_methods[parser->e_method_ptr-1]->args[0]), \n\
+	      "Expr") && \n\
+      strcmp (ARG_CLASSNAME(parser->e_methods[parser->e_method_ptr-1]->args[0]), \n\
+	      "WriteFileStream") && \n\
+      strcmp (ARG_CLASSNAME(parser->e_methods[parser->e_method_ptr-1]->args[0]), \n\
+	      "FileStream")){\n\
+   _warning \n\
+    ("cXfprintf: Stream argument is not a WriteFileStream or FileStream expression object.\n");\n\
+    return NULL; \n\
+  } \n\
+  result_object = \n\
+    __ctalkLibcFnWithMethodVarArgs ((int (*)())fprintf, parser -> e_methods[parser->e_method_ptr-1], "Integer"); \n\
+  __ctalkRegisterUserObject(result_object); \n\
+  return result_object; \n\
+}\n\

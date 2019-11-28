@@ -1,4 +1,4 @@
-/* $Id: WriteFileStream,v 1.2 2019/10/27 00:06:11 rkiesling Exp $ -*-c-*-*/
+/* $Id: WriteFileStream,v 1.4 2019/11/28 13:30:28 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -165,8 +165,11 @@ WriteFileStream instanceMethod writeChar (char inChar) {
   if (r == EOF) {
     __errnoException raiseException NULL;
   } else {
+    LLVAL(self_pos -> __o_value) = (long long)ftell (self_stream);
+#if 0 /***/
     __ctalkDecimalLongLongToASCII((long long int)ftell (self_stream), 
 				  self_pos -> __o_value);
+#endif    
   }
   return NULL;
 }
@@ -191,8 +194,11 @@ WriteFileStream instanceMethod writeStream (char *str) {
   if (r == EOF) {
     __errnoException raiseException NULL;
   } else {
+    LLVAL(self_pos -> __o_value) = (long long)ftell (self_stream);
+#if 0 /***/
     __ctalkDecimalLongLongToASCII((long long int)ftell (self_stream), 
 				  self_pos -> __o_value);
+#endif    
   }
   return NULL;
 }
@@ -222,8 +228,11 @@ WriteFileStream instanceMethod writeVec (Vector vec) {
   if (r == EOF) {
     __errnoException raiseException NULL;
   } else {
+    LLVAL(self_pos -> __o_value) = (long long)ftell (self_stream);
+#if 0 /***/
     __ctalkDecimalLongLongToASCII((long long int)ftell (self_stream), 
 				  self_pos -> __o_value);
+#endif    
   }
   return NULL;
 }
@@ -265,7 +274,11 @@ WriteFileStream instanceMethod writeFormat (char *fmt, ...) {
   self_method->args[0] = __ctalkCreateArgEntryInit (self value);
   ++self_method -> n_args;
 
+#ifdef __APPLE__ /***/
+  printf ("<<<<< need fprintf replacement here!\n");
+#else
   result_object = __ctalkLibcFnWithMethodVarArgs ((int (*)())fprintf, self_method, "Integer");
+#endif
 
   --self_method -> n_args;
   __ctalkDeleteArgEntry (self_method->args[0]);
