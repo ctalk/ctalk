@@ -1,4 +1,4 @@
-/* $Id: rt_expr.c,v 1.3 2019/11/11 20:21:52 rkiesling Exp $ */
+/* $Id: rt_expr.c,v 1.4 2019/11/24 22:05:26 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -2126,7 +2126,7 @@ int undefined_label_check (MESSAGE_STACK messages, int idx) {
   CVAR *cvar;
 #endif  
 
-  if (interpreter_pass == expr_check)
+  if (interpreter_pass == expr_check || interpreter_pass == library_pass)
     return SUCCESS;
   /*
    *  Check if a label is a method argument.

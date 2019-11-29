@@ -1,4 +1,4 @@
-/* $Id: glxlib.c,v 1.20 2019/11/11 20:21:51 rkiesling Exp $ -*-c-*-*/
+/* $Id: glxlib.c,v 1.21 2019/11/22 20:50:56 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -692,14 +692,75 @@ void __ctalkGLXFullScreen (OBJECT *self_object) {
 
 }
 
+static bool tmp_display_open = false;
+static GLXContext tmp_glc;
+XVisualInfo *tmp_vi;
+static int tmp_att[] = {GLX_RGBA, GLX_DEPTH_SIZE, 24, GLX_STENCIL_SIZE, 8, GLX_DOUBLEBUFFER, None};
+
+static Window open_tmp_glx_context (void) {
+  Colormap cmap;
+  XSetWindowAttributes swa;
+  Window win_id;
+
+  if (display == NULL) {
+    display = XOpenDisplay (NULL);
+    tmp_display_open = true;
+  }
+
+  if ((tmp_vi = glXChooseVisual (display, 0, tmp_att)) == NULL) {
+    printf ("GLXChooseVisual didn't work\n");
+    exit (1);
+  }
+  cmap = XCreateColormap (display, DefaultRootWindow (display),
+			  tmp_vi -> visual, AllocNone);
+  swa.colormap = cmap;
+  swa.event_mask = WM_CONFIGURE_EVENTS|WM_INPUT_EVENTS;
+
+  win_id = 
+    XCreateWindow (display, DefaultRootWindow(display), 
+		   1, 1, 1, 1,
+		   1, tmp_vi -> depth,
+		   InputOutput, tmp_vi -> visual, 
+		   CWColormap|CWEventMask, &swa);
+
+  tmp_glc = glXCreateContext (display, tmp_vi, NULL, GL_TRUE);
+  glXMakeCurrent (display, win_id, tmp_glc);
+
+  return win_id;
+  
+}
+
+static void delete_tmp_glx_context (Window win_id) {
+  glXDestroyContext (display, tmp_glc);
+  tmp_glc = NULL;
+  XFree (tmp_vi);
+  tmp_vi = NULL;
+  XDestroyWindow (display, win_id);
+  if (tmp_display_open) {
+    XCloseDisplay (display);
+    tmp_display_open = false;
+  }
+}
+
 char *__ctalkGLXExtensionsString (void) {
-  return (char *)glXQueryExtensionsString (display, DefaultScreen(display));
+  Window tmp_win_id;
+  char *ext_str;
+  tmp_win_id = open_tmp_glx_context ();
+  ext_str = (char *)glXQueryExtensionsString
+		     (display, DefaultScreen(display));
+  delete_tmp_glx_context (tmp_win_id);
+  return ext_str;
 }
 
 bool __ctalkGLXExtensionSupported (char *extname) {
-  return (bool)strstr (glXQueryExtensionsString
-		       (display, DefaultScreen (display)),
-		       extname);
+  Window tmp_win_id;
+  bool have_ext;
+  tmp_win_id = open_tmp_glx_context ();
+  have_ext = (bool)strstr (glXQueryExtensionsString
+			   (display, DefaultScreen (display)),
+			   extname);
+  delete_tmp_glx_context (tmp_win_id);
+  return have_ext;
 }
 
 /* The next three functions are adapted from glxswapcontrol.c, in

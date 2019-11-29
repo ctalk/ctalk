@@ -1,4 +1,4 @@
-/* $Id: GLXCanvasPane,v 1.23 2019/11/11 20:21:51 rkiesling Exp $ -*-c-*-*/
+/* $Id: GLXCanvasPane,v 1.24 2019/11/26 04:15:26 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -798,4 +798,12 @@ GLXCanvasPane instanceMethod extensions (void) {
    as a String object."
   returnObjectClass String;
   return __ctalkGLXExtensionsString ();
+}
+
+GLXCanvasPane instanceMethod hasExtension (String extensionName) {
+  "Returns a Boolean value of true if the system's OpenGL library
+   supports the GLX extension given as the argument, false
+   otherwise."
+  returnObjectClass Boolean;
+  return __ctalkGLXExtensionSupported (extensionName);
 }

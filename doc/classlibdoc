@@ -5621,6 +5621,10 @@ when building the Ctalk libraries.  If glWindowPos2i is not
 present in the machine's GL libraries, then programs that try to
 use these methods display an error message on the terminal and exit.
 
+>>>GLXCanvasPane::extensions (void)
+Returns the supported GLX extensions from the display server as a
+String object.
+
 >>>GLXCanvasPane::frameRate (void)
 Returns the rate that the program updates the display, in frames
 per second.  The algorithm that calculates the frame rate measures
@@ -5660,6 +5664,10 @@ the program sets the window position itself.  If these arguments are
 zero, then the window manager or the user supplied window geometry
 determines the window placement.
 
+>>>GLXCanvasPane::hasExtension (String extensionName)
+Returns a Boolean value of true if the system's OpenGL
+library supports the GLX extension extensionName, false
+otherwise.
 
 >>>GLXCanvasPane::map (void)
 Maps the GLXCanvasPane's window to the display, and

@@ -1,4 +1,4 @@
-/* $Id: ReadFileStream,v 1.2 2019/10/27 00:06:11 rkiesling Exp $ -*-c-*-*/
+/* $Id: ReadFileStream,v 1.3 2019/11/24 01:50:07 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -121,8 +121,11 @@ ReadFileStream instanceMethod readChar (void) {
   if (c == EOF && !self streamEof) {
     readCharException raiseException NULL;
   } else {
+    LLVAL(self_pos -> __o_value) = (long long int)ftell (self_stream);
+#if 0 /***/
     __ctalkDecimalLongLongToASCII((long long int)ftell (self_stream), 
 				  self_pos -> __o_value);
+#endif    
   }
   return c;
 }
@@ -162,8 +165,11 @@ ReadFileStream instanceMethod readLine (void) {
   if ((r = fgets (buf, MAXMSG, self_stream)) == NULL) {
     if (self streamEof) {
       FILEEOF(buf);
+      LLVAL(self_pos -> __o_value) = (long long int)ftell (self_stream);
+#if 0 /***/
       __ctalkDecimalLongLongToASCII((long long int)ftell (self_stream), 
 				    self_pos -> __o_value);
+#endif      
     } else {
       readLineException raiseException NULL;
     }
@@ -223,8 +229,11 @@ ReadFileStream instanceMethod readAll (void) {
 	!= input_size) {
       readAllException raiseException NULL;
     } else {
+      LLVAL(self_pos -> __o_value) = (long long)ftell (self_stream);
+#if 0 /***/
       __ctalkDecimalLongLongToASCII((long long int)ftell (self_stream), 
 				    self_pos -> __o_value);
+#endif      
     }
 #endif
   }
@@ -273,8 +282,11 @@ ReadFileStream instanceMethod readRec (Integer __recLength) {
       != input_size) {
     readRecException raiseException NULL;
   } else {
+    LLVAL(self_pos -> __o_value) = (long long)ftell (self_stream);
+#if 0 /***/
     __ctalkDecimalLongLongToASCII((long long int)ftell (self_stream), 
 				  self_pos -> __o_value);
+#endif    
   }
 #endif
   
@@ -327,8 +339,11 @@ ReadFileStream instanceMethod readVec (LongInteger __recLength) {
       != input_size) {
     readRecException raiseException NULL;
   } else {
+    LLVAL(self_pos -> __o_value) = (long long)ftell (self_stream);
+#if 0 /***/
     __ctalkDecimalLongLongToASCII((long long int)ftell (self_stream), 
 				  self_pos -> __o_value);
+#endif    
   }
 #endif
   
