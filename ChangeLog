@@ -1028,5 +1028,10 @@
 	- Error message in register_user_args about support
 	for variable arguments in user templates (ufntmpl.c).
 	- Updated argblk[16-17].c test programs for 64-bit machines.
+2019-11-29
+	- Updated String : tokenize to collect multi-character
+	math symbols into one token: +=, << <=, etc.
+	- Updated methods so it doesn't need to collect multi-
+	character math tokens.
 
 
