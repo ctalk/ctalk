@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.22 2019/11/05 20:15:15 rkiesling Exp $
+# $Id: configure.ac,v 1.27 2019/12/01 14:44:31 rkiesling Exp $
 AC_INIT(ctalk, 0.0.65, rk3314042@gmail.com, "")
 
 # Contained in acinclude.m4 and generated aclocal.m4
@@ -812,17 +812,18 @@ AC_ARG_WITH(x11_warnings,
 )
 
 AC_SUBST(without_signed_hex_octal_constant_warnings_def)
+without_signed_hex_octal_constant_warnings_def="-DWITHOUT_SIGNED_HEX_OCTAL_CONSTANT_WARNINGS"
 
 AC_ARG_WITH(signed-hex-octal-constant-warnings,
   [  --without-signed-hex-octal-constant-warnings
                           Don't print warning messages when encountering
-                          a signed hexadecimal or octal constant.],
+                          a signed hexadecimal or octal constant.[[yes]]],
     [  case "$withval" in
        no)
-          without_signed_hex_octal_constant_warnings_def="-DWITHOUT_SIGNED_HEX_OCTAL_CONSTANT_WARNINGS"
+          without_signed_hex_octal_constant_warnings_def=""
           ;;
         *)
-          without_signed_hex_octal_constant_warnings_def=""
+          without_signed_hex_octal_constant_warnings_def="-DWITHOUT_SIGNED_HEX_OCTAL_CONSTANT_WARNINGS"
           ;;
        esac
     ]
