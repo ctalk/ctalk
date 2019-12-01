@@ -1030,14 +1030,16 @@
 	- Updated argblk[16-17].c test programs for 64-bit machines.
 2019-11-29
 	[
-	- Added a clause in __rt_method_arglist_n_args to check
-	for an expression like the following:
+	- Added arglist_internal_method_expr (rt_args.c), for
+	expressions like the following:
 
 	  tokenList push (String basicNew "token", tokbuf)
+	  tokenList push String basicNew "token", tokbuf;
 
-	The clause analyzes the rcvr-method pair in the argument
-	list and determines if the comma can belong to the method
-	in the argument: "basicNew" here (rt_args.c).
+	The fn analyzes rcvr-method pairs in the argument
+	list and determines if the comma can belong to the primary
+	method in the expression ("push"), or the method in the
+	argument, which is "basicNew" in this example.
 	]
 	- Updated String : tokenize to collect multi-character
 	math symbols into one token: +=, << <=, etc.

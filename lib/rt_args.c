@@ -1,4 +1,4 @@
-/* $Id: rt_args.c,v 1.8 2019/12/01 13:52:15 rkiesling Exp $ */
+/* $Id: rt_args.c,v 1.9 2019/12/01 14:04:57 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -2447,7 +2447,10 @@ static int __rt_is_comma_before_receiver (MESSAGE_STACK messages,
  *  I.e., make sure that the argument list associates
  *  with "basicNew" and not "push".  This is easy
  *  enough so far if we make it all of the way to
- *  the closing paren of the arglist.
+ *  the closing paren of the arglist, or to the end
+ *  of the message stack if there are no parens (and
+ *  arglist_end == -1 in this case because we didn't
+ *  previously scan for it in the calling fn).
  */
 static int arglist_internal_method_expr (EXPR_PARSER *p,
 					 int rcvr_tok_idx,
