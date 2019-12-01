@@ -1,4 +1,4 @@
-/* $Id: rt_args.c,v 1.9 2019/12/01 14:04:57 rkiesling Exp $ */
+/* $Id: rt_args.c,v 1.10 2019/12/01 14:09:29 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -2439,7 +2439,7 @@ static int __rt_is_comma_before_receiver (MESSAGE_STACK messages,
 }
 
 /*
- *  Handle a case like this:
+ *  Handle cases like this:
  *
  *    tokenList push (String basicNew "token", tokenbuf);
  *    tokenList push String basicNew "token", tokenbuf;
