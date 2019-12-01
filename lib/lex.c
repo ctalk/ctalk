@@ -1,4 +1,4 @@
-/* $Id: lex.c,v 1.1.1.1 2019/10/26 23:40:50 rkiesling Exp $ */
+/* $Id: lex.c,v 1.2 2019/12/01 20:17:27 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -74,12 +74,6 @@ static int gnuc_attribute;  /* Set by __attribute__ label, cleared after )). */
 
 int esc_chr;
 
-
-#ifndef WITHOUT_SIGNED_HEX_OCTAL_CONSTANT_WARNINGS
-static void about_signed_hex_octal_constant_warning (void) {
-  _warning ("(To get rid of this warning, use the --without-signed-hex-octal-constant-warnings option with configure.)\n");
-}
-#endif
 
 static bool __is_sign (char c, const char *buf, int idx,
 		       bool *have_sign) {
@@ -1158,11 +1152,9 @@ void lexical (const char *buf, long long *idx, MESSAGE *m) {
 #ifndef WITHOUT_SIGNED_HEX_OCTAL_CONSTANT_WARNINGS
     if (need_signed_hexadecimal_constant_warning) {
       _warning ("Signed hexadecimal constant %s.\n", m -> name);
-      about_signed_hex_octal_constant_warning ();
     }
     if (need_signed_octal_constant_warning) {
       _warning ("Signed octal constant %s.\n", m -> name);
-      about_signed_hex_octal_constant_warning ();
     }
 #endif
     switch (numeric_type)
