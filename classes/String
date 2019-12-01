@@ -1,8 +1,4 @@
-<<<<<<< HEAD
-/* $Id: String,v 1.6 2019/11/29 19:04:46 rkiesling Exp $ -*-c-*- */
-=======
-/* $Id: String,v 1.4 2019/11/24 05:15:21 rkiesling Exp $ -*-c-*- */
->>>>>>> 685c52d31a7c75b95e9d0b4dc4f1c68603ed2c2d
+/* $Id: String,v 1.11 2019/12/01 13:55:23 rkiesling Exp $ -*-c-*- */
 
 /*
   This file is part of Ctalk.
@@ -908,7 +904,7 @@ String instanceMethod tokenize (List tokenList) {
    which the method treats as a label character."
   OBJECT *self_value;
   char *end_ptr, c;
-  int i, j = 0, k, inword, length;
+  int i, j = 0, inword, length;
   char tokbuf[MAXMSG];
   Symbol new tokSym;
 
@@ -925,35 +921,30 @@ String instanceMethod tokenize (List tokenList) {
     if (c == '\n' || c == ' ' || c == '\t' || c == '\v') {
       if (inword) {
 	inword = FALSE;
-	k = i;
-	substrcpy (tokbuf, self_value -> __o_value, j, k - j);
-	*tokSym = String basicNew "token", tokbuf;
-	tokenList push *tokSym;
+	substrcpy (tokbuf, self_value -> __o_value, j, i - j);
+	/* we check a few variations of this expression below...*/
+	tokenList push (String basicNew ("token", tokbuf));
       }
     } else  {
       if (ispunct ((int)c) && (c != '_')) {
 	if (inword) {
 	  inword = FALSE;
-	  k = i;
-	  substrcpy (tokbuf, self_value -> __o_value, j, k - j);
-	  *tokSym = String basicNew "token", tokbuf;
-	  tokenList push *tokSym;
-	  tokbuf[0] = c; tokbuf[1] = '\0';
-	  *tokSym = String basicNew "token", tokbuf;
-	  tokenList push *tokSym;
-	  continue;
+	  substrcpy (tokbuf, self_value -> __o_value, j, i - j);
+	  tokenList push String basicNew "token", tokbuf;
 	}
 	if (IS_MATH_OP_CHAR(c)) {
-	  for (j = 0; IS_MATH_OP_CHAR(self_value -> __o_value[i]);
-	       ++i, ++j) {
-	    tokbuf[j] = self_value -> __o_value[i]; tokbuf[j+1] = '\0';
-	  }
-	  --i;
+	  j = 0;
+	  do {
+	    tokbuf[j++] = self_value -> __o_value[i];
+	    if (!IS_MATH_OP_CHAR(self_value -> __o_value[i + 1]))
+	      break;
+	    ++i;
+	  } while (self_value -> __o_value[i]);
+	  tokbuf[j] = '\0';
 	} else if (ispunct((int)c)) {
 	  tokbuf[0] = c; tokbuf[1] = '\0';
 	}
-	*tokSym = String basicNew "token", tokbuf;
-	tokenList push *tokSym;
+	tokenList push (String basicNew "token", tokbuf);
       } else {
 	if (!inword) {
 	  inword = TRUE;
@@ -1287,6 +1278,9 @@ String instanceMethod nMatches (void) {
 }
 
 String instanceMethod printMatchToks (Integer yesNo) {
+  "If the argument is non-zero, print the tokens of regular
+   expression tokens and the matching text.  This can be
+   useful when debugging regular expressions."
   __ctalkMatchPrintToks (yesNo);
 }
 

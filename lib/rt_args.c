@@ -1,4 +1,4 @@
-/* $Id: rt_args.c,v 1.6 2019/11/11 20:21:51 rkiesling Exp $ */
+/* $Id: rt_args.c,v 1.8 2019/12/01 13:52:15 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -2438,13 +2438,105 @@ static int __rt_is_comma_before_receiver (MESSAGE_STACK messages,
   }
 }
 
+/*
+ *  Handle a case like this:
+ *
+ *    tokenList push (String basicNew "token", tokenbuf);
+ *    tokenList push String basicNew "token", tokenbuf;
+ *
+ *  I.e., make sure that the argument list associates
+ *  with "basicNew" and not "push".  This is easy
+ *  enough so far if we make it all of the way to
+ *  the closing paren of the arglist.
+ */
+static int arglist_internal_method_expr (EXPR_PARSER *p,
+					 int rcvr_tok_idx,
+					 int arglist_end,
+					 METHOD *pri_method) {
+  OBJECT *arg_obj;
+  METHOD *arg_method;
+  int i_2, arg_arglist_end, n_arg_parens, n_arg_method_args,
+    lookahead;
+
+  if ((lookahead = next_arg_tok_b (p, rcvr_tok_idx)) == ERROR)
+    return ERROR;
+  if (M_TOK(p -> m_s[lookahead]) == LABEL) {
+    if ((arg_obj = 
+	 __ctalk_get_object (M_NAME(p -> m_s[rcvr_tok_idx]),
+			     NULL)) != NULL) {
+      p -> m_s[rcvr_tok_idx] -> obj = arg_obj;
+      if (__ctalk_isMethod_2 (M_NAME(p -> m_s[lookahead]),
+			      p -> m_s, lookahead,
+			      p -> msg_frame_start)) {
+	if (arglist_end == -1) {
+	  for (i_2 = lookahead - 1, n_arg_parens = 0,
+		 n_arg_method_args = 1;
+	       (i_2 > p -> msg_frame_top) && (n_arg_parens >= 0);
+	       --i_2) {
+	    if (M_TOK(p -> m_s[i_2]) == SEMICOLON)
+	      break;
+	    switch (M_TOK(p -> m_s[i_2]))
+	      {
+	      case OPENPAREN:
+		++n_arg_parens;
+		break;
+	      case CLOSEPAREN:
+		--n_arg_parens;
+		break;
+	      case ARGSEPARATOR:
+		++n_arg_method_args;
+		break;
+	      }
+	  }
+	} else {
+	  for (i_2 = lookahead - 1, n_arg_parens = 0,
+		 n_arg_method_args = 1;
+	       (i_2 > arglist_end) && (n_arg_parens >= 0);
+	       --i_2) {
+	    switch (M_TOK(p -> m_s[i_2]))
+	      {
+	      case OPENPAREN:
+		++n_arg_parens;
+		break;
+	      case CLOSEPAREN:
+		--n_arg_parens;
+		break;
+	      case ARGSEPARATOR:
+		++n_arg_method_args;
+		break;
+	      }
+	  }
+	}
+      }
+      if ((arg_method = __ctalkFindMethodByName
+	   (&arg_obj, M_NAME(p -> m_s[lookahead]),
+	    FALSE, n_arg_method_args)) != NULL) {
+	/* just return the primary method's param count because... */
+	if (arglist_end == -1) {
+	  /* we reached the end of the expr's stack */
+	  if (i_2 == p -> msg_frame_top) {
+	    return pri_method -> n_params;
+	  }
+	} else {
+	/* we've checked all the way to the closing
+	   paren of the arg method's arglist */
+	  if (i_2 == arglist_end) {
+	    return pri_method -> n_params;
+	  }
+	}
+      }
+    }
+  }
+  return -1;
+}
+
 static int stack_end_chk = 0;
 
 int __rt_method_arglist_n_args (EXPR_PARSER *p, int method_msg_idx,
 				METHOD *m) {
   bool paren_delimiters = false;
   int open_paren, close_paren, lookahead, arglist_start = 0, i,
-    arglist_end, paren_level, n_args;;
+    arglist_end, paren_level, n_args, n_internal_args;
   
   if (m -> n_params == 0)
     return 0;
@@ -2487,7 +2579,7 @@ int __rt_method_arglist_n_args (EXPR_PARSER *p, int method_msg_idx,
     }
 
   } else {
-    arglist_start = lookahead;
+    arglist_start = n_args;
   }
 
   if (paren_delimiters) {
@@ -2508,6 +2600,69 @@ int __rt_method_arglist_n_args (EXPR_PARSER *p, int method_msg_idx,
 	  if (paren_level == 1)
 	    ++n_args;
 	  break;
+	case LABEL:
+	  if ((n_internal_args =
+	       arglist_internal_method_expr (p, i, arglist_end, m))
+	      > 0)
+	    return n_internal_args;
+#if 0 /***/
+	  { /***/
+	    /*
+	     *  Handle a case like this:
+	     *
+	     *    tokenList push (String basicNew "token", tokenbuf);
+	     *
+	     *  I.e., make sure that the argument list associates
+	     *  with "basicNew" and not "push".  This is easy
+	     *  enough so far if we make it all of the way to
+	     *  the closing paren of the arglist.
+	     */
+	    OBJECT *arg_obj;
+	    METHOD *arg_method;
+	    int i_2, arg_arglist_end, n_arg_parens, n_arg_method_args;
+	    lookahead = next_arg_tok_b (p, i);
+	    if (M_TOK(p -> m_s[lookahead]) == LABEL) {
+	      if ((arg_obj = 
+		   __ctalk_get_object (M_NAME(p -> m_s[i]), NULL)) != NULL) {
+		p -> m_s[i] -> obj = arg_obj;
+		if (__ctalk_isMethod_2 (M_NAME(p -> m_s[lookahead]),
+					p -> m_s, lookahead,
+					p -> msg_frame_start)) {
+
+		  for (i_2 = lookahead - 1, n_arg_parens = 0,
+			 n_arg_method_args = 1;
+		       (i_2 > arglist_end) && (n_arg_parens >= 0);
+		       --i_2) {
+		    switch (M_TOK(p -> m_s[i_2]))
+		      {
+		      case OPENPAREN:
+			++n_arg_parens;
+			break;
+		      case CLOSEPAREN:
+			--n_arg_parens;
+			break;
+		      case ARGSEPARATOR:
+			++n_arg_method_args;
+			break;
+		      }
+		  }
+		}
+		if ((arg_method = __ctalkFindMethodByName
+		     (&arg_obj, M_NAME(p -> m_s[lookahead]),
+		      FALSE, n_arg_method_args)) != NULL) {
+		  /* we've checked all the way to the closing
+		     paren of the primary method's arglist,
+		     so just return the primary method's param
+		     count. */
+		  if (i_2 == arglist_end) {
+		    return m -> n_params;
+		  }
+		}
+	      }
+	    }
+	  }
+	  break;
+#endif	  
 	}
     }
     return n_args;
@@ -2532,6 +2687,12 @@ int __rt_method_arglist_n_args (EXPR_PARSER *p, int method_msg_idx,
 	  if (paren_level == 0) {
 	    ++n_args;
 	  }
+	  break;
+	case LABEL:
+	  /* without parens, the fn didn't find arglist_end above */
+	  if ((n_internal_args = arglist_internal_method_expr
+	       (p, i, -1, m)) != ERROR)
+	    return n_internal_args;
 	  break;
 	default:
 	  if (METHOD_ARG_TERM_MSG_TYPE (p -> m_s[arglist_start])) {
