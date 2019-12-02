@@ -1,4 +1,4 @@
-/* $Id: ctalk.h,v 1.21 2019/11/11 20:21:51 rkiesling Exp $ -*-Fundamental-*- */
+/* $Id: ctalk.h,v 1.25 2019/12/02 01:49:42 rkiesling Exp $ -*-Fundamental-*- */
 
 /*
   This file is part of Ctalk.
@@ -1552,6 +1552,8 @@ int __ctalkX11TextWidth (char *xlfd, char *text);
 
 /* lib/fsecure.c */
 FILE *xfopen (const char *, const char *);
+int xfprintf (FILE *, const char *, ...);
+int xfscanf (FILE *, const char *, ...);
 
 /* lib/ftlib.c */
 int __ctalkGLXUseFTFont (char *);
@@ -2171,7 +2173,6 @@ OBJECT *__ctalkLibcFnWithMethodVarArgs (int (*)(), METHOD *, char *);
 int __call_fn_w_args_fmtarg0 (char *, METHOD *, STDARG_CALL_INFO *);
 int __call_fn_w_args_fmtarg1 (char *, METHOD *, STDARG_CALL_INFO *);
 void args_to_method_args (METHOD *, STDARG_CALL_INFO *);
-int __rt_check_stdargs (void);
 int tokenize_fmt (char *);
 
 /* lib/rtinfo.c */
