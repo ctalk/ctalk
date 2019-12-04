@@ -1,4 +1,4 @@
-/* $Id: Object,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-C-*-*/
+/* $Id: Object,v 1.4 2019/11/26 04:15:26 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -837,16 +837,15 @@ Object instanceMethod methods (Boolean findClassMethods) {
       }
       continue;
     }
-
+   
     inputLine tokenize lineTokens;
 
     if (lineTokens size == 0)
       continue;
 
     tok = *lineTokens;
-    ++tok;
 
-    while (tok) {
+    while (++tok) {
 
       if (*tok == keywordPattern)
 	haveKeyword = True;

@@ -1,4 +1,4 @@
-/* $Id: resolve.c,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ */
+/* $Id: resolve.c,v 1.2 2019/11/25 00:37:29 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -2288,7 +2288,8 @@ OBJECT *resolve (int message_ptr) {
 		  undefined_method_follows_class_object (m_sender);
 		}
 		return NULL;
-	      } else if (interpreter_pass != expr_check) {
+	      } else if (interpreter_pass != expr_check &&
+			 interpreter_pass != library_pass) { /***/
 		/* the expression isn't being parsed on its own. */
 		__ctalkExceptionInternal (m_sender, undefined_method_x,
 					  m_sender -> name,0);
