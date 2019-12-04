@@ -1,8 +1,4 @@
-<<<<<<< HEAD
-/* $Id: WriteFileStream,v 1.4 2019/11/28 13:30:28 rkiesling Exp $ -*-c-*-*/
-=======
-/* $Id: WriteFileStream,v 1.3 2019/11/24 01:50:07 rkiesling Exp $ -*-c-*-*/
->>>>>>> 685c52d31a7c75b95e9d0b4dc4f1c68603ed2c2d
+/* $Id: WriteFileStream,v 1.7 2019/12/03 21:10:26 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -246,10 +242,8 @@ WriteFileStream instanceMethod writeFormat (char *fmt, ...) {
   This is probably redundant with the printOn method."
   Exception new __e_app;
   METHOD *self_method;
-  OBJECT *result_object, *__fmt_arg_value; 
-  ARG *__save_fmt_arg, *__tmp_fmt_arg;
-  char __ctalk_fmt[MAXMSG];
   int __i_arg;
+
   if ((self_method = 
        __ctalkGetInstanceMethodByFn (__ctalkRtReceiverObject (),
 				     __ctalkRtGetMethodFn (),
@@ -259,42 +253,19 @@ WriteFileStream instanceMethod writeFormat (char *fmt, ...) {
     return NULL;
   }
 
-  __fmt_arg_value = fmt value;
-
-  __ctalkCPrintFmtToCtalkFmt (__fmt_arg_value -> __o_value, __ctalk_fmt);
-
-  __save_fmt_arg = self_method->args[0];
-
-  __tmp_fmt_arg = 
-    __ctalkCreateArgEntryInit
-    (__ctalkCreateObjectInit ("fmt", "String", "Character",
-			      LOCAL_VAR, __ctalk_fmt));
-  __objRefCntSet (&(__tmp_fmt_arg->obj), __save_fmt_arg->obj->nrefs);
-  self_method -> args[0] = __tmp_fmt_arg;
-
   for (__i_arg = self_method -> n_args; __i_arg > 0; __i_arg--) {
     self_method -> args[__i_arg] = self_method -> args[__i_arg - 1];
   }
   self_method->args[0] = __ctalkCreateArgEntryInit (self value);
   ++self_method -> n_args;
 
-#ifdef __APPLE__ /***/
-  printf ("<<<<< need fprintf replacement here!\n");
-#else
-  result_object = __ctalkLibcFnWithMethodVarArgs ((int (*)())fprintf, self_method, "Integer");
-#endif
+  __ctalkLibcFnWithMethodVarArgs ((int (*)())fprintf, self_method, "Integer");
 
   --self_method -> n_args;
   __ctalkDeleteArgEntry (self_method->args[0]);
   for (__i_arg = 1; __i_arg <= self_method -> n_args; __i_arg++) {
     self_method -> args[__i_arg-1] = self_method -> args[__i_arg];
   }
-  self_method -> args[self_method -> n_args] = NULL;
-  self_method -> args[0] = __save_fmt_arg;
-  __objRefCntZero (&(__tmp_fmt_arg->obj));
-  __ctalkDeleteObject(__tmp_fmt_arg->obj);
-  __ctalkDeleteArgEntry(__tmp_fmt_arg);
-  __ctalkDeleteObject(result_object);
   return self;
 }
 

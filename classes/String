@@ -1,4 +1,4 @@
-/* $Id: String,v 1.11 2019/12/01 13:55:23 rkiesling Exp $ -*-c-*- */
+/* $Id: String,v 1.13 2019/12/03 21:10:08 rkiesling Exp $ -*-c-*- */
 
 /*
   This file is part of Ctalk.
@@ -482,10 +482,8 @@ String instanceMethod writeFormat (char *fmt, ...) {
   Exception new __e_app;
   SystemErrnoException new __e_system;
   METHOD *self_method;
-  OBJECT *__fmt_arg_value,*result_object;
-  ARG *__save_fmt_arg, *__tmp_fmt_arg, *__tmp_stream_arg;
+  ARG *__tmp_stream_arg;
   char *__streambuf;
-  char __ctalk_fmt[MAXMSG];
   int __i_arg;
   if ((self_method = 
        __ctalkGetInstanceMethodByFn (__ctalkRtReceiverObject (),
@@ -496,19 +494,6 @@ String instanceMethod writeFormat (char *fmt, ...) {
     return NULL;
   }
   
-  __fmt_arg_value = fmt value;
-
-  __ctalkCPrintFmtToCtalkFmt (__fmt_arg_value -> __o_value, __ctalk_fmt);
-
-  __save_fmt_arg = self_method->args[0];
-
-  __tmp_fmt_arg = 
-    __ctalkCreateArgEntryInit
-    (__ctalkCreateObjectInit ("fmt", "String", "Character",
-			      LOCAL_VAR, __ctalk_fmt));
-  __objRefCntSet (&(__tmp_fmt_arg->obj), __save_fmt_arg->obj->nrefs);
-  self_method -> args[0] = __tmp_fmt_arg;
-
   if ((__streambuf = (char *)calloc (MAXMSG, sizeof(char))) == NULL) {
     __e_system raiseException "in writeFormat (class String)";
     return NULL;
@@ -527,23 +512,20 @@ String instanceMethod writeFormat (char *fmt, ...) {
   self_method -> args[0] = __tmp_stream_arg;
   ++self_method -> n_args;
 
-  result_object = __ctalkLibcFnWithMethodVarArgs ((int (*)())xsprintf, self_method, "Integer");
+  __ctalkLibcFnWithMethodVarArgs ((int (*)())xsprintf, self_method, "Integer");
 
   --self_method -> n_args;
   for (__i_arg = 1; __i_arg <= self_method -> n_args; __i_arg++) {
     self_method -> args[__i_arg-1] = self_method -> args[__i_arg];
   }
   self_method -> args[self_method -> n_args] = NULL;
-  self_method -> args[0] = __save_fmt_arg;
+
   __ctalkSetObjectValueVar (self, __tmp_stream_arg -> obj
 			    -> instancevars -> __o_value);
   __objRefCntSet (&(__tmp_stream_arg->obj), 0);
   __ctalkDeleteObject(__tmp_stream_arg->obj);
   __ctalkDeleteArgEntry (__tmp_stream_arg);
-  __objRefCntSet (&(__tmp_fmt_arg->obj), 0);
-  __ctalkDeleteObject(__tmp_fmt_arg->obj);
-  __ctalkDeleteArgEntry (__tmp_fmt_arg);
-  __ctalkDeleteObject(result_object);
+
   return self;
 }
 
