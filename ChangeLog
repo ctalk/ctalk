@@ -1065,5 +1065,19 @@
 	or unsigned when generating a cvartab init for short ints
 	(cvartab.c).
 	]
+2019-12-05
+	[
+	- Updated __ctalk_register_c_method_arg_* to use the
+	CVAR type attributes CVAR_TYPE_LONG|CVAR_TYPE_DOUBLE
+	to represent long doubles (rt_cvar.c).
+	- Updated cvar_object with a LONGDOUBLE_T case
+	(rt_cvar.c).
+	- Updated longdouble_conv to use double only for
+	__APPLE__ and __ppc__ (rt_cvar.c).
+	- Updated VAL typedef to omit __ld val member only for
+	Apple with PowerPC (pval.h).
+	]
+	- Updated cLrintl template to use xsprintf
+	(classes/libc/l).
 
 

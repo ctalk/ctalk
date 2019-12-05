@@ -1,4 +1,4 @@
-/* $Id: l,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-c-*-**/
+/* $Id: l,v 1.2 2019/12/05 22:00:51 rkiesling Exp $ -*-c-*-**/
 
 /*
   This file is part of ctalk.
@@ -54,9 +54,9 @@ cLrintf (float f) { \n\
 cLrintl (long double l) { \n\
   char buf[MAXLABEL]; \n\
   if (__ctalkIsObject (ARG(0))) \n\
-    sprintf (buf, "%ld", lrintl ((long double)__ctalk_to_c_double (ARG(0)))); \n\
+    xsprintf (buf, "%ld", lrintl ((long double)__ctalk_to_c_double (ARG(0)))); \n\
   else \n\
-    sprintf (buf, "%ld", lrintl ((long double)0.0f)); \n\
+    xsprintf (buf, "%ld", lrintl ((long double)0.0f)); \n\
   return __ctalkCreateObjectInit ("result", "Integer", \n\
 				     "Magnitude", LOCAL_VAR, buf); \n\
 }
