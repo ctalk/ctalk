@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.27 2019/12/06 21:58:10 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.28 2019/12/06 22:26:38 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -18075,9 +18075,15 @@ formatted character @samp{(char)(n & 255)}.
 Format an ASCII representation of @var{i}, a decimal integer, in @var{s}.
 
 @cindex __ctalkLongLongToDecimalASCII function
-@item __ctalkLongLongToDecimalASCII (@code{long long int} @var{l}, @code{char *}@var{s});
-Format an decimal ASCII representation of @var{l}, a long long int, in
-@var{s}.
+@cindex __ctalkLongLongToHexASCII function
+@item __ctalkLongLongToDecimalASCII (@code{long long int} @var{l}, @code{char *}@var{buf});
+@item __ctalkLongLongToHexASCII (@code{long long int} @var{l}, @code{char *}@var{buf}, @code{bool} @var{uppercase});
+Format a decimal or hexadecimal ASCII representation of @var{l}, a
+long long int, in @var{buf}, and return @var{buf}.
+
+When using @cite{__ctalkLongLongToHexASCII,} if @var{uppercase} is @code{true},
+format the number using uppercase letters; e.g., @samp{0XFFFF}; otherwise
+format the number using lowercase letters: @samp{0xffff}.
 
 @cindex __ctalkDefaultSignalHandler function
 @item __ctalkDefaultSignalHandler (@code{int} @var{signo})

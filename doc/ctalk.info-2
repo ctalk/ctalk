@@ -5783,8 +5783,14 @@ functions.
 '__ctalkDecimalIntegerToASCII (int I, char *S);'
      Format an ASCII representation of I, a decimal integer, in S.
 
-'__ctalkLongLongToDecimalASCII (long long int L, char *S);'
-     Format an decimal ASCII representation of L, a long long int, in S.
+'__ctalkLongLongToDecimalASCII (long long int L, char *BUF);'
+'__ctalkLongLongToHexASCII (long long int L, char *BUF, bool UPPERCASE);'
+     Format a decimal or hexadecimal ASCII representation of L, a long
+     long int, in BUF, and return BUF.
+
+     When using '__ctalkLongLongToHexASCII,' if UPPERCASE is 'true',
+     format the number using uppercase letters; e.g., '0XFFFF';
+     otherwise format the number using lowercase letters: '0xffff'.
 
 '__ctalkDefaultSignalHandler (int SIGNO)'
      Set the handler of signal SIGNO to the system's default handler.

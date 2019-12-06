@@ -1,4 +1,4 @@
-/* $Id: ctlltoa.c,v 1.2 2019/12/06 21:58:10 rkiesling Exp $ */
+/* $Id: ctlltoa.c,v 1.3 2019/12/06 22:26:39 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -32,8 +32,28 @@ int strcatx2 (char *, ...);
 
 extern void __reverse(char []);
 
-void __ctalkLongLongToDecimalASCII (long long int n, char s[])
-{
+char *__ctalkLongLongToDecimalASCII (long long int n, char s[]) {
+  int i;
+  long long int sign;
+
+  if ((sign = n) < 0)  /* record sign */
+    n = -n;          /* make n positive */
+  i = 0;
+  do {       /* generate digits in reverse order */
+    s[i++] = n % 10 + '0';   /* get next digit */
+  } while ((n /= 10) > 0);     /* delete it */
+  if (sign < 0)
+    s[i++] = '-';
+  s[i] = '\0';
+  __reverse(s);
+  strcatx2 (s, "ll", NULL);
+  return s;
+} 
+
+static char hexl[] = "0123456789abcdef";
+static char hexu[] = "0123456789ABCDEF";
+
+char *__ctalkLongLongToHexASCII (long long int n, char s[], bool uppercase) {
   int i;
   long long int sign;
 
@@ -41,11 +61,18 @@ void __ctalkLongLongToDecimalASCII (long long int n, char s[])
         n = -n;          /* make n positive */
     i = 0;
     do {       /* generate digits in reverse order */
-      s[i++] = n % 10 + '0';   /* get next digit */
-    } while ((n /= 10) > 0);     /* delete it */
+      if (uppercase)
+	s[i++] = hexu[n % 16];
+      else
+	s[i++] = hexl[n % 16];
+    } while ((n /= 16) > 0);     /* delete it */
+    if (uppercase)
+      s[i++] = 'X', s[i++] = '0';
+    else
+      s[i++] = 'x', s[i++] = '0';
     if (sign < 0)
         s[i++] = '-';
     s[i] = '\0';
     __reverse(s);
-    strcatx2 (s, "ll", NULL);
+    return s;
 } 

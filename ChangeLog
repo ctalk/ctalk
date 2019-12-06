@@ -1089,7 +1089,9 @@
 	- Renamed __ctalkDecimalLongLongToASCII to
 	__ctalkLongLongToDecimalASCII, and updated in ctalk.h,
 	ctalk.texi, libdoc, ctalk.h, ctalklib.in, ctlltoa.c, and
-	rt_prton.c.
+	rt_prton.c.  The __ctalkLongLongToDecimalASCII now returns
+	the formatted representation of its argument.
+	- Added the __ctalkLongLongToHexASCII library function.
 
 
 

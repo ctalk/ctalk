@@ -367,9 +367,13 @@ formatted character (char)(n & 255).
 >>>__ctalkDecimalIntegerToASCII (int i, char *s)
 Format an ASCII representation of i, a decimal integer, in s.
 
->>>__ctalkLongLongToDecimalASCII (long long int l, char *s)
-Format an decimal ASCII representation of l, a long long int, in
-s.
+>>>__ctalkLongLongToDecimalASCII (long long int l, char *buf):__ctalkLongLongToHexASCII (long long int l, char *buf, bool uppercase)
+Format a decimal or hexadecimal ASCII representation of l, a
+long long int, in buf, and return buf.
+
+When using __ctalkLongLongToHexASCII, if uppercase is true,
+format the number using uppercase letters; e.g., 0XFFFF; otherwise
+format the number using lowercase letters: 0xffff.
 
 >>>__ctalkDefaultSignalHandler (int signo)
 Set the handler of signal signo to the system's
