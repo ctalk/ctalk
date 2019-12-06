@@ -1,4 +1,4 @@
-/* $Id: ctalk.h,v 1.26 2019/12/06 21:14:23 rkiesling Exp $ -*-Fundamental-*- */
+/* $Id: ctalk.h,v 1.27 2019/12/06 21:33:23 rkiesling Exp $ -*-Fundamental-*- */
 
 /*
   This file is part of Ctalk.
@@ -1940,7 +1940,6 @@ RADIX radix_of (char *);
 int __ctalkCharRadixToDecimal (char *);
 char *__ctalkCharRadixToDecimalASCII (char *);
 char *__ctalkIntRadixToDecimalASCII (char *);
-char *__ctalkLongLongRadixToDecimal (char *);
 char   *__ctalkCharRadixToCharASCII (char *);
 char   __ctalkCharRadixToChar (char *);
 int __ctalkIntRadixToDecimal (char *);

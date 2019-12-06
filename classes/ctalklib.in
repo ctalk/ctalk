@@ -1,4 +1,4 @@
-/* $Id: ctalklib.in,v 1.21 2019/12/06 21:14:22 rkiesling Exp $ -*-c-*-*/
+/* $Id: ctalklib.in,v 1.22 2019/12/06 21:33:22 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -1044,7 +1044,6 @@ extern int __ctalkGUISetBackground (OBJECT *, char *);
 extern OBJECT *__ctalkLibcFnWithMethodVarArgs (int (*)(), METHOD *,char *);
 extern void __ctalkLocalTime (long int, int *, int *, int *, int *, int *, int *, int *, int *, int *);
 extern void __ctalkLogMessage (char *, ...);
-extern char   *__ctalkLongLongRadixToDecimal (char *);
 extern int __ctalkX11ClearBufferRectangle (OBJECT *, int, int, int, int);
 extern int __ctalkX11CreatePaneBuffer (OBJECT *, int, int, int);
 extern int __ctalkX11FreePaneBuffer (OBJECT *);

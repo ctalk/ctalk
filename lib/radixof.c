@@ -1,4 +1,4 @@
-/* $Id: radixof.c,v 1.2 2019/12/06 21:14:23 rkiesling Exp $ */
+/* $Id: radixof.c,v 1.3 2019/12/06 21:33:23 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -96,34 +96,6 @@ RADIX radix_of (char *buf) {
     }
   }
   return radix;
-}
-
-char *__ctalkLongLongRadixToDecimal (char *longlong) {
-  static char buf[MAXMSG];
-  unsigned long long int value;
-  RADIX radix;
-
-  radix = radix_of (longlong);
-  switch (radix) 
-    {
-    case hexadecimal:
-      value = strtoll (longlong, NULL, 16);
-      sprintf (buf, "%lld", value);
-      break;
-    case octal:
-      value = strtoll (longlong, NULL, 8);
-      sprintf (buf, "%lld", value);
-      break;
-    case decimal:
-    case binary:
-      strcpy (buf, longlong);
-      break;
-    }
-
-  if (!strstr (buf, "ll") && !strstr (buf, "L"))
-    strcatx2 (buf, "ll", NULL);
-
-  return buf;
 }
 
 char *__ctalkIntRadixToDecimalASCII (char *intbuf) {

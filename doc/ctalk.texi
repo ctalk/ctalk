@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.25 2019/12/06 21:14:22 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.26 2019/12/06 21:33:22 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -19075,12 +19075,6 @@ issues a warning and returns @code{NULL.}
 @item __ctalkLogMessage (@code{char *, ...})
 Formats the message given as the argument and writes the
 message to the system's syslog facility.
-
-@idxlibfn{__ctalkLongLongRadixToDecimal}
-@item __ctalkLongLongRadixToDecimal (@code{char *}@var{s})
-Convert the radix of the formatted @code{long long int} in @var{s} to 
-decimal and return a string containing the formatted @code{long long
-int.}  @emph{Note:} Do not use this function in new code.
 
 @idxlibfn{__ctalkMatchAt}
 @idxlibfn{__ctalkMatchIndexAt}
