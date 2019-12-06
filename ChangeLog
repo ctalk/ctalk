@@ -1076,8 +1076,15 @@
 	__APPLE__ and __ppc__ (rt_cvar.c).
 	- Updated VAL typedef to omit __ld val member only for
 	Apple with PowerPC (pval.h).
+	- Fixed warnings in the test programs: llrintf3.c, llrintl3.c,
+	margexprs48.c (cStrlen template), objderef[15,17].c, offsetof1.c,
+	prefix[30,31].c, 
 	]
 	- Updated cLrintl template to use xsprintf
 	(classes/libc/l).
+	2019-12-06
+	- Removed __ctalkLongLongToDecimalASCII, which uses the
+	old long long data format (ctalk.h, radixof.c, ctalklib.in,
+	ctalk.texi).
 
 

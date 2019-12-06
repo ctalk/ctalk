@@ -1183,15 +1183,7 @@ message to the system's syslog facility.
 >>>__ctalkLongLongRadixToDecimal (char *s)
 Convert the radix of the formatted long long int in s to 
 decimal and return a string containing the formatted @code{long long
-int.}  Note: Do not use this function in new code.  It's been
-replaced by __ctalkLongLongToDecimalASCII, below.
-
->>>__ctalkLongLongToDecimalASCII (char *number_in, char * decimal_out)
-Convert the radix of the ASCII formatted long long int in
-number_in to decimal and format the decimal integer in
-decimal_out.  The radix of number_in may be decimal,
-octal, hexadecimal, or binary.  The function also returns a @code{char
-*} to decimal_out.
+int.}  Note: Do not use this function in new code.
 
 >>>__ctalkMatchAt (Integer n):__ctalkMatchIndexAt (Integer n)
 Returns, respectively, the text, or the character index matched by the

@@ -1,4 +1,4 @@
-/* $Id: ctalklib.in,v 1.18 2019/11/11 20:21:51 rkiesling Exp $ -*-c-*-*/
+/* $Id: ctalklib.in,v 1.21 2019/12/06 21:14:22 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -903,6 +903,7 @@ extern int     __ctalkCriticalExceptionInternal (MESSAGE *, EXCEPTION, char *);
 extern char    *__ctalkDecimalIntegerToASCII (int, char *);
 extern char __ctalkDecimalIntegerToChar (int, char *);
 extern char    *__ctalkHexIntegerToASCII (uintptr_t, char *);
+/***/
 extern void    __ctalkDecimalLongLongToASCII (long long int, char *);
 extern int __ctalkDefaultSignalHandler (int);
 extern int     __ctalkDefineClassMethod (char *, char *, OBJECT *(*)(), int);
@@ -1044,7 +1045,6 @@ extern OBJECT *__ctalkLibcFnWithMethodVarArgs (int (*)(), METHOD *,char *);
 extern void __ctalkLocalTime (long int, int *, int *, int *, int *, int *, int *, int *, int *, int *);
 extern void __ctalkLogMessage (char *, ...);
 extern char   *__ctalkLongLongRadixToDecimal (char *);
-extern char *__ctalkLongLongToDecimalASCII (char *, char *);
 extern int __ctalkX11ClearBufferRectangle (OBJECT *, int, int, int, int);
 extern int __ctalkX11CreatePaneBuffer (OBJECT *, int, int, int);
 extern int __ctalkX11FreePaneBuffer (OBJECT *);
@@ -1380,6 +1380,8 @@ extern void __glx_get_win_config (int *, int *, int *, int *);
 /* Portable wrappers for some system's secure replacements of string.h
    and stdio.h library functions (mostly darwin for now) */
 extern FILE *xfopen (const char *, const char *);
+extern int xfprintf (FILE *, const char *, ...);
+extern int xfscanf (FILE *s, const char *fmt, ...);
 extern int xsprintf (char *, const char *, ...);
 extern char *xstrcpy (char *, const char *);
 extern char *xstrncpy (char *, const char *, size_t);

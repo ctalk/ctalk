@@ -1,9 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-<<<<<<< HEAD
-@c $Id: ctalk.texi,v 1.24 2019/11/28 22:22:45 rkiesling Exp $
-=======
-@c $Id: ctalk.texi,v 1.22 2019/11/26 04:15:27 rkiesling Exp $
->>>>>>> 685c52d31a7c75b95e9d0b4dc4f1c68603ed2c2d
+@c $Id: ctalk.texi,v 1.25 2019/12/06 21:14:22 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -19084,16 +19080,7 @@ message to the system's syslog facility.
 @item __ctalkLongLongRadixToDecimal (@code{char *}@var{s})
 Convert the radix of the formatted @code{long long int} in @var{s} to 
 decimal and return a string containing the formatted @code{long long
-int.}  @emph{Note:} Do not use this function in new code.  It's been
-replaced by @cite{__ctalkLongLongToDecimalASCII}, below.
-
-@idxlibfn{__ctalkLongLongToDecimalASCII}
-@item __ctalkLongLongToDecimalASCII (@code{char *}@var{number_in}, @code{char *} @var{decimal_out})
-Convert the radix of the ASCII formatted @code{long long int} in
-@var{number_in} to decimal and format the decimal integer in
-@var{decimal_out}.  The radix of @var{number_in} may be decimal,
-octal, hexadecimal, or binary.  The function also returns a @code{char
-*} to @var{decimal_out}.
+int.}  @emph{Note:} Do not use this function in new code.
 
 @idxlibfn{__ctalkMatchAt}
 @idxlibfn{__ctalkMatchIndexAt}

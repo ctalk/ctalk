@@ -1,4 +1,4 @@
-/* $Id: radixof.c,v 1.1.1.1 2019/10/26 23:40:50 rkiesling Exp $ */
+/* $Id: radixof.c,v 1.2 2019/12/06 21:14:23 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -98,50 +98,6 @@ RADIX radix_of (char *buf) {
   return radix;
 }
 
-char *__ctalkLongLongToDecimalASCII (char *longlong, char *decimal_out) {
-  unsigned long long int value, sum;
-  int i, bit_exp;
-  RADIX radix;
-
-  radix = radix_of (longlong);
-  switch (radix) 
-    {
-    case hexadecimal:
-      value = strtoll (longlong, NULL, 16);
-      sprintf (decimal_out, "%lldll", value);
-      break;
-    case octal:
-      value = strtoll (longlong, NULL, 8);
-      sprintf (decimal_out, "%lldll", value);
-      break;
-    case binary:
-      for (i = strlen (longlong) - 2, bit_exp = 1, sum = 0; i >= 0; 
-	   i--, bit_exp *= 2) {
-	if ((longlong[i] == (char)'b') || (longlong[i] == (char)'B')) 
-	  break;
-	switch (longlong[i])
-	  {
-	  case '1':
-	    sum += bit_exp;
-	    break;
-	  case '0':
-	    break;
-	  default:
-	    _warning ("Bad binary constant.\n");
-	    break;
-	  }
-      }
-      sprintf (decimal_out, "%lldll", value);
-      break;
-    case decimal:
-      strcpy (decimal_out, longlong);
-      break;
-    }
-
-  return decimal_out;
-}
-
-/* This is being superceded  by __ctalkLongLongToDecimalASCII, above. */
 char *__ctalkLongLongRadixToDecimal (char *longlong) {
   static char buf[MAXMSG];
   unsigned long long int value;
