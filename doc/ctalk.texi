@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.26 2019/12/06 21:33:22 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.27 2019/12/06 21:58:10 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -18074,10 +18074,10 @@ formatted character @samp{(char)(n & 255)}.
 @item __ctalkDecimalIntegerToASCII (@code{int} @var{i}, @code{char *}@var{s});
 Format an ASCII representation of @var{i}, a decimal integer, in @var{s}.
 
-@cindex __ctalkDecimalLongLongToASCII function
-@item __ctalkDecimalLongLongToASCII (@code{long long int} @var{l}, @code{char *}@var{s});
-Format an ASCII representation of @var{l}, a decimal long long
-integer, in @var{s}.
+@cindex __ctalkLongLongToDecimalASCII function
+@item __ctalkLongLongToDecimalASCII (@code{long long int} @var{l}, @code{char *}@var{s});
+Format an decimal ASCII representation of @var{l}, a long long int, in
+@var{s}.
 
 @cindex __ctalkDefaultSignalHandler function
 @item __ctalkDefaultSignalHandler (@code{int} @var{signo})

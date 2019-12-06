@@ -1,4 +1,4 @@
-/* $Id: WriteFileStream,v 1.7 2019/12/03 21:10:26 rkiesling Exp $ -*-c-*-*/
+/* $Id: WriteFileStream,v 1.8 2019/12/06 21:58:10 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -166,10 +166,6 @@ WriteFileStream instanceMethod writeChar (char inChar) {
     __errnoException raiseException NULL;
   } else {
     LLVAL(self_pos -> __o_value) = (long long)ftell (self_stream);
-#if 0 /***/
-    __ctalkDecimalLongLongToASCII((long long int)ftell (self_stream), 
-				  self_pos -> __o_value);
-#endif    
   }
   return NULL;
 }
@@ -195,10 +191,6 @@ WriteFileStream instanceMethod writeStream (char *str) {
     __errnoException raiseException NULL;
   } else {
     LLVAL(self_pos -> __o_value) = (long long)ftell (self_stream);
-#if 0 /***/
-    __ctalkDecimalLongLongToASCII((long long int)ftell (self_stream), 
-				  self_pos -> __o_value);
-#endif    
   }
   return NULL;
 }
@@ -229,10 +221,6 @@ WriteFileStream instanceMethod writeVec (Vector vec) {
     __errnoException raiseException NULL;
   } else {
     LLVAL(self_pos -> __o_value) = (long long)ftell (self_stream);
-#if 0 /***/
-    __ctalkDecimalLongLongToASCII((long long int)ftell (self_stream), 
-				  self_pos -> __o_value);
-#endif    
   }
   return NULL;
 }

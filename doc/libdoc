@@ -367,9 +367,9 @@ formatted character (char)(n & 255).
 >>>__ctalkDecimalIntegerToASCII (int i, char *s)
 Format an ASCII representation of i, a decimal integer, in s.
 
->>>__ctalkDecimalLongLongToASCII (long long int l, char *s)
-Format an ASCII representation of l, a decimal long long
-integer, in s.
+>>>__ctalkLongLongToDecimalASCII (long long int l, char *s)
+Format an decimal ASCII representation of l, a long long int, in
+s.
 
 >>>__ctalkDefaultSignalHandler (int signo)
 Set the handler of signal signo to the system's

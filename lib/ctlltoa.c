@@ -1,4 +1,4 @@
-/* $Id: ctlltoa.c,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ */
+/* $Id: ctlltoa.c,v 1.2 2019/12/06 21:58:10 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -32,7 +32,7 @@ int strcatx2 (char *, ...);
 
 extern void __reverse(char []);
 
-void __ctalkDecimalLongLongToASCII (long long int n, char s[])
+void __ctalkLongLongToDecimalASCII (long long int n, char s[])
 {
   int i;
   long long int sign;

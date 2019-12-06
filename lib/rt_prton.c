@@ -1,4 +1,4 @@
-/* $Id: rt_prton.c,v 1.4 2019/12/03 22:14:48 rkiesling Exp $ */
+/* $Id: rt_prton.c,v 1.5 2019/12/06 21:58:10 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -246,7 +246,7 @@ int __ctalkSelfPrintOn (void) {
 	ctitoa (*(int *)read_value_obj -> __o_value, ptr_args[ptr_arg_idx++]);
       } else if (read_value_obj -> attrs & OBJECT_VALUE_IS_BIN_LONGLONG) {
 	/***/
-	__ctalkDecimalLongLongToASCII (LLVAL(read_value_obj -> __o_value), 
+	__ctalkLongLongToDecimalASCII (LLVAL(read_value_obj -> __o_value), 
 				       ptr_args[ptr_arg_idx++]);
       } else if (read_value_obj -> attrs & OBJECT_VALUE_IS_BIN_SYMBOL) {
 	htoa (ptr_args[ptr_arg_idx++], SYMVAL(read_value_obj -> __o_value));

@@ -1,4 +1,4 @@
-/* $Id: ctalk.h,v 1.27 2019/12/06 21:33:23 rkiesling Exp $ -*-Fundamental-*- */
+/* $Id: ctalk.h,v 1.28 2019/12/06 21:58:10 rkiesling Exp $ -*-Fundamental-*- */
 
 /*
   This file is part of Ctalk.
@@ -1426,7 +1426,7 @@ char *ctitoa (int, char *);
 char __ctalkDecimalIntegerToChar (int, char *);
 
 /* lib/ctlltoa.c */
-void __ctalkDecimalLongLongToASCII (long long int, char *);
+void __ctalkLongLongToDecimalASCII (long long int, char *);
 
 /* lib/ctoobj.c */
 OBJECT *__ctalkCCharPtrToObj (char *);

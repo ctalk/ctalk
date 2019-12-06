@@ -1,4 +1,4 @@
-/* $Id: ctalklib.in,v 1.22 2019/12/06 21:33:22 rkiesling Exp $ -*-c-*-*/
+/* $Id: ctalklib.in,v 1.23 2019/12/06 21:58:10 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -904,7 +904,8 @@ extern char    *__ctalkDecimalIntegerToASCII (int, char *);
 extern char __ctalkDecimalIntegerToChar (int, char *);
 extern char    *__ctalkHexIntegerToASCII (uintptr_t, char *);
 /***/
-extern void    __ctalkDecimalLongLongToASCII (long long int, char *);
+/*extern void    __ctalkDecimalLongLongToASCII (long long int, char *);*/
+extern void    __ctalkLongLongToDecimalASCII (long long int, char *);
 extern int __ctalkDefaultSignalHandler (int);
 extern int     __ctalkDefineClassMethod (char *, char *, OBJECT *(*)(), int);
 extern OBJECT *__ctalkDefineClassVariable (char *, char *, char *, char *);
@@ -1600,7 +1601,7 @@ int memcmp(const void *s1, const void *s2, size_t n);
 				 __ctalkRegisterUserObject(__o); return __o;;;}
 
 #define methodReturnLongInteger(__l) { char __b[MAXMSG]; OBJECT *__o; \
-                                 __ctalkDecimalLongLongToASCII((__l),__b); \
+                                 __ctalkLongLongToDecimalASCII((__l),__b); \
                                  __o = __ctalkCreateObjectInit ("result", \
                                 "LongInteger", "Magnitude", LOCAL_VAR, __b); \
 				 __ctalkRegisterUserObject(__o); return __o;;;}
