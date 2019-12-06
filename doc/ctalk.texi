@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.28 2019/12/06 22:26:38 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.29 2019/12/06 23:08:26 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -18076,14 +18076,19 @@ Format an ASCII representation of @var{i}, a decimal integer, in @var{s}.
 
 @cindex __ctalkLongLongToDecimalASCII function
 @cindex __ctalkLongLongToHexASCII function
+@cindex __ctalkLongToDecimalASCII function
+@cindex __ctalkLongToHexASCII function
 @item __ctalkLongLongToDecimalASCII (@code{long long int} @var{l}, @code{char *}@var{buf});
 @item __ctalkLongLongToHexASCII (@code{long long int} @var{l}, @code{char *}@var{buf}, @code{bool} @var{uppercase});
+@item __ctalkLongToDecimalASCII (@code{long int} @var{l}, @code{char *}@var{buf});
+@item __ctalkLongToHexASCII (@code{long int} @var{l}, @code{char *}@var{buf}, @code{bool} @var{uppercase});
 Format a decimal or hexadecimal ASCII representation of @var{l}, a
 long long int, in @var{buf}, and return @var{buf}.
 
-When using @cite{__ctalkLongLongToHexASCII,} if @var{uppercase} is @code{true},
-format the number using uppercase letters; e.g., @samp{0XFFFF}; otherwise
-format the number using lowercase letters: @samp{0xffff}.
+When using @cite{__ctalkLongLongToHexASCII,} or
+@cite{__ctalkLongToHexASCII}, if @var{uppercase} is @code{true},
+format the number using uppercase letters; e.g., @samp{0XFFFF};
+otherwise format the number using lowercase letters: @samp{0xffff}.
 
 @cindex __ctalkDefaultSignalHandler function
 @item __ctalkDefaultSignalHandler (@code{int} @var{signo})
