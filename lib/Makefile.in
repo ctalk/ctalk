@@ -14,7 +14,7 @@
 
 @SET_MAKE@
 
-# $Id: Makefile.in,v 1.17 2019/12/01 14:44:32 rkiesling Exp $
+# $Id: Makefile.in,v 1.18 2019/12/06 22:46:11 rkiesling Exp $
 
 VPATH = @srcdir@
 am__is_gnu_make = { \
@@ -135,29 +135,29 @@ LTLIBRARIES = $(lib_LTLIBRARIES)
 libctalk_la_LIBADD =
 am_libctalk_la_OBJECTS = ansitime.lo become.lo bintodec.lo bitmap.lo \
 	bnamecmp.lo cclasses.lo chash.lo clibtmpl.lo ctatoll.lo \
-	ctdtoa.lo ctitoa.lo ctlltoa.lo ctoobj.lo ctsleep.lo cttmpl.lo \
-	dblib.lo edittext.lo errorloc.lo error_out.lo escstr.lo \
-	event.lo except.lo exec_bin.lo fileglob.lo fmtargtype.lo \
-	font.lo fsecure.lo ftlib.lo glewlib.lo glutlib.lo glxlib.lo \
-	guiclearrectangle.lo guiclearwindow.lo guidrawline.lo \
-	guidrawpoint.lo guidrawrectangle.lo guiputstr.lo guiputxstr.lo \
-	guirefresh.lo guisetbackground.lo guisetforeground.lo \
-	guitext.lo guixpm.lo htoa.lo infiles.lo ismethd.lo keyword.lo \
-	lex.lo lextype.lo lineinfo.lo list.lo localtime.lo lsort.lo \
-	message.lo objtoc.lo optiondb.lo panelib.lo param.lo \
-	pattern.lo pattypes.lo process.lo radixof.lo read.lo re_lex.lo \
-	rt_argblk.lo rt_args.lo rt_call.lo rtclslib.lo rt_cvar.lo \
-	rt_error.lo rt_expr.lo rtinfo.lo rt_methd.lo rtnewobj.lo \
-	rtnwmthd.lo rt_obj.lo rtobjref.lo rtobjvar.lo rt_op.lo \
-	rt_prton.lo rt_rcvr.lo rt_refobj.lo rt_return.lo rt_signal.lo \
-	rt_stdarg.lo rt_time.lo rttmpobj.lo rttrace.lo rt_vmthd.lo \
-	rtxalloc.lo sconvchk.lo sformat.lo shmem.lo signame.lo \
-	spawn_bin.lo ssearch.lo statfile.lo strcatx.lo strdupx.lo \
-	streq.lo strsecure.lo substrcpy.lo tag.lo tempio.lo \
-	tempname.lo termsize.lo textcx.lo trimstr.lo typecast.lo \
-	unixsock.lo val.lo wregex.lo x11ksym.lo x11lib.lo xcircle.lo \
-	xcopypixmap.lo xftlib.lo xgeometry.lo xlibfont.lo xrender.lo \
-	xresource.lo
+	ctdtoa.lo ctitoa.lo ctlltoa.lo ctltoa.lo ctoobj.lo ctsleep.lo \
+	cttmpl.lo dblib.lo edittext.lo errorloc.lo error_out.lo \
+	escstr.lo event.lo except.lo exec_bin.lo fileglob.lo \
+	fmtargtype.lo font.lo fsecure.lo ftlib.lo glewlib.lo \
+	glutlib.lo glxlib.lo guiclearrectangle.lo guiclearwindow.lo \
+	guidrawline.lo guidrawpoint.lo guidrawrectangle.lo \
+	guiputstr.lo guiputxstr.lo guirefresh.lo guisetbackground.lo \
+	guisetforeground.lo guitext.lo guixpm.lo htoa.lo infiles.lo \
+	ismethd.lo keyword.lo lex.lo lextype.lo lineinfo.lo list.lo \
+	localtime.lo lsort.lo message.lo objtoc.lo optiondb.lo \
+	panelib.lo param.lo pattern.lo pattypes.lo process.lo \
+	radixof.lo read.lo re_lex.lo rt_argblk.lo rt_args.lo \
+	rt_call.lo rtclslib.lo rt_cvar.lo rt_error.lo rt_expr.lo \
+	rtinfo.lo rt_methd.lo rtnewobj.lo rtnwmthd.lo rt_obj.lo \
+	rtobjref.lo rtobjvar.lo rt_op.lo rt_prton.lo rt_rcvr.lo \
+	rt_refobj.lo rt_return.lo rt_signal.lo rt_stdarg.lo rt_time.lo \
+	rttmpobj.lo rttrace.lo rt_vmthd.lo rtxalloc.lo sconvchk.lo \
+	sformat.lo shmem.lo signame.lo spawn_bin.lo ssearch.lo \
+	statfile.lo strcatx.lo strdupx.lo streq.lo strsecure.lo \
+	substrcpy.lo tag.lo tempio.lo tempname.lo termsize.lo \
+	textcx.lo trimstr.lo typecast.lo unixsock.lo val.lo wregex.lo \
+	x11ksym.lo x11lib.lo xcircle.lo xcopypixmap.lo xftlib.lo \
+	xgeometry.lo xlibfont.lo xrender.lo xresource.lo
 libctalk_la_OBJECTS = $(am_libctalk_la_OBJECTS)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
@@ -187,16 +187,17 @@ am__depfiles_remade = ./$(DEPDIR)/ansitime.Plo ./$(DEPDIR)/become.Plo \
 	./$(DEPDIR)/chash.Plo ./$(DEPDIR)/clibtmpl.Plo \
 	./$(DEPDIR)/ctatoll.Plo ./$(DEPDIR)/ctdtoa.Plo \
 	./$(DEPDIR)/ctitoa.Plo ./$(DEPDIR)/ctlltoa.Plo \
-	./$(DEPDIR)/ctoobj.Plo ./$(DEPDIR)/ctsleep.Plo \
-	./$(DEPDIR)/cttmpl.Plo ./$(DEPDIR)/dblib.Plo \
-	./$(DEPDIR)/edittext.Plo ./$(DEPDIR)/error_out.Plo \
-	./$(DEPDIR)/errorloc.Plo ./$(DEPDIR)/escstr.Plo \
-	./$(DEPDIR)/event.Plo ./$(DEPDIR)/except.Plo \
-	./$(DEPDIR)/exec_bin.Plo ./$(DEPDIR)/fileglob.Plo \
-	./$(DEPDIR)/fmtargtype.Plo ./$(DEPDIR)/font.Plo \
-	./$(DEPDIR)/fsecure.Plo ./$(DEPDIR)/ftlib.Plo \
-	./$(DEPDIR)/glewlib.Plo ./$(DEPDIR)/glutlib.Plo \
-	./$(DEPDIR)/glxlib.Plo ./$(DEPDIR)/guiclearrectangle.Plo \
+	./$(DEPDIR)/ctltoa.Plo ./$(DEPDIR)/ctoobj.Plo \
+	./$(DEPDIR)/ctsleep.Plo ./$(DEPDIR)/cttmpl.Plo \
+	./$(DEPDIR)/dblib.Plo ./$(DEPDIR)/edittext.Plo \
+	./$(DEPDIR)/error_out.Plo ./$(DEPDIR)/errorloc.Plo \
+	./$(DEPDIR)/escstr.Plo ./$(DEPDIR)/event.Plo \
+	./$(DEPDIR)/except.Plo ./$(DEPDIR)/exec_bin.Plo \
+	./$(DEPDIR)/fileglob.Plo ./$(DEPDIR)/fmtargtype.Plo \
+	./$(DEPDIR)/font.Plo ./$(DEPDIR)/fsecure.Plo \
+	./$(DEPDIR)/ftlib.Plo ./$(DEPDIR)/glewlib.Plo \
+	./$(DEPDIR)/glutlib.Plo ./$(DEPDIR)/glxlib.Plo \
+	./$(DEPDIR)/guiclearrectangle.Plo \
 	./$(DEPDIR)/guiclearwindow.Plo ./$(DEPDIR)/guidrawline.Plo \
 	./$(DEPDIR)/guidrawpoint.Plo ./$(DEPDIR)/guidrawrectangle.Plo \
 	./$(DEPDIR)/guiputstr.Plo ./$(DEPDIR)/guiputxstr.Plo \
@@ -490,8 +491,8 @@ SUBDIRS =
 EXTRA_DIST = Makefile.djgpp
 libctalk_la_SOURCES = ansitime.c become.c bintodec.c bitmap.c bnamecmp.c \
 	cclasses.c \
-	chash.c clibtmpl.c ctatoll.c ctdtoa.c ctitoa.c ctlltoa.c ctoobj.c \
-	ctsleep.c cttmpl.c dblib.c edittext.c errorloc.c error_out.c \
+	chash.c clibtmpl.c ctatoll.c ctdtoa.c ctitoa.c ctlltoa.c ctltoa.c \
+	ctoobj.c ctsleep.c cttmpl.c dblib.c edittext.c errorloc.c error_out.c \
 	escstr.c event.c except.c exec_bin.c fileglob.c fmtargtype.c \
 	font.c fsecure.c ftlib.c glewlib.c glutlib.c glxlib.c \
 	guiclearrectangle.c guiclearwindow.c \
@@ -517,10 +518,11 @@ libctalk_la_SOURCES = ansitime.c become.c bintodec.c bitmap.c bnamecmp.c \
 libctalk_la_LTLIBOBJS = ansitime.lo become.lo bintodec.lo bitmap.lo \
 	bnamecmp.lo cclasses.lo \
 	chash.lo clibtmpl.lo ctatoll.lo ctdtoa.lo ctitoa.lo ctlltoa.lo \
-	ctoobj.lo ctsleep.lo cttmpl.lo dblib.lo edittext.lo errorloc.lo \		error_out.lo escstr.lo event.lo except.lo exec_bin.lo fileglob.lo \
-	fmtargtype.lo font.lo fsecure.lo ftlib.lo glewlib.lo glutlib.lo \
-	glxlib.lo guiclearrectangle.lo guiclearwindow.lo guidrawline.lo \
-	guidrawpoint.lo guidrawrectangle.lo \
+	ctltoa.lo ctoobj.lo ctsleep.lo cttmpl.lo dblib.lo edittext.lo \
+	errorloc.lo error_out.lo escstr.lo event.lo except.lo exec_bin.lo \
+	fileglob.lo fmtargtype.lo font.lo fsecure.lo ftlib.lo glewlib.lo \
+	glutlib.lo glxlib.lo guiclearrectangle.lo guiclearwindow.lo \
+	guidrawline.lo guidrawpoint.lo guidrawrectangle.lo \
 	guiputstr.lo guiputxstr.lo guirefresh.lo guisetbackground.lo \
 	guisetforeground.lo guitext.lo guixpm.lo htoa.lo infiles.lo \
 	ismethd.lo keyword.lo lex.lo lextype.lo lineinfo.lo \
@@ -634,6 +636,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ctdtoa.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ctitoa.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ctlltoa.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ctltoa.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ctoobj.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ctsleep.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cttmpl.Plo@am__quote@ # am--include-marker
@@ -990,6 +993,7 @@ distclean: distclean-recursive
 	-rm -f ./$(DEPDIR)/ctdtoa.Plo
 	-rm -f ./$(DEPDIR)/ctitoa.Plo
 	-rm -f ./$(DEPDIR)/ctlltoa.Plo
+	-rm -f ./$(DEPDIR)/ctltoa.Plo
 	-rm -f ./$(DEPDIR)/ctoobj.Plo
 	-rm -f ./$(DEPDIR)/ctsleep.Plo
 	-rm -f ./$(DEPDIR)/cttmpl.Plo
@@ -1156,6 +1160,7 @@ maintainer-clean: maintainer-clean-recursive
 	-rm -f ./$(DEPDIR)/ctdtoa.Plo
 	-rm -f ./$(DEPDIR)/ctitoa.Plo
 	-rm -f ./$(DEPDIR)/ctlltoa.Plo
+	-rm -f ./$(DEPDIR)/ctltoa.Plo
 	-rm -f ./$(DEPDIR)/ctoobj.Plo
 	-rm -f ./$(DEPDIR)/ctsleep.Plo
 	-rm -f ./$(DEPDIR)/cttmpl.Plo
