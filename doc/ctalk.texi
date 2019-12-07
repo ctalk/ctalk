@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.29 2019/12/06 23:08:26 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.30 2019/12/07 01:47:12 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -18086,7 +18086,7 @@ Format a decimal or hexadecimal ASCII representation of @var{l}, a
 long long int, in @var{buf}, and return @var{buf}.
 
 When using @cite{__ctalkLongLongToHexASCII,} or
-@cite{__ctalkLongToHexASCII}, if @var{uppercase} is @code{true},
+@cite{__ctalkLongToHexASCII,} if @var{uppercase} is @code{true},
 format the number using uppercase letters; e.g., @samp{0XFFFF};
 otherwise format the number using lowercase letters: @samp{0xffff}.
 
