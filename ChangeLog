@@ -1099,6 +1099,14 @@
 	- Added __ctalkLongDoubleToASCII (ctdtoa.c).
 	- Updated templates for 64-bit MacOS and LLVM.
 	- Added the __ctalkFloatToASCII library function (ctdtoa.c).
-
-
-
+2019-12-09
+	[
+	- Cleanup in __ctalkX11InputClient (x11lib.c).
+	- Updated event_to_client and X11TerminalStream : queueInput
+	to use binary reads and writes, and included the window ID
+	in the event data (x11lib.c).  Added read_x_event function
+	in X11TerminalStream class, called by queueInput.  Also moved
+	the setting of event_mask to X11TerminalStream : openInputClient.
+	- Added is_fn_param check for undefined label in if_stmt
+	(control.c).
+	]

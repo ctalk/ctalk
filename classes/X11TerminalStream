@@ -1,4 +1,4 @@
-/* $Id: X11TerminalStream,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11TerminalStream,v 1.8 2019/12/09 20:31:06 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -51,6 +51,9 @@
 #include <sys/select.h>
 #endif
 
+#include <string.h>
+#include <errno.h>
+
 TerminalStream class X11TerminalStream
 "A X11TerminalStream object maintains input from the
 display to the application.  If receives input events
@@ -68,6 +71,7 @@ X11TerminalStream instanceMethod openInputClient (void) {
   "Start the X Window System client and server."
   __ctalkOpenX11InputClient (self);
   client_handle = self clientFD;
+  event_mask = self eventMask;
   return self;
 }
 
@@ -99,20 +103,38 @@ X11TerminalStream instanceMethod parentPane (void) {
  EXPOSE           xexpose     x           y           width       height      count
  */
 
+int read_x_event (int fd, int *eventclass, int *win, int *data) {
+#if 0 /***/
+  int i, int_size = sizeof (int);  /* causes warning, too */
+#endif  
+  int i, int_size;
+
+  int_size = sizeof (int);
+  
+  if (read (fd, eventclass, int_size) != int_size) {
+    printf ("ctalk: read_x_event: %s.\n", strerror (errno));
+    return -1;
+  }
+  if (read (fd, win, int_size) != int_size) {
+    printf ("ctalk: read_x_event: %s.\n", strerror (errno));
+    return -1;
+  }
+  for (i = 0; i < 5; ++i) {
+    if (read (fd, &data[i], int_size) != int_size) {
+      printf ("ctalk: read_x_event: %s.\n", strerror (errno));
+      return -1;
+    }
+  }
+  return SUCCESS;
+}
+
 X11TerminalStream instanceMethod queueInput (void) {
   "Retrieve a X event, and return it as an InputEvent
   object."
-  int r, n_read;
-  int event_class, event_data1, event_data2, event_data3,
-    event_data4, event_data5, n_bits;
-  char buf[MAXMSG];
+  int r, event_class, win, data[5];
   fd_set rfds;
   struct timeval tv;
   InputEvent new clientEvent;
-
-  /* This only gets set once. */
-  if (event_mask == -1)
-    event_mask = self eventMask;
 
   FD_ZERO(&rfds);
   FD_SET(client_handle, &rfds);
@@ -120,25 +142,25 @@ X11TerminalStream instanceMethod queueInput (void) {
   tv.tv_usec = 500;
  select_again:
   if ((r = select (client_handle + 1, &rfds, NULL, NULL, &tv)) > 0) {
-    if ((n_read = read (client_handle, (void *)buf, MAXMSG)) > 0) {
-      buf[n_read] = '\0';
-      n_bits = sscanf (buf, "%d:%d:%d:%d:%d:%d", &event_class, 
-		       &event_data1, 
-		       &event_data2,
-		       &event_data3,
-		       &event_data4,
-		       &event_data5);
+
+    /* Event_class and win are separate args to make the code more 
+       readable, 'tho that quality is debatable at this point. */
+    if (!read_x_event (client_handle, &event_class, &win, data)) {
+    
       if (event_mask != 0) {
 	if (!(event_mask & event_class)) {
 	  goto select_again;
 	}
       }
+
       clientEvent eventClass = event_class;
-      clientEvent xEventData1 = event_data1;
-      clientEvent xEventData2 = event_data2;
-      clientEvent xEventData3 = event_data3;
-      clientEvent xEventData4 = event_data4;
-      clientEvent xEventData5 = event_data5;
+      clientEvent eventData = win;
+      clientEvent xEventData1 = data[0];
+      clientEvent xEventData2 = data[1];
+      clientEvent xEventData3 = data[2];
+      clientEvent xEventData4 = data[3];
+      clientEvent xEventData5 = data[4];
+
       switch (event_class)
 	{
 	case CONFIGURENOTIFY:

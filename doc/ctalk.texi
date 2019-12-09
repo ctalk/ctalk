@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.32 2019/12/09 00:15:18 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.33 2019/12/09 20:31:06 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -5958,8 +5958,14 @@ KBDCUR         # Cursor Keys.
 @end example
 @cindex @code{eventData} instanceVariable @idxclscite{InputEvent}
 @item eventData
-An @code{Integer} that contains the data specific to an input event;
-for example, the ASCII value of a keypress.
+An @code{Integer} that contains the data specific to an input event.
+
+For example, when used with subclasses of @code{ANSITerminalPane,}
+@code{eventData} holds the ASCII value of a keypress.
+
+When used with subclasses of X11Pane (actually, any subclass or
+program that uses X11TerminalStream : queueInput), @code{eventData}
+generally holds the ID of the window that received the event.
 
 @cindex @code{xEventData1} instanceVariable @idxclscite{InputEvent}
 @cindex @code{xEventData2} instanceVariable @idxclscite{InputEvent}

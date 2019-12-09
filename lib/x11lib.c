@@ -1,4 +1,4 @@
-/* $Id: x11lib.c,v 1.5 2019/11/11 20:21:52 rkiesling Exp $ -*-c-*-*/
+/* $Id: x11lib.c,v 1.8 2019/12/09 11:55:13 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -2469,59 +2469,23 @@ int __have_bitmap_buffers (OBJECT *self_object) {
 }
 
 /***/
-/* #define USE_MAKEEVENT */
-
-#ifdef USE_MAKEEVENT
-/* Still experimental.... */
-
-#define D_EVENT 0
-#define D_1 64
-#define D_2 128
-#define D_3 192
-#define D_4 256
-#define D_5 320
-
-static void event_to_client (int parent_fd, int eventclass, int eventdata1,
-			     int eventdata2, int eventdata3,
-			     int eventdata4, int eventdata5) {
-  char buf[MAXMSG];
-  int __r;
-
-  memset (buf, 0, MAXMSG);
-  __ctalkDecimalIntegerToASCII(eventclass, buf + D_EVENT);
-  __ctalkDecimalIntegerToASCII(eventdata1, buf + D_1);
-  __ctalkDecimalIntegerToASCII(eventdata2, buf + D_2);
-  __ctalkDecimalIntegerToASCII(eventdata3, buf + D_3);
-  __ctalkDecimalIntegerToASCII(eventdata4, buf + D_4);
-  __ctalkDecimalIntegerToASCII(eventdata5, buf + D_5);
-
-  __r = write (parent_fd, buf, strlen (buf));
-}
-
-#else
-
-/*
- *  CAUTION: - If calling this, make sure all of the eventdata
- *  elements can be handled by ascii[]; i.e., they are all < 
- *  8192.
- */
 static void event_to_client (int parent_fd,
 			     int eventclass,
+			     int win_id,
 			     int eventdata1,
 			     int eventdata2, int eventdata3,
 			     int eventdata4, int eventdata5) {
-  char buf[MAXMSG], iclass[64];
   int __r;
 
-  strcatx (buf, 
-	   ctitoa (eventclass, iclass), ":",
-	   ascii[eventdata1], ":", ascii[eventdata2], ":",
-	   ascii[eventdata3], ":", ascii[eventdata4], ":", 
-	   ascii[eventdata5], NULL);
-  __r = write (parent_fd, buf, strlen (buf));
+  __r = write (parent_fd, &eventclass, sizeof (int));
+  __r = write (parent_fd, &win_id, sizeof (int));
+  __r = write (parent_fd, &eventdata1, sizeof (int));
+  __r = write (parent_fd, &eventdata2, sizeof (int));
+  __r = write (parent_fd, &eventdata3, sizeof (int));
+  __r = write (parent_fd, &eventdata4, sizeof (int));
+  __r = write (parent_fd, &eventdata5, sizeof (int));
 
 }
-#endif
 
 static void generate_expose (Window w, int x, int y, int width, int height) {
   XEvent e;
@@ -2539,12 +2503,13 @@ static void generate_expose (Window w, int x, int y, int width, int height) {
 	      ExposureMask,  &e);
 }
 
- static void resize_event_to_client (int fd, int x, int y,
+static void resize_event_to_client (int fd, int x, int y,
 				     int width, int height,
 				     int border_width,
 				     XRectangle *prev,
+				     int win_id,
 				     int *eventclass) {
-  event_to_client (fd, RESIZENOTIFY,
+  event_to_client (fd, RESIZENOTIFY, win_id,
 		   x, y, width, height, border_width);
   prev -> width = width;
   prev -> height = height;
@@ -2679,7 +2644,8 @@ static int kwin_event_loop (int parent_fd, int mem_handle, int main_win_id) {
 	  while (XCheckTypedWindowEvent 
 		 (display, main_win_id, MotionNotify, &e))
 	    ;
-	  event_to_client (parent_fd, MOTIONNOTIFY, e.xmotion.x, e.xmotion.y,
+	  event_to_client (parent_fd, MOTIONNOTIFY,
+			   e.xmotion.window, e.xmotion.x, e.xmotion.y,
 			   e.xmotion.state, e.xmotion.is_hint, 0);
 	  eventclass = 0;
 	  continue;
@@ -2817,7 +2783,8 @@ int __ctalkX11InputClient (OBJECT *streamobject, int parent_fd, int mem_handle, 
   XEvent e, e_config, e_expose;
   XRectangle prev_d;
   int events_waiting, handle_count;
-  int eventclass, eventdata1, eventdata2, eventdata3, eventdata4,
+  int eventclass, event_win,
+    eventdata1, eventdata2, eventdata3, eventdata4,
     eventdata5;
   int client_sock_fd, wresult;
   char *s;
@@ -2860,33 +2827,23 @@ int __ctalkX11InputClient (OBJECT *streamobject, int parent_fd, int mem_handle, 
       switch (e.type)
 	{
 	case ButtonPress:
-	  if (e.xbutton.window == main_win_id) {
-	    strcatx (buf, ascii[BUTTONPRESS], ":",
-		     ascii[e.xbutton.x], ":",
-		     ascii[e.xbutton.y], ":",
-		     ascii[e.xbutton.state], ":",
-		     ascii[e.xbutton.button], ":",
-		     "0", NULL);
-	    buttonpressed = TRUE;
-	    wresult = write (client_sock_fd, buf, strlen (buf));
-	  }
-	  continue;
-	  break;
 	case ButtonRelease:
 	  if (e.xbutton.window == main_win_id) {
-	    strcatx (buf, ascii[BUTTONRELEASE], ":",
-		     ascii[e.xbutton.x], ":",
-		     ascii[e.xbutton.y], ":",
-		     ascii[e.xbutton.state], ":",
-		     ascii[e.xbutton.button], ":",
-		     "0", NULL);
-	    buttonpressed = FALSE;
-	    wresult = write (client_sock_fd, buf, strlen (buf));
+	    buttonpressed = (e.type == ButtonPress) ? TRUE : FALSE;
+	    event_to_client (client_sock_fd,
+			     ((e.type == ButtonPress) ?
+			      BUTTONPRESS : BUTTONRELEASE),
+			     e.xbutton.window,
+			     e.xbutton.x,
+			     e.xbutton.y,
+			     e.xbutton.state,
+			     e.xbutton.button, 0);
 	  }
 	  continue;
 	  break;
 	case KeyPress:
 	  eventclass = KEYPRESS;
+	  event_win = e.xkey.window;
 	  eventdata1 = e.xkey.x;
 	  eventdata2 = e.xkey.y;
 	  eventdata3 = e.xkey.state;
@@ -2896,6 +2853,7 @@ int __ctalkX11InputClient (OBJECT *streamobject, int parent_fd, int mem_handle, 
 	  break;
 	case KeyRelease:
 	  eventclass = KEYRELEASE;
+	  event_win = e.xkey.window;
 	  eventdata1 = e.xkey.x;
 	  eventdata2 = e.xkey.y;
 	  eventdata3 = e.xkey.state;
@@ -2915,9 +2873,11 @@ int __ctalkX11InputClient (OBJECT *streamobject, int parent_fd, int mem_handle, 
 		 e_config.xconfigure.width,
 		 e_config.xconfigure.height,
 		 e_config.xconfigure.border_width,
-		 &prev_d, &eventclass);
+		 &prev_d, e_config.xconfigure.window,
+		 &eventclass);
 	      eventclass = EXPOSE;
 	      event_to_client (client_sock_fd, eventclass,
+			       e_config.xconfigure.window,
 			       e_expose.xexpose.x,
 			       e_expose.xexpose.y,
 			       e_expose.xexpose.width,
@@ -2959,13 +2919,14 @@ int __ctalkX11InputClient (OBJECT *streamobject, int parent_fd, int mem_handle, 
 	  while (XCheckTypedWindowEvent 
 		 (display, main_win_id, MotionNotify, &e))
 	    ;
-	  strcatx (buf, ascii[MOTIONNOTIFY], ":",
-		   ascii[e.xmotion.x], ":",
-		   ascii[e.xmotion.y], ":",
-		   ascii[e.xmotion.state], ":",
-		   ascii[e.xmotion.is_hint], ":",
-		   "0", NULL);
-	  wresult = write (client_sock_fd, buf, strlen (buf));
+	  event_to_client (client_sock_fd,
+			   MOTIONNOTIFY,
+			   e.xmotion.window,
+			   e.xmotion.x,
+			   e.xmotion.y,
+			   e.xmotion.state,
+			   e.xmotion.is_hint,
+			   0);
 	  continue;
   	  break;
   	case MapNotify:
@@ -2973,6 +2934,7 @@ int __ctalkX11InputClient (OBJECT *streamobject, int parent_fd, int mem_handle, 
 		 (display, main_win_id, MapNotify, &e))
 	    ;
   	  eventclass = MAPNOTIFY;
+	  event_win = e.xmap.window;
 	  eventdata1 = e.xmap.event;
 	  eventdata2 = e.xmap.window;
 	  eventdata3 = eventdata4 = eventdata5 = 0;
@@ -2993,6 +2955,7 @@ int __ctalkX11InputClient (OBJECT *streamobject, int parent_fd, int mem_handle, 
 	    continue;
 	  }
   	  eventclass = EXPOSE;
+	  event_win = e.xexpose.window;
   	  eventdata1 = e.xexpose.x;
   	  eventdata2 = e.xexpose.y;
   	  eventdata3 = e.xexpose.width;
@@ -3042,7 +3005,7 @@ int __ctalkX11InputClient (OBJECT *streamobject, int parent_fd, int mem_handle, 
 		 e.xconfigure.width,
 		 e.xconfigure.height,
 		 e.xconfigure.border_width,
-		 &prev_d, &eventclass);
+		 &prev_d, e.xconfigure.window, &eventclass);
 		xfce_resizing = false;
 	      }
 	      while (XCheckTypedWindowEvent 
@@ -3072,7 +3035,9 @@ int __ctalkX11InputClient (OBJECT *streamobject, int parent_fd, int mem_handle, 
 		eventclass = MOVENOTIFY;
 		prev_d.x = e.xconfigure.x;
 		prev_d.y = e.xconfigure.y;
-		event_to_client (client_sock_fd, eventclass, e.xconfigure.x, 
+		event_to_client (client_sock_fd, eventclass,
+				 e.xconfigure.window,
+				 e.xconfigure.x, 
 				 e.xconfigure.y, 
 				 e.xconfigure.width,
 				 e.xconfigure.height,
@@ -3091,7 +3056,7 @@ int __ctalkX11InputClient (OBJECT *streamobject, int parent_fd, int mem_handle, 
 		     e.xconfigure.width,
 		     e.xconfigure.height,
 		     e.xconfigure.border_width,
-		     &prev_d, &eventclass);
+		     &prev_d, e.xconfigure.window, &eventclass);
 		}
 		eventclass = 0;
 		continue;
@@ -3100,13 +3065,16 @@ int __ctalkX11InputClient (OBJECT *streamobject, int parent_fd, int mem_handle, 
 		resize_event_to_client
 		  (client_sock_fd, e.xconfigure.x, e.xconfigure.y,
 		   e.xconfigure.width, e.xconfigure.height,
-		   e.xconfigure.border_width, &prev_d, &eventclass);
+		   e.xconfigure.border_width, &prev_d,
+		   e.xconfigure.window, &eventclass);
 	      }
 	    } else {
 	      if ((prev_d.width != e.xconfigure.width) ||
 		  (prev_d.height != e.xconfigure.height)) {
 		eventclass = RESIZENOTIFY;
-		event_to_client (client_sock_fd, eventclass, e.xconfigure.x, 
+		event_to_client (client_sock_fd, eventclass,
+				 e.xconfigure.window,
+				 e.xconfigure.x, 
 				 e.xconfigure.y, 
 				 e.xconfigure.width,
 				 e.xconfigure.height,
@@ -3122,6 +3090,7 @@ int __ctalkX11InputClient (OBJECT *streamobject, int parent_fd, int mem_handle, 
 	case ClientMessage:
 	  if(e.xclient.data.l[0] == wm_delete_window) {
 	    eventclass = WINDELETE;
+	    event_win = e.xclient.window;
 	    eventdata1 = eventdata2 = eventdata3 = eventdata4 = 
 	      eventdata5 = 0;
 	  }
@@ -3132,6 +3101,7 @@ int __ctalkX11InputClient (OBJECT *streamobject, int parent_fd, int mem_handle, 
 	     thread so the app can update its state if necessary. */
 	  __xlib_clear_selection (&e);
 	  event_to_client (client_sock_fd, SELECTIONCLEAR,
+			   e.xselectionclear.window,
 			   0, 0, 0, 0, 0);
 	  continue;
 	  break;
@@ -3154,15 +3124,9 @@ int __ctalkX11InputClient (OBJECT *streamobject, int parent_fd, int mem_handle, 
 	  break;
 	}
       if (eventclass) {
-	/* This needs to use ctitoa */
-	strcatx (buf, 
-		 ctitoa (eventclass, e_class), ":",
-		 ctitoa (eventdata1, e1), ":",
-		 ctitoa (eventdata2, e2), ":",
-		 ctitoa (eventdata3, e3), ":",
-		 ctitoa (eventdata4, e4), ":",
-		 ctitoa (eventdata5, e5), NULL);
-	wresult = write (client_sock_fd, buf, strlen (buf));
+	event_to_client (client_sock_fd,
+			 eventclass, event_win,eventdata1, eventdata2,
+			 eventdata3, eventdata4, eventdata5);
 	eventclass = eventdata1 = eventdata2 = 0;
       }
     }
