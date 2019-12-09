@@ -1,4 +1,4 @@
-/* $Id: ctalk.h,v 1.30 2019/12/06 22:59:13 rkiesling Exp $ -*-Fundamental-*- */
+/* $Id: ctalk.h,v 1.32 2019/12/09 00:15:18 rkiesling Exp $ -*-Fundamental-*- */
 
 /*
   This file is part of Ctalk.
@@ -1418,6 +1418,8 @@ long long int atoll (const char *);
 
 /* lib/ctdtoa.c */
 char *__ctalkDoubleToASCII (double, char *);
+char *__ctalkFloatToASCII (float , char *);
+char* __ctalkLongDoubleToASCII (long double, char *);
 
 /* lib/ctitoa.c */
 void __reverse(char *);

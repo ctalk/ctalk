@@ -1078,7 +1078,7 @@
 	Apple with PowerPC (pval.h).
 	- Fixed warnings in the test programs: llrintf3.c, llrintl3.c,
 	margexprs48.c (cStrlen template), objderef[15,17].c, offsetof1.c,
-	prefix[30,31].c, 
+	prefix[30,31].c. 
 	]
 	- Updated cLrintl template to use xsprintf
 	(classes/libc/l).
@@ -1091,9 +1091,14 @@
 	ctalk.texi, libdoc, ctalk.h, ctalklib.in, ctlltoa.c, and
 	rt_prton.c.  The __ctalkLongLongToDecimalASCII now returns
 	the formatted representation of its argument.
-	- Added the __ctalkLongLongToHexASCII library function.
+	- Added the __ctalkLongLongToHexASCII library function
+	(ctlltoa.c).
 	- Added the __ctalkLongToDecimalASCII and
-	__ctalkLongToHexASCII library functions.
+	__ctalkLongToHexASCII library functions (ctltoa.c).
+2019-12-08
+	- Added __ctalkLongDoubleToASCII (ctdtoa.c).
+	- Updated templates for 64-bit MacOS and LLVM.
+	- Added the __ctalkFloatToASCII library function (ctdtoa.c).
 
 
 

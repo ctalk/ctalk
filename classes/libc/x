@@ -1,4 +1,4 @@
-/* $Id: x,v 1.7 2019/11/28 22:16:21 rkiesling Exp $ -*-c-*-**/
+/* $Id: x,v 1.8 2019/12/08 18:12:47 rkiesling Exp $ -*-c-*-**/
 
 /*
   This file is part of Ctalk.
@@ -39,15 +39,6 @@ cXsprintf (char *__s, char *__fmt,...) {\n\
   return result_object; \n\
 }\n\
 
-#if 0 /***/
-#define xstrcat \n				\
-cXstrcat (char *__s1, char *__s2) { \n\
-  if (__ctalkIsObject (ARG(0))) \n\
-    xstrcat (__ctalk_to_c_char_ptr(ARG(1)),__ctalk_to_c_char_ptr (ARG(0))); \n\
-  return ARG(1);\n\
-}
-#endif
-
 #define xstrcat \n\
 cXstrcat (char *__s1, char *__s2) { \n\
   int len; \n\
@@ -73,15 +64,6 @@ cXstrcpy (char *__s1, char *__s2) { \n\
   return ARG(1);\n\
 }
 
-#if 0 /***/
-#define xstrncat \n					\
-cXstrncat (char *__s1, char *__s2, int __n) { \n\
-  if (__ctalkIsObject (ARG(0))) \n\
-    xstrncat (__ctalk_to_c_char_ptr(ARG(2)),__ctalk_to_c_char_ptr (ARG(1)), __ctalk_to_c_int(ARG(0))); \n\
-  return ARG(2);\n\
-}
-#endif
-
 #define xstrncat \n\
 cXstrncat (char *__s1, char *__s2, int lenp) { \n\
   int len; \n\
@@ -95,15 +77,6 @@ cXstrncat (char *__s1, char *__s2, int lenp) { \n\
 	     len); \n\
   return ARG(2);\n\
 }
-
-#if 0 /***/
-#define xstrncpy \n					\
-cXstrncpy (char *__s1, char *__s2, int __n) { \n\
-  if (__ctalkIsObject (ARG(0))) \n\
-    xstrncpy (__ctalk_to_c_char_ptr(ARG(2)),__ctalk_to_c_char_ptr (ARG(1)), __ctalk_to_c_int(ARG(0))); \n\
-  return ARG(2);\n\
-}
-#endif
 
 #define xstrncpy \n\
 cXstrncpy (char *__s1, char *__s2, int lenp) { \n\

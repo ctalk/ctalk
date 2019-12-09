@@ -1,4 +1,4 @@
-/* $Id: c,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-c-*-**/
+/* $Id: c,v 1.3 2019/12/09 00:02:01 rkiesling Exp $ -*-c-*-**/
 
 /*
   This file is part of Ctalk.
@@ -32,16 +32,15 @@
 #define cbrt \n\
 cCbrt (double d) { \n\
   char buf[MAXLABEL]; \n\
-  sprintf (buf, "%f", cbrt (__ctalk_to_c_double (ARG(0)))); \n\
+    __ctalkDoubleToASCII (cbrt (__ctalk_to_c_double (ARG(0))), buf); \n\
   return __ctalkCreateObjectInit ("result", "Float", \n\
 		       "Magnitude", LOCAL_VAR, buf); \n\
 }
 
-
 #define ceil \n\
 cCeil (double d) { \n\
   char buf[MAXLABEL]; \n\
-  sprintf (buf, "%f", ceil (__ctalk_to_c_double (ARG(0)))); \n\
+    __ctalkDoubleToASCII (ceil (__ctalk_to_c_double (ARG(0))), buf); \n\
   return __ctalkCreateObjectInit ("result", "Float", \n\
 		       "Magnitude", LOCAL_VAR, buf); \n\
 }
@@ -76,7 +75,7 @@ cClock (void) { \n\
 #define copysign \n\
 cCopySign (double d, double s) { \n\
   char buf[MAXLABEL]; \n\
-  sprintf (buf, "%f", copysign (ARG(1), ARG(0))); \n\
+  __ctalkDoubleToASCII (copysign (__ctalk_to_c_double (ARG(0))), buf); \n\
   return __ctalkCreateObjectInit ("result", "Float", \n\
 		       "Magnitude", LOCAL_VAR, buf); \n\
 }
@@ -84,7 +83,7 @@ cCopySign (double d, double s) { \n\
 #define cos \n\
 cCos (double d) { \n\
   char buf[MAXLABEL]; \n\
-  sprintf (buf, "%f", cos (__ctalk_to_c_double (ARG(0)))); \n\
+  __ctalkDoubleToASCII (cos (__ctalk_to_c_double (ARG(0))), buf); \n\
   return __ctalkCreateObjectInit ("result", "Float", \n\
 		       "Magnitude", LOCAL_VAR, buf); \n\
 }
@@ -92,7 +91,7 @@ cCos (double d) { \n\
 #define cosh \n\
 cCosh (double d) { \n\
   char buf[MAXLABEL]; \n\
-  sprintf (buf, "%f", cosh (__ctalk_to_c_double (ARG(0)))); \n\
+  __ctalkDoubleToASCII (cosh (__ctalk_to_c_double (ARG(0))), buf); \n\
   return __ctalkCreateObjectInit ("result", "Float", \n\
 		       "Magnitude", LOCAL_VAR, buf); \n\
 }
@@ -124,7 +123,7 @@ cChdir (char *__d) { \n\
   int r; \n\
   char buf[MAXLABEL]; \n\
   r = chdir (ARG(0)); \n\  
-  sprintf (buf, "%d", r); \n\
+  xsprintf (buf, "%d", r); \n\
   return __ctalkCreateObjectInit ("result", "Integer", \n\
      "Magnitude", LOCAL_VAR, buf); \n\
 }

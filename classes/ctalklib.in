@@ -1,4 +1,4 @@
-/* $Id: ctalklib.in,v 1.25 2019/12/06 22:59:13 rkiesling Exp $ -*-c-*-*/
+/* $Id: ctalklib.in,v 1.27 2019/12/09 00:15:17 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -918,6 +918,8 @@ extern int    __ctalkDeleteLastExceptionInternal (void);
 extern int     __ctalkDeleteObjectList (OBJECT *);
 extern int     __ctalkDeleteWinBuffer (OBJECT *);
 extern char *   __ctalkDoubleToASCII (double, char *);
+extern char *   __ctalkFloatToASCII (float, char *);
+extern char *   __ctalkLongDoubleToASCII (long double, char *);
 extern char * __ctalkDocDir (void);
 extern int     __ctalkErrorExit (void);
 extern OBJECT *__ctalkEvalExpr (char *);

@@ -1,4 +1,4 @@
-/* $Id: ctdtoa.c,v 1.1.1.1 2019/10/26 23:40:50 rkiesling Exp $ */
+/* $Id: ctdtoa.c,v 1.3 2019/12/09 00:15:18 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -24,11 +24,21 @@
 #include <stdio.h>
 
 char * __ctalkDoubleToASCII (double d, char s[]) {
-# if defined (__sparc__) && defined (__svr4__)
+#if defined (__sparc__) && defined (__svr4__)
   sprintf (s, "%f", d);
 #else
   sprintf (s, "%lf", d);
 #endif
+  return s;
+} 
+
+char *__ctalkFloatToASCII (float d, char s[]) {
+  sprintf (s, "%f", d);
+  return s;
+} 
+
+char *__ctalkLongDoubleToASCII (long double d, char s[]) {
+  sprintf (s, "%Lf", d);
   return s;
 } 
 

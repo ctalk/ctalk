@@ -487,8 +487,8 @@ Returns a char * that contains the path where the
 Ctalk-specific documentation is installed on the system (i.e.,
 documentation other than man pages and Texinfo manuals).
 
->>>__ctalkDoubleToASCII (double d, char *s)
-Format an ASCII representation of d, a double, in s.  Returns
+>>>__ctalkDoubleToASCII (double d, char *s):__ctalkFloatToASCII (float f, char *s):__ctalkLongDoubleToASCII (long double f, char *s)
+Format an ASCII representation of the first argument in s.  Returns
 s.
 
 >>>__ctalkEnterArgBlockScope (void)

@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.30 2019/12/07 01:47:12 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.32 2019/12/09 00:15:18 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -18219,8 +18219,12 @@ Ctalk-specific documentation is installed on the system (i.e.,
 documentation other than man pages and Texinfo manuals).
 
 @cindex __ctalkDoubleToASCII function
+@cindex __ctalkFloatToASCII function
+@cindex __ctalkLongDoubleToASCII function
 @item __ctalkDoubleToASCII (@code{double} @var{d}, @code{char *}@var{s});
-Format an ASCII representation of @var{d}, a double, in @var{s}.  Returns
+@item __ctalkFloatToASCII (@code{float} @var{f}, @code{char *}@var{s});
+@item __ctalkLongDoubleToASCII (@code{long double} @var{f}, @code{char *}@var{s});
+Format an ASCII representation of the first argument in @var{s}.  Returns
 @var{s}.
 
 @idxfncite{__ctalkEnterArgBlockScope}

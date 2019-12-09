@@ -5901,7 +5901,10 @@ functions.
      than man pages and Texinfo manuals).
 
 '__ctalkDoubleToASCII (double D, char *S);'
-     Format an ASCII representation of D, a double, in S.  Returns S.
+'__ctalkFloatToASCII (float F, char *S);'
+'__ctalkLongDoubleToASCII (long double F, char *S);'
+     Format an ASCII representation of the first argument in S.  Returns
+     S.
 
      '__ctalkEnterArgBlockScope' C function
 '__ctalkEnterArgBlockScope (void)'
