@@ -1,4 +1,4 @@
-/* $Id: control.c,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ */
+/* $Id: control.c,v 1.2 2019/12/09 11:00:29 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -1111,6 +1111,7 @@ int if_stmt (MESSAGE_STACK messages, int ptr) {
 		      !get_local_var (M_NAME(m_lbl)) &&
 		      !get_typedef (M_NAME(m_lbl)) &&
 		      !get_function (M_NAME(m_lbl)) &&
+		      !is_fn_param (M_NAME(m_lbl)) && /***/
 		      !is_enum_member (M_NAME(m_lbl)) &&
 		      !is_instance_variable_message (messages, j) &&
 		      !is_class_variable_message (messages, j) &&
