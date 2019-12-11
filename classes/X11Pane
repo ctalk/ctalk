@@ -1,4 +1,4 @@
-/* $Id: X11Pane,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11Pane,v 1.2 2019/12/10 23:57:07 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -257,8 +257,9 @@ X11Pane instanceMethod clearRectangle (Integer x, Integer y,
 
 X11Pane instanceMethod map (void) {
   "Map the receiver object's window on the display."
-  if (self value is X11Pane)
+   if (self value is X11Pane) {
     __ctalkMapX11Window (self);
+  }
   return NULL;
 }
 

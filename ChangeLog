@@ -1109,4 +1109,12 @@
 	the setting of event_mask to X11TerminalStream : openInputClient.
 	- Added is_fn_param check for undefined label in if_stmt
 	(control.c).
+	- Removed an extra missing block check in for_stmt (control.c),
+	at least for now.
+	]
+2019-12-10
+	[
+	- Updated __ctalkX11CreateSubWindow to take its dimensions from
+	the self (i.e., subpane) object.  Also updated
+	__ctalkMapX11Window to call XMapSubwindows (x11lib.c).
 	]

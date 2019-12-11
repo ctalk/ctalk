@@ -1,4 +1,4 @@
-/* $Id: x11lib.c,v 1.8 2019/12/09 11:55:13 rkiesling Exp $ -*-c-*-*/
+/* $Id: x11lib.c,v 1.10 2019/12/10 23:57:08 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -121,6 +121,7 @@ static int __ctalkX11ErrorHandler (Display *, XErrorEvent *);
 static int (*default_io_handler) (Display *);
 static int (*default_error_handler) (Display *, XErrorEvent *);
 static OBJECT *__x11_pane_win_depth_value_object (OBJECT *);
+static OBJECT *pane_pt_var (OBJECT *, char *, char *);
 OBJECT *__x11_pane_font_id_value_object (OBJECT *);
 
 /* In xrender.c */
@@ -2828,7 +2829,9 @@ int __ctalkX11InputClient (OBJECT *streamobject, int parent_fd, int mem_handle, 
 	{
 	case ButtonPress:
 	case ButtonRelease:
+#if 0 /***/
 	  if (e.xbutton.window == main_win_id) {
+#endif	    
 	    buttonpressed = (e.type == ButtonPress) ? TRUE : FALSE;
 	    event_to_client (client_sock_fd,
 			     ((e.type == ButtonPress) ?
@@ -2838,7 +2841,9 @@ int __ctalkX11InputClient (OBJECT *streamobject, int parent_fd, int mem_handle, 
 			     e.xbutton.y,
 			     e.xbutton.state,
 			     e.xbutton.button, 0);
+#if 0 /***/
 	  }
+#endif	  
 	  continue;
 	  break;
 	case KeyPress:
@@ -3027,7 +3032,9 @@ int __ctalkX11InputClient (OBJECT *streamobject, int parent_fd, int mem_handle, 
 	    continue;
 	  }
 
+#if 0 /***/
 	  if (e.xconfigure.window == main_win_id) {
+#endif	    
 	  do_configure:
 	    if (e.xconfigure.x && e.xconfigure.y) {
 	      if ((prev_d.x != e.xconfigure.x) ||
@@ -3085,7 +3092,9 @@ int __ctalkX11InputClient (OBJECT *streamobject, int parent_fd, int mem_handle, 
 		continue;
 	      }
 	    }
+#if 0 /***/
 	  }
+#endif
 	  break;
 	case ClientMessage:
 	  if(e.xclient.data.l[0] == wm_delete_window) {
@@ -3228,6 +3237,28 @@ OBJECT *__x11_pane_win_gc_value_object (OBJECT *paneobject) {
     return NULL;
 
   return wingc_var_value_object;
+}
+
+/* Get a dimension instance var, named by xyvarname, of the point
+   instance var named by ptvarname */
+/***/
+static OBJECT *pane_pt_var (OBJECT *paneobject, char *ptvarname,
+			     char *xyvarname) {
+  OBJECT *pane_self_object, *pt_var, *xy_var;
+  if (!IS_OBJECT(paneobject)) return NULL;
+  if ((paneobject -> attrs & OBJECT_IS_VALUE_VAR) &&
+      paneobject -> __o_p_obj)
+    pane_self_object = paneobject -> __o_p_obj;
+  else
+    pane_self_object = paneobject;
+  if ((pt_var = 
+       __ctalkGetInstanceVariable (pane_self_object, ptvarname, TRUE))
+      == NULL)
+    return NULL;
+  if ((xy_var =
+       __ctalkGetInstanceVariable (pt_var, xyvarname, TRUE)) == NULL)
+    return NULL;
+  return xy_var -> instancevars;
 }
 
 static OBJECT *__x11_pane_win_depth_value_object (OBJECT *paneobject) {
@@ -3473,7 +3504,11 @@ int __ctalkCreateX11MainWindowTitle (OBJECT *self_object, char *title) {
 }
 
 int __ctalkCreateX11SubWindow (OBJECT *parent, OBJECT *self) {
-  OBJECT *parent_object, *self_object;
+  OBJECT *parent_object;
+  /* Here, self is the subpane object */
+  /***/
+  OBJECT *self_object, *self_origin_x_var, *self_origin_y_var,
+    *self_size_x_var, *self_size_y_var;
   OBJECT *parent_win_id_value_object, *self_win_id_value_object,
     *win_depth_value_obj;
   OBJECT *self_gc_value_object;
@@ -3507,6 +3542,11 @@ int __ctalkCreateX11SubWindow (OBJECT *parent, OBJECT *self) {
   win_depth_value_obj =
     __x11_pane_win_depth_value_object (self_object);
   parent_id = (Window)*(int *)parent_win_id_value_object -> __o_value;
+  /***/
+  self_origin_x_var = pane_pt_var (self_object, "origin", "x");
+  self_origin_y_var = pane_pt_var (self_object, "origin", "y");
+  self_size_x_var = pane_pt_var (self_object, "size", "x");
+  self_size_y_var = pane_pt_var (self_object, "size", "y");
   if (!display) {
     _warning ("__ctalkX11CreateSubWindow: Could not open display, \"%s.\"\n",
 	      getenv ("DISPLAY"));
@@ -3519,9 +3559,10 @@ int __ctalkCreateX11SubWindow (OBJECT *parent, OBJECT *self) {
   XGetWindowAttributes (display, parent_id, &parent_attributes);
   self_attributes.backing_store = parent_attributes.backing_store;
   self_id = XCreateWindow (display, parent_id, 
-			   0, 0,
-			   parent_attributes.width,
-			   parent_attributes.height,
+			   INTVAL(self_origin_x_var -> __o_value),
+			   INTVAL(self_origin_y_var -> __o_value),
+			   INTVAL(self_size_x_var -> __o_value),
+			   INTVAL(self_size_y_var -> __o_value),
 			   0, /* border_width */
 			   CopyFromParent,
 			   CopyFromParent, CopyFromParent, 
@@ -3561,6 +3602,7 @@ int __ctalkMapX11Window (OBJECT *self_object) {
     __x11_pane_win_id_value_object (self_object);
   win_id = *(int *)win_id_value_obj -> __o_value;
   XMapWindow (display, (Window)win_id);
+  XMapSubwindows (display, (Window)win_id);
   return SUCCESS;
 }
 

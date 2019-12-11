@@ -1,4 +1,4 @@
-/* $Id: X11PaneDispatcher,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11PaneDispatcher,v 1.3 2019/12/10 23:57:07 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -309,6 +309,12 @@ X11PaneDispatcher instanceMethod attachTo (Object parentPane) {
   "Attach the receiver pane to the parent pane given as
   the argument.  This parent pane should be a X11Pane
   object."
+  self container = parentPane;
+  self xWindowID = parentPane xWindowID;
+  self origin x = 0;
+  self origin y = 0;
+  self size x = parentPane size x;
+  self size y = parentPane size y;
   if (!self value is X11PaneDispatcher) {
     if (parentPane is X11PaneDispatcher) {
       __ctalkCreateX11SubWindow (parentPane container, self);
@@ -316,12 +322,15 @@ X11PaneDispatcher instanceMethod attachTo (Object parentPane) {
       __ctalkCreateX11SubWindow (parentPane, self);
     }
   }
+#if 0 /***/
+  self xWindowID = parentPane xWindowID;
   self container = parentPane;
   self xWindowID = parentPane xWindowID;
   self origin x = 0;
   self origin y = 0;
   self size x = parentPane size x;
   self size y = parentPane size y;
+#endif
   parentPane children pushItemRef self;
   return NULL;
 }

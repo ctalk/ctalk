@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.33 2019/12/09 20:31:06 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.34 2019/12/10 23:57:08 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -18045,6 +18045,15 @@ If a program doesn't specify a window size, then default size is
 window, then this function tries to do something intelligent with the
 initial window placement.  @xref{ctalkX11SetSizeHints}.
 
+@cindex __ctalkCreateX11SubWindow function
+@cindex __ctalkCreateX11SubWindow (@code{OBJECT *}@var{subpane_object}, @code{OBJECT *}@var{parentpane_object})
+Creates an X subwindow that has the parent window defined by
+@var{parentpane_object's} @code{xWindowID} instance variable.  The
+dimensions of the subwindow within the parent window are determined by
+the @var{subpane_object's} @code{origin} and @code{size} instance
+variables.  Sets the @code{subpane_object's} @code{xWindowID} instance
+variable to the subwindow's X window ID.
+
 @cindex __ctalkCriticalExceptionInternal function
 @cindex @mnm{raiseCriticalException} method @idxclscite{SysErrnoException}
 @item __ctalkCriticalExceptionInternal (@code{MESSAGE *}@var{orig}, @code{EXCEPTION} @var{ex}, @code{char *}@var{text})
@@ -19132,7 +19141,8 @@ instance variable. @xref{GLXCanvasPane}.
 @idxlibfn{__ctalkMapX11Window}
 @item __ctalkMapX11Window (@code{OBJECT *}@var{x11pane_object})
 The X library interface of the @mnm{map} (class @code{X11Pane})
-method. 
+method @xref{X11Pane}. This function is a wrapper for the @cite{XMapWindow} and
+@cite{XMapSubwindows} Xlib functions.
 
 @idxlibfn{__ctalkMethodObjectMessage}
 @item __ctalkMethodObjectMessage (@code{OBJECT *}@var{rcvr}, @code{OBJECT *}@var{method_instance})

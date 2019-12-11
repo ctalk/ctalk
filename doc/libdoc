@@ -339,6 +339,13 @@ If a program doesn't specify a window size, then default size is
 window, then this function tries to do something intelligent with the
 initial window placement.  
 
+Creates an X subwindow that has the parent window defined by
+parentpane_object's xWindowID instance variable.  The
+dimensions of the subwindow within the parent window are determined by
+the subpane_object's origin and size instance
+variables.  Sets the subpane_object's xWindowID instance
+variable to the subwindow's X window ID.
+
 >>>__ctalkCriticalExceptionInternal (MESSAGE *orig, EXCEPTION ex, char *text)
 Raise a critical exception at run time.  The argument orig
 should be NULL.  This function should be called from a method.
@@ -1213,7 +1220,8 @@ instance variable.
 
 >>>__ctalkMapX11Window (OBJECT *x11pane_object)
 The X library interface of the map (class X11Pane)
-method. 
+method  This function is a wrapper for the XMapWindow and
+XMapSubwindows Xlib functions.
 
 >>>__ctalkMethodObjectMessage (OBJECT *rcvr, OBJECT *method_instance)
 Perform a method call by sending rcvr the message defined by

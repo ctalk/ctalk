@@ -5754,6 +5754,13 @@ functions.
      window, then this function tries to do something intelligent with
      the initial window placement.  *Note ctalkX11SetSizeHints::.
 
+     Creates an X subwindow that has the parent window defined by
+     PARENTPANE_OBJECT'S 'xWindowID' instance variable.  The dimensions
+     of the subwindow within the parent window are determined by the
+     SUBPANE_OBJECT'S 'origin' and 'size' instance variables.  Sets the
+     'subpane_object's' 'xWindowID' instance variable to the subwindow's
+     X window ID.
+
 '__ctalkCriticalExceptionInternal (MESSAGE *ORIG, EXCEPTION EX, char *TEXT)'
      Raise a critical exception at run time.  The argument ORIG should
      be 'NULL.' This function should be called from a method.  This
@@ -6660,7 +6667,9 @@ functions.
      instance variable.  *Note GLXCanvasPane::.
 
 '__ctalkMapX11Window (OBJECT *X11PANE_OBJECT)'
-     The X library interface of the 'map' (class 'X11Pane') method.
+     The X library interface of the 'map' (class 'X11Pane') method *Note
+     X11Pane::.  This function is a wrapper for the 'XMapWindow' and
+     'XMapSubwindows' Xlib functions.
 
 '__ctalkMethodObjectMessage (OBJECT *RCVR, OBJECT *METHOD_INSTANCE)'
      Perform a method call by sending RCVR the message defined by
