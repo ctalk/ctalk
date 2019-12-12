@@ -1,4 +1,4 @@
-/* $Id: ctlltoa.c,v 1.3 2019/12/06 22:26:39 rkiesling Exp $ */
+/* $Id: ctlltoa.c,v 1.5 2019/12/06 22:51:16 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -27,6 +27,7 @@
  */
 
 #include <string.h>
+#include <stdbool.h>
 
 int strcatx2 (char *, ...);
 
@@ -50,8 +51,8 @@ char *__ctalkLongLongToDecimalASCII (long long int n, char s[]) {
   return s;
 } 
 
-static char hexl[] = "0123456789abcdef";
-static char hexu[] = "0123456789ABCDEF";
+char hexl[] = "0123456789abcdef";
+char hexu[] = "0123456789ABCDEF";
 
 char *__ctalkLongLongToHexASCII (long long int n, char s[], bool uppercase) {
   int i;
