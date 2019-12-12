@@ -343,8 +343,11 @@ Creates an X subwindow that has the parent window defined by
 parentpane_object's xWindowID instance variable.  The
 dimensions of the subwindow within the parent window are determined by
 the subpane_object's origin and size instance
-variables.  Sets the subpane_object's xWindowID instance
-variable to the subwindow's X window ID.
+variables.  Creates a new graphics context for the window and saves
+its address in the subpane_object's xGC instance
+variable.  Also sets the display depth in the depth instance
+variable, and the ID of the subwindow in the xWindowID instance
+variable.
 
 >>>__ctalkCriticalExceptionInternal (MESSAGE *orig, EXCEPTION ex, char *text)
 Raise a critical exception at run time.  The argument orig
