@@ -1,4 +1,4 @@
-/* $Id: object.c,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ */
+/* $Id: object.c,v 1.2 2019/12/12 02:05:42 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -1855,8 +1855,16 @@ void get_new_method_param_instance_variable_series (OBJECT *param_class_object,
 	}
       }
 
-      if (!have_instance_var)
+      if (!have_instance_var) {
+	/***/
+	if (str_eq (M_OBJ(messages[param_idx]) -> __o_class -> __o_name,
+		    OBJECT_CLASSNAME)) {
+	  warning (messages[param_idx], "Instance variable expression begins "
+		   "with paramater \"%s,\" which is declared as an Object.",
+		   M_NAME(messages[param_idx]));
+	}
 	break;
+      }
 
     } else {
 

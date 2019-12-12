@@ -1,4 +1,4 @@
-/* $Id: arg.c,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ */
+/* $Id: arg.c,v 1.2 2019/12/12 02:05:42 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -736,7 +736,15 @@ static char *fn_arg_expr_param_expr_class (MESSAGE_STACK messages,
 						 messages,
 						 expr_start,
 						 get_stack_top (messages));
-  return M_OBJ(messages[expr_end]) -> instancevars -> __o_classname;
+  /***/
+  if (IS_OBJECT(M_OBJ(messages[expr_end]))) {
+    return M_OBJ(messages[expr_end]) -> instancevars -> __o_classname;
+  } else {
+    /* This is what the instance variable series that is parsed
+       above should default to, and it should have also printed a
+       warning if it can't resolve the instance variable series. */
+    return OBJECT_CLASSNAME; 
+  }
 }
 
 int fn_arg_expression_call = 0;

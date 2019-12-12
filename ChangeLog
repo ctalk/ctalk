@@ -1117,4 +1117,15 @@
 	- Updated __ctalkX11CreateSubWindow to take its dimensions from
 	the self (i.e., subpane) object.  Also updated
 	__ctalkMapX11Window to call XMapSubwindows (x11lib.c).
+	- In add_variable_from_cvar, don't prevent adding a
+	local CVAR during library pass - the library may contain
+	a C function (cvars.c).
+	]
+2019-12-11
+	[
+	- Added a warning message to
+	get_new_method_param_instance_variable_series, if the
+	expression begins with an Object instance (object.c).  Also
+	added an OBJECT_CLASSNAME return in fn_arg_param_expr_class
+	in the case that the expression can't be evaluated (arg.c).
 	]
