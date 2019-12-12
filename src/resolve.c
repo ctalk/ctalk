@@ -1,4 +1,4 @@
-/* $Id: resolve.c,v 1.2 2019/11/25 00:37:29 rkiesling Exp $ */
+/* $Id: resolve.c,v 1.3 2019/12/12 05:10:44 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -1468,7 +1468,8 @@ OBJECT *resolve (int message_ptr) {
    *   Check for a method parameter reference and create an
    *   object if necessary.
    */
-  if (interpreter_pass == method_pass) {
+  /***/
+  if ((interpreter_pass == method_pass) && !(m -> attrs & TOK_SELF)) {
     int i;
     METHOD *method;
     method = new_methods[new_method_ptr + 1] -> method;
