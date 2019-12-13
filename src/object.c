@@ -1,4 +1,4 @@
-/* $Id: object.c,v 1.2 2019/12/12 02:05:42 rkiesling Exp $ */
+/* $Id: object.c,v 1.4 2019/12/12 22:31:48 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -1857,11 +1857,17 @@ void get_new_method_param_instance_variable_series (OBJECT *param_class_object,
 
       if (!have_instance_var) {
 	/***/
+	/* TOK_IS_CLASS_TYPECAST set in fn_arg_expression, so far */
 	if (str_eq (M_OBJ(messages[param_idx]) -> __o_class -> __o_name,
-		    OBJECT_CLASSNAME)) {
+		    OBJECT_CLASSNAME) &&
+	    !(messages[param_idx] -> attrs & TOK_IS_CLASS_TYPECAST)) {
 	  warning (messages[param_idx], "Instance variable expression begins "
-		   "with paramater \"%s,\" which is declared as an Object.",
+		   "with parameter \"%s,\" which is declared as an Object.",
 		   M_NAME(messages[param_idx]));
+	  messages[i] -> obj = prev_tok_object;
+	  messages[i] -> attrs |= OBJ_IS_INSTANCE_VAR;
+	  messages[i] -> receiver_msg = messages[param_idx];
+	  messages[i] -> receiver_obj = messages[param_idx] -> obj;
 	}
 	break;
       }

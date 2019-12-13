@@ -1,4 +1,4 @@
-/* $Id: arg.c,v 1.2 2019/12/12 02:05:42 rkiesling Exp $ */
+/* $Id: arg.c,v 1.4 2019/12/12 22:31:48 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -738,7 +738,11 @@ static char *fn_arg_expr_param_expr_class (MESSAGE_STACK messages,
 						 get_stack_top (messages));
   /***/
   if (IS_OBJECT(M_OBJ(messages[expr_end]))) {
-    return M_OBJ(messages[expr_end]) -> instancevars -> __o_classname;
+    if (IS_OBJECT(M_OBJ(messages[expr_end]) -> instancevars)) {
+      return M_OBJ(messages[expr_end]) -> instancevars -> __o_classname;
+    } else {
+      return M_OBJ(messages[expr_end]) -> __o_classname;
+    }
   } else {
     /* This is what the instance variable series that is parsed
        above should default to, and it should have also printed a
@@ -761,7 +765,8 @@ OBJECT *fn_arg_expression (OBJECT *rcvr_class, METHOD *method,
   int n_params = 0;  /* Avoid a warning. */
   int stack_start_idx, expr_end;
   ARGSTR argstrs[MAXARGS];
-  char expr_buf[MAXMSG], expr_buf_tmp[MAXMSG], expr_buf_tmp_2[MAXMSG];
+  char expr_buf[MAXMSG], expr_buf_tmp[MAXMSG], expr_buf_tmp_2[MAXMSG],
+    expr_buf_tmp_3[MAXMSG];
   char constant_arg[MAXMSG], *basename = NULL;
   char __argbuf[FN_ARG_EVAL_EXPR_MAX];
   OBJECT *arg_object;
@@ -821,6 +826,34 @@ OBJECT *fn_arg_expression (OBJECT *rcvr_class, METHOD *method,
 
   for (n_th_arg = 0; n_th_arg < n_args; n_th_arg++) {
 
+    /* check for a class cast, set the object's class and skip
+       the leading cast tokens - set the attributes ourselves,
+       in case resolve started with a lot of tokens before these
+       tokens */
+    if (M_TOK(messages[argstrs[n_th_arg].start_idx]) == OPENPAREN) {
+      int l, l_2, l_3, l_4;
+      OBJECT *ccobj;
+      l = nextlangmsg (messages, argstrs[n_th_arg].start_idx);
+      if (M_TOK(messages[l]) == LABEL) {
+	if ((ccobj = get_class_object (M_NAME(messages[l]))) != NULL) {
+	  l_2 = nextlangmsg (messages, l);
+	  if (M_TOK(messages[l_2]) == MULT) {
+	    l_3 = nextlangmsg (messages, l_2);
+	    if (M_TOK(messages[l_3]) == CLOSEPAREN) {
+	      l_4 = nextlangmsg (messages, l_3);
+	      if (M_TOK(messages[l_4]) == LABEL) {
+		if (is_object_or_param (M_NAME(messages[l_4]), NULL)) {
+		  messages[l_4] -> obj = ccobj;
+		  messages[l_4] -> attrs |= TOK_IS_CLASS_TYPECAST;
+		  argstrs[n_th_arg].start_idx = l_4;
+		}
+	      }
+	    }
+	  }
+	}
+      }
+    }
+
     if ((basename = arg_var_basename (messages, argstrs, n_th_arg))
 	== NULL) {
       basename = argstrs[n_th_arg].arg;
@@ -861,7 +894,7 @@ OBJECT *fn_arg_expression (OBJECT *rcvr_class, METHOD *method,
 			     &expr_end, expr_buf_tmp),
 		basic_class_from_cvar
 		(messages[argstrs[n_th_arg].start_idx], fn_param_cvar, 0),
-		true, expr_buf), NULL);
+		true, expr_buf_tmp_3), NULL);
       add_arg (expr_buf, expr_buf_tmp_2, n_th_arg, n_args);
       if (fn_param_cvar)
 	fn_param_cvar = fn_param_cvar -> next;
