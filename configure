@@ -13231,7 +13231,7 @@ if test "x$no_x" = "x"; then
 if test "${with_xrender_includes+set}" = set; then :
   withval=$with_xrender_includes;
 	XRENDER_INC_ARG="$withval"
-        if test "x$withval" != "xno" || test "x$withval" != "xNO"; then
+        if test "x$withval" != "xno" && test "x$withval" != "xNO"; then
 	  if test -f $withval/X11/extensions/Xrender.h; then
 	    have_xrender="yes";
 	    lib_freetype_cflags="-I $withval -DHAVE_XRENDER_H";

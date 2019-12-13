@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.27 2019/12/01 14:44:31 rkiesling Exp $
+# $Id: configure.ac,v 1.28 2019/12/13 23:35:28 rkiesling Exp $
 AC_INIT(ctalk, 0.0.65, rk3314042@gmail.com, "")
 
 # Contained in acinclude.m4 and generated aclocal.m4
@@ -710,7 +710,7 @@ AC_ARG_WITH(xrender-includes,
 			  and should be considered experimental.],
         [
 	XRENDER_INC_ARG="$withval"
-        if test "x$withval" != "xno" || test "x$withval" != "xNO"; then
+        if test "x$withval" != "xno" && test "x$withval" != "xNO"; then
 	  if test -f $withval/X11/extensions/Xrender.h; then
 	    have_xrender="yes";
 	    lib_freetype_cflags="-I $withval -DHAVE_XRENDER_H";
