@@ -13187,6 +13187,7 @@ fi
 
 
 have_xft="no"
+no_xft_user_opt="no"
 
 LIB_FREETYPE_INCLUDE_ARG=""
 if test "x$no_x" = "x"; then
@@ -13194,14 +13195,18 @@ if test "x$no_x" = "x"; then
 # Check whether --with-libxft-includes was given.
 if test "${with_libxft_includes+set}" = set; then :
   withval=$with_libxft_includes;
-	if test -f "$withval/X11/Xft/Xft.h"; then
-	  LIB_FREETYPE_INCLUDE_ARG="$withval";
-          if test "x$withval" != "xno" || test "x$withval" != "xNO"; then
-            have_xft="yes"
+        if test "x$withval" != "xno" && test "x$withval" != "xNO"; then
+	  if test -f "$withval/X11/Xft/Xft.h"; then
+	    LIB_FREETYPE_INCLUDE_ARG="$withval";
+            if test "x$withval" != "xno" || test "x$withval" != "xNO"; then
+              have_xft="yes"
+	    fi
+	  else
+ 	    as_fn_error 1 "--with-xft-includes=$withval:
+$withval/X11/Xft/Xft.h: file not found." "$LINENO" 5;
 	  fi
 	else
- 	  as_fn_error 1 "--with-xft-includes=$withval:
-$withval/X11/Xft/Xft.h: file not found." "$LINENO" 5;
+	no_xft_user_opt="yes"
 	fi
 
 
@@ -13215,7 +13220,14 @@ if test "x$no_x" = "x"; then
 # Check whether --with-libxft-libs was given.
 if test "${with_libxft_libs+set}" = set; then :
   withval=$with_libxft_libs;
+	case "$withval" in
+	no|NO)
+	no_xft_user_opt="yes"
+	;;
+	*)
 	LIB_FREETYPE_LIB_ARG="$withval"
+	;;
+	esac
 
 
 fi
@@ -14148,6 +14160,7 @@ fi
 
 LIB_AM_LDFLAGS="$AM_LDFLAGS $gnu_readline_ld_opts"
 
+if test "x$no_xft_user_opt" != "xyes"; then
 $as_echo_n  "checking for FreeType includes... "
 if test -z $LIB_FREETYPE_INCLUDE_ARG >/dev/null 2>&1; then
    if test -f /usr/local/include/X11/Xft/Xft.h >/dev/null 2>&1; then
@@ -14203,6 +14216,7 @@ $as_echo "#define HAVE_XFT_H 0" >>confdefs.h
    fi
 fi
 
+fi # if test "x$no_xft_user_opt" != "xyes"; then
 
 if test "x$LIB_FREETYPE_LIB_ARG" != "xno" || test "x$LIB_FREETYPE_LIB_ARG" != "xNO"; then
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking for XftDrawCreate in -lXft" >&5

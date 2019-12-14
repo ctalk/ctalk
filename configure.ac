@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.28 2019/12/13 23:35:28 rkiesling Exp $
+# $Id: configure.ac,v 1.29 2019/12/14 00:02:42 rkiesling Exp $
 AC_INIT(ctalk, 0.0.65, rk3314042@gmail.com, "")
 
 # Contained in acinclude.m4 and generated aclocal.m4
@@ -658,6 +658,7 @@ AC_ARG_WITH(gnu-readline,
 )
 
 have_xft="no"
+no_xft_user_opt="no"
 
 LIB_FREETYPE_INCLUDE_ARG=""
 if test "x$no_x" = "x"; then
@@ -666,14 +667,18 @@ AC_ARG_WITH(libxft-includes,
                           The directory where X11/Xft/Xft.h is located
 			  when building Ctalk with Xft support. ],
         [
-	if test -f "$withval/X11/Xft/Xft.h"; then
-	  LIB_FREETYPE_INCLUDE_ARG="$withval";
-          if test "x$withval" != "xno" || test "x$withval" != "xNO"; then
-            have_xft="yes"
+        if test "x$withval" != "xno" && test "x$withval" != "xNO"; then
+	  if test -f "$withval/X11/Xft/Xft.h"; then
+	    LIB_FREETYPE_INCLUDE_ARG="$withval";
+            if test "x$withval" != "xno" || test "x$withval" != "xNO"; then
+              have_xft="yes"
+	    fi
+	  else
+ 	    AC_MSG_ERROR(--with-xft-includes=$withval:
+$withval/X11/Xft/Xft.h: file not found., [1]);
 	  fi
 	else
- 	  AC_MSG_ERROR(--with-xft-includes=$withval:
-$withval/X11/Xft/Xft.h: file not found., [1]);
+	no_xft_user_opt="yes"
 	fi
         ]
 )
@@ -687,7 +692,14 @@ AC_ARG_WITH(libxft-libs,
                           in DIR. If DIR = 'no', then don't include
 			  '-L<DIR> -lXft' in the compilation flags],
         [
+	case "$withval" in
+	no|NO)
+	no_xft_user_opt="yes"
+	;;
+	*)
 	LIB_FREETYPE_LIB_ARG="$withval"
+	;;
+	esac
         ]
 )
 fi # if test "x$no_x" = "x"; then
@@ -1247,6 +1259,7 @@ fi
 
 LIB_AM_LDFLAGS="$AM_LDFLAGS $gnu_readline_ld_opts"
 
+if test "x$no_xft_user_opt" != "xyes"; then
 AS_ECHO_N "checking for FreeType includes... "
 if test -z $LIB_FREETYPE_INCLUDE_ARG >/dev/null 2>&1; then
    if test -f /usr/local/include/X11/Xft/Xft.h >/dev/null 2>&1; then
@@ -1298,6 +1311,7 @@ else
    fi
 fi
 AC_SUBST(HAVE_XFT_H)
+fi # if test "x$no_xft_user_opt" != "xyes"; then
 
 if test "x$LIB_FREETYPE_LIB_ARG" != "xno" || test "x$LIB_FREETYPE_LIB_ARG" != "xNO"; then
   AC_CHECK_LIB(Xft, XftDrawCreate, lib_freetype_ld_opts="-lXft -lfontconfig",
