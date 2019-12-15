@@ -1,4 +1,4 @@
-/* $Id: ctxlogo.ca,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ */
+/* $Id: ctxlogo.ca,v 1.2 2019/12/15 02:29:26 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -250,6 +250,9 @@ int main (int argc, char **argv) {
 	  xCanvasPane refresh;
 	  break;
 	case EXPOSE:
+	  xWindowSize = xPane size x;
+	  yWindowSize = xPane size y;
+	  logoAirPix = xWindowSize / 20;
 	  xCanvasPane clear;
 	  xCanvasPane drawXLogo xWindowSize, yWindowSize;
 	  xCanvasPane pixmapFromData (xWindowSize / 2) - (LOGO_WIDTH / 2), 
