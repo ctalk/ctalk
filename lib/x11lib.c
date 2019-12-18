@@ -1,4 +1,4 @@
-/* $Id: x11lib.c,v 1.10 2019/12/10 23:57:08 rkiesling Exp $ -*-c-*-*/
+/* $Id: x11lib.c,v 1.35 2019/12/18 00:32:10 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -95,7 +95,7 @@ Display *display = NULL;
 static int screen, screen_depth;
 int display_width, display_height;
 static Window root;
-static bool wm_xfce, wm_kwin;
+static bool wm_xfce, wm_kwin, wm_xquartz;
 
 extern char **fixed_font_set;
 Font fixed_font = 0;
@@ -213,6 +213,15 @@ void x11_sig_handler (int sig, siginfo_t *sip, void *ucp) {
 #endif
 // /*   XSync (display, TRUE); */
   kill (0, sig);
+}
+
+static bool is_wm_xquartz (void) {
+  struct stat s;
+  /* Just look for the MacOS Frameworks directory... */
+  if (!stat ("/System/Library/Frameworks", &s)) {
+    return true;
+  }
+  return false;
 }
 
 static bool is_wm_xfce (void) {
@@ -925,9 +934,6 @@ extern int __xlib_clear_pixmap (Drawable, unsigned int, unsigned int,
 int __xlib_resize_window (Drawable drawable, GC gc, char *data) {
   unsigned int width, height;
   int depth, r;
-  unsigned int old_paneBuffer_id, old_paneBackingStore_id;
-  Pixmap new_paneBuffer_id, new_paneBackingStore_id;
-  char intbuf1[MAXLABEL], intbuf2[MAXLABEL];
 
 #ifdef GC_RANGE_CHECK
 
@@ -936,61 +942,19 @@ int __xlib_resize_window (Drawable drawable, GC gc, char *data) {
 
 #endif
 
-  if ((r = sscanf (data, "%u:%u:%d:%u:%u", 
-		   &width, &height, &depth, 
-		   &old_paneBuffer_id,
-		   &old_paneBackingStore_id)) != 5) {
+  if ((r = sscanf (data, "%u:%u:%d", 
+		   &width, &height, &depth)) != 3) { 
 #ifndef WITHOUT_X11_WARNINGS
     fprintf (stderr, "__xlib_resize_window (sscanf width, height): %s : r = %d.\n", strerror (errno), r);
 #endif
     return ERROR;
   }
-  XResizeWindow (display, drawable, width, height);
-  if (old_paneBuffer_id && old_paneBackingStore_id) {
-    new_paneBuffer_id =
-      XCreatePixmap (display, drawable, width, height, depth);
-    __xlib_clear_pixmap (new_paneBuffer_id, width, height, gc);
-    new_paneBackingStore_id =
-      XCreatePixmap (display, drawable, width, height, depth);
-    __xlib_clear_pixmap (new_paneBackingStore_id, width, height, gc);
-    XCopyArea (display, (Pixmap)old_paneBuffer_id, new_paneBuffer_id, gc, 
-	       0, 0, 
-	       width, height, 
-	       0, 0);
-    XFreePixmap (display, (Pixmap)old_paneBuffer_id);
-    XFreePixmap (display, (Pixmap)old_paneBackingStore_id);
-    strcatx (data, ctitoa (new_paneBuffer_id, intbuf1), " ",
-	     ctitoa (new_paneBackingStore_id, intbuf2), NULL);
-  } else {
-#ifdef __APPLE__
-    /*
-     *  Apple's shared memory management makes checking for an 
-     *  actual bufferless pane difficult.
-     */
-    new_paneBuffer_id =
-      XCreatePixmap (display, drawable, width, height, depth);
-    __xlib_clear_pixmap (new_paneBuffer_id, width, height, gc);
-    new_paneBackingStore_id =
-      XCreatePixmap (display, drawable, width, height, depth);
-    __xlib_clear_pixmap (new_paneBackingStore_id, width, height, gc);
-    strcatx (data, ctitoa (new_paneBuffer_id, intbuf1), " ",
-	     ctitoa (new_paneBackingStore_id, intbuf2), NULL);
-#else
-    if (depth) {
-      new_paneBuffer_id =
-	XCreatePixmap (display, drawable, width, height, depth);
-      __xlib_clear_pixmap (new_paneBuffer_id, width, height, gc);
-     new_paneBackingStore_id =
-       XCreatePixmap (display, drawable, width, height, depth);
-     __xlib_clear_pixmap (new_paneBackingStore_id, width, height, gc);
-     strcatx (data, ctitoa (new_paneBuffer_id, intbuf1), " ",
-	     ctitoa (new_paneBackingStore_id, intbuf2), NULL);
-    } else {
-      strcpy (data, "0 0");
-    }
-#endif
-  }
-  return SUCCESS;
+  r = XResizeWindow (display, drawable, width, height);
+  /* The C library uses the opposite convention - 0 for success,
+     non-zero for error. Changes this to the C convention */
+  r = (r == 0) ? 1 : 0;
+  ctitoa (r, data);
+  return r;
 }
 
 int __xlib_move_window (Drawable drawable, GC gc, char *data) {
@@ -1927,6 +1891,7 @@ static Display *__x11_open_display (void) {
     }
     wm_xfce = is_wm_xfce ();
     wm_kwin = is_kwin_desktop ();
+    wm_xquartz = is_wm_xquartz ();
     return display;
   }
   return NULL;
@@ -2224,7 +2189,7 @@ int __ctalkOpenX11InputClient (OBJECT *streamobject) {
   int main_win_id;
   OBJECT *pane_win_id_value_object;
 #endif
-  int child_pid/* , pane_sock_fd */;
+  int child_pid;
 
   if ((display = __x11_open_display ()) == NULL)
     return -1;
@@ -2334,8 +2299,6 @@ int __ctalkCloseX11Pane (OBJECT *self) {
     __ctalkX11FreePaneBuffer (self);
   }  
 
-/*   request_client_shutdown (); */
-/*   display = NULL; */
   return SUCCESS;
 }
 
@@ -2469,22 +2432,30 @@ int __have_bitmap_buffers (OBJECT *self_object) {
   return FALSE;
 }
 
-/***/
 static void event_to_client (int parent_fd,
 			     int eventclass,
 			     int win_id,
 			     int eventdata1,
 			     int eventdata2, int eventdata3,
-			     int eventdata4, int eventdata5) {
-  int __r;
+			     int eventdata4, int eventdata5,
+			     int eventdata6) {
+  int __r, d_size;
+  unsigned int a[9];
 
-  __r = write (parent_fd, &eventclass, sizeof (int));
-  __r = write (parent_fd, &win_id, sizeof (int));
-  __r = write (parent_fd, &eventdata1, sizeof (int));
-  __r = write (parent_fd, &eventdata2, sizeof (int));
-  __r = write (parent_fd, &eventdata3, sizeof (int));
-  __r = write (parent_fd, &eventdata4, sizeof (int));
-  __r = write (parent_fd, &eventdata5, sizeof (int));
+  d_size = sizeof (unsigned int) * 8;
+  a[_SCLASS] = eventclass;
+  a[_SWIN] = win_id;
+  a[_SDT1] = eventdata1;
+  a[_SDT2] = eventdata2;
+  a[_SDT3] = eventdata3;
+  a[_SDT4] = eventdata4;
+  a[_SDT5] = eventdata5;
+  a[_SDT6] = eventdata6;
+  if ((__r = write (parent_fd, a, d_size) != d_size)) {
+#ifndef WITHOUT_X11_WARNINGS
+    fprintf (stderr, "ctalk: event_to_client: %s\n", strerror (errno));
+#endif
+  }
 
 }
 
@@ -2511,7 +2482,7 @@ static void resize_event_to_client (int fd, int x, int y,
 				     int win_id,
 				     int *eventclass) {
   event_to_client (fd, RESIZENOTIFY, win_id,
-		   x, y, width, height, border_width);
+		   x, y, width, height, border_width, 0);
   prev -> width = width;
   prev -> height = height;
   *eventclass = 0;
@@ -2647,7 +2618,7 @@ static int kwin_event_loop (int parent_fd, int mem_handle, int main_win_id) {
 	    ;
 	  event_to_client (parent_fd, MOTIONNOTIFY,
 			   e.xmotion.window, e.xmotion.x, e.xmotion.y,
-			   e.xmotion.state, e.xmotion.is_hint, 0);
+			   e.xmotion.state, e.xmotion.is_hint, 0, 0);
 	  eventclass = 0;
 	  continue;
   	  break;
@@ -2683,7 +2654,7 @@ static int kwin_event_loop (int parent_fd, int mem_handle, int main_win_id) {
 			       e.xconfigure.y, 
 			       e.xconfigure.width,
 			       e.xconfigure.height,
-			       e.xconfigure.border_width);
+			       e.xconfigure.border_width, 0);
 	      if ((prev_d.width != e.xconfigure.width) ||
 		  (prev_d.height != e.xconfigure.height)) {
 		resize_event_to_client
@@ -2705,7 +2676,7 @@ static int kwin_event_loop (int parent_fd, int mem_handle, int main_win_id) {
 	    event_to_client (parent_fd, EXPOSE, e.xconfigure.x, 
 			     e.xconfigure.y, 
 			     e.xconfigure.width,
-			     e.xconfigure.height, 0);
+			     e.xconfigure.height, 0, 0);
 
 	  }
 	  break;
@@ -2734,7 +2705,7 @@ static int kwin_event_loop (int parent_fd, int mem_handle, int main_win_id) {
 
 	event_to_client (parent_fd, eventclass, eventdata1, 
 			 eventdata2, eventdata3,
-			 eventdata4, eventdata5);
+			 eventdata4, eventdata5, 0);
 
 	eventclass = eventdata1 = eventdata2 = 0;
       }
@@ -2825,47 +2796,33 @@ int __ctalkX11InputClient (OBJECT *streamobject, int parent_fd, int mem_handle, 
 	  continue;
 	}
       }
+      if (e.type == Expose && e.xexpose.count > 0)
+	continue;
       switch (e.type)
 	{
 	case ButtonPress:
 	case ButtonRelease:
-#if 0 /***/
-	  if (e.xbutton.window == main_win_id) {
-#endif	    
-	    buttonpressed = (e.type == ButtonPress) ? TRUE : FALSE;
-	    event_to_client (client_sock_fd,
-			     ((e.type == ButtonPress) ?
-			      BUTTONPRESS : BUTTONRELEASE),
-			     e.xbutton.window,
-			     e.xbutton.x,
-			     e.xbutton.y,
-			     e.xbutton.state,
-			     e.xbutton.button, 0);
-#if 0 /***/
-	  }
-#endif	  
+	  buttonpressed = (e.type == ButtonPress) ? TRUE : FALSE;
+	  event_to_client (client_sock_fd,
+			   ((e.type == ButtonPress) ?
+			    BUTTONPRESS : BUTTONRELEASE),
+			   e.xbutton.window,
+			   e.xbutton.x,
+			   e.xbutton.y,
+			   e.xbutton.state,
+			   e.xbutton.button, 0, 0);
 	  continue;
 	  break;
 	case KeyPress:
-	  eventclass = KEYPRESS;
-	  event_win = e.xkey.window;
-	  eventdata1 = e.xkey.x;
-	  eventdata2 = e.xkey.y;
-	  eventdata3 = e.xkey.state;
-	  eventdata4 = e.xkey.keycode;
-	  eventdata5 = 
-	    get_x11_keysym (e.xkey.keycode, e.xkey.state, TRUE);
-	  break;
 	case KeyRelease:
-	  eventclass = KEYRELEASE;
-	  event_win = e.xkey.window;
-	  eventdata1 = e.xkey.x;
-	  eventdata2 = e.xkey.y;
-	  eventdata3 = e.xkey.state;
-	  eventdata4 = e.xkey.keycode;
-	  eventdata5 = 
-	    get_x11_keysym (e.xkey.keycode, e.xkey.state, FALSE);
-	  break;
+	  event_to_client (client_sock_fd,
+			   ((e.type == KeyPress) ?
+			    KEYPRESS: KEYRELEASE),
+			   e.xkey.window, e.xkey.x, e.xkey.y,
+			   e.xkey.state, e.xkey.keycode,
+			   get_x11_keysym (e.xkey.keycode,
+					   e.xkey.state, TRUE), 0);
+	  continue;
 	case FocusIn:
 	  if (e.xfocus.mode == NotifyUngrab) {
 	    grabbed = false;
@@ -2887,7 +2844,7 @@ int __ctalkX11InputClient (OBJECT *streamobject, int parent_fd, int mem_handle, 
 			       e_expose.xexpose.y,
 			       e_expose.xexpose.width,
 			       e_expose.xexpose.height,
-			       e_expose.xexpose.count);
+			       e_expose.xexpose.count, 0);
 	      eventclass = 0;
 	      continue;
 	    }
@@ -2931,7 +2888,7 @@ int __ctalkX11InputClient (OBJECT *streamobject, int parent_fd, int mem_handle, 
 			   e.xmotion.y,
 			   e.xmotion.state,
 			   e.xmotion.is_hint,
-			   0);
+			   0, 0);
 	  continue;
   	  break;
   	case MapNotify:
@@ -2953,19 +2910,19 @@ int __ctalkX11InputClient (OBJECT *streamobject, int parent_fd, int mem_handle, 
 	    continue;
 	  }
 
+	  /* compiz needs this here */
+	  while (XCheckTypedWindowEvent 
+		 (display, main_win_id, Expose, &e))
+	    ;
 	  if (buttonpressed)  {
-	    while (XCheckTypedWindowEvent 
-		   (display, main_win_id, Expose, &e))
-	      ;
 	    continue;
 	  }
-  	  eventclass = EXPOSE;
-	  event_win = e.xexpose.window;
-  	  eventdata1 = e.xexpose.x;
-  	  eventdata2 = e.xexpose.y;
-  	  eventdata3 = e.xexpose.width;
-  	  eventdata4 = e.xexpose.height;
-  	  eventdata5 = e.xexpose.count;
+
+	  event_to_client (client_sock_fd, EXPOSE,
+			   e.xexpose.window, e.xexpose.x, e.xexpose.y,
+			   e.xexpose.width, e.xexpose.height, 0, 0);
+	  eventclass = 0;
+	  continue;
    	  break;
 	case ConfigureNotify:
 	  /* 
@@ -2997,7 +2954,7 @@ int __ctalkX11InputClient (OBJECT *streamobject, int parent_fd, int mem_handle, 
 	    /* with xfce we only need to keep the last
 	       ConfigureNotify event of the resizing 
 	       operation. */
-	    XEvent e_next, e_expose;
+	    XEvent e_next;
 	    xfce_resizing = true;
 	    while (xfce_resizing) {
 	      XPeekEvent (display, &e_next);
@@ -3014,9 +2971,6 @@ int __ctalkX11InputClient (OBJECT *streamobject, int parent_fd, int mem_handle, 
 		xfce_resizing = false;
 	      }
 	      while (XCheckTypedWindowEvent 
-		     (display, main_win_id, Expose, &e_expose))
-		;
-	      while (XCheckTypedWindowEvent 
 		     (display, main_win_id, ConfigureNotify, &e))
 		;
 	    }
@@ -3032,9 +2986,9 @@ int __ctalkX11InputClient (OBJECT *streamobject, int parent_fd, int mem_handle, 
 	    continue;
 	  }
 
-#if 0 /***/
 	  if (e.xconfigure.window == main_win_id) {
-#endif	    
+	    /* Anything else *should* just be registered on the
+	       window itself. */
 	  do_configure:
 	    if (e.xconfigure.x && e.xconfigure.y) {
 	      if ((prev_d.x != e.xconfigure.x) ||
@@ -3048,7 +3002,7 @@ int __ctalkX11InputClient (OBJECT *streamobject, int parent_fd, int mem_handle, 
 				 e.xconfigure.y, 
 				 e.xconfigure.width,
 				 e.xconfigure.height,
-				 e.xconfigure.border_width);
+				 e.xconfigure.border_width, 0);
 
 		/* This is new. Works fine with xfce. */
 		if ((prev_d.width != e.xconfigure.width) ||
@@ -3078,23 +3032,24 @@ int __ctalkX11InputClient (OBJECT *streamobject, int parent_fd, int mem_handle, 
 	    } else {
 	      if ((prev_d.width != e.xconfigure.width) ||
 		  (prev_d.height != e.xconfigure.height)) {
+		XEvent e_expose;
+		while (XCheckTypedWindowEvent 
+		       (display, main_win_id, ConfigureNotify, &e))
+		  ;
+		/* compiz still uses this occasionally, too */
+		while (XCheckTypedWindowEvent 
+		       (display, main_win_id, Expose, &e_expose))
+		  ;
 		eventclass = RESIZENOTIFY;
-		event_to_client (client_sock_fd, eventclass,
-				 e.xconfigure.window,
-				 e.xconfigure.x, 
-				 e.xconfigure.y, 
-				 e.xconfigure.width,
-				 e.xconfigure.height,
-				 e.xconfigure.border_width);
-		prev_d.width = e.xconfigure.width;
-		prev_d.height = e.xconfigure.height;
-		eventclass = 0;
+		resize_event_to_client
+		  (client_sock_fd, e.xconfigure.x, e.xconfigure.y,
+		   e.xconfigure.width, e.xconfigure.height,
+		   e.xconfigure.border_width, &prev_d,
+		   e.xconfigure.window, &eventclass);
 		continue;
 	      }
 	    }
-#if 0 /***/
 	  }
-#endif
 	  break;
 	case ClientMessage:
 	  if(e.xclient.data.l[0] == wm_delete_window) {
@@ -3111,7 +3066,7 @@ int __ctalkX11InputClient (OBJECT *streamobject, int parent_fd, int mem_handle, 
 	  __xlib_clear_selection (&e);
 	  event_to_client (client_sock_fd, SELECTIONCLEAR,
 			   e.xselectionclear.window,
-			   0, 0, 0, 0, 0);
+			   0, 0, 0, 0, 0, 0);
 	  continue;
 	  break;
 	case SelectionRequest:
@@ -3135,7 +3090,7 @@ int __ctalkX11InputClient (OBJECT *streamobject, int parent_fd, int mem_handle, 
       if (eventclass) {
 	event_to_client (client_sock_fd,
 			 eventclass, event_win,eventdata1, eventdata2,
-			 eventdata3, eventdata4, eventdata5);
+			 eventdata3, eventdata4, eventdata5, 0);
 	eventclass = eventdata1 = eventdata2 = 0;
       }
     }
@@ -3241,7 +3196,7 @@ OBJECT *__x11_pane_win_gc_value_object (OBJECT *paneobject) {
 
 /* Get a dimension instance var, named by xyvarname, of the point
    instance var named by ptvarname */
-/***/
+
 static OBJECT *pane_pt_var (OBJECT *paneobject, char *ptvarname,
 			     char *xyvarname) {
   OBJECT *pane_self_object, *pt_var, *xy_var;
@@ -3506,7 +3461,6 @@ int __ctalkCreateX11MainWindowTitle (OBJECT *self_object, char *title) {
 int __ctalkCreateX11SubWindow (OBJECT *parent, OBJECT *self) {
   OBJECT *parent_object;
   /* Here, self is the subpane object */
-  /***/
   OBJECT *self_object, *self_origin_x_var, *self_origin_y_var,
     *self_size_x_var, *self_size_y_var;
   OBJECT *parent_win_id_value_object, *self_win_id_value_object,
@@ -3542,7 +3496,6 @@ int __ctalkCreateX11SubWindow (OBJECT *parent, OBJECT *self) {
   win_depth_value_obj =
     __x11_pane_win_depth_value_object (self_object);
   parent_id = (Window)*(int *)parent_win_id_value_object -> __o_value;
-  /***/
   self_origin_x_var = pane_pt_var (self_object, "origin", "x");
   self_origin_y_var = pane_pt_var (self_object, "origin", "y");
   self_size_x_var = pane_pt_var (self_object, "size", "x");
@@ -3690,13 +3643,10 @@ int __ctalkX11UseFont (OBJECT *self) {
 }
 
 static int __x11_resize_request_internal (int width, int height, int depth,
-				      char *win_id_value,
-				      char *gc_value,
-				      char *paneBuffer_id_value,
-				      char *paneBackingStore_id_value,
-				      int *paneBuffer_id_return,
-				      int *paneBackingStore_id_return) {
-  char d_buf[MAXMSG], d_buf_2[MAXMSG];
+					  int win_id_value,
+					  GC gc_value) {
+
+  char d_buf[MAXMSG], d_buf_2[MAXLABEL], d_buf_3[MAXLABEL];
   int r;
 #ifdef GRAPHICS_WRITE_SEND_EVENT
   XEvent send_event;
@@ -3704,12 +3654,10 @@ static int __x11_resize_request_internal (int width, int height, int depth,
 
   strcatx (d_buf, ascii[width], ":",
 	   ascii[height], ":",
-	   ascii[depth], ":",
-	   paneBuffer_id_value, ":",
-	   paneBackingStore_id_value, NULL);
+	   ascii[depth], NULL);
 
   make_req (shm_mem, PANE_RESIZE_REQUEST,
-	    atoi (win_id_value), atoi (gc_value), d_buf);
+	    win_id_value, gc_value, d_buf);
 #ifdef GRAPHICS_WRITE_SEND_EVENT
   send_event.xgraphicsexpose.type = GraphicsExpose;
   send_event.xgraphicsexpose.send_event = True;
@@ -3718,30 +3666,14 @@ static int __x11_resize_request_internal (int width, int height, int depth,
   XSendEvent (display, atoi(win_id_value), False, 0L, &send_event);
 #endif
   wait_req (shm_mem);
-  sscanf (&shm_mem[SHM_RETVAL], "%s %s", d_buf, d_buf_2);
-  r = chkatoi (d_buf);
-  if (errno) {
-#ifndef WITHOUT_X11LIB_WARNINGS
-    _warning ("__x11_resize_request_internal: Invalid new buffers.\n");
-    _warning ("__x11_resize_request_internal: (To disable these messages, build Ctalk with\n");
-    _warning ("__x11_resize_request_internal: the --without-x11-warnings option.)\n");
-#endif
+  errno = 0;
+  r = strtol (&shm_mem[SHM_RETVAL], NULL, 10);
+  if (errno != 0) {
+    strtol_error (errno, "__x11_resize_request_internal",
+		  &shm_mem[SHM_RETVAL]);
     return ERROR;
-  } else {
-    *paneBuffer_id_return = r;
   }
-  r = chkatoi (d_buf_2);
-  if (errno) {
-#ifndef WITHOUT_X11LIB_WARNINGS
-    _warning ("__x11_resize_request_internal: Invalid new buffers.\n");
-    _warning ("__x11_resize_request_internal: (To disable these messages, build Ctalk with\n");
-    _warning ("__x11_resize_request_internal: the --without-x11-warnings option.)\n");
-#endif
-    return ERROR;
-  } else {
-    *paneBackingStore_id_return = r;
-  }
-  return SUCCESS;
+  return r;
 }
 
 /* cursor_id's are defined in x11defs.h and X11Cursor class */
@@ -3834,110 +3766,64 @@ int __ctalkX11ResizePixmap (int parent_visual,
 int __ctalkX11ResizeWindow (OBJECT *self, int width, int height,
 			    int depth) {
   OBJECT *self_object, *win_id_value, *gc_value;
-  OBJECT *paneBuffer_object, *paneBackingStore_object;
   OBJECT *pane_size_point_object, *pane_size_point_y_object, 
     *pane_size_point_x_object;
-  char d_buf[MAXLABEL];
-  int new_paneBuffer_id, new_paneBackingStore_id, n_resize_retries;
-  int old_x_size, old_y_size;
+  int old_x_size, old_y_size, n_resize_retries;
 #ifdef GRAPHICS_WRITE_SEND_EVENT
   XEvent send_event;
 #endif
   self_object = (IS_VALUE_INSTANCE_VAR (self) ? self->__o_p_obj : self);
   win_id_value = __x11_pane_win_id_value_object (self_object);
   gc_value = __x11_pane_win_gc_value_object (self_object);
-  if (__have_bitmap_buffers (self_object)) {
-    if ((pane_size_point_object =
-	 __ctalkGetInstanceVariable (self_object, "size", TRUE))
-	== NULL)
-      return ERROR;
-    if ((pane_size_point_y_object =
-	 __ctalkGetInstanceVariable (pane_size_point_object, "y", TRUE))
-	== NULL)
-      return ERROR;
-    if ((pane_size_point_x_object =
-	 __ctalkGetInstanceVariable (pane_size_point_object, "x", TRUE))
-	== NULL)
-      return ERROR;
-    if ((paneBuffer_object =
-	 __ctalkGetInstanceVariable (self_object, "paneBuffer", TRUE))
-	== NULL) 
-      return ERROR;
-    if ((paneBackingStore_object =
-	 __ctalkGetInstanceVariable (self_object, "paneBackingStore", TRUE))
-	== NULL) 
-      return ERROR;
-    old_x_size = 
-      atoi (pane_size_point_x_object -> instancevars -> __o_value);
-    old_y_size = 
-      atoi (pane_size_point_y_object -> instancevars -> __o_value);
-    if ((old_x_size >= width) && (old_y_size >= height))
-      return SUCCESS;
-    n_resize_retries = 0;
-  try_resize_request:
-    if (!__x11_resize_request_internal 
-	(width, height, depth,
-	 win_id_value -> __o_value,
-	 gc_value -> __o_value,
-	 paneBuffer_object->instancevars->__o_value,
-	 paneBackingStore_object->instancevars->__o_value,
-	 &new_paneBuffer_id, &new_paneBackingStore_id)) {
-      __ctalkDecimalIntegerToASCII (new_paneBuffer_id, d_buf);
-      __ctalkSetObjectValueVar (paneBuffer_object, d_buf);
-      __ctalkDecimalIntegerToASCII (new_paneBackingStore_id, d_buf);
-      __ctalkSetObjectValueVar (paneBackingStore_object, d_buf);
-      __ctalkDecimalIntegerToASCII (width, d_buf);
-      __ctalkSetObjectValueVar (pane_size_point_x_object, d_buf);
-      __ctalkDecimalIntegerToASCII (height, d_buf);
-      __ctalkSetObjectValueVar (pane_size_point_y_object, d_buf);
-      return SUCCESS;
-    } else {
+  if ((pane_size_point_object =
+       __ctalkGetInstanceVariable (self_object, "size", TRUE))
+      == NULL)
+    return ERROR;
+  if ((pane_size_point_y_object =
+       __ctalkGetInstanceVariable (pane_size_point_object, "y", TRUE))
+      == NULL)
+    return ERROR;
+  if ((pane_size_point_x_object =
+       __ctalkGetInstanceVariable (pane_size_point_object, "x", TRUE))
+      == NULL)
+    return ERROR;
+  old_x_size = INTVAL(pane_size_point_x_object -> instancevars -> __o_value);
+  old_y_size = INTVAL(pane_size_point_y_object -> instancevars -> __o_value);
+  /* we only need to resize the window if the new size is larger in one
+     of the dimensions */
+  if ((old_x_size > width) || (old_y_size > height))
+    return 0;
+  n_resize_retries = 0;
+ try_resize_request:
+  if (!__x11_resize_request_internal 
+      (width, height, depth,
+       INTVAL(win_id_value -> __o_value),
+       (GC)SYMVAL(gc_value -> __o_value))) {
+    return 1;
+  } else {
 #ifndef WITHOUT_X11LIB_WARNINGS
-      printf ("__ctalkX11ResizeWindow: Invalid resize_request return.\n");
-      printf ("__ctalkX11ResizeWindow: (To disable these messages, build Ctalk with\n");
-      printf ("__ctalkX11ResizeWindow: the --without-x11-warnings option.)\n");
+    printf ("__ctalkX11ResizeWindow: Invalid resize_request return.\n");
+    printf ("__ctalkX11ResizeWindow: (To disable these messages, build Ctalk with\n");
+    printf ("__ctalkX11ResizeWindow: the --without-x11-warnings option.)\n");
 #endif
 
-      if (++n_resize_retries < MAX_RESIZE_RETRIES) {
-	/*
-	 *  There's a possibility, if there are invalid resource
-	 *  id's  in the return buffers, that a valid Pixmap
-	 *  buffer can be lost, resulting in a memory 
-	 *  leak.  Mostly applies to OS X, which seems 
-	 *  to have trouble sometimes detaching shared
-	 *  memory correctly.  So we retry the resize anyway, 
-	 *  creating completely new buffers.  OS X, at least
-	 *  does not seem to require this function to generate
-	 *  a synthetic event to indicate that the window 
-	 *  must be redrawn completely.
-	 */
-	__ctalkSetObjectValueVar (paneBuffer_object, "0");
-	__ctalkSetObjectValueVar (paneBackingStore_object, "0");
-	goto try_resize_request;
-      } else {
-	return ERROR;
-      }
+    if (++n_resize_retries < MAX_RESIZE_RETRIES) {
+      /*
+       *  There's a possibility, if there are invalid resource
+       *  id's  in the return buffers, that a valid Pixmap
+       *  buffer can be lost, resulting in a memory 
+       *  leak.  Mostly applies to OS X, which seems 
+       *  to have trouble sometimes detaching shared
+       *  memory correctly.  So we retry the resize anyway, 
+       *  creating completely new buffers.  OS X, at least
+       *  does not seem to require this function to generate
+       *  a synthetic event to indicate that the window 
+       *  must be redrawn completely.
+       */
+      goto try_resize_request;
+    } else {
+      return ERROR;
     }
-  } else { /*  if (__have_bitmap_buffers (self_object)) */
-
-    strcatx (d_buf,
-	     ascii[width], ":",
-	     ascii[height], ":0:0:0",
-	     NULL);
-	     
-    make_req (shm_mem, PANE_RESIZE_REQUEST,
-	      INTVAL(win_id_value -> __o_value),
-	      SYMVAL(gc_value -> __o_value), d_buf);
-#ifdef GRAPHICS_WRITE_SEND_EVENT
-    send_event.xgraphicsexpose.type = GraphicsExpose;
-    send_event.xgraphicsexpose.send_event = True;
-    send_event.xgraphicsexpose.display = display;
-    send_event.xgraphicsexpose.drawable = atoi(win_id_value->__o_value);
-    XSendEvent (display, atoi(win_id_value->__o_value),
-		False, 0L, &send_event);
-#endif
-    wait_req (shm_mem);
-    return SUCCESS;
   }
 }
 

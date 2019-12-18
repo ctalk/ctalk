@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.35 2019/12/12 23:10:41 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.36 2019/12/15 18:16:11 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -20021,12 +20021,9 @@ pixmap.  Return the X ID of the new pixmap in @var{new_pixmap_return}.
 
 @idxlibfn{__ctalkX11ResizeWindow}
 @item __ctalkX11ResizeWindow (@code{OBJECT *}@var{pane_object}, @code{int} @var{width}, @code{int} @var{height}, @code{int} @var{depth})
-Resize a pane object's X window.  This function adjusts the object's width and
-height instance variables and buffers if the object defines
-them. @emph{Note: Do not use this function with windows that
-use X11Bitmap objects for buffers.  This function will
-eventually be phased out.  Use the methods in X11Bitmap
-class instead.} 
+Resize a pane object's X window.  Returns @samp{1} on success,
+@samp{0} if the window's new size is <= its current size, and
+@samp{-1} if there is an error.
 
 @idxlibfn{__ctalkX11PaneClearRectangle}
 @item __ctalkX11PaneClearRectangle (@code{OBJECT *}@var{pane_object}, @code{int}  @var{x}, @code{int} @var{y}, @code{int} @var{width}, @code{int} @var{height})

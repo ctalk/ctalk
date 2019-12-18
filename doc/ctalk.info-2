@@ -7397,12 +7397,9 @@ functions.
      of the new pixmap in NEW_PIXMAP_RETURN.
 
 '__ctalkX11ResizeWindow (OBJECT *PANE_OBJECT, int WIDTH, int HEIGHT, int DEPTH)'
-     Resize a pane object's X window.  This function adjusts the
-     object's width and height instance variables and buffers if the
-     object defines them.  _Note: Do not use this function with windows
-     that use X11Bitmap objects for buffers.  This function will
-     eventually be phased out.  Use the methods in X11Bitmap class
-     instead._
+     Resize a pane object's X window.  Returns '1' on success, '0' if
+     the window's new size is <= its current size, and '-1' if there is
+     an error.
 
 '__ctalkX11PaneClearRectangle (OBJECT *PANE_OBJECT, int X, int Y, int WIDTH, int HEIGHT)'
      Clears a rectangle in PANE_OBJECT's window.  Note that this

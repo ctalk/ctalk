@@ -1,4 +1,4 @@
-/* $Id: X11CanvasPane,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11CanvasPane,v 1.9 2019/12/15 18:16:10 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -103,15 +103,18 @@ X11CanvasPane instanceMethod subPaneResize (Object __subPane,
   dispatcher."
 
   if (__subPane container containerMode == "full") {
-    (X11Bitmap *)self paneBuffer resize self xWindowID, __event xEventData3, 
-      __event xEventData4;
-    (X11Bitmap *)self paneBackingStore resize self xWindowID, __event xEventData3, 
-      __event xEventData4;
 
-    __subPane viewWidth = __event xEventData3;
-    __subPane viewHeight = __event xEventData4;
-    __subPane size x = __event xEventData3;
-    __subPane size y = __event xEventData4;
+    if (__ctalkX11ResizeWindow (__subPane, __event xEventData3,
+				__event xEventData4,
+				__subPane depth) > 0) {
+      __subPane viewWidth = __event xEventData3;
+      __subPane viewHeight = __event xEventData4;
+      (X11Bitmap *)self paneBuffer resize self xWindowID,
+	__event xEventData3, __event xEventData4;
+      (X11Bitmap *)self paneBackingStore resize self xWindowID,
+	__event xEventData3, __event xEventData4;
+    }
+
   } else {
     fprintf (stderr, 
      "Error: subPaneResize (class X11CanvasPane): unknown container mode!\n");
@@ -147,7 +150,6 @@ X11CanvasPane instanceMethod subPaneExpose (Object __subPane,
 					  InputEvent __event) {
   "Handle an Expose event by redrawing the pane's contents
   on the parent window."
-
   __subPane refresh;
 }
 

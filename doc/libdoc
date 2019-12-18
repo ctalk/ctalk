@@ -1971,12 +1971,9 @@ new_height that contains the contents of the original
 pixmap.  Return the X ID of the new pixmap in new_pixmap_return.
 
 >>>__ctalkX11ResizeWindow (OBJECT *pane_object, int width, int height, int depth)
-Resize a pane object's X window.  This function adjusts the object's width and
-height instance variables and buffers if the object defines
-them. @emph{Note: Do not use this function with windows that
-use X11Bitmap objects for buffers.  This function will
-eventually be phased out.  Use the methods in X11Bitmap
-class instead.} 
+Resize a pane object's X window.  Returns 1 on success,
+0 if the window's new size is <= its current size, and
+-1 if there is an error.
 
 >>>__ctalkX11PaneClearRectangle (OBJECT *pane_object, int  x, int y, int width, int height)
 Clears a rectangle in pane_object's window.  Note that this

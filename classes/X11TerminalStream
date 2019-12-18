@@ -1,8 +1,8 @@
-/* $Id: X11TerminalStream,v 1.8 2019/12/09 20:31:06 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11TerminalStream,v 1.16 2019/12/18 00:32:10 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
-  Copyright © 2005 - 2012  Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2005 - 2012, 2019  Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
 
@@ -103,35 +103,55 @@ X11TerminalStream instanceMethod parentPane (void) {
  EXPOSE           xexpose     x           y           width       height      count
  */
 
-int read_x_event (int fd, int *eventclass, int *win, int *data) {
-#if 0 /***/
-  int i, int_size = sizeof (int);  /* causes warning, too */
-#endif  
-  int i, int_size;
+/* From x11defs.h */
+#define _SCLASS 0
+#define _SWIN   1
+#define _SDT1   2
 
-  int_size = sizeof (int);
+int read_x_event (int fd, int *eventclass, int *win, unsigned int data[]) {
+  int i, d_size;
+  unsigned int a[9];
+
+  d_size = sizeof (unsigned int) * 8;
+
+  if (read (fd, a, d_size) != d_size) {
+    printf ("ctalk: read_x_event: %s.\n", strerror (errno));
+    return -1;
+  }
+  *eventclass = a[_SCLASS];
+  *win = a[_SWIN];
+  memcpy ((void *)data, (void *)&a[_SDT1],
+	    sizeof (unsigned int) * 6);
   
-  if (read (fd, eventclass, int_size) != int_size) {
-    printf ("ctalk: read_x_event: %s.\n", strerror (errno));
-    return -1;
-  }
-  if (read (fd, win, int_size) != int_size) {
-    printf ("ctalk: read_x_event: %s.\n", strerror (errno));
-    return -1;
-  }
-  for (i = 0; i < 5; ++i) {
-    if (read (fd, &data[i], int_size) != int_size) {
-      printf ("ctalk: read_x_event: %s.\n", strerror (errno));
-      return -1;
-    }
-  }
   return SUCCESS;
+
+}
+
+void save_x_event (OBJECT *event_value_obj, int event_class, int win,
+		   int data[]) {
+  OBJECT *var;
+  int i;
+  /* Relies on the fact that instance variables are ordered in the
+     parent object in the same order that they are declared.  If that
+     ever changes, the equivalent assigments are in the #ifdef-#else
+     clause below.  For now, this is faster. */
+  var = event_value_obj -> next;
+  INTVAL(var -> instancevars -> __o_value) =
+    INTVAL(var -> __o_value) = event_class;
+  var = var -> next;
+  INTVAL(var -> instancevars -> __o_value) =
+    INTVAL(var -> __o_value) = win;
+
+  for (var = var -> next, i = 0; i < 6; var = var -> next, ++i)
+    INTVAL(var -> instancevars -> __o_value) =
+      INTVAL(var -> __o_value) = data[i];
 }
 
 X11TerminalStream instanceMethod queueInput (void) {
   "Retrieve a X event, and return it as an InputEvent
   object."
-  int r, event_class, win, data[5];
+  int r, event_class, win;
+  unsigned int data[6];
   fd_set rfds;
   struct timeval tv;
   InputEvent new clientEvent;
@@ -153,6 +173,9 @@ X11TerminalStream instanceMethod queueInput (void) {
 	}
       }
 
+#if 1
+      save_x_event (clientEvent, event_class, win, data);
+#else 
       clientEvent eventClass = event_class;
       clientEvent eventData = win;
       clientEvent xEventData1 = data[0];
@@ -160,6 +183,8 @@ X11TerminalStream instanceMethod queueInput (void) {
       clientEvent xEventData3 = data[2];
       clientEvent xEventData4 = data[3];
       clientEvent xEventData5 = data[4];
+      clientEvent xEventData6 = data[5];
+#endif      
 
       switch (event_class)
 	{

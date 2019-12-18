@@ -1128,4 +1128,43 @@
 	expression begins with an Object instance (object.c).  Also
 	added an OBJECT_CLASSNAME return in fn_arg_param_expr_class
 	in the case that the expression can't be evaluated (arg.c).
+	- In resolve, don't check for a method parameter if the token
+	is, "self" (resolve.c).
 	]
+2019-12-12
+	[
+	- In fn_arg_expr_param_expr_class, return the parent object's
+	class name if there is no instance variable.  Also, in
+	fn_arg_expression, added another temporary buffer when
+	formatting a single function argument as a subexpression
+	(arg.c).
+	- In fn_arg_expression, check for a class cast at the start
+	of an arg expression (arg.c).  And in
+	get_new_method_param_instance_variable_series, don't print
+	a warning if the first object of the series, a parameter,
+	has the TOK_IS_CLASS_TYPECAST attribute set on its message
+	(object.c).
+	]
+	- Cleanup of X11PaneDispatcher : attachTo.
+	- Updated docs for __ctalkCreateX11SubWindow.
+2019-12-13
+	[
+	- Fixed a bug in configure.ac when checking for
+	an Xrender option.
+	]
+2019-12-14
+	- Updated the ctxlogo program to recalculate the window
+	size on Expose events (tools/ctxlogo/ctxlog.ca).
+2019-12-15
+	- Updated event_to_client (x11lib.c), and read_x_event
+	(X11TerminalStream) to send socket data in a single
+	buffer.
+2019-12-16
+	- Added is_wm_xquartz and wm_xquartz (xllib.c), and a
+	ConfigureNotify handler for MacOS.
+	- Added the return value of XResizeWindow to the return
+	from __xlib_resize_window (x11lib.c).
+	- Added the InputEvent : xEventData6 instance variable.
+2019-12-17
+	- Added save_x_event in X11TerminalStream class.
+

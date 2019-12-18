@@ -1,4 +1,4 @@
-/* $Id: x11defs.h,v 1.1.1.1 2019/10/26 23:40:50 rkiesling Exp $ -*-c-*-*/
+/* $Id: x11defs.h,v 1.3 2019/12/17 01:52:29 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -192,6 +192,17 @@
 #define X_FACE_BOLD        (1 << 1)
 #define X_FACE_ITALIC      (1 << 2)
 #define X_FACE_BOLD_ITALIC (1 << 3)
+
+/* Contents of the server-to-client event buffer when 
+   sending over the socket. */
+#define _SCLASS 0
+#define _SWIN   1
+#define _SDT1   2
+#define _SDT2   3
+#define _SDT3   4
+#define _SDT4   5
+#define _SDT5   6
+#define _SDT6   7
 
 /* Comment out if you don't want to use the GC range check. (The
    X11 server glue still uses the SIGSEGV handler.) */
