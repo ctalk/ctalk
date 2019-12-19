@@ -1,4 +1,4 @@
-/* $Id: method.c,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ */
+/* $Id: method.c,v 1.2 2019/12/19 01:41:19 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -4726,7 +4726,7 @@ bool is_method_parameter_s (char *paramname) {
   METHOD *n_method;
   int n_th_param;
 
-  if (new_method_ptr >= MAXARGS)
+  if (new_method_ptr >= MAXARGS || interpreter_pass != method_pass)
     return false;
 
   if ((n_method = new_methods[new_method_ptr + 1] -> method) != NULL) {
