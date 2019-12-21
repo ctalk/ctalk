@@ -1170,4 +1170,12 @@
 2019-12-18
 	- Updated is_method_parameter_s to check that the
 	compiler is in method_pass (method.c).
+2019-12-19
+	- Added a check in fixup_forward_receiver_object
+	for a method label that follows another method label
+	(rt_expr.c).
+2019-12-20
+	- Added resolve_single_object called by eval_expr's first
+	loop, so that it can resolve objects more quickly if
+	they appear in compound method expressions (rt_expr.c).
 

@@ -1,4 +1,4 @@
-/* $Id: rt_expr.c,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ */
+/* $Id: rt_expr.c,v 1.4 2019/12/21 03:52:14 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -361,12 +361,6 @@ static void find_prefixed_CVAR_for_write (int op_idx, METHOD *method) {
     }
   }
 }
-
-#if 0
-#ifdef __GNUC__
-bool have_unevaled (MESSAGE_STACK, int, int) __attribute__((noinline));
-#endif
-#endif
 
 bool have_unevaled (MESSAGE_STACK messages, int this_method_token) {
   int i;
@@ -1346,6 +1340,39 @@ static void fixup_forward_receiver_obj (EXPR_PARSER *p, int idx,
 	      p -> m_s[next_tok_idx] -> attrs &= ~RT_DATA_IS_NR_ARGS_DECLARED;
 	  }
 	}
+	/***/
+      } else if (__ctalk_isMethod_2 (M_NAME(p -> m_s[next_tok_idx]),
+				     p -> m_s, next_tok_idx,
+				     p -> msg_frame_start)) {
+	OBJECT *rcvr_p;
+	METHOD *method_fixup;
+	int i_2;
+	/***/
+	/* probably should fix up the args too, if this method wasn't
+	   resolved in the first pass, then the labels following it
+	   weren't either... this isn't needed much yet, so for now,
+	   just remove the created params... and/or add a clause in
+	   __rt_method_args */
+	M_TOK(p -> m_s[next_tok_idx]) = METHODMSGLABEL;
+	/* Make sure we have a receiver object before proceeding. */
+	if ((rcvr_p = p -> m_s[next_tok_idx] -> receiver_obj) != NULL) {
+	  if ((method_fixup = __ctalkFindMethodByName
+	       (&rcvr_p, M_NAME(p -> m_s[next_tok_idx]), FALSE, ANY_ARGS))
+	      != NULL) {
+	    if (method_fixup -> n_params > 0) {
+	      for (i_2 = next_tok_idx - 1; i_2 >= p -> msg_frame_top;
+		   --i_2) {
+		if (IS_OBJECT(p -> m_s[i_2] -> obj)) {
+		  if ((p -> m_s[i_2] -> obj -> scope == CREATED_PARAM) &&
+		      (p -> m_s[i_2] -> obj -> nrefs == 0)) {
+		    __ctalkDeleteObject (p -> m_s[i_2] -> obj);
+		    p -> m_s[i_2] -> obj = NULL;
+		  }
+		}
+	      }
+	    }
+	  }
+	}
       }
     } else {
       if (p -> m_s[next_tok_idx] -> obj &&
@@ -2046,6 +2073,21 @@ static OBJECT *eval_label_token (char *name, bool is_arg_expr) {
   }
 }
 
+/* resolve a single object, but only if the the message doesn't
+   already have an object resolved for it */
+static inline bool resolve_single_object (MESSAGE *m, char *name) {
+  if (!IS_OBJECT(m -> obj)) {
+    if ((m -> obj = __ctalk_get_object (name, NULL)) != NULL) {
+      return true;
+    } else {
+      return false;
+    }
+  } else {
+    return true;
+  }
+  return false;
+}
+
 /* be sure that have_instance_var and have_class_var are initialized
    before calling this fn.  Doesn't (yet) handle class names. */
 static bool non_method_label (OBJECT *prev_msg_obj, char *prev_msg_name,
@@ -2139,7 +2181,8 @@ OBJECT *eval_expr (char *s, OBJECT *recv_class, METHOD *method,
     prefix_expr_start,
     max_params;
   OBJECT *class_var_tmp, *instance_var_tmp,
-    *e_class, *m_prev_value_obj, *m_prev_super_obj, *n_result, *e_result_dup;
+    *e_class, *m_prev_value_obj, *m_prev_super_obj, *n_result, *e_result_dup,
+    *obj;
   MESSAGE *m = NULL,      /* These must be initialized.        */
     *m_prev_msg = NULL,
     *n;
@@ -2497,7 +2540,10 @@ OBJECT *eval_expr (char *s, OBJECT *recv_class, METHOD *method,
 			(m -> obj, m -> obj -> scope | CREATED_PARAM);
 		    }
 		  }
-		} else {
+		  /* Try to resolve an object that isn't already resolved
+		     if it appears later in a compound expression. */
+		} else if (!resolve_single_object (m, pname)) {
+		  /*} else { */ /***/
 		  if ((c = get_method_arg_cvars_not_evaled (pname,
 							    expr_parser_ptr))
 		      != NULL) {
