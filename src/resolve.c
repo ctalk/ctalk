@@ -1,4 +1,4 @@
-/* $Id: resolve.c,v 1.3 2019/12/12 05:10:44 rkiesling Exp $ */
+/* $Id: resolve.c,v 1.4 2019/12/22 17:20:09 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -1566,7 +1566,7 @@ OBJECT *resolve (int message_ptr) {
 		      format_method_arg_accessor
 			(max_param - i,
 			 M_NAME(ms.messages[ms.tok]),
-			 param_buf);
+			 method -> varargs, param_buf);
 		      if (is_fmt_arg_2 (&ms)) {
 			// If it's a printf argument, use the format
 			// string character to provide the translation.

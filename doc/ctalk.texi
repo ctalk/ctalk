@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.37 2019/12/22 04:08:04 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.40 2019/12/22 21:11:42 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -12360,11 +12360,13 @@ value is read only.
 
 @table @code
 
-@cindex @mnm{alphaFT} instance method  @idxclscite{GLXCanvasPane}
-@item alphaFT (@code{Float} @var{alpha})
+@cindex @mnm{alpha} instance method  @idxclscite{GLXCanvasPane}
+@item alpha (@code{Float} @var{alpha})
 Sets the alpha channel (opacity) when rendering outline fonts.  Values
-should be between 0.0 (transparent) and 1.0 (opaque).  The default value
-is 1.0.
+should be between 0.0 (transparent) and 1.0 (opaque).  The Ctalk
+library's default value is 1.0.  Calling this method also sets
+the value of the receiver pane's @code{ftFontVar fgAlpha} instance
+variable.
 
 @cindex @mnm{deleteAndClose} instance method @idxclscite{GLXCanvasPane}
 @item deleteAndClose (@code{void})
@@ -12404,8 +12406,16 @@ draws the text using the last OpenGL color setting.
 
 @cindex @mnm{drawTextFT} instance method @idxclscite{GLXCanvasPane}
 @item @mnm{drawTextFT} (@code{Float} @var{xOrg}, @code{Float} @var{yOrg}, @code{String} @var{text})
+@item @mnm{drawTextFT} (@code{Float} @var{xOrg}, @code{Float} @var{yOrg}, @code{Float} @var{red}, @code{Float} @var{green}, @code{Float} @var{blue}, @code{Float} @var{alpha}, @code{String} @var{text})
 Draws the string given by @var{text} at the matrix coordinates
 @var{xOrg}, @var{yOrg}.
+
+The @var{red, green, blue,} and @var{alpha} arguments, if used, should
+be between the values of 0.0 and 1.0, so they can be passed along to
+the OpenGL API directly, and also to set the receiver's
+@code{ftFontVar} instance variable (a @code{X11FreeTypeFont} values
+for its instance variables: @code{fgRed, fgGreen, fgBlue,} and
+@code{fgAlpha} @xref{X11FreeTypeFont}.
 
 @cindex @mnm{drawTextW} instance method @idxclscite{GLXCanvasPane}
 @item drawTextW (@code{Float} @var{xOrg}, @code{Float} @var{yOrg}, @code{String} @var{text})
@@ -18673,10 +18683,11 @@ to the @cite{glob(3)} and related manual pages.
 The functions that make up Ctalk's glue layer for the GLUT API.  For
 their use, refer to the methods in GLUTApplication class.
 
-@idxlibfn{__ctalkGLXalphaFT}
+@idxlibfn{__ctalkGLXAlphaFT}
 @item __ctalkGLXAlpha (@code{float} @var{alpha})
 Sets the alpha (opacity) channel for outline text rendering.
-The default is 1.0.
+Values should be between 0.0 (transparent) and 1.0 (opaque).
+The Ctalk library's default value is 1.0 (opaque).
 
 @idxlibfn{__ctalkGLXDrawText}
 @item __ctalkGLXDrawText (@code{char *}@var{text})

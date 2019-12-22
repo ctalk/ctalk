@@ -1,4 +1,4 @@
-/* $Id: method.c,v 1.2 2019/12/19 01:41:19 rkiesling Exp $ */
+/* $Id: method.c,v 1.4 2019/12/22 20:38:15 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -444,13 +444,15 @@ OBJECT *resolve_arg (METHOD *rcvr_method, MESSAGE_STACK messages,
 	      } else {
 		method_arg_accessor_fn (messages, message_ptr, 
 					method -> n_params - i - 1,
-					param_context);
+					param_context,
+					method -> varargs);
 	      }
 	      break;
 	    case argument_context:
 	      method_arg_accessor_fn (messages, message_ptr,
 				      method -> n_params - i - 1,
-				      param_context);
+				      param_context,
+				      method -> varargs);
 	      break;
 	    default:
 	      if (!IS_OBJECT (m -> obj)) {
@@ -4155,7 +4157,7 @@ static inline void __set_arg_message_name (MESSAGE *m, char *s) {
  */
 
 int method_arg_accessor_fn (MESSAGE_STACK messages, int idx, int arg_n,
-			    OBJECT_CONTEXT context) {
+			    OBJECT_CONTEXT context, bool varargs) {
 
   char expr_tmp[MAXMSG];
   switch (context)
@@ -4166,18 +4168,20 @@ int method_arg_accessor_fn (MESSAGE_STACK messages, int idx, int arg_n,
 	  fmt_arg_char_ptr) {
 	strcatx (messages[idx] -> name, STRING_TRANS_FN, "(",
 		 format_method_arg_accessor
-		 (arg_n, M_NAME(messages[idx]),
-		  expr_tmp), "1,)", NULL);
+		 (arg_n, M_NAME(messages[idx]), false,expr_tmp),
+		 "1,)", NULL);
       } else {
 	__set_arg_message_name (messages[idx], 
 				format_method_arg_accessor 
-				(arg_n, M_NAME(messages[idx]), expr_tmp));
+				(arg_n, M_NAME(messages[idx]),
+				 varargs, expr_tmp));
       }
       break;
     default:
       __set_arg_message_name (messages[idx], 
 			      format_method_arg_accessor 
-			      (arg_n, M_NAME(messages[idx]), expr_tmp));
+			      (arg_n, M_NAME(messages[idx]),
+			       varargs, expr_tmp));
       break;
     }
 
@@ -4208,7 +4212,7 @@ int method_arg_accessor_fn_c (MESSAGE_STACK messages, int idx,
     strcatx (messages[idx]->name, STRING_TRANS_FN, " (",
 	     format_method_arg_accessor (method_n_th_param,
 					 M_NAME(messages[idx]),
-					 expr_buf), ", 1)",
+					 false, expr_buf), ", 1)",
 	     NULL);
   } else {
     if ((fn_arg_idx = obj_expr_is_arg (messages, idx, 
@@ -4220,7 +4224,7 @@ int method_arg_accessor_fn_c (MESSAGE_STACK messages, int idx,
       __set_arg_message_name (messages[idx],
 			      format_method_arg_accessor 
 			      (method_n_th_param, M_NAME(messages[idx]),
-			       expr_buf));
+			       false, expr_buf));
     } else {
       if (!strcmp (M_NAME(messages[fn_label_idx]), CHAR_TRANS_FN) ||
 	  !strcmp (M_NAME(messages[fn_label_idx]), FLOAT_TRANS_FN) ||
@@ -4237,7 +4241,7 @@ int method_arg_accessor_fn_c (MESSAGE_STACK messages, int idx,
 	__set_arg_message_name (messages[idx],
 				format_method_arg_accessor
 				(method_n_th_param, M_NAME(messages[idx]),
-				 expr_buf));
+				 false, expr_buf));
       } else {
 	if ((cfn = get_function (M_NAME(messages[fn_label_idx]))) == NULL) {
 	  _warning ("method_arg_accesor_fn_c: function %s not found.\n",
@@ -4265,6 +4269,7 @@ int method_arg_accessor_fn_c (MESSAGE_STACK messages, int idx,
 	  } else {
 	    format_method_arg_accessor (method_n_th_param,
 					M_NAME(messages[idx]),
+					method -> varargs,
 					arg_expr_buf);
 						
 	    messages[idx] -> obj =

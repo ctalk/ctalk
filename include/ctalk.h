@@ -1,4 +1,4 @@
-/* $Id: ctalk.h,v 1.32 2019/12/09 00:15:18 rkiesling Exp $ -*-Fundamental-*- */
+/* $Id: ctalk.h,v 1.37 2019/12/22 20:38:15 rkiesling Exp $ -*-Fundamental-*- */
 
 /*
   This file is part of Ctalk.
@@ -873,7 +873,7 @@ int split_args_argstr (MESSAGE_STACK, int, int, ARGSTR [], int *);
 int split_args_idx (MESSAGE_STACK, int, int, int *, int *);
 char *stdarg_fmt_arg_expr (MESSAGE_STACK, int, METHOD *, char *);
 char *writable_arg_rt_arg_expr (MESSAGE_STACK, int, int, char *);
-char *format_method_arg_accessor (int, char *, char *);
+char *format_method_arg_accessor (int, char *, bool, char *);
 
 /* argblk.c */
 int argblk_end (MESSAGE_STACK, int);
@@ -1570,7 +1570,7 @@ void __ctalkGLXPixelHeightFT (int);
 void __ctalkGLXNamedColor (char *, float *, float *, float *);
 bool __ctalkUsingFtFont (void);
 double __ctalkGLXTextWidthFT (char *);
-void __ctalkGLXalphaFT (float);
+void __ctalkGLXAlphaFT (float);
 
 /* lib/glewlib.c */
 int __ctalkInitGLEW (void);
@@ -2826,7 +2826,7 @@ void save_method_object (OBJECT *);
 void save_method_local_objects (void);
 void save_method_local_cvars (void);
 int store_arg_object (METHOD *, OBJECT *);
-int method_arg_accessor_fn (MESSAGE_STACK, int, int, OBJECT_CONTEXT);
+int method_arg_accessor_fn (MESSAGE_STACK, int, int, OBJECT_CONTEXT, bool);
 int method_arg_accessor_fn_c (MESSAGE_STACK, int, int);
 int method_arg_rt_expr (MESSAGE_STACK, int);
 int method_fn_arg_rt_expr (MESSAGE_STACK, int);

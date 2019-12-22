@@ -1,4 +1,4 @@
-/* $Id: arg.c,v 1.4 2019/12/12 22:31:48 rkiesling Exp $ */
+/* $Id: arg.c,v 1.5 2019/12/22 17:20:09 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -961,7 +961,7 @@ OBJECT *fn_arg_expression (OBJECT *rcvr_class, METHOD *method,
 			(format_method_arg_accessor 
 			 (__n_method -> n_params - __n_th_param - 1,
 			  __n_method -> params[__n_th_param] -> name,
-			  expr_buf_tmp_2),
+			  __n_method -> varargs, expr_buf_tmp_2),
 			 basic_class_from_cvar (messages[n_th_arg * 2],
 						fn_param_cvar, 0), 
 			 TRUE, expr_buf_tmp),
@@ -2380,8 +2380,9 @@ int compound_method_limit (MESSAGE_STACK messages,
   return ERROR;
 }
 
-char *format_method_arg_accessor (int param_idx, char *tok, char *expr_out) {
-  if (argblk) {
+char *format_method_arg_accessor (int param_idx, char *tok, bool varargs,
+				  char *expr_out) {
+  if (argblk || varargs) {
     return fmt_eval_expr_str (tok, expr_out);
   } else {
     strcatx (expr_out, METHOD_ARG_ACCESSOR_FN, "(", 

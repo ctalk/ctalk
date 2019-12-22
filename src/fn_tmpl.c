@@ -1,4 +1,4 @@
-/* $Id: fn_tmpl.c,v 1.4 2019/11/17 15:29:00 rkiesling Exp $ */
+/* $Id: fn_tmpl.c,v 1.5 2019/12/22 17:20:09 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -498,13 +498,14 @@ static int tmpl_method_arg_accessor_fn (MESSAGE_STACK messages, int idx,
 	fmt_arg_char_ptr) {
     strcatx (expr_buf, STRING_TRANS_FN, "(",
 	     format_method_arg_accessor (arg_n, M_NAME(messages[idx]),
-						       expr_tmp),
+					 false, expr_tmp),
 	     "1,)", NULL);
     __set_arg_message_name_tmpl (messages[idx], expr_buf);
   } else {
     __set_arg_message_name_tmpl (messages[idx], 
 			    format_method_arg_accessor 
-			    (arg_n, M_NAME(messages[idx]), expr_tmp));
+				 (arg_n, M_NAME(messages[idx]), false,
+				  expr_tmp));
   }
 
   return SUCCESS;

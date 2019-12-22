@@ -1,4 +1,4 @@
-/* $Id: rt_expr.c,v 1.4 2019/11/24 22:05:26 rkiesling Exp $ */
+/* $Id: rt_expr.c,v 1.5 2019/12/22 17:20:09 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -972,7 +972,7 @@ void rt_obj_arg (MESSAGE_STACK messages,
 	    } else {
 	      format_method_arg_accessor (max_param  - n_th_param,
 					  M_NAME(messages[arg_start_idx]),
-					  expr_buf);
+					  method -> varargs, expr_buf);
 	      param_class = method -> params[n_th_param] -> class;
 	    }
 	    match_param = TRUE;
@@ -1113,7 +1113,7 @@ void param_to_fn_arg (MESSAGE_STACK messages, int arg_start_idx) {
 	} else {
 	  format_method_arg_accessor (max_param  - n_th_param,
 				      M_NAME(messages[arg_start_idx]),
-				      expr_buf);
+				      method -> varargs, expr_buf);
 	}
 	match_param = TRUE;
       }
@@ -3782,7 +3782,7 @@ int method_param_arg_rt_expr (MESSAGE_STACK messages, int idx,
 	if (METHOD_ARG_TERM_MSG_TYPE (messages[idx_next])) {
 	  format_method_arg_accessor (max_param - i,
 				      M_NAME(messages[idx]),
-				      exprbuf);
+				      method -> varargs, exprbuf);
 	  /* Can't use overlapping  buffers. */
 	  strcpy (messages[idx] -> name, exprbuf);
 	  messages[idx] -> tokentype = RESULT;

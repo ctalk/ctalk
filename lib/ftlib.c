@@ -1,4 +1,4 @@
-/* $Id: ftlib.c,v 1.23 2019/11/11 20:22:54 rkiesling Exp $ -*-c-*-*/
+/* $Id: ftlib.c,v 1.24 2019/12/22 08:40:50 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -500,7 +500,7 @@ void __ctalkGLXNamedColorFT (char *colorname, float *red_out,
   }
 }
 
-void __ctalkGLXalphaFT (float alpha) {
+void __ctalkGLXAlphaFT (float alpha) {
   g_alpha = alpha;
 }
 

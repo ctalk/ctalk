@@ -1,4 +1,4 @@
-/* $Id: eval_arg.c,v 1.3 2019/11/11 02:56:14 rkiesling Exp $ */
+/* $Id: eval_arg.c,v 1.6 2019/12/22 21:11:42 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -580,7 +580,7 @@ static OBJECT *resolve_single_token_arg (METHOD *rcvr_method,
 	     */
 	    method_arg_accessor_fn (messages, message_ptr, 
 				    method -> n_params - i - 1,
-				    null_context);
+				    null_context, method -> varargs);
 	    message_stack_at (argbuf -> start_idx) -> attrs |=
 	      OBJ_IS_SINGLE_TOK_ARG_ACCESSOR;
 	    message_stack_at (argbuf -> start_idx) -> attr_data =

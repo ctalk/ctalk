@@ -1,4 +1,4 @@
-/* $Id: GLXCanvasPane,v 1.24 2019/11/26 04:15:26 rkiesling Exp $ -*-c-*-*/
+/* $Id: GLXCanvasPane,v 1.28 2019/12/22 21:11:41 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -720,6 +720,23 @@ GLXCanvasPane instanceMethod drawTextFT (Float xOrg, Float yOrg,
   return NULL;
 }
 
+GLXCanvasPane instanceMethod drawTextFT (Float xOrg, Float yOrg,
+					 Float red, Float green,
+					 Float blue, Float alpha,
+					 String text) {
+  "Draw text on the receiver pane at the matrix coordinates
+   xOrg, yOrg.  The program must first register the font
+   used for drawing by a previous call to useXFont."
+   glColor3f (red, green, blue);
+   __ctalkGLXAlphaFT (alpha);
+   __ctalkGLXDrawTextFT (text, xOrg, yOrg);
+  self ftFontVar fgRed = red;
+  self ftFontVar fgGreen = green;
+  self ftFontVar fgBlue = blue;
+  self ftFontVar fgAlpha = alpha;
+  return NULL;
+}
+
 GLXCanvasPane instanceMethod refreshRate (void) {
   returnObjectClass Float;
   return __ctalkGLXRefreshRate ();
@@ -806,4 +823,16 @@ GLXCanvasPane instanceMethod hasExtension (String extensionName) {
    otherwise."
   returnObjectClass Boolean;
   return __ctalkGLXExtensionSupported (extensionName);
+}
+
+GLXCanvasPane instanceMethod alpha (Float alphaParam) {
+  "Sets the alpha channel (transparency) of the outline font.
+   Calling this method affects both the receiver's ftFontVar :
+   alpha instance variable value, and the Ctalk library's
+   setting for the alpha channel, so the change is immediate.
+   The parameter, a Float, should be between 0.0 (transparent)
+   and 1.0 (opaque).  The Ctalk library's default alpha value
+   is 1.0 (opaque)."
+  self ftFontVar fgAlpha = alphaParam;
+  __ctalkGLXAlphaFT (alphaParam);
 }

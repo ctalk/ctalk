@@ -821,7 +821,8 @@ their use, refer to the methods in GLUTApplication class.
 
 >>>__ctalkGLXAlpha (float alpha)
 Sets the alpha (opacity) channel for outline text rendering.
-The default is 1.0.
+Values should be between 0.0 (transparent) and 1.0 (opaque).
+The Ctalk library's default value is 1.0 (opaque).
 
 >>>__ctalkGLXDrawText (char *text)
 This is another convenience function that draws text on a

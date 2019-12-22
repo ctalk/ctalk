@@ -1183,4 +1183,15 @@
 	to black if the pane object's backgroundColor instance
 	variable is not set, or to the backgroundColor instance
 	variable's value if the variable is set (x11lib.c).
+2019-12-22
+	- Fixed the capitalization of the __ctalkGLXAlphaFT
+	function (ftlib.c).
+	- Added the GLXCanvasPane : alpha method, and the
+	GLXCanvasPane method drawTextFT	with RGBA parameters.
+	- In resolve_single_token_arg, generate an argument
+	push call with __ctalkEvalExpr if the method uses
+	variable args, to defer the number of arguments on
+	the stack until run time (eval_expr.c).
+	- Added varargs bool to format_method_arg_accessor
+	(arg.c) and method_arg_accessor_fn (method.c).
 

@@ -5556,10 +5556,12 @@ using the X Render extension for drawing, False otherwise.
 
 
 
->>>GLXCanvasPane::alphaFT (Float alpha)
+>>>GLXCanvasPane::alpha (Float alpha)
 Sets the alpha channel (opacity) when rendering outline fonts.  Values
-should be between 0.0 (transparent) and 1.0 (opaque).  The default value
-is 1.0.
+should be between 0.0 (transparent) and 1.0 (opaque).  The Ctalk
+library's default value is 1.0.  Calling this method also sets
+the value of the receiver pane's ftFontVar fgAlpha instance
+variable.
 
 >>>GLXCanvasPane::deleteAndClose (void)
 Releases the receiver pane's GLX context and deletes the X11 window,
@@ -5593,8 +5595,16 @@ method draws the text in that color.  Otherwise, the method (via OpenGL)
 draws the text using the last OpenGL color setting.
 
 >>>GLXCanvasPane::drawTextFT (Float xOrg, Float yOrg, String text)
+>>>GLXCanvasPane::drawTextFT (Float xOrg, Float yOrg, Float red, Float green, Float blue, Float alpha, String text)
 Draws the string given by text at the matrix coordinates
 xOrg, yOrg.
+
+The red, green, blue, and alpha arguments, if used, should
+be between the values of 0.0 and 1.0, so they can be passed along to
+the OpenGL API directly, and also to set the receiver's
+ftFontVar instance variable (a X11FreeTypeFont values
+for its instance variables: fgRed, fgGreen, fgBlue, and
+fgAlpha 
 
 >>>GLXCanvasPane::drawTextW (Float xOrg, Float yOrg, String text)
 >>>GLXCanvasPane::drawTextW (Float xOrg, Float yOrg, Float red, Float green, Float blue, String text)

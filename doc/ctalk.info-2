@@ -980,10 +980,12 @@ Instance Variables
 Instance Methods
 ................
 
-'alphaFT (Float ALPHA)'
+'alpha (Float ALPHA)'
      Sets the alpha channel (opacity) when rendering outline fonts.
      Values should be between 0.0 (transparent) and 1.0 (opaque).  The
-     default value is 1.0.
+     Ctalk library's default value is 1.0.  Calling this method also
+     sets the value of the receiver pane's 'ftFontVar fgAlpha' instance
+     variable.
 
 'deleteAndClose (void)'
      Releases the receiver pane's GLX context and deletes the X11
@@ -1016,8 +1018,16 @@ Instance Methods
      the text using the last OpenGL color setting.
 
 'drawTextFT (Float XORG, Float YORG, String TEXT)'
+'drawTextFT (Float XORG, Float YORG, Float RED, Float GREEN, Float BLUE, Float ALPHA, String TEXT)'
      Draws the string given by TEXT at the matrix coordinates XORG,
      YORG.
+
+     The RED, GREEN, BLUE, and ALPHA arguments, if used, should be
+     between the values of 0.0 and 1.0, so they can be passed along to
+     the OpenGL API directly, and also to set the receiver's 'ftFontVar'
+     instance variable (a 'X11FreeTypeFont' values for its instance
+     variables: 'fgRed, fgGreen, fgBlue,' and 'fgAlpha' *Note
+     X11FreeTypeFont::.
 
 'drawTextW (Float XORG, Float YORG, String TEXT)'
 'drawTextW (Float XORG, Float YORG, Float RED, Float GREEN, Float BLUE, String TEXT)'
@@ -6286,8 +6296,9 @@ functions.
      their use, refer to the methods in GLUTApplication class.
 
 '__ctalkGLXAlpha (float ALPHA)'
-     Sets the alpha (opacity) channel for outline text rendering.  The
-     default is 1.0.
+     Sets the alpha (opacity) channel for outline text rendering.
+     Values should be between 0.0 (transparent) and 1.0 (opaque).  The
+     Ctalk library's default value is 1.0 (opaque).
 
 '__ctalkGLXDrawText (char *TEXT)'
      This is another convenience function that draws text on a
