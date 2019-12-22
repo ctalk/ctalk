@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.36 2019/12/15 18:16:11 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.37 2019/12/22 04:08:04 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -13257,9 +13257,22 @@ is not used.
 
 @cindex @mnm{attachTo} instance method @idxclscite{X11PaneDispatcher}
 @item @mnm{attachTo} (@code{Object} @var{parentPane})
-Attach the receiver to its parent pane, typically a
-@code{X11Pane}.  Also creates a X window, although
+Attach the receiver to its parent pane, typically a @code{X11Pane} or
+@code{X11PaneDispatcher}.  Also creates a X window, although
 @code{X11PaneDispatcher} windows themselves are not normally visible.
+
+When the subwindow is attached to the parent window, the Ctalk library
+creates the pane object's window and graphics context, and clears the
+window to the background color of the pane object's @code{backgroundColor}
+instance variable; for example, with an expression like this:
+
+@example
+
+myCanvasPane backgroundColor = "blue";
+
+@end example
+
+Otherwise, the method clears the subpane's window to black.
 
 @cindex @mnm{handleSubPaneEvent} instance method @idxclscite{X11PaneDispatcher} 
 @item @mnm{handleSubPaneEvent} (@code{InputEvent} @var{event})
@@ -18053,7 +18066,22 @@ dimensions of the subwindow within the parent window are determined by
 the @var{subpane_object's} @code{origin} and @code{size} instance
 variables.  Creates a new graphics context for the window and saves
 its address in the @var{subpane_object's} @code{xGC} instance
-variable.  Also sets the display depth in the @code{depth} instance
+variable.
+
+If the @var{subpane_object}'s @code{backgroundColor} instance variable
+is set; for example, with a statement like this:
+
+@example
+
+myCanvasPane backgroundColor = "blue";
+
+@end example
+
+Then the function initiazes and clears the window to the value of
+the @code{backgroundColor} instance variable.  Otherwise, the function
+sets the window's color to black and clears the window.
+
+Also sets the display depth in the @code{depth} instance
 variable, and the ID of the subwindow in the @code{xWindowID} instance
 variable.
 

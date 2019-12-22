@@ -1178,4 +1178,9 @@
 	- Added resolve_single_object called by eval_expr's first
 	loop, so that it can resolve objects more quickly if
 	they appear in compound method expressions (rt_expr.c).
+2019-12-21
+	- Updated __ctalkCreateX11SubWindow to clear the window
+	to black if the pane object's backgroundColor instance
+	variable is not set, or to the backgroundColor instance
+	variable's value if the variable is set (x11lib.c).
 

@@ -1,4 +1,4 @@
-/* $Id: x11lib.c,v 1.35 2019/12/18 00:32:10 rkiesling Exp $ -*-c-*-*/
+/* $Id: x11lib.c,v 1.36 2019/12/22 04:08:04 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -3466,6 +3466,8 @@ int __ctalkCreateX11SubWindow (OBJECT *parent, OBJECT *self) {
   OBJECT *parent_win_id_value_object, *self_win_id_value_object,
     *win_depth_value_obj;
   OBJECT *self_gc_value_object;
+  OBJECT *bgcolor_obj;
+  XColor bgcolor;
   Window parent_id, self_id;
   XWindowAttributes parent_attributes;
   XSetWindowAttributes self_attributes;
@@ -3520,6 +3522,15 @@ int __ctalkCreateX11SubWindow (OBJECT *parent, OBJECT *self) {
 			   CopyFromParent,
 			   CopyFromParent, CopyFromParent, 
 			   CWBackingStore, &self_attributes);
+  bgcolor_obj = __ctalkGetInstanceVariable (self, "backgroundColor", TRUE);
+  if (str_eq (bgcolor_obj -> instancevars -> __o_value, NULLSTR)) {
+    XSetWindowBackground (display, self_id,
+			  BlackPixel (display, DefaultScreen (display)));
+  } else {
+    lookup_color (&bgcolor, bgcolor_obj -> instancevars -> __o_value);
+    XSetWindowBackground (display, self_id, bgcolor.pixel);
+  }
+  XClearWindow (display, self_id);
   XSelectInput(display, self_id, (WM_CONFIGURE_EVENTS|WM_INPUT_EVENTS));
   gcv.fill_style = FillSolid;
   gcv.function = GXcopy;

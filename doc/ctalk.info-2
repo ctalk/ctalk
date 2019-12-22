@@ -1781,9 +1781,21 @@ Instance Methods
 ................
 
 'attachTo (Object PARENTPANE)'
-     Attach the receiver to its parent pane, typically a 'X11Pane'.
-     Also creates a X window, although 'X11PaneDispatcher' windows
-     themselves are not normally visible.
+     Attach the receiver to its parent pane, typically a 'X11Pane' or
+     'X11PaneDispatcher'.  Also creates a X window, although
+     'X11PaneDispatcher' windows themselves are not normally visible.
+
+     When the subwindow is attached to the parent window, the Ctalk
+     library creates the pane object's window and graphics context, and
+     clears the window to the background color of the pane object's
+     'backgroundColor' instance variable; for example, with an
+     expression like this:
+
+
+          myCanvasPane backgroundColor = "blue";
+
+
+     Otherwise, the method clears the subpane's window to black.
 
 'handleSubPaneEvent (InputEvent EVENT)'
      Handle an input event from the window system.  Typically the parent
@@ -5759,9 +5771,21 @@ functions.
      of the subwindow within the parent window are determined by the
      SUBPANE_OBJECT'S 'origin' and 'size' instance variables.  Creates a
      new graphics context for the window and saves its address in the
-     SUBPANE_OBJECT'S 'xGC' instance variable.  Also sets the display
-     depth in the 'depth' instance variable, and the ID of the subwindow
-     in the 'xWindowID' instance variable.
+     SUBPANE_OBJECT'S 'xGC' instance variable.
+
+     If the SUBPANE_OBJECT's 'backgroundColor' instance variable is set;
+     for example, with a statement like this:
+
+
+          myCanvasPane backgroundColor = "blue";
+
+
+     Then the function initiazes and clears the window to the value of
+     the 'backgroundColor' instance variable.  Otherwise, the function
+     sets the window's color to black and clears the window.
+
+     Also sets the display depth in the 'depth' instance variable, and
+     the ID of the subwindow in the 'xWindowID' instance variable.
 
 '__ctalkCriticalExceptionInternal (MESSAGE *ORIG, EXCEPTION EX, char *TEXT)'
      Raise a critical exception at run time.  The argument ORIG should

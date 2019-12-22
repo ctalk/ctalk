@@ -6220,9 +6220,22 @@ For an example of how to draw with textures, refer to the
 
 
 >>>X11PaneDispatcher::attachTo (Object parentPane)
-Attach the receiver to its parent pane, typically a
-X11Pane.  Also creates a X window, although
+Attach the receiver to its parent pane, typically a X11Pane or
+X11PaneDispatcher.  Also creates a X window, although
 X11PaneDispatcher windows themselves are not normally visible.
+
+When the subwindow is attached to the parent window, the Ctalk library
+creates the pane object's window and graphics context, and clears the
+window to the background color of the pane object's backgroundColor
+instance variable; for example, with an expression like this:
+
+---------------------------------------------------------
+  
+  myCanvasPane backgroundColor = "blue";
+  
+---------------------------------------------------------
+
+Otherwise, the method clears the subpane's window to black.
 
 >>>X11PaneDispatcher::handleSubPaneEvent (InputEvent event)
 Handle an input event from the window system. Typically the
