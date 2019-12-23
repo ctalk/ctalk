@@ -1,4 +1,4 @@
-/* $Id: ctalk.h,v 1.37 2019/12/22 20:38:15 rkiesling Exp $ -*-Fundamental-*- */
+/* $Id: ctalk.h,v 1.38 2019/12/23 07:45:10 rkiesling Exp $ -*-Fundamental-*- */
 
 /*
   This file is part of Ctalk.
@@ -1209,6 +1209,7 @@ void self_outside_method_error (MESSAGE_STACK, int);
 void object_follows_a_constant_warning (MESSAGE_STACK, int, int);
 void unknown_format_conversion_warning_ms (MSINFO *);
 void unknown_format_conversion_warning (MESSAGE_STACK, int);
+void self_instvar_expr_unknown_label (MESSAGE_STACK, int, int);
 
 /* error.c */
 #ifdef DEBUG_CODE
