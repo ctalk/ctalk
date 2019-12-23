@@ -1,4 +1,4 @@
-/* $Id: errmsgs.c,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ */
+/* $Id: errmsgs.c,v 1.2 2019/12/23 07:45:10 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -907,3 +907,34 @@ void unknown_format_conversion_warning_ms (MSINFO *ms) {
   return unknown_format_conversion_warning (ms -> messages, ms -> tok);
 }
 
+/* also checks for a method label as the final label before a '=' */
+void self_instvar_expr_unknown_label (MESSAGE_STACK messages,
+				      int self_idx, int unknown_tok_idx) {
+  char *s, errbuf[MAXMSG];
+  int next_idx;
+
+  if (is_instance_method (messages, unknown_tok_idx) ||
+      is_proto_selector (M_NAME(messages[unknown_tok_idx]))) {
+    if ((next_idx = nextlangmsg (messages, unknown_tok_idx)) != ERROR) {
+      if (IS_C_ASSIGNMENT_OP(M_TOK(messages[next_idx]))) {
+	s = collect_tokens (messages, self_idx, next_idx);
+	strcpy (errbuf, s);
+	__xfree (MEMADDR(s));
+	error (messages[unknown_tok_idx], "Lvalue required:\n\n\t%s\n\n",
+	       errbuf);
+      } else {
+	return;
+      }
+    } else {
+      return;
+    }
+  }
+
+  s = collect_tokens (messages, self_idx, unknown_tok_idx);
+  strcpy (errbuf, s);
+  __xfree (MEMADDR(s));
+
+  error (messages[unknown_tok_idx], "Undefined label, \"%s,\" in "
+	   "expression.\n\n\t%s\n\n", M_NAME(messages[unknown_tok_idx]),
+	   errbuf);
+}
