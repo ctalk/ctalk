@@ -1196,4 +1196,14 @@
 	(arg.c) and method_arg_accessor_fn (method.c).
 	- Added self_instvar_expr_unknown_label, called
 	by is_self_expr_as_fn_lvalue (errmsgs.c).
+2019-12-23
+	- Added __client_pid (x11lib.c).
+	- Updated __ctalkX11UseFontBasic to check for the
+	presence of the X client before performing a request
+	between the app and client processes, or directly within
+	the app if it hasn't started the X client process yet.
+	(x11lib.c).  Also added the load_xlib_fonts_internal_1t
+	library function, which loads a font's faces before the
+	X client and app have initialized communication between
+	the two processes (xlibfont.c).
 

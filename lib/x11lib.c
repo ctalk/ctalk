@@ -1,4 +1,4 @@
-/* $Id: x11lib.c,v 1.36 2019/12/22 04:08:04 rkiesling Exp $ -*-c-*-*/
+/* $Id: x11lib.c,v 1.38 2019/12/24 01:00:26 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -2182,6 +2182,12 @@ int __ctalkX11MakeEvent (OBJECT *eventobject_value_var, OBJECT *inputqueue) {
   return 0;
 }
 
+static int child_pid = -1;
+
+int __client_pid (void) {
+  return child_pid;
+}
+
 int __ctalkOpenX11InputClient (OBJECT *streamobject) {
 #if !X11LIB_FRAME
   OBJECT *pid_value_object, *client_sock_fd_value_object;
@@ -2189,7 +2195,7 @@ int __ctalkOpenX11InputClient (OBJECT *streamobject) {
   int main_win_id;
   OBJECT *pane_win_id_value_object;
 #endif
-  int child_pid;
+  /* int child_pid; */ /***/
 
   if ((display = __x11_open_display ()) == NULL)
     return -1;
@@ -3603,23 +3609,47 @@ int __ctalkX11SetWMNameProp (OBJECT *self_object, char *title) {
 int __ctalkX11UseFontBasic (int drawable_id, unsigned long int gc_ptr,
 			    char *xlfd) {
   char d_buf[MAXLABEL];
+  GC gc;
+  XGCValues v;
+  Display *l_d = NULL;
+  int r;
+  XFontStruct *xfs;
 #ifdef GRAPHICS_WRITE_SEND_EVENT
   XEvent send_event;
 #endif
-  if (!shm_mem)
-    return ERROR;
-  sprintf (d_buf, ":%ld:%s", GCFont, xlfd);
-  make_req (shm_mem, PANE_CHANGE_GC_REQUEST,
-	    drawable_id, gc_ptr, d_buf);
+
+  if (__client_pid () < 0) {
+    if ((gc = (GC) gc_ptr) == NULL)
+      return ERROR;
+    if (display == NULL) {
+      if ((l_d = XOpenDisplay (getenv ("DISPLAY"))) == NULL) {
+	_error ("ctalk: This program requires the X Window System. Exiting.\n");
+      }
+      load_xlib_fonts_internal_1t (xlfd);
+      v.font = xlibfont.selected_xfs -> fid;
+      r = XChangeGC (display, gc, GCFont, &v);
+      XCloseDisplay (l_d);
+    } else {
+      load_xlib_fonts_internal_1t (xlfd);
+      v.font = xlibfont.selected_xfs -> fid;
+      r = XChangeGC (display, gc, GCFont, &v);
+    }
+  } else {
+    if (!shm_mem)
+      return ERROR;
+    sprintf (d_buf, ":%ld:%s", GCFont, xlfd);
+    make_req (shm_mem, PANE_CHANGE_GC_REQUEST,
+	      drawable_id, gc_ptr, d_buf);
 #ifdef GRAPHICS_WRITE_SEND_EVENT
-  send_event.xgraphicsexpose.type = GraphicsExpose;
-  send_event.xgraphicsexpose.send_event = True;
-  send_event.xgraphicsexpose.display = display;
-  send_event.xgraphicsexpose.drawable = drawable_id;
-  XSendEvent (display, drawable_id, False, 0L, &send_event);
+    send_event.xgraphicsexpose.type = GraphicsExpose;
+    send_event.xgraphicsexpose.send_event = True;
+    send_event.xgraphicsexpose.display = display;
+    send_event.xgraphicsexpose.drawable = drawable_id;
+    XSendEvent (display, drawable_id, False, 0L, &send_event);
 #endif
-  wait_req (shm_mem);
-  return SUCCESS;
+    wait_req (shm_mem);
+    return SUCCESS;
+  }
 }
 
 int __ctalkX11UseFont (OBJECT *self) {

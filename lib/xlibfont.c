@@ -1,4 +1,4 @@
-/* $Id: xlibfont.c,v 1.1.1.1 2019/10/26 23:40:50 rkiesling Exp $ -*-c-*-*/
+/* $Id: xlibfont.c,v 1.2 2019/12/24 01:00:26 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -87,8 +87,8 @@ int load_xlib_fonts_internal (char *xlfd) {
   if (!shmem_attached) {
     if ((shm_mem = (char *)get_shmem (mem_id)) == NULL) {
       _exit (0);
-      shmem_attached = true;
     }
+    shmem_attached = true;
   }
 
   if (strstr (xlfd, "fixed")) {
@@ -148,6 +148,85 @@ int load_xlib_fonts_internal (char *xlfd) {
   ctitoa (xlibfont.selected_xfs -> fid, buf);
   strcpy (&shm_mem[SHM_FONT_FID], buf); 
   strcpy (&shm_mem[SHM_FONT_XLFD], xlibfont.selectedfont);
+  return SUCCESS;
+}
+
+int load_xlib_fonts_internal_1t (char *xlfd) {
+  int n_user_fonts, nth_font;
+  char **user_font_set, buf[0xff];
+
+  if (str_eq (xlfd, old_xlfd))
+    return SUCCESS;
+
+#if 0
+  if (!shmem_attached) {
+    if ((shm_mem = (char *)get_shmem (mem_id)) == NULL) {
+      _exit (0);
+      shmem_attached = true;
+    }
+  }
+#endif  
+
+  if (strstr (xlfd, "fixed")) {
+    /* Make sure we look up a reasonable descriptor. */
+    user_font_set = XListFonts
+      (display, FIXED_FONT_XLFD, MAXARGS, &n_user_fonts);
+  } else {
+    user_font_set = XListFonts (display, xlfd, MAXARGS, &n_user_fonts);
+  }
+
+  strcpy (old_xlfd, xlfd);
+  clear_font_descriptors ();
+  have_normal_xlfd = have_bold_xlfd = have_italic_xlfd =
+    have_bold_italic_xlfd = false;
+
+  for (nth_font = 0; nth_font < n_user_fonts; nth_font++) {
+    if (have_normal_xlfd && have_bold_xlfd && have_italic_xlfd &&
+	have_bold_italic_xlfd)
+      break;
+    /* Just check the weight and slant arguments for now. */
+    if (strstr (user_font_set [nth_font], "medium-r")) {
+      if (!have_normal_xlfd) {
+	if ((xlibfont.normal = strdup (user_font_set[nth_font])) != NULL)
+	  xlibfont.normal_xfs = XLoadQueryFont (display, xlibfont.normal);
+	have_normal_xlfd = true;
+      }
+    } else if (strstr (user_font_set[nth_font], "-bold-r")) {
+      if (!have_bold_xlfd) {
+	if ((xlibfont.bold = strdup (user_font_set[nth_font])) != NULL)
+	  xlibfont.bold_xfs = XLoadQueryFont (display, xlibfont.bold);
+	have_bold_xlfd = true;
+      }
+    } else if (strstr (user_font_set[nth_font], "medium-o") ||
+	       strstr (user_font_set[nth_font], "medium-i")) {
+      /* use either italic or oblique here and for bold-italic. */
+      if (!have_italic_xlfd) {
+	if ((xlibfont.italic = strdup (user_font_set[nth_font])) != NULL)
+	  xlibfont.italic_xfs = XLoadQueryFont (display,
+						xlibfont.italic);
+	have_italic_xlfd = true;
+      }
+    } else if (strstr (user_font_set[nth_font], "bold-o") ||
+	       strstr (user_font_set[nth_font], "bold-i")) {
+      if (!have_bold_italic_xlfd) {
+	if ((xlibfont.bolditalic = strdup (user_font_set[nth_font]))
+	    != NULL)
+	  xlibfont.bolditalic_xfs =
+	    XLoadQueryFont (display, xlibfont.bolditalic);
+	have_bold_italic_xlfd = true;
+      }
+    }
+  }
+  xlibfont.selectedfont = xlibfont.normal;
+  xlibfont.selected_xfs = xlibfont.normal_xfs;
+  XFreeFontNames (user_font_set);
+  /* this probably needs to be updated after the X client is
+     started */
+#if 0
+  ctitoa (xlibfont.selected_xfs -> fid, buf);
+  strcpy (&shm_mem[SHM_FONT_FID], buf); 
+  strcpy (&shm_mem[SHM_FONT_XLFD], xlibfont.selectedfont);
+#endif  
   return SUCCESS;
 }
 

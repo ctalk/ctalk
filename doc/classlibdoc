@@ -5403,9 +5403,14 @@ class), and the pane has established a connection to the X server
 (with the openEventStream method).
 
 >>>X11Pane::font (String font_desc)
-Set the font used for drawing on the window.  This font can
+Set the X font used for drawing on the window.  This font can
 be set independently of the fonts used by subpanes.
  and 
+
+Because the Ctalk libraries use shared memory to manage font
+information, it is generally necessary to call this method
+after the openEventStream method, for the program to
+calculate the character spacing of multiple typefaces correctly.
 
 >>>X11Pane::ftFont
 Integer weight Integer dpi, Float pointSize)

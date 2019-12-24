@@ -1,4 +1,4 @@
-/* $Id: ctalk.h,v 1.38 2019/12/23 07:45:10 rkiesling Exp $ -*-Fundamental-*- */
+/* $Id: ctalk.h,v 1.40 2019/12/24 01:00:26 rkiesling Exp $ -*-Fundamental-*- */
 
 /*
   This file is part of Ctalk.
@@ -2622,6 +2622,7 @@ void __ctalkX11FreeSizeHints (void);
 
 /* lib/xlibfont.c */
 int load_xlib_fonts_internal (char *);
+int load_xlib_fonts_internal_1t (char *);
 void clear_font_descriptors (void);
 int __ctalkSelectXFontFace (int, unsigned long int, int);
 
@@ -2723,6 +2724,7 @@ OBJECT *__x11_pane_win_id_value_object (OBJECT *);
 int __ctalkX11MakeEvent (OBJECT *, OBJECT *);
 int __ctalkX11DisplayHeight (void);
 int __ctalkX11DisplayWidth (void);
+int __client_pid (void);
 #ifdef HAVE_XRENDER_H
 bool xrender_version_check (void);
 #endif /* #ifdef HAVE_XRENDER_H */

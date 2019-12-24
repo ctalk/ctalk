@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.40 2019/12/22 21:11:42 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.41 2019/12/24 01:00:26 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -11793,9 +11793,14 @@ class), and the pane has established a connection to the X server
 
 @cindex @mnm{font} instance method @idxclscite{X11Pane}
 @item @mnm{font} (@code{String} @var{font_desc})
-Set the font used for drawing on the window.  This font can
+Set the X font used for drawing on the window.  This font can
 be set independently of the fonts used by subpanes.
 @xref{X11TextPane}, and @xref{X11Bitmap}.
+
+Because the Ctalk libraries use shared memory to manage font
+information, it is generally necessary to call this method
+after the @mnm{openEventStream} method, for the program to
+calculate the character spacing of multiple typefaces correctly.
 
 @cindex @mnm{ftFont} instance method @idxclscite{X11Pane}
 @item @mnm{ftFont} (@code{String} @var{family}, @code{Integer} @var{slant},
@@ -19535,6 +19540,11 @@ X_FACE_ITALIC
 X_FACE_BOLD_ITALIC
 
 @end example
+
+Because these functions use shared memory to manage each X typeface's
+metrics, it is generally necessary to call this function after calling
+@cite{__ctalkOpenX11InputClient} in order to display multiple faces
+with the correct character spacing.
 
 @idxlibfn{__ctalkSelfPrintOn}
 @item __ctalkSelfPrintOn (void)

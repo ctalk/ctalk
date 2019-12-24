@@ -499,9 +499,14 @@ Instance Methods
      (with the 'openEventStream' method).
 
 'font (String FONT_DESC)'
-     Set the font used for drawing on the window.  This font can be set
-     independently of the fonts used by subpanes.  *Note X11TextPane::,
-     and *Note X11Bitmap::.
+     Set the X font used for drawing on the window.  This font can be
+     set independently of the fonts used by subpanes.  *Note
+     X11TextPane::, and *Note X11Bitmap::.
+
+     Because the Ctalk libraries use shared memory to manage font
+     information, it is generally necessary to call this method after
+     the 'openEventStream' method, for the program to calculate the
+     character spacing of multiple typefaces correctly.
 
 'ftFont (String FAMILY, Integer SLANT,'
      'Integer' WEIGHT 'Integer' DPI, 'Float' POINTSIZE) Selects an
@@ -6990,6 +6995,11 @@ functions.
           X_FACE_ITALIC
           X_FACE_BOLD_ITALIC
 
+
+     Because these functions use shared memory to manage each X
+     typeface's metrics, it is generally necessary to call this function
+     after calling '__ctalkOpenX11InputClient' in order to display
+     multiple faces with the correct character spacing.
 
 '__ctalkSelfPrintOn (void)'
      Print the calling method's arguments to the receiver.  This

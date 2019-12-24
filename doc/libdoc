@@ -1540,6 +1540,11 @@ X_FACE_BOLD_ITALIC
 
 ---------------------------------------------------------
 
+Because these functions use shared memory to manage each X typeface's
+metrics, it is generally necessary to call this function after calling
+__ctalkOpenX11InputClient in order to display multiple faces
+with the correct character spacing.
+
 >>>__ctalkSelfPrintOn (void)
 Print the calling method's arguments to the receiver.  This 
 function is called directly by printOn (class String)
