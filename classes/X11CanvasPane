@@ -1,4 +1,4 @@
-/* $Id: X11CanvasPane,v 1.9 2019/12/15 18:16:10 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11CanvasPane,v 1.12 2019/12/25 00:17:50 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -239,6 +239,7 @@ X11CanvasPane instanceMethod attachTo (Object parentPane) {
      */
     (X11Bitmap *)self paneBuffer create self xWindowID, self size x, 
       self size y, self depth;
+    (X11Bitmap *)self paneBuffer background (self backgroundColor);
     (X11Bitmap *)self paneBackingStore create self xWindowID, self size x, 
       self size y, self depth;
   } else {
@@ -403,8 +404,14 @@ X11CanvasPane instanceMethod drawRectangle (Integer xOrg, Integer yOrg,
 
 X11CanvasPane instanceMethod background (String color) {
   "Set the receiver's background color to the argument,
-  a String."
-  self paneBuffer background color;
+  a String.  Also has the effect of clearing the pane's
+  buffer."
+    self backgroundColor = color;
+    if (self paneBuffer xID > 0) {
+      /* the pane has been initialized */
+      self super background color;
+      self paneBuffer background color;
+    }
 }
 
 X11CanvasPane instanceMethod foreground (String color) {
@@ -607,5 +614,6 @@ X11CanvasPane instanceMethod faceItalic (void) {
 X11CanvasPane instanceMethod faceBoldItalic (void) {
   (X11Bitmap *)self paneBuffer faceBoldItalic;
 }
+
 
 

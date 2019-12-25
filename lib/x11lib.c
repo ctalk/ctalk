@@ -1,4 +1,4 @@
-/* $Id: x11lib.c,v 1.38 2019/12/24 01:00:26 rkiesling Exp $ -*-c-*-*/
+/* $Id: x11lib.c,v 1.39 2019/12/24 20:46:24 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -313,6 +313,17 @@ unsigned long lookup_pixel (char *color) {
     return c.pixel;
   } else {
     return BlackPixel (display, screen);
+  }
+}
+
+/* As above, but we use our own Display in case the program is
+   still initializing. */
+unsigned long lookup_pixel_d (Display *d, char *color) {
+  XColor c;
+  if (!lookup_color (&c, color)) {
+    return c.pixel;
+  } else {
+    return BlackPixel (d, screen);
   }
 }
 

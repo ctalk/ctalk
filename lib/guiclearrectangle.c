@@ -1,4 +1,4 @@
-/* $Id: guiclearrectangle.c,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-c-*-*/
+/* $Id: guiclearrectangle.c,v 1.2 2019/12/24 20:46:24 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -54,37 +54,75 @@ int __ctalkGUIPaneClearRectangle (OBJECT *self_object, int x, int y,
 }
 #else /* X11LIB_FRAME */
 
+#define CLEAR_RECTANGLE_GCV_MASK (GCFunction|GCForeground|GCBackground|GCFillStyle)
+
 int __ctalkX11ClearRectangleBasic (int drawable_id,
 				   unsigned long int gc_ptr, 
 				   int x, int y,
 				   int width, int height) {
   char d_buf[MAXLABEL];
-  char cr_intbuf1[MAXLABEL], cr_intbuf2[MAXLABEL], cr_intbuf3[MAXLABEL],
-    cr_intbuf4[MAXLABEL], cr_intbuf5[MAXLABEL], cr_intbuf6[MAXLABEL];
+  char cr_intbuf1[MAXLABEL], cr_intbuf2[MAXLABEL];
+  Display *l_d;
+  GC gc;
+  XGCValues v, old_v;
+
+  if (__client_pid () < 0) {
+    gc = (GC)gc_ptr;
+    if (display == NULL) {
+      if ((l_d = XOpenDisplay (getenv ("DISPLAY"))) != NULL) {
+	_error ("ctalk: This program requires the X Window System. Exiting.\n");
+      }
+      XGetGCValues (l_d, gc,
+		    CLEAR_RECTANGLE_GCV_MASK, &old_v);
+      v.background = old_v.background;
+      v.foreground = old_v.background;
+      v.fill_style = FillSolid;
+      v.function = GXcopy;
+      XChangeGC (l_d, gc, CLEAR_RECTANGLE_GCV_MASK, &v);
+
+      XFillRectangle (l_d, (Drawable)drawable_id, gc,
+		      x, y, width, height);
+      XChangeGC (l_d, gc, CLEAR_RECTANGLE_GCV_MASK, &old_v);
+      XCloseDisplay (l_d);
+    } else {
+      XGetGCValues (display, gc,
+		    CLEAR_RECTANGLE_GCV_MASK, &old_v);
+      v.background = old_v.background;
+      v.foreground = old_v.background;
+      v.fill_style = FillSolid;
+      v.function = GXcopy;
+      XChangeGC (display, gc, CLEAR_RECTANGLE_GCV_MASK, &v);
+
+      XFillRectangle (display, (Drawable)drawable_id, gc,
+		      x, y, width, height);
+      XChangeGC (display, gc, CLEAR_RECTANGLE_GCV_MASK, &old_v);
+    }
+    return SUCCESS;
+  } else {
+#ifdef GRAPHICS_WRITE_SEND_EVENT
+    XEvent send_event;
+#endif
+    strcatx (d_buf, 
+	     ascii[x], ":",
+	     ascii[y], ":",
+	     ascii[width], ":",
+	     ascii[height], ":",
+	     ctitoa (drawable_id, cr_intbuf1), ":",
+	     ctitoa (drawable_id, cr_intbuf2), ":",
+	     NULL);
+    make_req (shm_mem, PANE_CLEAR_RECTANGLE_REQUEST,
+	      drawable_id, gc_ptr, d_buf);
 
 #ifdef GRAPHICS_WRITE_SEND_EVENT
-  XEvent send_event;
+    send_event.xgraphicsexpose.type = GraphicsExpose;
+    send_event.xgraphicsexpose.send_event = True;
+    send_event.xgraphicsexpose.display = display;
+    send_event.xgraphicsexpose.drawable = drawable_id;
+    XSendEvent (display, drawable_id, False, 0L, &send_event);
 #endif
-  strcatx (d_buf, 
-	   ascii[x], ":",
-	   ascii[y], ":",
-	   ascii[width], ":",
-	   ascii[height], ":",
-	   ctitoa (drawable_id, cr_intbuf5), ":",
-	   ctitoa (drawable_id, cr_intbuf6), ":",
-	   NULL);
-  make_req (shm_mem, PANE_CLEAR_RECTANGLE_REQUEST,
-	    drawable_id, gc_ptr, d_buf);
-
-#ifdef GRAPHICS_WRITE_SEND_EVENT
-  send_event.xgraphicsexpose.type = GraphicsExpose;
-  send_event.xgraphicsexpose.send_event = True;
-  send_event.xgraphicsexpose.display = display;
-  send_event.xgraphicsexpose.drawable = drawable_id;
-  XSendEvent (display, drawable_id, False, 0L, &send_event);
-#endif
-  wait_req (shm_mem);
-  return SUCCESS;
+    wait_req (shm_mem);
+    return SUCCESS;
+  }
 }
 
 int __ctalkX11PaneClearRectangle (OBJECT *self, int x, int y,

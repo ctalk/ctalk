@@ -1,4 +1,4 @@
-/* $Id: guisetbackground.c,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-c-*-*/
+/* $Id: guisetbackground.c,v 1.3 2019/12/25 00:29:00 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -40,6 +40,7 @@
 extern Display *display;   /* Defined in x11lib.c. */
 extern char *shm_mem;
 extern int mem_id;
+unsigned long lookup_pixel_d (Display *, char *);
 
 #if X11LIB_FRAME
 int __ctalkX11SetBackground (OBJECT *self_object) {
@@ -62,24 +63,45 @@ int __ctalkX11SetBackgroundBasic (int drawable_id,
 				  unsigned long int gc_ptr, 
 				  char *color) {
   char d_buf[MAXLABEL];
+  Display *l_d;
+  XGCValues v;
+  GC gc;
+  int r;
 #ifdef GRAPHICS_WRITE_SEND_EVENT
   XEvent send_event;
 #endif
-  if (!shm_mem)
-    return ERROR;
+  
+  if (__client_pid () < 0) {
+    gc = (GC)gc_ptr;
+    if (display == NULL) {
+      if ((l_d = XOpenDisplay (getenv ("DISPLAY"))) == NULL) {
+	_error ("ctalk: This program requires the X Window System. Exiting.\n");
+      }
+      v.background = lookup_pixel_d (l_d, color);
+      r = XChangeGC (l_d, gc, GCBackground, &v);
+      XCloseDisplay (l_d);
+    } else {
+      v.background = lookup_pixel_d (display, color);
+      r = XChangeGC (display, gc, GCBackground, &v);
+    }
+  } else {
 
-  sprintf (d_buf, ":%ld:%s", GCBackground, color);
-  make_req (shm_mem, PANE_CHANGE_GC_REQUEST,
+    if (!shm_mem)
+      return ERROR;
+
+    sprintf (d_buf, ":%ld:%s", GCBackground, color);
+    make_req (shm_mem, PANE_CHANGE_GC_REQUEST,
 	    drawable_id, gc_ptr, d_buf);
 #ifdef GRAPHICS_WRITE_SEND_EVENT
-  send_event.xgraphicsexpose.type = GraphicsExpose;
-  send_event.xgraphicsexpose.send_event = True;
-  send_event.xgraphicsexpose.display = display;
-  send_event.xgraphicsexpose.drawable = drawable_id;
-  XSendEvent (display, drawable_id, False, 0L, &send_event);
+    send_event.xgraphicsexpose.type = GraphicsExpose;
+    send_event.xgraphicsexpose.send_event = True;
+    send_event.xgraphicsexpose.display = display;
+    send_event.xgraphicsexpose.drawable = drawable_id;
+    XSendEvent (display, drawable_id, False, 0L, &send_event);
 #endif
-  wait_req (shm_mem);
-  return SUCCESS;
+    wait_req (shm_mem);
+    return SUCCESS;
+  }
 }
 
 /*
@@ -92,6 +114,7 @@ int __ctalkGUISetBackground (OBJECT *self, char *color) {
   char d_buf[MAXLABEL], gc_buf[MAXLABEL];
   OBJECT *win_id_value, *gc_value;
   Window win_id;
+  Display *d_l;
 
 #ifdef GRAPHICS_WRITE_SEND_EVENT
   XEvent send_event;
@@ -104,24 +127,33 @@ int __ctalkGUISetBackground (OBJECT *self, char *color) {
     return ERROR;
   }
   gc_value = __x11_pane_win_gc_value_object (self);
-  /*
-   *  Make sure that the GC pointer is in hexadecimal format.
-   *  (0x00000000....)
-   */
-  
-  strcatx (d_buf, ":", color, NULL);
-  make_req (shm_mem, PANE_SET_WINDOW_BACKGROUND_REQUEST, win_id,
-	    SYMVAL(gc_value -> __o_value), d_buf);
+  if (__client_pid () < 0) {
+    if (display == NULL) {
+      if ((d_l = XOpenDisplay (getenv ("DISPLAY"))) == NULL) {
+	_error ("ctalk: This program requires the X Window System. Exiting.\n");
+      }
+      XSetWindowBackground (d_l, win_id,
+			    lookup_pixel_d (d_l, color));
+      XCloseDisplay (d_l);
+    } else {
+      XSetWindowBackground (display, win_id,
+			    lookup_pixel_d (display, color));
+    }
+  } else {
+    strcatx (d_buf, ":", color, NULL);
+    make_req (shm_mem, PANE_SET_WINDOW_BACKGROUND_REQUEST, win_id,
+	      SYMVAL(gc_value -> __o_value), d_buf);
 #ifdef GRAPHICS_WRITE_SEND_EVENT
-  send_event.xgraphicsexpose.type = GraphicsExpose;
-  send_event.xgraphicsexpose.send_event = True;
-  send_event.xgraphicsexpose.display = display;
-  send_event.xgraphicsexpose.drawable = atoi(win_id_value->__o_value);
-  XSendEvent (display, atoi(win_id_value->__o_value),
- 	      False, 0L, &send_event);
+    send_event.xgraphicsexpose.type = GraphicsExpose;
+    send_event.xgraphicsexpose.send_event = True;
+    send_event.xgraphicsexpose.display = display;
+    send_event.xgraphicsexpose.drawable = atoi(win_id_value->__o_value);
+    XSendEvent (display, atoi(win_id_value->__o_value),
+		False, 0L, &send_event);
 #endif
-  wait_req (shm_mem);
-  return SUCCESS;
+    wait_req (shm_mem);
+    return SUCCESS;
+  }
 }
 
 #endif /* X11LIB_FRAME */

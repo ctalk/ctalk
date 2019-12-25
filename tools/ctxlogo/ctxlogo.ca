@@ -1,4 +1,4 @@
-/* $Id: ctxlogo.ca,v 1.3 2019/12/17 23:59:55 rkiesling Exp $ */
+/* $Id: ctxlogo.ca,v 1.7 2019/12/25 00:29:00 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -184,6 +184,9 @@ int main (int argc, char **argv) {
 
 
   logoAirPix = xWindowSize / 20;
+#if 1 /***/
+  xCanvasPane background bgColor;
+#endif  
 
   xPane initialize xWindowOrg, yWindowOrg, xWindowSize, yWindowSize,
     ctxlogo geomFlags;
@@ -192,14 +195,15 @@ int main (int argc, char **argv) {
   xTopLevelPane attachTo xPane;
   xCanvasPane attachTo xTopLevelPane;
 
+
   xPane map;
   xPane raiseWindow;
 
   xPane openEventStream;
 
-  xPane background bgColor;
+#if 0 /***/
   xCanvasPane background bgColor;
-  xCanvasPane clear;
+#endif  
 
   xPane setWMTitle "Ctalk Logo";
 

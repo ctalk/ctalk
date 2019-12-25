@@ -1206,4 +1206,15 @@
 	library function, which loads a font's faces before the
 	X client and app have initialized communication between
 	the two processes (xlibfont.c).
+2019-12-24
+	- Added lookup_pixel_d (x11lib.c), and added a single
+	thread clause to __ctalkX11SetBackgroundBasic
+	(guisetbackground.c).
+	- Added expression to set the pane buffer background
+	from the subwindow color in X11CanvasPane : attachTo.
+	- Updated X11CanvasPane : background to handle both
+	before and after initialization and to set the background
+	of both the subwindow and the panebuffer.
+	- Updated __ctalkGUISetBackground to update a window before
+	the program has started a client thread (guisetbackground.c).
 
