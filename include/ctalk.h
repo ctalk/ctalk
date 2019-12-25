@@ -1,4 +1,4 @@
-/* $Id: ctalk.h,v 1.41 2019/12/25 20:38:28 rkiesling Exp $ -*-Fundamental-*- */
+/* $Id: ctalk.h,v 1.42 2019/12/25 22:09:18 rkiesling Exp $ -*-Fundamental-*- */
 
 /*
   This file is part of Ctalk.
@@ -2680,7 +2680,7 @@ int load_ft_font_faces_internal (char *, double,
 /* lib/x11ksym.c */
 int ascii_shift_keysym (unsigned long int);
 int ascii_ctrl_keysym (unsigned long int);
-int get_x11_keysym (int, int, int);
+int get_x11_keysym (int, int, bool);
 int get_x11_keysym_2 (void *, int, int, int);
 int __ctalkGetX11KeySym (int, int, int);
 

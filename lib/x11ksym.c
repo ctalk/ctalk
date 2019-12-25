@@ -1,4 +1,4 @@
-/* $Id: x11ksym.c,v 1.1.1.1 2019/10/26 23:40:50 rkiesling Exp $ -*-c-*-*/
+/* $Id: x11ksym.c,v 1.2 2019/12/25 22:09:18 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -23,6 +23,7 @@
 
 #include <stdio.h>
 #include <ctype.h>
+#include <stdbool.h>
 
 /* From ctalk.h */
 #ifndef FALSE
@@ -166,7 +167,7 @@ int ascii_ctrl_keysym (unsigned long int keysym) {
   return keysym_1;
 }
 
-int get_x11_keysym (int keycode, int shift_state, int keypress) {
+int get_x11_keysym (int keycode, int shift_state, bool keypress) {
   KeySym *keysyms;
   int n_keysyms;
   unsigned long int keysym0;

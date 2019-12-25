@@ -1,4 +1,4 @@
-/* $Id: x11lib.c,v 1.40 2019/12/25 20:38:28 rkiesling Exp $ -*-c-*-*/
+/* $Id: x11lib.c,v 1.41 2019/12/25 22:09:18 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -2828,15 +2828,21 @@ int __ctalkX11InputClient (OBJECT *streamobject, int parent_fd, int mem_handle, 
 	  continue;
 	  break;
 	case KeyPress:
-	case KeyRelease:
-	  event_to_client (client_sock_fd,
-			   ((e.type == KeyPress) ?
-			    KEYPRESS: KEYRELEASE),
-			   e.xkey.window, e.xkey.x, e.xkey.y,
-			   e.xkey.state, e.xkey.keycode,
+	  event_to_client (client_sock_fd, KEYPRESS, e.xkey.window,
+			   e.xkey.x, e.xkey.y, e.xkey.state,
+			   e.xkey.keycode,
 			   get_x11_keysym (e.xkey.keycode,
-					   e.xkey.state, TRUE), 0);
+					   e.xkey.state, true), 0);
 	  continue;
+	  break;
+	case KeyRelease:
+	  event_to_client (client_sock_fd, KEYRELEASE, e.xkey.window,
+			   e.xkey.x, e.xkey.y, e.xkey.state,
+			   e.xkey.keycode,
+			   get_x11_keysym (e.xkey.keycode,
+					   e.xkey.state, false), 0);
+	  continue;
+	  break;
 	case FocusIn:
 	  if (e.xfocus.mode == NotifyUngrab) {
 	    grabbed = false;
