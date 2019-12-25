@@ -1217,4 +1217,8 @@
 	of both the subwindow and the panebuffer.
 	- Updated __ctalkGUISetBackground to update a window before
 	the program has started a client thread (guisetbackground.c).
+2019-12-25
+	- Updated __ctalkGUISetBackground so it calls
+	__ctalkX11SetBackgroundBasic with the C variables
+	(guisetbackground.c).
 
