@@ -7530,10 +7530,6 @@ functions.
      Sets the X11 cursor of PANE_OBJECT to CURSOR_OBJECT.  *Note
      X11Cursor::.
 
-'__ctalkX11UseFont ()'
-     Do not use this function - it relies on specific instance variable
-     names.  Use __ctalkX11UseFontBasic, below, instead.
-
 '__ctalkX11UseXRender (bool B)'
      If B is true, draw using the X Render entension if it is available.
      If B is false, use Xlib for drawing even if X Render is available.

@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.41 2019/12/24 01:00:26 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.42 2019/12/25 20:38:28 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -20176,11 +20176,6 @@ frame's title.
 @item __ctalkX11UseCursor (@code{OBJECT *}@var{pane_object}, @code{OBJECT *}@var{cursor_object})
 Sets the X11 cursor of @var{pane_object} to
 @var{cursor_object}. @xref{X11Cursor}.
-
-@idxlibfn{__ctalkX11UseFont}
-@item __ctalkX11UseFont ()
-Do not use this function - it relies on specific instance
-variable names.  Use __ctalkX11UseFontBasic, below, instead.
 
 @idxlibfn{__ctalkX11UseXRender}
 @item __ctalkX11UseXRender (@code{bool} @var{b})

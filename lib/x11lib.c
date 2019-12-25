@@ -1,4 +1,4 @@
-/* $Id: x11lib.c,v 1.39 2019/12/24 20:46:24 rkiesling Exp $ -*-c-*-*/
+/* $Id: x11lib.c,v 1.40 2019/12/25 20:38:28 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -2382,9 +2382,6 @@ int __ctalkRaiseX11Window (OBJECT *self_object) {
 int __ctalkX11SetWMNameProp (OBJECT *self_object, char *title) {
   return SUCCESS;
 }
-int __ctalkX11UseFont (OBJECT *self) {
-  return SUCCESS;
-}
 int __ctalkX11UseFontBasic (int drawable_id, unsigned long int gc_ptr,
 			    char *xlfd) {
   return SUCCESS;
@@ -3663,37 +3660,6 @@ int __ctalkX11UseFontBasic (int drawable_id, unsigned long int gc_ptr,
   }
 }
 
-int __ctalkX11UseFont (OBJECT *self) {
-  OBJECT *self_object, *gc_value, *font_id_value;
-  GC gc;
-  XGCValues gc_values;
-  Font new_font;
-  int r;
-  char buf[MAXMSG];
-
-  self_object = (IS_VALUE_INSTANCE_VAR (self) ? self->__o_p_obj : self);
-  gc_value = __x11_pane_win_gc_value_object (self_object);
-  font_id_value = __x11_pane_font_id_value_object (self_object);
-  errno = 0;
-  gc = (GC)strtoul (gc_value -> __o_value, NULL, 16);
-  if (errno) {
-    strtol_error (errno, "__ctalkX11UseFont ()", gc_value -> __o_value);
-    return ERROR;
-  }
- 
-  XGetGCValues (display, gc, DEFAULT_GCV_MASK, &gc_values);
-  if (gc_values.font && gc_values.font != fixed_font) {
-    XUnloadFont (display, gc_values.font);
-  }
-  if ((new_font = get_user_font (self_object)) != 0) {
-    gc_values.font = new_font;
-    __ctalkDecimalIntegerToASCII ((int)new_font, buf);
-    __ctalkSetObjectValue (font_id_value, buf);
-    r = XChangeGC (display, gc, DEFAULT_GCV_MASK, &gc_values);
-  }
-  return SUCCESS;
-}
-
 static int __x11_resize_request_internal (int width, int height, int depth,
 					  int win_id_value,
 					  GC gc_value) {
@@ -4011,7 +3977,6 @@ int __ctalkRaiseX11Window (OBJECT *self_object) {
 int __ctalkX11SetWMNameProp (OBJECT *self_object, char *title) {
   x_support_error(); return ERROR;
 }
-int __ctalkX11UseFont (OBJECT *self) {x_support_error(); return ERROR;}
 int __ctalkX11ResizeWindow (OBJECT *self, int width, int height) {
   x_support_error(); return ERROR;
 }
