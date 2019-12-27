@@ -1,4 +1,4 @@
-/* $Id: x11lib.c,v 1.41 2019/12/25 22:09:18 rkiesling Exp $ -*-c-*-*/
+/* $Id: x11lib.c,v 1.42 2019/12/27 00:45:02 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -3815,7 +3815,7 @@ int __ctalkX11ResizeWindow (OBJECT *self, int width, int height,
   old_y_size = INTVAL(pane_size_point_y_object -> instancevars -> __o_value);
   /* we only need to resize the window if the new size is larger in one
      of the dimensions */
-  if ((old_x_size > width) || (old_y_size > height))
+  if ((old_x_size >= width) || (old_y_size >= height))
     return 0;
   n_resize_retries = 0;
  try_resize_request:

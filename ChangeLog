@@ -1224,4 +1224,14 @@
 	- Removed __ctalkX11UseFont, which has been replaced by
 	__ctalkX11UseFontBasic (x11lib.c).
 	- Updated KeyPress/KeyRelease X event handlers (x11lib.c).
-
+	- Updated X11TextEditorPane : subPaneResize.
+	- Make sure that unary_op_attributes returns the prefix_start_idx
+	when the TOK_IS_PREFIX_OPERATOR message attribute is already set
+	(prefixop.c).
+2019-12-26
+	- Added margexprs70.c test program.
+	- Updated __ctalkX11ResizeWindow so the library doesn't
+	resize a window if the old and new dimensions are the
+	same (x11lib.c).
+	- Added X11TextEditorPane : attachTo and updated
+	the X11TextEditorPane methods subPaneResize and background.

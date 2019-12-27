@@ -1,4 +1,4 @@
-/* $Id: X11TextEditorPane,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11TextEditorPane,v 1.5 2019/12/27 01:18:56 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -40,32 +40,84 @@ X11TextEditorPane instanceVariable button Integer 0;
 X11TextEditorPane instanceVariable sStart Integer 0
 "The character index where the selection starts";
 X11TextEditorPane instanceVariable sEnd Integer 0
-"The character index where the selection starts";
+"The character index where the selection ends";
 X11TextEditorPane instanceVariable selecting Boolean false;
 
 static int i_button = 0;
 static bool b_selecting = false;
 
-X11TextEditorPane instanceMethod subPaneResize (X11TextEditorPane __subPane,
- 					  InputEvent __event) {
+X11TextEditorPane instanceMethod subPaneResize (X11TextEditorPane __subPane, 
+					  InputEvent __event) {
+  "Resize the receiver pane.  This is the resize event
+  handler called by the parent window's pane
+  dispatcher."
   X11Pane new container;
-  if (__subPane container containerMode == "full") {
-    (X11Bitmap *)self paneBuffer resize self xWindowID, __event xEventData3, 
-      __event xEventData4;
-    (X11Bitmap *)self paneBackingStore resize self xWindowID, __event xEventData3, 
-    __event xEventData4;
 
-    __subPane viewWidth = __event xEventData3;
-    __subPane viewHeight = __event xEventData4;
-    __subPane size x = __event xEventData3;
-    __subPane size y = __event xEventData4;
-    container = *__subPane container;
-    container size x = __event xEventData3;
-    container size y = __event xEventData4;
-    __subPane defaultFormat;
+  if (__subPane container containerMode == "full") {
+
+    if (__ctalkX11ResizeWindow (__subPane, __event xEventData3,
+				__event xEventData4,
+				__subPane depth) > 0) {
+      __subPane viewWidth = __event xEventData3;
+      __subPane viewHeight = __event xEventData4;
+      __subPane size x = __event xEventData3;
+      __subPane size y = __event xEventData4;
+      (X11Bitmap *)self paneBuffer resize self xWindowID,
+	__event xEventData3, __event xEventData4;
+      (X11Bitmap *)self paneBackingStore resize self xWindowID,
+	__event xEventData3, __event xEventData4;
+      self refresh;
+
+      container = *(__subPane container);
+      container size x = __event xEventData3;
+      container size y = __event xEventData4;
+      __subPane defaultFormat;
+    }
+
   } else {
     fprintf (stderr, 
      "Error: subPaneResize (class X11CanvasPane): unknown container mode!\n");
+  }
+  return NULL;
+}
+
+X11TextEditorPane instanceMethod background (String color) {
+  "Set the receiver's background color to the argument,
+  a String.  Also has the effect of clearing the pane's
+  buffer."
+    self backgroundColor = color;
+    if (self paneBuffer xID > 0) {
+      /* the pane has been initialized */
+      self super background color;
+      self paneBuffer background color;
+    }
+}
+
+X11TextEditorPane instanceMethod attachTo (Object parentPane) {
+  "Register the receiver pane as a subpane of the X11Pane
+  given as the argument.  Generally parent pane should
+  be a X11PaneDispatcher object."
+  X11Bitmap new xPaneBuffer;
+  X11Bitmap new xPaneBackingStore;
+  self super attachTo parentPane;
+  self paneBuffer become xPaneBuffer;
+  self paneBackingStore become xPaneBackingStore;
+  if (parentPane containerMode == "full") {
+    self viewWidth = parentPane size x;
+    self viewHeight = parentPane size y;
+    self size x = parentPane size x;
+    self size y = parentPane size y;
+    self origin x = 0;
+    self origin y = 0;
+
+    (X11Bitmap *)self paneBuffer create self xWindowID, self size x, 
+      self size y, self depth;
+    (X11Bitmap *)self paneBuffer background (self backgroundColor);
+    (X11Bitmap *)self paneBackingStore create self xWindowID, self size x, 
+      self size y, self depth;
+  } else {
+    fprintf (stderr, 
+	     "attachTo (class X11CanvasPane) : undefined containerMode.\n");
   }
   return NULL;
 }
@@ -99,55 +151,11 @@ X11TextEditorPane instanceMethod new (String __paneName) {
   return __paneName;
 }
 
-X11TextEditorPane instanceMethod background (String color) {
-  "Set the receiver's background color.  The method also stores
-   the color name so the pane can use it for a reverse video cursor."
-  self backgroundColor = color;
-  self paneBuffer background color;
-}
-
 X11TextEditorPane instanceMethod foreground (String color) {
   "Set the receiver's foreground color, and the foreground
    color of the window buffer."
   self foregroundColor = color;
   self paneBuffer foreground color;
-}
-
-/* This is here for the early versions of the X11TextEditorPane class.
-   The calculations have been folded into defaultFormat, and this
-   method should go away. */
-X11TextEditorPane instanceMethod defaultFormatFT (X11FreeTypeFont font) {
-  "Sets the document-wide formatting parameters from the
-   receiver's lineWidth, leftMargin, and lineHeight instance
-   variables, and the container window's dimensions.  The
-   argument is needed because outline fonts are managed
-   externally from the window's graphics context."
-
-  Integer new calcLineHeight;
-  X11Bitmap new paneBuffer;
-  X11PaneDispatcher new topDispatcher;
-  String new textBuf;
-
-  topDispatcher = *(self container);
-
-  calcLineHeight = font height + self leading;
-  
-  paneBuffer = (X11Bitmap *)self paneBuffer;
-
-  textBuf = "<format=global>\n";
-  textBuf += "<lineWidth=" + self lineWidth asString + ">";
-  textBuf += "<leftMargin=" + self viewXOffset asString + ">";
-  textBuf += "<lineHeight=" + calcLineHeight asString + ">";
-  textBuf += "<winWidth=" + topDispatcher size x asString + ">\n";
-  textBuf += "<winHeight=" + topDispatcher size y asString + ">\n";
-  textBuf += "<foregroundColor=" + self foregroundColor + ">\n";
-  textBuf += "<backgroundColor=" + self backgroundColor + ">\n";
-  textBuf += "<selectionBackgroundColor=" +
-    self selectionBackgroundColor + ">\n";
-  textBuf += "<xWindowID=" + self xWindowID asString + ">\n";
-  textBuf += "</format>";
-  __ctalkX11TextFromData (paneBuffer xID, paneBuffer xGC, textBuf);
-
 }
 
 X11TextEditorPane instanceMethod defaultFormat (void) {

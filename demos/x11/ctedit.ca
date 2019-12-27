@@ -1,4 +1,4 @@
-/* $Id: ctedit.ca,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $  -*-c-*- */
+/* $Id: ctedit.ca,v 1.4 2019/12/27 01:18:56 rkiesling Exp $  -*-c-*- */
 
 /*
   This file is part of Ctalk.
@@ -278,6 +278,7 @@ int main (int argc, char **argv) {
     createFile = false;
   }
 
+  xEditorPane backgroundColor = bgColor;
   xPane initialize ctEdit winXOrg, ctEdit winYOrg,
     ctEdit winWidth, ctEdit winHeight, ctEdit geomFlags, winTitle;
 
@@ -298,7 +299,6 @@ int main (int argc, char **argv) {
     xEditorPane font xFontName;
 
   xEditorPane foreground fgColor;
-  xEditorPane background bgColor;
   xEditorPane defaultFormat;
 
   xPane defaultCursor;

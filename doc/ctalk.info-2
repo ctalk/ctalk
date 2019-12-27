@@ -2909,16 +2909,22 @@ Instance Variables
 Instance Methods
 ................
 
+'attachTo (Object PARENT_PANE)'
+     Attach a 'X11TextEditorPane' object to its parent pane, which is
+     typically a 'X11PaneDispatcher' object.  This method initializes
+     the size of the pane's window and buffers to the parent pane's
+     dimensions, and positions the pane at the upper left-hand origin of
+     the main window.
+
 'background (String COLORNAME)'
 'foreground (String COLORNAME)'
      Sets the foreground and backgrounds color of the pane's window and
      buffers.
 
 'defaultFormat (void)'
-'defaultFormatFT (X11FreeTypeFontObject)'
-     Sets the document-wide margins, text colors.  The 'defaultFormatFT'
-     method takes as its argument a 'X11FreeTypeFont' object, which
-     needs to be configured before calling this method.  *Note
+     Sets the document-wide margins and text text colors.  If the pane
+     is using an 'X11FreeTypeFont' object to render text, the font needs
+     to be configured before calling this method.  *Note
      X11FreeTypeFont::.
 
 'displayText (void)'

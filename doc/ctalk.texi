@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.42 2019/12/25 20:38:28 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.44 2019/12/27 01:18:57 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -14564,6 +14564,14 @@ An @code{Integer} that records the length of the object's text.
 
 @subsubheading Instance Methods
 @table @code
+@cindex @mnm{attachTo} instance method @idxclscite{X11TextEditorPane}
+@item @mnm{attachTo} (@code{Object} @var{parent_pane})
+Attach a @code{X11TextEditorPane} object to its parent pane, which is
+typically a @code{X11PaneDispatcher} object.  This method initializes
+the size of the pane's window and buffers to the parent pane's
+dimensions, and positions the pane at the upper left-hand origin of
+the main window.
+
 @cindex @mnm{background} instance method @idxclscite{X11TextEditorPane}
 @cindex @mnm{foreground} instance method @idxclscite{X11TextEditorPane}
 @item background (@code{String} @var{colorName})
@@ -14572,13 +14580,10 @@ Sets the foreground and backgrounds color of the pane's window and
 buffers.
 
 @cindex @mnm{defaultFormat} instance method @idxclscite{X11TextEditorPane}
-@cindex @mnm{defaultFormatFT} instance method @idxclscite{X11TextEditorPane}
 @item defaultFormat (@code{void})
-@item defaultFormatFT (@code{X11FreeTypeFontObject})
-Sets the document-wide margins, text colors.  The
-@code{defaultFormatFT} method takes as its argument a
-@code{X11FreeTypeFont} object, which needs to be configured before
-calling this method. @xref{X11FreeTypeFont}.
+Sets the document-wide margins and text text colors.  If the pane is
+using an @code{X11FreeTypeFont} object to render text, the font needs
+to be configured before calling this method.  @xref{X11FreeTypeFont}.
 
 @cindex @mnm{displayText} instance method @idxclscite{X11TextEditorPane}
 @item displayText (@code{void})

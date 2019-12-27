@@ -6684,17 +6684,22 @@ window system.
 >>>X11TextPane::subPaneResize (Object subPaneReference, InputEvent event)
 The handler for RESIZENOTIFY events from the window system.
 
+>>>X11TextEditorPane::attachTo (Object parent_pane)
+Attach a X11TextEditorPane object to its parent pane, which is
+typically a X11PaneDispatcher object.  This method initializes
+the size of the pane's window and buffers to the parent pane's
+dimensions, and positions the pane at the upper left-hand origin of
+the main window.
+
 >>>X11TextEditorPane::background (String colorName)
 >>>X11TextEditorPane::foreground (String colorName)
 Sets the foreground and backgrounds color of the pane's window and
 buffers.
 
 >>>X11TextEditorPane::defaultFormat (void)
->>>X11TextEditorPane::defaultFormatFT (X11FreeTypeFontObject)
-Sets the document-wide margins, text colors.  The
-defaultFormatFT method takes as its argument a
-X11FreeTypeFont object, which needs to be configured before
-calling this method. 
+Sets the document-wide margins and text text colors.  If the pane is
+using an X11FreeTypeFont object to render text, the font needs
+to be configured before calling this method.  
 
 >>>X11TextEditorPane::displayText (void)
 Displays the text and editing cursor.  Programs should call this

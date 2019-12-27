@@ -3986,6 +3986,8 @@ File: ctalk.info,  Node: Index,  Prev: GNU Free Documentation License,  Up: Top
 * attachTo instance method (X11Pane class): X11Pane.         (line  118)
 * attachTo instance method (X11PaneDispatcher class): X11PaneDispatcher.
                                                              (line  173)
+* attachTo instance method (X11TextEditorPane class): X11TextEditorPane.
+                                                             (line  162)
 * attachTo instance method (X11TextPane class): X11TextPane. (line  152)
 * attributes instance variable (SignalHandler class): SignalHandler.
                                                              (line   51)
@@ -3997,7 +3999,7 @@ File: ctalk.info,  Node: Index,  Prev: GNU Free Documentation License,  Up: Top
                                                              (line  197)
 * background instance method (X11Pane class): X11Pane.       (line  122)
 * background instance method (X11TextEditorPane class): X11TextEditorPane.
-                                                             (line  162)
+                                                             (line  169)
 * background instance method (X11TextPane class): X11TextPane.
                                                              (line  161)
 * Background method processes:           Object.             (line  489)
@@ -4293,9 +4295,7 @@ File: ctalk.info,  Node: Index,  Prev: GNU Free Documentation License,  Up: Top
 * decReferenceCount instance method (Object class): Object.  (line  324)
 * defaultCursor instance method (X11Pane class): X11Pane.    (line  138)
 * defaultFormat instance method (X11TextEditorPane class): X11TextEditorPane.
-                                                             (line  167)
-* defaultFormatFT instance method (X11TextEditorPane class): X11TextEditorPane.
-                                                             (line  167)
+                                                             (line  174)
 * defaultHandler instance method (SignalHandler class): SignalHandler.
                                                              (line   69)
 * DEFAULT_TCPIP_PORT:                    TCPIPV6NetworkStreamWriter.
@@ -4400,7 +4400,7 @@ File: ctalk.info,  Node: Index,  Prev: GNU Free Documentation License,  Up: Top
 * displayPtr instance variable (GLXCanvasPane class): GLXCanvasPane.
                                                              (line  201)
 * displayText instance method (X11TextEditorPane class): X11TextEditorPane.
-                                                             (line  174)
+                                                             (line  180)
 * displayText instance method (X11TextPane class): X11TextPane.
                                                              (line  168)
 * displayWidth instance variable (X11Pane class): X11Pane.   (line  148)
@@ -4487,7 +4487,7 @@ File: ctalk.info,  Node: Index,  Prev: GNU Free Documentation License,  Up: Top
 * eventData instanceVariable (InputEvent class): InputEvent. (line   14)
 * eventMask instance variable (X11TerminalStream class): X11TerminalStream.
                                                              (line  103)
-* Example program, text editor:          X11TextEditorPane.  (line  216)
+* Example program, text editor:          X11TextEditorPane.  (line  222)
 * Exception class:                       Exception.          (line    6)
 * exceptionHandler instance method (Exception class): Exception.
                                                              (line  163)
@@ -4581,7 +4581,7 @@ File: ctalk.info,  Node: Index,  Prev: GNU Free Documentation License,  Up: Top
 * foreground instance method (X11CanvasPane class): X11CanvasPane.
                                                              (line  358)
 * foreground instance method (X11TextEditorPane class): X11TextEditorPane.
-                                                             (line  162)
+                                                             (line  169)
 * foreground instance method (X11TextPane class): X11TextPane.
                                                              (line  219)
 * foregroundColor instancevariable (X11TextEditorPane class): X11TextEditorPane.
@@ -5152,7 +5152,7 @@ File: ctalk.info,  Node: Index,  Prev: GNU Free Documentation License,  Up: Top
 * new instance method (X11PaneDispatcher class): X11PaneDispatcher.
                                                              (line  195)
 * new instance method (X11TextEditorPane class): X11TextEditorPane.
-                                                             (line  180)
+                                                             (line  186)
 * new instance method (X11TextPane class): X11TextPane.      (line  230)
 * new method (ANSITerminalStream class): ANSITerminalStream. (line  164)
 * new method (ANSITextEntryPane class):  ANSITextEntryPane.  (line   77)
@@ -5825,7 +5825,7 @@ File: ctalk.info,  Node: Index,  Prev: GNU Free Documentation License,  Up: Top
 * STR_IS_NULL macro <1>:                 C Macros.           (line  115)
 * str_is_zero_q function:                Ctalk library.      (line 2660)
 * subPaneButtonPress instance method (X11TextEditorPane class): X11TextEditorPane.
-                                                             (line  197)
+                                                             (line  203)
 * subPaneDestroy instance method (X11CanvasPane class): X11CanvasPane.
                                                              (line  399)
 * subPaneDestroy instance method (X11PaneDispatcher class): X11PaneDispatcher.
@@ -5839,11 +5839,11 @@ File: ctalk.info,  Node: Index,  Prev: GNU Free Documentation License,  Up: Top
 * subPaneKbdInput instance method (X11PaneDispatcher class): X11PaneDispatcher.
                                                              (line  212)
 * subPaneKbdInput instance method (X11TextEditorPane class): X11TextEditorPane.
-                                                             (line  187)
+                                                             (line  193)
 * subPaneKbdInput instance method (X11TextPane class): X11TextPane.
                                                              (line  263)
 * subPaneMotionNotify instance method (X11TextEditorPane class): X11TextEditorPane.
-                                                             (line  202)
+                                                             (line  208)
 * subPaneMove instance method (X11PaneDispatcher class): X11PaneDispatcher.
                                                              (line  218)
 * subPaneNotify instance method (X11Pane class): X11Pane.    (line  292)
@@ -5858,11 +5858,11 @@ File: ctalk.info,  Node: Index,  Prev: GNU Free Documentation License,  Up: Top
 * subPaneResize instance method (X11PaneDispatcher class): X11PaneDispatcher.
                                                              (line  234)
 * subPaneResize instance method (X11TextEditorPane class): X11TextEditorPane.
-                                                             (line  205)
+                                                             (line  211)
 * subPaneResize instance method (X11TextPane class): X11TextPane.
                                                              (line  267)
 * subPaneSelectionClear instance method (X11TextEditorPane class): X11TextEditorPane.
-                                                             (line  210)
+                                                             (line  216)
 * substrcat function:                    Ctalk library.      (line 2665)
 * substrcpy function:                    Ctalk library.      (line 2669)
 * subString instance method (String class): String.          (line  436)
@@ -5923,7 +5923,7 @@ File: ctalk.info,  Node: Index,  Prev: GNU Free Documentation License,  Up: Top
                                                              (line  215)
 * text (SignalHandler class):            SignalEvent.        (line   50)
 * Text editing:                          Ctalk library.      (line 2489)
-* Text editor example program:           X11TextEditorPane.  (line  216)
+* Text editor example program:           X11TextEditorPane.  (line  222)
 * text instance variable (ANSILabelPane class): ANSILabelPane.
                                                              (line   43)
 * text instance variable (ANSITextBoxPane class): ANSITextBoxPane.
