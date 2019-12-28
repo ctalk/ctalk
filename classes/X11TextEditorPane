@@ -1,4 +1,4 @@
-/* $Id: X11TextEditorPane,v 1.5 2019/12/27 01:18:56 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11TextEditorPane,v 1.9 2019/12/27 21:54:16 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -66,17 +66,14 @@ X11TextEditorPane instanceMethod subPaneResize (X11TextEditorPane __subPane,
 	__event xEventData3, __event xEventData4;
       (X11Bitmap *)self paneBackingStore resize self xWindowID,
 	__event xEventData3, __event xEventData4;
-      self refresh;
 
-      container = *(__subPane container);
-      container size x = __event xEventData3;
-      container size y = __event xEventData4;
-      __subPane defaultFormat;
+      self defaultFormat;
+      self refresh;
     }
 
   } else {
     fprintf (stderr, 
-     "Error: subPaneResize (class X11CanvasPane): unknown container mode!\n");
+     "Error: subPaneResize (class X11TextEditorPane): unknown container mode!\n");
   }
   return NULL;
 }
@@ -117,7 +114,7 @@ X11TextEditorPane instanceMethod attachTo (Object parentPane) {
       self size y, self depth;
   } else {
     fprintf (stderr, 
-	     "attachTo (class X11CanvasPane) : undefined containerMode.\n");
+	     "attachTo (class X11TextEditorPane) : undefined containerMode.\n");
   }
   return NULL;
 }
@@ -163,13 +160,7 @@ X11TextEditorPane instanceMethod defaultFormat (void) {
    receiver's lineWidth, leftMargin, and lineHeight instance
    variables, and the container window's dimensions."
   String new textBuf;
-  X11Bitmap new paneBuffer;
-  X11PaneDispatcher new topDispatcher;
   Integer new calcLineWidth, colWidth, calcLineHeight;
-
-  topDispatcher = *(self container);
-
-  paneBuffer = (X11Bitmap *)self paneBuffer;
 
   if (self fontVar fontId == 0) {
     /* we're using the X11FreeTypeFont ftFontVar instance variable. */
@@ -178,8 +169,8 @@ X11TextEditorPane instanceMethod defaultFormat (void) {
     textBuf += "<lineWidth=" + self lineWidth asString + ">";
     textBuf += "<leftMargin=" + self viewXOffset asString + ">";
     textBuf += "<lineHeight=" + calcLineHeight asString + ">";
-    textBuf += "<winWidth=" + topDispatcher size x asString + ">\n";
-    textBuf += "<winHeight=" + topDispatcher size y asString + ">\n";
+    textBuf += "<winWidth=" + self size x asString + ">\n";
+    textBuf += "<winHeight=" + self size y asString + ">\n";
     textBuf += "<foregroundColor=" + self foregroundColor + ">\n";
     textBuf += "<backgroundColor=" + self backgroundColor + ">\n";
     textBuf += "<selectionBackgroundColor=" +
@@ -189,9 +180,21 @@ X11TextEditorPane instanceMethod defaultFormat (void) {
   } else {
     colWidth = self fontVar maxWidth;
     if (self lineWidth == 0) {
-      /* Calculating the window's width in columns here simplifies
-	 the library's layout engine a lot. */
-      calcLineWidth = ((topDispatcher size x) - (self viewXOffset)) / colWidth;
+      /* 
+	 Calculating the window's width in columns here simplifies the
+	 library's layout engine a lot: 
+
+	   (win_width_px / char_width_px) - char_width_px
+	 
+	 Leaves enough right margin so that a character can't extend
+	 past the right edge of a drawing surface. 
+      */
+      calcLineWidth = (((self size x) - (self viewXOffset)) / colWidth)
+	- colWidth;
+#if 0 /***/
+      calcLineWidth = ((self size x) - (self viewXOffset)) / colWidth;
+      calcLineWidth -= colWidth;
+#endif      
     } else {
       calcLineWidth = self lineWidth;
     }
@@ -200,8 +203,8 @@ X11TextEditorPane instanceMethod defaultFormat (void) {
     textBuf += "<lineWidth=" + calcLineWidth asString + ">\n";
     textBuf += "<leftMargin=" + self viewXOffset asString + ">\n";
     textBuf += "<lineHeight=" + self lineHeight asString + ">\n";
-    textBuf += "<winWidth=" + topDispatcher size x asString + ">\n";
-    textBuf += "<winHeight=" + topDispatcher size y asString ">\n";
+    textBuf += "<winWidth=" + self size x asString + ">\n";
+    textBuf += "<winHeight=" + self size y asString ">\n";
     textBuf += "<foregroundColor=" + self foregroundColor + ">\n";
     textBuf += "<backgroundColor=" + self backgroundColor + ">\n";
     textBuf += "<selectionBackgroundColor=" +
@@ -209,7 +212,8 @@ X11TextEditorPane instanceMethod defaultFormat (void) {
     textBuf += "<xWindowID=" + self xWindowID asString + ">\n";
     textBuf += "</format>";
   }
-  __ctalkX11TextFromData (paneBuffer xID, paneBuffer xGC, textBuf);
+  /* The format sheet isn't actually rendered on a drawing surface. */
+  __ctalkX11TextFromData (0, 0, textBuf);
 }
 
 X11TextEditorPane instanceMethod displayText (void) {

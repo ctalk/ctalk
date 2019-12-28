@@ -1235,3 +1235,18 @@
 	same (x11lib.c).
 	- Added X11TextEditorPane : attachTo and updated
 	the X11TextEditorPane methods subPaneResize and background.
+2019-12-27
+	- Updated X11TextEditorPane : subPaneResize and
+	X11TextEditorPane : defaultFormat to use the X11TextPane's
+	dimensions when determining the width and height of the
+	viewing area, not its parent window.  Also removed the
+	paneBuffer's xID and xGC values in defaultFormat, because
+	the text is only parsed, not rendered.
+	- Updated default fixed font dimensions and layout metrics
+	in lib/edittext.c.  Also updated the X11 font line width
+	calculation in X11TextEditorPane : defaultFormat and
+	calc_line_width in edittext.c - leaves enought right margin
+	for at least the character width of the face, so a character
+	can't extend past the right margin of a drawing surface.
+	- Check for NULL insertion string in
+	__edittext_insert_str_at_point (edittext.c).

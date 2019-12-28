@@ -1,4 +1,4 @@
-/* $Id: edittext.c,v 1.3 2019/11/04 20:49:46 rkiesling Exp $ -*-c-*-*/
+/* $Id: edittext.c,v 1.6 2019/12/28 00:51:28 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -73,9 +73,14 @@ extern XLIBFONT xlibfont;
 
 extern bool natural_text;
 
-#define DEFAULT_LINE_HEIGHT 13      /* Height of X "fixed" font. */
+/* Height of FIXED_FONT_XLFD: "*-fixed-*-*-*-*-*-120-*" - defined in
+   x11defs.h. */
+#define DEFAULT_LINE_HEIGHT 13
 #define DEFAULT_LMARGIN 2
-#define DEFAULT_RMARGIN 65
+/* (win_width  / FIXED_FONT_XLFD -> max_bounds.width) - 
+   FIXED_FONT_XLFD -> max_bounds.width */
+/* #define DEFAULT_RMARGIN 65 *//***/
+#define DEFAULT_RMARGIN 58
 #undef CR
 #define CR 13
 #undef LF
@@ -601,6 +606,8 @@ static int calc_line_width (void) {
       } else {
 	c_line_width = line_size_x /
 	  INTVAL(fontvar_maxwidth_instance_var -> __o_value);
+	/***/
+	c_line_width -= INTVAL(fontvar_maxwidth_instance_var -> __o_value);
       }
     }
   }
@@ -628,6 +635,8 @@ static int calc_line_width (void) {
 			    -> __o_value)) == 0) {
       c_line_width = line_size_x /
 	INTVAL(fontvar_maxwidth_instance_var -> __o_value);
+      /***/
+      c_line_width -= INTVAL(fontvar_maxwidth_instance_var -> __o_value);
     }
   }
   return c_line_width;
@@ -861,6 +870,9 @@ int __edittext_insert_str_at_point (OBJECT *editorpane_object, char *str) {
   if (need_init)
     buf_init (editorpane_object);
 
+  if (str == NULL)
+    return SUCCESS;
+
   l_point = INTVAL(point_instance_var -> instancevars -> __o_value);
   l_textlength = INTVAL(textlength_instance_var -> instancevars -> __o_value);
   l_buflength = INTVAL(buflength_instance_var -> instancevars -> __o_value);
@@ -885,6 +897,7 @@ int __edittext_insert_str_at_point (OBJECT *editorpane_object, char *str) {
   
   __xfree (MEMADDR(insbuf));
 
+  return SUCCESS;
 }
 
 int __edittext_insert_at_point (OBJECT *editorpane_object,
