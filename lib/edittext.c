@@ -1,4 +1,4 @@
-/* $Id: edittext.c,v 1.8 2019/12/28 15:40:39 rkiesling Exp $ -*-c-*-*/
+/* $Id: edittext.c,v 1.10 2019/12/28 23:02:53 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -617,7 +617,7 @@ static int calc_line_width (void) {
 	  selected_font -> max_advance_width;
       } else {
 	c_line_width = line_size_x /
-	  selected_font -> max_advance_width;
+	  INTVAL(fontvar_maxwidth_instance_var -> instancevars -> __o_value);
       }
     }
   }
@@ -645,7 +645,7 @@ static int calc_line_width (void) {
     if ((c_line_width = INTVAL(linewidth_instance_var
 			    -> __o_value)) == 0) {
       c_line_width = line_size_x /
-	selected_font -> max_advance_width;
+	INTVAL(fontvar_maxwidth_instance_var -> instancevars -> __o_value);
     }
   }
   return c_line_width;
@@ -1259,7 +1259,7 @@ int __edittext_next_page (OBJECT *editorpane_object) {
   l_point =
     INTVAL(point_instance_var -> instancevars -> __o_value);
   l_line_width = calc_line_width ();
-  scrolldistance = l_viewheightlines - l_scrollmargin;
+  scrolldistance = l_viewheightlines - (l_scrollmargin * 2);
   
   split_text (text_instance_var -> __o_value, &text_lines, l_line_width);
 
@@ -1321,7 +1321,7 @@ int __edittext_prev_page (OBJECT *editorpane_object) {
   l_point =
     INTVAL(point_instance_var -> instancevars -> __o_value);
   l_line_width = calc_line_width ();
-  scrolldistance = l_viewheightlines - l_scrollmargin;
+  scrolldistance = l_viewheightlines - (l_scrollmargin * 2);
   
   split_text (text_instance_var -> __o_value, &text_lines, l_line_width);
 

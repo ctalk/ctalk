@@ -1250,7 +1250,7 @@
 	can't extend past the right margin of a drawing surface.
 	- Check for NULL insertion string in
 	__edittext_insert_str_at_point (edittext.c).
-2019-12-29
+2019-12-28
 	- Added X11TextEditorPane : rightMargin instance variable,
 	and updated edittext.c so it uses the rightMargin in line
 	length calculations if the defaultFormat sheet doesn't
@@ -1262,3 +1262,9 @@
 	- Removed the check for a smaller window size in
 	__ctalkX11ResizeWindow, so the window's boundaries are always
 	updated regardless of how the window size changes.
+	- Updated X11TextEditorPane : attachTo and X11TextEditorPane :
+	subPaneResize to calculate the viewheight and viewwidth in
+	character columns and rows, instead of pixels.
+	- Updated __edittext_next_page and __edittext_prev_page
+	to use scrollmargin * 2 to give more context when flipping
+	from page to page (edittext.c).

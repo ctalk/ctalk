@@ -1,4 +1,4 @@
-/* $Id: X11TextEditorPane,v 1.12 2019/12/28 15:41:01 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11TextEditorPane,v 1.13 2019/12/28 22:45:57 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -62,8 +62,20 @@ X11TextEditorPane instanceMethod subPaneResize (X11TextEditorPane __subPane,
     if (__ctalkX11ResizeWindow (__subPane, __event xEventData3,
 				__event xEventData4,
 				__subPane depth) > 0) {
-      __subPane viewWidth = __event xEventData3;
-      __subPane viewHeight = __event xEventData4;
+      if (__subPane ftFontVar libIsInitialized) {
+	__subPane viewWidth = __event xEventData3 /
+	  __subPane ftFontVar maxAdvance;
+	__subPane viewHeight = __event xEventData4 /
+	  __subPane ftFontVar height;
+      } else if (__subPane fontVar fontId != 0) {
+	__subPane viewWidth = __event xEventData3 /
+	  __subPane fontVar maxWidth;
+	__subPane viewHeight = __event xEventData4 /
+	  __subPane fontVar height;
+      } else {
+	__subPane viewWidth = __event xEventData3 / 12;
+	__subPane viewHeight = __event xEventData4 / 14;
+      }
       __subPane size x = __event xEventData3;
       __subPane size y = __event xEventData4;
       (X11Bitmap *)self paneBuffer resize self xWindowID,
@@ -104,10 +116,18 @@ X11TextEditorPane instanceMethod attachTo (Object parentPane) {
   self paneBuffer become xPaneBuffer;
   self paneBackingStore become xPaneBackingStore;
   if (parentPane containerMode == "full") {
-    self viewWidth = parentPane size x;
-    self viewHeight = parentPane size y;
     self size x = parentPane size x;
     self size y = parentPane size y;
+    if (self ftFontVar libIsInitialized) {
+      self viewWidth = self size x / self ftFontVar maxAdvance;
+      self viewHeight = self size y / self ftFontVar height;
+    } else if (self fontVar fontId != 0) {
+      self viewWidth = self size x / self fontVar maxWidth;
+      self viewHeight = self size y / self fontVar height;
+    } else {
+      self viewWidth = self size x / 12;
+      self viewHeight = self size y / 14;
+    }
     self origin x = 0;
     self origin y = 0;
 
