@@ -2814,7 +2814,7 @@ button at the point where you want the text inserted.
 If the program has text selected and another program tries to place its
 contents in the X primary selection, the class will allow the selection
 ownership to change to the other program.  Any text that was selected in
-the 'X11TextEditor' pane's window will not longer be selected.
+the 'X11TextEditor' pane's window will no longer be selected.
 
 In general, X programs aren't required to send their to the display's X
 selection buffers.  Many programs only use selected contents internally,
@@ -2880,8 +2880,17 @@ Instance Variables
      in 'X11Pane' class.  *Note X11Pane::.
 
      An 'Integer' that defines the right margin in character columns.
-     Setting this to zero '0' sets the line width limit to the right
-     edge of the window.
+     Setting this to zero '0' sets the line width limit to the line
+     length, so the line width in character columns is calculated as:
+
+
+          lineWidth = (window_width_px - left_margin_px - right_margin_px) /
+                         character_width_px;
+
+
+'rightMargin'
+     The distance in pixels from the right edge of the window, leftward
+     to the right-hand limit of each line's length.
 
 'point'
      An 'Integer' that contains the current position in the text where

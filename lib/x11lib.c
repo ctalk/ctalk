@@ -1,4 +1,4 @@
-/* $Id: x11lib.c,v 1.42 2019/12/27 00:45:02 rkiesling Exp $ -*-c-*-*/
+/* $Id: x11lib.c,v 1.44 2019/12/28 15:40:39 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -2206,7 +2206,6 @@ int __ctalkOpenX11InputClient (OBJECT *streamobject) {
   int main_win_id;
   OBJECT *pane_win_id_value_object;
 #endif
-  /* int child_pid; */ /***/
 
   if ((display = __x11_open_display ()) == NULL)
     return -1;
@@ -3815,8 +3814,6 @@ int __ctalkX11ResizeWindow (OBJECT *self, int width, int height,
   old_y_size = INTVAL(pane_size_point_y_object -> instancevars -> __o_value);
   /* we only need to resize the window if the new size is larger in one
      of the dimensions */
-  if ((old_x_size >= width) || (old_y_size >= height))
-    return 0;
   n_resize_retries = 0;
  try_resize_request:
   if (!__x11_resize_request_internal 

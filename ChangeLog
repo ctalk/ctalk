@@ -1250,3 +1250,15 @@
 	can't extend past the right margin of a drawing surface.
 	- Check for NULL insertion string in
 	__edittext_insert_str_at_point (edittext.c).
+2019-12-29
+	- Added X11TextEditorPane : rightMargin instance variable,
+	and updated edittext.c so it uses the rightMargin in line
+	length calculations if the defaultFormat sheet doesn't
+	provide it.
+	- Updated X11TextEditorPane : defaultFormat to make the
+	line length calculations for FreeType fonts in the method.
+	- Updated X11TextEditorPane : subPaneResize so that it always
+	updates the format and displays the text at each resize event.
+	- Removed the check for a smaller window size in
+	__ctalkX11ResizeWindow, so the window's boundaries are always
+	updated regardless of how the window size changes.

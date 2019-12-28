@@ -1,4 +1,4 @@
-/* $Id: X11TextEditorPane,v 1.9 2019/12/27 21:54:16 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11TextEditorPane,v 1.12 2019/12/28 15:41:01 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -31,6 +31,10 @@ X11TextEditorPane instanceVariable point Integer 0;
 X11TextEditorPane instanceVariable lineWidth Integer 65;
 X11TextEditorPane instanceVariable bufLength Integer 0;
 X11TextEditorPane instanceVariable textLength Integer 0;
+X11TextEditorPane instanceVariable rightMargin Integer 30
+"The distance between the maximum line length and the right edge
+of the window.  The left margin is set by viewXOffset, which
+is defined in X11TextPane class.";
 X11TextEditorPane instanceVariable foregroundColor String ""
 "The foreground color, so we can draw a cursor in the reverse
 colors.  The backgroundColor instance variable is declared in
@@ -66,10 +70,10 @@ X11TextEditorPane instanceMethod subPaneResize (X11TextEditorPane __subPane,
 	__event xEventData3, __event xEventData4;
       (X11Bitmap *)self paneBackingStore resize self xWindowID,
 	__event xEventData3, __event xEventData4;
-
-      self defaultFormat;
-      self refresh;
     }
+
+    self defaultFormat;
+    self displayText;
 
   } else {
     fprintf (stderr, 
@@ -164,10 +168,21 @@ X11TextEditorPane instanceMethod defaultFormat (void) {
 
   if (self fontVar fontId == 0) {
     /* we're using the X11FreeTypeFont ftFontVar instance variable. */
+
+    if (self lineWidth == 0) {
+      colWidth = self ftFontVar maxAdvance;
+      calcLineWidth = (((self size x) - (self viewXOffset) -
+			(self rightMargin)) / colWidth);
+    } else {
+      calcLineWidth = self lineWidth;
+    }
+
     calcLineHeight = self ftFontVar height + self leading;
+
     textBuf = "<format=global>\n";
-    textBuf += "<lineWidth=" + self lineWidth asString + ">";
+    textBuf += "<lineWidth=" + calcLineWidth asString + ">";
     textBuf += "<leftMargin=" + self viewXOffset asString + ">";
+    textBuf += "<rightMargin=" + self rightMargin asString + ">";
     textBuf += "<lineHeight=" + calcLineHeight asString + ">";
     textBuf += "<winWidth=" + self size x asString + ">\n";
     textBuf += "<winHeight=" + self size y asString + ">\n";
@@ -178,7 +193,6 @@ X11TextEditorPane instanceMethod defaultFormat (void) {
     textBuf += "<xWindowID=" + self xWindowID asString + ">\n";
     textBuf += "</format>";
   } else {
-    colWidth = self fontVar maxWidth;
     if (self lineWidth == 0) {
       /* 
 	 Calculating the window's width in columns here simplifies the
@@ -189,12 +203,9 @@ X11TextEditorPane instanceMethod defaultFormat (void) {
 	 Leaves enough right margin so that a character can't extend
 	 past the right edge of a drawing surface. 
       */
-      calcLineWidth = (((self size x) - (self viewXOffset)) / colWidth)
-	- colWidth;
-#if 0 /***/
-      calcLineWidth = ((self size x) - (self viewXOffset)) / colWidth;
-      calcLineWidth -= colWidth;
-#endif      
+      colWidth = self fontVar maxWidth;
+      calcLineWidth = (((self size x) - (self viewXOffset) -
+			(self rightMargin)) / colWidth);
     } else {
       calcLineWidth = self lineWidth;
     }
@@ -202,6 +213,7 @@ X11TextEditorPane instanceMethod defaultFormat (void) {
     textBuf = "<format=global>\n";
     textBuf += "<lineWidth=" + calcLineWidth asString + ">\n";
     textBuf += "<leftMargin=" + self viewXOffset asString + ">\n";
+    textBuf += "<rightMargin=" + self rightMargin asString + ">";
     textBuf += "<lineHeight=" + self lineHeight asString + ">\n";
     textBuf += "<winWidth=" + self size x asString + ">\n";
     textBuf += "<winHeight=" + self size y asString ">\n";

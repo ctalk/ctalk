@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.44 2019/12/27 01:18:57 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.46 2019/12/28 15:10:08 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -14449,7 +14449,7 @@ center pointer button at the point where you want the text inserted.
 If the program has text selected and another program tries to place
 its contents in the X primary selection, the class will allow the
 selection ownership to change to the other program. Any text that was
-selected in the @code{X11TextEditor} pane's window will not longer be
+selected in the @code{X11TextEditor} pane's window will no longer be
 selected.
 
 In general, X programs aren't required to send their to the display's
@@ -14499,12 +14499,12 @@ information about how to select fonts. @xref{X11FreeTypeFont}, @xref{X11Font}.
 
 @subsubheading Instance Variables
 @table @code
-@cindex @code{bufLength} instancevariable @idxclscite{X11TextEditorPane}
+@cindex @code{bufLength} instance variable @idxclscite{X11TextEditorPane}
 @item bufLength
 An @code{Integer} that records the size of the object's text buffer.
 The class adjusts the buffer's size automatically if necessary.
 
-@cindex @code{button} instancevariable @idxclscite{X11TextEditorPane}
+@cindex @code{button} instance variable @idxclscite{X11TextEditorPane}
 @item button
 An @code{Integer} that records the state of the mouse buttons, i.e., whether
 they are pressed or not.  The values that the the variable might contain
@@ -14518,31 +14518,43 @@ are composed of these definitions.
 
 @end example
 
-@cindex @code{foregroundColor} instancevariable @idxclscite{X11TextEditorPane}
+@cindex @code{foregroundColor} instance variable @idxclscite{X11TextEditorPane}
 @item foregroundColor
 A @code{String} that contains the window's foreground color.  The
 variable is included here to facilitate drawing the cursor in reverse
 video.  The @code{backgroundColor} instance variable is declared in
 @code{X11Pane} class. @xref{X11Pane}.
 
-@cindex @code{lineWidth} instancevariable @idxclscite{X11TextEditorPane}
+@cindex @code{lineWidth} instance variable @idxclscite{X11TextEditorPane}
 An @code{Integer} that defines the right margin in character columns.
-Setting this to zero @samp{0} sets the line width limit to the right
-edge of the window.
+Setting this to zero @samp{0} sets the line width limit to the line
+length, so the line width in character columns is calculated as:
 
-@cindex @code{point} instancevariable @idxclscite{X11TextEditorPane}
+@example
+
+lineWidth = (window_width_px - left_margin_px - right_margin_px) /
+               character_width_px;
+
+@end example
+
+@cindex @code{rightMargin} instance variable @idxclscite{X11TextEditorPane}
+@item rightMargin
+The distance in pixels from the right edge of the window, leftward to
+the right-hand limit of each line's length.
+
+@cindex @code{point} instance variable @idxclscite{X11TextEditorPane}
 @item point
 An @code{Integer} that contains the current position in the text where
 editing occurs.
 
-@cindex @code{selectionBackgroundColor} instancevariable @idxclscite{X11TextEditorPane}
+@cindex @code{selectionBackgroundColor} instance variable @idxclscite{X11TextEditorPane}
 @item selectionBackgroundColor
 A @code{String} that contains the background color of selected text.
 The foreground color is the same as normal text.
 
-@cindex @code{sStart} instancevariable @idxclscite{X11TextEditorPane}
-@cindex @code{sEnd} instancevariable @idxclscite{X11TextEditorPane}
-@cindex @code{selecting} instancevariable @idxclscite{X11TextEditorPane}
+@cindex @code{sStart} instance variable @idxclscite{X11TextEditorPane}
+@cindex @code{sEnd} instance variable @idxclscite{X11TextEditorPane}
+@cindex @code{selecting} instance variable @idxclscite{X11TextEditorPane}
 @item sStart
 @item sEnd
 @item selecting
@@ -14551,12 +14563,12 @@ beginning and end of selected text as character indexes into the text.
 The @code{Boolean} variable @code{selecting} is true while the pointer
 is being dragged across text while Button 1 is pressed.
 
-@cindex @code{shiftState} instancevariable @idxclscite{X11TextEditorPane}
+@cindex @code{shiftState} instance variable @idxclscite{X11TextEditorPane}
 @item shiftState
 An @code{Integer} that records whether the Shift of Control keys
 are currently pressed.
 
-@cindex @code{textLength} instancevariable @idxclscite{X11TextEditorPane}
+@cindex @code{textLength} instance variable @idxclscite{X11TextEditorPane}
 @item textLength
 An @code{Integer} that records the length of the object's text.
 

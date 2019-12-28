@@ -1,4 +1,4 @@
-/* $Id: edittext.c,v 1.6 2019/12/28 00:51:28 rkiesling Exp $ -*-c-*-*/
+/* $Id: edittext.c,v 1.8 2019/12/28 15:40:39 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -79,8 +79,7 @@ extern bool natural_text;
 #define DEFAULT_LMARGIN 2
 /* (win_width  / FIXED_FONT_XLFD -> max_bounds.width) - 
    FIXED_FONT_XLFD -> max_bounds.width */
-/* #define DEFAULT_RMARGIN 65 *//***/
-#define DEFAULT_RMARGIN 58
+#define DEFAULT_RMARGIN 30
 #undef CR
 #define CR 13
 #undef LF
@@ -101,6 +100,7 @@ static int c_scrollmargin;     /* client process.               */
 
 static int line_width;         /* These are the layout dimen-   */
 static int left_margin;        /* sions for the server process. */
+static int right_margin;
 static int line_height = -1;
 static int win_width;
 static int win_height;
@@ -109,8 +109,9 @@ static char fgcolorname[0xff];
 static char bgcolorname[0xff];
 static char selectionbgcolorname[0xff];
 static bool user_line_width = false, user_left_margin = false,
-  user_line_height = false, user_win_width = false,
-  user_win_height = false, user_fg_color = false, user_bg_color = false,
+  user_right_margin = false, user_line_height = false,
+  user_win_width = false, user_win_height = false,
+  user_fg_color = false, user_bg_color = false,
   user_selection_bg_color = false, user_win_xid = false;
 
 static bool need_init = true;
@@ -161,6 +162,9 @@ static void edit_setformat (char *text) {
     } else if (str_eq (keybuf, "leftMargin")) {
       left_margin = atoi (valbuf);
       user_left_margin = true;
+    } else if (str_eq (keybuf, "rightMargin")) {
+      right_margin = atoi (valbuf);
+      user_right_margin = true;
     } else if (str_eq (keybuf, "lineHeight")) {
       line_height = atoi (valbuf);
       user_line_height = true;
@@ -390,6 +394,8 @@ static void internal_defaults (void) {
     line_width = DEFAULT_RMARGIN - DEFAULT_LMARGIN;
   if (!user_left_margin)
     left_margin = DEFAULT_LMARGIN;
+  if (!user_right_margin)
+    right_margin = DEFAULT_RMARGIN;
   if (!user_line_height)
     line_height = DEFAULT_LINE_HEIGHT;
 }
@@ -421,6 +427,7 @@ static OBJECT *s_start_instance_var = NULL;
 static OBJECT *s_end_instance_var = NULL;
 static OBJECT *scrollmargin_instance_var = NULL;
 static OBJECT *view_x_offset_instance_var = NULL;
+static OBJECT *rightmargin_instance_var = NULL;
 static OBJECT *win_xid_instance_var = NULL;
 #define DEFAULT_BUFSIZE 8192
 static int bufsize = 0;
@@ -545,6 +552,10 @@ static void buf_init (OBJECT *editorpane_object) {
     view_x_offset_instance_var = __ctalkGetInstanceVariable
       (editorpane_object, "viewXOffset", TRUE);
   }
+  if (!rightmargin_instance_var) {
+    rightmargin_instance_var = __ctalkGetInstanceVariable
+      (editorpane_object, "rightMargin", TRUE);
+  }
   if (!win_xid_instance_var) {
     win_xid_instance_var = __ctalkGetInstanceVariable
       (editorpane_object, "xWindowID", TRUE);
@@ -596,18 +607,17 @@ extern bool monospace;
 static int calc_line_width (void) {
   int line_size_x;
   line_size_x = INTVAL(size_x_instance_var -> __o_value) -
-    INTVAL(view_x_offset_instance_var -> __o_value);
+    INTVAL(view_x_offset_instance_var -> __o_value) -
+    INTVAL(rightmargin_instance_var -> __o_value);;
   if (c_line_width == -1) {
     if ((c_line_width = INTVAL(linewidth_instance_var
 			       -> __o_value)) == 0) {
       if (__ctalkXftInitialized ()) {
-	c_line_width = INTVAL(size_x_instance_var -> __o_value) /
+	c_line_width = line_size_x /
 	  selected_font -> max_advance_width;
       } else {
 	c_line_width = line_size_x /
-	  INTVAL(fontvar_maxwidth_instance_var -> __o_value);
-	/***/
-	c_line_width -= INTVAL(fontvar_maxwidth_instance_var -> __o_value);
+	  selected_font -> max_advance_width;
       }
     }
   }
@@ -629,14 +639,13 @@ static int calc_viewlines (void) {
 static int calc_line_width (void) {
   int line_size_x;
   line_size_x = INTVAL(size_x_instance_var -> __o_value) -
-    INTVAL(view_x_offset_instance_var -> __o_value);
+    INTVAL(view_x_offset_instance_var -> __o_value) -
+    INTVAL(rightmargin_instance_var -> __o_value);;
   if (c_line_width == -1) {
     if ((c_line_width = INTVAL(linewidth_instance_var
 			    -> __o_value)) == 0) {
       c_line_width = line_size_x /
-	INTVAL(fontvar_maxwidth_instance_var -> __o_value);
-      /***/
-      c_line_width -= INTVAL(fontvar_maxwidth_instance_var -> __o_value);
+	selected_font -> max_advance_width;
     }
   }
   return c_line_width;
@@ -1699,10 +1708,10 @@ int __xlib_render_text (Drawable pixmap, GC gc, char *fn) {
       XftDrawChange (ftDraw, pixmap);
     }
     if (line_width == 0) {
-      line_width = win_width / selected_font -> max_advance_width;
+      line_width = (win_width - left_margin - right_margin) /
+	selected_font -> max_advance_width;
     }
   }
-
   split_text (content, &text_lines, line_width);
 
   if (xft) {
