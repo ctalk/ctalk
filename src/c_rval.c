@@ -914,6 +914,10 @@ static int fn_return_tab_entry (MESSAGE *m_orig, CFUNC *c_fn) {
 	    } else if (*c_fn -> qualifier_type) {
 	      strcatx (type_buf, c_fn -> qualifier_type, " ",
 		       c_fn -> return_type, NULL);
+	    } else if (str_eq (c_fn -> return_type, "OBJECT") &&
+		       (c_fn -> return_derefs == 1)) { /***/
+	      strcatx (type_buf, c_fn -> return_type, NULL);
+	      return TMP_LVAL_OBJECT_PTR;
 	    } else {
 	      strcatx (type_buf, c_fn -> return_type, NULL);
 	    }

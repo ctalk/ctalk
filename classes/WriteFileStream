@@ -1,4 +1,4 @@
-/* $Id: WriteFileStream,v 1.8 2019/12/06 21:58:10 rkiesling Exp $ -*-c-*-*/
+/* $Id: WriteFileStream,v 1.10 2019/12/31 13:41:26 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -230,6 +230,8 @@ WriteFileStream instanceMethod writeFormat (char *fmt, ...) {
   This is probably redundant with the printOn method."
   Exception new __e_app;
   METHOD *self_method;
+  /* OBJECT *fmtRetVal; *//***/
+  Integer new fmtRetVal;
   int __i_arg;
 
   if ((self_method = 
@@ -247,7 +249,9 @@ WriteFileStream instanceMethod writeFormat (char *fmt, ...) {
   self_method->args[0] = __ctalkCreateArgEntryInit (self value);
   ++self_method -> n_args;
 
-  __ctalkLibcFnWithMethodVarArgs ((int (*)())fprintf, self_method, "Integer");
+  fmtRetVal = __ctalkLibcFnWithMethodVarArgs
+    ((int (*)())fprintf, self_method, "Integer");
+  __ctalkDeleteObject (fmtRetVal);
 
   --self_method -> n_args;
   __ctalkDeleteArgEntry (self_method->args[0]);

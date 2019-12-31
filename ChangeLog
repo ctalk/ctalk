@@ -1268,3 +1268,12 @@
 	- Updated __edittext_next_page and __edittext_prev_page
 	to use scrollmargin * 2 to give more context when flipping
 	from page to page (edittext.c).
+2019-12-30
+	- Updated fn_return_tab_entry with a string comparison for
+	an OBJECT * return type, in case the parser didn't record
+	any return type attributes for a C function (c_rval.c).
+	- In arg_var_basename, skip a C data type label, which
+	is usually a typecast (arg.c).
+2019-12-31
+	- In fn_arg_expression, check for a function name as the
+	argument basename (arg.c).

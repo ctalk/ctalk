@@ -1,4 +1,4 @@
-/* $Id: String,v 1.13 2019/12/03 21:10:08 rkiesling Exp $ -*-c-*- */
+/* $Id: String,v 1.15 2019/12/31 13:41:26 rkiesling Exp $ -*-c-*- */
 
 /*
   This file is part of Ctalk.
@@ -481,10 +481,12 @@ String instanceMethod writeFormat (char *fmt, ...) {
   "Print the formatted arguments on the receiver String."
   Exception new __e_app;
   SystemErrnoException new __e_system;
+  Integer new fmtRetVal;
   METHOD *self_method;
   ARG *__tmp_stream_arg;
   char *__streambuf;
   int __i_arg;
+
   if ((self_method = 
        __ctalkGetInstanceMethodByFn (__ctalkRtReceiverObject (),
 				     __ctalkRtGetMethodFn (),
@@ -511,8 +513,10 @@ String instanceMethod writeFormat (char *fmt, ...) {
 
   self_method -> args[0] = __tmp_stream_arg;
   ++self_method -> n_args;
-
-  __ctalkLibcFnWithMethodVarArgs ((int (*)())xsprintf, self_method, "Integer");
+  
+  fmtRetVal = __ctalkLibcFnWithMethodVarArgs
+    ((int (*)())xsprintf, self_method, "Integer");
+  __ctalkDeleteObject (fmtRetVal);
 
   --self_method -> n_args;
   for (__i_arg = 1; __i_arg <= self_method -> n_args; __i_arg++) {

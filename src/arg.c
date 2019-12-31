@@ -1,4 +1,4 @@
-/* $Id: arg.c,v 1.5 2019/12/22 17:20:09 rkiesling Exp $ */
+/* $Id: arg.c,v 1.7 2019/12/31 13:41:26 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -720,7 +720,10 @@ static char *arg_var_basename (MESSAGE_STACK messages,
   for (i = args[n_th_arg].start_idx; i >= args[n_th_arg].end_idx;
        --i) {
     if (M_TOK(messages[i]) == LABEL) {
-      return M_NAME(messages[i]);
+      if (!is_c_data_type(M_NAME(messages[i])) &&
+	  !is_c_derived_type (M_NAME(messages[i]))) { /* skip a typecast */
+	return M_NAME(messages[i]);
+      }
     }
   }
   return NULL;
@@ -861,6 +864,11 @@ OBJECT *fn_arg_expression (OBJECT *rcvr_class, METHOD *method,
 
     if (((arg_cvar = get_local_var (basename)) != NULL) ||
 	((arg_cvar = get_global_var (basename)) != NULL)) {
+      add_arg (expr_buf, argstrs[n_th_arg].arg, n_th_arg, n_args);
+      if (fn_param_cvar)
+	fn_param_cvar = fn_param_cvar -> next;
+      continue;
+    } else if (get_function (basename)) { /***/
       add_arg (expr_buf, argstrs[n_th_arg].arg, n_th_arg, n_args);
       if (fn_param_cvar)
 	fn_param_cvar = fn_param_cvar -> next;
