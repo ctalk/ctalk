@@ -1277,3 +1277,7 @@
 2019-12-31
 	- In fn_arg_expression, check for a function name as the
 	argument basename (arg.c).
+	- Removed the call to __ctalkCPrintFmtToCFmt from String :
+	readFormat and ReadFileStream : readFormat.
+	- Removed __ctalkCPrintFmtToCtalkFmt, which is no longer
+	needed.

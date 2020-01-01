@@ -1,4 +1,4 @@
-/* $Id: String,v 1.15 2019/12/31 13:41:26 rkiesling Exp $ -*-c-*- */
+/* $Id: String,v 1.16 2020/01/01 01:44:00 rkiesling Exp $ -*-c-*- */
 
 /*
   This file is part of Ctalk.
@@ -541,7 +541,6 @@ String instanceMethod readFormat (char *fmt, ...) {
   OBJECT *__fmt_arg_value, *result_object;
   ARG *__save_fmt_arg, *__tmp_fmt_arg, *__tmp_stream_arg;
   char *__argbuf;
-  char __ctalk_fmt[MAXMSG];
   int __i_arg;
   if ((self_method = 
        __ctalkGetInstanceMethodByFn (__ctalkRtReceiverObject (),
@@ -554,15 +553,12 @@ String instanceMethod readFormat (char *fmt, ...) {
   
   __fmt_arg_value = fmt value;
 
-  __ctalkCPrintFmtToCtalkFmt (__fmt_arg_value -> __o_value, __ctalk_fmt);
-
   __save_fmt_arg = self_method->args[0];
 
   __tmp_fmt_arg = 
     __ctalkCreateArgEntryInit 
     (__ctalkCreateObjectInit ("fmt", "String", "Character",
-			      LOCAL_VAR, __ctalk_fmt));
-
+			      LOCAL_VAR, __fmt_arg_value -> __o_value));
   __objRefCntSet (&(__tmp_fmt_arg->obj), __save_fmt_arg->obj->nrefs);
   self_method -> args[0] = __tmp_fmt_arg;
 

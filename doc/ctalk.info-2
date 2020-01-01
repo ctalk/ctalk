@@ -4771,15 +4771,6 @@ function) might vary from the '__ctalkLibcFnWithMethodVarArgs'
 prototype, but it tells the compiler not to print a warning message in
 that case.
 
-Pointer and Scalar Format Conversions
-.....................................
-
-Natively, objects only work with pointer types.  However, a program's
-method or template can call '__ctalkCPrintFmtToCtalkFmt' before
-'__ctalkLibcFnWithMethodVarArgs.' This preforms print format-argument
-translations for scalar conversions (for example, '%d').  *Note
-__ctalkCPrintFmtToCtalkFmt::.
-
 If you simply need to print formatted output, the 'writeFormat' or
 'printOn' methods (implemented in 'String', 'WriteFileStream' and many
 other classes classes) perform format-argument translations
@@ -5733,12 +5724,6 @@ functions.
      arguments, it is necessary to alias the argument to an object.  See
      'at' (class 'Array') and 'atPut' (class 'AssociativeArray') for
      examples.
-
-'__ctalkCPrintFmtToCtalkFmt (char *C_FMT, char *CTALK_FMT)'
-     Translate a C 'printf(3)' type format string to a Ctalk compatible
-     format string.  The function translates the format characters
-     '[diouxXeEfFgGaAcsp],' but it does not perform translations of
-     field widths or precisions.
 
 '__ctalkCreateArgEntry (void)'
      Used internally to create an ARG type, which maintains a method's

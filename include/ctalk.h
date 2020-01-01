@@ -1,4 +1,4 @@
-/* $Id: ctalk.h,v 1.42 2019/12/25 22:09:18 rkiesling Exp $ -*-Fundamental-*- */
+/* $Id: ctalk.h,v 1.43 2020/01/01 01:44:01 rkiesling Exp $ -*-Fundamental-*- */
 
 /*
   This file is part of Ctalk.
@@ -2456,7 +2456,9 @@ void *__xrealloc (void **, int);
 void __ctalkFree(void *);
 
 /* lib/sformat.c */
+#if 0 /***/
 char *__ctalkCFmtToCtalkFmt (char *, char *);
+#endif
 void __ctalkObjValPtr (OBJECT *, void *);
 void *__ctalkStrToPtr (char *);
 char *__scalar_fmt_conv (char *, char *, OBJECT *);

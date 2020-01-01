@@ -275,12 +275,6 @@ method arguments, it is necessary to alias the argument to an object.
 See at (class Array) and atPut (class
 AssociativeArray) for examples.
 
->>>__ctalkCPrintFmtToCtalkFmt (char *c_fmt, char *ctalk_fmt)
-Translate a C printf(3) type format string to a Ctalk
-compatible format string.  The function translates the
-format characters [diouxXeEfFgGaAcsp], but it does
-not perform translations of field widths or precisions.
-
 >>>__ctalkCreateArgEntry (void)
 Used internally to create an ARG type, which maintains a method's
 argument entries.

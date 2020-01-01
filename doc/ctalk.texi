@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.46 2019/12/28 15:10:08 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.47 2020/01/01 01:44:01 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -16818,15 +16818,6 @@ other variable-argument function) might vary from the
 @code{__ctalkLibcFnWithMethodVarArgs} prototype, but it tells the
 compiler not to print a warning message in that case.
 
-@subsubheading Pointer and Scalar Format Conversions
-@cindex __ctalkCPrintFmtToCtalkFmt function
-Natively, objects only work with pointer types.  However, a program's
-method or template can call @code{__ctalkCPrintFmtToCtalkFmt} before
-@code{__ctalkLibcFnWithMethodVarArgs.}  This preforms print
-format-argument translations for scalar conversions (for example,
-@samp{%d}).
-@xref{__ctalkCPrintFmtToCtalkFmt}.
-
 @cindex @mnm{writeFormat} method @idxclscite{WriteFileStream}
 @cindex @mnm{writeFormat} method @idxclscite{String}
 @cindex @mnm{printOn} method @idxclscite{String}
@@ -18011,15 +18002,6 @@ Return an @code{OBJECT *} to a copy of the argument.
 method arguments, it is necessary to alias the argument to an object.
 See @mnm{at} (class @code{Array}) and @mnm{atPut} (class
 @code{AssociativeArray}) for examples.
-
-@anchor{__ctalkCPrintFmtToCtalkFmt}
-@cindex __ctalkCPrintFmtToCtalkFmt function
-@cindex @idxfncite{printf(3)}
-@item __ctalkCPrintFmtToCtalkFmt (@code{char *}@var{c_fmt}, @code{char *}@var{ctalk_fmt})
-Translate a C @cite{printf(3)} type format string to a Ctalk
-compatible format string.  The function translates the
-format characters @code{[diouxXeEfFgGaAcsp],} but it does
-not perform translations of field widths or precisions.
 
 @cindex __ctalkCreateArgEntry function
 @item __ctalkCreateArgEntry (@code{void})

@@ -1,4 +1,4 @@
-/* $Id: ctalklib.in,v 1.31 2019/12/25 20:38:27 rkiesling Exp $ -*-c-*-*/
+/* $Id: ctalklib.in,v 1.32 2020/01/01 01:44:00 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -884,7 +884,9 @@ extern char   __ctalkCharRadixToChar (char *);
 extern OBJECT *__ctalkCIntToObj (int);
 extern OBJECT *__ctalkCLongLongToObj (long long int);
 extern OBJECT *__ctalkCSymbolToObj (void *);
+#if 0 /***/
 extern char   *__ctalkCPrintFmtToCtalkFmt (char *, char *);
+#endif
 extern OBJECT *__ctalkCallingFnObjectBecome (OBJECT *, OBJECT *);
 extern OBJECT *__ctalkCallingInstanceVarBecome (OBJECT *, OBJECT *);
 extern OBJECT *__ctalkCallingMethodObjectBecome (OBJECT *, OBJECT *);
