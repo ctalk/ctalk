@@ -19,7 +19,6 @@ int main (int argc, char **argv) {
   Exception new ex;
   String new text;
   String new fileName;
-  /* X11FreeTypeFont new ftFont; *//***/
   X11Cursor new watchCursor;
   Application new textPaneApp;
   ReadFileStream new readFile;

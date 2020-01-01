@@ -1,4 +1,4 @@
-/* $Id: X11TextEditorPane,v 1.13 2019/12/28 22:45:57 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11TextEditorPane,v 1.15 2020/01/01 19:38:41 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -174,9 +174,12 @@ X11TextEditorPane instanceMethod new (String __paneName) {
 
 X11TextEditorPane instanceMethod foreground (String color) {
   "Set the receiver's foreground color, and the foreground
-   color of the window buffer."
+   color of the window buffer if it has been configured."
   self foregroundColor = color;
-  self paneBuffer foreground color;
+  if (self paneBuffer xID > 0) {
+    self super foreground color;
+    self paneBuffer foreground color;
+  }    
 }
 
 X11TextEditorPane instanceMethod defaultFormat (void) {
@@ -236,7 +239,7 @@ X11TextEditorPane instanceMethod defaultFormat (void) {
     textBuf += "<rightMargin=" + self rightMargin asString + ">";
     textBuf += "<lineHeight=" + self lineHeight asString + ">\n";
     textBuf += "<winWidth=" + self size x asString + ">\n";
-    textBuf += "<winHeight=" + self size y asString ">\n";
+    textBuf += "<winHeight=" + self size y asString + ">\n";
     textBuf += "<foregroundColor=" + self foregroundColor + ">\n";
     textBuf += "<backgroundColor=" + self backgroundColor + ">\n";
     textBuf += "<selectionBackgroundColor=" +

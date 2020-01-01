@@ -1,4 +1,4 @@
-/* $Id: edittext.c,v 1.10 2019/12/28 23:02:53 rkiesling Exp $ -*-c-*-*/
+/* $Id: edittext.c,v 1.11 2020/01/01 19:38:41 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -1674,6 +1674,9 @@ int __xlib_render_text (Drawable pixmap, GC gc, char *fn) {
   GC cursor_gc, selection_gc;
   XRenderColor fgColor;
   XftColor ftFg;
+  /***/
+  XColor fg_screen, fg_exact;
+  XGCValues xgcv_foreground;
   XColor l_selection_screen, l_selection_exact;
   bool xft = false;
   Drawable selection_owner;
@@ -1725,6 +1728,13 @@ int __xlib_render_text (Drawable pixmap, GC gc, char *fn) {
 		       DefaultColormap (display, DefaultScreen (display)),
 		       &fgColor, &ftFg);
     line_height = selected_font -> ascent + selected_font -> descent;
+  } else {
+    /***/
+    XAllocNamedColor (display,
+		      DefaultColormap (display, DefaultScreen (display)),
+		      fgcolorname, &fg_screen, &fg_exact);
+    xgcv_foreground.foreground = fg_screen.pixel;
+    XChangeGC (display, gc, GCForeground, &xgcv_foreground);
   }
   line_y = line_height;
   visible_line = 0;

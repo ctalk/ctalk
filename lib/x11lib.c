@@ -1,4 +1,4 @@
-/* $Id: x11lib.c,v 1.44 2019/12/28 15:40:39 rkiesling Exp $ -*-c-*-*/
+/* $Id: x11lib.c,v 1.45 2020/01/01 19:38:41 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -3485,8 +3485,8 @@ int __ctalkCreateX11SubWindow (OBJECT *parent, OBJECT *self) {
   OBJECT *parent_win_id_value_object, *self_win_id_value_object,
     *win_depth_value_obj;
   OBJECT *self_gc_value_object;
-  OBJECT *bgcolor_obj;
-  XColor bgcolor;
+  OBJECT *bgcolor_obj, *fgcolor_obj;
+  XColor bgcolor, fgcolor;
   Window parent_id, self_id;
   XWindowAttributes parent_attributes;
   XSetWindowAttributes self_attributes;
@@ -3568,6 +3568,15 @@ int __ctalkCreateX11SubWindow (OBJECT *parent, OBJECT *self) {
   if (IS_OBJECT(self_gc_value_object -> __o_p_obj)) {
     *(uintptr_t *)self_gc_value_object -> __o_p_obj -> __o_value =
       (uintptr_t)gc;
+  }
+
+  fgcolor_obj = __ctalkGetInstanceVariable (self, "foregroundColor", TRUE);
+  if (str_eq (bgcolor_obj -> instancevars -> __o_value, NULLSTR)) {
+    XSetForeground (display, gc,
+			  WhitePixel (display, DefaultScreen (display)));
+  } else {
+    lookup_color (&fgcolor, fgcolor_obj -> instancevars -> __o_value);
+    XSetForeground (display, gc, fgcolor.pixel);
   }
 
 

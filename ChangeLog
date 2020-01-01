@@ -1,3 +1,8 @@
 2020-01-01
 	- Updated X11TextPane : subPaneResize and X11TextPane :
 	background methods.
+	- In __ctalkCreateX11SubWindow, updated the GC foreground
+	from the self foregroundColor instance variable (x11lib.c).
+	Updated X11TextEditorPane : foreground method. Also updated
+	__xlib_render_text to set the drawing gc from the
+	fgcolorname (edittext.c).
