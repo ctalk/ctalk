@@ -6,3 +6,8 @@
 	Updated X11TextEditorPane : foreground method. Also updated
 	__xlib_render_text to set the drawing gc from the
 	fgcolorname (edittext.c).
+2020-01-02
+	- Updated __ctalkX11SetSizeHints and __ctalkX11GetSizeHints
+	to use size_hints -> width and size_hints -> height as well
+	as base_width and base_height.  Also changed the size_hints
+	flags to use USSize (xgeometry.c).

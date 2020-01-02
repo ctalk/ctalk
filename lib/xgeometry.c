@@ -1,8 +1,8 @@
-/* $Id: xgeometry.c,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-c-*-*/
+/* $Id: xgeometry.c,v 1.5 2020/01/02 20:54:32 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
-  Copyright © 2014, 2018  Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2014, 2018, 2019  Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
 
@@ -106,18 +106,18 @@ int __ctalkX11SetSizeHints (int x, int y, int width, int height,
   }
 
   if (width == 0) 
-    size_hints -> base_width = DEFAULT_WIDTH;
+    size_hints -> width = size_hints -> base_width = DEFAULT_WIDTH;
   else
-    size_hints -> base_width = width;
+    size_hints -> width = size_hints -> base_width = width;
   if (height == 0)
-    size_hints -> base_height = DEFAULT_HEIGHT;
+    size_hints -> height = size_hints -> base_height = DEFAULT_HEIGHT;
   else
-    size_hints -> base_height = height;
+    size_hints -> height = size_hints -> base_height = height;
 
   if (!XValue || !YValue)
-    size_hints -> flags = PWinGravity|PBaseSize|USPosition;
+    size_hints -> flags = PWinGravity|USSize|USPosition;
   else
-    size_hints -> flags = PWinGravity|PBaseSize|PPosition;
+    size_hints -> flags = PWinGravity|USSize|PPosition;
 
   return SUCCESS;
 }
@@ -132,8 +132,13 @@ void __ctalkX11GetSizeHints (int win_id, int *x, int *y,
 			 (long int *)size_hints);
       *x = hints_return.x;
       *y = hints_return.y;
-      *width = hints_return.base_width;
-      *height = hints_return.base_height;
+      if (hints_return.flags & PBaseSize) {
+	*width = hints_return.base_width;
+	*height = hints_return.base_height;
+      } else if (hints_return.flags & USSize) {
+	*width = hints_return.width;
+	*height = hints_return.height;
+      }
       *win_gravity = hints_return.win_gravity;
       *flags = hints_return.flags;
     } else {
@@ -162,12 +167,12 @@ void set_size_hints_internal (OBJECT *pane_object, int *x_org_out,
     pane_height = __pane_y_size (pane_object);
     size_hints -> x = (pane_x) ? pane_x : 0;
     size_hints -> y = (pane_y) ? pane_y : 0;
-    size_hints -> base_width = (pane_width) ? pane_width : 250;
-    size_hints -> base_height = (pane_height) ? pane_height : 250;
+    size_hints -> width = size_hints -> base_width = (pane_width) ? pane_width : 250;
+    size_hints -> height = size_hints -> base_height = (pane_height) ? pane_height : 250;
     if (!pane_x || !pane_y)
-      size_hints -> flags = PBaseSize|PPosition;
+      size_hints -> flags = USSize|PPosition;
     else
-      size_hints -> flags = PBaseSize|USPosition;
+      size_hints -> flags = USSize|USPosition;
     *x_org_out = size_hints -> x;
     *y_org_out = size_hints -> y;
     *x_size_out = size_hints -> base_width;

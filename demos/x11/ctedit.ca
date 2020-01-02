@@ -1,4 +1,4 @@
-/* $Id: ctedit.ca,v 1.5 2020/01/01 19:06:45 rkiesling Exp $  -*-c-*- */
+/* $Id: ctedit.ca,v 1.6 2020/01/01 22:54:38 rkiesling Exp $  -*-c-*- */
 
 /*
   This file is part of Ctalk.
@@ -294,7 +294,8 @@ int main (int argc, char **argv) {
     |MOTIONNOTIFY|BUTTONPRESS|BUTTONRELEASE|RESIZENOTIFY|SELECTIONCLEAR;
   xPane openEventStream;
 
-  /* This sets the maximum line width to the width of the window. */
+  /* Setting to zero indicates that the program should set
+     the maximum line width to the width of the window. */
   xEditorPane lineWidth = 0;
 
   if (!useFtFonts || useXFont)
