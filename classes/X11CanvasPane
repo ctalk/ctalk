@@ -1,4 +1,4 @@
-/* $Id: X11CanvasPane,v 1.12 2019/12/25 00:17:50 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11CanvasPane,v 1.13 2020/01/02 21:24:41 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -107,8 +107,12 @@ X11CanvasPane instanceMethod subPaneResize (Object __subPane,
     if (__ctalkX11ResizeWindow (__subPane, __event xEventData3,
 				__event xEventData4,
 				__subPane depth) > 0) {
+      /* refreshReframe uses viewWidth and viewHeight, refresh uses size x
+	 and size y */
       __subPane viewWidth = __event xEventData3;
       __subPane viewHeight = __event xEventData4;
+      __subPane size x = __event xEventData3;
+      __subPane size y = __event xEventData4;
       (X11Bitmap *)self paneBuffer resize self xWindowID,
 	__event xEventData3, __event xEventData4;
       (X11Bitmap *)self paneBackingStore resize self xWindowID,
