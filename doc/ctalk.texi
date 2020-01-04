@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.47 2020/01/01 01:44:01 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.49 2020/01/04 01:32:53 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -14604,6 +14604,12 @@ method as soon as possible after the program starts the X event loop
 (which it does by calling the @code{X11TerminalStream :
 openEventStream} method), and after every editing operation.
 
+@cindex @mnm{gotoChar} instance method @idxclscite{X11TextEditorPane}
+@item gotoChar (@code{Integer} @var{n})
+Sets the @code{point} instance variable to the @var{n}'th character in
+the text.  If @var{n} is greater than the length of the text, sets
+@code{point} to the end of the text.
+
 @cindex @mnm{new} instance method @idxclscite{X11TextEditorPane}
 @item new (@code{String} @var{paneName})
 Initializes the @code{X11TextEditorPane} object's event handlers, and
@@ -20671,6 +20677,7 @@ is, if the value of the object is an empty string, @samp{(NULL)}, or
 @idxlibfn{__edittext_point_to_click}
 @idxlibfn{__edittext_index_from_pointer}
 @idxlibfn{__edittext_index_from_pointer}
+@idxlibfn{__edittext_insert_str_at_click}
 @idxlibfn{__edittext_insert_str_at_point}
 @idxlibfn{__edittext_set_selection_owner}
 @idxclscite {X11TextEditorPane}
@@ -20691,11 +20698,12 @@ is, if the value of the object is an empty string, @samp{(NULL)}, or
 @item __edittext_text_end (OBJECT *x11texteditorpane_object)
 @item __edittext_point_to_click (OBJECT *x11texteditorpane_object, int pointer_x, int pointer_y)
 @item __edittext_index_from_pointer (OBJECT *x11texteditorpane_object, int pointer_x, int pointer_y)
-@item __edittext_insert_str_at_point (OBJECT *x11texteditorpan_object, char *)
-@item __edittext_get_primary_selection (OBJECT *x11texteditorpan_object, void **buf_out, int *size_out)
+@item __edittext_insert_str_at_click (OBJECT *x11texteditorpane_object, int click_x, int click_y, char *)
+@item __edittext_insert_str_at_point (OBJECT *x11texteditorpane_object, char *)
+@item __edittext_get_primary_selection (OBJECT *x11texteditorpan_eobject, void **buf_out, int *size_out)
 @item __edittext_set_selection_owner (OBJECT *x11texteditorpane_object)
 Text editing functions used by @code{X11TextEditorPane} objects.
-For more information, refer to the @code{X11TextEditorPane} section.
+For more information, refer to @code{X11TextEditorPane} class..
 @xref{X11TextEditorPane}.
 
 @anchor{errorfuncs}

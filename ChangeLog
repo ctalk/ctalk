@@ -13,3 +13,12 @@
 	flags to use USSize (xgeometry.c).
 	- Updated X11CanvasPane : subPaneResize to set the pane's
 	size x and size y instance variables also.
+	- Updated __edittext_get_primary_selection so that it
+	pastes the receiver's content if the selection is in  our
+	window (edittext.c).
+	- Added __edittext_insert_str_at_click (edittext.c).
+2020-01-03
+	- Updated buf_init and __xlib_render_text to check that
+	a starting point position is not past the end of the text
+	(edittext.c).
+	- Added the X11TextEditorPane : gotoChar method.

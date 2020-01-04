@@ -2942,6 +2942,11 @@ Instance Methods
      loop (which it does by calling the 'X11TerminalStream :
      openEventStream' method), and after every editing operation.
 
+'gotoChar (Integer N)'
+     Sets the 'point' instance variable to the N'th character in the
+     text.  If N is greater than the length of the text, sets 'point' to
+     the end of the text.
+
 'new (String PANENAME)'
      Initializes the 'X11TextEditorPane' object's event handlers, and
      calls constructors in the 'X11TextEditorPane's' superclasses to
@@ -7935,11 +7940,12 @@ functions.
 '__edittext_text_end (OBJECT *x11texteditorpane_object)'
 '__edittext_point_to_click (OBJECT *x11texteditorpane_object, int pointer_x, int pointer_y)'
 '__edittext_index_from_pointer (OBJECT *x11texteditorpane_object, int pointer_x, int pointer_y)'
-'__edittext_insert_str_at_point (OBJECT *x11texteditorpan_object, char *)'
-'__edittext_get_primary_selection (OBJECT *x11texteditorpan_object, void **buf_out, int *size_out)'
+'__edittext_insert_str_at_click (OBJECT *x11texteditorpane_object, int click_x, int click_y, char *)'
+'__edittext_insert_str_at_point (OBJECT *x11texteditorpane_object, char *)'
+'__edittext_get_primary_selection (OBJECT *x11texteditorpan_eobject, void **buf_out, int *size_out)'
 '__edittext_set_selection_owner (OBJECT *x11texteditorpane_object)'
      Text editing functions used by 'X11TextEditorPane' objects.  For
-     more information, refer to the 'X11TextEditorPane' section.  *Note
+     more information, refer to 'X11TextEditorPane' class..  *Note
      X11TextEditorPane::.
 
 '_error (char *FMT, ...)'

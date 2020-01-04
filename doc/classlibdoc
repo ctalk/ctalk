@@ -6707,6 +6707,11 @@ method as soon as possible after the program starts the X event loop
 (which it does by calling the @code{X11TerminalStream :
 openEventStream} method), and after every editing operation.
 
+>>>X11TextEditorPane::gotoChar (Integer n)
+Sets the point instance variable to the n'th character in
+the text.  If n is greater than the length of the text, sets
+point to the end of the text.
+
 >>>X11TextEditorPane::new (String paneName)
 Initializes the X11TextEditorPane object's event handlers, and
 calls constructors in the X11TextEditorPane's superclasses to

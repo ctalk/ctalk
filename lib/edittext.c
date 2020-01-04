@@ -1,4 +1,4 @@
-/* $Id: edittext.c,v 1.11 2020/01/01 19:38:41 rkiesling Exp $ -*-c-*-*/
+/* $Id: edittext.c,v 1.15 2020/01/04 01:32:53 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -575,6 +575,10 @@ static void buf_init (OBJECT *editorpane_object) {
   }
   EDITINTSET(buflength_instance_var, bufsize);
   EDITINTSET(textlength_instance_var, newtextlength);
+  /***/
+  if (INTVAL(point_instance_var -> __o_value) > newtextlength) {
+    EDITINTSET(point_instance_var, newtextlength);
+  }
 
   need_init = false;
 }
@@ -870,6 +874,50 @@ int __edittext_set_selection_owner (OBJECT *editorpane_object) {
     fprintf (stderr, "XSetSelectionOwner succeeded!\n");
     return SUCCESS;
   }
+}
+
+int __edittext_insert_str_at_click (OBJECT *editorpane_object,
+				    int click_x, int click_y,
+				    char *str) {
+  int char_cell_width, char_cell_height, i;
+  int l_point, l_textlength, l_buflength;
+  char *insbuf, intbuf[0xff];
+  
+  if (need_init)
+    buf_init (editorpane_object);
+  if (XFT) {
+    /* We're using outline fonts. */
+    char_cell_width =
+      INTVAL(ft_fontvar_maxadvance_instance_var -> __o_value);
+    char_cell_height = INTVAL(ft_fontvar_ascent_instance_var -> __o_value) +
+      INTVAL(ft_fontvar_descent_instance_var -> __o_value);
+  } else {
+    char_cell_width =
+      INTVAL(fontvar_maxwidth_instance_var -> __o_value);
+    char_cell_height =
+      INTVAL(fontvar_height_instance_var -> __o_value);
+  }
+  l_point = __text_index_from_click
+    (text_instance_var -> __o_value, click_x, click_y,
+     char_cell_width, char_cell_height);
+
+  l_textlength = INTVAL(textlength_instance_var -> instancevars -> __o_value);
+  l_buflength = INTVAL(buflength_instance_var -> instancevars -> __o_value);
+
+  insbuf =  __xalloc (l_buflength);
+  for (i = 0; str[i]; ++i) {
+    strcpy (insbuf,	&(TEXT_VAR[l_point]));
+    TEXT_VAR[l_point] = str[i];
+    strcpy (&(TEXT_VAR[l_point + 1]), insbuf);
+    strcpy (insbuf,	&(TEXT[l_point]));
+    TEXT[l_point] = str[i];
+    strcpy (&(TEXT[l_point + 1]), insbuf);
+    ++l_textlength;
+    ++l_point;
+  }
+  EDITINTSET(textlength_instance_var, l_textlength);
+  buffer_size_check (text_instance_var, l_textlength);
+  return SUCCESS;
 }
 
 int __edittext_insert_str_at_point (OBJECT *editorpane_object, char *str) {
@@ -1465,6 +1513,8 @@ static LINEREC *calc_point_cursor (LINEREC *lines,
   return point_line;
 }
 
+static char xa_primary_buf[0xffff];
+
 #ifdef HAVE_XFT_H
 
 XftDraw *ftDraw = NULL;
@@ -1553,8 +1603,45 @@ int __edittext_get_primary_selection (OBJECT *editorpane_object,
 				      void **buf_out, int *size_out) {
   char handle_basename_path[FILENAME_MAX], intbuf[0xff],
     data_path[FILENAME_MAX], info_path[FILENAME_MAX];
-  int r, data_length = 0;
+  OBJECT *win_id_var, *content_var, *sstart_var, *send_var;
+  Display *d_l;
+  Drawable win_id, selection_win;
+  int r, s_start, s_end, data_length = 0;
   FILE *f_info, *f_dat;
+
+  /***/
+  if ((win_id_var = __ctalkGetInstanceVariable (editorpane_object, "xWindowID",
+						TRUE)) != NULL) {
+    if ((d_l = XOpenDisplay (getenv ("DISPLAY"))) != NULL) {
+      win_id = (Drawable)INTVAL(win_id_var -> __o_value);
+      if ((selection_win = XGetSelectionOwner (d_l, XA_PRIMARY)) == win_id) {
+	content_var = __ctalkGetInstanceVariable (editorpane_object, "text",
+						  TRUE);
+	sstart_var = __ctalkGetInstanceVariable (editorpane_object, "sStart", TRUE);
+	send_var = __ctalkGetInstanceVariable (editorpane_object, "sEnd", TRUE);
+	s_start = INTVAL(sstart_var -> __o_value);
+	s_end = INTVAL(send_var -> __o_value);
+	if (s_start == 0 && s_end == 0) {
+	  *buf_out = NULL;
+	  *size_out = 0;
+	  return SUCCESS;
+	}
+	if (s_end < s_start) {
+	  *size_out = s_start - s_end + 1;
+	  *buf_out = (void *)__xalloc (*size_out);
+	  memset (*buf_out, 0, *size_out);
+	  strncpy (*buf_out, &content_var -> __o_value[s_end], s_start - s_end + 1);
+	} else {
+	  *size_out = s_end - s_start + 1;
+	  *buf_out = (void *)__xalloc (*size_out);
+	  memset (*buf_out, 0, *size_out);
+	  strncpy (*buf_out, &content_var -> __o_value[s_start], s_end - s_start + 1);
+	}
+	return SUCCESS;
+      }
+      XCloseDisplay (d_l);
+    }
+  }
 
   strcatx (handle_basename_path, P_tmpdir, "/text", ctitoa (getpid (), intbuf),
 	   NULL);
@@ -1632,8 +1719,6 @@ int __xlib_get_primary_selection (Drawable pixmap, GC gc, char
 
   return SUCCESS;
 }
-
-static char xa_primary_buf[0xffff];
 
 int __xlib_clear_selection (XEvent *e) {
   *xa_primary_buf = 0;
@@ -1714,6 +1799,10 @@ int __xlib_render_text (Drawable pixmap, GC gc, char *fn) {
       line_width = (win_width - left_margin - right_margin) /
 	selected_font -> max_advance_width;
     }
+  }
+  /***/
+  if (point > strlen (content)) {
+    point = strlen (content);
   }
   split_text (content, &text_lines, line_width);
 
@@ -1907,8 +1996,46 @@ int __edittext_get_primary_selection (OBJECT *editorpane_object,
 				      void **buf_out, int *size_out) {
   char handle_basename_path[FILENAME_MAX], intbuf[0xff],
     data_path[FILENAME_MAX], info_path[FILENAME_MAX];
-  int r, data_length = 0;
+  int r, s_start, s_end, data_length = 0;
+  OBJECT *win_id_var, *content_var, *sstart_var, *send_var;
+  Display *d_l;
+  Drawable win_id, selection_win;
   FILE *f_info, *f_dat;
+
+
+  /***/
+  if ((win_id_var = __ctalkGetInstanceVariable (editorpane_object, "xWindowID",
+						TRUE)) != NULL) {
+    if ((d_l = XOpenDisplay (getenv ("DISPLAY"))) != NULL) {
+      win_id = (Drawable)INTVAL(win_id_var -> __o_value);
+      if ((selection_win = XGetSelectionOwner (d_l, XA_PRIMARY)) == win_id) {
+	content_var = __ctalkGetInstanceVariable (editorpane_object, "text",
+						  TRUE);
+	sstart_var = __ctalkGetInstanceVariable (editorpane_object, "sStart", TRUE);
+	send_var = __ctalkGetInstanceVariable (editorpane_object, "sEnd", TRUE);
+	s_start = INTVAL(sstart_var -> __o_value);
+	s_end = INTVAL(send_var -> __o_value);
+	if (s_start == 0 && s_end == 0) {
+	  *buf_out = NULL;
+	  *size_out = 0;
+	  return SUCCESS;
+	}
+	if (s_end < s_start) {
+	  *size_out = s_start - s_end + 1;
+	  *buf_out = (void *)__xalloc (*size_out);
+	  memset (*buf_out, 0, *size_out);
+	  strncpy (*buf_out, &content_var -> __o_value[s_end], s_start - s_end + 1);
+	} else {
+	  *size_out = s_end - s_start + 1;
+	  *buf_out = (void *)__xalloc (*size_out);
+	  memset (*buf_out, 0, *size_out);
+	  strncpy (*buf_out, &content_var -> __o_value[s_start], s_end - s_start + 1);
+	}
+	return SUCCESS;
+      }
+      XCloseDisplay (d_l);
+    }
+  }
 
   strcatx (handle_basename_path, P_tmpdir, "/text", ctitoa (getpid (), intbuf),
 	   NULL);
