@@ -1,4 +1,4 @@
-/* $Id: GLXCanvasPane,v 1.28 2019/12/22 21:11:41 rkiesling Exp $ -*-c-*-*/
+/* $Id: GLXCanvasPane,v 1.30 2020/01/05 15:42:26 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -826,9 +826,10 @@ GLXCanvasPane instanceMethod hasExtension (String extensionName) {
 }
 
 GLXCanvasPane instanceMethod alpha (Float alphaParam) {
-  "Sets the alpha channel (transparency) of the outline font.
-   Calling this method affects both the receiver's ftFontVar :
-   alpha instance variable value, and the Ctalk library's
+  "Sets the alpha channel (transparency) of the outline font
+   defined by the receiver's ftFontVar instance variable.
+   Calling this method affects both the ftFontVar : alpha
+   instance variable value, and the Ctalk library's
    setting for the alpha channel, so the change is immediate.
    The parameter, a Float, should be between 0.0 (transparent)
    and 1.0 (opaque).  The Ctalk library's default alpha value
@@ -836,3 +837,16 @@ GLXCanvasPane instanceMethod alpha (Float alphaParam) {
   self ftFontVar fgAlpha = alphaParam;
   __ctalkGLXAlphaFT (alphaParam);
 }
+
+GLXCanvasPane instanceMethod displayHeight (void) {
+  "Returns an Integer containing the display width in pixels."
+  returnObjectClass Integer;
+  return __ctalkX11DisplayHeight ();
+}
+
+GLXCanvasPane instanceMethod displayWidth (void) {
+  "Returns an Integer containing the display height in pixels."
+  returnObjectClass Integer;
+  return __ctalkX11DisplayWidth ();
+}
+

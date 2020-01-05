@@ -5572,6 +5572,12 @@ variable.
 Releases the receiver pane's GLX context and deletes the X11 window,
 and shuts down the application's X11 input client.
 
+
+>>>GLXCanvasPane::displayHeigth (void)
+>>>GLXCanvasPane::displayWidth (void)
+These methods return an Integer with the display height and
+width in pixels, respectively.
+
 >>>GLXCanvasPane::drawFmtText (Float xOrg, Float yOrg, String fmt, ...)
 Draws the text given by fmt and its arguments at the matrix
 position given by xOrg,yOrg.

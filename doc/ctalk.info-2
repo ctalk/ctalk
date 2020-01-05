@@ -996,6 +996,11 @@ Instance Methods
      Releases the receiver pane's GLX context and deletes the X11
      window, and shuts down the application's X11 input client.
 
+'displayHeigth (void)'
+'displayWidth (void)'
+     These methods return an 'Integer' with the display height and width
+     in pixels, respectively.
+
 'drawFmtText (Float XORG, Float YORG, String FMT, ...)'
      Draws the text given by FMT and its arguments at the matrix
      position given by XORG,YORG.

@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.49 2020/01/04 01:32:53 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.50 2020/01/05 15:42:27 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -12378,20 +12378,28 @@ variable.
 Releases the receiver pane's GLX context and deletes the X11 window,
 and shuts down the application's X11 input client.
 
-@cindex @mnm{drawFmtText} index method @idxclscite{GLXCanvasPane}
+@cindex @mnm{displayHeight} instance method @idxclscite{GLXCanvasPane}
+@cindex @mnm{displayWidth} instance method @idxclscite{GLXCanvasPane}
+
+@item @mnm{displayHeigth} (@code{void})
+@item @mnm{displayWidth} (@code{void})
+These methods return an @code{Integer} with the display height and
+width in pixels, respectively.
+
+@cindex @mnm{drawFmtText} instance method @idxclscite{GLXCanvasPane}
 @item @mnm{drawFmtText} (@code{Float} @var{xOrg}, @code{Float} @var{yOrg}, @code{String} @var{fmt}, ...)
 Draws the text given by @var{fmt} and its arguments at the matrix
 position given by @var{xOrg},@var{yOrg}.
 
 
-@cindex @mnm{drawFmtTextFT} index method @idxclscite{GLXCanvasPane}
+@cindex @mnm{drawFmtTextFT} instance method @idxclscite{GLXCanvasPane}
 @item @mnm{drawFmtTextFT} (@code{Float} @var{xOrg}, @code{Float} @var{yOrg}, @code{String} @var{fmt}, ...)
 Display the string given by @var{fmt} and its arguments at the matrix
 coordinates @var{xOrg}, @var{yOrg} in the currently selected Freetype
 font.  This call, like all calls that render text, should be preceded
 by a call to @mnm{useFTFont}.
 
-@cindex @mnm{drawFmtTextW} index method @idxclscite{GLXCanvasPane}
+@cindex @mnm{drawFmtTextW} instance method @idxclscite{GLXCanvasPane}
 @item @mnm{drawFmtTextW} (@code{Integer} @var{xOrg}, @code{Integer} @var{yOrg}, @code{String} @var{fmt}, ...)
 Draws the formatted text of @var{fmt} and its arguments at the pixel
 position given by @var{xOrg}, @var{yOrg}.  OpenGL uses the lower
