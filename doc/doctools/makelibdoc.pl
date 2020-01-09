@@ -27,6 +27,7 @@ my $levelindent = "";
 my $inexample = 0;
 my $inproto = 0;
 my $protoline = "";
+my $outline = "";
 
 open ($rh, ">", $tmpname) or die "$tmpname > : $!";
 
@@ -127,7 +128,12 @@ read_a_line: while (<$rh>) {
     for ($i = 0; $i <  $tablelevel; $i++) {
 	$levelindent = $levelindent . "  ";
     }
-    printf $wh $levelindent . $_;
+    if ($_ =~ /%/) {
+	$_ =~ s/%/%%/g;
+	printf $wh $levelindent . $_;
+    } else {
+	printf $wh $levelindent . $_;
+    }
 }
 close $rh;
 close $wh;

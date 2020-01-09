@@ -1,4 +1,4 @@
-/* $Id: ctedit.ca,v 1.6 2020/01/01 22:54:38 rkiesling Exp $  -*-c-*- */
+/* $Id: ctedit.ca,v 1.8 2020/01/04 01:38:42 rkiesling Exp $  -*-c-*- */
 
 /*
   This file is part of Ctalk.
@@ -269,6 +269,7 @@ int main (int argc, char **argv) {
     readFile statStream;
     filePerms = readFile streamMode;
     xEditorPane text = readFile readAll;
+    xEditorPane textLength = xEditorPane text length;
     if (ex pending) {
       ex handle;
       xEditorPane text = "";

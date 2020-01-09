@@ -1,8 +1,8 @@
-/* $Id: X11CanvasPane,v 1.13 2020/01/02 21:24:41 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11CanvasPane,v 1.15 2020/01/07 23:20:48 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
-  Copyright © 2005 - 2014, 2106  Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2005 - 2014, 2016 - 2020  Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
 
@@ -102,27 +102,21 @@ X11CanvasPane instanceMethod subPaneResize (Object __subPane,
   handler called by the parent window's pane
   dispatcher."
 
-  if (__subPane container containerMode == "full") {
-
-    if (__ctalkX11ResizeWindow (__subPane, __event xEventData3,
-				__event xEventData4,
-				__subPane depth) > 0) {
-      /* refreshReframe uses viewWidth and viewHeight, refresh uses size x
-	 and size y */
-      __subPane viewWidth = __event xEventData3;
-      __subPane viewHeight = __event xEventData4;
-      __subPane size x = __event xEventData3;
-      __subPane size y = __event xEventData4;
-      (X11Bitmap *)self paneBuffer resize self xWindowID,
-	__event xEventData3, __event xEventData4;
-      (X11Bitmap *)self paneBackingStore resize self xWindowID,
-	__event xEventData3, __event xEventData4;
-    }
-
-  } else {
-    fprintf (stderr, 
-     "Error: subPaneResize (class X11CanvasPane): unknown container mode!\n");
+  if (__ctalkX11ResizeWindow (__subPane, __event xEventData3,
+			      __event xEventData4,
+			      __subPane depth) > 0) {
+    /* refreshReframe uses viewWidth and viewHeight, refresh uses size x
+       and size y */
+    __subPane viewWidth = __event xEventData3;
+    __subPane viewHeight = __event xEventData4;
+    __subPane size x = __event xEventData3;
+    __subPane size y = __event xEventData4;
+    (X11Bitmap *)self paneBuffer resize self xWindowID,
+      __event xEventData3, __event xEventData4;
+    (X11Bitmap *)self paneBackingStore resize self xWindowID,
+      __event xEventData3, __event xEventData4;
   }
+
   return NULL;
 }
 
@@ -228,28 +222,60 @@ X11CanvasPane instanceMethod attachTo (Object parentPane) {
   self super attachTo parentPane;
   self paneBuffer become xPaneBuffer;
   self paneBackingStore become xPaneBackingStore;
-  if (parentPane containerMode == "full") {
-    self viewWidth = parentPane size x;
-    self viewHeight = parentPane size y;
-    self size x = parentPane size x;
-    self size y = parentPane size y;
-    self origin x = 0;
-    self origin y = 0;
 
-    /*
-     *  The evaluation of these statements  needs to be deferred
-     *  until run time.  See the comment in the other, "attachTo,"
-     *  method, below.
-     */
-    (X11Bitmap *)self paneBuffer create self xWindowID, self size x, 
-      self size y, self depth;
-    (X11Bitmap *)self paneBuffer background (self backgroundColor);
-    (X11Bitmap *)self paneBackingStore create self xWindowID, self size x, 
-      self size y, self depth;
-  } else {
-    fprintf (stderr, 
-	     "attachTo (class X11CanvasPane) : undefined containerMode.\n");
-  }
+  self viewWidth = parentPane size x;
+  self viewHeight = parentPane size y;
+  self size x = parentPane size x;
+  self size y = parentPane size y;
+  self origin x = 0;
+  self origin y = 0;
+
+  /*
+   *  The evaluation of these statements  needs to be deferred
+   *  until run time.  See the comment in the other, "attachTo,"
+   *  method, below.
+   */
+  (X11Bitmap *)self paneBuffer create self xWindowID, self size x, 
+    self size y, self depth;
+  (X11Bitmap *)self paneBuffer background (self backgroundColor);
+  (X11Bitmap *)self paneBackingStore create self xWindowID, self size x, 
+    self size y, self depth;
+
+  return NULL;
+}
+
+X11CanvasPane instanceMethod attachTo (Object parentPane,
+				       String geomspec) {
+  "Register the receiver pane as a subpane of the X11Pane
+  given as the argument.  Generally parent pane should
+  be a X11PaneDispatcher object."
+  X11Bitmap new xPaneBuffer;
+  X11Bitmap new xPaneBackingStore;
+  int x, y, width, height;
+  self super attachTo (parentPane, geomspec);
+  self paneBuffer become xPaneBuffer;
+  self paneBackingStore become xPaneBackingStore;
+
+  __ctalkX11SubWindowGeometry (parentPane, geomspec,
+				 &x, &y, &width, &height);
+  self viewWidth = width;
+  self viewHeight = height;
+  self size x = width;
+  self size y = height;
+  self origin x = x;
+  self origin y = y;
+
+  /*
+   *  The evaluation of these statements  needs to be deferred
+   *  until run time.  See the comment in the other, "attachTo,"
+   *  method, below.
+   */
+  (X11Bitmap *)self paneBuffer create self xWindowID, self size x, 
+    self size y, self depth;
+  (X11Bitmap *)self paneBuffer background (self backgroundColor);
+  (X11Bitmap *)self paneBackingStore create self xWindowID, self size x, 
+    self size y, self depth;
+
   return NULL;
 }
 
@@ -263,39 +289,36 @@ X11CanvasPane instanceMethod attachTo (Object parentPane, Integer xOrg,
   self super attachTo parentPane;
   self paneBuffer become xPaneBuffer;
   self paneBackingStore become xPaneBackingStore;
-  if (parentPane containerMode == "full") {
-    self viewWidth = parentPane size x;
-    self viewHeight = parentPane size y;
-    self size x = parentPane size x;
-    self size y = parentPane size y;
-    self origin x = xOrg;
-    self origin y = yOrg;
 
-    /*
-     *  The statements here need to be deferred until 
-     *  run time, because we've mutated paneBuffer into
-     *  a X11Bitmap object, above, and as yet, we're not
-     *  certain that we're going to know whether the original
-     *  paneBuffer instance variable understands the, 
-     *  "initialize," message.  So here (and in other methods),
-     *  we'll add a class cast to prevent a deferred evaluation
-     *  warning, and wait until run-time to evaluate the
-     *  expressions.
-     *
-     *  That is, until we have a backtrack where we can check
-     *  the association of the become method, above.
-     *  
-     *  As an alternative, you can initialize xPaneBuffer first,
-     *  then mutate it with, "become."
-     */
-    (X11Bitmap *)self paneBuffer create self xWindowID, self size x, 
-      self size y, self depth;
-    (X11Bitmap *)self paneBackingStore create self xWindowID, self size x, 
-      self size y, self depth;
-  } else {
-    fprintf (stderr, 
-	     "attachTo (class X11CanvasPane) : undefined containerMode.\n");
-  }
+  self viewWidth = parentPane size x;
+  self viewHeight = parentPane size y;
+  self size x = parentPane size x;
+  self size y = parentPane size y;
+  self origin x = xOrg;
+  self origin y = yOrg;
+
+  /*
+   *  The statements here need to be deferred until 
+   *  run time, because we've mutated paneBuffer into
+   *  a X11Bitmap object, above, and as yet, we're not
+   *  certain that we're going to know whether the original
+   *  paneBuffer instance variable understands the, 
+   *  "initialize," message.  So here (and in other methods),
+   *  we'll add a class cast to prevent a deferred evaluation
+   *  warning, and wait until run-time to evaluate the
+   *  expressions.
+   *
+   *  That is, until we have a backtrack where we can check
+   *  the association of the become method, above.
+   *  
+   *  As an alternative, you can initialize xPaneBuffer first,
+   *  then mutate it with, "become."
+   */
+  (X11Bitmap *)self paneBuffer create self xWindowID, self size x, 
+    self size y, self depth;
+  (X11Bitmap *)self paneBackingStore create self xWindowID, self size x, 
+    self size y, self depth;
+
   return NULL;
 }
 
@@ -311,38 +334,35 @@ X11CanvasPane instanceMethod attachTo (Object parentPane, Integer xOrg,
   self super attachTo parentPane;
   self paneBuffer become xPaneBuffer;
   self paneBackingStore become xPaneBackingStore;
-  if (parentPane containerMode == "full") {
-    self viewWidth = parentPane size x;
-    self viewHeight = parentPane size y;
-    self size x = xSize;
-    self size y = ySize;
-    self origin x = xOrg;
-    self origin y = yOrg;
 
-    /*
-     *  The statements here need to be deferred until 
-     *  run time, because we've mutated paneBuffer into
-     *  a X11Bitmap object, above, and as yet, we're not
-     *  certain that we're going to know whether the original
-     *  paneBuffer instance variable understands the, 
-     *  "initialize," message.  So here we'll try to 
-     *  generate a warning and just defer the entire expression 
-     *  until run-time.
-     *
-     *  Until we have a backtrack where we can check the association 
-     *  of the become method, above.
-     *  
-     *  As an alternative, you can initialize xPaneBuffer first,
-     *  then mutate it with, "become."
-     */
-    (X11Bitmap *)self paneBuffer create self xWindowID, self size x, 
-      self size y, self depth;
-    (X11Bitmap *)self paneBackingStore create self xWindowID, self size x, 
-      self size y, self depth;
-  } else {
-    fprintf (stderr, 
-	     "attachTo (class X11CanvasPane) : undefined containerMode.\n");
-  }
+  self viewWidth = parentPane size x;
+  self viewHeight = parentPane size y;
+  self size x = xSize;
+  self size y = ySize;
+  self origin x = xOrg;
+  self origin y = yOrg;
+
+  /*
+   *  The statements here need to be deferred until 
+   *  run time, because we've mutated paneBuffer into
+   *  a X11Bitmap object, above, and as yet, we're not
+   *  certain that we're going to know whether the original
+   *  paneBuffer instance variable understands the, 
+   *  "initialize," message.  So here we'll try to 
+   *  generate a warning and just defer the entire expression 
+   *  until run-time.
+   *
+   *  Until we have a backtrack where we can check the association 
+   *  of the become method, above.
+   *  
+   *  As an alternative, you can initialize xPaneBuffer first,
+   *  then mutate it with, "become."
+   */
+  (X11Bitmap *)self paneBuffer create self xWindowID, self size x, 
+    self size y, self depth;
+  (X11Bitmap *)self paneBackingStore create self xWindowID, self size x, 
+    self size y, self depth;
+
   return NULL;
 }
 

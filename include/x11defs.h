@@ -1,8 +1,9 @@
-/* $Id: x11defs.h,v 1.3 2019/12/17 01:52:29 rkiesling Exp $ -*-c-*-*/
+/* $Id: x11defs.h,v 1.5 2020/01/08 22:13:18 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
-  Copyright © 2005-2012, 2014, 2016, 2019 Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2005-2012, 2014, 2016, 2019, 2020 
+     Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
 
@@ -132,23 +133,26 @@
 #define PANE_GET_PRIMARY_SELECTION_REQUEST 23
 
 
-#define WM_CONFIGURE_EVENTS (ExposureMask|StructureNotifyMask|PropertyChangeMask|SubstructureNotifyMask|FocusChangeMask)
+#define WM_CONFIGURE_EVENTS (ExposureMask|StructureNotifyMask|PropertyChangeMask|SubstructureNotifyMask|FocusChangeMask|EnterWindowMask|LeaveWindowMask)
 #define WM_INPUT_EVENTS (KeyPressMask|KeyReleaseMask|ButtonPressMask|ButtonReleaseMask|PointerMotionMask)
-#define KBDCHAR          (1 << 0)
-#define KBDCUR           (1 << 1)
-#define WINDELETE        (1 << 2)
-#define BUTTONPRESS      (1 << 3)
-#define BUTTONRELEASE    (1 << 4)
-#define KEYPRESS         (1 << 5)
-#define KEYRELEASE       (1 << 6)
-#define MOTIONNOTIFY     (1 << 7)
-#define EXPOSE           (1 << 8)
-#define MAPNOTIFY        (1 << 12)
-#define CONFIGURENOTIFY  (1 << 15)
-#define MOVENOTIFY       (1 << 16)
-#define RESIZENOTIFY     (1 << 17)
-#define SELECTIONREQUEST (1 << 18)
-#define SELECTIONCLEAR   (1 << 19)
+#define KBDCHAR           (1 << 0)
+#define KBDCUR            (1 << 1)
+#define WINDELETE         (1 << 2)
+#define BUTTONPRESS       (1 << 3)
+#define BUTTONRELEASE     (1 << 4)
+#define KEYPRESS          (1 << 5)
+#define KEYRELEASE        (1 << 6)
+#define MOTIONNOTIFY      (1 << 7)
+#define EXPOSE            (1 << 8)
+#define MAPNOTIFY         (1 << 12)
+#define CONFIGURENOTIFY   (1 << 15)
+#define MOVENOTIFY        (1 << 16)
+#define RESIZENOTIFY      (1 << 17)
+#define SELECTIONREQUEST  (1 << 18)
+#define SELECTIONCLEAR    (1 << 19)
+#define FOCUSCHANGENOTIFY (1 << 20)
+#define ENTERWINDOWNOTIFY (1 << 21)
+#define LEAVEWINDOWNOTIFY (1 << 22)
 /***/
 /* To be added. */
 /*  #define DESTROYNOTIFY    (1 << 9) */

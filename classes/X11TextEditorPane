@@ -1,8 +1,8 @@
-/* $Id: X11TextEditorPane,v 1.17 2020/01/04 01:32:52 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11TextEditorPane,v 1.18 2020/01/07 23:20:48 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
-  Copyright © 2018, 2019  Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2018 - 2020  Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
 
@@ -57,40 +57,34 @@ X11TextEditorPane instanceMethod subPaneResize (X11TextEditorPane __subPane,
   dispatcher."
   X11Pane new container;
 
-  if (__subPane container containerMode == "full") {
-
-    if (__ctalkX11ResizeWindow (__subPane, __event xEventData3,
-				__event xEventData4,
-				__subPane depth) > 0) {
-      if (__subPane ftFontVar libIsInitialized) {
-	__subPane viewWidth = __event xEventData3 /
-	  __subPane ftFontVar maxAdvance;
-	__subPane viewHeight = __event xEventData4 /
-	  __subPane ftFontVar height;
-      } else if (__subPane fontVar fontId != 0) {
-	__subPane viewWidth = __event xEventData3 /
-	  __subPane fontVar maxWidth;
-	__subPane viewHeight = __event xEventData4 /
-	  __subPane fontVar height;
-      } else {
-	__subPane viewWidth = __event xEventData3 / 12;
-	__subPane viewHeight = __event xEventData4 / 14;
-      }
-      __subPane size x = __event xEventData3;
-      __subPane size y = __event xEventData4;
-      (X11Bitmap *)self paneBuffer resize self xWindowID,
-	__event xEventData3, __event xEventData4;
-      (X11Bitmap *)self paneBackingStore resize self xWindowID,
-	__event xEventData3, __event xEventData4;
+  if (__ctalkX11ResizeWindow (__subPane, __event xEventData3,
+			      __event xEventData4,
+			      __subPane depth) > 0) {
+    if (__subPane ftFontVar libIsInitialized) {
+      __subPane viewWidth = __event xEventData3 /
+	__subPane ftFontVar maxAdvance;
+      __subPane viewHeight = __event xEventData4 /
+	__subPane ftFontVar height;
+    } else if (__subPane fontVar fontId != 0) {
+      __subPane viewWidth = __event xEventData3 /
+	__subPane fontVar maxWidth;
+      __subPane viewHeight = __event xEventData4 /
+	__subPane fontVar height;
+    } else {
+      __subPane viewWidth = __event xEventData3 / 12;
+      __subPane viewHeight = __event xEventData4 / 14;
     }
-
-    self defaultFormat;
-    self displayText;
-
-  } else {
-    fprintf (stderr, 
-     "Error: subPaneResize (class X11TextEditorPane): unknown container mode!\n");
+    __subPane size x = __event xEventData3;
+    __subPane size y = __event xEventData4;
+    (X11Bitmap *)self paneBuffer resize self xWindowID,
+      __event xEventData3, __event xEventData4;
+    (X11Bitmap *)self paneBackingStore resize self xWindowID,
+      __event xEventData3, __event xEventData4;
   }
+
+  self defaultFormat;
+  self displayText;
+
   return NULL;
 }
 
@@ -115,31 +109,27 @@ X11TextEditorPane instanceMethod attachTo (Object parentPane) {
   self super attachTo parentPane;
   self paneBuffer become xPaneBuffer;
   self paneBackingStore become xPaneBackingStore;
-  if (parentPane containerMode == "full") {
-    self size x = parentPane size x;
-    self size y = parentPane size y;
-    if (self ftFontVar libIsInitialized) {
-      self viewWidth = self size x / self ftFontVar maxAdvance;
-      self viewHeight = self size y / self ftFontVar height;
-    } else if (self fontVar fontId != 0) {
-      self viewWidth = self size x / self fontVar maxWidth;
-      self viewHeight = self size y / self fontVar height;
-    } else {
-      self viewWidth = self size x / 12;
-      self viewHeight = self size y / 14;
-    }
-    self origin x = 0;
-    self origin y = 0;
 
-    (X11Bitmap *)self paneBuffer create self xWindowID, self size x, 
-      self size y, self depth;
-    (X11Bitmap *)self paneBuffer background (self backgroundColor);
-    (X11Bitmap *)self paneBackingStore create self xWindowID, self size x, 
-      self size y, self depth;
+  self size x = parentPane size x;
+  self size y = parentPane size y;
+  if (self ftFontVar libIsInitialized) {
+    self viewWidth = self size x / self ftFontVar maxAdvance;
+    self viewHeight = self size y / self ftFontVar height;
+  } else if (self fontVar fontId != 0) {
+    self viewWidth = self size x / self fontVar maxWidth;
+    self viewHeight = self size y / self fontVar height;
   } else {
-    fprintf (stderr, 
-	     "attachTo (class X11TextEditorPane) : undefined containerMode.\n");
+    self viewWidth = self size x / 12;
+    self viewHeight = self size y / 14;
   }
+  self origin x = 0;
+  self origin y = 0;
+
+  (X11Bitmap *)self paneBuffer create self xWindowID, self size x, 
+    self size y, self depth;
+  (X11Bitmap *)self paneBuffer background (self backgroundColor);
+  (X11Bitmap *)self paneBackingStore create self xWindowID, self size x, 
+    self size y, self depth;
   return NULL;
 }
 

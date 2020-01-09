@@ -1,8 +1,8 @@
-/* $Id: X11ScrollBarPane,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11ScrollBarPane,v 1.2 2020/01/07 23:20:48 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
-  Copyright © 2014  Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2014, 2020  Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
 
@@ -162,18 +162,14 @@ X11ScrollBarPane instanceMethod subPaneResize (Object __subPane,
   This method is under construction and is currently a
   no-op."
 #if 0
-  if (__subPane container containerMode == "full") {
-    self paneBuffer resize 
-      self container xWindowID,
-      __event xEventData3, __event xEventData4;
+  self paneBuffer resize 
+    self container xWindowID,
+    __event xEventData3, __event xEventData4;
+  
+  __subPane viewWidth = __event xEventData3;
+  __subPane viewHeight = __event xEventData4;
+  __subPane refresh;
 
-    __subPane viewWidth = __event xEventData3;
-    __subPane viewHeight = __event xEventData4;
-    __subPane refresh;
-  } else {
-    fprintf (stderr, 
-     "Error: subPaneResize (class X11ScrollBarPane): unknown container mode!\n");
-  }
 #endif
   return NULL;
 }
@@ -320,43 +316,39 @@ X11ScrollBarPane instanceMethod attachTo (Object parentPane) {
   self super attachTo parentPane;
   self paneBuffer become xPaneBuffer;
   self paneBackingStore become xPaneBackingStore;
-  if (parentPane containerMode == "full") {
 
-    self size x = SCROLLBAR_WIDTH;
-    self size y = parentPane size y;
+  self size x = SCROLLBAR_WIDTH;
+  self size y = parentPane size y;
 
-    self frame dimensions 0, 0, self size x - 1, self size y - 1;
-    self frameTopStartX = self frame top start x;
-    self frameTopStartY = self frame top start y;
-    self frameBottomEndX = self frame bottom end x;
-    self frameBottomEndY = self frame bottom end y;
+  self frame dimensions 0, 0, self size x - 1, self size y - 1;
+  self frameTopStartX = self frame top start x;
+  self frameTopStartY = self frame top start y;
+  self frameBottomEndX = self frame bottom end x;
+  self frameBottomEndY = self frame bottom end y;
 
-    self thumbDimensions 2, self thumbHeight;
+  self thumbDimensions 2, self thumbHeight;
 
-    /*
-     *  The statements here need to be deferred until 
-     *  run time, because we've mutated paneBuffer into
-     *  a X11Bitmap object, above, and as yet, we're not
-     *  certain that we're going to know whether the original
-     *  paneBuffer instance variable understands the, 
-     *  "initialize," message.  So here we'll try to 
-     *  generate a warning and just defer the entire expression 
-     *  until run-time.
-     *
-     *  Until we have a backtrack where we can check the association 
-     *  of the become method, above.
-     *  
-     *  As an alternative, you can initialize xPaneBuffer first,
-     *  then mutate it with, "become."
-     */
-    self paneBuffer create self xWindowID, self size x, 
-      self size y, self depth;
-    self paneBackingStore create self xWindowID, self size x, 
-      self size y, self depth;
-  } else {
-    fprintf (stderr, 
-	     "attachTo (class X11ScrollBarPane) : undefined containerMode.\n");
-  }
+  /*
+   *  The statements here need to be deferred until 
+   *  run time, because we've mutated paneBuffer into
+   *  a X11Bitmap object, above, and as yet, we're not
+   *  certain that we're going to know whether the original
+   *  paneBuffer instance variable understands the, 
+   *  "initialize," message.  So here we'll try to 
+   *  generate a warning and just defer the entire expression 
+   *  until run-time.
+   *
+   *  Until we have a backtrack where we can check the association 
+   *  of the become method, above.
+   *  
+   *  As an alternative, you can initialize xPaneBuffer first,
+   *  then mutate it with, "become."
+   */
+  self paneBuffer create self xWindowID, self size x, 
+    self size y, self depth;
+  self paneBackingStore create self xWindowID, self size x, 
+    self size y, self depth;
+
   return NULL;
 }
 
@@ -377,45 +369,40 @@ X11ScrollBarPane instanceMethod attachTo (Object parentPane, Integer xOrg,
   self super attachTo parentPane;
   self paneBuffer become xPaneBuffer;
   self paneBackingStore become xPaneBackingStore;
-  if (parentPane containerMode == "full") {
 
-    self size x = xSize;
-    self size y = ySize;
-    self origin x = xOrg;
-    self origin y = yOrg;
+  self size x = xSize;
+  self size y = ySize;
+  self origin x = xOrg;
+  self origin y = yOrg;
 
-    self frame dimensions 0, 0, self size x - 1, self size y - 1;
-    self frameTopStartX = self frame top start x;
-    self frameTopStartY = self frame top start y;
-    self frameBottomEndX = self frame bottom end x;
-    self frameBottomEndY = self frame bottom end y;
+  self frame dimensions 0, 0, self size x - 1, self size y - 1;
+  self frameTopStartX = self frame top start x;
+  self frameTopStartY = self frame top start y;
+  self frameBottomEndX = self frame bottom end x;
+  self frameBottomEndY = self frame bottom end y;
 
-    self thumbDimensions 2, self thumbHeight;
+  self thumbDimensions 2, self thumbHeight;
 
-    /*
-     *  The statements here need to be deferred until 
-     *  run time, because we've mutated paneBuffer into
-     *  a X11Bitmap object, above, and as yet, we're not
-     *  certain that we're going to know whether the original
-     *  paneBuffer instance variable understands the, 
-     *  "initialize," message.  So here we'll try to 
-     *  generate a warning and just defer the entire expression 
-     *  until run-time.
-     *
-     *  Until we have a backtrack where we can check the association 
-     *  of the become method, above.
-     *  
-     *  As an alternative, you can initialize xPaneBuffer first,
-     *  then mutate it with, "become."
-     */
-    self paneBuffer create self xWindowID, self size x, 
-      self size y, self depth;
-    self paneBackingStore create self xWindowID, self size x, 
-      self size y, self depth;
-  } else {
-    fprintf (stderr, 
-	     "attachTo (class X11ScrollBarPane) : undefined containerMode.\n");
-  }
+  /*
+   *  The statements here need to be deferred until 
+   *  run time, because we've mutated paneBuffer into
+   *  a X11Bitmap object, above, and as yet, we're not
+   *  certain that we're going to know whether the original
+   *  paneBuffer instance variable understands the, 
+   *  "initialize," message.  So here we'll try to 
+   *  generate a warning and just defer the entire expression 
+   *  until run-time.
+   *
+   *  Until we have a backtrack where we can check the association 
+   *  of the become method, above.
+   *  
+   *  As an alternative, you can initialize xPaneBuffer first,
+   *  then mutate it with, "become."
+   */
+  self paneBuffer create self xWindowID, self size x, 
+    self size y, self depth;
+  self paneBackingStore create self xWindowID, self size x, 
+    self size y, self depth;
   return NULL;
 #endif
 }

@@ -1,8 +1,8 @@
-/* $Id: X11PaneDispatcher,v 1.3 2019/12/10 23:57:07 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11PaneDispatcher,v 1.15 2020/01/09 04:02:49 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
-  Copyright © 2005 - 2019  Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2005 - 2020  Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
 
@@ -78,7 +78,9 @@ X11PaneDispatcher instanceVariable handleDestroy Method NULL;
 X11PaneDispatcher instanceVariable handleExpose Method NULL;
 X11PaneDispatcher instanceVariable handleSelectionRequest Method NULL;
 X11PaneDispatcher instanceVariable handleSelectionClear Method NULL;
-X11PaneDispatcher instanceVariable containerMode String NULL;
+X11PaneDispatcher instanceVariable handleFocusChange Method NULL;
+X11PaneDispatcher instanceVariable handleEnterNotify Method NULL;
+X11PaneDispatcher instanceVariable handleLeaveNotify Method NULL;
 X11PaneDispatcher instanceVariable subPaneInfo List NULL;
 
 X11PaneDispatcher instanceMethod setMethodHandler (String __handlerType,
@@ -127,6 +129,10 @@ X11PaneDispatcher instanceMethod setMethodHandler (String __handlerType,
     xstrcpy (method_arg->__o_name, "handleSelectionClear");
     __ctalkAddInstanceVariable (self, "handleSelectionClear",
 				method_arg);
+  } else if (__handlerType == "focuschange") {
+    xstrcpy (method_arg->__o_name, "handleFocusChange");
+    __ctalkAddInstanceVariable (self, "handleFocusChange",
+				method_arg);
   } else {
     errorStr printOn "Undefined handler type, \"%s\"";
     unknownHandlerTypeException raiseCriticalException
@@ -154,8 +160,8 @@ receiver pane."
 X11PaneDispatcher instanceMethod subPaneResize (Object __subPane, 
 					      InputEvent __event) {
   "Dispatch an Resize event to the subpanes of the
-receiver pane."
-    X11Pane new containerPane;
+   receiver pane."
+  X11Pane new containerPane;
   self size x = __event xEventData3;
   self size y = __event xEventData4;
   containerPane = *self container;
@@ -212,15 +218,11 @@ X11PaneDispatcher instanceMethod subPaneMove (Object __subPane,
 	       (X11Pane *)(*self container) xWindowID,
 		 self origin x, self origin y);
 
-  if (self containerMode == "full") {
-    if (__subPane isInstanceMethod "subPaneMove") {
-      fprintf (stderr, "subPaneMove subPane handler!\n");
-    } else {
-      __subPane origin x = 0;
-      __subPane origin y = 0;
-    }
+  if (__subPane isInstanceMethod "subPaneMove") {
+    fprintf (stderr, "subPaneMove subPane handler!\n");
   } else {
-    fprintf (stderr, "unknown container mode!\n");
+    __subPane origin x = 0;
+    __subPane origin y = 0;
   }
   return NULL;
 }
@@ -274,7 +276,6 @@ X11PaneDispatcher instanceMethod new (String __paneName) {
   Method new destroyMethod;
   Method new exposeMethod;
   Method new selectionClearMethod;
-  __paneName containerMode = "full";
 
   resizeMethod definedInstanceMethod "X11PaneDispatcher", "subPaneResize";
   moveMethod definedInstanceMethod "X11PaneDispatcher", "subPaneMove";
@@ -307,74 +308,58 @@ X11PaneDispatcher instanceMethod new (String __paneName) {
 
 X11PaneDispatcher instanceMethod attachTo (Object parentPane) {
   "Attach the receiver pane to the parent pane given as
-  the argument.  This parent pane should be a X11Pane
-  object."
+  the argument."
+
   self container = parentPane;
-  self xWindowID = parentPane xWindowID;
   self origin x = 0;
   self origin y = 0;
   self size x = parentPane size x;
   self size y = parentPane size y;
   if (!self value is X11PaneDispatcher) {
     if (parentPane is X11PaneDispatcher) {
-      __ctalkCreateX11SubWindow (parentPane container, self);
+      self xWindowID = __ctalkCreateX11SubWindow
+	((X11PaneDispatcher *)parentPane container, self);
     } else {
-      __ctalkCreateX11SubWindow (parentPane, self);
+      self xWindowID =
+	__ctalkCreateX11SubWindow (parentPane, self);
     }
+  } else {
+    self xWindowID = parentPane xWindowID;
   }
-#if 0 /***/
-  self xWindowID = parentPane xWindowID;
-  self container = parentPane;
-  self xWindowID = parentPane xWindowID;
-  self origin x = 0;
-  self origin y = 0;
-  self size x = parentPane size x;
-  self size y = parentPane size y;
-#endif
   parentPane children pushItemRef self;
   return NULL;
 }
 
-/*
- *  These parameters can be written into a subPaneInfo record,
- *  a String, as:
- *
- *  object  - a reference to the subpane object.
- *  orgX    - If given as percentages, then set propX and propY
- *  orgY
- *  sizeX
- *  sizeY
- *  propX    - Is proportional to horizontal parent size
- *  propY    - Is proportional to vertical parent size.
- *  extendX  - Can stretch horizontally.
- *  extendY  - Can stretch vertically.
- *  border   - draw a border around the subpane.
- *  anchor   - n, s, e, w, nw, ne, se, sw, or none.
- *  canfocus - From the subPane's canTakeFocus instance variable.
- */
-X11PaneDispatcher instanceMethod attachToGrid (Object parentPane,
-					       String orgX,
-					       String orgY,
-					       String sizeX,
-					       String sizeY,
-					       Boolean extendX,
-					       Boolean extendY,
-					       Boolean border,
-					       String anchor) {
-  "Attach the receiver subpane to the parent pane given as
-  an argument with the coordinates given as arguments.
-  This method is still under construction."
+X11PaneDispatcher instanceMethod attachTo (Object parentPane,
+					   String geomspec) {
+  "Attach the receiver pane to the parent pane given as
+  the argument."
+    int x, y, width, height;
+  __ctalkX11SubWindowGeometry (parentPane, geomspec,
+			       &x, &y, &width, &height);
+
   if (!self value is X11PaneDispatcher) {
-    if (self parentPane is X11PaneDispatcher) {
-      __ctalkCreateX11SubWindow (parentPane container, self);
+    if (parentPane is X11PaneDispatcher) {
+      self origin x = x;
+      self origin y = y;
+      self size x = width;
+      self size y = height;
+      self xWindowID = __ctalkCreateX11SubWindow
+	((X11PaneDispatcher *)parentPane container, self);
     } else {
-      __ctalkCreateX11SubWindow (parentPane, self);
+      self xWindowID =
+	__ctalkCreateX11SubWindow (parentPane, self);
     }
+  } else {
+    /* One X11PaneDispatcher per X11Pane */
+    self container = parentPane;
+    self origin x = 0;
+    self origin y = 0;
+    self size x = parentPane size x;
+    self size y = parentPane size y;
+    self xWindowID = parentPane xWindowID;
   }
-  self container become parentPane;
-  self size x = parentPane size x;
-  self size y = parentPane size y;
-  parentPane subPane = self;
+  parentPane children pushItemRef self;
   return NULL;
 }
 
@@ -384,6 +369,12 @@ X11PaneDispatcher instanceMethod handleSubPaneEvent (InputEvent __e) {
   of the receiver's subpanes."
   Exception new undefinedEventClassException;
   String new errorStr;
+
+  if (__e eventClass == EXPOSE) {
+#if 1 /***/
+    printf ("EXPOSE: win: %#x\n", __e eventData);
+#endif    
+  }
 
   switch (__e eventClass)
     {
@@ -450,6 +441,11 @@ X11PaneDispatcher instanceMethod handleSubPaneEvent (InputEvent __e) {
     case SELECTIONCLEAR:
       self children map {
 	self methodObjectMessage self handleSelectionClear, self, __e;
+      }
+      break;
+    case FOCUSCHANGENOTIFY:
+      self children map {
+	self methodObjectMessage self handleFocusChange, self, __e;
       }
       break;
     default:

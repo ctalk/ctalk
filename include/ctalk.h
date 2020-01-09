@@ -1,4 +1,4 @@
-/* $Id: ctalk.h,v 1.43 2020/01/01 01:44:01 rkiesling Exp $ -*-Fundamental-*- */
+/* $Id: ctalk.h,v 1.45 2020/01/06 01:09:08 rkiesling Exp $ -*-Fundamental-*- */
 
 /*
   This file is part of Ctalk.
@@ -1485,6 +1485,7 @@ int __edittext_insert_at_point (OBJECT *, int, int, int);
 int __edittext_get_primary_selection (OBJECT *, void **, int *);
 int __edittext_insert_str_at_point (OBJECT *, char *);
 int __edittext_set_selection_owner (OBJECT *);
+int __edittext_insert_str_at_click (OBJECT *, int, int, char *);
 
 /* lib/err_out.c */
 void _error_out (char *);
@@ -2621,6 +2622,7 @@ int __ctalkX11ParseGeometry (char *, int *, int *, int *, int *);
 int __ctalkX11SetSizeHints (int, int, int, int, int);
 void __ctalkX11GetSizeHints (int, int *, int *, int *, int *, int *, int *);
 void __ctalkX11FreeSizeHints (void);
+void __ctalkX11SubWindowGeometry (OBJECT *, char *, int *, int *, int *, int *);
 
 /* lib/xlibfont.c */
 int load_xlib_fonts_internal (char *);

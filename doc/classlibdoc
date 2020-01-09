@@ -861,21 +861,22 @@ event handler.
     "Resize the receiver pane.  This is the resize event
     handler called by the parent window's pane
     dispatcher."
-    if (__subPane container containerMode == "full") {
-      (X11Bitmap *)self paneBuffer resize self xWindowID, __event xEventData3, 
-        __event xEventData4;
-      (X11Bitmap *)self paneBackingStore resize self xWindowID, __event xEventData3, 
-        __event xEventData4;
   
+    if (__ctalkX11ResizeWindow (__subPane, __event xEventData3,
+  			      __event xEventData4,
+  			      __subPane depth) > 0) {
+      /* refreshReframe uses viewWidth and viewHeight, refresh uses size x
+         and size y */
       __subPane viewWidth = __event xEventData3;
       __subPane viewHeight = __event xEventData4;
       __subPane size x = __event xEventData3;
       __subPane size y = __event xEventData4;
-      __subPane refresh;
-    } else {
-      fprintf (stderr, 
-       "Error: subPaneResize (class X11CanvasPane): unknown container mode!\n");
+      (X11Bitmap *)self paneBuffer resize self xWindowID,
+        __event xEventData3, __event xEventData4;
+      (X11Bitmap *)self paneBackingStore resize self xWindowID,
+        __event xEventData3, __event xEventData4;
     }
+  
     return NULL;
   }
   
@@ -6241,6 +6242,7 @@ For an example of how to draw with textures, refer to the
 
 
 >>>X11PaneDispatcher::attachTo (Object parentPane)
+>>>X11PaneDispatcher::attachTo (Object parentPane, String geometry)
 Attach the receiver to its parent pane, typically a X11Pane or
 X11PaneDispatcher.  Also creates a X window, although
 X11PaneDispatcher windows themselves are not normally visible.
@@ -6257,6 +6259,21 @@ instance variable; for example, with an expression like this:
 ---------------------------------------------------------
 
 Otherwise, the method clears the subpane's window to black.
+
+The geometry argument, if present, defines the size and placement
+of the subpane's window within the parent window.  A geometry specification
+has the form:
+
+---------------------------------------------------------
+  
+  width[%]xheight[%]+x[%]+y[%]
+  
+---------------------------------------------------------
+
+The dimensions are in pixels, unless a percent sign ('%') follows
+a dimension.  In that case, the dimension is a fractional percentage
+of the parent pane's width or height. The String may contain a
+combination of absolute and relative dimensions.
 
 >>>X11PaneDispatcher::handleSubPaneEvent (InputEvent event)
 Handle an input event from the window system. Typically the
@@ -6314,6 +6331,7 @@ system's GUI.
 
 
 >>>X11CanvasPane::attachTo (Object parent_pane)
+>>>X11CanvasPane::attachTo (Object parent_pane, String geometry)
 >>>X11CanvasPane::attachTo (Object parent_pane, Integer xOrg, Integer yOrg)
 >>>X11CanvasPane::attachTo (Object parent_pane, Integer xOrg, Integer yOrg, Integer xSize, Integer ySize)
 Attach a X11CanvasPane object to its parent pane, which is
@@ -6321,6 +6339,21 @@ typically a X11PaneDispatcher object.  With one argument, this
 method initializes the size of the pane's window and buffers to
 the parent pane's dimensions, and positions the pane at the upper left-hand
 origin of the main window.
+
+If two arguments are present, the second is a String with the
+geometry specifcation for the subpane.  Subpane geometry strings have
+the form:
+
+---------------------------------------------------------
+  
+  width[%]xheight[%]+x[%]+y[%]
+  
+---------------------------------------------------------
+
+The dimensions are in pixels, unless a percent sign ('%') follows
+a dimension.  In that case, the dimension is a fractional percentage
+of the parent pane's width or height.  The String may contain a
+combination of absolute and relative dimensions.
 
 With three arguments, the method positions the pane at
 xOrg,yOrg within the parent pane, which usually is
@@ -6569,9 +6602,7 @@ variable.
 >>>X11TextPane::attachTo (Object parentPane)
 Attaches the X11TextPane object to its parent pane.
 The parent pane should always be a X11PaneDispatcher
-object.  This method sets the height and width of the pane
-and its buffers based on the parent pane's
-containerMode.  
+object.  
 
 >>>X11TextPane::cursorPos (Integer x, Integer y)
 Set the pane's cursor to the coordinates given as arguments.

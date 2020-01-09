@@ -1638,13 +1638,18 @@ control posititioning and rendering of subpanes within the main pane,
 and help communicate events between the main window's pane and the
 subwindows' panes.
 
-The positioning of subpane windows is controlled by the
-'X11PaneDispatcher's' 'containerMode' instance variable, a 'String'.
-Setting the 'containerMode' to one of the following values has these
-effects.
-'full'
-     Fill the main window with a single subpane window.  This is the
-     default 'containerMode' value.
+The positioning of subwindows within the parent window is controlled by
+the arguments to the 'moveTo' methods; in particular, these methods
+accept a geometry specification, as an argument, which has the following
+format.
+
+
+     width[%]xheight[%]+x[%]+y[%]
+
+
+If a dimension does not contain a percent ('%') sign, the dimensions are
+in pixels.  With a percent sign, the dimensions are a fractional
+percentage of the parent pane's width or height.
 
 The 'X11PaneDispatcher' method 'new' creates a X window, although the
 window of the 'X11PaneDispatcher' itself is not normally visible, the
@@ -1716,6 +1721,19 @@ system.  *Note X11TerminalStream::.
                                    internally but applications can use this
                                    event to update their status if
                                    necessary.
+     "focuschange" FOCUSCHANGENOTIFY
+                                   Received when the pointer enters or
+                                   leaves a subwindow.  The xEventData1
+                                   instance variable contains the type
+                                   of event, either FocusIn or FocusOut.
+
+     "enternotify" ENTERWINDOWNOTIFY
+                                   Received when the pointer enters a
+                                   window from another window.
+
+     "leavenotify" LEAVEWINDOWNOTIFY
+                                   Received when the pointer leaves a
+                                   window.
 
      "destroy"      WINDELETE      Called when the user closes     subPaneDestroy
                                    the application window.
@@ -1731,20 +1749,25 @@ defined by the 'attachTo' method.  The handler should be able to pass
 the event along to any subpanes of the receiver pane if necessary, by
 checking whether subpanes implement their own handlers.  Here, for
 example, is the 'X11PaneDispatcher' class's 'subPaneResize' method.
-     X11PaneDispatcher instanceMethod subPaneResize (Object __subPaneRef,
+
+
+     X11PaneDispatcher instanceMethod subPaneResize (Object __subPane,
      					      InputEvent __event) {
-       if (self containerMode == "full") {
-         if (__subPaneRef getValue isInstanceMethod "subPaneResize") {
-           __subPaneRef getValue handleResize withArg __subPaneRef;
-           __subPaneRef getValue handleResize withArg __event;
-           __subPaneRef getValue methodObjectMessage __subPaneRef getValue handleResize;
-          }
-       } else {
-         fprintf (stderr, "X11PaneDispatcher : subPaneResize:\n");
-         fprintf (stderr, "Warning: Unknown container mode.\n");
+       "Dispatch an Resize event to the subpanes of the
+        receiver pane."
+       X11Pane new containerPane;
+       self size x = __event xEventData3;
+       self size y = __event xEventData4;
+       containerPane = *self container;
+       XResizeWindow (containerPane xDisplay, containerPane xWindowID,
+     		 self size x, self size y);
+       if (__subPane isInstanceMethod "subPaneResize") {
+         __subPane methodObjectMessage __subPane handleResize, __subPane,
+           __event;
        }
        return NULL;
      }
+
 
 The internals of the subpane API are likely to change and be expanded in
 future releases.  Using the methods described here and in other sections
@@ -1754,13 +1777,14 @@ releases.
 Instance Variables
 ------------------
 
-'containerMode'
-     A 'String' that contains the method that the 'X11PaneDispatcher'
-     uses to position subwindows.
-
 'handleDestroy'
      A 'Method' that provides the default handler to delete a subpane
      window and its data.
+
+'handleEnterNotify'
+'handleLeaveNotify'
+     Handlers for events that are generated when a pointer crosses from
+     one window to another.
 
 'handleKbdInput'
      A 'Method' that provides the default handler for subpanes to handle
@@ -1801,6 +1825,7 @@ Instance Methods
 ................
 
 'attachTo (Object PARENTPANE)'
+'attachTo (Object PARENTPANE, String GEOMETRY)'
      Attach the receiver to its parent pane, typically a 'X11Pane' or
      'X11PaneDispatcher'.  Also creates a X window, although
      'X11PaneDispatcher' windows themselves are not normally visible.
@@ -1816,6 +1841,19 @@ Instance Methods
 
 
      Otherwise, the method clears the subpane's window to black.
+
+     The GEOMETRY argument, if present, defines the size and placement
+     of the subpane's window within the parent window.  A geometry
+     specification has the form:
+
+
+          width[%]xheight[%]+x[%]+y[%]
+
+
+     The dimensions are in pixels, unless a percent sign ('%') follows a
+     dimension.  In that case, the dimension is a fractional percentage
+     of the parent pane's width or height.  The 'String' may contain a
+     combination of absolute and relative dimensions.
 
 'handleSubPaneEvent (InputEvent EVENT)'
      Handle an input event from the window system.  Typically the parent
@@ -2050,6 +2088,7 @@ Instance Methods
 ................
 
 'attachTo (Object PARENT_PANE)'
+'attachTo (Object PARENT_PANE, String GEOMETRY)'
 'attachTo (Object PARENT_PANE, Integer XORG, Integer YORG)'
 'attachTo (Object PARENT_PANE, Integer XORG, Integer YORG, Integer XSIZE, Integer YSIZE)'
      Attach a 'X11CanvasPane' object to its parent pane, which is
@@ -2057,6 +2096,19 @@ Instance Methods
      method initializes the size of the pane's window and buffers to the
      parent pane's dimensions, and positions the pane at the upper
      left-hand origin of the main window.
+
+     If two arguments are present, the second is a 'String' with the
+     geometry specifcation for the subpane.  Subpane geometry strings
+     have the form:
+
+
+          width[%]xheight[%]+x[%]+y[%]
+
+
+     The dimensions are in pixels, unless a percent sign ('%') follows a
+     dimension.  In that case, the dimension is a fractional percentage
+     of the parent pane's width or height.  The 'String' may contain a
+     combination of absolute and relative dimensions.
 
      With three arguments, the method positions the pane at XORG,YORG
      within the parent pane, which usually is relative to the upper left
@@ -2636,9 +2688,7 @@ Instance Methods
 
 'attachTo (Object PARENTPANE)'
      Attaches the 'X11TextPane' object to its parent pane.  The parent
-     pane should always be a 'X11PaneDispatcher' object.  This method
-     sets the height and width of the pane and its buffers based on the
-     parent pane's 'containerMode'.  *Note X11PaneDispatcher::.
+     pane should always be a 'X11PaneDispatcher' object.
 
 'cursorPos (Integer X, Integer Y)'
      Set the pane's cursor to the coordinates given as arguments.
@@ -6475,6 +6525,23 @@ functions.
      intended only for objects that have an actual window; e.g.,
      'X11Pane' objects.  For all other visual types, like pixmaps, use
      __ctalkX11SetBackgroundBasic.
+
+'__ctalkX11SubWindowGeometry (OBJECT * PARENTPANE, char * GEOMSTR, int *X_OUT, int *Y_OUT, int *width_out, int *HEIGHT_OUT)'
+     Parses a string that contains the geometry specification of a
+     subwindow, and returns the width and height of the subwindow and
+     its X,Y position within the parent pane's window.
+
+     A geometry specification has the form:
+
+
+          width[%]xheight[%]+x_org[%]+y_org[%]
+
+
+     The _x, y, width, and height_ parameters are interpreted as the
+     actual origin and size of the subwindow, unless a parameter is
+     followed by a percent sign ('%').  In that case, the dimension is
+     interpreted as a fraction of the parent window's corresponding
+     vertical or horizontal dimension.
 
 '__ctalkX11TextFromData (int DRAWABLE_ID, int GD_PTR, char *TEXT)'
      Displays TEXT on DRAWABLE_ID.

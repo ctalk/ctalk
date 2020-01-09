@@ -1,8 +1,8 @@
-/* $Id: x11lib.c,v 1.46 2020/01/01 23:05:27 rkiesling Exp $ -*-c-*-*/
+/* $Id: x11lib.c,v 1.49 2020/01/08 22:32:09 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
-  Copyright © 2005-2019  Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2005-2020  Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
 
@@ -2620,9 +2620,19 @@ static int kwin_event_loop (int parent_fd, int mem_handle, int main_win_id) {
 	    get_x11_keysym (e.xkey.keycode, e.xkey.state, FALSE);
 	  break;
 	case FocusIn:
+	case FocusOut:
+	  event_to_client (parent_fd, FOCUSCHANGENOTIFY,
+			   e.xfocus.window, e.xfocus.type,
+			   e.xfocus.mode, e.xfocus.detail, 0, 0, 0);
+	  eventclass = 0;
+	  continue;
+	  break;
+#if 0 /***/
+	case FocusIn:
 	  break;
 	case FocusOut:
 	  break;
+#endif	  
 	case PropertyNotify:
 	  break;
   	case MotionNotify:
@@ -2868,11 +2878,35 @@ int __ctalkX11InputClient (OBJECT *streamobject, int parent_fd, int mem_handle, 
 	      continue;
 	    }
 	  }
+	  event_to_client (parent_fd, FOCUSCHANGENOTIFY,
+			   e.xfocus.window, e.xfocus.type,
+			   e.xfocus.mode, e.xfocus.detail, 0, 0, 0);
+	  eventclass = 0;
+	  continue;
 	  break;
 	case FocusOut:
 	  if (e.xfocus.mode == NotifyGrab) {
 	    grabbed = true;
 	  }
+	  event_to_client (parent_fd, FOCUSCHANGENOTIFY,
+			   e.xfocus.window, e.xfocus.type,
+			   e.xfocus.mode, e.xfocus.detail, 0, 0, 0);
+	  eventclass = 0;
+	  continue;
+	  break;
+	case EnterNotify:
+	  event_to_client (parent_fd, ENTERWINDOWNOTIFY,
+			   e.xcrossing.window, e.xcrossing.subwindow,
+			   e.xcrossing.mode, e.xcrossing.detail, 0, 0, 0);
+	  eventclass = 0;
+	  continue;
+	  break;
+	case LeaveNotify:
+	  event_to_client (parent_fd, LEAVEWINDOWNOTIFY,
+			   e.xcrossing.window, e.xcrossing.subwindow,
+			   e.xcrossing.mode, e.xcrossing.detail, 0, 0, 0);
+	  eventclass = 0;
+	  continue;
 	  break;
 	case PropertyNotify:
 	  if (compiz_resize_atom == None) {
@@ -3098,8 +3132,6 @@ int __ctalkX11InputClient (OBJECT *streamobject, int parent_fd, int mem_handle, 
 	case CirculateRequest:
 	case ResizeRequest:
 	case VisibilityNotify:
-	case EnterNotify:
-	case LeaveNotify:
 	  eventclass = 0;
 	  break;
 	default:

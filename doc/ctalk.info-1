@@ -1388,21 +1388,22 @@ Instance Methods
             "Resize the receiver pane.  This is the resize event
             handler called by the parent window's pane
             dispatcher."
-            if (__subPane container containerMode == "full") {
-              (X11Bitmap *)self paneBuffer resize self xWindowID, __event xEventData3,
-                __event xEventData4;
-              (X11Bitmap *)self paneBackingStore resize self xWindowID, __event xEventData3,
-                __event xEventData4;
 
+            if (__ctalkX11ResizeWindow (__subPane, __event xEventData3,
+          			      __event xEventData4,
+          			      __subPane depth) > 0) {
+              /* refreshReframe uses viewWidth and viewHeight, refresh uses size x
+                 and size y */
               __subPane viewWidth = __event xEventData3;
               __subPane viewHeight = __event xEventData4;
               __subPane size x = __event xEventData3;
               __subPane size y = __event xEventData4;
-              __subPane refresh;
-            } else {
-              fprintf (stderr,
-               "Error: subPaneResize (class X11CanvasPane): unknown container mode!\n");
+              (X11Bitmap *)self paneBuffer resize self xWindowID,
+                __event xEventData3, __event xEventData4;
+              (X11Bitmap *)self paneBackingStore resize self xWindowID,
+                __event xEventData3, __event xEventData4;
             }
+
             return NULL;
           }
 

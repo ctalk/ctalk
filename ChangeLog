@@ -25,3 +25,32 @@
 	2020-01-05
 	- Added the GLXCanvasPane : displayWidth and displayHeight
 	methods.
+2020-01-06
+	- Added the __ctalkX11SubWindowGeometry library function
+	(xgeometry.c).
+	- Added a check for the "super" keyword in the CAN_CACHE_METHOD
+	macro (rt_expr.c).
+2020-01-07
+	- Added attachTo methods with a geometry string argument in
+	X11PaneDispatcher and X11CanvasPane classes.
+	- Removed the X11PaneDispatcher : containerMode instance variable,
+	which isn't needed.
+	- Added the FOCUSCHANGENOTIFY X event definition in x11defs.h,
+	and updated __ctalkX11InputClient to send the event to the
+	application process (x11lib.c).  Added the X11PaneDispatcher :
+	handleFocusChange instance variable, and focuschange handler
+	type.
+2020-01-08
+	- Added FOCUSCHANGENOTIFY case in X11PaneDispatcher :
+	handleSubPaneEvent.
+	- Added EnterWindowMask and LeaveWindowMask to the X client's
+	event mask (x11defs.h).  Also added the ENTERWINDOWNOTIFY and
+	LEAVEWINDOWNOTIFY InputEvent classes (x11defs.h and ctalklib.in).
+	Added EnterNotify and LeaveNotify cases in __ctalkX11InputClient
+	(x11lib.c).  Added the "enternotify" and "leavenotify" handler
+	types, and the X11PaneDispatcher : handleEnterNotify and
+	X11PaneDispatcher : handleLeaveNotify instance variables.
+	- Updated fmt_printf_fmt_arg to unset ptr_fmt_is_alt_int_fmt
+	after formatting the object-to-C translation if it has been
+	set (objtoc.c).
+

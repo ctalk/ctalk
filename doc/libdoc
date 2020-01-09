@@ -981,6 +981,25 @@ an actual window; e.g., X11Pane objects.  For all
 other visual types, like pixmaps, use
 __ctalkX11SetBackgroundBasic.
 
+>>>__ctalkX11SubWindowGeometry (OBJECT * parentpane, char * geomstr, int *x_out, int *y_out, int *width_out, int *height_out)
+Parses a string that contains the geometry specification of a
+subwindow, and returns the width and height of the subwindow and its
+X,Y position within the parent pane's window.
+
+A geometry specification has the form:
+
+---------------------------------------------------------
+
+width[%]xheight[%]+x_org[%]+y_org[%]
+
+---------------------------------------------------------
+
+The x, y, width, and height parameters are interpreted as the
+actual origin and size of the subwindow, unless a parameter is
+followed by a percent sign (%).  In that case, the dimension is
+interpreted as a fraction of the parent window's corresponding
+vertical or horizontal dimension.
+
 >>>__ctalkX11TextFromData (int drawable_id, int GD_ptr, char *text)
 Displays text on drawable_id.
 
@@ -1370,7 +1389,7 @@ int main () {
     if (self == 'o') {
       break;
     }
-    printf (" ", self);
+    printf ("%c", self);
   }
   printf ("\n");
 
@@ -1389,7 +1408,7 @@ int main () {
 	break;                /* the argument block's direct caller,    */
       }                      /* contains a __ctalkArgBlkSetCallerReturn*/
     (Character *)self -= 32;  /* function call.                         */
-    printf (" ", self);
+    printf ("%c", self);
   }
   printf ("\n");
 }
@@ -2473,9 +2492,9 @@ NULLs in C expressions without the generating compiler warnings.
 
 @idxclscite {X11TextEditorPane}
 
->>>__edittext_delete_char (OBJECT *x11texteditorpane_object):__edittext_insert_at_point (OBJECT *x11texteditorpane_object, int keycode, int shift_state, int keypress):__edittext_line_end (OBJECT *x11texteditorpane_object):__edittext_line_start (OBJECT *x11texteditorpane_object):__edittext_next_char (OBJECT *x11texteditorpane_object):__edittext_next_line (OBJECT *x11texteditorpane_object):__edittext_next_page (OBJECT *x11texteditorpane_object):__edittext_prev_char (OBJECT *x11texteditorpane_object):__edittext_prev_line (OBJECT *x11texteditorpane_object):__edittext_prev_page (OBJECT *x11texteditorpane_object):__edittext_text_start (OBJECT *x11texteditorpane_object):__edittext_text_end (OBJECT *x11texteditorpane_object):__edittext_point_to_click (OBJECT *x11texteditorpane_object, int pointer_x, int pointer_y):__edittext_index_from_pointer (OBJECT *x11texteditorpane_object, int pointer_x, int pointer_y):__edittext_insert_str_at_point (OBJECT *x11texteditorpan_object, char *):__edittext_get_primary_selection (OBJECT *x11texteditorpan_object, void **buf_out, int *size_out):__edittext_set_selection_owner (OBJECT *x11texteditorpane_object)
+>>>__edittext_delete_char (OBJECT *x11texteditorpane_object):__edittext_insert_at_point (OBJECT *x11texteditorpane_object, int keycode, int shift_state, int keypress):__edittext_line_end (OBJECT *x11texteditorpane_object):__edittext_line_start (OBJECT *x11texteditorpane_object):__edittext_next_char (OBJECT *x11texteditorpane_object):__edittext_next_line (OBJECT *x11texteditorpane_object):__edittext_next_page (OBJECT *x11texteditorpane_object):__edittext_prev_char (OBJECT *x11texteditorpane_object):__edittext_prev_line (OBJECT *x11texteditorpane_object):__edittext_prev_page (OBJECT *x11texteditorpane_object):__edittext_text_start (OBJECT *x11texteditorpane_object):__edittext_text_end (OBJECT *x11texteditorpane_object):__edittext_point_to_click (OBJECT *x11texteditorpane_object, int pointer_x, int pointer_y):__edittext_index_from_pointer (OBJECT *x11texteditorpane_object, int pointer_x, int pointer_y):__edittext_insert_str_at_click (OBJECT *x11texteditorpane_object, int click_x, int click_y, char *):__edittext_insert_str_at_point (OBJECT *x11texteditorpane_object, char *):__edittext_get_primary_selection (OBJECT *x11texteditorpan_eobject, void **buf_out, int *size_out):__edittext_set_selection_owner (OBJECT *x11texteditorpane_object)
 Text editing functions used by X11TextEditorPane objects.
-For more information, refer to the X11TextEditorPane section.
+For more information, refer to X11TextEditorPane class..
 
 
 >>>_error (char *fmt, ...)
