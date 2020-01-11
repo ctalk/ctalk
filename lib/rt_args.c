@@ -1,4 +1,4 @@
-/* $Id: rt_args.c,v 1.10 2019/12/01 14:09:29 rkiesling Exp $ */
+/* $Id: rt_args.c,v 1.11 2020/01/11 03:27:30 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -2539,7 +2539,7 @@ int __rt_method_arglist_n_args (EXPR_PARSER *p, int method_msg_idx,
 				METHOD *m) {
   bool paren_delimiters = false;
   int open_paren, close_paren, lookahead, arglist_start = 0, i,
-    arglist_end, paren_level, n_args, n_internal_args;
+    arglist_end, paren_level, n_args, n_internal_args, n_commas;
   
   if (m -> n_params == 0)
     return 0;
@@ -2551,12 +2551,49 @@ int __rt_method_arglist_n_args (EXPR_PARSER *p, int method_msg_idx,
     return 0;
   }
   if (M_TOK(p -> m_s[open_paren]) == OPENPAREN) {
-    paren_delimiters = true;
     close_paren = __ctalkMatchParen (p -> m_s, open_paren, p -> msg_frame_top);
 
     /* empty arglist */
     if (next_arg_tok_b (p, open_paren) == close_paren)
       return 0;
+
+    if ((lookahead = next_arg_tok_b (p, close_paren)) != ERROR) {
+      /* 
+	 check for further operators after the matching paren; e.g.,
+
+	   rcvr mthd (arg1 term) - (another arg1 term), arg2, arg3...
+                                 ^
+	 and don't interpret the opening paren and its match as
+	 enclosing the entire argument list.
+
+	 HOWEVER, we have to check for expressions like the
+	 following - 
+
+	   if (rcvr mthd (arglist) == 0)
+
+	 to see if there is a complete argument list between the
+	 parens anyway, so we do a comma check to see how many args
+	 there are between the parens, where there are no nested paren
+	 levels.
+      */
+      if (IS_C_BINARY_MATH_OP(M_TOK(p -> m_s[lookahead]))) {
+	for (n_commas = 0, paren_level = 0,
+	       i = open_paren - 1; i > close_paren; i--) {
+	  if ((M_TOK(p -> m_s[i]) == ARGSEPARATOR) &&
+	      (paren_level == 0)) {
+	    ++n_commas;
+	  } else if (M_TOK(p -> m_s[i]) == OPENPAREN) {
+	    ++paren_level;
+	  } else if (M_TOK(p -> m_s[i]) == CLOSEPAREN) {
+	    ++paren_level;
+	  }
+	}
+	if (n_commas != m -> n_params - 1)
+	  goto not_paren_delimiters;
+      }
+    }
+    
+    paren_delimiters = true;
 
     arglist_start = next_arg_tok_b (p, open_paren);
     arglist_end = prev_arg_tok_b (p, close_paren);
@@ -2670,6 +2707,7 @@ int __rt_method_arglist_n_args (EXPR_PARSER *p, int method_msg_idx,
     }
     return n_args;
   } else {
+  not_paren_delimiters:
     paren_level = 0;
     arglist_start = next_arg_tok_b (p, method_msg_idx);
     if (METHOD_ARG_TERM_MSG_TYPE (p -> m_s[arglist_start]))
