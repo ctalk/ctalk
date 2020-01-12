@@ -53,4 +53,10 @@
 	- Updated fmt_printf_fmt_arg to unset ptr_fmt_is_alt_int_fmt
 	after formatting the object-to-C translation if it has been
 	set (objtoc.c).
+2020-01-10
+	- In __rt_method_arglist_n_args, check for a math operator
+	after a closing paren, and don't interpret the first paren
+	set as enclosing the entire arglist (rt_args.c).
+2020-01-11
+	- X11LabelPane class.
 

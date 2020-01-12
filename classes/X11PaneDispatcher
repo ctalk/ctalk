@@ -1,4 +1,4 @@
-/* $Id: X11PaneDispatcher,v 1.15 2020/01/09 04:02:49 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11PaneDispatcher,v 1.18 2020/01/10 00:46:27 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -132,6 +132,12 @@ X11PaneDispatcher instanceMethod setMethodHandler (String __handlerType,
   } else if (__handlerType == "focuschange") {
     xstrcpy (method_arg->__o_name, "handleFocusChange");
     __ctalkAddInstanceVariable (self, "handleFocusChange",
+				method_arg);
+  } else if (__handlerType == "enternotify") {
+    __ctalkAddInstanceVariable (self, "handleEnterNotify",
+				method_arg);
+  } else if (__handlerType == "leavenotify") {
+    __ctalkAddInstanceVariable (self, "handleLeaveNotify",
 				method_arg);
   } else {
     errorStr printOn "Undefined handler type, \"%s\"";
@@ -370,12 +376,6 @@ X11PaneDispatcher instanceMethod handleSubPaneEvent (InputEvent __e) {
   Exception new undefinedEventClassException;
   String new errorStr;
 
-  if (__e eventClass == EXPOSE) {
-#if 1 /***/
-    printf ("EXPOSE: win: %#x\n", __e eventData);
-#endif    
-  }
-
   switch (__e eventClass)
     {
     case RESIZENOTIFY:
@@ -446,6 +446,18 @@ X11PaneDispatcher instanceMethod handleSubPaneEvent (InputEvent __e) {
     case FOCUSCHANGENOTIFY:
       self children map {
 	self methodObjectMessage self handleFocusChange, self, __e;
+      }
+      break;
+    case ENTERWINDOWNOTIFY:
+      self children map {
+	if (__e eventData == self xWindowID) 
+	  self methodObjectMessage self handleEnterNotify, self, __e;
+      }
+      break;
+    case LEAVEWINDOWNOTIFY:
+      self children map {
+	if (__e eventData == self xWindowID) 
+	  self methodObjectMessage self handleLeaveNotify, self, __e;
       }
       break;
     default:

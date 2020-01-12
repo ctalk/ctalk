@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.57 2020/01/08 22:42:04 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.58 2020/01/12 01:02:35 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -448,6 +448,7 @@ Object
    GLXCanvasPane
    X11PaneDispatcher
     X11CanvasPane
+     X11LabelPane
     X11ScrollBarPane
     X11TextPane
      X11TextEditorPane
@@ -535,6 +536,7 @@ Object
 *    GLXCanvasPane::
 *    X11PaneDispatcher::
 *     X11CanvasPane::
+*      X11LabelPane::
 *     X11ScrollBarPane::
 *     X11TextPane::
 *      X11TextEditorPane::
@@ -13404,7 +13406,7 @@ system's GUI.  @xref{X11TerminalStream}.
 
 @end table
 
-@node X11CanvasPane, X11ScrollBarPane, X11PaneDispatcher, Classes
+@node X11CanvasPane, X11LabelPane, X11PaneDispatcher, Classes
 @iftex
 @section @code{X11CanvasPane} Class
 @end iftex
@@ -13889,7 +13891,332 @@ The handler for Resize events from the X display.  Resizes the pane's
 X window and adjusts the pane's dimensions.
 @end table
 
-@node X11ScrollBarPane, X11TextPane, X11CanvasPane, Classes
+@node X11LabelPane, X11ScrollBarPane, X11CanvasPane, Classes
+@iftex
+@section @code{X11LabelPane} Class
+@end iftex
+@ifnottex
+@subheading @code{X11LabelPane} Class
+@end ifnottex
+@cindex @code{X11LabelPane} class
+
+@code{X11LabelPane} objects display text in graphical windows.  The
+class provides instance variables and methods that control the label's
+font, border, justification, whether the label is highlighted when the
+pointer is over it, and formatting of single and multiple line labels.
+
+Formatting label text for multiple line labels, as well as controlling
+the text's justification, is described in the subsections below.
+
+Here is a simple example program that displays a X11LabelPane widget.
+
+@example
+
+#include <ctalk/ctalkdefs.h>
+
+#define FTFONTS      /* Comment this line out to use X fonts. */
+#define MULTILINE    /* Comment out to display a single line label. */
+
+int main (int argv, char **argc) @{
+  X11Pane new xPane;
+  X11PaneDispatcher new xTopLevelPane;
+  X11CanvasPane new xCanvasPane;
+  X11LabelPane new xLabelPane;
+  InputEvent new e;
+  Integer new verbose;
+  Exception new ex;
+
+#ifdef FTFONTS 
+  xPane ftFontVar initFontLib;
+#endif       
+
+  xPane initialize 0, 0, 300, 300;
+  xPane inputStream eventMask =
+    WINDELETE|EXPOSE|ENTERWINDOWNOTIFY|LEAVEWINDOWNOTIFY;
+  xTopLevelPane attachTo xPane;
+  xLabelPane attachTo xTopLevelPane, "100x100+25+50";
+  xPane map;
+  xPane raiseWindow;
+
+  xPane openEventStream;
+
+#ifdef FTFONTS
+  xLabelPane ftFont "DejaVu Sans", 0, 0, 72, 11.0;
+#else
+  xLabelPane font "-*-helvetica-medium-r-*-*-*-80-*-*-*-*-*-*";
+#endif       
+  xLabelPane border = true;
+  xLabelPane textColor = "navyblue";
+
+#ifdef MULTILINE
+  xLabelPane multiLine "Labels\ncan occupy\nmultiple\nlines.";
+#else
+  xLabelPane text "A Label";
+#endif       
+
+  WriteFileStream classInit;
+
+  while (TRUE) @{
+    xPane inputStream queueInput;
+    if (xPane inputStream eventPending) @{
+      e become xPane inputStream inputQueue unshift;
+      xPane subPaneNotify e;  /* Call the classes' event handlers. */
+      if (ex pending)
+	ex handle;
+      
+      switch (e eventClass value)
+     	@{
+     	case WINDELETE:
+      	  xPane deleteAndClose;
+     	  exit (0);
+     	  break;
+     	default:
+     	  break;
+     	@}
+    @}
+  @}
+@}
+
+@end example
+
+@subsubheading Multiple Line Labels
+
+If the label's text contains embedded newline @samp{\n} characters,
+and the text is defined using the @mnm{multiLine} method, below, then
+the text is display on multiple lines, with the breaks appearing where
+the newline characters appear in the text.  The text is displayed
+centered vertically, and justified as described in the next section.
+
+For single line labels, use the @mnm{text} method with a @code{String}
+argument to fit on one line.
+
+@subsubheading Justification
+
+The @code{X11LabelPane} widget contains a simple layout engine that can
+center label text, or justify it against the right or left margins.
+
+The text's justification is determined by the setting of the
+@code{justification} instance variable, which can have one of three
+values, which are defined by the following macros:
+
+@example
+
+LABEL_LEFT
+LABEL_RIGHT
+LABEL_CENTER
+
+@end example
+
+These macros are defined in the @flnm{ctalk/ctalkdefs.h} include file.
+To use them, add the line
+
+@example
+
+#include <ctalk/ctalkdefs.h>
+
+@end example
+
+to the beginning of the source module.
+
+The widget calculates the right and left margins as the following:
+
+@example
+
+(aLabel margin) + (aLabel highlightBorderWidth) + (aLabel padding)
+
+@end example
+
+The highlighted border width is included regardless of whether the
+border actually is drawn or the label is hightlighted, so text
+alignment remains constant if a program draws and then obscures the
+border, or when the pointer passes over the label.
+
+
+@subsubheading Instance Variables
+
+@table @code
+@cindex @code{border} instance variable @idxclscite{X11LabelPane}
+@item border
+A @code{Boolean} that controls whether the label displays a border.
+The default is @samp{true}.
+
+@cindex @code{borderColor} instance variable @idxclscite{X11LabelPane}
+@item borderColor
+A @code{String} that contains the name of the border's color if the
+label displays a border.  The default is @samp{black}.
+
+@cindex @code{borderWidth} instance variable @idxclscite{X11LabelPane}
+@item borderWidth
+An @code{Integer} that defines the width of the border in pixels when
+the widget is not highlighted.  The default is @samp{2}.
+
+@cindex @code{canFocus} instance variable @idxclscite{X11LabelPane}
+@item canFocus
+An @code{Integer} that determines whether the widget is redrawn when
+the pointer passes over it.
+
+@cindex @code{grayed} instance variable @idxclscite{X11LabelPane}
+@item grayed
+A @code{Boolean} that determines whether to draw the widget in a
+grayed, or inactive, state.  The state has no other effect for a
+@code{X11LabelPane} object.  It can indicate the state of other
+controls in the window.  The default is @code{false}.
+
+@cindex @code{grayedColor} instance variable @idxclscite{X11LabelPane}
+@item grayedColor
+A @code{String} that contains the name of the color to draw the widget
+when it is grayed. The default is is @samp{gray}.
+
+@cindex @code{haveMultiLine} instance variable @idxclscite{X11LabelPane}
+@item haveMultiLine
+A @code{Boolean} that indicates whether the widget's text is defined
+using the @mnm{multiLine} method, and indicates that the widget should
+format the label's text to span multiple lines.
+
+@cindex @code{highlight} instance variable @idxclscite{X11LabelPane}
+@item highlight
+A @code{Boolean} that indicates whether the widget is displayed
+highlighted.
+
+@cindex @code{highlightBorderColor} instance variable @idxclscite{X11LabelPane}
+@item highlightBorderColor
+A @code{String} that contain's the name of a highlighed border's
+color.  The default is @samp{black}.
+
+@cindex @code{highlightBorderWidth} instance variable @idxclscite{X11LabelPane}
+@item highlightBorderWidth
+An @code{Integer} that determines the width in pixels of the label's
+border when the widget is highlighed.  The default is two pixels.
+
+@cindex @code{highlighTextBold} instance variable @idxclscite{X11LabelPane}
+@item highlightTextBold
+A @code{Boolean} that indicates whether the widget should draw a
+highlighted widget's text using a bold typeface.  The default is
+@code{false}.
+
+This variable has no effect when using X11 bitmap fonts.
+@cindex @code{highlightTextColor} instance variable @idxclscite{X11LabelPane}
+
+@item highlightTextColor
+A @code{String} that contains the name of the text color when the widget
+is drawn highlighted.  The default is @samp{black}.
+
+@cindex @code{justify} instance variable @idxclscite{X11LabelPane}
+@item justify
+An @code{Integer} that determines whether to draw the label's text
+centered horizontally, or justified on the right or left margins.
+
+This variable recognizes three values, which are #defines in the
+@flnm{ctalk/ctalkdefs.h} include file.  The definitions are:
+
+@example
+
+LABEL_LEFT
+LABEL_CENTER
+LABEL_RIGHT
+
+@end example
+
+To use these macros, add the statement
+
+@example
+
+#include <ctalk/ctalkdefs.h>
+
+@end example
+
+near the top of the source module.
+
+@cindex @code{leading} instance variable @idxclscite{X11LabelPane}
+@item leading
+An @code{Integer} that defines the space between lines of a multi-line
+label.  This variable only affects text drawn using scalable fonts of
+the Freetype library.  X11 bitmap fonts contain the leading in the
+character glyphs.
+
+@cindex @code{margin} instance variable @idxclscite{X11LabelPane}
+@item margin
+An @code{Integer} that defines the distance in pixels between the
+border and the edges of the @code{X11LabelPane} object.
+
+@cindex @code{padding} instance variable @idxclscite{X11LabelPane}
+@item padding
+An @code{Integer} that defines the minimum distance in pixels between the
+inner edge of the border and the pane object's text.
+
+@cindex @code{textColor} instance variable @idxclscite{X11LabelPane}
+@item textColor
+A @code{String} that defines the name of the text color when the
+widget is not highlighted.  The default is @samp{black}.
+
+@cindex @code{textLine} instance variable @idxclscite{X11LabelPane}
+@item textLine
+A @code{String} that contains the label's text if the text is to
+appear on a single line.  The default is an empty string.
+
+@cindex @code{textLines} instance variable @idxclscite{X11LabelPane}
+@item textLines
+An @code{Array} that contains a multi-line widget's text, as set using
+the @mnm{multiLine} method.
+
+@end table
+
+@subsubsection Instance Methods
+
+@table @code
+
+@cindex @code{new} instance method @idxclscite{X11LabelPane}
+@item new
+Creates a new @code{X11LabelPane} object, initializes the object's
+instance variables and event handlers, and sets the pane's default
+foreground and background colors.
+
+@cindex @code{subPaneExpose} instance method @idxclscite{X11LabelPane}
+@item subPaneExpose (@code{Object} @var{subPane}, @code{InputEvent} @var{event})
+The widget's Expose event handler.  When the widget receives an Expose
+event, this method redraws the widget.
+
+@cindex @code{subPaneEnter} instance method @idxclscite{X11LabelPane}
+@item subPaneEnter (@code{Object} @var{subPane}, @code{InputEvent} @var{event})
+@cindex @code{subPaneLeave} instance method @idxclscite{X11LabelPane}
+@item subPaneLeave (@code{Object} @var{subPane}, @code{InputEvent} @var{event})
+The widget's EnterNotify and LeaveNotify event handlers.  These
+methods set the @code{subPane's} @code{highlight} instance variable to
+true or false (if the widget is configured to accept input focus),
+then calls the @mnm{draw} method to redraw the label.
+
+@cindex @code{font} instance method @idxclscite{X11LabelPane}
+@item font (@code{String} @var{fontdesc})
+Sets the X11 font to use for the label's text.  When drawing using
+Freetype scalable fonts, the widget uses the @mnm{ftFont} method from
+@code{X11CanvasPane}.
+
+@cindex @code{text} instance method @idxclscite{X11LabelPane}
+@item text (@code{String} @var{labelText})
+Sets the text of a single-line label.
+
+@cindex @code{text} instance method @idxclscite{X11LabelPane}
+@item text (@code{String} @var{labelText})
+Sets the receiver's @code{textLine} instance variable for single-line
+labels.
+
+@cindex @code{multiText} instance method @idxclscite{X11LabelPane}
+@item multiText (@code{String} @var{labelText})
+Divides the text given as the argument into lines where newline
+characters @samp{\n} appear in the text, and sets the elements of the
+receiver's @code{textLine} instance variable to one line for each
+array element.  Also sets the @code{haveMultiLine} instance variable
+to @code{true}.
+
+@cindex @code{draw} instance method @idxclscite{X11LabelPane}
+@item draw (@code{void})
+Draws the text of the label, and updates the visible label on the
+display.
+
+@end table
+
+
+@node X11ScrollBarPane, X11TextPane, X11LabelPane, Classes
 @iftex
 @section @code{X11ScrollBarPane} Class
 @end iftex
@@ -24541,7 +24868,10 @@ permit their use in free software.
 @c
 @ifnottex
 @node Index, , GNU Free Documentation License, Top
+@subheading Index
 @end ifnottex
+@iftex
 @chapter Index
+@end iftex
 @printindex cp
 @bye
