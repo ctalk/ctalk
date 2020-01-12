@@ -1,4 +1,4 @@
-/* $Id: edittext.c,v 1.15 2020/01/04 01:32:53 rkiesling Exp $ -*-c-*-*/
+/* $Id: edittext.c,v 1.19 2020/01/12 17:46:27 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -1916,8 +1916,13 @@ int __xlib_render_text (Drawable pixmap, GC gc, char *fn) {
       }
       line_y = line_height;
       visible_line = 0;
-      for (l = text_lines; l; l = l -> next) {
+#if 1 /***/
+      for (l = text_lines; l && (visible_line <= view_end_y); l = l -> next) {
+	if (visible_line >= view_start_y) {
+#else
+       for (l = text_lines; l; l = l -> next) {
 	if (visible_line >= view_start_y && visible_line <= view_end_y) {
+#endif	  
 	  line_x = l -> start;
 	  for (i_x = 0; l -> text[i_x]; ++i_x) {
 	    if ((line_x + i_x >= selection_start) &&
@@ -1956,8 +1961,12 @@ int __xlib_render_text (Drawable pixmap, GC gc, char *fn) {
       }
       line_y = line_height;
       visible_line = 0;
+      for (l = text_lines; l && (visible_line <= view_end_y); l = l -> next) {
+	if (visible_line >= view_start_y) {
+#if 0 /***/
       for (l = text_lines; l; l = l -> next) {
 	if (visible_line >= view_start_y && visible_line <= view_end_y) {
+#endif	  
 	  line_x = l -> start;
 	  for (i_x = 0; l -> text[i_x]; ++i_x) {
 	    if ((line_x + i_x >= selection_start) &&
@@ -2246,8 +2255,12 @@ int __xlib_render_text (Drawable pixmap, GC gc, char *fn) {
     }
     line_y = line_height;
     visible_line = 0;
+    for (l = text_lines; l && (visible_line <= view_end_y); l = l -> next) {
+      if (visible_line >= view_start_y) {
+#if 0 /***/
     for (l = text_lines; l; l = l -> next) {
       if (visible_line >= view_start_y && visible_line <= view_end_y) {
+#endif	
 	line_x = l -> start;
 	for (i_x = 0; l -> text[i_x]; ++i_x) {
 	  if ((line_x + i_x >= selection_start) &&
