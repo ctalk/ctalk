@@ -1,4 +1,4 @@
-/* $Id: x11lib.c,v 1.51 2020/01/12 18:58:45 rkiesling Exp $ -*-c-*-*/
+/* $Id: x11lib.c,v 1.52 2020/01/12 20:28:13 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -549,7 +549,9 @@ int __xlib_put_str_ft (Drawable w, GC gc, char *s) {
 
 #endif /* HAVE_XFT_H */
 
+#ifndef WITHOUT_X11_WARNINGS
 #define WITHOUT_X11_WARNINGS
+#endif
 
 int __xlib_set_wm_name_prop (Drawable drawable, GC gc, char *s) {
   XTextProperty text_prop, text_prop_return;
