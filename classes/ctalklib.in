@@ -1,4 +1,4 @@
-/* $Id: ctalklib.in,v 1.36 2020/01/08 22:13:18 rkiesling Exp $ -*-c-*-*/
+/* $Id: ctalklib.in,v 1.37 2020/01/12 07:50:19 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -455,6 +455,7 @@ struct _method {
     *user_object_ptr;
   int n_user_objs;
   CVAR *local_cvars;
+  void *db;  /* reserved for future debug data */
   struct _method *next;
   struct _method *prev;
 };
