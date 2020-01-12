@@ -1,4 +1,4 @@
-/* $Id: ctalklib.in,v 1.32 2020/01/01 01:44:00 rkiesling Exp $ -*-c-*-*/
+/* $Id: ctalklib.in,v 1.36 2020/01/08 22:13:18 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -992,6 +992,8 @@ extern void *__ctalkX11CreateGC (int);
 extern int __ctalkX11CreatePixmap (int, int, int, int);
 extern int __ctalkX11MakeEvent (OBJECT *, OBJECT *);
 extern int __ctalkX11SetResource (int, char *, char *);
+extern int __ctalkX11SubWindowGeometry (OBJECT *, char *, int *, int *, int *,
+					int *);
 extern int __ctalkX11TextFromData (int, unsigned long int, char *);
 extern int __ctalkX11TextWidth (char *, char *);
 extern int __ctalkX11XPMFromData (int, unsigned long int, int, int, char **);
@@ -1377,6 +1379,7 @@ extern int __edittext_point_to_click (OBJECT *, int, int);
 extern int __edittext_index_from_pointer (OBJECT *, int, int);
 extern int __edittext_insert_str_at_point (OBJECT *, char *);
 extern int __edittext_set_selection_owner (OBJECT *);
+int __edittext_insert_str_at_click (OBJECT *, int, int, char *);
 
 extern void __glx_resize (int, int);
 extern void __glx_get_win_config (int *, int *, int *, int *);
@@ -1426,21 +1429,24 @@ extern OBJECT *_store_int (OBJECT *, OBJECT *);
 #endif
 
 /* Input Event Classes */
-#define KBDCHAR          (1 << 0)
-#define KBDCUR           (1 << 1)
-#define WINDELETE        (1 << 2)
-#define BUTTONPRESS      (1 << 3)
-#define BUTTONRELEASE    (1 << 4)
-#define KEYPRESS         (1 << 5)
-#define KEYRELEASE       (1 << 6)
-#define MOTIONNOTIFY     (1 << 7)
-#define EXPOSE           (1 << 8)
-#define MAPNOTIFY        (1 << 12)
-#define CONFIGURENOTIFY  (1 << 15)
-#define MOVENOTIFY       (1 << 16)
-#define RESIZENOTIFY     (1 << 17)
-#define SELECTIONREQUEST (1 << 18)
-#define SELECTIONCLEAR   (1 << 19)
+#define KBDCHAR           (1 << 0)
+#define KBDCUR            (1 << 1)
+#define WINDELETE         (1 << 2)
+#define BUTTONPRESS       (1 << 3)
+#define BUTTONRELEASE     (1 << 4)
+#define KEYPRESS          (1 << 5)
+#define KEYRELEASE        (1 << 6)
+#define MOTIONNOTIFY      (1 << 7)
+#define EXPOSE            (1 << 8)
+#define MAPNOTIFY         (1 << 12)
+#define CONFIGURENOTIFY   (1 << 15)
+#define MOVENOTIFY        (1 << 16)
+#define RESIZENOTIFY      (1 << 17)
+#define SELECTIONREQUEST  (1 << 18)
+#define SELECTIONCLEAR    (1 << 19)
+#define FOCUSCHANGENOTIFY (1 << 20)
+#define ENTERWINDOWNOTIFY (1 << 21)
+#define LEAVEWINDOWNOTIFY (1 << 22)
 
 /* To be added. */
 /*  #define DESTROYNOTIFY    (1 << 9) */
