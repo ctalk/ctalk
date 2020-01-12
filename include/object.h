@@ -1,4 +1,4 @@
-/* $Id: object.h,v 1.1.1.1 2019/10/26 23:40:50 rkiesling Exp $ */
+/* $Id: object.h,v 1.2 2020/01/12 07:50:20 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -278,6 +278,7 @@ struct _method {
     *user_object_ptr;
   int n_user_objs;
   CVAR *local_cvars;
+  void *db;    /* reserved for future debug data */
   struct _method *next;
   struct _method *prev;
 };
