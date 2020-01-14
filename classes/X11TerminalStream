@@ -1,4 +1,4 @@
-/* $Id: X11TerminalStream,v 1.17 2020/01/12 22:20:53 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11TerminalStream,v 1.22 2020/01/14 00:24:55 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -104,32 +104,8 @@ X11TerminalStream instanceMethod parentPane (void) {
  EXPOSE           xexpose     x           y           width       height      count
  */
 
-/* From x11defs.h */
-#define _SCLASS 0
-#define _SWIN   1
-#define _SDT1   2
-
-int read_x_event (int fd, int *eventclass, int *win, unsigned int data[]) {
-  int i, d_size;
-  unsigned int a[9];
-
-  d_size = sizeof (unsigned int) * 8;
-
-  if (read (fd, a, d_size) != d_size) {
-    printf ("ctalk: read_x_event: %s.\n", strerror (errno));
-    return -1;
-  }
-  *eventclass = a[_SCLASS];
-  *win = a[_SWIN];
-  memcpy ((void *)data, (void *)&a[_SDT1],
-	    sizeof (unsigned int) * 6);
-  
-  return SUCCESS;
-
-}
-
-void save_x_event (OBJECT *event_value_obj, int event_class, int win,
-		   int data[]) {
+void save_x_event (OBJECT *event_value_obj, int event_class,
+		   unsigned int win, unsigned int data[]) {
   OBJECT *var;
   int i;
   /* Relies on the fact that instance variables are ordered in the
@@ -151,65 +127,54 @@ void save_x_event (OBJECT *event_value_obj, int event_class, int win,
 X11TerminalStream instanceMethod queueInput (void) {
   "Retrieve a X event, and return it as an InputEvent
   object."
-  int r, event_class, win;
-  unsigned int data[6];
-  fd_set rfds;
-  struct timeval tv;
+  int event_class;
+  unsigned int win, data[6];
   InputEvent new clientEvent;
 
-  FD_ZERO(&rfds);
-  FD_SET(client_handle, &rfds);
-  tv.tv_sec = 0;
-  tv.tv_usec = 500;
- select_again:
-  if ((r = select (client_handle + 1, &rfds, NULL, NULL, &tv)) > 0) {
-
-    /* Event_class and win are separate args to make the code more 
-       readable, 'tho that quality is debatable at this point. */
-    if (!read_x_event (client_handle, &event_class, &win, data)) {
+ read_again:
+  if (read_event (&event_class, &win, data) < 0)
+    return NULL;
     
-      if (event_mask != 0) {
-	if (!(event_mask & event_class)) {
-	  goto select_again;
-	}
-      }
-
-#if 1
-      save_x_event (clientEvent, event_class, win, data);
-#else 
-      clientEvent eventClass = event_class;
-      clientEvent eventData = win;
-      clientEvent xEventData1 = data[0];
-      clientEvent xEventData2 = data[1];
-      clientEvent xEventData3 = data[2];
-      clientEvent xEventData4 = data[3];
-      clientEvent xEventData5 = data[4];
-      clientEvent xEventData6 = data[5];
-#endif      
-
-      switch (event_class)
-	{
-	case CONFIGURENOTIFY:
-	  if (clientEvent xEventData1)
-	    self parentPane origin x = clientEvent xEventData1;
-	  if (clientEvent xEventData2)
-	    self parentPane origin y = clientEvent xEventData2;
-	  self parentPane size x = clientEvent xEventData3;
-	  self parentPane size y = clientEvent xEventData4;
-	  break;
-	case MOVENOTIFY:
-	  self parentPane origin x = clientEvent xEventData1;
-	  self parentPane origin y = clientEvent xEventData2;
-	  self parentPane size x = clientEvent xEventData3;
-	  self parentPane size y = clientEvent xEventData4;
-	  break;
-	case RESIZENOTIFY:
-	  self parentPane size x = clientEvent xEventData3;
-	  self parentPane size y = clientEvent xEventData4;
-	  break;
-	}
-      self inputQueue push clientEvent;
+  if (event_mask != 0) {
+    if (!(event_mask & event_class)) {
+      goto read_again;
     }
   }
+
+#if 1
+  save_x_event (clientEvent, event_class, win, data);
+#else 
+  clientEvent eventClass = event_class;
+  clientEvent eventData = win;
+  clientEvent xEventData1 = data[0];
+  clientEvent xEventData2 = data[1];
+  clientEvent xEventData3 = data[2];
+  clientEvent xEventData4 = data[3];
+  clientEvent xEventData5 = data[4];
+  clientEvent xEventData6 = data[5];
+#endif      
+
+  switch (event_class)
+    {
+    case CONFIGURENOTIFY:
+      if (clientEvent xEventData1)
+	self parentPane origin x = clientEvent xEventData1;
+      if (clientEvent xEventData2)
+	self parentPane origin y = clientEvent xEventData2;
+      self parentPane size x = clientEvent xEventData3;
+      self parentPane size y = clientEvent xEventData4;
+      break;
+    case MOVENOTIFY:
+      self parentPane origin x = clientEvent xEventData1;
+      self parentPane origin y = clientEvent xEventData2;
+      self parentPane size x = clientEvent xEventData3;
+      self parentPane size y = clientEvent xEventData4;
+      break;
+    case RESIZENOTIFY:
+      self parentPane size x = clientEvent xEventData3;
+      self parentPane size y = clientEvent xEventData4;
+      break;
+    }
+  self inputQueue push clientEvent;
 }
 

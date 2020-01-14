@@ -1,4 +1,4 @@
-/* $Id: x11defs.h,v 1.5 2020/01/08 22:13:18 rkiesling Exp $ -*-c-*-*/
+/* $Id: x11defs.h,v 1.7 2020/01/13 20:05:19 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -51,7 +51,19 @@
 #define SHM_FONT_FT_BLUE 	SHM_FONT_BASE_ADDR + 0x190
 #define SHM_FONT_FT_ALPHA 	SHM_FONT_BASE_ADDR + 0x200
 
-#define SHM_TEXT_LINES          0x1100
+/* needed? */ /***/
+/* #define SHM_TEXT_LINES          0x1100 */
+
+#define SHM_EVENT_BASE      0x1100
+#define SHM_EVENT_READY     SHM_EVENT_BASE
+#define SHM_EVENT_TYPE      0x1110
+#define SHM_EVENT_WIN       0x1120
+#define SHM_EVENT_DATA1     0x1130
+#define SHM_EVENT_DATA2     0x1140
+#define SHM_EVENT_DATA3     0x1150
+#define SHM_EVENT_DATA4     0x1160
+#define SHM_EVENT_DATA5     0x1170
+#define SHM_EVENT_DATA6     0x1180
 
 /* This will make it easier to add/remove a conversion from a GC object
    to the C pointer in the future. */

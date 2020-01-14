@@ -1,4 +1,4 @@
-ctalk <#include/ctalkdefs.h>
+#include <ctalk/ctalkdefs.h>
 
 #define FTFONTS 
 #define MULTILINE
@@ -39,8 +39,8 @@ int main (int argv, char **argc) {
   xLabelPane text "A Label";
 #endif       
 
-  WriteFileStream classInit;
-
+  xLabelPane draw;
+  
   while (TRUE) {
     xPane inputStream queueInput;
     if (xPane inputStream eventPending) {

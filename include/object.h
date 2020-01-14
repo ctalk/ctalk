@@ -1,4 +1,4 @@
-/* $Id: object.h,v 1.2 2020/01/12 07:50:20 rkiesling Exp $ */
+/* $Id: object.h,v 1.3 2020/01/13 20:05:19 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -290,6 +290,7 @@ struct _method {
 
 /* if changing, also change in classes/ctalklib.in */
 #define INTVAL(x) *(int *)(x)
+#define UINTVAL(x) *(unsigned int *)(x)
 #define SETINTVARS(x, i) (*(int *)(x) -> __o_value) =	\
     (*(int *)(x) -> instancevars -> __o_value) = (i)
 #define BOOLVAL(x) *(int *)(x)

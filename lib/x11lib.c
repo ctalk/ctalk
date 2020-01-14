@@ -1,4 +1,4 @@
-/* $Id: x11lib.c,v 1.52 2020/01/12 20:28:13 rkiesling Exp $ -*-c-*-*/
+/* $Id: x11lib.c,v 1.59 2020/01/14 01:33:33 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -2215,6 +2215,15 @@ int __ctalkOpenX11InputClient (OBJECT *streamobject) {
   if ((mem_id = mem_setup ()) == ERROR) 
     return ERROR;
 
+  if (shm_mem == NULL) {
+    if ((shm_mem = get_shmem (mem_id)) == NULL) {
+      fprintf (stderr, "ctalk: Couldn't get shared memory: %s.\n",
+	       strerror (errno));
+      return 0;
+    }
+  }
+  *(int *)&shm_mem[SHM_EVENT_READY] = 0;
+  
 #if !X11LIB_FRAME
   x11_pane_stream_object = streamobject;
   if ((x11_pane_stream_queue_list = __stream_queue_object (streamobject))
@@ -2447,30 +2456,53 @@ int __have_bitmap_buffers (OBJECT *self_object) {
   return FALSE;
 }
 
+int read_event (int *ev_type_out, unsigned int *win_out,
+		unsigned int data[]) {
+
+  if (!INTVAL(&shm_mem[SHM_EVENT_READY]))
+    return -1;
+
+  *ev_type_out = INTVAL(&shm_mem[SHM_EVENT_TYPE]);
+  *win_out = UINTVAL(&shm_mem[SHM_EVENT_WIN]);
+  data[0] = UINTVAL(&shm_mem[SHM_EVENT_DATA1]);
+  data[1] = UINTVAL(&shm_mem[SHM_EVENT_DATA2]);
+  data[2] = UINTVAL(&shm_mem[SHM_EVENT_DATA3]);
+  data[3] = UINTVAL(&shm_mem[SHM_EVENT_DATA4]);
+  data[4] = UINTVAL(&shm_mem[SHM_EVENT_DATA5]);
+  data[5] = UINTVAL(&shm_mem[SHM_EVENT_DATA6]);
+
+  INTVAL(&shm_mem[SHM_EVENT_READY]) = 0;
+
+  return SUCCESS;
+}
+
 static void event_to_client (int parent_fd,
 			     int eventclass,
-			     int win_id,
+			     unsigned int win_id,
 			     int eventdata1,
 			     int eventdata2, int eventdata3,
 			     int eventdata4, int eventdata5,
 			     int eventdata6) {
-  int __r, d_size;
-  unsigned int a[9];
+  int wait_retries = 0;
 
-  d_size = sizeof (unsigned int) * 8;
-  a[_SCLASS] = eventclass;
-  a[_SWIN] = win_id;
-  a[_SDT1] = eventdata1;
-  a[_SDT2] = eventdata2;
-  a[_SDT3] = eventdata3;
-  a[_SDT4] = eventdata4;
-  a[_SDT5] = eventdata5;
-  a[_SDT6] = eventdata6;
-  if ((__r = write (parent_fd, a, d_size)) != d_size) {
-#ifndef WITHOUT_X11_WARNINGS
-    fprintf (stderr, "ctalk: event_to_client: %s.\n",  strerror (errno));
-#endif
+
+  while (INTVAL(&shm_mem[SHM_EVENT_READY])) {
+    if (++wait_retries > 20)
+      return;
+    usleep (100);
   }
+
+  INTVAL(&shm_mem[SHM_EVENT_TYPE]) = eventclass;
+  UINTVAL(&shm_mem[SHM_EVENT_WIN]) = win_id;
+  INTVAL(&shm_mem[SHM_EVENT_DATA1]) = eventdata1;
+  INTVAL(&shm_mem[SHM_EVENT_DATA2]) = eventdata2;
+  INTVAL(&shm_mem[SHM_EVENT_DATA3]) = eventdata3;
+  INTVAL(&shm_mem[SHM_EVENT_DATA4]) = eventdata4;
+  INTVAL(&shm_mem[SHM_EVENT_DATA5]) = eventdata5;
+  INTVAL(&shm_mem[SHM_EVENT_DATA6]) = eventdata6;
+
+  INTVAL(&shm_mem[SHM_EVENT_READY]) = TRUE;
+
 }
 
 static void generate_expose (Window w, int x, int y, int width, int height) {
@@ -2653,7 +2685,7 @@ static int kwin_event_loop (int parent_fd, int mem_handle, int main_win_id) {
   	  eventclass = MAPNOTIFY;
 	  eventdata1 = e.xmap.event;
 	  eventdata2 = e.xmap.window;
-	  eventdata3 = eventdata4 = eventdata5 = 0;
+	  eventdata3 = eventdata4 = eventdata5 = eventdata6 = 0;
   	  break;
    	case Expose:
 	  if (e.xexpose.serial == 0) {
@@ -2809,7 +2841,7 @@ int __ctalkX11InputClient (OBJECT *streamobject, int parent_fd, int mem_handle, 
     fprintf (stderr, "ctalk: Couldn't open X11 client socket.  Exiting.\n");
     _exit (1);
   }
-  
+
   while (1) {
     __xlib_handle_client_request (shm_mem_2);
     while ((events_waiting = XPending (display)) > 0) {
@@ -4070,6 +4102,10 @@ int __ctalkX11ResizePixmap (int parent_visual,
   x_support_error (); return ERROR;
 }
 int __ctalkOpenX11InputClient (OBJECT *streamobject) {
+  x_support_error (); return ERROR;
+}
+
+int read_event (int *ev_type_out, unsigned int *win_out, int[]) {
   x_support_error (); return ERROR;
 }
 

@@ -1,4 +1,4 @@
-/* $Id: ctalklib.in,v 1.37 2020/01/12 07:50:19 rkiesling Exp $ -*-c-*-*/
+/* $Id: ctalklib.in,v 1.40 2020/01/14 00:24:55 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -1398,6 +1398,8 @@ extern char *xstrncat (char *, const char *, size_t);
 extern void *xmemcpy (void *, const void *, size_t);
 extern void *xmemset (void *, int, size_t);
 extern void *xmemmove (void *, const void *, size_t);
+
+extern int read_event (int *, unsigned int *, int[]);
 
 #define ARG(n) (__ctalk_arg_internal(n))
 

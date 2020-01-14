@@ -1,4 +1,4 @@
-/* $Id: ctedit.ca,v 1.8 2020/01/04 01:38:42 rkiesling Exp $  -*-c-*- */
+/* $Id: ctedit.ca,v 1.10 2020/01/14 01:33:33 rkiesling Exp $  -*-c-*- */
 
 /*
   This file is part of Ctalk.
@@ -252,7 +252,6 @@ int main (int argc, char **argv) {
   if (xEditorPane ftFontVar version < 10) {
     useFtFonts = false;
   } else {
-    /* ctEdit findFtFonts; *//***/
     xEditorPane findFTFonts;
   }
   
@@ -303,6 +302,7 @@ int main (int argc, char **argv) {
     xEditorPane font xFontName;
 
   xEditorPane defaultFormat;
+  xEditorPane displayText;
 
   xPane defaultCursor;
 

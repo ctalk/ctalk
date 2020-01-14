@@ -64,4 +64,9 @@
 	ctalklib.in).
 	- Fixed a bug in event_to_client that read the write
 	function's output (x11lib.c).
+2020-01-13
+	- Added read_event, and changed event_to_client
+	to use shared memory to store event data (x11lib.c).  Updated
+	X11TerminalStream : queueInput and read_x_event to read
+	event data from shared memory.
 
