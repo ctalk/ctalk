@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.59 2020/01/14 01:44:23 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.60 2020/01/15 23:15:08 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -14077,6 +14077,11 @@ format the label's text to span multiple lines.
 @item highlight
 A @code{Boolean} that indicates whether the widget is displayed
 highlighted.
+
+@cindex @code{highlightBorderColor} instance variable @idxclscite{X11LabelPane}
+@item highlightBackgroundColor
+A @code{String} that contains the color to draw a highlighted label's
+background.
 
 @cindex @code{highlightBorderColor} instance variable @idxclscite{X11LabelPane}
 @item highlightBorderColor

@@ -1,4 +1,4 @@
-/* $Id: X11LabelPane,v 1.10 2020/01/12 01:02:35 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11LabelPane,v 1.11 2020/01/15 23:15:08 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -55,6 +55,8 @@ X11LabelPane instanceVariable highlightBorderColor String "black"
 "Color of a highlighted border.";
 X11LabelPane instanceVariable highlightTextColor String "black"
 "Color of highlighted text.";
+X11LabelPane instanceVariable highlightBackgroundColor String "skyblue"
+"Color of highlighted background.";
 X11LabelPane instanceVariable grayed Boolean false
 "True if the label is grayed.";
 X11LabelPane instanceVariable grayedColor String "gray"
@@ -136,6 +138,15 @@ X11LabelPane instanceMethod multiLine (String textArg) {
   self haveMultiLine = true;
 }
 
+X11LabelPane instanceMethod __highlightBackground (String color) {
+  "Highlight the background without affecting the original
+   background color containd in the receiver's backgroundColor
+   instance variable."
+  if (self paneBuffer xID > 0) {
+      self paneBuffer background color;
+    }
+}
+
 X11LabelPane instanceMethod __drawJustified (String textArg,
 					     Integer textWidth,
 					     Integer lineStartY) {
@@ -175,9 +186,11 @@ X11LabelPane instanceMethod draw (void) {
       if (self highlight) {
 	self pen width = self highlightBorderWidth;
 	self pen colorName = self highlightBorderColor;
+	self __highlightBackground self highlightBackgroundColor;
       } else {
 	self pen width = self borderWidth;
 	self pen colorName = self borderColor;
+	self background self backgroundColor;
       }
     }
     self drawRectangle (self margin),
@@ -195,7 +208,7 @@ X11LabelPane instanceMethod draw (void) {
       if (self highlight) {
 	if (self highlightTextBold) {
 	  self faceBold;
-	} else {
+ 	} else {
 	  self faceRegular;
 	}
 	self ftFontVar namedX11Color self highlightTextColor;
