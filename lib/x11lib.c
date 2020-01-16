@@ -1,4 +1,4 @@
-/* $Id: x11lib.c,v 1.59 2020/01/14 01:33:33 rkiesling Exp $ -*-c-*-*/
+/* $Id: x11lib.c,v 1.60 2020/01/16 01:51:59 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -3858,6 +3858,9 @@ int __ctalkX11ResizePixmap (int parent_visual,
   return SUCCESS;
 }
 
+/***/
+bool edittext_resize_notify = false;
+
 /*
  *  This fn will eventually be replaced by something that
  *  doesn't hard-code instance variables.
@@ -3888,8 +3891,7 @@ int __ctalkX11ResizeWindow (OBJECT *self, int width, int height,
     return ERROR;
   old_x_size = INTVAL(pane_size_point_x_object -> instancevars -> __o_value);
   old_y_size = INTVAL(pane_size_point_y_object -> instancevars -> __o_value);
-  /* we only need to resize the window if the new size is larger in one
-     of the dimensions */
+  edittext_resize_notify = true;
   n_resize_retries = 0;
  try_resize_request:
   if (!__x11_resize_request_internal 

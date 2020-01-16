@@ -1,4 +1,4 @@
-/* $Id: edittext.c,v 1.19 2020/01/12 17:46:27 rkiesling Exp $ -*-c-*-*/
+/* $Id: edittext.c,v 1.20 2020/01/16 01:51:59 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -595,6 +595,9 @@ static int shorter_line_adj (LINEREC *current, LINEREC *target,
   return new_col;
 }
 
+/* declared in x11lib.c */
+extern bool edittext_resize_notify;
+
 #ifndef XK_Return
 /* Some systems don't automatically define X keysyms.
    Make sure we define it here.
@@ -613,7 +616,7 @@ static int calc_line_width (void) {
   line_size_x = INTVAL(size_x_instance_var -> __o_value) -
     INTVAL(view_x_offset_instance_var -> __o_value) -
     INTVAL(rightmargin_instance_var -> __o_value);;
-  if (c_line_width == -1) {
+  if (c_line_width == -1 || edittext_resize_notify) {
     if ((c_line_width = INTVAL(linewidth_instance_var
 			       -> __o_value)) == 0) {
       if (__ctalkXftInitialized ()) {
@@ -624,6 +627,7 @@ static int calc_line_width (void) {
 	  INTVAL(fontvar_maxwidth_instance_var -> instancevars -> __o_value);
       }
     }
+    edittext_resize_notify = false;
   }
   return c_line_width;
 }
@@ -1800,7 +1804,7 @@ int __xlib_render_text (Drawable pixmap, GC gc, char *fn) {
 	selected_font -> max_advance_width;
     }
   }
-  /***/
+
   if (point > strlen (content)) {
     point = strlen (content);
   }
