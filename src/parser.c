@@ -1,4 +1,4 @@
-/* $Id: parser.c,v 1.2 2019/10/27 17:29:46 rkiesling Exp $ */
+/* $Id: parser.c,v 1.3 2020/01/16 10:00:23 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -526,8 +526,10 @@ int parser_pass (int this_frame_ptr, PARSER *p) {
  	    j = k;
 	    if (FRAME_SCOPE != PROTOTYPE_VAR) {
 	      ++p -> block_level;
-	      /* messages[k] points to opening bracket */
-	      chk_C_return_alone (messages, k);
+	      if (!library_input) {
+		/* messages[k] points to opening bracket */
+		chk_C_return_alone (messages, k);
+	      }
 	    }
 	  }
 	} /* if (m -> attrs & TOK_IS_FN_START) { */
