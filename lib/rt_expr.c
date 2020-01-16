@@ -1,4 +1,4 @@
-/* $Id: rt_expr.c,v 1.4 2019/12/21 03:52:14 rkiesling Exp $ */
+/* $Id: rt_expr.c,v 1.6 2020/01/16 19:54:01 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -37,7 +37,8 @@ extern DEFAULTCLASSCACHE *rt_defclasses; /* Defined in rtclslib.c. */
 
 #define CAN_CACHE_METHOD(mthd, msg_prev) \
   ((!(msg_prev -> attrs & RT_OBJ_IS_INSTANCE_VAR) &&	\
-   !(msg_prev -> attrs & RT_OBJ_IS_CLASS_VAR)) && \
+    !str_eq (msg_prev -> name, "super") &&		\
+    !(msg_prev -> attrs & RT_OBJ_IS_CLASS_VAR)) &&	\
    (mthd -> varargs == 0))
 
 /*
@@ -87,6 +88,9 @@ int expr_n_occurrences (METHOD *m) {
 
 static OBJECT *reffed_arg_obj (OBJECT *arg_object) {
   OBJECT *r;
+  /***/
+  if (!IS_OBJECT(arg_object))
+    return NULL;
   if (arg_object -> attrs == OBJECT_VALUE_IS_BIN_SYMBOL) {
     if (IS_OBJECT(arg_object -> instancevars)) {
       if (arg_object -> instancevars -> __o_value) {
@@ -2377,7 +2381,8 @@ OBJECT *eval_expr (char *s, OBJECT *recv_class, METHOD *method,
 			   2. The receiver object and message
 			   are the same as saved just above.
 			   (There is no separate value_obj
-			   set in the receiver_msg).
+			   set in the receiver_msg, or a super
+			   keyword.)
 			   3. The previous message is an
 			   instance or class variable and
 			   c_rcvr_idx points to a token to

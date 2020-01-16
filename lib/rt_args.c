@@ -1,4 +1,4 @@
-/* $Id: rt_args.c,v 1.11 2020/01/11 03:27:30 rkiesling Exp $ */
+/* $Id: rt_args.c,v 1.12 2020/01/16 19:54:01 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -1600,12 +1600,15 @@ int __rt_method_args(METHOD *method, MESSAGE_STACK messages,
 	  if (M_VALUE_OBJ (messages[j]) != arg_val_obj) {
 	    /* this needs to be the value object, so it doesn't overwrite
 	       the tmp parameter created at this parser level. */
-	    messages[j] -> value_obj = arg_val_obj;
-	    if (arg_val_obj -> scope & SUBEXPR_CREATED_RESULT) {
-	      messages[j] -> attrs |= RT_TOK_OBJ_IS_CREATED_PARAM;
+	    /***/
+	    if (IS_OBJECT(arg_val_obj)) {
+	      messages[j] -> value_obj = arg_val_obj;
+	      if (arg_val_obj -> scope & SUBEXPR_CREATED_RESULT) {
+		messages[j] -> attrs |= RT_TOK_OBJ_IS_CREATED_PARAM;
+	      }
+	      if (arg_val_obj -> scope == CREATED_CVAR_SCOPE)
+		messages[j] -> attrs |= RT_TOK_OBJ_IS_CREATED_CVAR_ALIAS;
 	    }
-	    if (arg_val_obj -> scope == CREATED_CVAR_SCOPE)
-	      messages[j] -> attrs |= RT_TOK_OBJ_IS_CREATED_CVAR_ALIAS;
 	  }
 	}
 
