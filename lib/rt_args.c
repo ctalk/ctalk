@@ -1,4 +1,4 @@
-/* $Id: rt_args.c,v 1.12 2020/01/16 19:54:01 rkiesling Exp $ */
+/* $Id: rt_args.c,v 1.13 2020/01/16 21:45:03 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -2081,9 +2081,11 @@ static OBJECT *__ctalk_arg_expr (MESSAGE_STACK messages, int method_ptr,
     *rcvr_class_obj,
     *result_obj = NULL;
 
+#if 0 /***/
   if ((messages[arg_start_idx] -> evaled > 1) &&
       IS_OBJECT (messages[arg_start_idx] -> value_obj))
     return messages[arg_start_idx] -> value_obj;
+#endif  
 
   stack_start = __rt_get_stack_top (messages);
 

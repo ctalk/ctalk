@@ -77,4 +77,9 @@
 	in edittext.c can update the client-side line width.
 	- Updated parser_pass to check for library_input before checking
 	for a return-statement-only function (parser.c).
+2020-01-16
+	- Removed a clause from __ctalk_arg_expr that used a
+	pre-existing value object for a partial evaluation of
+	a complex argument term (rt_args.c).
+	- Added margexprs71.c test program.
 
