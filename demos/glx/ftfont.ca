@@ -125,7 +125,7 @@ GLXCanvasPane instanceMethod initGL (void) {
   glMatrixMode (GL_MODELVIEW);
   glLoadIdentity ();
 
-  self namedColorFT "medium slate blue", textRed, textGreen, textBlue;
+  self namedColor "medium slate blue", textRed, textGreen, textBlue;
 
     if (self useFTFont "URWGothicL.pfb" < 0)
      exit (1);
