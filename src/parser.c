@@ -1,4 +1,4 @@
-/* $Id: parser.c,v 1.3 2020/01/16 10:00:23 rkiesling Exp $ */
+/* $Id: parser.c,v 1.4 2020/01/19 15:52:43 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -817,6 +817,20 @@ int parser_pass (int this_frame_ptr, PARSER *p) {
 
     if ((ex = __ctalkTrapExceptionInternal (m)) != NULL) {
       if (ex -> _exception != method_used_before_define_x) {
+	char *buf;
+	if (frames[this_frame_ptr-1]) {
+	  buf = collect_tokens
+	    (messages,
+	     frames[this_frame_ptr] -> message_frame_top,
+	     frames[this_frame_ptr-1] -> message_frame_top);
+	} else {
+	  buf = collect_tokens
+	    (messages,
+	     frames[this_frame_ptr] -> message_frame_top,
+	     messageptr + 1);
+	}
+	warning (m, buf);
+	__xfree (MEMADDR(buf));
 	__ctalkExceptionNotifyInternal (ex);
 	exit (EXIT_FAILURE);
       } else {
