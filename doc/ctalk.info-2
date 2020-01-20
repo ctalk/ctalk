@@ -2644,19 +2644,19 @@ Here is an example program that demonstrates the basic steps needed to
 draw a scroll bar.
 
 
-     String new fgColor;
-     String new bgColor;
-
      int main (int argv, char **argc) {
        Integer new xWindowSize;
        Integer new yWindowSize;
        X11Pane new xPane;
        X11PaneDispatcher new xTopLevelPane;
        X11ScrollBarPane new xScrollBarPane;
+       X11CanvasPane new xCanvasPane;
        InputEvent new e;
        Integer new nEvents;
        Exception new ex;
        Application new scrollDemo;
+       String new pctstr;
+       Integer new strWidth;
 
        scrollDemo enableExceptionTrace;
        scrollDemo installExitHandlerBasic;
@@ -2665,29 +2665,31 @@ draw a scroll bar.
        xWindowSize = 400;
        yWindowSize = 400;
 
-       fgColor = "white";
-       bgColor = "white";
-
-       parse_args (argc, argv);
+       xPane ftFontVar initFontLib;
+       xPane ftFont "DejaVu Sans", 0, 0, 0, 48.0;
 
        xPane initialize xWindowSize, yWindowSize;
+       xPane inputStream eventMask = WINDELETE|EXPOSE|BUTTONPRESS|BUTTONRELEASE|MOTIONNOTIFY;
        xTopLevelPane attachTo xPane;
-       xScrollBarPane attachTo xTopLevelPane;
+       xScrollBarPane attachTo xTopLevelPane, "20x100%+0+0";
+       xCanvasPane attachTo xTopLevelPane, "380x100%+20+0";
 
        xPane map;
        xPane raiseWindow;
 
-       /*
-        *  When animating, the old position of the scroll thumb
-        *  normally is set to the scrollbar's background color.
-        */
-       xScrollBarPane thumbErasePen colorName = bgColor;
-
        xPane openEventStream;
 
-       xScrollBarPane background bgColor;
-       xScrollBarPane foreground fgColor;
-       xScrollBarPane clear;
+       xScrollBarPane background "lightblue";
+       xScrollBarPane refresh;
+
+       xCanvasPane background "navy";
+       xCanvasPane foreground "navy";
+       xPane ftFontVar namedX11Color "white";
+       xCanvasPane clear;
+       pctstr printOn "%0.2f%%", xScrollBarPane percent * 100.0;
+       strWidth = xPane ftFontVar textWidth pctstr;
+       xCanvasPane putStrXY (380 / 2) - (strWidth / 2), (400 / 2), pctstr;
+       xCanvasPane refresh;
 
        while (TRUE) {
 
@@ -2703,58 +2705,33 @@ draw a scroll bar.
            switch (e eventClass value)
       	{
      	case EXPOSE:
-     	  xScrollBarPane refresh;
+     	  xCanvasPane paneBuffer clear;
+     	  pctstr printOn "%0.2f%%", xScrollBarPane percent * 100;
+     	  strWidth = xPane ftFontVar textWidth pctstr;
+     	  xCanvasPane putStrXY (380 / 2) - (strWidth / 2), (400 / 2), pctstr;
+     	  xCanvasPane refresh;
      	  break;
       	case WINDELETE:
        	  xPane deleteAndClose;
       	  exit (0);
       	  break;
        	default:
+     	  xCanvasPane paneBuffer clear;
+     	  pctstr printOn "%0.2f%%", xScrollBarPane percent * 100;
+     	  strWidth = xPane ftFontVar textWidth pctstr;
+     	  xCanvasPane putStrXY (380 / 2) - (strWidth / 2), (400 / 2), pctstr;
+     	  xCanvasPane refresh;
        	  break;
       	}
          }
        }
      }
 
-     void exit_help (char *cmd) {
-       printf ("\nUsage: %s [-h] | [-f n] | [-m n]\n", cmd);
-       printf ("-bg <color>  Background color.\n");
-       printf ("-fg <color>  Foreground color.\n");
-       printf ("-h           Print this message and exit.\n");
-       printf ("Please report bugs to: rk3314042@gmail.com.\n");
-       exit (0);
-     }
 
-     int parse_args (int c, char **a) {
-       int i;
-       for (i = 1; i < c; i++) {
-         if (a[i][0] == '-') {
-           switch (a[i][1])
-     	{
-     	case 'b':
-     	  /* Braces are necessary here. */
-     	  {
-     	    bgColor = a[++i];
-     	  }
-     	  break;
-     	case 'h':
-     	  exit_help (a[0]);
-     	  break;
-     	case 'f':
-     	  if (a[i][2] == 'g') {
-     	    fgColor = a[++i];
-     	  }
-     	  break;
-     	}
-         } else {
-           exit_help (a[0]);
-         }
-       }
-     }
 
 
 Instance Variables
-------------------
+..................
 
 'arrowCursor'
      A 'X11Cursor' object that contains the resource ID of the widget's
@@ -2772,6 +2749,10 @@ Instance Variables
 'frame'
      A 'Rectangle' object that contains coordinates of the scroll bar
      frame.  *Note Rectangle::.
+
+'frameWidthVar'
+     An 'Integer' that contains the width of the scrollbar's visible
+     frame in pixels.
 
 'framePen'
      A 'Pen' object that sets the line color and width of the scroll bar
@@ -2791,6 +2772,14 @@ Instance Variables
 'lastY'
      An 'Integer' object that contains the previous PointerMotion
      event's y coordinate while dragging.  *Note Integer::.
+
+'margin'
+     An 'Integer' that defines the distance in pixels between the pane's
+     edge and the outer edge of the scrollbar frame.
+
+'padding'
+     An 'Integer' that defines the distance in pixels between the inner
+     edge of the scrollbar frame and the thumb.
 
 'thumb'
      A 'Rectangle' object that contains coordinates of the scroll thumb.
@@ -2814,6 +2803,75 @@ Instance Variables
 'thumbBottomEndY'
      'Integer' objects that are set to the thumb coordinates and used
      when the widget handles PointerMotion events.  *Note Integer::.
+
+Instance Methods
+................
+
+'attachTo (Object PARENTPANE)'
+     Attaches the 'X11ScrollBarPane' object to its parent pane, which is
+     usually a 'X11PaneDispatcher' object.  Also sizes the pane and its
+     buffers to fit within the visible window, and sets the dimensions
+     of the scrollbar's visible frame and thumb.
+
+'background (String COLORNAME)'
+     Sets the pane's background color to COLORNAME, and also sets the
+     color to use when performing scrollbar animations.
+
+'drawThumb (void)'
+'eraseThumb (void)'
+     These methods animate the thumb so that it tracks the pointer's
+     position within the scrollbar.
+
+'frameWidth (Integer LINEWIDTH)'
+     Calculates the scrollbar frame's dimensions within the pane's
+     margins for the line width in pixels given as the argument.
+
+'new (String PANENAME)'
+     Creates a new 'X11ScrollBarPane' object, initializes the pane's
+     event handlers, and sets the default colors of the pane's elements.
+
+'percent (void)'
+     Returns a 'Float' with the position of the thumb's top edge in the
+     usable trough of the scrollbar, as a percentage between 0.0 and
+     1.0.
+
+     The usable area of the trough is defined as the distance that the
+     top edge of the scrollbar thumb can travel within the scrollbar's
+     margins; i.e,
+
+
+          usableTrough = aScrollBar size y -
+                            ((aScrollBar margin * 2) +
+                             (aScrollBar frameWidthVar * 2) +
+                             (aScrollBar padding * 2) +
+                             (aScrollBar thumbHeight));
+
+
+'pointIsInFrame (Integer X, Integer, Y)'
+'pointIsInThumb (Integer X, Integer, Y)'
+     These methods return a 'Boolean' value of true if the point X,Y is
+     within the scroll bar frame or thumb, respectively.
+
+'subPaneDestroy (Object SUBPANE, InputEvent EVENT'
+'subPaneExpose (Object SUBPANE, InputEvent EVENT'
+'subPanePointerInput (Object SUBPANE, InputEvent EVENT'
+'subPanePointerMotion (Object SUBPANE, InputEvent EVENT'
+     The 'X11ScrollBarPane' object's event handlers for DESTROY, EXPOSE,
+     BUTTONPRESS/BUTTONRELEASE, and MOTIONNOTIFY X Window System events.
+
+'thumbDimensions (Integer Y, Integer HEIGHT)'
+     Calculates the position and size thumb's rectangle within the pane
+     using the vertical Y position and the thumb's HEIGHT.
+
+'thumbPercent (Float PCT)'
+     Calculates the thumb's height as a percent of the trough's vertical
+     distance.  The argument, PCT, is a 'Float' between 0.0 and 1.0.
+
+     Note that, in order to make these calculations and update the thumb
+     height in the pane's viewing area, the scrollbar must already be
+     attached to its parent pane, and the program needs to be receiving
+     X events.  So this method should only be used after a call to, for
+     example, X11Pane : openEventStream.
 
 
 File: ctalk.info,  Node: X11TextPane,  Next: X11TextEditorPane,  Prev: X11ScrollBarPane,  Up: Classes

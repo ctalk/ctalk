@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.60 2020/01/15 23:15:08 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.66 2020/01/20 19:28:18 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -14249,11 +14249,8 @@ object's instance variables. @xref{Rectangle}.
 Here is an example program that demonstrates the basic steps needed
 to draw a scroll bar.
 
-@c test/expect/examples-x11/scrollbar.c
+@c demos/x11/scrollbar.ca
 @example
-
-String new fgColor;
-String new bgColor;
 
 int main (int argv, char **argc) @{
   Integer new xWindowSize;
@@ -14261,10 +14258,13 @@ int main (int argv, char **argc) @{
   X11Pane new xPane;
   X11PaneDispatcher new xTopLevelPane;
   X11ScrollBarPane new xScrollBarPane;
+  X11CanvasPane new xCanvasPane;
   InputEvent new e;
   Integer new nEvents;
   Exception new ex;
   Application new scrollDemo;
+  String new pctstr;
+  Integer new strWidth;
 
   scrollDemo enableExceptionTrace;
   scrollDemo installExitHandlerBasic;
@@ -14273,29 +14273,31 @@ int main (int argv, char **argc) @{
   xWindowSize = 400;
   yWindowSize = 400;
 
-  fgColor = "white";
-  bgColor = "white";
-
-  parse_args (argc, argv);
+  xPane ftFontVar initFontLib;
+  xPane ftFont "DejaVu Sans", 0, 0, 0, 48.0;
 
   xPane initialize xWindowSize, yWindowSize;
+  xPane inputStream eventMask = WINDELETE|EXPOSE|BUTTONPRESS|BUTTONRELEASE|MOTIONNOTIFY;
   xTopLevelPane attachTo xPane;
-  xScrollBarPane attachTo xTopLevelPane;
+  xScrollBarPane attachTo xTopLevelPane, "20x100%+0+0";
+  xCanvasPane attachTo xTopLevelPane, "380x100%+20+0";
 
   xPane map;
   xPane raiseWindow;
 
-  /*
-   *  When animating, the old position of the scroll thumb
-   *  normally is set to the scrollbar's background color.
-   */
-  xScrollBarPane thumbErasePen colorName = bgColor;
-
   xPane openEventStream;
 
-  xScrollBarPane background bgColor;
-  xScrollBarPane foreground fgColor;
-  xScrollBarPane clear;
+  xScrollBarPane background "lightblue";
+  xScrollBarPane refresh;
+  
+  xCanvasPane background "navy";
+  xCanvasPane foreground "navy";
+  xPane ftFontVar namedX11Color "white";
+  xCanvasPane clear;
+  pctstr printOn "%0.2f%%", xScrollBarPane percent * 100.0;
+  strWidth = xPane ftFontVar textWidth pctstr;
+  xCanvasPane putStrXY (380 / 2) - (strWidth / 2), (400 / 2), pctstr;
+  xCanvasPane refresh;
 
   while (TRUE) @{
 
@@ -14311,58 +14313,33 @@ int main (int argv, char **argc) @{
       switch (e eventClass value)
  	@{
 	case EXPOSE:
-	  xScrollBarPane refresh;
+	  xCanvasPane paneBuffer clear;
+	  pctstr printOn "%0.2f%%", xScrollBarPane percent * 100;
+	  strWidth = xPane ftFontVar textWidth pctstr;
+	  xCanvasPane putStrXY (380 / 2) - (strWidth / 2), (400 / 2), pctstr;
+	  xCanvasPane refresh;
 	  break;
  	case WINDELETE:
   	  xPane deleteAndClose;
  	  exit (0);
  	  break;
   	default:
+	  xCanvasPane paneBuffer clear;
+	  pctstr printOn "%0.2f%%", xScrollBarPane percent * 100;
+	  strWidth = xPane ftFontVar textWidth pctstr;
+	  xCanvasPane putStrXY (380 / 2) - (strWidth / 2), (400 / 2), pctstr;
+	  xCanvasPane refresh;
   	  break;
  	@}
     @}
   @}
 @}
 
-void exit_help (char *cmd) @{
-  printf ("\nUsage: %s [-h] | [-f n] | [-m n]\n", cmd);
-  printf ("-bg <color>  Background color.\n");
-  printf ("-fg <color>  Foreground color.\n");
-  printf ("-h           Print this message and exit.\n");
-  printf ("Please report bugs to: rk3314042@@gmail.com.\n");
-  exit (0);
-@}
 
-int parse_args (int c, char **a) @{
-  int i;
-  for (i = 1; i < c; i++) @{
-    if (a[i][0] == '-') @{
-      switch (a[i][1])
-	@{
-	case 'b':
-	  /* Braces are necessary here. */
-	  @{
-	    bgColor = a[++i];
-	  @}
-	  break;
-	case 'h':
-	  exit_help (a[0]);
-	  break;
-	case 'f':
-	  if (a[i][2] == 'g') @{
-	    fgColor = a[++i];
-	  @}
-	  break;
-	@}
-    @} else @{
-      exit_help (a[0]);
-    @}
-  @}
-@}
 
 @end example
 
-@subheading Instance Variables
+@subsubheading Instance Variables
 
 @table @code
 
@@ -14387,6 +14364,11 @@ scroll thumb. @xref{Integer}.
 @item frame
 A @code{Rectangle} object that contains coordinates of the scroll bar frame.
 @xref{Rectangle}.
+
+@cindex @code{frameWidthVar} instance variable @idxclscite{X11ScrollBarPane}
+@item frameWidthVar
+An @code{Integer} that contains the width of the scrollbar's visible frame
+in pixels.
 
 @cindex @code{framePen} instance variable @idxclscite{X11ScrollBarPane}
 @item framePen
@@ -14413,6 +14395,16 @@ grab cursor. @xref{X11Cursor}.
 @item lastY
 An @code{Integer} object that contains the previous PointerMotion
 event's y coordinate while dragging. @xref{Integer}.
+
+@cindex @code{margin} instance variable @idxclscite{X11ScrollBarPane}
+@item margin
+An @code{Integer} that defines the distance in pixels between the
+pane's edge and the outer edge of the scrollbar frame.
+
+@cindex @code{padding} instance variable @idxclscite{X11ScrollBarPane}
+@item padding
+An @code{Integer} that defines the distance in pixels between the inner
+edge of the scrollbar frame and the thumb.
 
 @cindex @code{thumb} instance variable @idxclscite{X11ScrollBarPane}
 @item thumb
@@ -14445,6 +14437,95 @@ A @code{Pen} object that sets the color and line width of the scroll thumb.
 @item thumbBottomEndY
 @code{Integer} objects that are set to the thumb coordinates and used
 when the widget handles PointerMotion events. @xref{Integer}.
+
+@end table
+
+@subsubheading Instance Methods
+
+@table @code
+
+@cindex @code{attachTo} instance method @idxclscite{X11ScrollBarPane}
+@item @mnm{attachTo} (@code{Object} @var{parentPane})
+Attaches the @code{X11ScrollBarPane} object to its parent pane,
+which is usually a @code{X11PaneDispatcher} object.  Also sizes the
+pane and its buffers to fit within the visible window, and sets the
+dimensions of the scrollbar's visible frame and thumb.
+
+@cindex @code{background} instance method @idxclscite{X11ScrollBarPane}
+@item background (@code{String} @var{colorName})
+Sets the pane's background color to @var{colorName}, and also sets
+the color to use when performing scrollbar animations.
+
+@cindex @code{drawThumb} instance method @idxclscite{X11ScrollBarPane}
+@cindex @code{eraseThumb} instance method @idxclscite{X11ScrollBarPane}
+@item @mnm{drawThumb} (@code{void})
+@item @mnm{eraseThumb} (@code{void})
+These methods animate the thumb so that it tracks the pointer's
+position within the scrollbar.
+
+@cindex @code{frameWidth} instance method @idxclscite{X11ScrollBarPane}
+@item @mnm{frameWidth} (@code{Integer} @var{lineWidth})
+Calculates the scrollbar frame's dimensions within the pane's margins
+for the line width in pixels given as the argument.
+
+@cindex @code{new} instance method @idxclscite{X11ScrollBarPane}
+@item @mnm{new} (@code{String} @var{paneName})
+Creates a new @code{X11ScrollBarPane} object, initializes the pane's
+event handlers, and sets the default colors of the pane's elements.
+
+@cindex @code{percent} instance method @idxclscite{X11ScrollBarPane}
+@item percent (@code{void})
+Returns a @code{Float} with the position of the thumb's top edge
+in the usable trough of the scrollbar, as a percentage between 0.0
+and 1.0.
+
+The usable area of the trough is defined as the distance that the
+top edge of the scrollbar thumb can travel within the scrollbar's
+margins; i.e,
+
+@example
+
+usableTrough = aScrollBar size y -
+                  ((aScrollBar margin * 2) +
+                   (aScrollBar frameWidthVar * 2) +
+                   (aScrollBar padding * 2) +
+                   (aScrollBar thumbHeight));
+
+@end example
+
+@cindex @code{pointIsInFrame} instance method @idxclscite{X11ScrollBarPane}
+@item pointIsInFrame (@code{Integer} @var{x}, @code{Integer}, @var{y})
+@cindex @code{pointIsInThumb} instance method @idxclscite{X11ScrollBarPane}
+@item pointIsInThumb (@code{Integer} @var{x}, @code{Integer}, @var{y})
+These methods return a @code{Boolean} value of true if the point
+@var{x,y} is within the scroll bar frame or thumb, respectively.
+
+@cindex @code{subPaneDestroy} instance method @idxclscite{X11ScrollBarPane}
+@cindex @code{subPaneExpose} instance method @idxclscite{X11ScrollBarPane}
+@cindex @code{subPanePointerInput} instance method @idxclscite{X11ScrollBarPane}
+@cindex @code{subPanePointerMotion} instance method @idxclscite{X11ScrollBarPane}
+@cindex @code{subPaneResize} instance method @idxclscite{X11ScrollBarPane}
+@item @mnm{subPaneDestroy} (@code{Object} @var{subPane}, @code{InputEvent} @var{event}
+@item @mnm{subPaneExpose} (@code{Object} @var{subPane}, @code{InputEvent} @var{event}
+@item @mnm{subPanePointerInput} (@code{Object} @var{subPane}, @code{InputEvent} @var{event}
+@item @mnm{subPanePointerMotion} (@code{Object} @var{subPane}, @code{InputEvent} @var{event}
+The @code{X11ScrollBarPane} object's event handlers for DESTROY,
+EXPOSE, BUTTONPRESS/BUTTONRELEASE, and MOTIONNOTIFY X Window System
+events.
+
+@cindex @code{thumbDimensions} instance method @idxclscite{X11ScrollBarPane}
+@item @mnm{thumbDimensions} (@code{Integer} @var{y}, @code{Integer} @var{height})
+Calculates the position and size thumb's rectangle within the pane using the vertical @var{y} position and the thumb's @var{height}.
+
+@cindex @code{thumbPercent} instance method @idxclscite{X11ScrollBarPane}
+@item @mnm{thumbPercent} (@code{Float} @var{pct})
+Calculates the thumb's height as a percent of the trough's vertical distance.
+The argument, @var{pct}, is a @code{Float} between 0.0 and 1.0.
+
+Note that, in order to make these calculations and update the thumb height in
+the pane's viewing area, the scrollbar must already be attached to its parent
+pane, and the program needs to be receiving X events.  So this method should
+only be used after a call to, for example, X11Pane : openEventStream.
 
 @end table
 

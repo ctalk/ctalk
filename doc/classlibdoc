@@ -6594,6 +6594,76 @@ X11TerminalStream object).
 The handler for Resize events from the X display.  Resizes the pane's 
 X window and adjusts the pane's dimensions.
 
+
+
+>>>X11ScrollBarPane::attachTo (Object parentPane)
+Attaches the X11ScrollBarPane object to its parent pane,
+which is usually a X11PaneDispatcher object.  Also sizes the
+pane and its buffers to fit within the visible window, and sets the
+dimensions of the scrollbar's visible frame and thumb.
+
+>>>X11ScrollBarPane::background (String colorName)
+Sets the pane's background color to colorName, and also sets
+the color to use when performing scrollbar animations.
+
+>>>X11ScrollBarPane::drawThumb (void)
+>>>X11ScrollBarPane::eraseThumb (void)
+These methods animate the thumb so that it tracks the pointer's
+position within the scrollbar.
+
+>>>X11ScrollBarPane::frameWidth (Integer lineWidth)
+Calculates the scrollbar frame's dimensions within the pane's margins
+for the line width in pixels given as the argument.
+
+>>>X11ScrollBarPane::new (String paneName)
+Creates a new X11ScrollBarPane object, initializes the pane's
+event handlers, and sets the default colors of the pane's elements.
+
+>>>X11ScrollBarPane::percent (void)
+Returns a Float with the position of the thumb's top edge
+in the usable trough of the scrollbar, as a percentage between 0.0
+and 1.0.
+
+The usable area of the trough is defined as the distance that the
+top edge of the scrollbar thumb can travel within the scrollbar's
+margins; i.e,
+
+---------------------------------------------------------
+  
+  usableTrough = aScrollBar size y -
+                    ((aScrollBar margin * 2) +
+                     (aScrollBar frameWidthVar * 2) +
+                     (aScrollBar padding * 2) +
+                     (aScrollBar thumbHeight));
+  
+---------------------------------------------------------
+
+>>>X11ScrollBarPane::pointIsInFrame (Integer x, Integer, y)
+>>>X11ScrollBarPane::pointIsInThumb (Integer x, Integer, y)
+These methods return a Boolean value of true if the point
+x,y is within the scroll bar frame or thumb, respectively.
+
+>>>X11ScrollBarPane::subPaneDestroy
+>>>X11ScrollBarPane::subPaneExpose
+>>>X11ScrollBarPane::subPanePointerInput
+>>>X11ScrollBarPane::subPanePointerMotion
+The X11ScrollBarPane object's event handlers for DESTROY,
+EXPOSE, BUTTONPRESS/BUTTONRELEASE, and MOTIONNOTIFY X Window System
+events.
+
+>>>X11ScrollBarPane::thumbDimensions (Integer y, Integer height)
+Calculates the position and size thumb's rectangle within the pane using the vertical y position and the thumb's height.
+
+>>>X11ScrollBarPane::thumbPercent (Float pct)
+Calculates the thumb's height as a percent of the trough's vertical distance.
+The argument, pct, is a Float between 0.0 and 1.0.
+
+Note that, in order to make these calculations and update the thumb height in
+the pane's viewing area, the scrollbar must already be attached to its parent
+pane, and the program needs to be receiving X events.  So this method should
+only be used after a call to, for example, X11Pane : openEventStream.
+
+
 >>>X11TextPane::addText (Object text)
 Adds the argument's text to the receiver pane's text instance
 variable, then word-wraps the entire text into the textList instance
