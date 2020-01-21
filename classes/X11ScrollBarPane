@@ -1,4 +1,4 @@
-/* $Id: X11ScrollBarPane,v 1.18 2020/01/20 19:28:17 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11ScrollBarPane,v 1.20 2020/01/21 22:11:06 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -85,12 +85,6 @@ X11ScrollBarPane instanceMethod pointIsInFrame (Integer pointX,
       pointX <= scrollbarBottomEndX &&
       pointY >= scrollbarTopStartY &&
       pointY <= scrollbarBottomEndY) {
-#if 0
-  if ((pointX >= (self frameTopStartX)) &&
-      (pointX <= (self frameBottomEndX)) &&
-      (pointY >= (self frameTopStartY)) &&
-      (pointY <= (self frameBottomEndY))) {
-#endif    
     return TRUE;
   } else {
     return FALSE;
@@ -169,16 +163,6 @@ X11ScrollBarPane instanceMethod subPaneResize (Object __subPane,
   handler called by the parent window's pane dispatcher
   This method is under construction and is currently a
   no-op."
-#if 0
-  self paneBuffer resize 
-    self container xWindowID,
-    __event xEventData3, __event xEventData4;
-  
-  __subPane viewWidth = __event xEventData3;
-  __subPane viewHeight = __event xEventData4;
-  __subPane refresh;
-
-#endif
   return NULL;
 }
 
@@ -238,6 +222,14 @@ X11ScrollBarPane instanceMethod subPanePointerInput (Object __subPane,
   return NULL;
 }
 
+X11ScrollBarPane instanceMethod __moveThumb (Integer updatedY) {
+  __ctalkGUIPaneDrawRectangle (self, self thumb, self thumbErasePen, TRUE);
+  self thumbDimensions updatedY, self thumbHeight;
+  __ctalkGUIPaneDrawRectangle (self, self thumb, self thumbPen, TRUE);
+  __ctalkGUIPaneRefresh (self, 0, 0, self size x, self size y,
+			 self origin x, self origin y);
+}
+
 X11ScrollBarPane instanceMethod subPanePointerMotion (Object __subPane,
 					  InputEvent __event) {
   "Handle pointer motion events from the parent window's
@@ -255,17 +247,17 @@ X11ScrollBarPane instanceMethod subPanePointerMotion (Object __subPane,
 
   if (self dragging) {
     updatedY = self thumbTopStartY + (y - self lastY);
-    if ((updatedY >= totalMargin) &&
-	(updatedY <= ((self size y) -
-		      (totalMargin + self thumbHeight)))) {
-      /* Don't go past the top or bottom edges. */
+    /* Make adjustments if needed so the thumb doesn't get drawn past
+       either end of the pane, or the percent is outside 0-100%. */
+    if (updatedY < 0) {
+      self lastY = 0; updatedY = totalMargin;
+    } else if (updatedY > ((self size y) - (totalMargin + self thumbHeight))){
+      self lastY = ((self size y) - ((totalMargin * 2) + self thumbHeight));
+      updatedY = ((self size y) - (totalMargin + self thumbHeight));
+    } else {
       self lastY = y;
-      __ctalkGUIPaneDrawRectangle (self, self thumb, self thumbErasePen, TRUE);
-      self thumbDimensions updatedY, self thumbHeight;
-      __ctalkGUIPaneDrawRectangle (self, self thumb, self thumbPen, TRUE);
-      __ctalkGUIPaneRefresh (self, 0, 0, self size x, self size y,
-			     self origin x, self origin y);
     }
+    self __moveThumb updatedY;
   } else {
     if (self pointIsInFrame  (__event xEventData1, __event xEventData2)) {
       self useCursor self arrowCursor;
@@ -340,13 +332,11 @@ X11ScrollBarPane instanceMethod attachTo (Object parentPane) {
     self margin + self frameWidthVar + self padding,
     self thumbHeight;
 
-#if 0 /***/
   (X11Bitmap *)self paneBuffer create self xWindowID, self size x, 
     self size y, self depth;
   (X11Bitmap *)self paneBuffer background (self backgroundColor);
   (X11Bitmap *)self paneBackingStore create self xWindowID, self size x, 
     self size y, self depth;
-#endif  
 
   return NULL;
 }
@@ -384,7 +374,6 @@ X11ScrollBarPane instanceMethod attachTo (Object parentPane,
     self margin + self frameWidthVar + self padding,
     self thumbHeight;
 
-  /* IS THIS REDUNDANT? */
   (X11Bitmap *)self paneBuffer create self xWindowID, self size x, 
     self size y, self depth;
   (X11Bitmap *)self paneBuffer background (self backgroundColor);
