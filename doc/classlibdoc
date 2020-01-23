@@ -785,6 +785,12 @@ Clear the receiver to the background color.
 >>>X11Bitmap::clearRectangle (Integer x, Integer y, Integer width, Integer height)
 Clear the specified area to the background color.
 
+Copies the contents of srcBitmap to the receiver's drawing
+surface.  The source dimensions are determined by srcX,
+srcY, srcWidth, and srcHeight.  The method draws the
+source bitmap's contents with the source's upper left-hand corner at
+destX, destY.
+
 >>>X11Bitmap::initialize (int parentWindow, int width, int height, int depth)
 Create a X11Bitmap object and its graphics data.
 
@@ -6468,6 +6474,17 @@ graphic, but almost any XPM should work as well.
       usleep (100000);
     }
   }
+  
+---------------------------------------------------------
+
+Note: The copy method retrieves the paneBuffer
+instance variable.  If you use an expresion like the following,
+then the program calls the X11Bitmap : copy method instead.
+
+
+---------------------------------------------------------
+  
+    myRcvrPane paneBuffer copy ...
   
 ---------------------------------------------------------
 

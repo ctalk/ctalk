@@ -2224,6 +2224,15 @@ Instance Methods
           }
 
 
+     _Note:_ The 'copy' method retrieves the 'paneBuffer' instance
+     variable.  If you use an expresion like the following, then the
+     program calls the 'X11Bitmap : copy' method instead.  *Note
+     X11Bitmap::.
+
+
+            myRcvrPane paneBuffer copy ...
+
+
 'defineRegion (String REGIONNAME, Integer XORG, Integer YORG, Integer XSIZE, Integer YSIZE)'
      Define a rectangular region with name REGIONNAME with the upper
      left-hand corner at XORG, YORG relative to the upper left-hand

@@ -1316,6 +1316,11 @@ Instance Methods
 'clearRectangle (Integer X, Integer Y, Integer WIDTH, Integer HEIGHT)'
      Clear the specified area to the background color.
 
+     Copies the contents of SRCBITMAP to the receiver's drawing surface.
+     The source dimensions are determined by SRCX, SRCY, SRCWIDTH, and
+     SRCHEIGHT.  The method draws the source bitmap's contents with the
+     source's upper left-hand corner at DESTX, DESTY.
+
 'initialize (int PARENTWINDOW, int WIDTH, int HEIGHT, int DEPTH)'
      Create a X11Bitmap object and its graphics data.
 

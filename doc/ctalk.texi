@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.66 2020/01/20 19:28:18 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.67 2020/01/23 00:10:15 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -1790,6 +1790,14 @@ Clear the receiver to the background color.
 @cindex @mnm{clearRectangle} instance method @idxclscite{X11Bitmap}
 @item @mnm{clearRectangle} (@code{Integer} @var{x}, @code{Integer} @var{y}, @code{Integer} @var{width}, @code{Integer} @var{height})
 Clear the specified area to the background color.
+
+@cindex @mnm{copy} instance method @idxclscite{X11Bitmap}
+@cindex copy (@code{X11Bitmap} @var{srcBitmap}, @code{Integer} @var{srcX}, @code{Integer} @var{srcY}, @code{Integer} @var{srcWidth}, @code{Integer} @var{srcHeight}, @code{Integer} @var{destX}, @code{Integer} @var{destY})
+Copies the contents of @var{srcBitmap} to the receiver's drawing
+surface.  The source dimensions are determined by @var{srcX},
+@var{srcY}, @var{srcWidth}, and @var{srcHeight}.  The method draws the
+source bitmap's contents with the source's upper left-hand corner at
+@var{destX}, @var{destY}.
 
 @cindex @mnm{create} instance method @idxclscite{X11Bitmap}
 @item @mnm{initialize} (@code{int} @var{parentWindow}, @code{int} @var{width}, @code{int} @var{height}, @code{int} @var{depth})
@@ -13746,6 +13754,17 @@ int main () @{
     usleep (100000);
   @}
 @}
+
+@end example
+
+@emph{Note:} The @mnm{copy} method retrieves the @code{paneBuffer}
+instance variable.  If you use an expresion like the following,
+then the program calls the @code{X11Bitmap : copy} method instead.
+@xref{X11Bitmap}.
+
+@example
+
+  myRcvrPane paneBuffer copy ...
 
 @end example
 

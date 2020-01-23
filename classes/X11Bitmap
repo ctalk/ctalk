@@ -1,4 +1,4 @@
-/* $Id: X11Bitmap,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11Bitmap,v 1.2 2020/01/23 00:10:15 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -289,6 +289,21 @@ X11Bitmap instanceMethod drawLine (Integer xStart, Integer yStart,
 			       aPen alpha,
 			       aPen colorName);
   return NULL;
+}
+
+X11Bitmap instanceMethod copy (X11Bitmap srcBitmap,
+			       Integer srcXOrg, Integer srcYOrg,
+			       Integer srcWidth, Integer srcHeight,
+			       Integer destXOrg, Integer destYOrg) {
+  "Copies the the X11Bitmap object that is the first argument
+   to the receiver pane's buffer.  The program must still give
+   the receiver pane the refresh message for the changes to be
+   visible."
+
+  __ctalkX11CopyPixmapBasic (self xID, self xGC,
+			     srcBitmap xID, srcXOrg, srcYOrg, 
+			     srcWidth, srcHeight,
+			     destXOrg, destYOrg);
 }
 
 X11Bitmap instanceMethod drawLine (Line aLine, Pen aPen) {
