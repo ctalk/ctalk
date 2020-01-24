@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.67 2020/01/23 00:10:15 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.68 2020/01/24 20:24:07 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -14279,7 +14279,6 @@ int main (int argv, char **argc) @{
   X11ScrollBarPane new xScrollBarPane;
   X11CanvasPane new xCanvasPane;
   InputEvent new e;
-  Integer new nEvents;
   Exception new ex;
   Application new scrollDemo;
   String new pctstr;
@@ -14354,8 +14353,6 @@ int main (int argv, char **argc) @{
   @}
 @}
 
-
-
 @end example
 
 @subsubheading Instance Variables
@@ -14367,17 +14364,15 @@ int main (int argv, char **argc) @{
 A @code{X11Cursor} object that contains the resource ID of the widget's
 arrow cursor. @xref{X11Cursor}.
 
+@cindex @code{bevel} instance variable @idxclscite{X11ScrollBarPane}
+@item bevel
+A @code{Boolean} that determines whether the scroll thumb is drawn
+as a beveled widget.
+
 @cindex @code{dragging} instance variable @idxclscite{X11ScrollBarPane}
 @item dragging
 A @code{Boolean} object that is True while the right mouse button is
 clicked while over the scroll thumb. @xref{Boolean}.
-
-@cindex @code{dragStartX} instance variable @idxclscite{X11ScrollBarPane}
-@cindex @code{dragStartY} instance variable @idxclscite{X11ScrollBarPane}
-@item dragStartX
-@item dragStartY
-The x and y coordinates of the mouse pointer when starting to drag the
-scroll thumb. @xref{Integer}.
 
 @cindex @code{frame} instance variable @idxclscite{X11ScrollBarPane}
 @item frame
@@ -14393,17 +14388,6 @@ in pixels.
 @item framePen
 A @code{Pen} object that sets the line color and width of the scroll bar frame.
 @xref{Pen}.
-
-@cindex @code{frameTopStartX} instance variable @idxclscite{X11ScrollBarPane}
-@cindex @code{frameTopStartY} instance variable @idxclscite{X11ScrollBarPane}
-@cindex @code{frameBottomEndX} instance variable @idxclscite{X11ScrollBarPane}
-@cindex @code{frameBottomEndY} instance variable @idxclscite{X11ScrollBarPane}
-@item frameTopStartX
-@item frameTopStartY
-@item frameBottomEndX
-@item frameBottomEndY
-@code{Integer} objects that are set to the frame coordinates and used
-when the widget handles PointerMotion events. @xref{Integer}.
 
 @cindex @code{grabCursor} instance variable @idxclscite{X11ScrollBarPane}
 @item grabCursor
@@ -14430,6 +14414,11 @@ edge of the scrollbar frame and the thumb.
 A @code{Rectangle} object that contains coordinates of the scroll thumb.
 @xref{Rectangle}.
 
+@cindex @code{thumbBackgroundColor} instance variable @idxclscite{X11ScrollBarPane}
+@item thumbBackgrondColor
+A @code{String} that contains the name of the X11 color used to draw
+the thumb.
+
 @cindex @code{thumbErasePen} instance variable @idxclscite{X11ScrollBarPane}
 @item thumbErasePen
 A @code{Pen} object that sets the color and line width of the scroll thumb
@@ -14446,17 +14435,10 @@ An @code{Integer} that sets the height of the scroll thumb.
 A @code{Pen} object that sets the color and line width of the scroll thumb.
 @xref{Pen}.
 
-@cindex @code{thumbTopStartX} instance variable @idxclscite{X11ScrollBarPane}
-@cindex @code{thumbTopStartY} instance variable @idxclscite{X11ScrollBarPane}
-@cindex @code{thumbBottomEndX} instance variable @idxclscite{X11ScrollBarPane}
-@cindex @code{thumbBottomEndY} instance variable @idxclscite{X11ScrollBarPane}
-@item thumbTopStartX
-@item thumbTopStartY
-@item thumbBottomEndX
-@item thumbBottomEndY
-@code{Integer} objects that are set to the thumb coordinates and used
-when the widget handles PointerMotion events. @xref{Integer}.
-
+@cindex @code{thumbPix} instance variable @idxclscite{X11ScrollBarPane}
+@item thumbPix
+A @code{X11Bitmap} that contains the thumb's beveled image, if the
+pane is drawn with @code{bevel} set to @samp{true}.
 @end table
 
 @subsubheading Instance Methods

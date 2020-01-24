@@ -1,4 +1,4 @@
-/* $Id: X11ScrollBarPane,v 1.20 2020/01/21 22:11:06 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11ScrollBarPane,v 1.37 2020/01/24 20:24:06 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -45,27 +45,27 @@ X11ScrollBarPane instanceVariable framePen Pen NULL;
 X11ScrollBarPane instanceVariable thumbPen Pen NULL;
 X11ScrollBarPane instanceVariable thumbErasePen Pen NULL;
 X11ScrollBarPane instanceVariable thumbHeight Integer DEFAULT_THUMB_HEIGHT;
-// These are derived from the frame and thumb rectangles.
-// They're here because they're quicker to evaluate.
-X11ScrollBarPane instanceVariable frameTopStartX Integer 0;
-X11ScrollBarPane instanceVariable frameTopStartY Integer 0;
-X11ScrollBarPane instanceVariable frameBottomEndX Integer 0;
-X11ScrollBarPane instanceVariable frameBottomEndY Integer 0;
-X11ScrollBarPane instanceVariable thumbTopStartX Integer 0;
-X11ScrollBarPane instanceVariable thumbTopStartY Integer 0;
-X11ScrollBarPane instanceVariable thumbBottomEndX Integer 0;
-X11ScrollBarPane instanceVariable thumbBottomEndY Integer 0;
-X11ScrollBarPane instanceVariable dragStartX Integer 0;
-X11ScrollBarPane instanceVariable dragStartY Integer 0;
 X11ScrollBarPane instanceVariable dragging Boolean FALSE;
 X11ScrollBarPane instanceVariable lastY Integer 0;
-
 X11ScrollBarPane instanceVariable padding Integer 1;
 X11ScrollBarPane instanceVariable frameWidthVar Integer 1;
 X11ScrollBarPane instanceVariable margin Integer 1;
+X11ScrollBarPane instanceVariable bevel Boolean true;
+X11ScrollBarPane instanceVariable thumbPix X11Bitmap 0;
+X11ScrollBarPane instanceVariable thumbBackgroundColor String "darkgray";
 
-Integer new scrollbarTopStartX, scrollbarTopStartY,
-  scrollbarBottomEndX, scrollbarBottomEndY;
+Boolean new haveBevel;
+
+#define THUMBPIXMAPWIDTH (self thumb top end x)
+#define THUMBVCLIP (self thumb bottom start y)
+#define WIDGETTOPSTARTX (self frame top start x)
+#define WIDGETTOPSTARTY (self frame top start y)
+#define WIDGETBOTTOMENDX (self frame bottom end x)
+#define WIDGETBOTTOMENDY (self frame bottom end y)
+#define THUMBTOPSTARTX (self thumb top start x)
+#define THUMBTOPSTARTY (self thumb top start y)
+#define THUMBBOTTOMENDX (THUMBTOPSTARTX + self thumb bottom end x)
+#define THUMBBOTTOMENDY (THUMBTOPSTARTY + self thumb bottom end y)
 
 X11ScrollBarPane instanceMethod pointIsInFrame (Integer pointX,	
 						Integer pointY) {
@@ -74,17 +74,10 @@ X11ScrollBarPane instanceMethod pointIsInFrame (Integer pointX,
   otherwise."
   returnObjectClass Boolean;
 
-  if (scrollbarTopStartX == -1) {
-    scrollbarTopStartX = self frameTopStartX;
-    scrollbarTopStartY = self frameTopStartY;
-    scrollbarBottomEndX = self frameBottomEndX;
-    scrollbarBottomEndY = self frameBottomEndY;
-  }
-
-  if (pointX >= scrollbarTopStartX &&
-      pointX <= scrollbarBottomEndX &&
-      pointY >= scrollbarTopStartY &&
-      pointY <= scrollbarBottomEndY) {
+  if (pointX >= WIDGETTOPSTARTX &&
+      pointX <= WIDGETBOTTOMENDX &&
+      pointY >= WIDGETTOPSTARTY &&
+      pointY <= WIDGETBOTTOMENDY) {
     return TRUE;
   } else {
     return FALSE;
@@ -98,12 +91,10 @@ X11ScrollBarPane instanceMethod pointIsInThumb (Integer pointX,
   otherwise."
   returnObjectClass Boolean;
 
-  if ((pointX >= (self thumbTopStartX)) &&
-      (pointX <= (self thumbBottomEndX)) &&
-      (pointY >= (self thumbTopStartY)) &&  /* printf ("%d\n", deltaY); */
-
-
-      (pointY <= (self thumbBottomEndY))) {
+  if ((pointX >= THUMBTOPSTARTX) &&
+      (pointX <= THUMBBOTTOMENDX) &&
+      (pointY >= THUMBTOPSTARTY) && 
+      (pointY <= THUMBBOTTOMENDY)) {
     return TRUE;
   } else {
     return FALSE;
@@ -123,17 +114,50 @@ X11ScrollBarPane instanceMethod thumbDimensions (Integer deltaY,
     deltaY,
     (self size x - (totalMargin * 2)),
     thumbHeight;
+}
 
-  self thumbTopStartX = self thumb top start x;
-  self thumbTopStartY = self thumb top start y;
-  self thumbBottomEndX = (self thumbTopStartX) + self thumb bottom end x;
-  self thumbBottomEndY = (self thumbTopStartY) + (self thumb bottom end y);
+X11ScrollBarPane instanceMethod makeThumb (void) {
+  
+  if (self bevel) {
+  
+#if 0 /***/
+    no error - fix!
+      self thumbPix create self xWindowID,
+      self thumbTopStartX - self thumbBottomEndX,
+      self thumbTopStartY - self thumbBottomEndY, self depth;
+#endif  
+
+    
+    self thumbPix create self xWindowID,
+      THUMBPIXMAPWIDTH, self displayHeight, self depth;
+    self thumbPix background self thumbBackgroundColor;
+    self thumbPix clear;
+  }
+
+
+#if 0 /***/
+  /* this gets ugly ... need to fix */
+#if 0 /***/
+  /* fix lack of comment close in ctpp */
+  /* or... make sure we note a duplicate name if we call the
+     thumb bitmap simply "thumb". */
+#endif
+  self thumb create self paneBuffer xID,
+    self thumbTopStartX - self thumbBottomEndX,
+    self thumbTopStartY - self thumbBottomEndY, self depth;
+#endif  
 
 }
 
 X11ScrollBarPane instanceMethod drawThumb (void) {
   "Draw the thumb rectangle."
+  if (!self bevel) {
     __ctalkGUIPaneDrawRectangle (self, self thumb, self thumbPen, TRUE);
+  } else {
+    self paneBuffer copy self thumbPix, 0, 0,
+      THUMBPIXMAPWIDTH, THUMBVCLIP,
+      self thumb top start x, self thumb top start y;
+  }
 }
 
 X11ScrollBarPane instanceMethod eraseThumb (void) {
@@ -143,6 +167,36 @@ X11ScrollBarPane instanceMethod eraseThumb (void) {
 
 X11ScrollBarPane instanceMethod refresh (void) {
   "Redraw the scrollbar."
+    Pen new p;
+  Integer new totalMargin;
+
+  if (self bevel && !haveBevel) {
+    totalMargin = self margin + self frameWidthVar + self padding;
+
+    p width = 1;
+    p colorName = "gray89";
+    self thumbPix drawLine 0, 0, self thumbPix width, 0, p;
+    self thumbPix drawLine 1, 1, self thumbPix width - 1, 1, p;
+
+    p colorName = "gray86";
+    self thumbPix drawLine 0, 1, 0, THUMBVCLIP, p;
+    self thumbPix drawLine 1, 2, 1, THUMBVCLIP - 1, p;
+
+    p colorName = "darkslategray";
+
+    self thumbPix drawLine 1, THUMBVCLIP, self thumbPix width,
+      THUMBVCLIP, p;
+    self thumbPix drawLine self thumbPix width, 1,
+      self thumbPix width, THUMBVCLIP, p;
+
+    self thumbPix drawLine 2, THUMBVCLIP - 1,
+      self thumbPix width,
+      THUMBVCLIP - 1, p;
+    self thumbPix drawLine self thumbPix width - 1, 2,
+      self thumbPix width - 1, THUMBVCLIP, p;
+
+    haveBevel = true;
+  }
 
   if (self dragging)
     self eraseThumb;
@@ -155,6 +209,7 @@ X11ScrollBarPane instanceMethod refresh (void) {
    			 self size x,
    			 self size y,
    			 self origin x, self origin y);
+
 }
 
 X11ScrollBarPane instanceMethod subPaneResize (Object __subPane, 
@@ -204,8 +259,6 @@ X11ScrollBarPane instanceMethod subPanePointerInput (Object __subPane,
   if (__event eventClass == 8) {
     if (self pointIsInThumb (__event xEventData1, __event xEventData2)) {
       self useCursor self grabCursor;
-      self dragStartX = __event xEventData1;
-      self dragStartY = __event xEventData2;
       self dragging = TRUE;
     }
   }
@@ -223,11 +276,21 @@ X11ScrollBarPane instanceMethod subPanePointerInput (Object __subPane,
 }
 
 X11ScrollBarPane instanceMethod __moveThumb (Integer updatedY) {
-  __ctalkGUIPaneDrawRectangle (self, self thumb, self thumbErasePen, TRUE);
-  self thumbDimensions updatedY, self thumbHeight;
-  __ctalkGUIPaneDrawRectangle (self, self thumb, self thumbPen, TRUE);
-  __ctalkGUIPaneRefresh (self, 0, 0, self size x, self size y,
-			 self origin x, self origin y);
+  if (!self bevel) {
+    __ctalkGUIPaneDrawRectangle (self, self thumb, self thumbErasePen, TRUE);
+    self thumbDimensions updatedY, self thumbHeight;
+    __ctalkGUIPaneDrawRectangle (self, self thumb, self thumbPen, TRUE);
+    __ctalkGUIPaneRefresh (self, 0, 0, self size x, self size y,
+			   self origin x, self origin y);
+  } else {
+    __ctalkGUIPaneDrawRectangle (self, self thumb, self thumbErasePen, TRUE);
+    self thumbDimensions updatedY, self thumbHeight;
+    self paneBuffer copy self thumbPix, 0, 0,
+      THUMBPIXMAPWIDTH, THUMBVCLIP,
+      self thumb top start x, self thumb top start y;
+    __ctalkGUIPaneRefresh (self, 0, 0, self size x, self size y,
+			   self origin x, self origin y);
+  }
 }
 
 X11ScrollBarPane instanceMethod subPanePointerMotion (Object __subPane,
@@ -246,7 +309,7 @@ X11ScrollBarPane instanceMethod subPanePointerMotion (Object __subPane,
   y = __event xEventData2 value;
 
   if (self dragging) {
-    updatedY = self thumbTopStartY + (y - self lastY);
+    updatedY = THUMBTOPSTARTY + (y - self lastY);
     /* Make adjustments if needed so the thumb doesn't get drawn past
        either end of the pane, or the percent is outside 0-100%. */
     if (updatedY < 0) {
@@ -299,10 +362,10 @@ X11ScrollBarPane instanceMethod new (String __paneName) {
   __paneName background "white";
   __paneName framePen width = __paneName frameWidthVar;
   __paneName framePen colorName = "black";
-  __paneName thumbPen colorName = "gray";
+  __paneName thumbPen colorName = __paneName thumbBackgroundColor;
   __paneName thumbErasePen colorName = "white";
 
-  scrollbarTopStartX = -1;
+  haveBevel = false;
 
   return __paneName;
 }
@@ -323,11 +386,6 @@ X11ScrollBarPane instanceMethod attachTo (Object parentPane) {
 
   self frameWidth self frameWidthVar;
 
-  self frameTopStartX = self frame top start x;
-  self frameTopStartY = self frame top start y;
-  self frameBottomEndX = self frame bottom end x;
-  self frameBottomEndY = self frame bottom end y;
-
   self thumbDimensions
     self margin + self frameWidthVar + self padding,
     self thumbHeight;
@@ -337,6 +395,8 @@ X11ScrollBarPane instanceMethod attachTo (Object parentPane) {
   (X11Bitmap *)self paneBuffer background (self backgroundColor);
   (X11Bitmap *)self paneBackingStore create self xWindowID, self size x, 
     self size y, self depth;
+
+  self makeThumb;
 
   return NULL;
 }
@@ -365,11 +425,6 @@ X11ScrollBarPane instanceMethod attachTo (Object parentPane,
 
   self frameWidth self frameWidthVar;
 
-  self frameTopStartX = self frame top start x;
-  self frameTopStartY = self frame top start y;
-  self frameBottomEndX = self frame bottom end x;
-  self frameBottomEndY = self frame bottom end y;
-
   self thumbDimensions
     self margin + self frameWidthVar + self padding,
     self thumbHeight;
@@ -380,6 +435,7 @@ X11ScrollBarPane instanceMethod attachTo (Object parentPane,
   (X11Bitmap *)self paneBackingStore create self xWindowID, self size x, 
     self size y, self depth;
 
+  self makeThumb;
   return NULL;
 }
 
@@ -423,10 +479,6 @@ X11ScrollBarPane instanceMethod frameWidth (Integer widthArg) {
   self thumb bottom start x = totalMargin;
   self thumb bottom end x = (self size x - (totalMargin * 2));
 
-  self thumbTopStartX = self thumb top start x;
-  self thumbTopStartY = self thumb top start y;
-  self thumbBottomEndX = (self thumbTopStartX) + self thumb bottom end x;
-  self thumbBottomEndY = (self thumbTopStartY) + (self thumb bottom end y);
 }
 
 X11ScrollBarPane instanceMethod thumbPercent (Float pct) {
@@ -436,11 +488,19 @@ X11ScrollBarPane instanceMethod thumbPercent (Float pct) {
 				     (self frameWidthVar * 2) +
 				     (self padding * 2))) * pct;
 
-  __ctalkGUIPaneDrawRectangle (self, self thumb, self thumbErasePen, TRUE);
-  self thumbDimensions lastY, self thumbHeight;
-  __ctalkGUIPaneDrawRectangle (self, self thumb, self thumbPen, TRUE);
-  __ctalkGUIPaneRefresh (self, 0, 0, self size x, self size y,
-			 self origin x, self origin y);
+  if (self bevel) {
+    __ctalkGUIPaneDrawRectangle (self, self thumb, self thumbErasePen, TRUE);
+    self thumbDimensions lastY, self thumbHeight;
+    haveBevel = false;
+    __ctalkGUIPaneRefresh (self, 0, 0, self size x, self size y,
+			   self origin x, self origin y);
+  } else {
+    __ctalkGUIPaneDrawRectangle (self, self thumb, self thumbErasePen, TRUE);
+    self thumbDimensions lastY, self thumbHeight;
+    __ctalkGUIPaneDrawRectangle (self, self thumb, self thumbPen, TRUE);
+    __ctalkGUIPaneRefresh (self, 0, 0, self size x, self size y,
+			   self origin x, self origin y);
+  }
 }
 
 X11ScrollBarPane instanceMethod percent (void) {

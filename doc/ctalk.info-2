@@ -2661,7 +2661,6 @@ draw a scroll bar.
        X11ScrollBarPane new xScrollBarPane;
        X11CanvasPane new xCanvasPane;
        InputEvent new e;
-       Integer new nEvents;
        Exception new ex;
        Application new scrollDemo;
        String new pctstr;
@@ -2737,8 +2736,6 @@ draw a scroll bar.
      }
 
 
-
-
 Instance Variables
 ..................
 
@@ -2746,14 +2743,13 @@ Instance Variables
      A 'X11Cursor' object that contains the resource ID of the widget's
      arrow cursor.  *Note X11Cursor::.
 
+'bevel'
+     A 'Boolean' that determines whether the scroll thumb is drawn as a
+     beveled widget.
+
 'dragging'
      A 'Boolean' object that is True while the right mouse button is
      clicked while over the scroll thumb.  *Note Boolean::.
-
-'dragStartX'
-'dragStartY'
-     The x and y coordinates of the mouse pointer when starting to drag
-     the scroll thumb.  *Note Integer::.
 
 'frame'
      A 'Rectangle' object that contains coordinates of the scroll bar
@@ -2766,13 +2762,6 @@ Instance Variables
 'framePen'
      A 'Pen' object that sets the line color and width of the scroll bar
      frame.  *Note Pen::.
-
-'frameTopStartX'
-'frameTopStartY'
-'frameBottomEndX'
-'frameBottomEndY'
-     'Integer' objects that are set to the frame coordinates and used
-     when the widget handles PointerMotion events.  *Note Integer::.
 
 'grabCursor'
      A 'X11Cursor' object that contains the resource ID of the widget's
@@ -2794,6 +2783,10 @@ Instance Variables
      A 'Rectangle' object that contains coordinates of the scroll thumb.
      *Note Rectangle::.
 
+'thumbBackgrondColor'
+     A 'String' that contains the name of the X11 color used to draw the
+     thumb.
+
 'thumbErasePen'
      A 'Pen' object that sets the color and line width of the scroll
      thumb background when animating the thumb.  *Note Pen::.
@@ -2806,12 +2799,9 @@ Instance Variables
      A 'Pen' object that sets the color and line width of the scroll
      thumb.  *Note Pen::.
 
-'thumbTopStartX'
-'thumbTopStartY'
-'thumbBottomEndX'
-'thumbBottomEndY'
-     'Integer' objects that are set to the thumb coordinates and used
-     when the widget handles PointerMotion events.  *Note Integer::.
+'thumbPix'
+     A 'X11Bitmap' that contains the thumb's beveled image, if the pane
+     is drawn with 'bevel' set to 'true'.
 
 Instance Methods
 ................
