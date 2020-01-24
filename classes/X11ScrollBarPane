@@ -1,4 +1,4 @@
-/* $Id: X11ScrollBarPane,v 1.37 2020/01/24 20:24:06 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11ScrollBarPane,v 1.39 2020/01/24 21:35:46 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -53,6 +53,7 @@ X11ScrollBarPane instanceVariable margin Integer 1;
 X11ScrollBarPane instanceVariable bevel Boolean true;
 X11ScrollBarPane instanceVariable thumbPix X11Bitmap 0;
 X11ScrollBarPane instanceVariable thumbBackgroundColor String "darkgray";
+
 
 Boolean new haveBevel;
 
@@ -119,33 +120,11 @@ X11ScrollBarPane instanceMethod thumbDimensions (Integer deltaY,
 X11ScrollBarPane instanceMethod makeThumb (void) {
   
   if (self bevel) {
-  
-#if 0 /***/
-    no error - fix!
-      self thumbPix create self xWindowID,
-      self thumbTopStartX - self thumbBottomEndX,
-      self thumbTopStartY - self thumbBottomEndY, self depth;
-#endif  
-
-    
     self thumbPix create self xWindowID,
       THUMBPIXMAPWIDTH, self displayHeight, self depth;
     self thumbPix background self thumbBackgroundColor;
     self thumbPix clear;
   }
-
-
-#if 0 /***/
-  /* this gets ugly ... need to fix */
-#if 0 /***/
-  /* fix lack of comment close in ctpp */
-  /* or... make sure we note a duplicate name if we call the
-     thumb bitmap simply "thumb". */
-#endif
-  self thumb create self paneBuffer xID,
-    self thumbTopStartX - self thumbBottomEndX,
-    self thumbTopStartY - self thumbBottomEndY, self depth;
-#endif  
 
 }
 
@@ -215,9 +194,16 @@ X11ScrollBarPane instanceMethod refresh (void) {
 X11ScrollBarPane instanceMethod subPaneResize (Object __subPane, 
 					  InputEvent __event) {
   "Resize the receiver pane.  This is the resize event
-  handler called by the parent window's pane dispatcher
-  This method is under construction and is currently a
-  no-op."
+  handler called by the parent window's pane dispatcher.
+  This method is under construction."
+#if 0
+    if (__ctalkX11ResizeWindow (__subPane, __event xEventData3,
+			      __event xEventData4,
+			      __subPane depth) > 0) {
+    printf ("subpaneresize win = %d\n", self xWindowID);
+    self refresh;
+  }
+#endif
   return NULL;
 }
 

@@ -1,4 +1,4 @@
-/* $Id: X11PaneDispatcher,v 1.20 2020/01/14 00:06:53 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11PaneDispatcher,v 1.21 2020/01/24 21:26:28 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -81,7 +81,7 @@ X11PaneDispatcher instanceVariable handleSelectionClear Method NULL;
 X11PaneDispatcher instanceVariable handleFocusChange Method NULL;
 X11PaneDispatcher instanceVariable handleEnterNotify Method NULL;
 X11PaneDispatcher instanceVariable handleLeaveNotify Method NULL;
-X11PaneDispatcher instanceVariable subPaneInfo List NULL;
+X11PaneDispatcher instanceVariable geomSpec String "";
 
 X11PaneDispatcher instanceMethod setMethodHandler (String __handlerType,
 						 Method __handlerMethod) {

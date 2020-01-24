@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.68 2020/01/24 20:24:07 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.69 2020/01/24 21:26:28 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -13254,6 +13254,11 @@ applications are compatible with future Ctalk releases.
 @subheading Instance Variables
 
 @table @code
+@cindex @mnm{geomSpec} instance method @idxclscite{X11PaneDispatcher} 
+@item @mnm{} (@code{InputEvent} @var{event})
+A @code{String} that stores a subpane's geometry specification,
+if any.  Refer to the @mnm{attachTo} method, below.
+
 @cindex handleDestroy instance variable @idxclscite{X11PaneDispatcher}
 @item handleDestroy
 A @code{Method} that provides the default handler to delete
