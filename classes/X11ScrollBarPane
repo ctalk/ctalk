@@ -1,4 +1,4 @@
-/* $Id: X11ScrollBarPane,v 1.39 2020/01/24 21:35:46 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11ScrollBarPane,v 1.41 2020/01/25 16:42:56 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -53,7 +53,6 @@ X11ScrollBarPane instanceVariable margin Integer 1;
 X11ScrollBarPane instanceVariable bevel Boolean true;
 X11ScrollBarPane instanceVariable thumbPix X11Bitmap 0;
 X11ScrollBarPane instanceVariable thumbBackgroundColor String "darkgray";
-
 
 Boolean new haveBevel;
 
@@ -196,14 +195,43 @@ X11ScrollBarPane instanceMethod subPaneResize (Object __subPane,
   "Resize the receiver pane.  This is the resize event
   handler called by the parent window's pane dispatcher.
   This method is under construction."
-#if 0
+  X11PaneDispatcher new dispatcher;
+  X11Pane new mainWindow;
+  int x, y, width, height;
+
+  if (__subPane subPaneGeometry length == 0) {
     if (__ctalkX11ResizeWindow (__subPane, __event xEventData3,
-			      __event xEventData4,
-			      __subPane depth) > 0) {
-    printf ("subpaneresize win = %d\n", self xWindowID);
+				__event xEventData4,
+				__subPane depth) > 0) {
+      __subPane size x = __event xEventData3;
+      __subPane size y = __event xEventData4;
+      (X11Bitmap *)self paneBuffer resize self xWindowID,
+	__event xEventData3, __event xEventData4;
+      (X11Bitmap *)self paneBackingStore resize self xWindowID,
+	__event xEventData3, __event xEventData4;
+      haveBevel = false;
+      self refresh;
+    }
+  } else {
+    self super subPaneResize (__subPane, __event);
+    dispatcher = *self container;
+    mainWindow = *dispatcher container;
+
+    __ctalkX11SubWindowGeometry (mainWindow, self subPaneGeometry,
+				   &x, &y, &width, &height);
+    __subPane origin x = x;
+    __subPane origin y = y;
+    __subPane size x = width;
+    __subPane size y = height;
+
+    (X11Bitmap *)self paneBuffer resize self xWindowID,
+      __event xEventData3, __event xEventData4;
+    (X11Bitmap *)self paneBackingStore resize self xWindowID,
+      __event xEventData3, __event xEventData4;
+    self frameWidth self frameWidthVar;
+    haveBevel = false;
     self refresh;
   }
-#endif
   return NULL;
 }
 
@@ -394,6 +422,8 @@ X11ScrollBarPane instanceMethod attachTo (Object parentPane,
   X11Bitmap new xPaneBuffer;
   X11Bitmap new xPaneBackingStore;
   int x, y, width, height;
+
+  self subPaneGeometry = geomspec;
 
   self super attachTo (parentPane, geomspec);
 

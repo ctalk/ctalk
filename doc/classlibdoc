@@ -6303,6 +6303,11 @@ other method handlers, subPaneRef is typically a
 Symbol object.  The X11TerminalStream section
 describes these events.  
 
+>>>X11PaneDispatcher::subPaneGeometry
+A String that stores a subpane's geometry specification, if
+any.  For an explanation of geometry string's format, refer to the
+attachTo method, below.
+
 >>>X11PaneDispatcher::subPaneKbdInput (Object subPaneRef, InputEvent kbdInputEvent)
 The default handler for KEYPRESS and
 KEYRELEASE events.  Like the other method handlers,

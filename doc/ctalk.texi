@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.69 2020/01/24 21:26:28 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.70 2020/01/25 16:42:57 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -13254,11 +13254,6 @@ applications are compatible with future Ctalk releases.
 @subheading Instance Variables
 
 @table @code
-@cindex @mnm{geomSpec} instance method @idxclscite{X11PaneDispatcher} 
-@item @mnm{} (@code{InputEvent} @var{event})
-A @code{String} that stores a subpane's geometry specification,
-if any.  Refer to the @mnm{attachTo} method, below.
-
 @cindex handleDestroy instance variable @idxclscite{X11PaneDispatcher}
 @item handleDestroy
 A @code{Method} that provides the default handler to delete
@@ -13379,6 +13374,12 @@ The default handler for @code{WINDELETE} events.  Like the
 other method handlers, @var{subPaneRef} is typically a
 @code{Symbol} object.  The @code{X11TerminalStream} section
 describes these events.  @xref{X11TerminalStream}.
+
+@cindex @mnm{subPaneGeometry} instance method @idxclscite{X11PaneDispatcher} 
+@item subPaneGeometry
+A @code{String} that stores a subpane's geometry specification, if
+any.  For an explanation of geometry string's format, refer to the
+@mnm{attachTo} method, below.
 
 @cindex @mnm{subPaneKbdInput} instance method @idxclscite{X11PaneDispatcher}
 @item @mnm{subPaneKbdInput} (@code{Object} @var{subPaneRef}, @code{InputEvent} @var{kbdInputEvent})

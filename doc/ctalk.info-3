@@ -3985,7 +3985,7 @@ Index
                                                              (line  181)
 * attachTo instance method (X11Pane class): X11Pane.         (line  118)
 * attachTo instance method (X11PaneDispatcher class): X11PaneDispatcher.
-                                                             (line  201)
+                                                             (line  197)
 * attachTo instance method (X11ScrollBarPane class): X11ScrollBarPane.
                                                              (line  178)
 * attachTo instance method (X11TextEditorPane class): X11TextEditorPane.
@@ -4660,8 +4660,6 @@ Index
 * Geometry, X window:                    Application.        (line  194)
 * geomFlags instance variable (Application class): Application.
                                                              (line   28)
-* geomSpec instance method (X11PaneDispatcher class): X11PaneDispatcher.
-                                                             (line  150)
 * getc(3) C function:                    getc.               (line    6)
 * getCh method (ANSITerminalStream class): ANSITerminalStream.
                                                              (line  153)
@@ -4739,9 +4737,9 @@ Index
 * handle instance method (Exception class): Exception.       (line  157)
 * handle method (Exception class):       Errors.             (line   19)
 * handleDestroy instance variable (X11PaneDispatcher class): X11PaneDispatcher.
-                                                             (line  154)
+                                                             (line  150)
 * handleEnterNotify instance variable (X11PaneDispatcher class): X11PaneDispatcher.
-                                                             (line  158)
+                                                             (line  154)
 * handleInput instance method (ANSIButtonPane class): ANSIButtonPane.
                                                              (line   35)
 * handleInput instance method (ANSILabelPane class): ANSILabelPane.
@@ -4766,30 +4764,30 @@ Index
 * handleInput method (ANSIWidgetPane class) <1>: ANSIWidgetPane.
                                                              (line   85)
 * handleKbdInput instance variable (X11PaneDispatcher class): X11PaneDispatcher.
-                                                             (line  163)
+                                                             (line  159)
 * handleLeaveNotify instance variable (X11PaneDispatcher class): X11PaneDispatcher.
-                                                             (line  158)
+                                                             (line  154)
 * handleMove instance variable (X11PaneDispatcher class): X11PaneDispatcher.
-                                                             (line  167)
+                                                             (line  163)
 * handlePointerInput instance variable (X11PaneDispatcher class): X11PaneDispatcher.
-                                                             (line  171)
+                                                             (line  167)
 * handlePointerMotion instance variable (X11PaneDispatcher class): X11PaneDispatcher.
-                                                             (line  175)
+                                                             (line  171)
 * handler instance variable (SignalHandler class): SignalHandler.
                                                              (line   62)
 * handleResize instance variable (X11PaneDispatcher class): X11PaneDispatcher.
-                                                             (line  179)
+                                                             (line  175)
 * handlerMethod instance variable (Exception class): Exception.
                                                              (line  146)
 * handleSelectionClear instance variable (X11PaneDispatcher class): X11PaneDispatcher.
-                                                             (line  183)
+                                                             (line  179)
 * handleSelectionRequest instance variable (X11PaneDispatcher class): X11PaneDispatcher.
-                                                             (line  187)
+                                                             (line  183)
 * handleSubPaneEvent instance method (X11PaneDispatcher class): X11PaneDispatcher.
-                                                             (line  232)
+                                                             (line  228)
 * hasExtension instance method (GLXCanvasPane class): GLXCanvasPane.
                                                              (line  459)
-* hasFocus:                              X11PaneDispatcher.  (line  193)
+* hasFocus:                              X11PaneDispatcher.  (line  189)
 * hasFocus instance variable (ANSIWidgetPane class): ANSIWidgetPane.
                                                              (line   46)
 * hasMeta instance method (DirectoryStream class): DirectoryStream.
@@ -5204,7 +5202,7 @@ Index
 * new instance method (X11CanvasPane class): X11CanvasPane.  (line  385)
 * new instance method (X11LabelPane class): X11LabelPane.    (line  242)
 * new instance method (X11PaneDispatcher class): X11PaneDispatcher.
-                                                             (line  237)
+                                                             (line  233)
 * new instance method (X11ScrollBarPane class): X11ScrollBarPane.
                                                              (line  197)
 * new instance method (X11TextEditorPane class): X11TextEditorPane.
@@ -5677,7 +5675,7 @@ Index
 * setGraphics method (ANSITerminalStream class): ANSITerminalStream.
                                                              (line  199)
 * setMethodHandler instance method (X11PaneDispatcher class): X11PaneDispatcher.
-                                                             (line  244)
+                                                             (line  240)
 * setName instance method (Key class):   Key.                (line  136)
 * setReferenceCount instance method (Object class): Object.  (line  594)
 * setResources instance method (X11Pane class): X11Pane.     (line  267)
@@ -5896,7 +5894,7 @@ Index
 * subPaneDestroy instance method (X11CanvasPane class): X11CanvasPane.
                                                              (line  422)
 * subPaneDestroy instance method (X11PaneDispatcher class): X11PaneDispatcher.
-                                                             (line  248)
+                                                             (line  244)
 * subPaneDestroy instance method (X11ScrollBarPane class): X11ScrollBarPane.
                                                              (line  223)
 * subPaneDestroy instance method (X11TextPane class): X11TextPane.
@@ -5911,8 +5909,10 @@ Index
                                                              (line  223)
 * subPaneExpose instance method (X11TextPane class): X11TextPane.
                                                              (line  257)
+* subPaneGeometry instance method (X11PaneDispatcher class): X11PaneDispatcher.
+                                                             (line  250)
 * subPaneKbdInput instance method (X11PaneDispatcher class): X11PaneDispatcher.
-                                                             (line  254)
+                                                             (line  255)
 * subPaneKbdInput instance method (X11TextEditorPane class): X11TextEditorPane.
                                                              (line  207)
 * subPaneKbdInput instance method (X11TextPane class): X11TextPane.
@@ -5922,22 +5922,22 @@ Index
 * subPaneMotionNotify instance method (X11TextEditorPane class): X11TextEditorPane.
                                                              (line  222)
 * subPaneMove instance method (X11PaneDispatcher class): X11PaneDispatcher.
-                                                             (line  260)
+                                                             (line  261)
 * subPaneNotify instance method (X11Pane class): X11Pane.    (line  292)
 * subPanePointerInput instance method (X11CanvasPane class): X11CanvasPane.
                                                              (line  430)
 * subPanePointerInput instance method (X11PaneDispatcher class): X11PaneDispatcher.
-                                                             (line  270)
+                                                             (line  271)
 * subPanePointerInput instance method (X11ScrollBarPane class): X11ScrollBarPane.
                                                              (line  223)
 * subPanePointerMotion instance method (X11PaneDispatcher class): X11PaneDispatcher.
-                                                             (line  269)
+                                                             (line  270)
 * subPanePointerMotion instance method (X11ScrollBarPane class): X11ScrollBarPane.
                                                              (line  223)
 * subPaneResize instance method (X11CanvasPane class): X11CanvasPane.
                                                              (line  437)
 * subPaneResize instance method (X11PaneDispatcher class): X11PaneDispatcher.
-                                                             (line  276)
+                                                             (line  277)
 * subPaneResize instance method (X11ScrollBarPane class): X11ScrollBarPane.
                                                              (line  223)
 * subPaneResize instance method (X11TextEditorPane class): X11TextEditorPane.

@@ -1777,10 +1777,6 @@ releases.
 Instance Variables
 ------------------
 
-' (InputEvent EVENT)'
-     A 'String' that stores a subpane's geometry specification, if any.
-     Refer to the 'attachTo' method, below.
-
 'handleDestroy'
      A 'Method' that provides the default handler to delete a subpane
      window and its data.
@@ -1880,6 +1876,11 @@ Instance Methods
      handlers, SUBPANEREF is typically a 'Symbol' object.  The
      'X11TerminalStream' section describes these events.  *Note
      X11TerminalStream::.
+
+'subPaneGeometry'
+     A 'String' that stores a subpane's geometry specification, if any.
+     For an explanation of geometry string's format, refer to the
+     'attachTo' method, below.
 
 'subPaneKbdInput (Object SUBPANEREF, InputEvent KBDINPUTEVENT)'
      The default handler for 'KEYPRESS' and 'KEYRELEASE' events.  Like
