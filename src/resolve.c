@@ -1,4 +1,4 @@
-/* $Id: resolve.c,v 1.4 2019/12/22 17:20:09 rkiesling Exp $ */
+/* $Id: resolve.c,v 1.5 2020/01/25 23:05:15 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -1469,7 +1469,8 @@ OBJECT *resolve (int message_ptr) {
    *   object if necessary.
    */
   /***/
-  if ((interpreter_pass == method_pass) && !(m -> attrs & TOK_SELF)) {
+  if ((M_TOK(m) == LABEL) && (interpreter_pass == method_pass) &&
+      !(m -> attrs & TOK_SELF)) {
     int i;
     METHOD *method;
     method = new_methods[new_method_ptr + 1] -> method;

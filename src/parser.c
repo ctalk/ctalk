@@ -1,4 +1,4 @@
-/* $Id: parser.c,v 1.4 2020/01/19 15:52:43 rkiesling Exp $ */
+/* $Id: parser.c,v 1.5 2020/01/25 23:05:15 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -829,7 +829,12 @@ int parser_pass (int this_frame_ptr, PARSER *p) {
 	     frames[this_frame_ptr] -> message_frame_top,
 	     messageptr + 1);
 	}
-	warning (m, buf);
+	/* have to think of something better here when
+	   we have an example .. vsprintf can choke on 
+	   some text that contains a '%' with no argument
+	   list */
+	if (!strchr (buf, '%'))
+	  warning (m, buf);
 	__xfree (MEMADDR(buf));
 	__ctalkExceptionNotifyInternal (ex);
 	exit (EXIT_FAILURE);
