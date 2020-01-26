@@ -1,4 +1,4 @@
-/* $Id: resolve.c,v 1.5 2020/01/25 23:05:15 rkiesling Exp $ */
+/* $Id: resolve.c,v 1.6 2020/01/26 12:28:23 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -1462,7 +1462,7 @@ OBJECT *resolve (int message_ptr) {
      result_object = NULL;
    } /* if (M_TOK(m) == LABEL) */
 
-  if (is_expr_obj (m)) return M_VALUE_OBJ (m);
+  /* if (is_expr_obj (m)) return M_VALUE_OBJ (m); *//****/
 
   /*
    *   Check for a method parameter reference and create an

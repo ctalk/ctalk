@@ -1,8 +1,8 @@
-/* $Id: ctalk.h,v 1.49 2020/01/14 01:33:33 rkiesling Exp $ -*-Fundamental-*- */
+/* $Id: ctalk.h,v 1.50 2020/01/26 12:28:22 rkiesling Exp $ -*-Fundamental-*- */
 
 /*
   This file is part of Ctalk.
-  Copyright © 2005-2019 Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2005-2020 Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
 
@@ -3187,7 +3187,8 @@ int class_variable_expression (MESSAGE_STACK, int);
 int default_method (MSINFO *);
 int expr_has_objects (MESSAGE_STACK, int, int);
 int fn_output_context (MESSAGE_STACK, int, OBJECT *, METHOD *, int, int);
-int is_expr_obj (MESSAGE *);
+/***/
+/* int is_expr_obj (MESSAGE *); */
 OBJECT_CONTEXT object_context (MESSAGE_STACK, int);
 OBJECT_CONTEXT object_context_ms (MSINFO *);
 int self_class_or_instance_variable_lookahead (MESSAGE_STACK, int);
