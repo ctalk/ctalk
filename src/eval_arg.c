@@ -1,4 +1,4 @@
-/* $Id: eval_arg.c,v 1.8 2020/01/26 10:00:57 rkiesling Exp $ */
+/* $Id: eval_arg.c,v 1.9 2020/01/26 13:19:55 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -1237,7 +1237,7 @@ OBJECT *eval_arg (METHOD *method, OBJECT *rcvr_class, ARGSTR *argbuf,
 	m_arg -> attrs |= TOK_SUPER;
       } else if (is_class_typecast (&msi, i)) { /***/
 	int i_2, cast_lookahead;
-	int cast_start_l, cast_end_l, i_3;
+	int cast_start_l, cast_end_l = stack_end, i_3;
 	leading_typecast_indexes (main_stack_idx,
 				  &argbuf -> typecast_start_idx,
 				  &argbuf -> typecast_end_idx);
