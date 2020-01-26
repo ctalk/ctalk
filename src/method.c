@@ -1,4 +1,4 @@
-/* $Id: method.c,v 1.4 2019/12/22 20:38:15 rkiesling Exp $ */
+/* $Id: method.c,v 1.5 2020/01/26 15:47:00 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -2946,11 +2946,20 @@ int method_call (int method_message_ptr) {
     /* Check_args () gets called by the primitive functions,
        or method_args () in the case of define_method ().
     */
-    cfunc = method -> cfunc;
-    (void)(cfunc) (method_message_ptr);
-    cleanup_args (method, message_stack_at(method_message_ptr)->receiver_obj,
-		  (frame_at (CURRENT_PARSER -> frame - 1)) ->
-		   message_frame_top + 1);
+    if (interpreter_pass != expr_check) {
+      cfunc = method -> cfunc;
+      (void)(cfunc) (method_message_ptr);
+    /***/
+      if (frame_at (CURRENT_PARSER -> frame - 1)) {
+	cleanup_args (method, message_stack_at(method_message_ptr)->receiver_obj,
+		      (frame_at (CURRENT_PARSER -> frame - 1)) ->
+		      message_frame_top + 1);
+      } else {
+	cleanup_args (method,
+		      message_stack_at(method_message_ptr)->receiver_obj,
+		      get_messageptr ());
+      }
+    }
   } else {
     char output_buf[MAXMSG];
     OBJECT_CONTEXT context;
