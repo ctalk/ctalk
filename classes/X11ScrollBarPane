@@ -1,4 +1,4 @@
-/* $Id: X11ScrollBarPane,v 1.41 2020/01/25 16:42:56 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11ScrollBarPane,v 1.42 2020/01/26 19:10:36 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -193,10 +193,8 @@ X11ScrollBarPane instanceMethod refresh (void) {
 X11ScrollBarPane instanceMethod subPaneResize (Object __subPane, 
 					  InputEvent __event) {
   "Resize the receiver pane.  This is the resize event
-  handler called by the parent window's pane dispatcher.
-  This method is under construction."
-  X11PaneDispatcher new dispatcher;
-  X11Pane new mainWindow;
+  handler called by the parent window's pane dispatcher."
+  X11Pane new mainWindowObj;
   int x, y, width, height;
 
   if (__subPane subPaneGeometry length == 0) {
@@ -214,10 +212,10 @@ X11ScrollBarPane instanceMethod subPaneResize (Object __subPane,
     }
   } else {
     self super subPaneResize (__subPane, __event);
-    dispatcher = *self container;
-    mainWindow = *dispatcher container;
 
-    __ctalkX11SubWindowGeometry (mainWindow, self subPaneGeometry,
+    mainWindowObj = self mainWindow;
+
+    __ctalkX11SubWindowGeometry (mainWindowObj, self subPaneGeometry,
 				   &x, &y, &width, &height);
     __subPane origin x = x;
     __subPane origin y = y;

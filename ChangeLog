@@ -101,4 +101,23 @@
 	- Added a beveled thumb to the X11ScrollBarPane class.  - Removed
 	the X11PaneDispatcher : subPaneInfo instance variable, and added
 	the X11PaneDispatcher : subPaneGeometry instance variable.
+2020-01-25
+	- Updated the X11ScrollBarPane : subPaneResize method.
+	- In resolve, only look for parameters if the token is
+	a LABEL (resolve.c).
+	- In unary_op_attributes, fill in the returned info for a unary
+	op if the message already has the TOK_IS_PREFIX_OPERATOR
+	attribute set (prefixop.c).
+	- Added check for class casts in eval_arg (eval_arg.c),
+	and for an expression that has a class cast preceded by a
+	prefix operator..
+2020-01-26
+	- Removed is_expr_obj, which is no longer needed (rexpr.c).
+	- Updated method_call to not call a primitive method during
+	expr_check pass (method.c).
+	- In __ctalk_to_c_ptr, just return the object if it has
+	LOCAL_VAR scope and its value isn't a numeric format
+	(lib/objtoc.c).
+	- Added X11Pane : mainWindow method.
+
 

@@ -1,4 +1,4 @@
-/* $Id: X11Pane,v 1.2 2019/12/10 23:57:07 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11Pane,v 1.8 2020/01/26 19:10:36 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -486,4 +486,21 @@ X11Pane instanceMethod faceItalic (void) {
 
 X11Pane instanceMethod faceBoldItalic (void) {
   __ctalkSelectXFontFace (self xWindowID, self xGC, X_FACE_BOLD_ITALIC);
+}
+
+X11Pane instanceMethod mainWindow (void) {
+  "Return a subpane's main window pane object."
+    Pane new containerPane;
+  *containerPane = *(X11Pane *)self container;
+  while (containerPane) {
+    if (containerPane is X11Pane) {
+      return containerPane;
+    } else {
+      containerPane = *(X11Pane *)containerPane container;
+    }
+  }
+  if (containerPane) {
+    _warning ("X11Pane : mainWindow: \"%s,\" is not a X11Pane object.\n"); 
+  }
+  return NULL;
 }

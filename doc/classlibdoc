@@ -5498,6 +5498,13 @@ string win_title.
 >>>X11Pane::isTopLevel (void)
 Return TRUE if the receiver's container pane is NULL.
 
+>>>X11Pane::mainWindow (void)
+Returns the X11Pane object that manages a program's
+main window.  The method retrieves the main window object
+by following the references of each subpane's container
+instance variable.  If the top-level pane object is not a
+X11Pane, the method prints a warning.
+
 >>>X11Pane::map (void)
 Map the receiver window onto the X display.
 

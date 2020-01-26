@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.70 2020/01/25 16:42:57 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.71 2020/01/26 19:10:37 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -11897,6 +11897,14 @@ string @var{win_title}.
 @cindex @mnm{isTopLevel} instance method @idxclscite{X11Pane}
 @item isTopLevel (@code{void})
 Return @code{TRUE} if the receiver's container pane is @code{NULL}.
+
+@cindex @mnm{mainWindow} instance method @idxclscite{X11Pane}
+@item mainWindow (@code{void})
+Returns the @code{X11Pane} object that manages a program's
+main window.  The method retrieves the main window object
+by following the references of each subpane's @code{container}
+instance variable.  If the top-level pane object is not a
+@code{X11Pane}, the method prints a warning.
 
 @cindex @mnm{map} instance method @idxclscite{X11Pane}
 @item map (@code{void})

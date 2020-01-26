@@ -1,4 +1,4 @@
-/* $Id: objtoc.c,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ */
+/* $Id: objtoc.c,v 1.2 2020/01/26 18:52:48 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -970,6 +970,9 @@ void *__ctalk_to_c_ptr (OBJECT *o) {
     } else {
       return (void *) SYMVAL(o_value -> __o_value);
     }
+  } else if (o -> attrs & OBJECT_IS_NULL_RESULT_OBJECT) {
+    /***/
+    return NULL;
   }
 
   radix = radix_of (o_value -> __o_value);
@@ -982,6 +985,8 @@ void *__ctalk_to_c_ptr (OBJECT *o) {
       return (void *)(*(uintptr_t *)o_value -> __o_value);
     } else if (str_eq (o_value -> __o_value, NULLSTR)) {
       return NULL;
+    } else if (o -> scope & LOCAL_VAR) { /***/
+      return o;
     } else {
       _error ("ctalk: Unrecognized numeric value in radix_of: %s.\n",
 	      o_value -> __o_value);
