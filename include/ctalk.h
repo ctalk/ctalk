@@ -1,4 +1,4 @@
-/* $Id: ctalk.h,v 1.50 2020/01/26 12:28:22 rkiesling Exp $ -*-Fundamental-*- */
+/* $Id: ctalk.h,v 1.51 2020/01/28 05:22:08 rkiesling Exp $ -*-Fundamental-*- */
 
 /*
   This file is part of Ctalk.
@@ -2457,9 +2457,6 @@ void *__xrealloc (void **, int);
 void __ctalkFree(void *);
 
 /* lib/sformat.c */
-#if 0 /***/
-char *__ctalkCFmtToCtalkFmt (char *, char *);
-#endif
 void __ctalkObjValPtr (OBJECT *, void *);
 void *__ctalkStrToPtr (char *);
 char *__scalar_fmt_conv (char *, char *, OBJECT *);
@@ -3187,8 +3184,6 @@ int class_variable_expression (MESSAGE_STACK, int);
 int default_method (MSINFO *);
 int expr_has_objects (MESSAGE_STACK, int, int);
 int fn_output_context (MESSAGE_STACK, int, OBJECT *, METHOD *, int, int);
-/***/
-/* int is_expr_obj (MESSAGE *); */
 OBJECT_CONTEXT object_context (MESSAGE_STACK, int);
 OBJECT_CONTEXT object_context_ms (MSINFO *);
 int self_class_or_instance_variable_lookahead (MESSAGE_STACK, int);
