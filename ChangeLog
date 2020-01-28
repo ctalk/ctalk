@@ -119,5 +119,12 @@
 	LOCAL_VAR scope and its value isn't a numeric format
 	(lib/objtoc.c).
 	- Added X11Pane : mainWindow method.
+2020-01-27
+	- In resolve, moved the call to class_object_search within
+	the clause the the program takes when there isn't already
+	a result object (resolve.c).
+	- Moved part of resolve into resolve_single_tken_method_param
+	(resolve.c).
+	- Added rme (resolve.c).
 
 
