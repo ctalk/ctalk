@@ -1,4 +1,4 @@
-/* $Id: resolve.c,v 1.11 2020/01/28 10:10:52 rkiesling Exp $ */
+/* $Id: resolve.c,v 1.12 2020/01/29 01:12:54 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -1155,12 +1155,6 @@ static OBJECT *resolve_single_token_method_param (MSINFO *ms,
 	fileout (fmt_rt_expr (ms -> messages, prev_idx, &__end_idx, 
 			      expr_buf_out), 0, messageptr);
 	rme (ms, prev_idx, __end_idx);
-#if 0 /***/
-	for (i = prev_idx; i >= __end_idx; --i) {
-	  ++ms -> messages[i] -> evaled;
-	  ++ms -> messages[i] -> output;
-	}
-#endif	
       }
       return NULL;
     } else {
@@ -1179,11 +1173,59 @@ static OBJECT *resolve_single_token_method_param (MSINFO *ms,
       }
       fileout (param_buf_trans, 0, ms -> tok);
       rme (ms, ms -> tok, ms -> tok);
-#if 0 /***/
-      ++ms -> messages[ms -> tok] -> evaled;
-      ++ms -> messages[ms -> tok] -> output;
-#endif      
       return NULL;
+    }
+  }
+  return NULL;
+}
+
+/***/
+static OBJECT *class_method_template_call (MSINFO *ms, int messageptr,
+					   int prev_tok_idx) {
+
+  MESSAGE *m_prev_tok = ms -> messages[prev_tok_idx];
+  MESSAGE *m = ms -> messages[messageptr];
+
+  if ((M_TOK(m_prev_tok) == LABEL) && (m_prev_tok -> obj != NULL)) {
+    /* A special case where we can call a template
+       method; e.g.,
+       CFunction <template_name>
+       
+       This could probably be generalized to any
+       class method call, if we have any expressions
+       that require it.
+    */
+    if (IS_CLASS_OBJECT (m_prev_tok -> obj) &&
+	str_eq (m_prev_tok -> obj -> __o_name, 
+		CFUNCTION_CLASSNAME)) {
+      if (template_name (M_NAME(m))) {
+	template_call_from_CFunction_receiver 
+	  (ms -> messages, messageptr);
+	return m_prev_tok -> obj;
+      } else {
+	object_does_not_understand_msg_warning_a 
+	  (m, m_prev_tok -> obj -> __o_name,
+	   m_prev_tok -> obj -> __o_classname,
+	   M_NAME(m));
+      }
+    } else {
+      if (get_instance_method (m_prev_tok,
+			       m_prev_tok -> obj,
+			       M_NAME(m),
+			       ANY_ARGS, FALSE) ||
+	  get_class_method (m_prev_tok,
+			    m_prev_tok -> obj,
+			    M_NAME(m),
+			    ANY_ARGS, FALSE)) {
+	method_shadows_c_keyword_warning_a (ms -> messages,
+					    messageptr,
+					    prev_tok_idx);
+      } else {
+	object_does_not_understand_msg_warning_a 
+	  (m, m_prev_tok -> obj -> __o_name,
+	   m_prev_tok -> obj -> __o_classname,
+	   M_NAME(m));
+      }
     }
   }
   return NULL;
@@ -1462,6 +1504,12 @@ OBJECT *resolve (int message_ptr) {
 	 if ((prev_tok_ptr = prevlangmsg (ms.messages, message_ptr))
 	     != -1) {
 	   if ((m_prev_tok = ms.messages[prev_tok_ptr]) != NULL) {
+	     OBJECT *o;
+	     if ((o = class_method_template_call (&ms, message_ptr,
+						  prev_tok_ptr)) != NULL) {
+	       return o;
+	     }
+#if 0 /***/
 	     if ((M_TOK(m_prev_tok) == LABEL) && (m_prev_tok -> obj != NULL)) {
 	       /* A special case where we can call a template
 		  method; e.g.,
@@ -1504,6 +1552,7 @@ OBJECT *resolve (int message_ptr) {
 		 }
 	       }
 	     }
+#endif
 	   }
 	 }
 
@@ -1574,12 +1623,6 @@ OBJECT *resolve (int message_ptr) {
 					 expr_buf_out_2);
 		  fileout (expr_buf_out_2, 0, message_ptr);
 		  rme (&ms, message_ptr, _end_ptr);
-#if 0 /***/
-		  for (_j = message_ptr; _j >= _end_ptr; --_j) {
-		    ++ms.messages[_j] -> evaled;
-		    ++ms.messages[_j] -> output;
-		  }
-#endif		  
 		  return NULL;
 		} else if ((prev_tok_ptr =
 			    param_is_unary_prefix_operand (&ms))
@@ -1590,12 +1633,6 @@ OBJECT *resolve (int message_ptr) {
 		  fmt_eval_expr_str (expr_buf_out, expr_buf_out_2);
 		  fileout (expr_buf_out_2, 0, ms.tok);
 		  rme (&ms, prev_tok_ptr, _expr_end);
-#if 0 /***/
-		  for (_j = prev_tok_ptr; _j >= _expr_end; --_j) {
-		    ++ms.messages[_j] -> evaled;
-		    ++ms.messages[_j] -> output;
-		  }
-#endif		  
 		  return NULL;
 		} else {
 		  c_param_expr_arg (&ms);
@@ -2044,12 +2081,6 @@ OBJECT *resolve (int message_ptr) {
 	     fileout (expr_out, 0, message_ptr);
 	     __xfree(MEMADDR(s));
 	     rme (&ms, message_ptr, next_label_ptr);
-#if 0 /***/
-	     for (t = message_ptr; t >= next_label_ptr; t--) {
-	       ++ms.messages[t] -> evaled;
-	       ++ms.messages[t] -> output;
-	     }
-#endif	     
 	   }
 	 }
        }
@@ -2080,12 +2111,6 @@ OBJECT *resolve (int message_ptr) {
 	warning (m, "Syntax error");
       }
       rme (&ms, message_ptr, next_label_ptr);
-#if 0 /***/
-      for (i = message_ptr; i >= next_label_ptr; i--) {
-	++ms.messages[i] -> evaled;
-	++ms.messages[i] -> output;
-      }
-#endif      
       return NULL;
     }
     if (!strcmp (M_NAME(m), "noMethodInit")) {

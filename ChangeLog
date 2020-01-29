@@ -98,9 +98,10 @@
 2020-01-22
 	- Added the X11Bitmap : copy method.
 2020-01-24
-	- Added a beveled thumb to the X11ScrollBarPane class.  - Removed
-	the X11PaneDispatcher : subPaneInfo instance variable, and added
-	the X11PaneDispatcher : subPaneGeometry instance variable.
+	- Added a beveled thumb to the X11ScrollBarPane class.
+	- Removed the X11PaneDispatcher : subPaneInfo instance variable,
+	and added the X11PaneDispatcher : subPaneGeometry instance
+	variable.
 2020-01-25
 	- Updated the X11ScrollBarPane : subPaneResize method.
 	- In resolve, only look for parameters if the token is
@@ -123,8 +124,10 @@
 	- In resolve, moved the call to class_object_search within
 	the clause the the program takes when there isn't already
 	a result object (resolve.c).
-	- Moved part of resolve into resolve_single_tken_method_param
+	- Moved part of resolve into resolve_single_token_method_param
 	(resolve.c).
 	- Added rme (resolve.c).
+	- Added class_method_template_call, from a part of resolve
+	(resolve.c).
 
 
