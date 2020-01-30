@@ -1,4 +1,4 @@
-/* $Id: X11TextEditorPane,v 1.18 2020/01/07 23:20:48 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11TextEditorPane,v 1.28 2020/01/29 23:52:43 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -49,6 +49,11 @@ X11TextEditorPane instanceVariable selecting Boolean false;
 
 static int i_button = 0;
 static bool b_selecting = false;
+
+X11TextEditorPane instanceMethod clearSelection (void) {
+  self sStart = 0;
+  self sEnd = 0;
+}
 
 X11TextEditorPane instanceMethod subPaneResize (X11TextEditorPane __subPane, 
 					  InputEvent __event) {
@@ -283,7 +288,7 @@ X11TextEditorPane instanceMethod displayTextSelection (void) {
 
 X11TextEditorPane instanceMethod subPaneMotionNotify
                  (X11TextEditorPane __subPane, InputEvent __event) {
-
+  int row, col;
   if (i_button & BUTTON1MASK) {
     if (!b_selecting) {
       self sStart = __edittext_index_from_pointer
@@ -294,6 +299,14 @@ X11TextEditorPane instanceMethod subPaneMotionNotify
     self sEnd = __edittext_index_from_pointer
 	(self, __event xEventData1, __event xEventData2);
     self displayTextSelection;
+    __edittext_row_col_from_mark (self, __event xEventData1,
+				  __event xEventData2, &row, &col);
+    if ((row - self viewStartLine) >
+	(self viewHeight - (self scrollMargin * 2))) {
+      __edittext_scroll_down (self);
+      } else if (row <= (self viewStartLine + self scrollMargin))  {
+	__edittext_scroll_up (self);
+      }
   } else {
     if (b_selecting) {
       self sEnd = __edittext_index_from_pointer
@@ -319,6 +332,7 @@ X11TextEditorPane instanceMethod subPaneButtonPress
 	  i_button |= BUTTON1MASK;
 	  __edittext_point_to_click (self, __event xEventData1,
 				     __event xEventData2);
+	  self clearSelection;
 	  self displayText;
 	  break;
 	case Button2:
@@ -532,6 +546,7 @@ X11TextEditorPane instanceMethod subPaneKbdInput (X11TextEditorPane __subPane,
 	  self displayText;
 	  break;
 	default:
+	  self clearSelection;
 	  c = __edittext_insert_at_point (self, __event xEventData4,
 					  self shiftState,
 					  __event xEventData5);

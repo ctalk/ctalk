@@ -6832,6 +6832,10 @@ the main window.
 Sets the foreground and backgrounds color of the pane's window and
 buffers.
 
+>>>X11TextEditorPane::clearSelection (void)
+Sets the sStart and sEnd instance variables to '0',
+cancelling text selection.
+
 >>>X11TextEditorPane::defaultFormat (void)
 Sets the document-wide margins and text text colors.  If the pane is
 using an X11FreeTypeFont object to render text, the font needs

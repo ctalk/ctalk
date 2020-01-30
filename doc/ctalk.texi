@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.71 2020/01/26 19:10:37 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.72 2020/01/29 23:17:03 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -15083,6 +15083,11 @@ the main window.
 Sets the foreground and backgrounds color of the pane's window and
 buffers.
 
+@cindex @mnm{clearSelection} instance method @idxclscite{X11TextEditorPane}
+@item clearSelection (@code{void})
+Sets the @code{sStart} and @code{sEnd} instance variables to @samp{0},
+cancelling text selection.
+
 @cindex @mnm{defaultFormat} instance method @idxclscite{X11TextEditorPane}
 @item defaultFormat (@code{void})
 Sets the document-wide margins and text text colors.  If the pane is
@@ -21187,10 +21192,13 @@ is, if the value of the object is an empty string, @samp{(NULL)}, or
 @idxlibfn{__edittext_text_start}
 @idxlibfn{__edittext_text_end}
 @idxlibfn{__edittext_point_to_click}
+@idxlibfn{__edittext_rol_col_from_mark}
 @idxlibfn{__edittext_index_from_pointer}
 @idxlibfn{__edittext_index_from_pointer}
 @idxlibfn{__edittext_insert_str_at_click}
 @idxlibfn{__edittext_insert_str_at_point}
+@idxlibfn{__edittext_scroll_down}
+@idxlibfn{__edittext_scroll_up}
 @idxlibfn{__edittext_set_selection_owner}
 @idxclscite {X11TextEditorPane}
 @cindex Text editing
@@ -21206,6 +21214,8 @@ is, if the value of the object is an empty string, @samp{(NULL)}, or
 @item __edittext_prev_char (OBJECT *x11texteditorpane_object)
 @item __edittext_prev_line (OBJECT *x11texteditorpane_object)
 @item __edittext_prev_page (OBJECT *x11texteditorpane_object)
+@item __edittext_scroll_down (OBJECT *x11texteditorpane_object)
+@item __edittext_scroll_up (OBJECT *x11texteditorpane_object)
 @item __edittext_text_start (OBJECT *x11texteditorpane_object)
 @item __edittext_text_end (OBJECT *x11texteditorpane_object)
 @item __edittext_point_to_click (OBJECT *x11texteditorpane_object, int pointer_x, int pointer_y)

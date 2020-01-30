@@ -3335,6 +3335,10 @@ Instance Methods
      Sets the foreground and backgrounds color of the pane's window and
      buffers.
 
+'clearSelection (void)'
+     Sets the 'sStart' and 'sEnd' instance variables to '0', cancelling
+     text selection.
+
 'defaultFormat (void)'
      Sets the document-wide margins and text text colors.  If the pane
      is using an 'X11FreeTypeFont' object to render text, the font needs
@@ -8358,6 +8362,8 @@ functions.
 '__edittext_prev_char (OBJECT *x11texteditorpane_object)'
 '__edittext_prev_line (OBJECT *x11texteditorpane_object)'
 '__edittext_prev_page (OBJECT *x11texteditorpane_object)'
+'__edittext_scroll_down (OBJECT *x11texteditorpane_object)'
+'__edittext_scroll_up (OBJECT *x11texteditorpane_object)'
 '__edittext_text_start (OBJECT *x11texteditorpane_object)'
 '__edittext_text_end (OBJECT *x11texteditorpane_object)'
 '__edittext_point_to_click (OBJECT *x11texteditorpane_object, int pointer_x, int pointer_y)'

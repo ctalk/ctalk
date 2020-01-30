@@ -1,4 +1,4 @@
-/* $Id: resolve.c,v 1.12 2020/01/29 01:12:54 rkiesling Exp $ */
+/* $Id: resolve.c,v 1.13 2020/01/29 23:55:29 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -1179,7 +1179,6 @@ static OBJECT *resolve_single_token_method_param (MSINFO *ms,
   return NULL;
 }
 
-/***/
 static OBJECT *class_method_template_call (MSINFO *ms, int messageptr,
 					   int prev_tok_idx) {
 
@@ -1509,50 +1508,6 @@ OBJECT *resolve (int message_ptr) {
 						  prev_tok_ptr)) != NULL) {
 	       return o;
 	     }
-#if 0 /***/
-	     if ((M_TOK(m_prev_tok) == LABEL) && (m_prev_tok -> obj != NULL)) {
-	       /* A special case where we can call a template
-		  method; e.g.,
-		  CFunction <template_name>
-
-		  This could probably be generalized to any
-		  class method call, if we have any expressions
-		  that require it.
-	       */
-	       if (IS_CLASS_OBJECT (m_prev_tok -> obj) &&
-		   str_eq (m_prev_tok -> obj -> __o_name, 
-			   CFUNCTION_CLASSNAME)) {
-		 if (template_name (M_NAME(m))) {
-		   template_call_from_CFunction_receiver 
-		     (ms.messages, message_ptr);
-		   return m_prev_tok -> obj;
-		 } else {
-		   object_does_not_understand_msg_warning_a 
-		     (m, m_prev_tok -> obj -> __o_name,
-		      m_prev_tok -> obj -> __o_classname,
-		      M_NAME(m));
-		 }
-	       } else {
-		 if (get_instance_method (m_prev_tok,
-					  m_prev_tok -> obj,
-					  M_NAME(m),
-					  ANY_ARGS, FALSE) ||
-		     get_class_method (m_prev_tok,
-				       m_prev_tok -> obj,
-				       M_NAME(m),
-				       ANY_ARGS, FALSE)) {
-		   method_shadows_c_keyword_warning_a (ms.messages,
-						       message_ptr,
-						       prev_tok_ptr);
-		 } else {
-		   object_does_not_understand_msg_warning_a 
-		     (m, m_prev_tok -> obj -> __o_name,
-		      m_prev_tok -> obj -> __o_classname,
-		      M_NAME(m));
-		 }
-	       }
-	     }
-#endif
 	   }
 	 }
 

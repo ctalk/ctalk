@@ -1,8 +1,8 @@
-/* $Id: edittext.c,v 1.20 2020/01/16 01:51:59 rkiesling Exp $ -*-c-*-*/
+/* $Id: edittext.c,v 1.28 2020/01/29 22:31:00 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
-  Copyright © 2018-2019  Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2018-2020  Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
 
@@ -789,6 +789,55 @@ int __edittext_index_from_pointer (OBJECT *editorpane_object,
 
 }
 
+int __edittext_row_col_from_mark (OBJECT *editorpane_object,
+				  int mark_x_px, int mark_y_px,
+				  int *row_out, int *col_out) {
+  LINEREC *l, *text_lines = NULL;
+  int char_cell_width, char_cell_height, l_point, l_line_width,
+    line_no;
+
+  if (need_init)
+    buf_init (editorpane_object);
+  if (XFT) {
+    /* We're using outline fonts. */
+    char_cell_width =
+      INTVAL(ft_fontvar_maxadvance_instance_var -> __o_value);
+    char_cell_height = INTVAL(ft_fontvar_ascent_instance_var -> __o_value) +
+      INTVAL(ft_fontvar_descent_instance_var -> __o_value);
+  } else {
+    char_cell_width =
+      INTVAL(fontvar_maxwidth_instance_var -> __o_value);
+    char_cell_height =
+      INTVAL(fontvar_height_instance_var -> __o_value);
+  }
+  l_point = __text_index_from_click
+    (text_instance_var -> __o_value, mark_x_px, mark_y_px,
+     char_cell_width, char_cell_height);
+  l_line_width = calc_line_width ();
+  split_text (text_instance_var -> __o_value, &text_lines, l_line_width);
+  if (text_lines == NULL)
+    return SUCCESS;
+
+  line_no = 0;
+  for (l = text_lines; l; l = l -> next) {
+    if (l -> next) {
+      if (l_point >= l -> start && l_point < l -> next -> start) {
+	*col_out = 0;
+	*row_out = line_no;
+	break;
+      }
+    } else {
+      *col_out = 0;
+      *row_out = line_no;
+      break;
+    }
+    ++line_no;
+  }
+
+  delete_lines (&text_lines);
+  return SUCCESS;
+}
+
 int __edittext_point_to_click (OBJECT *editorpane_object,
 				int click_x, int click_y) {
   int char_cell_width, char_cell_height;
@@ -964,6 +1013,9 @@ int __edittext_insert_str_at_point (OBJECT *editorpane_object, char *str) {
 int __edittext_insert_at_point (OBJECT *editorpane_object,
 				int keycode, int shift_state,
 				int keypress) {
+  LINEREC *text_lines = NULL, *l;
+  int l_viewstart, l_viewlines, line_no, l_scrollmargin,
+    l_viewheight, l_col, l_line_width;
   int keysym;
   int l_point, l_textlength, l_buflength;
   Display *d_local;
@@ -1094,6 +1146,40 @@ int __edittext_insert_at_point (OBJECT *editorpane_object,
   buffer_size_check (text_instance_var, l_textlength);
   
   __xfree (MEMADDR(insbuf));
+
+  /* Make sure that the point is in the visible region. */
+  l_viewstart = INTVAL(viewstartline_instance_var -> __o_value);
+  l_scrollmargin = INTVAL(scrollmargin_instance_var -> __o_value);
+  l_viewlines = calc_viewlines ();
+  l_line_width = calc_line_width ();
+  l_viewheight = INTVAL(viewheightlines_instance_var -> __o_value);
+
+  split_text (text_instance_var -> __o_value, &text_lines, l_line_width);
+
+  if (text_lines == NULL)
+    return SUCCESS;
+
+  line_no = 0;
+  for (l = text_lines; l; l = l -> next) {
+    if (l -> next) {
+      if (l_point >= l -> start && l_point < l -> next -> start) {
+	l_col = l_point - l -> start;
+	/* point_new = shorter_line_adj (l, l -> next, l_col); *//***/
+	/* EDITINTSET(point_instance_var, point_new); *//***/
+	/* cursor_line = line_no; *//***/
+	break;
+      }
+    } else {
+      return SUCCESS;
+    }
+    ++line_no;
+  }
+
+  if ((line_no <= (l_viewstart + l_scrollmargin)) ||
+      (line_no >= (l_viewstart + l_viewheight))) {
+    EDITINTSET(viewstartline_instance_var,
+	       (line_no - (l_viewheight / 2)));
+  }
 
   return keysym;
 }
@@ -1353,6 +1439,93 @@ int __edittext_next_page (OBJECT *editorpane_object) {
   EDITINTSET(viewstartline_instance_var, l_viewstartline);
   delete_lines (&text_lines);
 
+  return SUCCESS;
+}
+
+int __edittext_scroll_down (OBJECT *editorpane_object) {
+  LINEREC *text_lines = NULL, *l;
+  int l_point, l_col, l_viewstart, l_viewlines,
+    line_no, cursor_line, l_line_width;
+
+  if (need_init)
+    buf_init (editorpane_object);
+  
+  l_viewstart = INTVAL(viewstartline_instance_var -> __o_value);
+  l_viewlines = calc_viewlines ();
+  l_line_width = calc_line_width ();
+  l_point =
+    INTVAL(point_instance_var -> instancevars -> __o_value);
+  split_text (text_instance_var -> __o_value, &text_lines, l_line_width);
+
+  if (text_lines == NULL)
+    return SUCCESS;
+
+  line_no = 0;
+  for (l = text_lines; l; l = l -> next) {
+    if (l -> next) {
+      if (l_point >= l -> start && l_point < l -> next -> start) {
+	l_col = l_point - l -> start;
+	/* point_new = shorter_line_adj (l, l -> next, l_col); *//***/
+	/* EDITINTSET(point_instance_var, point_new); *//***/
+	/* cursor_line = line_no; *//***/
+	break;
+      }
+    } else {
+      return SUCCESS;
+    }
+    ++line_no;
+  }
+
+  /* Scroll down if needed and move the cursor back
+     into the view. */
+  ++l_viewstart;
+  
+  EDITINTSET(viewstartline_instance_var, l_viewstart);
+  delete_lines (&text_lines);
+  return SUCCESS;
+}
+
+int __edittext_scroll_up (OBJECT *editorpane_object) {
+  LINEREC *text_lines = NULL, *l;
+  int l_point, l_col, l_viewstart, l_viewlines,
+    line_no, cursor_line, l_line_width;
+
+  if (need_init)
+    buf_init (editorpane_object);
+  
+  l_viewstart = INTVAL(viewstartline_instance_var -> __o_value);
+  l_viewlines = calc_viewlines ();
+  l_line_width = calc_line_width ();
+  l_point =
+    INTVAL(point_instance_var -> instancevars -> __o_value);
+  split_text (text_instance_var -> __o_value, &text_lines, l_line_width);
+
+  if (text_lines == NULL)
+    return SUCCESS;
+
+  line_no = 0;
+  for (l = text_lines; l; l = l -> next) {
+    if (l -> next) {
+      if (l_point >= l -> start && l_point < l -> next -> start) {
+	l_col = l_point - l -> start;
+	/* point_new = shorter_line_adj (l, l -> next, l_col); *//***/
+	/* EDITINTSET(point_instance_var, point_new); *//***/
+	/* cursor_line = line_no; *//***/
+	break;
+      }
+    } else {
+      return SUCCESS;
+    }
+    ++line_no;
+  }
+
+  /* Scroll down if needed and move the cursor back
+     into the view. */
+  if (l_viewstart > 0)
+    --l_viewstart;
+  
+  EDITINTSET(viewstartline_instance_var, l_viewstart);
+  delete_lines (&text_lines);
   return SUCCESS;
 }
 
@@ -2383,5 +2556,25 @@ int __edittext_get_primary_selection (OBJECT *editorpane_object,
 	   "the X Window System.\n");
   exit (EXIT_FAILURE);
 }  
+
+int __edittext_row_col_from_mark (OBJECT *editorpane_object,
+				  int mark_x, int mark_y,
+				  int *row_out, int *col_out) {
+  fprintf (stderr, "__edittext_insert_selection: This function requires "
+	   "the X Window System.\n");
+  exit (EXIT_FAILURE);
+}
+
+int edittext_scroll_down (OBJECT *editorpane_object) {
+  fprintf (stderr, "__edittext_insert_selection: This function requires "
+	   "the X Window System.\n");
+  exit (EXIT_FAILURE);
+}
+
+int edittext_scroll_up (OBJECT *editorpane_object) {
+  fprintf (stderr, "__edittext_insert_selection: This function requires "
+	   "the X Window System.\n");
+  exit (EXIT_FAILURE);
+}
 
 #endif /* ! defined (DJGPP) && ! defined (WITHOUT_X11) */
