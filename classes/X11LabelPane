@@ -1,4 +1,4 @@
-/* $Id: X11LabelPane,v 1.12 2020/01/15 23:32:03 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11LabelPane,v 1.13 2020/01/31 17:28:05 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -87,8 +87,8 @@ X11LabelPane instanceMethod new (String __paneName) {
   __paneName setMethodHandler "expose", exposeMethod;
   enterMethod definedInstanceMethod "X11LabelPane", "subPaneEnter";
   __paneName setMethodHandler "enternotify", enterMethod;
-  enterMethod definedInstanceMethod "X11LabelPane", "subPaneLeave";
-  __paneName setMethodHandler "leavenotify", enterMethod;
+  leaveMethod definedInstanceMethod "X11LabelPane", "subPaneLeave";
+  __paneName setMethodHandler "leavenotify", leaveMethod;
 
   __paneName background "white";
   __paneName foreground "black";
