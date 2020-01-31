@@ -1,4 +1,4 @@
-/* $Id: ctalklib.in,v 1.45 2020/01/29 19:15:05 rkiesling Exp $ -*-c-*-*/
+/* $Id: ctalklib.in,v 1.47 2020/01/31 07:56:48 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -1384,6 +1384,8 @@ extern int __edittext_insert_str_at_click (OBJECT *, int, int, char *);
 extern int __edittext_row_col_from_mark (OBJECT *, int, int, int *, int *);
 extern int __edittext_scroll_down (OBJECT *);
 extern int __edittext_scroll_up (OBJECT *);
+extern int __edittext_recenter (OBJECT *);
+extern unsigned int __edittext_xk_keysym (int, int, int);
 
 extern void __glx_resize (int, int);
 extern void __glx_get_win_config (int *, int *, int *, int *);

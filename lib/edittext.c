@@ -1,4 +1,4 @@
-/* $Id: edittext.c,v 1.28 2020/01/29 22:31:00 rkiesling Exp $ -*-c-*-*/
+/* $Id: edittext.c,v 1.33 2020/01/31 08:12:52 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -1010,6 +1010,21 @@ int __edittext_insert_str_at_point (OBJECT *editorpane_object, char *str) {
   return SUCCESS;
 }
 
+/***/
+unsigned int __edittext_xk_keysym (int keycode, int shift_state,
+				   int keypress) {
+  Display *d_local;
+  unsigned int keysym;
+
+  d_local = XOpenDisplay (getenv ("DISPLAY"));
+
+  keysym = get_x11_keysym_2 (d_local, keycode, shift_state, keypress);
+
+  XCloseDisplay (d_local);
+
+  return keysym;
+}
+
 int __edittext_insert_at_point (OBJECT *editorpane_object,
 				int keycode, int shift_state,
 				int keypress) {
@@ -1148,6 +1163,8 @@ int __edittext_insert_at_point (OBJECT *editorpane_object,
   __xfree (MEMADDR(insbuf));
 
   /* Make sure that the point is in the visible region. */
+  /* going into __edittext_recenter */
+#if 0 /***/
   l_viewstart = INTVAL(viewstartline_instance_var -> __o_value);
   l_scrollmargin = INTVAL(scrollmargin_instance_var -> __o_value);
   l_viewlines = calc_viewlines ();
@@ -1181,6 +1198,8 @@ int __edittext_insert_at_point (OBJECT *editorpane_object,
 	       (line_no - (l_viewheight / 2)));
   }
 
+  delete_lines (&text_lines);
+#endif  
   return keysym;
 }
 
@@ -1439,6 +1458,57 @@ int __edittext_next_page (OBJECT *editorpane_object) {
   EDITINTSET(viewstartline_instance_var, l_viewstartline);
   delete_lines (&text_lines);
 
+  return SUCCESS;
+}
+
+int __edittext_recenter (OBJECT *editorpane_object) {
+  LINEREC *text_lines = NULL, *l, *point_line;
+  int l_line_width, l_viewheightlines, l_viewstartline,
+    l_scrollmargin, point_line_no, l_point;
+
+  if (need_init)
+    buf_init (editorpane_object);
+
+  l_line_width = calc_line_width ();
+  l_viewheightlines =
+    INTVAL(viewheightlines_instance_var -> instancevars -> __o_value);
+  l_viewstartline =
+    INTVAL(viewstartline_instance_var -> instancevars -> __o_value);
+  l_point =
+    INTVAL(point_instance_var -> instancevars -> __o_value);
+
+  split_text (text_instance_var -> __o_value, &text_lines, l_line_width);
+  if (text_lines == NULL) {
+    return SUCCESS;
+  } else if (text_lines -> next == NULL) {
+    delete_lines (&text_lines);
+    return SUCCESS;
+  }
+
+  for (point_line_no = 0, l = text_lines; l;
+       l = l -> next, ++point_line_no) {
+    if (l -> next) {
+      if ((l_point >= l -> start) && (l_point < l -> next -> start)) {
+	point_line = l;
+	break;
+      }
+    } else if (l_point >= l -> start) { /* last line */
+      break;
+    }
+  }
+
+  /* point is already within the view */
+  if ((point_line_no >=  l_viewstartline) &&
+      (point_line_no < l_viewstartline + l_viewheightlines)) {
+    delete_lines (&text_lines);
+    return SUCCESS;
+  }
+  
+  l_viewstartline = (point_line_no - (l_viewheightlines / 2));
+
+  EDITINTSET(viewstartline_instance_var, l_viewstartline);
+  
+  delete_lines (&text_lines);
   return SUCCESS;
 }
 
@@ -2572,6 +2642,19 @@ int edittext_scroll_down (OBJECT *editorpane_object) {
 }
 
 int edittext_scroll_up (OBJECT *editorpane_object) {
+  fprintf (stderr, "__edittext_insert_selection: This function requires "
+	   "the X Window System.\n");
+  exit (EXIT_FAILURE);
+}
+
+int __edittext_recenter (OBJECT *editorpane_object) {
+  fprintf (stderr, "__edittext_insert_selection: This function requires "
+	   "the X Window System.\n");
+  exit (EXIT_FAILURE);
+}
+
+unsigned int __edittext_xk_keysym (int keycode, int shift_state,
+				   int keypress) {
   fprintf (stderr, "__edittext_insert_selection: This function requires "
 	   "the X Window System.\n");
   exit (EXIT_FAILURE);

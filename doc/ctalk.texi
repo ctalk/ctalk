@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.72 2020/01/29 23:17:03 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.74 2020/01/31 08:12:52 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -21180,6 +21180,7 @@ is, if the value of the object is an empty string, @samp{(NULL)}, or
 @code{NULLs} in C expressions without the generating compiler warnings.
 
 @idxlibfn{__edittext_insert_at_point}
+@idxlibfn{__edittext_xk_keysym}
 @idxlibfn{__edittext_prev_char}
 @idxlibfn{__edittext_next_char}
 @idxlibfn{__edittext_prev_line}
@@ -21197,6 +21198,7 @@ is, if the value of the object is an empty string, @samp{(NULL)}, or
 @idxlibfn{__edittext_index_from_pointer}
 @idxlibfn{__edittext_insert_str_at_click}
 @idxlibfn{__edittext_insert_str_at_point}
+@idxlibfn{__edittext_recenter}
 @idxlibfn{__edittext_scroll_down}
 @idxlibfn{__edittext_scroll_up}
 @idxlibfn{__edittext_set_selection_owner}
@@ -21208,6 +21210,7 @@ is, if the value of the object is an empty string, @samp{(NULL)}, or
 @item __edittext_insert_at_point (OBJECT *x11texteditorpane_object, int keycode, int shift_state, int keypress)
 @item __edittext_line_end (OBJECT *x11texteditorpane_object)
 @item __edittext_line_start (OBJECT *x11texteditorpane_object)
+@item __edittext_xk_keysym (@code{int} @var{keycode}, @code{int} @var{shift_state}, @code{int} @var{keypress})
 @item __edittext_next_char (OBJECT *x11texteditorpane_object)
 @item __edittext_next_line (OBJECT *x11texteditorpane_object)
 @item __edittext_next_page (OBJECT *x11texteditorpane_object)
@@ -21224,6 +21227,7 @@ is, if the value of the object is an empty string, @samp{(NULL)}, or
 @item __edittext_insert_str_at_point (OBJECT *x11texteditorpane_object, char *)
 @item __edittext_get_primary_selection (OBJECT *x11texteditorpan_eobject, void **buf_out, int *size_out)
 @item __edittext_set_selection_owner (OBJECT *x11texteditorpane_object)
+@item __edittext_recenter (OBJECT *x11texteditorpane_object)
 Text editing functions used by @code{X11TextEditorPane} objects.
 For more information, refer to @code{X11TextEditorPane} class..
 @xref{X11TextEditorPane}.

@@ -8356,6 +8356,7 @@ functions.
 '__edittext_insert_at_point (OBJECT *x11texteditorpane_object, int keycode, int shift_state, int keypress)'
 '__edittext_line_end (OBJECT *x11texteditorpane_object)'
 '__edittext_line_start (OBJECT *x11texteditorpane_object)'
+'__edittext_xk_keysym (int KEYCODE, int SHIFT_STATE, int KEYPRESS)'
 '__edittext_next_char (OBJECT *x11texteditorpane_object)'
 '__edittext_next_line (OBJECT *x11texteditorpane_object)'
 '__edittext_next_page (OBJECT *x11texteditorpane_object)'
@@ -8372,6 +8373,7 @@ functions.
 '__edittext_insert_str_at_point (OBJECT *x11texteditorpane_object, char *)'
 '__edittext_get_primary_selection (OBJECT *x11texteditorpan_eobject, void **buf_out, int *size_out)'
 '__edittext_set_selection_owner (OBJECT *x11texteditorpane_object)'
+'__edittext_recenter (OBJECT *x11texteditorpane_object)'
      Text editing functions used by 'X11TextEditorPane' objects.  For
      more information, refer to 'X11TextEditorPane' class..  *Note
      X11TextEditorPane::.
