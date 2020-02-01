@@ -1,4 +1,4 @@
-/* $Id: rt_args.c,v 1.13 2020/01/16 21:45:03 rkiesling Exp $ */
+/* $Id: rt_args.c,v 1.14 2020/02/01 13:18:01 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -364,9 +364,19 @@ int __ctalk_arg (char *__recv_name, char *__method, int n_params,
 		    OBJECT_IS_MEMBER_OF_PARENT_COLLECTION) {
 	  arg_p_object = arg_object;
 	} else {
-	  arg_p_object = 
-	    ((arg_object -> __o_p_obj != NULL) ? 
-	     arg_object -> __o_p_obj : arg_object);
+	  /***/
+	  if ((arg_object == (OBJECT *)__arg) &&
+	      (IS_OBJECT(arg_object -> instancevars)) &&
+	      (arg_object -> instancevars -> attrs & OBJECT_IS_VALUE_VAR)) {
+	    /* I.e., if it's a declared object, instance or class
+	       variable, regardless of parent, and is the return value
+	       of a __ctalk_arg_internal call. */
+	    arg_p_object = arg_object;
+	  } else {
+	    arg_p_object = 
+	      ((arg_object -> __o_p_obj != NULL) ? 
+	       arg_object -> __o_p_obj : arg_object);
+	  }
 	}
       } else {
 	if (arg_object -> attrs & OBJECT_IS_MEMBER_OF_PARENT_COLLECTION) {

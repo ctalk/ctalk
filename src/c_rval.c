@@ -232,6 +232,8 @@ int is_self_expr_as_fn_lvalue (MESSAGE *m_sender,
 	  next_message -> receiver_msg = sender_rcvr_msg;
 	  
 	  prev_object_l = next_instance_var;
+	} else if (str_eq (M_NAME(messages[next_idx]), "super")) { /***/
+	  return FALSE;
 	} else {
 	  
 	  if (M_TOK(messages[next_idx]) == EQ) {

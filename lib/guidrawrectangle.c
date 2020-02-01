@@ -1,4 +1,4 @@
-/* $Id: guidrawrectangle.c,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-c-*-*/
+/* $Id: guidrawrectangle.c,v 1.2 2020/02/01 00:18:54 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -108,11 +108,26 @@ int __ctalkGUIPaneDrawRectangle (OBJECT *self, OBJECT *rectangle, OBJECT *pen,
 		      &panebackingstore_xid);
 
   strcatx (d_buf,
-	   ascii[*(int *)rect_top_start_x->instancevars->__o_value], ":",
-	   ascii[*(int *)rect_top_start_y->instancevars->__o_value], ":",
-	   ascii[*(int *)rect_right_end_x->instancevars->__o_value], ":",
-	   ascii[*(int *)rect_right_end_y->instancevars->__o_value], ":",
-	   ascii[*(int *)pen_width_object->instancevars->__o_value], ":",
+	   ascii[(*(unsigned int *)rect_top_start_x->instancevars->
+		  __o_value < 8192) ?
+		 *(unsigned int *)rect_top_start_x -> instancevars
+		 -> __o_value : 0], ":",
+	   ascii[(*(unsigned int *)rect_top_start_y->instancevars->
+		  __o_value < 8192) ?
+		 *(unsigned int *) rect_top_start_y -> instancevars
+		 -> __o_value: 0], ":",
+	   ascii[(*(unsigned int *)rect_right_end_x->instancevars
+		  ->__o_value < 8192) ?
+		 *(unsigned int *)rect_right_end_x -> instancevars
+		 -> __o_value : 0], ":",
+	   ascii[(*(unsigned int *)rect_right_end_y->instancevars
+		  ->__o_value < 8192) ?
+		 *(unsigned int *)rect_right_end_y -> instancevars
+		 -> __o_value: 0], ":",
+	   ascii[(*(unsigned int *)pen_width_object->instancevars->
+		  __o_value < 8192) ?
+		 *(unsigned int *)pen_width_object -> instancevars ->
+		 __o_value : 0], ":",
 	   ctitoa (fill, intbuf1), ":",
 	   ctitoa (panebuffer_xid, intbuf2), ":",
 	   ctitoa (panebackingstore_xid, intbuf3), ":",
