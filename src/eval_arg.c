@@ -1,4 +1,4 @@
-/* $Id: eval_arg.c,v 1.9 2020/01/26 13:19:55 rkiesling Exp $ */
+/* $Id: eval_arg.c,v 1.11 2020/02/02 04:02:52 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -1896,6 +1896,37 @@ OBJECT *eval_arg (METHOD *method, OBJECT *rcvr_class, ARGSTR *argbuf,
 		if (str_eq (method -> name, "->")) {
 		  if (is_OBJECT_member (M_NAME(m_messages[i])))
 		    continue;
+		} else {
+		  /* check for instance and class variable typos,
+		     like the var on its own */
+		  /***/
+		  instancevar_wo_rcvr_warning
+		    (m_messages, i, (first_label_idx == -1),
+		     main_stack_idx);
+#if 0 /***/
+		  if (M_TOK(m_arg) == LABEL &&
+		      interpreter_pass != expr_check) {
+		    if (first_label_idx != -1) {
+		      int p = 0;
+		      if ((p = prevlangmsg (m_messages, i)) != -1) {
+			if ((M_TOK(m_messages[p]) != LABEL) &&
+			    (M_TOK(m_messages[p]) != CLOSEPAREN)) {
+			  /* a closing paren as the previous token
+			     can be the end of a receiver expression,
+			     i.e., the label is a method, so don't 
+			     check if the label is defined here */
+			  if (!(m_arg -> attrs & TOK_SELF) &&
+			      !(m_arg -> attrs & TOK_SUPER) &&
+			      !IS_DEFINED_LABEL(M_NAME(m_arg))) {
+			    warning (message_stack_at (main_stack_idx),
+				     "Undefined label, \"%s.\"",
+				     M_NAME(m_arg));
+			  }
+			}
+		      }
+		    }
+		  }
+#endif		
 		}
 	      }  /* if ((method -> n_args == 0) ... */
 	    }

@@ -1,4 +1,4 @@
-/* $Id: errmsgs.c,v 1.2 2019/12/23 07:45:10 rkiesling Exp $ */
+/* $Id: errmsgs.c,v 1.3 2020/02/02 04:02:52 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -50,6 +50,8 @@ extern CTRLBLK *ctrlblks[MAXARGS + 1];  /* Declared in control.c. */
 extern int ctrlblk_ptr;
 
 bool argblk;                            /* Declared in argblk.c. */
+
+extern HASHTAB defined_instancevars;    /* Declared in primitives.c. */
 
 void method_args_wrong_number_of_arguments_1 (MESSAGE_STACK messages,
 					      int err_idx,
@@ -937,4 +939,45 @@ void self_instvar_expr_unknown_label (MESSAGE_STACK messages,
   error (messages[unknown_tok_idx], "Undefined label, \"%s,\" in "
 	   "expression.\n\n\t%s\n\n", M_NAME(messages[unknown_tok_idx]),
 	   errbuf);
+}
+
+/***/
+/* This is still preliminary. */
+void instancevar_wo_rcvr_warning (MESSAGE_STACK messages, int tok_idx,
+				  bool first_label, int main_stack_idx) {
+
+  MESSAGE *m_tok;
+  int prev_tok;
+
+  m_tok = messages[tok_idx];
+
+  if (M_TOK(m_tok) == LABEL &&
+      interpreter_pass != expr_check) {
+    if (!first_label) {
+      if ((prev_tok = prevlangmsg (messages, tok_idx)) != -1) {
+	if ((M_TOK(messages[prev_tok]) != LABEL) &&
+	    (M_TOK(messages[prev_tok]) != CLOSEPAREN) &&
+	    (M_TOK(messages[prev_tok]) != ARRAYCLOSE) &&
+	    !IS_CONSTANT_TOK(M_TOK(messages[prev_tok]))) {
+	  /* a closing paren as the previous token
+	     can be the end of a receiver constant,
+	     subscripted constant, or expression;
+	     i.e., the label is a method, so don't 
+	     check if the label is defined here */
+	  if (!(m_tok -> attrs & TOK_SELF) &&
+	      !(m_tok -> attrs & TOK_SUPER) &&
+	      !IS_DEFINED_LABEL(M_NAME(m_tok))) {
+	    if (_hash_get (defined_instancevars, M_NAME(m_tok)))
+	      warning (message_stack_at (main_stack_idx),
+		       "Instance variable, \"%s,\" used without a receiver.",
+		       M_NAME(m_tok));
+	    else
+	      warning (message_stack_at (main_stack_idx),
+		       "Undefined label, \"%s.\"",
+		       M_NAME(m_tok));
+	  }
+	}
+      }
+    }
+  }
 }
