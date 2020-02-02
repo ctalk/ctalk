@@ -1,4 +1,4 @@
-/* $Id: guidrawrectangle.c,v 1.2 2020/02/01 00:18:54 rkiesling Exp $ -*-c-*-*/
+/* $Id: guidrawrectangle.c,v 1.3 2020/02/02 22:33:06 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -84,8 +84,9 @@ int __ctalkGUIPaneDrawRectangle (OBJECT *self, OBJECT *rectangle, OBJECT *pen,
 
   pen_width_object = 
     __ctalkGetInstanceVariable (pen_object, "width", TRUE);
-  pen_color_object = 
-    __ctalkGetInstanceVariable (pen_object, "colorName", TRUE);
+  if ((pen_color_object = 
+       __ctalkGetInstanceVariable (pen_object, "colorName", TRUE)) == NULL)
+    return ERROR;
   rect_top = 
     __ctalkGetInstanceVariable (rectangle_object, "top", TRUE);
   rect_top_start = 
