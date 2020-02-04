@@ -2287,10 +2287,15 @@ Instance Methods
      'pen' instance variable; otherwise uses the line width and color
      defined by the 'Pen' argument.
 
-'drawLine (Intger XORG, Integer YORG, Integer XSIZE, Integer YSIZE)'
+'drawRectangle (Intger XORG, Integer YORG, Integer XSIZE, Integer YSIZE)'
      Draw the borders of a rectangle on the pane's window with the
      upper-left hand corner at the point given by the XORG and YORG
      arguments, with the width XSIZE and the height YSIZE.
+
+'drawRoundedRectangle (Intger XORG, Integer YORG, Integer XSIZE, Integer YSIZE, Integer RADIUS)'
+     This method is similar to 'drawRectangle', except that it takes an
+     extra argument, RADIUS, which specifies the radius of the arcs that
+     form the rectangle's corners.
 
 'directCopy (X11Bitmap SRC_BITMAP, Integer SRC_X_ORT, Integer SRC_Y_ORG, Integer SRC_WIDTH, Integer SRC_HEIGHT, Integer DEST_X_ORG, Integer DEST_Y_ORG)'
      Similar to the 'copy' method, above, except 'directCopy' copies the
@@ -7023,6 +7028,11 @@ functions.
 '__ctalkGUIPaneDrawRectangle (OBJECT *PANE_OBJECT, OBJECT *RECTANGLE_OBJECT, OBJECT *PEN_OBJECT, int FILL)'
      Draw a rectangle on PANE_OBJECT specified by RECTANGLE_OBJECT using
      PEN_OBJECT.  If FILL is non-zero, draw a filled rectangle.
+
+'__ctalkGUIPaneDrawRoundedRectangle (OBJECT *PANE_OBJECT, OBJECT *RECTANGLE_OBJECT, OBJECT *PEN_OBJECT, int FILL, int RADIUS)'
+     This is similar to '__ctalkGUIPaneDrawRectangle', except that it
+     takes an extra argument, RADIUS, which specifies the radius of the
+     arcs that are used to draw the corners.
 
 '__ctalkGUIPanePutStr (OBJECT *PANE_OBJECT, int X, int Y, char *STRING)'
      Display 'String' object STRING at coordinates X,Y on PANE_OBJECT.

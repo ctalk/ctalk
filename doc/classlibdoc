@@ -6546,11 +6546,16 @@ line width and color defined by the receiver's pen instance
 variable; otherwise uses the line width and color defined by the
 Pen argument.
 
->>>X11CanvasPane::drawLine (Intger xOrg, Integer yOrg, Integer xSize, Integer ySize)
+>>>X11CanvasPane::drawRectangle (Intger xOrg, Integer yOrg, Integer xSize, Integer ySize)
 Draw the borders of a rectangle on the pane's window with
 the upper-left hand corner at the point given by the
 xOrg and yOrg arguments, with the width
 xSize and the height ySize.
+
+>>>X11CanvasPane::drawRoundedRectangle (Intger xOrg, Integer yOrg, Integer xSize, Integer ySize, Integer radius)
+This method is similar to drawRectangle, except that it takes an
+extra argument, radius, which specifies the radius of the arcs
+that form the rectangle's corners.
 
 >>>X11CanvasPane::directCopy (X11Bitmap src_bitmap, Integer src_x_ort, Integer src_y_org, Integer src_width, Integer src_height, Integer dest_x_org, Integer dest_y_org)
 Similar to the copy method, above, except directCopy

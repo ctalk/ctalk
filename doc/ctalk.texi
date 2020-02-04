@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.77 2020/02/04 01:55:55 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.78 2020/02/04 17:40:14 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -13836,11 +13836,17 @@ variable; otherwise uses the line width and color defined by the
 @code{Pen} argument.
 
 @cindex @mnm{drawRectangle} instance method @idxclscite{X11CanvasPane}
-@item @mnm{drawLine} (@code{Intger} @var{xOrg}, @code{Integer} @var{yOrg}, @code{Integer} @var{xSize}, @code{Integer} @var{ySize})
+@item @mnm{drawRectangle} (@code{Intger} @var{xOrg}, @code{Integer} @var{yOrg}, @code{Integer} @var{xSize}, @code{Integer} @var{ySize})
 Draw the borders of a rectangle on the pane's window with
 the upper-left hand corner at the point given by the
 @var{xOrg} and @var{yOrg} arguments, with the width
 @var{xSize} and the height @var{ySize}.
+
+@cindex @mnm{drawRoundedRectangle} instance method @idxclscite{X11CanvasPane}
+@item @mnm{drawRoundedRectangle} (@code{Intger} @var{xOrg}, @code{Integer} @var{yOrg}, @code{Integer} @var{xSize}, @code{Integer} @var{ySize}, @code{Integer} @var{radius})
+This method is similar to @mnm{drawRectangle}, except that it takes an
+extra argument, @var{radius}, which specifies the radius of the arcs
+that form the rectangle's corners.
 
 @cindex @mnm{directCopy} instance method @idxclscite{X11CanvasPane}
 @item @mnm{directCopy} (@code{X11Bitmap} @var{src_bitmap}, @code{Integer} @var{src_x_ort}, @code{Integer} @var{src_y_org}, @code{Integer} @var{src_width}, @code{Integer} @var{src_height}, @code{Integer} @var{dest_x_org}, @code{Integer} @var{dest_y_org})
@@ -19567,6 +19573,10 @@ Draw a point on @var{pane_object} specified by
 Draw a rectangle on @var{pane_object} specified by
 @var{rectangle_object} using @var{pen_object}.  If
 @var{fill} is non-zero, draw a filled rectangle.
+
+@idxlibfn{__ctalkGUIPaneDrawRoundedRectangle}
+@item __ctalkGUIPaneDrawRoundedRectangle (@code{OBJECT *}@var{pane_object}, @code{OBJECT *}@var{rectangle_object}, @code{OBJECT *}@var{pen_object}, @code{int} @var{fill}, @code{int} @var{radius})
+This is similar to @cite{__ctalkGUIPaneDrawRectangle}, except that it takes an extra argument, @var{radius}, which specifies the radius of the arcs that are used to draw the corners.
 
 @idxlibfn{__ctalkGUIPanePutStr}
 @item __ctalkGUIPanePutStr (@code{OBJECT *}@var{pane_object}, @code{int} @var{x}, @code{int} @var{y}, @code{char *}@var{string})

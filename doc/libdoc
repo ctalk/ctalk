@@ -960,6 +960,9 @@ Draw a rectangle on pane_object specified by
 rectangle_object using pen_object.  If
 fill is non-zero, draw a filled rectangle.
 
+>>>__ctalkGUIPaneDrawRoundedRectangle (OBJECT *pane_object, OBJECT *rectangle_object, OBJECT *pen_object, int fill, int radius)
+This is similar to __ctalkGUIPaneDrawRectangle, except that it takes an extra argument, radius, which specifies the radius of the arcs that are used to draw the corners.
+
 >>>__ctalkGUIPanePutStr (OBJECT *pane_object, int x, int y, char *string)
 Display String object string at coordinates
 x,y on pane_object.  You can select the

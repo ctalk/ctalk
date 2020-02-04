@@ -158,6 +158,13 @@
 2020-02-04
 	- Use a struct for rectangle dimensions in
 	__xlib_draw_rectangle* (x11lib.c).
+	- Added the __ctalkX11DrawRoundedRectangle and
+	__ctalkGUIDrawRoundedRectangle functions (guirectangle.c).
+	Also add the X11CanvasPane : drawRoundedRectangle method.
+	In these cases, the panebackingstore information is replaced
+	with the corner radius information, which __xlib_draw_rectangle
+	uses to draw the arcs which form the rectangle's corners if
+	corner_radius > 0 (x11lib.c).
 
 
 

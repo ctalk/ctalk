@@ -1,4 +1,4 @@
-/* $Id: ctalk.h,v 1.56 2020/01/31 07:56:49 rkiesling Exp $ -*-Fundamental-*- */
+/* $Id: ctalk.h,v 1.58 2020/02/04 16:30:37 rkiesling Exp $ -*-Fundamental-*- */
 
 /*
   This file is part of Ctalk.
@@ -1210,6 +1210,7 @@ void object_follows_a_constant_warning (MESSAGE_STACK, int, int);
 void unknown_format_conversion_warning_ms (MSINFO *);
 void unknown_format_conversion_warning (MESSAGE_STACK, int);
 void self_instvar_expr_unknown_label (MESSAGE_STACK, int, int);
+void instancevar_wo_rcvr_warning (MESSAGE_STACK, int, bool, int);
 
 /* error.c */
 #ifdef DEBUG_CODE
@@ -1686,6 +1687,8 @@ int __ctalkX11PaneDrawPointBasic (int, unsigned long int, int, int, int, int,
 /* lib/guidrawrectangle.c */
 int __ctalkGUIPaneDrawRectangle (OBJECT *, OBJECT *, OBJECT *, int);
 int __ctalkX11PaneDrawRectangle (OBJECT *, OBJECT *, OBJECT *, int);
+int __ctalkGUIPaneDrawRoundedRectangle (OBJECT *, OBJECT *, OBJECT *, int, int);
+int __ctalkX11PaneDrawRoundedRectangle (OBJECT *, OBJECT *, OBJECT *, int, int);
 
 /* lib/guiputstr.c */
 int __ctalkX11PanePutStr (OBJECT *, int, int, char *);

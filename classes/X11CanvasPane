@@ -1,4 +1,4 @@
-/* $Id: X11CanvasPane,v 1.15 2020/01/07 23:20:48 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11CanvasPane,v 1.18 2020/02/04 17:58:15 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -196,6 +196,7 @@ X11CanvasPane instanceMethod new (String __paneName) {
   Method new pointerInputMethod;
   Method new pointerMotionMethod;
   X11CanvasPane super new __paneName;
+  __ctalkInstanceVarsFromClassObject (__paneName);
   __paneName moveCursor grabMove;
   resizeMethod definedInstanceMethod "X11CanvasPane", "subPaneResize";
   destroyMethod definedInstanceMethod "X11CanvasPane", "subPaneDestroy";
@@ -426,6 +427,22 @@ X11CanvasPane instanceMethod drawRectangle (Integer xOrg, Integer yOrg,
   return NULL;
 }
 
+X11CanvasPane instanceMethod drawRoundedRectangle (Integer xOrg,
+						   Integer yOrg,
+						   Integer xSize,
+						   Integer ySize,
+						   Integer radius) {
+  "Draw a rectangle with the bounds xOrg, yOrg, xSize,
+  ySize using the receiver's Pen object.  The radius argument
+  defines how large to draw the corner arcs."
+  Rectangle new aRectangle;
+
+  aRectangle dimensions xOrg, yOrg, xSize, ySize;
+  __ctalkGUIPaneDrawRoundedRectangle (self, aRectangle, self pen, FALSE,
+				      radius);
+  return NULL;
+}
+
 X11CanvasPane instanceMethod background (String color) {
   "Set the receiver's background color to the argument,
   a String.  Also has the effect of clearing the pane's
@@ -466,6 +483,22 @@ X11CanvasPane instanceMethod drawFilledRectangle (Integer xOrg, Integer yOrg,
 
   aRectangle dimensions xOrg, yOrg, xSize, ySize;
   __ctalkGUIPaneDrawRectangle (self, aRectangle, self pen, TRUE);
+  return NULL;
+}
+
+X11CanvasPane instanceMethod drawFilledRoundedRectangle (Integer xOrg,
+							 Integer yOrg,
+							 Integer xSize,
+							 Integer ySize,
+							 Integer radius) {
+  "Draw a filled rectangle with the dimensions xOrg, yOrg,
+  xSize, ySize given as arguments using the receiver's
+  Pen object."
+  Rectangle new aRectangle;
+
+  aRectangle dimensions xOrg, yOrg, xSize, ySize;
+  __ctalkGUIPaneDrawRoundedRectangle (self, aRectangle, self pen, TRUE,
+				      radius);
   return NULL;
 }
 
