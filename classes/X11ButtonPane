@@ -1,0 +1,230 @@
+/* $Id: X11ButtonPane,v 1.15 2020/02/04 00:23:25 rkiesling Exp $ -*-c-*-*/
+
+/*
+  This file is part of Ctalk.
+  Copyright © 2020  Robert Kiesling, rk3314042@gmail.com.
+  Permission is granted to copy this software provided that this copyright
+  notice is included in all source code modules.
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+*/
+
+/*
+ *    X11ButtonPane class.
+ */
+
+X11CanvasPane class X11ButtonPane;
+
+#include <ctalk/ctalkdefs.h>
+
+X11ButtonPane instanceVariable shadowPen Pen NULL;
+X11ButtonPane instanceVariable highlightHPen Pen NULL;
+X11ButtonPane instanceVariable highlightVPen Pen NULL;
+X11ButtonPane instanceVariable bevelEdges Boolean true;
+X11ButtonPane instanceVariable bevelWidth Integer 4;
+X11ButtonPane instanceVariable clicked Boolean false;
+X11ButtonPane instanceVariable label X11LabelPane NULL;
+X11ButtonPane instanceVariable borderWidth Integer 1;
+X11ButtonPane instanceVariable borderHighlightWidth Integer 2;
+X11ButtonPane instanceVariable borderMargin Integer 2;
+X11ButtonPane instanceVariable borderColor String "black";
+
+X11ButtonPane instanceMethod new (String __paneName) {
+  "The X11ButtonPane constructor.  The argument, a String,
+  contains the name of the new object.  Also sets the
+  event handlers that this class overrides."
+    Method new exposeMethod, buttonPressMethod, enterMethod,
+    leaveMethod;
+  X11ButtonPane super new __paneName;
+  buttonPressMethod definedInstanceMethod "X11ButtonPane",
+    "subPaneButtonPress";
+  exposeMethod definedInstanceMethod "X11ButtonPane",
+    "subPaneExpose";
+  enterMethod definedInstanceMethod "X11ButtonPane", "subPaneEnter";
+  leaveMethod definedInstanceMethod "X11ButtonPane", "subPaneLeave";
+  __paneName setMethodHandler "expose", exposeMethod;
+  __paneName setMethodHandler "pointerinput", buttonPressMethod;
+  __paneName setMethodHandler "enternotify", enterMethod;
+  __paneName setMethodHandler "leavenotify", leaveMethod;
+
+  if (__paneName bevelEdges) {
+    __paneName shadowPen colorName = "gray55";
+    __paneName shadowPen width = 1;
+    __paneName highlightHPen colorName = "gray94";
+    __paneName highlightHPen width = 1;
+    __paneName highlightVPen colorName = "gray91";
+    __paneName highlightVPen width = 1;
+  }
+  
+  return __paneName;
+}
+
+X11ButtonPane instanceMethod attachTo (Object parentPane,
+				       String geomspec) {
+  "Register the receiver pane as a subpane of the X11Pane
+  given as the argument.  Generally parent pane should
+  be a X11PaneDispatcher object."
+  X11Bitmap new xPaneBuffer;
+  X11Bitmap new xPaneBackingStore;
+  X11LabelPane new l_local;
+  String new labelGeom;
+  Integer new inset;
+  int x, y, width, height;
+
+  self super attachTo (parentPane, geomspec);
+  self paneBuffer become xPaneBuffer;
+  self paneBackingStore become xPaneBackingStore;
+
+  __ctalkX11SubWindowGeometry (parentPane, geomspec,
+				 &x, &y, &width, &height);
+  self viewWidth = width;
+  self viewHeight = height;
+  self size x = width;
+  self size y = height;
+  self origin x = x;
+  self origin y = y;
+
+  /*
+   *  The evaluation of these statements  needs to be deferred
+   *  until run time.  See the comment in the other, "attachTo,"
+   *  method, below.
+   */
+  (X11Bitmap *)self paneBuffer create self xWindowID, self size x, 
+    self size y, self depth;
+  (X11Bitmap *)self paneBuffer background (self backgroundColor);
+  (X11Bitmap *)self paneBackingStore create self xWindowID, self size x, 
+    self size y, self depth;
+
+  inset = self bevelWidth;
+
+  labelGeom printOn "%dx%d+%d+%d", (width - (inset * 2)),
+    (height - (inset * 2)),
+    inset, inset;
+
+  l_local subPaneGeometry = labelGeom;
+  l_local backgroundColor = "lightgray";
+  l_local highlightBackgroundColor = l_local backgroundColor;
+  l_local margin = 3;
+  l_local highlightBorderWidth = 1;
+  l_local attachTo self, labelGeom;
+
+  self label become l_local;
+  self pen colorName = self label backgroundColor;
+  self pen width = 1;
+
+  return NULL;
+}
+
+static int label_x = -1, label_y, label_width, label_height;
+
+X11ButtonPane instanceMethod draw (void) {
+
+  Integer new in;
+  String new saveBGColor;
+  Integer new savePenWidth;
+  
+  if (self bevelEdges) {
+    for (in = 0; in < self bevelWidth; ++in) {
+      if (self clicked) {
+	self drawLine self size x - in, in, self size x - in, self size y - in,
+	  self highlightVPen; 
+	self drawLine in, self size y - in, self size x - in,
+	  self size y - in, self highlightHPen;
+	self drawLine in, in, self size x - in, in, self shadowPen;
+	self drawLine in, in, in, self size y - in, self shadowPen;
+      } else {
+	self drawLine self size x - in, in, self size x - in, self size y - in,
+	  self shadowPen; 
+	self drawLine in, self size y - in, self size x - in,
+	  self size y - in, self shadowPen;
+	self drawLine in, in, self size x - in, in, self highlightHPen;
+	self drawLine in, in, in, self size y - in, self highlightVPen;
+      }
+    }
+  } else {
+    self drawFilledRectangle 0, 0, self size x, self size y;
+    if (self clicked) {
+      saveBGColor = self pen colorName;
+      savePenWidth = self pen width;
+      self pen width = self borderHighlightWidth;
+      self pen colorName = self borderColor;
+      self drawRectangle self borderMargin, self borderMargin,
+	self size x - (self borderMargin * 2),
+	self size y - (self borderMargin * 2);
+      self pen colorName = saveBGColor;
+      self pen width = savePenWidth;
+    } else {
+      saveBGColor = self pen colorName;
+      savePenWidth = self pen width;
+      self pen width = self borderWidth;
+      self pen colorName = "black";
+      self drawRectangle self borderMargin, self borderMargin,
+	self size x - (self borderMargin * 2),
+	self size y - (self borderMargin * 2);
+      self pen colorName = saveBGColor;
+      self pen width = savePenWidth;
+    }
+  }
+
+  self label drawButtonLayout;
+  if (label_x == -1) 
+    sscanf (self label subPaneGeometry, "%dx%d+%d+%d",
+	    &label_width, &label_height, &label_x, &label_y);
+  self paneBuffer copy self label paneBuffer, 0, 0, label_width, label_height,
+    label_x, label_y;
+  
+}
+
+X11ButtonPane instanceMethod subPaneExpose (Object __subPane,
+					  InputEvent __event) {
+  self draw;
+  self refresh;
+}
+
+X11ButtonPane instanceMethod subPaneButtonPress (Object __subPane,
+						 InputEvent __event) {
+  switch (__event eventClass)
+    {
+    case BUTTONPRESS:
+      self clicked = true;
+      break;
+    case BUTTONRELEASE:
+      self clicked = false;
+      break;
+    }
+  self draw;
+  self refresh;
+}
+
+X11ButtonPane instanceMethod subPaneEnter (Object __subPane,
+					  InputEvent __event) {
+  if (__subPane label canFocus) {
+    __subPane label highlight = true;
+    __subPane draw;
+    __subPane refresh;
+  }
+}
+
+X11ButtonPane instanceMethod subPaneLeave (Object __subPane,
+					  InputEvent __event) {
+  if (__subPane label canFocus) {
+    __subPane label highlight = false;
+    __subPane draw;
+    __subPane refresh;
+  }
+}
+
+
+
