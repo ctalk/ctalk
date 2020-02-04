@@ -2545,8 +2545,9 @@ Here is a simple example program that displays a X11LabelPane widget.
 
      #include <ctalk/ctalkdefs.h>
 
-     #define FTFONTS      /* Comment this line out to use X fonts. */
-     #define MULTILINE    /* Comment out to display a single line label. */
+     #define FTFONTS    /* Comment this line out to use X fonts. */
+     #define MULTILINE  /* Comment out to display a single line label. */
+     #define ROUNDED    /* Comment out to draw borders with straight edges. */
 
      int main (int argv, char **argc) {
        X11Pane new xPane;
@@ -2576,13 +2577,16 @@ Here is a simple example program that displays a X11LabelPane widget.
      #else
        xLabelPane font "-*-helvetica-medium-r-*-*-*-80-*-*-*-*-*-*";
      #endif
-       xLabelPane border = true;
        xLabelPane textColor = "navyblue";
 
      #ifdef MULTILINE
        xLabelPane multiLine "Labels\ncan occupy\nmultiple\nlines.";
      #else
        xLabelPane text "A Label";
+     #endif
+
+     #ifdef ROUNDED
+       xLabelPane radius = 10;
      #endif
 
        xLabelPane draw;
@@ -2607,6 +2611,7 @@ Here is a simple example program that displays a X11LabelPane widget.
          }
        }
      }
+
 
 
 Multiple Line Labels

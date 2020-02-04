@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.80 2020/02/04 21:03:52 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.81 2020/02/04 21:43:55 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -14192,7 +14192,7 @@ int main (int argv, char **argc) @{
   xLabelPane text "A Label";
 #endif
 
-#ifndef ROUNDED
+#ifdef ROUNDED
   xLabelPane radius = 10;
 #endif  
 
