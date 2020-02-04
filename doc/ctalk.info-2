@@ -1646,7 +1646,7 @@ and help communicate events between the main window's pane and the
 subwindows' panes.
 
 The positioning of subwindows within the parent window is controlled by
-the arguments to the 'moveTo' methods; in particular, these methods
+the arguments to the 'attachTo' methods; in particular, these methods
 accept a geometry specification, as an argument, which has the following
 format.
 
@@ -1919,7 +1919,7 @@ Instance Methods
      X11TerminalStream::.
 
 
-File: ctalk.info,  Node: X11CanvasPane,  Next: X11LabelPane,  Prev: X11PaneDispatcher,  Up: Classes
+File: ctalk.info,  Node: X11CanvasPane,  Next: X11ButtonPane,  Prev: X11PaneDispatcher,  Up: Classes
 
 'X11CanvasPane' Class
 ---------------------
@@ -2360,7 +2360,164 @@ Instance Methods
      pane's X window and adjusts the pane's dimensions.
 
 
-File: ctalk.info,  Node: X11LabelPane,  Next: X11ScrollBarPane,  Prev: X11CanvasPane,  Up: Classes
+File: ctalk.info,  Node: X11ButtonPane,  Next: X11LabelPane,  Prev: X11CanvasPane,  Up: Classes
+
+'X11ButtonPane' Class
+---------------------
+
+The 'X11ButtonPane' class defines instance variables and methods that
+draw buttons on X windows.  The buttons' appearance is defined by the
+values in the instance variables, and they may be used to define the
+format of customized buttons and labels.
+
+The definitions of the 'X11ButtonPane's' instance variables' define the
+parameters for basic buttons with beveled and non-beveled edges, and the
+buttons' text is contained in a 'X11LabelPane' object, which defines the
+appreance of a button's text.
+
+Here is a brief example program.
+
+
+     /* Uncomment this #define to use X bitmap fonts. */
+     /* #define XFONTS */
+
+     /* Also, uncomment this to draw a multiline label. */
+     /* #define MULTILINE */
+
+     int main (void) {
+       X11Pane new mainWindow;
+       X11PaneDispatcher new dispatcher;
+       X11ButtonPane new button;
+       InputEvent new e;
+
+       mainWindow backgroundColor = "blue";
+
+       mainWindow initialize 200, 100;
+       mainWindow inputStream eventMask =
+         EXPOSE|ENTERWINDOWNOTIFY|LEAVEWINDOWNOTIFY|BUTTONPRESS|BUTTONRELEASE;
+       dispatcher attachTo mainWindow;
+       button attachTo dispatcher, "150x50+25+25";
+
+       mainWindow map;
+       mainWindow raiseWindow;
+
+       mainWindow openEventStream;
+
+     #ifndef XFONTS
+       button label ftFontVar initFontLib;
+       button label ftFont "DejaVu Sans", 0, 0, 0, 10.0;
+     #else
+       button label font "fixed";
+     #endif
+
+     #ifndef MULTILINE
+       button label text "Click Here";
+     #else
+       button label multiLine "Click\nHere";
+     #endif
+
+       button draw;
+       button refresh;
+
+       while (TRUE) {
+         mainWindow inputStream queueInput;
+         if (mainWindow inputStream eventPending) {
+           e become mainWindow inputStream inputQueue unshift;
+
+           mainWindow subPaneNotify e;
+
+           switch (e eventClass value)
+     	{
+     	case EXPOSE:
+     	  button subPaneExpose (button, e);
+     	  break;
+     	}
+         }
+       }
+
+     }
+
+
+Instance Variables
+..................
+
+'bevelEdges'
+     A 'Boolean' that causes the widget to display beveled edges if
+     true.
+
+'bevelWidth'
+     An 'Integer' that defines the width of the button's bevelled edges
+     in pixels.
+
+'borderColor'
+     A 'String' that contains the name of the button's border color when
+     drawing a non-beveled button.
+
+'borderMargin'
+     An 'Integer' that defines the distance between the border and the
+     pane's edge in pixels, when drawing a non-beveled button.
+
+'borderWidth'
+'borderHighlighWidth'
+     'Integer' values that determine the width a non-beveled button when
+     it is clicked on and in its non-highlighted state.
+
+'clicked'
+     A 'Boolean' that is true when the pointer's Button 1 is pressed
+     while over the widget, and false otherwise.
+
+'highlightHPen'
+'highlightVPen'
+'shadowPen'
+     'Pen' objects that defines the color of the edges' bevels when
+     drawing a beveled widget.
+
+'label'
+     A 'X11LabelPane' object that contains a button's text and provides
+     the methods to draw on the button's surface.  *Note X11LabelPane::.
+
+Instance Methods
+................
+
+'attachTo (Object PARENTPANE, String GEOMETRY)'
+     Attaches the receiver to the parentPane named by PARENTPANE, with
+     the placement and size given by 'geometry'.  The parent pane should
+     generally be a 'X11PaneDispatcher' which directs X events to the
+     correct subpane.
+
+     The positioning of subwindows within the parent window is
+     controlled by the arguments to the 'attachTo' methods; in
+     particular, these methods accept a geometry specification, as an
+     argument, which has the following format.
+
+
+          width[%]xheight[%]+x[%]+y[%]
+
+
+     If a dimension does not contain a percent ('%') sign, the
+     dimensions are in pixels.  With a percent sign, the dimensions are
+     a fractional percentage of the parent pane's width or height, or a
+     horizontal or vertical distance that places the subwindow's upper
+     left-hand corner that distance from the parent window's upper
+     left-hand corner.
+
+'draw (void)'
+     Draws the button and its label on the pane's buffer so the widget
+     can be displayed with the refresh method.
+
+'new (String NEWOBJECTNAME)'
+     The 'X11ButtonPane' constructor.  Creates a 'X11ButtonPane' object
+     with the classes' instance variables, and initialized the object's
+     event handlers and 'Pen' objects for drawing a beveled button.
+
+'subPaneExpose (Object SUBPANE, InputEvent EVENT)'
+'subPaneButtonPress (Object SUBPANE, InputEvent EVENT)'
+'subPaneEnter (Object SUBPANE, InputEvent EVENT)'
+'subPaneLeave (Object SUBPANE, InputEvent EVENT)'
+     The class's handlers for events generated by the X server.
+
+
+File: ctalk.info,  Node: X11LabelPane,  Next: X11ScrollBarPane,  Prev: X11ButtonPane,  Up: Classes
 
 'X11LabelPane' Class
 --------------------
@@ -2601,6 +2758,15 @@ Instance Variables
 1 Instance Methods
 ..................
 
+'draw (void)'
+'drawButtonLayout (void)'
+     Draws the text of the label, and updates the visible label on the
+     display.  The instance variables in this class and the text font's
+     class allow programs to adjust how the text is laid out.
+
+     The 'drawButtonLayout' method is similar, but it uses a different
+     algorithm that is more suited to laying out text on button labels.
+
 'new'
      Creates a new 'X11LabelPane' object, initializes the object's
      instance variables and event handlers, and sets the pane's default
@@ -2635,10 +2801,6 @@ Instance Variables
      receiver's 'textLine' instance variable to one line for each array
      element.  Also sets the 'haveMultiLine' instance variable to
      'true'.
-
-'draw (void)'
-     Draws the text of the label, and updates the visible label on the
-     display.
 
 
 File: ctalk.info,  Node: X11ScrollBarPane,  Next: X11TextPane,  Prev: X11LabelPane,  Up: Classes

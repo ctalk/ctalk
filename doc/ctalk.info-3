@@ -3986,6 +3986,8 @@ Index
 * atPut instance method (String class):  String.             (line  165)
 * atPut method (AssociativeArray class): Ctalk library.      (line  283)
 * attach method (Pane class):            Pane.               (line   54)
+* attachTo instance method (X11ButtonPane class): X11ButtonPane.
+                                                             (line  120)
 * attachTo instance method (X11CanvasPane class): X11CanvasPane.
                                                              (line  181)
 * attachTo instance method (X11Pane class): X11Pane.         (line  118)
@@ -4024,6 +4026,10 @@ Index
 * become instance method (Object class): Object.             (line  286)
 * bevel instance variable (X11ScrollBarPane class): X11ScrollBarPane.
                                                              (line  115)
+* bevelEdges instance variable (X11ButtonPane class): X11ButtonPane.
+                                                             (line   82)
+* bevelWidth instance variable (X11ButtonPane class): X11ButtonPane.
+                                                             (line   86)
 * biosKey method (Win32TerminalStream class): Win32TerminalStream.
                                                              (line   42)
 * bitComp instance method (Character class): Character.      (line  157)
@@ -4048,10 +4054,18 @@ Index
                                                              (line   96)
 * border instance variable (X11LabelPane class): X11LabelPane.
                                                              (line  134)
+* borderColor instance variable (X11ButtonPane class): X11ButtonPane.
+                                                             (line   90)
 * borderColor instance variable (X11LabelPane class): X11LabelPane.
                                                              (line  138)
+* borderHighlightWidth instance variable (X11ButtonPane class): X11ButtonPane.
+                                                             (line   98)
 * borderLess instance variable (ANSILabelPane class): ANSILabelPane.
                                                              (line   39)
+* borderMargin instance variable (X11ButtonPane class): X11ButtonPane.
+                                                             (line   94)
+* borderWidth instance variable (X11ButtonPane class): X11ButtonPane.
+                                                             (line   98)
 * borderWidth instance variable (X11LabelPane class): X11LabelPane.
                                                              (line  142)
 * borderWidth instance variable (X11Pane class): X11Pane.    (line   38)
@@ -4201,6 +4215,8 @@ Index
 * clearSelection instance method (X11TextEditorPane class): X11TextEditorPane.
                                                              (line  183)
 * clearWindow instance method (X11Pane class): X11Pane.      (line  132)
+* clicked instance variable (X11ButtonPane class): X11ButtonPane.
+                                                             (line  103)
 * clientFD instance variable (X11TerminalStream class): X11TerminalStream.
                                                              (line  100)
 * cLlrint method (CFunction class):      CFunction.          (line  121)
@@ -4451,7 +4467,10 @@ Index
 * draw instance method (Line class):     Line.               (line   62)
 * draw instance method (Point class):    Point.              (line   30)
 * draw instance method (Rectangle class): Rectangle.         (line   95)
-* draw instance method (X11LabelPane class): X11LabelPane.   (line  277)
+* draw instance method (X11ButtonPane class): X11ButtonPane. (line  142)
+* draw instance method (X11LabelPane class): X11LabelPane.   (line  242)
+* drawButtonLayout instance method (X11LabelPane class): X11LabelPane.
+                                                             (line  242)
 * drawCircle instance method (X11CanvasPane class): X11CanvasPane.
                                                              (line  334)
 * drawFilledRectangle instance method (X11CanvasPane class): X11CanvasPane.
@@ -4589,7 +4608,7 @@ Index
 * focusHighlightOnOff instance method (void): ANSIButtonPane.
                                                              (line   32)
 * font instance method (X11Bitmap class): X11Bitmap.         (line   76)
-* font instance method (X11LabelPane class): X11LabelPane.   (line  258)
+* font instance method (X11LabelPane class): X11LabelPane.   (line  267)
 * font instance method (X11Pane class):  X11Pane.            (line   66)
 * font instance method (X11Pane class) <1>: X11Pane.         (line  161)
 * font instance method (X11TextPane class): X11TextPane.     (line  179)
@@ -4821,8 +4840,12 @@ Index
                                                              (line  177)
 * highlighTextBold instance variable (X11LabelPane class): X11LabelPane.
                                                              (line  181)
+* highlightHPen instance variable (X11ButtonPane class): X11ButtonPane.
+                                                             (line  107)
 * highlightTextColor instance variable (X11LabelPane class): X11LabelPane.
                                                              (line  186)
+* highlightVPen instance variable (X11ButtonPane class): X11ButtonPane.
+                                                             (line  107)
 * hostToAddress instance method (TCPIPNetworkStream class): TCPIPNetworkStream.
                                                              (line  100)
 * hours instance variable (CalendarTime class): CalendarTime.
@@ -4997,6 +5020,8 @@ Index
 * keyExists instance method (Collection class): Collection.  (line   76)
 * keyPressHandler instance variable (GLXCanvasPane class): GLXCanvasPane.
                                                              (line  222)
+* label instance variable (X11ButtonPane class): X11ButtonPane.
+                                                             (line  113)
 * labs(3) C function:                    labs.               (line    6)
 * lastY instance variable (X11ScrollBarPane class): X11ScrollBarPane.
                                                              (line  139)
@@ -5173,7 +5198,7 @@ Index
 * moveCursor instance variable (X11CanvasPane class): X11CanvasPane.
                                                              (line  150)
 * multiText instance method (X11LabelPane class): X11LabelPane.
-                                                             (line  270)
+                                                             (line  279)
 * name instance method (Object class):   Object.             (line  579)
 * name instance method (Symbol class):   Symbol.             (line  119)
 * namedColorFT instance method (GLXCanvasPane class): GLXCanvasPane.
@@ -5207,8 +5232,9 @@ Index
 * new instance method (ReadFileStream class): ReadFileStream.
                                                              (line   24)
 * new instance method (SignalHandler class): SignalHandler.  (line   81)
+* new instance method (X11ButtonPane class): X11ButtonPane.  (line  146)
 * new instance method (X11CanvasPane class): X11CanvasPane.  (line  385)
-* new instance method (X11LabelPane class): X11LabelPane.    (line  242)
+* new instance method (X11LabelPane class): X11LabelPane.    (line  251)
 * new instance method (X11PaneDispatcher class): X11PaneDispatcher.
                                                              (line  233)
 * new instance method (X11ScrollBarPane class): X11ScrollBarPane.
@@ -5754,6 +5780,8 @@ Index
 * Shaders, OpenGL <2>:                   Ctalk library.      (line 1125)
 * shadow instance variable (ANSITerminalPane class): ANSITerminalPane.
                                                              (line   91)
+* shadowPen instance variable (X11ButtonPane class): X11ButtonPane.
+                                                             (line  107)
 * shift instance method (List class):    List.               (line  150)
 * shiftState instance variable (GLXCanvasPane class): GLXCanvasPane.
                                                              (line  237)
@@ -5897,6 +5925,8 @@ Index
 * STR_IS_NULL macro:                     Object.             (line   26)
 * STR_IS_NULL macro <1>:                 C Macros.           (line  115)
 * str_is_zero_q function:                Ctalk library.      (line 2676)
+* subPaneButtonPress instance method (X11ButtonPane class): X11ButtonPane.
+                                                             (line  152)
 * subPaneButtonPress instance method (X11TextEditorPane class): X11TextEditorPane.
                                                              (line  221)
 * subPaneDestroy instance method (X11CanvasPane class): X11CanvasPane.
@@ -5907,12 +5937,16 @@ Index
                                                              (line  223)
 * subPaneDestroy instance method (X11TextPane class): X11TextPane.
                                                              (line  252)
+* subPaneEnter instance method (X11ButtonPane class): X11ButtonPane.
+                                                             (line  153)
 * subPaneEnter instance method (X11LabelPane class): X11LabelPane.
-                                                             (line  251)
+                                                             (line  260)
+* subPaneExpose instance method (X11ButtonPane class): X11ButtonPane.
+                                                             (line  151)
 * subPaneExpose instance method (X11CanvasPane class): X11CanvasPane.
                                                              (line  426)
 * subPaneExpose instance method (X11LabelPane class): X11LabelPane.
-                                                             (line  247)
+                                                             (line  256)
 * subPaneExpose instance method (X11ScrollBarPane class): X11ScrollBarPane.
                                                              (line  223)
 * subPaneExpose instance method (X11TextPane class): X11TextPane.
@@ -5925,8 +5959,10 @@ Index
                                                              (line  211)
 * subPaneKbdInput instance method (X11TextPane class): X11TextPane.
                                                              (line  261)
+* subPaneLeave instance method (X11ButtonPane class): X11ButtonPane.
+                                                             (line  154)
 * subPaneLeave instance method (X11LabelPane class): X11LabelPane.
-                                                             (line  252)
+                                                             (line  261)
 * subPaneMotionNotify instance method (X11TextEditorPane class): X11TextEditorPane.
                                                              (line  226)
 * subPaneMove instance method (X11PaneDispatcher class): X11PaneDispatcher.
@@ -6015,9 +6051,9 @@ Index
 * text (SignalHandler class):            SignalEvent.        (line   50)
 * Text editing:                          Ctalk library.      (line 2500)
 * Text editor example program:           X11TextEditorPane.  (line  240)
-* text instance method (X11LabelPane class): X11LabelPane.   (line  263)
+* text instance method (X11LabelPane class): X11LabelPane.   (line  272)
 * text instance method (X11LabelPane class) <1>: X11LabelPane.
-                                                             (line  266)
+                                                             (line  275)
 * text instance variable (ANSILabelPane class): ANSILabelPane.
                                                              (line   43)
 * text instance variable (ANSITextBoxPane class): ANSITextBoxPane.
@@ -6331,6 +6367,7 @@ Index
 * X Window System:                       C library functions.
                                                              (line   20)
 * X11Bitmap class:                       X11Bitmap.          (line    6)
+* X11ButtonPane class:                   X11ButtonPane.      (line    6)
 * X11CanvasPane class:                   X11CanvasPane.      (line    6)
 * X11Cursor class:                       X11Cursor.          (line    6)
 * X11Font class:                         X11Font.            (line    6)
