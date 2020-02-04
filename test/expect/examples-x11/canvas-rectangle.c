@@ -11,15 +11,15 @@ int main () {
   xPane initialize 10, 10, 100, 100;
   xPane inputStream eventMask = WINDELETE|EXPOSE;
   xTopLevelPane attachTo xPane;
-  xCanvasPane attachTo xTopLevelPane;
+  xCanvasPane attachTo xTopLevelPane, "100%x100%+0+0";
   xPane map;
   xPane raiseWindow;
   xPane openEventStream;
 
   xCanvasPane pen width = 10;
   xCanvasPane pen colorName = "blue";
-  xCanvasPane drawRectangle 10, 10, 80, 80;
   xCanvasPane background "black";
+  xCanvasPane drawRectangle 10, 10, 80, 80;
   xCanvasPane refresh;
 
   while (TRUE) {
