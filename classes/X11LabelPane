@@ -1,4 +1,4 @@
-/* $Id: X11LabelPane,v 1.18 2020/02/04 00:33:44 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11LabelPane,v 1.19 2020/02/04 21:03:51 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -75,6 +75,9 @@ the text.";
 X11LabelPane instanceVariable highlightTextBold Boolean false
 "If true, display the label text in a bold typeface when the label is
 highlighted.  This is only effective (so far) when using Freetype fonts.";
+X11LabelPane instanceVariable radius Integer 0
+"If greater than 0, draw borders as rounded rectangles with the radius
+equal to this value";
 
 X11LabelPane instanceMethod new (String __paneName) {
   Method new exposeMethod;
@@ -190,10 +193,18 @@ X11LabelPane instanceMethod draw (void) {
 	self background self backgroundColor;
       }
     }
-    self drawRectangle (self margin),
-      (self margin), 
-      self size x - (self margin * 2),
-      self size y - (self margin * 2);
+    if (self radius > 0) {
+      self drawRoundedRectangle (self margin),
+	(self margin), 
+	self size x - (self margin * 2),
+	self size y - (self margin * 2),
+	self radius;
+    } else {
+      self drawRectangle (self margin),
+	(self margin), 
+	self size x - (self margin * 2),
+	self size y - (self margin * 2);
+    }
   }
 
   if (self fontVar fontId == 0) {
@@ -292,10 +303,19 @@ X11LabelPane instanceMethod drawButtonLayout (void) {
 	self background self backgroundColor;
       }
     }
-    self drawRectangle (self margin),
-      (self margin), 
-      self size x - (self margin * 2),
-      self size y - (self margin * 2);
+
+    if (self radius > 0) {
+      self drawRoundedRectangle (self margin),
+	(self margin), 
+	self size x - (self margin * 2),
+	self size y - (self margin * 2),
+	self radius;
+    } else {
+      self drawRectangle (self margin),
+	(self margin), 
+	self size x - (self margin * 2),
+	self size y - (self margin * 2);
+    }
   }
 
   if (self fontVar fontId == 0) {

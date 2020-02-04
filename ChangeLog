@@ -165,6 +165,9 @@
 	with the corner radius information, which __xlib_draw_rectangle
 	uses to draw the arcs which form the rectangle's corners if
 	corner_radius > 0 (x11lib.c).
+	- Added the radius instance variable to X11LabelPane, and
+	use it to call X11CanvasPane : drawRoundedRectangle when
+	a radius is set.
 
 
 

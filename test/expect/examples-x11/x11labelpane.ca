@@ -1,7 +1,8 @@
 #include <ctalk/ctalkdefs.h>
 
-#define FTFONTS 
-#define MULTILINE
+#define FTFONTS    /* Comment this line out to use X fonts. */
+#define MULTILINE  /* Comment out to display a single line label. */
+#define ROUNDED    /* Comment out to draw borders with straight edges. */
 
 int main (int argv, char **argc) {
   X11Pane new xPane;
@@ -37,7 +38,11 @@ int main (int argv, char **argc) {
   xLabelPane multiLine "Labels\ncan occupy\nmultiple\nlines.";
 #else
   xLabelPane text "A Label";
-#endif       
+#endif
+
+#ifndef ROUNDED
+  xLabelPane radius = 10;
+#endif  
 
   xLabelPane draw;
   
