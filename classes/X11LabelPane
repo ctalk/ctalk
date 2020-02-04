@@ -1,4 +1,4 @@
-/* $Id: X11LabelPane,v 1.13 2020/01/31 17:28:05 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11LabelPane,v 1.17 2020/02/04 00:15:56 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -264,6 +264,109 @@ X11LabelPane instanceMethod draw (void) {
       self __drawJustified self textLine, ts,
 	((self size y / 2) - (self fontVar height / 2)) +
 	(self fontVar height / 2);
+
+    }
+  }
+
+  self refresh;
+}
+
+X11LabelPane instanceMethod drawButtonLayout (void) {
+  "Similar to the draw method, except this method uses
+   a different algorithm for spacing text."
+    Integer new ts, parheight, lineStartY, vAir;
+  
+  self paneBuffer clear;
+  if (self border) {
+    if (self grayed) {
+	self pen width = self borderWidth;
+	self pen colorName = self grayedColor;
+    } else {
+      if (self highlight) {
+	self pen width = self highlightBorderWidth;
+	self pen colorName = self highlightBorderColor;
+	self __highlightBackground self highlightBackgroundColor;
+      } else {
+	self pen width = self borderWidth;
+	self pen colorName = self borderColor;
+	self background self backgroundColor;
+      }
+    }
+    self drawRectangle (self margin),
+      (self margin), 
+      self size x - (self margin * 2),
+      self size y - (self margin * 2);
+  }
+
+  if (self fontVar fontId == 0) {
+    /* X11FreeTypeFont */
+    if (self grayed) {
+      self faceRegular;
+      self ftFontVar namedX11Color self grayedColor;
+    } else {
+      if (self highlight) {
+	if (self highlightTextBold) {
+	  self faceBold;
+ 	} else {
+	  self faceRegular;
+	}
+	self ftFontVar namedX11Color self highlightTextColor;
+      } else {
+	self faceRegular;
+	self ftFontVar namedX11Color self textColor;
+      }
+    }
+    if (self haveMultiLine) {
+
+      parheight = (self ftFontVar ascent + self leading) *
+	self textLines size;
+      vAir = self size y / 20;
+      lineStartY = (self size y / 2) - (parheight / 2) +
+	self ftFontVar ascent - vAir;
+
+      self textLines map {
+	ts = super ftFontVar textWidth self;
+	super __drawJustified self, ts, lineStartY;
+	lineStartY += super ftFontVar ascent + super leading;
+      }
+      
+    } else {
+
+      vAir = self size y / 20;
+      ts = self ftFontVar textWidth (self textLine);
+      self __drawJustified self textLine, ts,
+	(self size y / 2) + (self ftFontVar ascent / 2) - vAir;
+
+    }
+  } else {
+    if (self grayed) {
+      self foreground self grayedColor;
+    } else {
+      if (self highlight) {
+	self foreground self highlightTextColor;
+      } else {
+	self foreground self textColor;
+      }
+    }
+    if (self haveMultiLine) {
+
+      vAir = self size y / 8;
+      parheight = self fontVar ascent  *
+	self textLines size;
+      lineStartY = (self size y / 2) - (parheight / 2) + vAir;
+
+      self textLines map {
+	ts = super fontVar textWidth self;
+	super __drawJustified self, ts, lineStartY;
+	lineStartY += super fontVar height;
+      }
+
+    } else {
+
+      vAir = self size y / 20;
+      ts = self fontVar textWidth (self textLine);
+      self __drawJustified self textLine, ts,
+	(self size y / 2) + (self fontVar ascent / 2) - vAir;
 
     }
   }
