@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.78 2020/02/04 17:40:14 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.79 2020/02/04 18:40:56 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -13834,6 +13834,12 @@ height @var{ySize}.  If a @code{Pen} argument isn't given, uses the
 line width and color defined by the receiver's @code{pen} instance
 variable; otherwise uses the line width and color defined by the
 @code{Pen} argument.
+
+@cindex @mnm{drawRoundedRectangle} instance method @idxclscite{X11CanvasPane}
+@item @mnm{drawRoundedRectangle} (@code{Intger} @var{xOrg}, @code{Integer} @var{yOrg}, @code{Integer} @var{xSize}, @code{Integer} @var{ySize}, @code{Integer} @var{radius})
+Similar to @mnm{drawFilledRectangle}, but this method takes an extra
+argument, the radius of the corner arcs that round the rendered rectangle's
+corners.
 
 @cindex @mnm{drawRectangle} instance method @idxclscite{X11CanvasPane}
 @item @mnm{drawRectangle} (@code{Intger} @var{xOrg}, @code{Integer} @var{yOrg}, @code{Integer} @var{xSize}, @code{Integer} @var{ySize})

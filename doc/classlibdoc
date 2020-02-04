@@ -6546,6 +6546,11 @@ line width and color defined by the receiver's pen instance
 variable; otherwise uses the line width and color defined by the
 Pen argument.
 
+>>>X11CanvasPane::drawRoundedRectangle (Intger xOrg, Integer yOrg, Integer xSize, Integer ySize, Integer radius)
+Similar to drawFilledRectangle, but this method takes an extra
+argument, the radius of the corner arcs that round the rendered rectangle's
+corners.
+
 >>>X11CanvasPane::drawRectangle (Intger xOrg, Integer yOrg, Integer xSize, Integer ySize)
 Draw the borders of a rectangle on the pane's window with
 the upper-left hand corner at the point given by the

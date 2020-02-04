@@ -2287,6 +2287,11 @@ Instance Methods
      'pen' instance variable; otherwise uses the line width and color
      defined by the 'Pen' argument.
 
+'drawRoundedRectangle (Intger XORG, Integer YORG, Integer XSIZE, Integer YSIZE, Integer RADIUS)'
+     Similar to 'drawFilledRectangle', but this method takes an extra
+     argument, the radius of the corner arcs that round the rendered
+     rectangle's corners.
+
 'drawRectangle (Intger XORG, Integer YORG, Integer XSIZE, Integer YSIZE)'
      Draw the borders of a rectangle on the pane's window with the
      upper-left hand corner at the point given by the XORG and YORG
