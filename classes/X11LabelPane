@@ -1,4 +1,4 @@
-/* $Id: X11LabelPane,v 1.17 2020/02/04 00:15:56 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11LabelPane,v 1.18 2020/02/04 00:33:44 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -350,15 +350,16 @@ X11LabelPane instanceMethod drawButtonLayout (void) {
     }
     if (self haveMultiLine) {
 
-      vAir = self size y / 8;
+      vAir = self size y / 10;
       parheight = self fontVar ascent  *
 	self textLines size;
-      lineStartY = (self size y / 2) - (parheight / 2) + vAir;
+      lineStartY = (self size y / 2) - (parheight / 2) +
+	(self fontVar ascent / 2) +  vAir;
 
       self textLines map {
 	ts = super fontVar textWidth self;
 	super __drawJustified self, ts, lineStartY;
-	lineStartY += super fontVar height;
+	lineStartY += super fontVar ascent;
       }
 
     } else {
