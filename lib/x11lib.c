@@ -1,4 +1,4 @@
-/* $Id: x11lib.c,v 1.61 2020/02/02 20:13:04 rkiesling Exp $ -*-c-*-*/
+/* $Id: x11lib.c,v 1.64 2020/02/04 13:06:55 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -732,33 +732,37 @@ int __xlib_clear_rectangle (Drawable drawable, GC gc, char *data) {
 
 #define RECTANGLE_GCV_MASK (GCFunction|GCForeground|GCFillStyle|GCLineWidth) 
 
+struct rectinfo {
+  XRectangle r;
+  int pen_width,
+    fill,
+    panebuffer_id,
+    panebackingstore_id,
+    corner;
+  char *color_name;
+};
+
+static void rect_scan_error (int e, char *str, char *data,
+			     struct rectinfo *rect) {
+  strtol_error (e, str, data);
+  memset ((void *)rect, 0, sizeof (struct rectinfo));
+}
+
 static void __xlib_draw_rectangle_scan (char *data, 
-					int *line_start_x, 
-					int *line_start_y, 
-					int *right_end_x,
-					int *right_end_y,
-					int *pen_width, 
-					int *fill,
-					int *panebuffer_id, 
-					int *panebackingstore_id,
-					char **color_name) {
+					struct rectinfo *rect) {
   char *p, *q;
   p = data;
   q = strchr (p, ':');
+  int e;
   if (!q) {
     fprintf (stderr, "__xlib_draw_rectangle (): Invalid message %s.\n", data);
-    *line_start_x = *line_start_y = *right_end_x = *right_end_y =
-      *pen_width = *fill = *panebuffer_id = *panebackingstore_id = 
-      **color_name = 0;
+    memset ((void *)rect, 0, sizeof (struct rectinfo));
     return;
   }
   errno = 0;
-  *line_start_x = strtol (p, &q, 10);
-  if (errno) {
-    strtol_error (errno, "__xlib_draw_rectangle", data);
-    *line_start_x = *line_start_y = *right_end_x = *right_end_y =
-      *pen_width = *fill = *panebuffer_id = *panebackingstore_id = 
-      **color_name = 0;
+  rect -> r.x = strtol (p, &q, 10); /***/
+  if ((e = errno) != 0) {
+    rect_scan_error (e, "__xlib_draw_rectangle", data, rect);
     return;
   }
   errno = 0;
@@ -766,17 +770,12 @@ static void __xlib_draw_rectangle_scan (char *data,
   q = strchr (p, ':');
   if (!q) {
     fprintf (stderr, "__xlib_draw_rectangle (): Invalid message %s.\n", data);
-    *line_start_x = *line_start_y = *right_end_x = *right_end_y =
-      *pen_width = *fill = *panebuffer_id = *panebackingstore_id = 
-      **color_name = 0;
+    memset ((void *)rect, 0, sizeof (struct rectinfo));
     return;
   }
-  *line_start_y = strtol (p, &q, 10);
-  if (errno) {
-    strtol_error (errno, "__xlib_draw_rectangle", data);
-    *line_start_x = *line_start_y = *right_end_x = *right_end_y =
-      *pen_width = *fill = *panebuffer_id = *panebackingstore_id = 
-      **color_name = 0;
+  rect -> r.y = strtol (p, &q, 10); /***/
+  if ((e = errno) != 0) {
+    rect_scan_error (e, "__xlib_draw_rectangle", data, rect);
     return;
   }
     
@@ -785,17 +784,11 @@ static void __xlib_draw_rectangle_scan (char *data,
   q = strchr (p, ':');
   if (!q) {
     fprintf (stderr, "__xlib_draw_rectangle (): Invalid message %s.\n", data);
-    *line_start_x = *line_start_y = *right_end_x = *right_end_y =
-      *pen_width = *fill = *panebuffer_id = *panebackingstore_id = 
-      **color_name = 0;
     return;
   }
-  *right_end_x = strtol (p, &q, 10);
-  if (errno) {
-    strtol_error (errno, "__xlib_draw_rectangle", data);
-    *line_start_x = *line_start_y = *right_end_x = *right_end_y =
-      *pen_width = *fill = *panebuffer_id = *panebackingstore_id = 
-      **color_name = 0;
+  rect -> r.width = strtol (p, &q, 10); /***/
+  if ((e = errno) != 0) {
+    rect_scan_error (e, "__xlib_draw_rectangle", data, rect);
     return;
   }
     
@@ -804,17 +797,11 @@ static void __xlib_draw_rectangle_scan (char *data,
   q = strchr (p, ':');
   if (!q) {
     fprintf (stderr, "__xlib_draw_rectangle (): Invalid message %s.\n", data);
-    *line_start_x = *line_start_y = *right_end_x = *right_end_y =
-      *pen_width = *fill = *panebuffer_id = *panebackingstore_id = 
-      **color_name = 0;
     return;
   }
-  *right_end_y = strtol (p, &q, 10);
-  if (errno) {
-    strtol_error (errno, "__xlib_draw_rectangle", data);
-    *line_start_x = *line_start_y = *right_end_x = *right_end_y =
-      *pen_width = *fill = *panebuffer_id = *panebackingstore_id = 
-      **color_name = 0;
+  rect -> r.height = strtol (p, &q, 10); /***/
+  if ((e = errno) != 0) {
+    rect_scan_error (e, "__xlib_draw_rectangle", data, rect);
     return;
   }
     
@@ -823,17 +810,12 @@ static void __xlib_draw_rectangle_scan (char *data,
   q = strchr (p, ':');
   if (!q) {
     fprintf (stderr, "__xlib_draw_rectangle (): Invalid message %s.\n", data);
-    *line_start_x = *line_start_y = *right_end_x = *right_end_y =
-      *pen_width = *fill = *panebuffer_id = *panebackingstore_id = 
-      **color_name = 0;
+    memset ((void *)rect, 0, sizeof (struct rectinfo));
     return;
   }
-  *pen_width = strtol (p, &q, 10);
-  if (errno) {
-    strtol_error (errno, "__xlib_draw_rectangle", data);
-    *line_start_x = *line_start_y = *right_end_x = *right_end_y =
-      *pen_width = *fill = *panebuffer_id = *panebackingstore_id = 
-      **color_name = 0;
+  rect -> pen_width = strtol (p, &q, 10); /***/
+  if ((e = errno) != 0) {
+    rect_scan_error (e, "__xlib_draw_rectangle", data, rect);
     return;
   }
 
@@ -841,18 +823,12 @@ static void __xlib_draw_rectangle_scan (char *data,
   p = ++q;
   q = strchr (p, ':');
   if (!q) {
-    fprintf (stderr, "__xlib_draw_rectangle (): Invalid message %s.\n", data);
-    *line_start_x = *line_start_y = *right_end_x = *right_end_y =
-      *pen_width = *fill = *panebuffer_id = *panebackingstore_id = 
-      **color_name = 0;
+    rect_scan_error (e, "__xlib_draw_rectangle", data, rect);
     return;
   }
-  *fill = strtol (p, &q, 10);
-  if (errno) {
-    strtol_error (errno, "__xlib_draw_rectangle", data);
-    *line_start_x = *line_start_y = *right_end_x = *right_end_y =
-      *pen_width = *fill = *panebuffer_id = *panebackingstore_id = 
-      **color_name = 0;
+  rect -> fill = strtol (p, &q, 10);
+  if ((e = errno) != 0) {
+    rect_scan_error (e, "__xlib_draw_rectangle", data, rect);
     return;
   }
 
@@ -860,18 +836,12 @@ static void __xlib_draw_rectangle_scan (char *data,
   p = ++q;
   q = strchr (p, ':');
   if (!q) {
-    fprintf (stderr, "__xlib_draw_rectangle (): Invalid message %s.\n", data);
-    *line_start_x = *line_start_y = *right_end_x = *right_end_y =
-      *pen_width = *fill = *panebuffer_id = *panebackingstore_id = 
-      **color_name = 0;
+    rect_scan_error (e, "__xlib_draw_rectangle", data, rect);
     return;
   }
-  *panebuffer_id = strtol (p, &q, 10);
-  if (errno) {
-    strtol_error (errno, "__xlib_draw_rectangle", data);
-    *line_start_x = *line_start_y = *right_end_x = *right_end_y =
-      *pen_width = *fill = *panebuffer_id = *panebackingstore_id = 
-      **color_name = 0;
+  rect -> panebuffer_id = strtol (p, &q, 10);
+  if ((e = errno) != 0) {
+    rect_scan_error (e, "__xlib_draw_rectangle", data, rect);
     return;
   }
     
@@ -880,30 +850,22 @@ static void __xlib_draw_rectangle_scan (char *data,
   q = strchr (p, ':');
   if (!q) {
     fprintf (stderr, "__xlib_draw_rectangle (): Invalid message %s.\n", data);
-    *line_start_x = *line_start_y = *right_end_x = *right_end_y =
-      *pen_width = *fill = *panebuffer_id = *panebackingstore_id = 
-      **color_name = 0;
+    memset ((void *)rect, 0, sizeof (struct rectinfo));
     return;
   }
-  *panebackingstore_id = strtol (p, &q, 10);
-  if (errno) {
-    strtol_error (errno, "__xlib_draw_rectangle", data);
-    *line_start_x = *line_start_y = *right_end_x = *right_end_y =
-      *pen_width = *fill = *panebuffer_id = *panebackingstore_id = 
-      **color_name = 0;
+  rect -> panebackingstore_id = strtol (p, &q, 10);
+  if ((e = errno) != 0) {
+    rect_scan_error (e, "__xlib_draw_rectangle", data, rect);
     return;
   }
     
-  *color_name = ++q;
+  rect -> color_name = ++q;
 }
 
 int __xlib_draw_rectangle (Drawable drawable_arg, GC gc, char *data) {
   XGCValues rectangle_gcv, old_gcv;
-  int top_start_x, top_start_y, right_end_x, right_end_y, pen_width,
-    fill;
-  int panebuffer_id, panebackingstore_id, actual_drawable;
-  int r;
-  static char *colorname;
+  int actual_drawable, r;
+  struct rectinfo rect;
 
 #ifdef GC_RANGE_CHECK
 
@@ -912,31 +874,26 @@ int __xlib_draw_rectangle (Drawable drawable_arg, GC gc, char *data) {
 
 #endif
 
-  __xlib_draw_rectangle_scan (data, &top_start_x, &top_start_y,
-			      &right_end_x, &right_end_y, &pen_width,
-			      &fill, &panebuffer_id, &panebackingstore_id,
-			      &colorname);
+  __xlib_draw_rectangle_scan (data, &rect); 
 
-  if (!panebuffer_id && !panebackingstore_id) {
+  if (!rect.panebuffer_id) {
     actual_drawable = drawable_arg;
   } else {
-    actual_drawable = panebuffer_id;
+    actual_drawable = rect.panebuffer_id;
   }
   rectangle_gcv.function = GXcopy;
-  rectangle_gcv.foreground = lookup_pixel (colorname);
+  rectangle_gcv.foreground = lookup_pixel (rect.color_name);
   rectangle_gcv.fill_style = FillSolid;
-  rectangle_gcv.line_width = pen_width;
+  rectangle_gcv.line_width = rect.pen_width;
   XGetGCValues (display, gc, DEFAULT_GCV_MASK, &old_gcv);
   XChangeGC (display, gc, RECTANGLE_GCV_MASK, &rectangle_gcv);
 
-  if (fill) {
+  if (rect.fill) {
     XFillRectangle (display, actual_drawable, gc,
-		    top_start_x, top_start_y,
-		    right_end_x,right_end_y);
+		    rect.r.x, rect.r.y, rect.r.width, rect.r.height);
   } else {
     XDrawRectangle (display, actual_drawable, gc,
-		    top_start_x, top_start_y, right_end_x,
-		    right_end_y);
+		    rect.r.x, rect.r.y, rect.r.width, rect.r.height);
   }
   XChangeGC (display, gc, DEFAULT_GCV_MASK, &old_gcv);
   return SUCCESS;
