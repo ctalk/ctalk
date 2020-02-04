@@ -135,5 +135,26 @@
 	clearSelection method.
 2020-01-31
 	- Added __edittext_recenter and __edittext_xk_keysym (edittext.c).
+	- Fixed X11LabelPane's enter and leave event handlers.
+	- Check for the subpane's window ID when handling button events
+	in X11PaneDispatcher : queueInput.
+	- Check for a "super" keyword in is_self_expr_as_fn_lvalue
+	(c_rval.c).
+	- Added range checks in the dbuf concatenation in
+	__ctalkGUIPaneDrawRectangle (guidrawrectangle.c).
+	- Updated __ctalk_arg to check for a declared object
+	when the argument is the return of a __ctalk_arg_internal
+	call (rt_args.c).
+2020-02-01
+	- Added the X11LabelPane : drawButtonLayout method.
+	- Added instancevar_wo_rcvr_warning (errmsgs.c), called
+	by eval_arg.
+2020-02-02
+	- Updated __ctalkCreateX11MainWindow to use a background
+	color set in X11Pane : backgroundColor if it is already
+	set before calling X11Pane : initialize (x11lib.c).
+2020-02-03
+	- Added the demos/x11/buttons.ca example program.
+
 
 

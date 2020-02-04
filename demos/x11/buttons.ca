@@ -1,0 +1,62 @@
+/* buttons.ca - X11ButtonPane demonstration, although there's only one
+   button right now. */
+
+
+/* Uncomment this #define to use X bitmap fonts. */
+/* #define XFONTS */
+
+/* Also, uncomment this to draw a multiline label. */
+/* #define MULTILINE */
+
+int main (void) {
+  X11Pane new mainWindow;
+  X11PaneDispatcher new dispatcher;
+  X11ButtonPane new button;
+  InputEvent new e;
+
+  mainWindow backgroundColor = "blue";
+
+  mainWindow initialize 200, 100;
+  mainWindow inputStream eventMask = 
+    EXPOSE|ENTERWINDOWNOTIFY|LEAVEWINDOWNOTIFY|BUTTONPRESS|BUTTONRELEASE;
+  dispatcher attachTo mainWindow;
+  button attachTo dispatcher, "150x50+25+25";
+
+  mainWindow map;
+  mainWindow raiseWindow;
+
+  mainWindow openEventStream;
+
+#ifndef XFONTS
+  button label ftFontVar initFontLib;
+  button label ftFont "DejaVu Sans", 0, 0, 0, 10.0;
+#else
+  button label font "fixed";
+#endif  
+
+#ifndef MULTILINE
+  button label text "Click Here";
+#else
+  button label multiLine "Click\nHere";
+#endif  
+
+  button draw;
+  button refresh;
+
+  while (TRUE) {
+    mainWindow inputStream queueInput;
+    if (mainWindow inputStream eventPending) {
+      e become mainWindow inputStream inputQueue unshift;
+
+      mainWindow subPaneNotify e;
+
+      switch (e eventClass value)
+	{
+	case EXPOSE:
+	  button subPaneExpose (button, e);
+	  break;
+	}
+    }
+  }
+
+}
