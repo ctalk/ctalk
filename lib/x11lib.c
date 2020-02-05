@@ -1,4 +1,4 @@
-/* $Id: x11lib.c,v 1.67 2020/02/04 17:58:15 rkiesling Exp $ -*-c-*-*/
+/* $Id: x11lib.c,v 1.69 2020/02/05 15:46:29 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -896,14 +896,11 @@ int __xlib_draw_rectangle (Drawable drawable_arg, GC gc, char *data) {
 		      rect.r.y,
 		      rect.r.width - (rect.corner_radius * 2),
 		      rect.r.height);
-
-#if 1
       XFillRectangle (display, actual_drawable, gc,
 		      rect.r.x,
 		      rect.r.y + rect.corner_radius,
 		      rect.r.width,
 		      rect.r.height - (rect.corner_radius * 2));
-#endif      
 
       arcs[0].x = rect.r.x;
       arcs[0].y = rect.r.y;
@@ -911,20 +908,20 @@ int __xlib_draw_rectangle (Drawable drawable_arg, GC gc, char *data) {
       arcs[0].height = rect.corner_radius * 2;
       arcs[0].angle1 = 90 * 64;
       arcs[0].angle2 = 90 * 64;
-      arcs[1].x = rect.r.width - (rect.corner_radius);
+      arcs[1].x = rect.r.width - (rect.corner_radius * 2);
       arcs[1].y = rect.r.y;
       arcs[1].width = rect.corner_radius * 2;
       arcs[1].height = rect.corner_radius * 2;
       arcs[1].angle1 = 0;
       arcs[1].angle2 = 90 * 64;
-      arcs[2].x = rect.r.width - (rect.corner_radius);
-      arcs[2].y = rect.r.height - (rect.corner_radius);
+      arcs[2].x = rect.r.width - (rect.corner_radius * 2);
+      arcs[2].y = rect.r.height - (rect.corner_radius * 2);
       arcs[2].width = rect.corner_radius * 2;
       arcs[2].height = rect.corner_radius * 2;
       arcs[2].angle1 = -90 * 64;
       arcs[2].angle2 = 90 * 64;
       arcs[3].x = rect.r.x;
-      arcs[3].y = rect.r.height - (rect.corner_radius);
+      arcs[3].y = rect.r.height - (rect.corner_radius * 2);
       arcs[3].width = rect.corner_radius * 2;
       arcs[3].height = rect.corner_radius * 2;
       arcs[3].angle1 = -90 * 64;
@@ -932,7 +929,6 @@ int __xlib_draw_rectangle (Drawable drawable_arg, GC gc, char *data) {
 
       XFillArcs (display, actual_drawable, gc, (XArc *)arcs, 4);
     } else {
-      fprintf (stderr, "2\n");
       XFillRectangle (display, actual_drawable, gc,
 		      rect.r.x, rect.r.y, rect.r.width, rect.r.height);
     }
