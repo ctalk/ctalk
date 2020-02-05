@@ -1,4 +1,4 @@
-/* $Id: rt_args.c,v 1.14 2020/02/01 13:18:01 rkiesling Exp $ */
+/* $Id: rt_args.c,v 1.15 2020/02/05 19:32:10 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -1755,6 +1755,13 @@ static int __rt_arglist_limit (METHOD *method,
 	   }
 	 } else if ((M_TOK(messages[lookahead]) == INCREMENT) ||
 		    (M_TOK(messages[lookahead]) == DECREMENT)) {
+	   if (arg_separator_count (messages, arglist_start, close_paren_idx,
+				    n_args)) {
+	     return lookahead;
+	   } else {
+	     goto multiple_args;
+	   }
+	 } else if (M_TOK(messages[lookahead]) == LABEL) { /***/
 	   if (arg_separator_count (messages, arglist_start, close_paren_idx,
 				    n_args)) {
 	     return lookahead;
