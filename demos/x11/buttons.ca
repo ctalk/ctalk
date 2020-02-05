@@ -8,6 +8,9 @@
 /* Also, uncomment this to draw a multiline label. */
 /* #define MULTILINE */
 
+/* Define CORNER_RADIUS > 0 for rounded corners (non-beveled, too). */
+#define CORNER_RADIUS 0
+
 int main (void) {
   X11Pane new mainWindow;
   X11PaneDispatcher new dispatcher;
@@ -15,6 +18,7 @@ int main (void) {
   InputEvent new e;
 
   mainWindow backgroundColor = "blue";
+  button backgroundColor = "blue";
 
   mainWindow initialize 200, 100;
   mainWindow inputStream eventMask = 
@@ -38,6 +42,14 @@ int main (void) {
   button label text "Click Here";
 #else
   button label multiLine "Click\nHere";
+#endif
+
+#if CORNER_RADIUS > 0
+  button bevelEdges = false;
+  button radius = CORNER_RADIUS;
+  button label radius = CORNER_RADIUS;
+  /* this or "background" should work here */
+  /* button label backgroundColor = "lightblue"; *//***/
 #endif  
 
   button draw;

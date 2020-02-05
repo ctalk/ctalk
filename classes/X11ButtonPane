@@ -1,4 +1,4 @@
-/* $Id: X11ButtonPane,v 1.15 2020/02/04 00:23:25 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11ButtonPane,v 1.19 2020/02/05 20:11:23 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -40,6 +40,7 @@ X11ButtonPane instanceVariable borderWidth Integer 1;
 X11ButtonPane instanceVariable borderHighlightWidth Integer 2;
 X11ButtonPane instanceVariable borderMargin Integer 2;
 X11ButtonPane instanceVariable borderColor String "black";
+X11ButtonPane instanceVariable radius Integer 0;
 
 X11ButtonPane instanceMethod new (String __paneName) {
   "The X11ButtonPane constructor.  The argument, a String,
@@ -134,6 +135,8 @@ X11ButtonPane instanceMethod draw (void) {
   Integer new in;
   String new saveBGColor;
   Integer new savePenWidth;
+  Integer new lmargin;
+
   
   if (self bevelEdges) {
     for (in = 0; in < self bevelWidth; ++in) {
@@ -154,15 +157,35 @@ X11ButtonPane instanceMethod draw (void) {
       }
     }
   } else {
-    self drawFilledRectangle 0, 0, self size x, self size y;
+    if (self radius) {
+
+      /* This blends the corner curves with the main window's 
+	 background color. */
+      saveBGColor = self pen colorName;
+      self pen colorName = (self mainWindow) backgroundColor;
+      self drawFilledRectangle 0, 0, self size x, self size y;
+
+      self pen colorName = saveBGColor;
+      self drawFilledRoundedRectangle 0, 0, self size x, self size y,
+	self radius;
+    } else {
+      self drawFilledRectangle 0, 0, self size x, self size y;
+    }
     if (self clicked) {
       saveBGColor = self pen colorName;
       savePenWidth = self pen width;
       self pen width = self borderHighlightWidth;
       self pen colorName = self borderColor;
-      self drawRectangle self borderMargin, self borderMargin,
-	self size x - (self borderMargin * 2),
-	self size y - (self borderMargin * 2);
+      if (self radius) {
+	self drawRoundedRectangle self borderMargin, self borderMargin,
+	  self size x - (self borderMargin * 2),
+	  self size y - (self borderMargin * 2),
+	  self radius;
+      } else {
+	self drawRectangle self borderMargin, self borderMargin,
+	  self size x - (self borderMargin * 2),
+	  self size y - (self borderMargin * 2);
+      }
       self pen colorName = saveBGColor;
       self pen width = savePenWidth;
     } else {
@@ -170,20 +193,44 @@ X11ButtonPane instanceMethod draw (void) {
       savePenWidth = self pen width;
       self pen width = self borderWidth;
       self pen colorName = "black";
-      self drawRectangle self borderMargin, self borderMargin,
-	self size x - (self borderMargin * 2),
-	self size y - (self borderMargin * 2);
+      if (self radius) {
+	self drawRoundedRectangle self borderMargin, self borderMargin,
+	  self size x - (self borderMargin * 2),
+	  self size y - (self borderMargin * 2),
+	  self radius;
+      } else {
+	self drawRectangle self borderMargin, self borderMargin,
+	  self size x - (self borderMargin * 2),
+	  self size y - (self borderMargin * 2);
+      }
       self pen colorName = saveBGColor;
       self pen width = savePenWidth;
     }
   }
 
+  /* render the button's text and get its dimensions */
   self label drawButtonLayout;
   if (label_x == -1) 
     sscanf (self label subPaneGeometry, "%dx%d+%d+%d",
 	    &label_width, &label_height, &label_x, &label_y);
-  self paneBuffer copy self label paneBuffer, 0, 0, label_width, label_height,
-    label_x, label_y;
+
+  if (self radius > 0) {
+    /* Clip the text at its margin so we don't overrun the
+       button's borders, because some of the dimensions need
+       to use zero-width paths.  This is the place to
+       clip and align label text if it needs special
+       formatting to fit within the button's borders. */
+    lmargin = self label margin;
+    self paneBuffer copy self label paneBuffer,
+      lmargin, lmargin,
+      label_width - (lmargin * 2),
+      label_height - (lmargin * 2),
+      label_x + lmargin, label_y + lmargin;
+  } else {
+    self paneBuffer copy self label paneBuffer,
+      0, 0, label_width, label_height,
+      label_x, label_y;
+  }
   
 }
 

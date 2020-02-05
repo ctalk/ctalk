@@ -168,6 +168,9 @@
 	- Added the radius instance variable to X11LabelPane, and
 	use it to call X11CanvasPane : drawRoundedRectangle when
 	a radius is set.
-
-
-
+2020-02-05
+	- Added a check for a LABEL following a parenthesized expression
+	in __rt_arglist_limit (rt_args.c).
+	- Updated X11ButtonPane : draw to add blending with the background
+	when drawing rounded, and also clipping the label
+	text to fit within deeply rounded corners.
