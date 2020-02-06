@@ -1,4 +1,4 @@
-/* $Id: x11defs.h,v 1.7 2020/01/13 20:05:19 rkiesling Exp $ -*-c-*-*/
+/* $Id: x11defs.h,v 1.8 2020/02/06 18:52:00 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -64,6 +64,8 @@
 #define SHM_EVENT_DATA4     0x1160
 #define SHM_EVENT_DATA5     0x1170
 #define SHM_EVENT_DATA6     0x1180
+
+#define SHM_EVENT_MASK      0x1190
 
 /* This will make it easier to add/remove a conversion from a GC object
    to the C pointer in the future. */

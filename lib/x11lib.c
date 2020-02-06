@@ -1,4 +1,4 @@
-/* $Id: x11lib.c,v 1.72 2020/02/06 18:27:32 rkiesling Exp $ -*-c-*-*/
+/* $Id: x11lib.c,v 1.73 2020/02/06 18:52:00 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -2011,7 +2011,8 @@ int __ctalkOpenX11InputClient (OBJECT *streamobject) {
       return 0;
     }
   }
-  *(int *)&shm_mem[SHM_EVENT_READY] = 0;
+  INTVAL(&shm_mem[SHM_EVENT_READY]) = 0;
+  INTVAL(&shm_mem[SHM_EVENT_MASK]) = 0; /***/
   
 #if !X11LIB_FRAME
   x11_pane_stream_object = streamobject;
@@ -2245,6 +2246,8 @@ int __have_bitmap_buffers (OBJECT *self_object) {
   return FALSE;
 }
 
+static bool have_event_mask = false; /***/
+
 int read_event (int *ev_type_out, unsigned int *win_out,
 		unsigned int data[], int event_mask) {
 
@@ -2262,6 +2265,12 @@ int read_event (int *ev_type_out, unsigned int *win_out,
     data[5] = UINTVAL(&shm_mem[SHM_EVENT_DATA6]);
     INTVAL(&shm_mem[SHM_EVENT_READY]) = 0;
   } else {
+    if (!have_event_mask) {
+      /***/
+      /* should not reach this if event_mask is zero */
+      INTVAL(&shm_mem[SHM_EVENT_MASK]) = event_mask;
+      have_event_mask = true;
+    }
     *ev_type_out = INTVAL(&shm_mem[SHM_EVENT_TYPE]);
     if (*ev_type_out & event_mask) {
       *win_out = UINTVAL(&shm_mem[SHM_EVENT_WIN]);
@@ -2288,6 +2297,12 @@ static void event_to_client (int parent_fd,
 			     int eventdata6) {
   int wait_retries = 0;
 
+  /***/
+  if (INTVAL(&shm_mem[SHM_EVENT_MASK]) > 0) {
+    if (!(INTVAL(&shm_mem[SHM_EVENT_MASK]) & eventclass)) {
+      return;
+    }
+  }
 
   while (INTVAL(&shm_mem[SHM_EVENT_READY])) {
     if (++wait_retries > 20)

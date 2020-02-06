@@ -189,3 +189,7 @@
 	and to check an event type agains the event_mask, and
 	to reset and wait for the next event if it isn't included,
 	if the event mask > 0 (x11lib.c).
+	- Added the SHM_EVENT_MASK constant (x11defs.h), so read_event
+	can set the event mask there, so event_to_event can also use
+	the event mask to trim unwanted/unneeded events before sending
+	them (x11lib.c).
