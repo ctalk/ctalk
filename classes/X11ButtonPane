@@ -1,4 +1,4 @@
-/* $Id: X11ButtonPane,v 1.19 2020/02/05 20:11:23 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11ButtonPane,v 1.20 2020/02/06 01:13:38 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -41,6 +41,7 @@ X11ButtonPane instanceVariable borderHighlightWidth Integer 2;
 X11ButtonPane instanceVariable borderMargin Integer 2;
 X11ButtonPane instanceVariable borderColor String "black";
 X11ButtonPane instanceVariable radius Integer 0;
+X11ButtonPane instanceVariable clickSet Boolean false;
 
 X11ButtonPane instanceMethod new (String __paneName) {
   "The X11ButtonPane constructor.  The argument, a String,
@@ -246,6 +247,8 @@ X11ButtonPane instanceMethod subPaneButtonPress (Object __subPane,
     {
     case BUTTONPRESS:
       self clicked = true;
+      if (!self clickSet)
+	self clickSet = true;
       break;
     case BUTTONRELEASE:
       self clicked = false;
@@ -273,5 +276,41 @@ X11ButtonPane instanceMethod subPaneLeave (Object __subPane,
   }
 }
 
+X11ButtonPane instanceMethod isClicked (void) {
+  "Returns true or false depending on whether the pointer
+   button is  being clicked within the button."
+  returnObjectClass Boolean;
+  return self clicked;
+}
 
+X11ButtonPane instanceMethod text (void) {
+  "Returns the text of the button.  If the button displays 
+   multiple lines, returns the lines concatenated and
+   separated by a space character."
+  String new s;
+  returnObjectClass String;
+  if (self label haveMultiLine) {
+    s = "";
+    self label textLines map {
+      s += self + " ";
+    }
+    return s;
+  } else {
+    return self label textLine;
+  }
+}
 
+X11ButtonPane instanceMethod haveClick (void) {
+  "Returns true or false depending on whether the
+   button was clicked earlier.  Calling the clearClick
+   method resets the state of this earlier click setting
+   to false."
+  returnObjectClass Boolean;
+  return self clickSet;
+}
+
+X11ButtonPane instanceMethod clearClick (void) {
+  "Reset the state of an earlier click setting to
+   false."
+  self clickSet = false;
+}

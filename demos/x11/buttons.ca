@@ -6,7 +6,7 @@
 /* #define XFONTS */
 
 /* Also, uncomment this to draw a multiline label. */
-/* #define MULTILINE */
+#define MULTILINE
 
 /* Define CORNER_RADIUS > 0 for rounded corners (non-beveled, too). */
 #define CORNER_RADIUS 0
@@ -48,8 +48,6 @@ int main (void) {
   button bevelEdges = false;
   button radius = CORNER_RADIUS;
   button label radius = CORNER_RADIUS;
-  /* this or "background" should work here */
-  /* button label backgroundColor = "lightblue"; *//***/
 #endif  
 
   button draw;
