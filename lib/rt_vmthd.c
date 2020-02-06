@@ -1,4 +1,4 @@
-/* $Id: rt_vmthd.c,v 1.1.1.1 2019/10/26 23:40:50 rkiesling Exp $ */
+/* $Id: rt_vmthd.c,v 1.2 2020/02/06 18:27:32 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -517,7 +517,7 @@ int method_object_msg_internal_2_args (OBJECT *rcvr, OBJECT *method_instance,
   if ((target_method = __ctalkFindInstanceMethodByName 
        (&rcvr_obj_tmp,
 	v -> methodName_instance_var->instancevars->__o_value,
-	TRUE, ANY_ARGS)) == NULL)
+	FALSE, ANY_ARGS)) == NULL)
     return ERROR;
 
   __add_arg_object_entry_frame (target_method, arg1);

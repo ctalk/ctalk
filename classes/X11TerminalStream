@@ -1,4 +1,4 @@
-/* $Id: X11TerminalStream,v 1.22 2020/01/14 00:24:55 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11TerminalStream,v 1.23 2020/02/06 18:27:32 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -132,14 +132,16 @@ X11TerminalStream instanceMethod queueInput (void) {
   InputEvent new clientEvent;
 
  read_again:
-  if (read_event (&event_class, &win, data) < 0)
+  if (read_event (&event_class, &win, data, event_mask) < 0)
     return NULL;
     
+#if 0 /***/
   if (event_mask != 0) {
     if (!(event_mask & event_class)) {
       goto read_again;
     }
   }
+#endif  
 
 #if 1
   save_x_event (clientEvent, event_class, win, data);

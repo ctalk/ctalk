@@ -1,4 +1,4 @@
-/* $Id: x11lib.c,v 1.71 2020/02/06 08:33:12 rkiesling Exp $ -*-c-*-*/
+/* $Id: x11lib.c,v 1.72 2020/02/06 18:27:32 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -2246,22 +2246,36 @@ int __have_bitmap_buffers (OBJECT *self_object) {
 }
 
 int read_event (int *ev_type_out, unsigned int *win_out,
-		unsigned int data[]) {
+		unsigned int data[], int event_mask) {
 
   if (!INTVAL(&shm_mem[SHM_EVENT_READY]))
     return -1;
 
-  *ev_type_out = INTVAL(&shm_mem[SHM_EVENT_TYPE]);
-  *win_out = UINTVAL(&shm_mem[SHM_EVENT_WIN]);
-  data[0] = UINTVAL(&shm_mem[SHM_EVENT_DATA1]);
-  data[1] = UINTVAL(&shm_mem[SHM_EVENT_DATA2]);
-  data[2] = UINTVAL(&shm_mem[SHM_EVENT_DATA3]);
-  data[3] = UINTVAL(&shm_mem[SHM_EVENT_DATA4]);
-  data[4] = UINTVAL(&shm_mem[SHM_EVENT_DATA5]);
-  data[5] = UINTVAL(&shm_mem[SHM_EVENT_DATA6]);
-
-  INTVAL(&shm_mem[SHM_EVENT_READY]) = 0;
-
+  if (event_mask == 0) {
+    *ev_type_out = INTVAL(&shm_mem[SHM_EVENT_TYPE]);
+    *win_out = UINTVAL(&shm_mem[SHM_EVENT_WIN]);
+    data[0] = UINTVAL(&shm_mem[SHM_EVENT_DATA1]);
+    data[1] = UINTVAL(&shm_mem[SHM_EVENT_DATA2]);
+    data[2] = UINTVAL(&shm_mem[SHM_EVENT_DATA3]);
+    data[3] = UINTVAL(&shm_mem[SHM_EVENT_DATA4]);
+    data[4] = UINTVAL(&shm_mem[SHM_EVENT_DATA5]);
+    data[5] = UINTVAL(&shm_mem[SHM_EVENT_DATA6]);
+    INTVAL(&shm_mem[SHM_EVENT_READY]) = 0;
+  } else {
+    *ev_type_out = INTVAL(&shm_mem[SHM_EVENT_TYPE]);
+    if (*ev_type_out & event_mask) {
+      *win_out = UINTVAL(&shm_mem[SHM_EVENT_WIN]);
+      data[0] = UINTVAL(&shm_mem[SHM_EVENT_DATA1]);
+      data[1] = UINTVAL(&shm_mem[SHM_EVENT_DATA2]);
+      data[2] = UINTVAL(&shm_mem[SHM_EVENT_DATA3]);
+      data[3] = UINTVAL(&shm_mem[SHM_EVENT_DATA4]);
+      data[4] = UINTVAL(&shm_mem[SHM_EVENT_DATA5]);
+      data[5] = UINTVAL(&shm_mem[SHM_EVENT_DATA6]);
+      INTVAL(&shm_mem[SHM_EVENT_READY]) = 0;
+    } else {
+      INTVAL(&shm_mem[SHM_EVENT_READY]) = 0;
+    }
+  }
   return SUCCESS;
 }
 

@@ -176,3 +176,16 @@
 	text to fit within deeply rounded corners.
 	- Added the X11ButtonPane methods: isClicked, text, haveClick,
 	and clearClick.
+2020-02-06
+	- Moved __xlib_draw_rectangle to xrender.c.
+	- Added xr_make_surface (xrender.c), which is common to
+	all drawing functions.
+	- Made the X11TerminalStream event_mask an argument to
+	read_event, so we can return from unneeded messages more
+	quickly (x11lib.c).
+	- Updated method_object_msg_internal_2_args to silently
+	return if a virtual method isn't defined (rt_vmthd.c).
+	- Updated read_event to use event_mask as an argument,
+	and to check an event type agains the event_mask, and
+	to reset and wait for the next event if it isn't included,
+	if the event mask > 0 (x11lib.c).

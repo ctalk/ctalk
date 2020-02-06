@@ -1,4 +1,4 @@
-/* $Id: ctalk.h,v 1.58 2020/02/04 16:30:37 rkiesling Exp $ -*-Fundamental-*- */
+/* $Id: ctalk.h,v 1.59 2020/02/06 18:27:32 rkiesling Exp $ -*-Fundamental-*- */
 
 /*
   This file is part of Ctalk.
@@ -2742,7 +2742,7 @@ int sizeof_int (void);
 #else  /* #if ! defined (DJGPP) && ! defined (WITHOUT_X11) */
 void x_support_error (void);
 #endif /* #if ! defined (DJGPP) && ! defined (WITHOUT_X11) */
-int read_event (int *, unsigned int *, unsigned int []);
+int read_event (int *, unsigned int *, unsigned int [], int);
 
 /* libdeps.c */
 int cache_ctpp_output_file (char *);
