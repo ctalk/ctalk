@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.82 2020/02/06 01:13:39 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.83 2020/02/08 01:26:24 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -13961,57 +13961,79 @@ Here is a brief example program.
 
 @c demos/x11/buttons.ca
 @example
+/* buttons.ca - X11ButtonPane Demonstration */
+
+#include <ctalk/ctalkdefs.h>
 
 /* Uncomment this #define to use X bitmap fonts. */
 /* #define XFONTS */
 
 /* Also, uncomment this to draw a multiline label. */
-#define MULTILINE
+/* #define MULTILINE */
 
-/* Define CORNER_RADIUS > 0 for rounded corners (non-beveled, too). */
+/* Define CORNER_RADIUS > 0 for rounded corners (non-beveled, too). 
+   The value is the radius of the corner arcs. */
 #define CORNER_RADIUS 0
 
 int main (void) @{
   X11Pane new mainWindow;
   X11PaneDispatcher new dispatcher;
-  X11ButtonPane new button;
+  X11ButtonPane new lbutton;
+  X11ButtonPane new rbutton;
   InputEvent new e;
 
   mainWindow backgroundColor = "blue";
-  button backgroundColor = "blue";
+  lbutton backgroundColor = "blue";
+  rbutton backgroundColor = "blue";
 
-  mainWindow initialize 200, 100;
+  mainWindow initialize 255, 100;
   mainWindow inputStream eventMask = 
     EXPOSE|ENTERWINDOWNOTIFY|LEAVEWINDOWNOTIFY|BUTTONPRESS|BUTTONRELEASE;
   dispatcher attachTo mainWindow;
-  button attachTo dispatcher, "150x50+25+25";
+  lbutton attachTo dispatcher, "90x50+25+25";
+  rbutton attachTo dispatcher, "90x50+135+25";
 
   mainWindow map;
   mainWindow raiseWindow;
 
   mainWindow openEventStream;
 
+  mainWindow setWMTitle "X11ButtonPane Demo";
+
 #ifndef XFONTS
-  button label ftFontVar initFontLib;
-  button label ftFont "DejaVu Sans", 0, 0, 0, 10.0;
+  lbutton label ftFontVar initFontLib;
+  lbutton label ftFont "DejaVu Sans", 0, 0, 0, 10.0;
 #else
-  button label font "fixed";
+  lbutton label font "fixed";
 #endif  
 
 #ifndef MULTILINE
-  button label text "Click Here";
+  lbutton label text "Left";
+  rbutton label text "Right";
 #else
-  button label multiLine "Click\nHere";
+  lbutton label multiLine "Click\nHere";
+  rbutton label multiLine "Click\nHere, Too";
 #endif
 
 #if CORNER_RADIUS > 0
-  button bevelEdges = false;
-  button radius = CORNER_RADIUS;
-  button label radius = CORNER_RADIUS;
+  lbutton bevelEdges = false;
+  lbutton radius = CORNER_RADIUS;
+  lbutton label radius = CORNER_RADIUS;
+  rbutton bevelEdges = false;
+  rbutton radius = CORNER_RADIUS;
+  rbutton label radius = CORNER_RADIUS;
 #endif  
 
-  button draw;
-  button refresh;
+  lbutton label highlightBackgroundColor = "gray90";
+  rbutton label highlightBackgroundColor = "gray90";
+
+  lbutton label highlightTextColor = "gray";
+  rbutton label highlightTextColor = "gray";
+
+  lbutton draw;
+  lbutton refresh;
+  rbutton draw;
+  rbutton refresh;
 
   while (TRUE) @{
     mainWindow inputStream queueInput;
@@ -14023,9 +14045,21 @@ int main (void) @{
       switch (e eventClass value)
 	@{
 	case EXPOSE:
-	  button subPaneExpose (button, e);
+	  lbutton subPaneExpose (lbutton, e);
+	  rbutton subPaneExpose (lbutton, e);
+	  break;
+	default:
+	  if (lbutton haveClick) @{
+	    printf ("left button!\n");
+	    lbutton clearClick;
+	  @} else if (rbutton haveClick) @{
+	    printf ("right button!\n");
+	    rbutton clearClick;
+	  @}
 	  break;
 	@}
+    @} else @{
+      usleep (1000);
     @}
   @}
 

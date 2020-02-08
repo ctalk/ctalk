@@ -1,4 +1,4 @@
-/* $Id: x11lib.c,v 1.73 2020/02/06 18:52:00 rkiesling Exp $ -*-c-*-*/
+/* $Id: x11lib.c,v 1.75 2020/02/08 01:26:24 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -2288,6 +2288,84 @@ int read_event (int *ev_type_out, unsigned int *win_out,
   return SUCCESS;
 }
 
+#define EV_REUSE_MAX 0xffff
+/* uncomment to print the EV_CH cache levels on a terminal */
+/* #define EV_CACHE_USE  */
+
+typedef struct ev_ch {
+  struct ev_ch *next;
+  int event_class,
+    eventdata1,
+    eventdata2,
+    eventdata3,
+    eventdata4,
+    eventdata5,
+    eventdata6;
+  unsigned int win_id;
+} EV_CH;
+
+EV_CH *ev_buf = NULL, *ev_buf_ptr = NULL;
+
+EV_CH *ev_reuse_s[EV_REUSE_MAX];
+int ev_reuse_ptr = 0; 
+int ev_cnt = 0;
+ 
+static EV_CH *stashed_ev (void) {
+  EV_CH *e;
+  if (ev_reuse_ptr > 0) {
+    e = ev_reuse_s[--ev_reuse_ptr];
+    ev_reuse_s[ev_reuse_ptr] = NULL;
+  } else {
+    e = __xalloc (sizeof (EV_CH));
+  }
+  return e;
+}
+
+static void stash_ev (EV_CH *e) {
+  if (ev_reuse_ptr >= EV_REUSE_MAX) {
+    __xfree (MEMADDR(e));
+  } else {
+    ev_reuse_s[ev_reuse_ptr++] = e;
+  }
+}
+
+static EV_CH *ev_unshift (void) {
+  EV_CH *e;
+
+  if (ev_buf == NULL)
+    return NULL;
+
+  e = ev_buf;
+  if (ev_buf -> next == NULL) {
+    ev_buf = ev_buf_ptr = NULL;
+  } else {
+    ev_buf = ev_buf -> next;
+  }
+  --ev_cnt;
+  return e;
+}
+
+static void ev_push (int eventclass, unsigned int win_id,
+		     int eventdata1, int eventdata2, int eventdata3,
+		     int eventdata4, int eventdata5, int eventdata6) {
+  EV_CH *e;
+  if (ev_buf == NULL) {
+    e = ev_buf = ev_buf_ptr = stashed_ev ();
+    e -> next = NULL;
+  } else {
+    e = stashed_ev ();
+    ev_buf_ptr -> next = e;
+    ev_buf_ptr = e;
+    e -> next = NULL;
+  }
+  e -> event_class = eventclass;
+  e -> win_id = win_id;
+  e -> eventdata1 = eventdata1; e -> eventdata2 = eventdata2;
+  e -> eventdata3 = eventdata3; e -> eventdata4 = eventdata4;
+  e -> eventdata5 = eventdata5; e -> eventdata6 = eventdata6;
+  ++ev_cnt;
+}
+
 static void event_to_client (int parent_fd,
 			     int eventclass,
 			     unsigned int win_id,
@@ -2304,10 +2382,19 @@ static void event_to_client (int parent_fd,
     }
   }
 
+#ifdef SHOW_EV_CACHE_USE
+  fprintf (stderr, "%d %d\n", ev_cnt, ev_reuse_ptr);
+#endif  
+
   while (INTVAL(&shm_mem[SHM_EVENT_READY])) {
+    ev_push (eventclass, win_id, eventdata1, eventdata2,
+	       eventdata3, eventdata4, eventdata5, eventdata6);
+    return;
+#if 0 /***/
     if (++wait_retries > 20)
       return;
     usleep (100);
+#endif    
   }
 
   INTVAL(&shm_mem[SHM_EVENT_TYPE]) = eventclass;
@@ -2994,6 +3081,17 @@ int __ctalkX11InputClient (OBJECT *streamobject, int parent_fd, int mem_handle, 
 			 eventclass, event_win,eventdata1, eventdata2,
 			 eventdata3, eventdata4, eventdata5, 0);
 	eventclass = eventdata1 = eventdata2 = 0;
+      }
+    }
+    if (ev_buf != NULL) {
+      EV_CH *ev;
+      if ((ev = ev_unshift ()) != NULL) {
+	event_to_client (client_sock_fd, ev -> event_class,
+			 ev -> win_id, ev -> eventdata1,
+			 ev -> eventdata2, ev -> eventdata3,
+			 ev -> eventdata4, ev -> eventdata5,
+			 ev -> eventdata6);
+	stash_ev (ev);
       }
     }
     if ((s = (char *)get_shmem (mem_id)) == NULL) {
