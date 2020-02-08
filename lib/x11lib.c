@@ -1,4 +1,4 @@
-/* $Id: x11lib.c,v 1.75 2020/02/08 01:26:24 rkiesling Exp $ -*-c-*-*/
+/* $Id: x11lib.c,v 1.76 2020/02/08 20:45:17 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -2816,7 +2816,7 @@ int __ctalkX11InputClient (OBJECT *streamobject, int parent_fd, int mem_handle, 
 	      continue;
 	    }
 	  }
-	  event_to_client (parent_fd, FOCUSCHANGENOTIFY,
+	  event_to_client (parent_fd, WMFOCUSCHANGENOTIFY,
 			   e.xfocus.window, e.xfocus.type,
 			   e.xfocus.mode, e.xfocus.detail, 0, 0, 0);
 	  eventclass = 0;
@@ -2826,7 +2826,7 @@ int __ctalkX11InputClient (OBJECT *streamobject, int parent_fd, int mem_handle, 
 	  if (e.xfocus.mode == NotifyGrab) {
 	    grabbed = true;
 	  }
-	  event_to_client (parent_fd, FOCUSCHANGENOTIFY,
+	  event_to_client (parent_fd, WMFOCUSCHANGENOTIFY,
 			   e.xfocus.window, e.xfocus.type,
 			   e.xfocus.mode, e.xfocus.detail, 0, 0, 0);
 	  eventclass = 0;

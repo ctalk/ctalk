@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.84 2020/02/08 20:17:20 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.86 2020/02/08 20:48:31 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -13205,11 +13205,12 @@ Handler Class  Event Class    Description                     Default Handler Me
                               internally but applications can use this
                               event to update their status if
                               necessary.
-"focuschange" FOCUSCHANGENOTIFY
-                              Received when the pointer enters or
-                              leaves a subwindow.  The xEventData1
-                              instance variable contains the type
-                              of event, either FocusIn or FocusOut.
+"wmfocuschange" WMFOCUSCHANGENOTIFY
+                              Received from the window manager when the
+                              pointer enters or leaves a window, or when
+                              the window manager raises a window.  The
+                              xEventData1 instance variable contains the
+                              type of X event, either FocusIn or FocusOut.
 
 "enternotify" ENTERWINDOWNOTIFY
                               Received when the pointer enters a
@@ -13319,6 +13320,12 @@ A @code{Method} that provides the default handler for SelectionRequest
 events.  Currently, this callback is here for completeness; X selection
 events are handled internally, and only in the library functions used
 by @code{X11TextEditorPane} objects.
+
+@cindex handleWMFocusChage instance variable @idxclscite{X11PaneDispatcher}
+@item handleWMFocusChange
+The method that handles the events received from the desktop's window
+manager when it changes the window focus in response to a pointer
+motion or click; or when the window manager raises a window.
 
 @cindex hasFocus
 @item hasFocus

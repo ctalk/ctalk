@@ -1,4 +1,4 @@
-/* $Id: x11defs.h,v 1.8 2020/02/06 18:52:00 rkiesling Exp $ -*-c-*-*/
+/* $Id: x11defs.h,v 1.9 2020/02/08 20:45:17 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -149,24 +149,24 @@
 
 #define WM_CONFIGURE_EVENTS (ExposureMask|StructureNotifyMask|PropertyChangeMask|SubstructureNotifyMask|FocusChangeMask|EnterWindowMask|LeaveWindowMask)
 #define WM_INPUT_EVENTS (KeyPressMask|KeyReleaseMask|ButtonPressMask|ButtonReleaseMask|PointerMotionMask)
-#define KBDCHAR           (1 << 0)
-#define KBDCUR            (1 << 1)
-#define WINDELETE         (1 << 2)
-#define BUTTONPRESS       (1 << 3)
-#define BUTTONRELEASE     (1 << 4)
-#define KEYPRESS          (1 << 5)
-#define KEYRELEASE        (1 << 6)
-#define MOTIONNOTIFY      (1 << 7)
-#define EXPOSE            (1 << 8)
-#define MAPNOTIFY         (1 << 12)
-#define CONFIGURENOTIFY   (1 << 15)
-#define MOVENOTIFY        (1 << 16)
-#define RESIZENOTIFY      (1 << 17)
-#define SELECTIONREQUEST  (1 << 18)
-#define SELECTIONCLEAR    (1 << 19)
-#define FOCUSCHANGENOTIFY (1 << 20)
-#define ENTERWINDOWNOTIFY (1 << 21)
-#define LEAVEWINDOWNOTIFY (1 << 22)
+#define KBDCHAR             (1 << 0)
+#define KBDCUR              (1 << 1)
+#define WINDELETE           (1 << 2)
+#define BUTTONPRESS         (1 << 3)
+#define BUTTONRELEASE       (1 << 4)
+#define KEYPRESS            (1 << 5)
+#define KEYRELEASE          (1 << 6)
+#define MOTIONNOTIFY        (1 << 7)
+#define EXPOSE              (1 << 8)
+#define MAPNOTIFY           (1 << 12)
+#define CONFIGURENOTIFY     (1 << 15)
+#define MOVENOTIFY          (1 << 16)
+#define RESIZENOTIFY        (1 << 17)
+#define SELECTIONREQUEST    (1 << 18)
+#define SELECTIONCLEAR      (1 << 19)
+#define WMFOCUSCHANGENOTIFY (1 << 20)
+#define ENTERWINDOWNOTIFY   (1 << 21)
+#define LEAVEWINDOWNOTIFY   (1 << 22)
 /***/
 /* To be added. */
 /*  #define DESTROYNOTIFY    (1 << 9) */

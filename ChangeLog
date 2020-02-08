@@ -202,3 +202,8 @@
 2020-02-08
 	- Added the X11PaneDispatcher : canFocus instance variable,
 	and removed the X11LabelPane : canFocus instance variable.
+	- Renamed the X11PaneDispatcher : handleFocusChange instance
+	variable to X11PaneDispatcher : handleWMFocusChange.  Changed
+	the handler type from focuschange to wmfocuschange, and also
+	changed the X event type from FOCUSCHANGENOTIFY to
+	WMFOCUSCHAGENOTIFY.

@@ -1728,11 +1728,12 @@ system.  *Note X11TerminalStream::.
                                    internally but applications can use this
                                    event to update their status if
                                    necessary.
-     "focuschange" FOCUSCHANGENOTIFY
-                                   Received when the pointer enters or
-                                   leaves a subwindow.  The xEventData1
-                                   instance variable contains the type
-                                   of event, either FocusIn or FocusOut.
+     "wmfocuschange" WMFOCUSCHANGENOTIFY
+                                   Received from the window manager when the
+                                   pointer enters or leaves a window, or when
+                                   the window manager raises a window.  The
+                                   xEventData1 instance variable contains the
+                                   type of X event, either FocusIn or FocusOut.
 
      "enternotify" ENTERWINDOWNOTIFY
                                    Received when the pointer enters a
@@ -1827,6 +1828,12 @@ Instance Variables
      events.  Currently, this callback is here for completeness; X
      selection events are handled internally, and only in the library
      functions used by 'X11TextEditorPane' objects.
+
+'handleWMFocusChange'
+     The method that handles the events received from the desktop's
+     window manager when it changes the window focus in response to a
+     pointer motion or click; or when the window manager raises a
+     window.
 
 'hasFocus'
      An 'Integer' that is true if the current subpane has the input

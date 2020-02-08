@@ -1,4 +1,4 @@
-/* $Id: X11PaneDispatcher,v 1.24 2020/02/08 20:17:19 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11PaneDispatcher,v 1.25 2020/02/08 20:45:16 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -79,7 +79,7 @@ X11PaneDispatcher instanceVariable handleDestroy Method NULL;
 X11PaneDispatcher instanceVariable handleExpose Method NULL;
 X11PaneDispatcher instanceVariable handleSelectionRequest Method NULL;
 X11PaneDispatcher instanceVariable handleSelectionClear Method NULL;
-X11PaneDispatcher instanceVariable handleFocusChange Method NULL;
+X11PaneDispatcher instanceVariable handleWMFocusChange Method NULL;
 X11PaneDispatcher instanceVariable handleEnterNotify Method NULL;
 X11PaneDispatcher instanceVariable handleLeaveNotify Method NULL;
 X11PaneDispatcher instanceVariable subPaneGeometry String "";
@@ -130,9 +130,9 @@ X11PaneDispatcher instanceMethod setMethodHandler (String __handlerType,
     xstrcpy (method_arg->__o_name, "handleSelectionClear");
     __ctalkAddInstanceVariable (self, "handleSelectionClear",
 				method_arg);
-  } else if (__handlerType == "focuschange") {
-    xstrcpy (method_arg->__o_name, "handleFocusChange");
-    __ctalkAddInstanceVariable (self, "handleFocusChange",
+  } else if (__handlerType == "wmfocuschange") {
+    xstrcpy (method_arg->__o_name, "handleWMFocusChange");
+    __ctalkAddInstanceVariable (self, "handleWMFocusChange",
 				method_arg);
   } else if (__handlerType == "enternotify") {
     __ctalkAddInstanceVariable (self, "handleEnterNotify",
@@ -453,7 +453,7 @@ X11PaneDispatcher instanceMethod handleSubPaneEvent (InputEvent __e) {
 	self methodObjectMessage self handleSelectionClear, self, __e;
       }
       break;
-    case FOCUSCHANGENOTIFY:
+    case WMFOCUSCHANGENOTIFY:
       self children map {
 	self methodObjectMessage self handleFocusChange, self, __e;
       }
