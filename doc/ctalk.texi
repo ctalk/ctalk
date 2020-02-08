@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.83 2020/02/08 01:26:24 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.84 2020/02/08 20:17:20 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -13261,9 +13261,16 @@ expanded in future releases.  Using the methods described
 here and in other sections should help insure that
 applications are compatible with future Ctalk releases.
 
-@subheading Instance Variables
+@subsubheading Instance Variables
 
 @table @code
+
+@cindex @code{canFocus} instance variable @idxclscite{X11LabelPane}
+@item canFocus
+A @code{Boolean} that determines whether the widget is highlighed when
+the pointer passes over it, or the application sets the focus; for
+example, by pressing the @key{Tab} key.
+
 @cindex handleDestroy instance variable @idxclscite{X11PaneDispatcher}
 @item handleDestroy
 A @code{Method} that provides the default handler to delete
@@ -14397,11 +14404,6 @@ label displays a border.  The default is @samp{black}.
 @item borderWidth
 An @code{Integer} that defines the width of the border in pixels when
 the widget is not highlighted.  The default is @samp{2}.
-
-@cindex @code{canFocus} instance variable @idxclscite{X11LabelPane}
-@item canFocus
-An @code{Integer} that determines whether the widget is redrawn when
-the pointer passes over it.
 
 @cindex @code{grayed} instance variable @idxclscite{X11LabelPane}
 @item grayed

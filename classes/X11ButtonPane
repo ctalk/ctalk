@@ -1,4 +1,4 @@
-/* $Id: X11ButtonPane,v 1.20 2020/02/06 01:13:38 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11ButtonPane,v 1.21 2020/02/08 20:17:19 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -260,7 +260,7 @@ X11ButtonPane instanceMethod subPaneButtonPress (Object __subPane,
 
 X11ButtonPane instanceMethod subPaneEnter (Object __subPane,
 					  InputEvent __event) {
-  if (__subPane label canFocus) {
+  if (__subPane canFocus) {
     __subPane label highlight = true;
     __subPane draw;
     __subPane refresh;
@@ -269,7 +269,7 @@ X11ButtonPane instanceMethod subPaneEnter (Object __subPane,
 
 X11ButtonPane instanceMethod subPaneLeave (Object __subPane,
 					  InputEvent __event) {
-  if (__subPane label canFocus) {
+  if (__subPane canFocus) {
     __subPane label highlight = false;
     __subPane draw;
     __subPane refresh;

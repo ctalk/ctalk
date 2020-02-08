@@ -1,4 +1,4 @@
-/* $Id: X11PaneDispatcher,v 1.22 2020/01/25 16:32:52 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11PaneDispatcher,v 1.24 2020/02/08 20:17:19 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -69,6 +69,7 @@ each event.";
  *
  */
 X11PaneDispatcher instanceVariable hasFocus Integer 0;
+X11PaneDispatcher instanceVariable canFocus Boolean true;
 X11PaneDispatcher instanceVariable handleMove Method NULL;
 X11PaneDispatcher instanceVariable handleResize Method NULL;
 X11PaneDispatcher instanceVariable handleKbdInput Method NULL;
@@ -419,7 +420,8 @@ X11PaneDispatcher instanceMethod handleSubPaneEvent (InputEvent __e) {
     case BUTTONPRESS:
     case BUTTONRELEASE:
       self children map {
-	self methodObjectMessage self handlePointerInput, self, __e;
+	if (__e eventData == self xWindowID) 
+	  self methodObjectMessage self handlePointerInput, self, __e;
       }
       break;
     case MOTIONNOTIFY:
