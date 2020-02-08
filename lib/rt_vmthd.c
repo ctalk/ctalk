@@ -1,8 +1,8 @@
-/* $Id: rt_vmthd.c,v 1.2 2020/02/06 18:27:32 rkiesling Exp $ */
+/* $Id: rt_vmthd.c,v 1.5 2020/02/08 00:12:34 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
-  Copyright © 2005-2012, 2015-2019  Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2005-2012, 2015-2020  Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
 
@@ -488,17 +488,12 @@ int method_object_msg_internal_2_args (OBJECT *rcvr, OBJECT *method_instance,
 				       OBJECT *arg1, OBJECT *arg2,
 				       int background) {
 
-  VMETHOD *v;
+  VMETHOD v;
   OBJECT *rcvr_obj, *method_obj,
-    *t, *t_prev, *arg_ref, *rcvr_obj_tmp,
-    *(*fn)(), *t_start, *arg_head;
-  OBJECT *result_object, *__arg_object_tmp;
-  int i, n_args, n_params, varargs, n_th_arg,
-    retval, nrefs_tmp;
+    *rcvr_obj_tmp, *(*fn)();
+  OBJECT *result_object;
+  int retval;
   METHOD *target_method;
-  char buf[MAXLABEL];
-
-  v = (VMETHOD *)__xalloc (sizeof (VMETHOD));
 
   if (rcvr == NULL) {
     fprintf (stderr, "__ctalkMethodObjectMessage: Receiver is NULL.\n");
@@ -510,13 +505,13 @@ int method_object_msg_internal_2_args (OBJECT *rcvr, OBJECT *method_instance,
     method_instance->__o_p_obj :
     method_instance;
 
-  v -> methodName_instance_var = method_obj -> instancevars -> next;
-  v -> methodFn_instance_var = v -> methodName_instance_var -> next -> next;
+  v.methodName_instance_var = method_obj -> instancevars -> next;
+  v.methodFn_instance_var = v.methodName_instance_var -> next -> next;
     
   rcvr_obj_tmp = rcvr_obj;
   if ((target_method = __ctalkFindInstanceMethodByName 
        (&rcvr_obj_tmp,
-	v -> methodName_instance_var->instancevars->__o_value,
+	v.methodName_instance_var->instancevars->__o_value,
 	FALSE, ANY_ARGS)) == NULL)
     return ERROR;
 
@@ -525,25 +520,19 @@ int method_object_msg_internal_2_args (OBJECT *rcvr, OBJECT *method_instance,
   __add_arg_object_entry_frame (target_method, arg2);
   __ctalk_arg_push_ref (arg2);
 
-  fn = (OBJECT *(*)())SYMVAL(v -> methodFn_instance_var -> instancevars ->
+  fn = (OBJECT *(*)())SYMVAL(v.methodFn_instance_var -> instancevars ->
 			     __o_value);
 
   method_object_message_call = TRUE;
-  result_object = __ctalk_method_from_object (rcvr_obj, fn,
-					      target_method, background,
+  result_object = __ctalk_method_from_object_2_args (rcvr_obj, fn,
+						     target_method, background,
 					      &retval);
   method_object_message_call = FALSE;
 
+  (void)__ctalk_arg_cleanup (result_object);
+  (void)__ctalk_arg_cleanup (result_object);
 
-  __arg_object_tmp = __ctalk_arg_pop ();
-  __ctalk_arg_push (__arg_object_tmp);
-  nrefs_tmp = __ctalk_arg_cleanup (result_object);
-  __arg_object_tmp = __ctalk_arg_pop ();
-  __ctalk_arg_push (__arg_object_tmp);
-  nrefs_tmp = __ctalk_arg_cleanup (result_object);
-
-  __xfree (MEMADDR(v));
- return retval;
+  return retval;
 }
 
 void init_ctalk_process (OBJECT *, METHOD *);
@@ -736,6 +725,183 @@ OBJECT *__ctalk_method_from_object (OBJECT *rcvr_obj, OBJECT *(*__cfunc)(),
       }
     }
   }
+
+  __restore_rt_info ();
+
+  return __result_obj_;
+}
+
+OBJECT *__ctalk_method_from_object_2_args (OBJECT *rcvr_obj,
+					   OBJECT *(*__cfunc)(),
+					   METHOD *target_method,
+					   int background, int *ret_out) {
+  OBJECT *__method_rcvr_obj_, *__class_obj_, *__result_obj_ = NULL;
+  METHOD *method;
+  int i, pid;
+
+  __class_obj_ = rcvr_obj->__o_class;
+  __method_rcvr_obj_ = rcvr_obj;
+
+  method = target_method;
+
+  /*
+   *  If the method object calls a superclass.
+   *  TODO - This might need to be reworked.
+   */
+
+  if (rcvr_obj -> __o_superclass == 
+      method -> rcvr_class_obj) {
+    METHOD *__calling_method;
+    if (((__calling_method = __ctalkRtGetMethod ()) != NULL) &&
+	!strcmp (method -> name, __calling_method -> name) &&
+	(__calling_method -> n_args > __calling_method -> n_params)) {
+      OBJECT *__a;
+      int __n_th_param;
+      for (__n_th_param = 0; __n_th_param < method -> n_params; 
+	   __n_th_param++) {
+	__a=__calling_method->args[__calling_method->n_args-1]->obj;
+	__ctalkDeleteArgEntry
+	  (__calling_method->args[__calling_method->n_args-1]);
+	__calling_method -> args[__calling_method -> n_args - 1] = NULL;
+	__calling_method -> n_args -= 1;
+	(void)__objRefCntDec (OBJREF(__a));
+	__add_arg_object_entry_frame (method, __a);
+      }
+    }
+  }
+
+  method -> arg_frame_top = __ctalk_arg_ptr + 1;
+  method -> rcvr_frame_top = __ctalk_receiver_ptr + 1;
+
+  __save_rt_info (rcvr_obj, __class_obj_, NULL, method, __cfunc, False);
+
+  __ctalk_receiver_push_ref (rcvr_obj);
+
+  register_term_handler ();
+
+  if (background) {
+    switch (pid = fork ())
+      {
+      case 0:
+	init_ctalk_process (rcvr_obj, method);
+	break;
+      case -1:
+	printf ("ctalk: Could not start process %s : %s: %s.\n",
+		rcvr_obj -> __o_class -> __o_name,
+		method -> name, strerror (errno));
+	break;
+      default:
+	register_process (pid);
+	*ret_out = pid;
+	break;
+      }
+  } else {
+    __result_obj_ = (__cfunc)();
+    *ret_out = SUCCESS;
+  }
+
+  __ctalk_receiver_pop_deref ();
+
+  __ctalk_methodReturn (rcvr_obj, method, __result_obj_);
+
+  if (IS_CONSTRUCTOR (method)) {
+    OBJECT *__arg_object;
+    VARENTRY *t_local, *v_next;
+    int call_level;
+    /*
+     *  The interpreter adds a __ctalk_set_local () call in the
+     *  caller's init block, so it isn't needed here.
+     *
+     *  The object must be removed from the method, so it 
+     *  isn't bollixed the next time the method is called.
+     *
+     *  If the argument is still on the stack, remove it.
+     */
+    if (IS_OBJECT(__result_obj_))
+      __ctalk_dictionary_add (__result_obj_);
+
+    __arg_object = __ctalk_arg_pop ();
+    __ctalk_arg_push (__arg_object);
+    if (__result_obj_ == __arg_object) {
+      if (!strcmp (method -> rcvr_class_obj -> __o_name, OBJECT_CLASSNAME)) {
+	__ctalk_arg_pop ();
+      }
+      method -> args[method -> n_args - 1] = NULL;
+      --(method -> n_args);
+    }
+
+    for (t_local = M_LOCAL_VAR_LIST(method); 
+	 t_local; t_local = t_local -> next) {
+      if (t_local -> var_object == __result_obj_) {
+	if (__result_obj_ == M_LOCAL_VAR_LIST(method) -> var_object) {
+	  v_next = M_LOCAL_VAR_LIST(method) -> next;
+	  delete_varentry (M_LOCAL_VAR_LIST(method));
+	  M_LOCAL_VAR_LIST(method) = t_local = v_next;
+	} else {
+	  if (t_local -> prev) t_local -> prev -> next = t_local -> next;
+	  if (t_local -> next) t_local -> next -> prev = t_local -> prev;
+	  delete_varentry (t_local);
+	}
+      }
+      if (!t_local) 
+	break;
+    }
+
+    /*
+     *  If the calling method is also a constructor, then 
+     *  set the result object's class and superclass to 
+     *  the calling method.  Also set the value variable's
+     *  class and superclass.
+     *
+     *  The caller is two call frames up from the call 
+     *  stack pointer.
+     *
+     *  If the caller is a _rt_fn, then skip.
+     */
+    if ((call_level = __call_stack_ptr) < (MAXARGS - 1) &&
+	(__call_stack[call_level+2] -> _rt_fn == NULL)) {
+      METHOD *calling_method;
+      OBJECT *calling_rcvr_class_obj;
+      calling_rcvr_class_obj = 
+	__call_stack[call_level + 2] -> rcvr_class_obj;
+      if ((calling_method = 
+	   __ctalkGetInstanceMethodByFn (calling_rcvr_class_obj, 
+					 __call_stack[call_level+2]->method_fn,
+					 FALSE)) != NULL) {
+	if (IS_CONSTRUCTOR(calling_method)) {
+	  OBJECT *result_object_value_var;
+	  result_object_value_var = __result_obj_ -> instancevars;
+#ifdef USE_CLASSNAME_STR
+	  strcpy (__result_obj_ -> __o_classname, 
+		  calling_rcvr_class_obj -> __o_name);
+#endif
+#ifdef USE_SUPERCLASSNAME_STR
+	  strcpy (__result_obj_ -> __o_superclassname, 
+		  _SUPERCLASSNAME(calling_rcvr_class_obj));
+#endif
+	  __result_obj_->__o_class = calling_rcvr_class_obj -> __o_class;
+	  __result_obj_->__o_superclass = 
+	    calling_rcvr_class_obj -> __o_superclass;
+	}
+      }    
+    }
+  }
+
+  /***/
+  __ctalkDeleteArgEntry (method -> args[1]);
+  method->args[1] = NULL;
+  __ctalkDeleteArgEntry (method -> args[0]);
+  method->args[0] = NULL;
+  method -> n_args = 0;
+#if 0 /***/
+  for (i = 0; i < method -> n_params; i++) {
+    if (IS_ARG(method -> args[method -> n_args - 1])) {
+      __ctalkDeleteArgEntry (method -> args[method -> n_args - 1]);
+      method->args[method -> n_args - 1] = NULL;
+      --method -> n_args;
+    }
+  }
+#endif  
 
   __restore_rt_info ();
 

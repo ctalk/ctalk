@@ -1,4 +1,4 @@
-/* $Id: ctalk.h,v 1.59 2020/02/06 18:27:32 rkiesling Exp $ -*-Fundamental-*- */
+/* $Id: ctalk.h,v 1.60 2020/02/07 19:34:11 rkiesling Exp $ -*-Fundamental-*- */
 
 /*
   This file is part of Ctalk.
@@ -2387,6 +2387,8 @@ int __ctalkBackgroundMethodObjectMessage2Args (OBJECT *, OBJECT *, OBJECT *,
        					      OBJECT *);
 OBJECT *__ctalk_method_from_object (OBJECT *, OBJECT *(*)(), METHOD *, int,
        				   	   int *);
+OBJECT *__ctalk_method_from_object_2_args (OBJECT *, OBJECT *(*)(),
+       METHOD *, int, int *);
 void delete_processes (void);
 int __ctalkProcessWait (int, int *, int *, int *);
 
