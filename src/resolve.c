@@ -1,8 +1,8 @@
-/* $Id: resolve.c,v 1.13 2020/01/29 23:55:29 rkiesling Exp $ */
+/* $Id: resolve.c,v 1.14 2020/02/08 03:39:40 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
-  Copyright © 2005-2020 Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2005-2019 Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
 
@@ -1127,109 +1127,6 @@ CVAR *get_global_var_not_shadowed (char *name) {
   return c;
 }
 
-/* resolve mark evaled */
-static void rme (MSINFO *ms, int start, int end) {
-  int i;
-  for (i = start; i >= end; i--) {
-    ++ms -> messages[i] -> evaled;
-    ++ms -> messages[i] -> output;
-  }
-}
-
-static OBJECT *resolve_single_token_method_param (MSINFO *ms,
-						  int messageptr,
-						  int n_th_param,
-						  METHOD *method) {
-  int fn_idx, prev_idx, __end_idx;
-  char expr_buf_out[MAXMSG];
-  int max_param = method -> n_params - 1;
-  char param_buf[MAXLABEL], param_buf_trans[MAXLABEL];
-  
-  if (obj_expr_is_fn_arg_ms ( ms, &fn_idx) >= 0) {
-    param_to_fn_arg (ms -> messages, messageptr);
-    return NULL;
-  } else {
-    if (prev_tok_is_unary_op (ms)) {
-      if ((prev_idx = prevlangmsgstack (ms ->messages, messageptr))
-	  != ERROR) {
-	fileout (fmt_rt_expr (ms -> messages, prev_idx, &__end_idx, 
-			      expr_buf_out), 0, messageptr);
-	rme (ms, prev_idx, __end_idx);
-      }
-      return NULL;
-    } else {
-      format_method_arg_accessor
-	(max_param - n_th_param, M_NAME(ms -> messages[ms -> tok]),
-	 method -> varargs, param_buf);
-      if (is_fmt_arg_2 (ms)) {
-	// If it's a printf argument, use the format
-	// string character to provide the translation.
-	// Otherwise, use the class of the
-	// method parameter.
-	fmt_printf_fmt_arg_ms  (ms, param_buf, param_buf_trans);
-      } else {
-	fmt_rt_return (param_buf, method->params[n_th_param]->class,
-		       TRUE, param_buf_trans);
-      }
-      fileout (param_buf_trans, 0, ms -> tok);
-      rme (ms, ms -> tok, ms -> tok);
-      return NULL;
-    }
-  }
-  return NULL;
-}
-
-static OBJECT *class_method_template_call (MSINFO *ms, int messageptr,
-					   int prev_tok_idx) {
-
-  MESSAGE *m_prev_tok = ms -> messages[prev_tok_idx];
-  MESSAGE *m = ms -> messages[messageptr];
-
-  if ((M_TOK(m_prev_tok) == LABEL) && (m_prev_tok -> obj != NULL)) {
-    /* A special case where we can call a template
-       method; e.g.,
-       CFunction <template_name>
-       
-       This could probably be generalized to any
-       class method call, if we have any expressions
-       that require it.
-    */
-    if (IS_CLASS_OBJECT (m_prev_tok -> obj) &&
-	str_eq (m_prev_tok -> obj -> __o_name, 
-		CFUNCTION_CLASSNAME)) {
-      if (template_name (M_NAME(m))) {
-	template_call_from_CFunction_receiver 
-	  (ms -> messages, messageptr);
-	return m_prev_tok -> obj;
-      } else {
-	object_does_not_understand_msg_warning_a 
-	  (m, m_prev_tok -> obj -> __o_name,
-	   m_prev_tok -> obj -> __o_classname,
-	   M_NAME(m));
-      }
-    } else {
-      if (get_instance_method (m_prev_tok,
-			       m_prev_tok -> obj,
-			       M_NAME(m),
-			       ANY_ARGS, FALSE) ||
-	  get_class_method (m_prev_tok,
-			    m_prev_tok -> obj,
-			    M_NAME(m),
-			    ANY_ARGS, FALSE)) {
-	method_shadows_c_keyword_warning_a (ms -> messages,
-					    messageptr,
-					    prev_tok_idx);
-      } else {
-	object_does_not_understand_msg_warning_a 
-	  (m, m_prev_tok -> obj -> __o_name,
-	   m_prev_tok -> obj -> __o_classname,
-	   M_NAME(m));
-      }
-    }
-  }
-  return NULL;
-}
-
 METHOD *resolve_method_tok_method = NULL;
 
 #define CVAR_AGGREGATE_DECL(__c) (((__c) -> attrs & CVAR_ATTR_ARRAY_DECL)|| \
@@ -1503,10 +1400,47 @@ OBJECT *resolve (int message_ptr) {
 	 if ((prev_tok_ptr = prevlangmsg (ms.messages, message_ptr))
 	     != -1) {
 	   if ((m_prev_tok = ms.messages[prev_tok_ptr]) != NULL) {
-	     OBJECT *o;
-	     if ((o = class_method_template_call (&ms, message_ptr,
-						  prev_tok_ptr)) != NULL) {
-	       return o;
+	     if ((M_TOK(m_prev_tok) == LABEL) && (m_prev_tok -> obj != NULL)) {
+	       /* A special case where we can call a template
+		  method; e.g.,
+		  CFunction <template_name>
+
+		  This could probably be generalized to any
+		  class method call, if we have any expressions
+		  that require it.
+	       */
+	       if (IS_CLASS_OBJECT (m_prev_tok -> obj) &&
+		   str_eq (m_prev_tok -> obj -> __o_name, 
+			   CFUNCTION_CLASSNAME)) {
+		 if (template_name (M_NAME(m))) {
+		   template_call_from_CFunction_receiver 
+		     (ms.messages, message_ptr);
+		   return m_prev_tok -> obj;
+		 } else {
+		   object_does_not_understand_msg_warning_a 
+		     (m, m_prev_tok -> obj -> __o_name,
+		      m_prev_tok -> obj -> __o_classname,
+		      M_NAME(m));
+		 }
+	       } else {
+		 if (get_instance_method (m_prev_tok,
+					  m_prev_tok -> obj,
+					  M_NAME(m),
+					  ANY_ARGS, FALSE) ||
+		     get_class_method (m_prev_tok,
+				       m_prev_tok -> obj,
+				       M_NAME(m),
+				       ANY_ARGS, FALSE)) {
+		   method_shadows_c_keyword_warning_a (ms.messages,
+						       message_ptr,
+						       prev_tok_ptr);
+		 } else {
+		   object_does_not_understand_msg_warning_a 
+		     (m, m_prev_tok -> obj -> __o_name,
+		      m_prev_tok -> obj -> __o_classname,
+		      M_NAME(m));
+		 }
+	       }
 	     }
 	   }
 	 }
@@ -1523,16 +1457,30 @@ OBJECT *resolve (int message_ptr) {
 
      } /* if (!IS_OBJECT(result_object)) */
      
+#if 0
+     /* Look for a class object. */
+
+     if ((class_result = class_object_search (m -> name, TRUE)) != NULL) {
+       m -> obj = class_result;
+       if (!is_class_typecast (&ms, message_ptr))
+	 default_method (&ms);
+       return class_result;
+     }
+#endif
+     
    } else { /* if (M_TOK(m) == LABEL) */
      result_object = NULL;
    } /* if (M_TOK(m) == LABEL) */
+
+  /* if (is_expr_obj (m)) return M_VALUE_OBJ (m); *//****/
 
   /*
    *   Check for a method parameter reference and create an
    *   object if necessary.
    */
+  /***/
   if ((M_TOK(m) == LABEL) && (interpreter_pass == method_pass) &&
-      !(m -> attrs & TOK_SELF) && !IS_OBJECT(result_object)) {
+      !(m -> attrs & TOK_SELF)) {
     int i;
     METHOD *method;
     method = new_methods[new_method_ptr + 1] -> method;
@@ -1569,7 +1517,7 @@ OBJECT *resolve (int message_ptr) {
 		  ctrlblk_pred_rt_expr (ms.messages, message_ptr);
 		  __m -> attrs &= !TOK_IS_METHOD_ARG;
 		} else if (is_fmt_arg_2 (&ms)) {
-		  int _end_ptr;
+		  int _end_ptr, _j;
 		  _end_ptr = find_expression_limit (&ms);
 
 		  toks2str (ms.messages, message_ptr, _end_ptr, _expr);
@@ -1577,17 +1525,23 @@ OBJECT *resolve (int message_ptr) {
 		  fmt_printf_fmt_arg_ms (&ms, expr_buf_out,
 					 expr_buf_out_2);
 		  fileout (expr_buf_out_2, 0, message_ptr);
-		  rme (&ms, message_ptr, _end_ptr);
+		  for (_j = message_ptr; _j >= _end_ptr; --_j) {
+		    ++ms.messages[_j] -> evaled;
+		    ++ms.messages[_j] -> output;
+		  }
 		  return NULL;
 		} else if ((prev_tok_ptr =
 			    param_is_unary_prefix_operand (&ms))
 			   != ERROR) {
-		  int _expr_end;
+		  int _expr_end, _j;
 		  ms.tok = prev_tok_ptr;
 		  collect_expression_buf (&ms, &_expr_end, expr_buf_out);
 		  fmt_eval_expr_str (expr_buf_out, expr_buf_out_2);
 		  fileout (expr_buf_out_2, 0, ms.tok);
-		  rme (&ms, prev_tok_ptr, _expr_end);
+		  for (_j = prev_tok_ptr; _j >= _expr_end; --_j) {
+		    ++ms.messages[_j] -> evaled;
+		    ++ms.messages[_j] -> output;
+		  }
 		  return NULL;
 		} else {
 		  c_param_expr_arg (&ms);
@@ -1596,11 +1550,56 @@ OBJECT *resolve (int message_ptr) {
 		if (is_single_token_method_param (ms.messages,
 						  message_ptr,
 						  method)) {
-		  return resolve_single_token_method_param
-		    (&ms, message_ptr, i, method);
-		} else { /* if (is_single_token_method_param (ms.messages, */
+		  if ((__n_th_arg = 
+		       obj_expr_is_fn_arg_ms (&ms, &fn_idx)) != ERROR) {
+		    param_to_fn_arg (ms.messages, message_ptr);
+		    return NULL;
+		  } else {
+		    if (prev_tok_is_unary_op (&ms)) {
+		      int prev_idx;
+		      if ((prev_idx = prevlangmsgstack (ms.messages,
+						       message_ptr))
+			  != ERROR) {
+			fileout (fmt_rt_expr (ms.messages, prev_idx,
+					      &__end_idx, 
+					      expr_buf_out),
+				 0, message_ptr);
+			for (i = prev_idx; i >= __end_idx; --i) {
+			  ++ms.messages[i] -> evaled;
+			  ++ms.messages[i] -> output;
+			}
+		      }
+		      return NULL;
+		    } else {
+		      int max_param = method -> n_params - 1;
+		      char param_buf[MAXLABEL],
+			param_buf_trans[MAXLABEL];
+		      format_method_arg_accessor
+			(max_param - i,
+			 M_NAME(ms.messages[ms.tok]),
+			 method -> varargs, param_buf);
+		      if (is_fmt_arg_2 (&ms)) {
+			// If it's a printf argument, use the format
+			// string character to provide the translation.
+			// Otherwise, use the class of the
+			// method parameter.
+			fmt_printf_fmt_arg_ms  (&ms, param_buf,
+						param_buf_trans);
+		      } else {
+			fmt_rt_return (param_buf,
+				       method->params[i]->class,
+				       TRUE,
+				       param_buf_trans);
+		      }
+		      fileout (param_buf_trans, 0, ms.tok);
+		      ++ms.messages[ms.tok] -> evaled;
+		      ++ms.messages[ms.tok] -> output;
+		      return NULL;
+		    }
+		  }
+		} else {
 		    c_param_expr_arg (&ms);
-		} /* if (is_single_token_method_param (ms.messages, */
+		}
 	      } /* if (need_rt_eval ... */
 	    } else { /* if (!is_in_rcvr_subexpr_obj_check (messages, msg_ptr... */
 	      m ->  obj = create_object  (method->params[i] -> class,
@@ -1700,7 +1699,7 @@ OBJECT *resolve (int message_ptr) {
 
     /* End of the method parameter evaluation stuff (hopefully). */
 
-  } /* if ((M_TOK(m) == LABEL) && (interpreter_pass == method_pass) ... */
+  } /* if (interpreter_pass == method_pass) */
 
   /* 
    *  Look for a global or local object.  
@@ -2035,7 +2034,10 @@ OBJECT *resolve (int message_ptr) {
 	     fmt_eval_expr_str (s, expr_out);
 	     fileout (expr_out, 0, message_ptr);
 	     __xfree(MEMADDR(s));
-	     rme (&ms, message_ptr, next_label_ptr);
+	     for (t = message_ptr; t >= next_label_ptr; t--) {
+	       ++ms.messages[t] -> evaled;
+	       ++ms.messages[t] -> output;
+	     }
 	   }
 	 }
        }
@@ -2065,7 +2067,10 @@ OBJECT *resolve (int message_ptr) {
 					 SEMICOLON)) == ERROR) {
 	warning (m, "Syntax error");
       }
-      rme (&ms, message_ptr, next_label_ptr);
+      for (i = message_ptr; i >= next_label_ptr; i--) {
+	++ms.messages[i] -> evaled;
+	++ms.messages[i] -> output;
+      }
       return NULL;
     }
     if (!strcmp (M_NAME(m), "noMethodInit")) {
@@ -2296,7 +2301,7 @@ OBJECT *resolve (int message_ptr) {
 		}
 		return NULL;
 	      } else if (interpreter_pass != expr_check &&
-			 interpreter_pass != library_pass) {
+			 interpreter_pass != library_pass) { /***/
 		/* the expression isn't being parsed on its own. */
 		__ctalkExceptionInternal (m_sender, undefined_method_x,
 					  m_sender -> name,0);
