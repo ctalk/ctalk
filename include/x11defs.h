@@ -1,4 +1,4 @@
-/* $Id: x11defs.h,v 1.9 2020/02/08 20:45:17 rkiesling Exp $ -*-c-*-*/
+/* $Id: x11defs.h,v 1.10 2020/02/08 21:16:44 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -167,6 +167,8 @@
 #define WMFOCUSCHANGENOTIFY (1 << 20)
 #define ENTERWINDOWNOTIFY   (1 << 21)
 #define LEAVEWINDOWNOTIFY   (1 << 22)
+#define FOCUSIN             (1 << 23)
+#define FOCUSOUT            (1 << 24)
 /***/
 /* To be added. */
 /*  #define DESTROYNOTIFY    (1 << 9) */

@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.86 2020/02/08 20:48:31 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.87 2020/02/08 21:16:44 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -13220,8 +13220,13 @@ Handler Class  Event Class    Description                     Default Handler Me
                               Received when the pointer leaves a
                               window.
 
-"destroy"      WINDELETE      Called when the user closes     subPaneDestroy
-                              the application window.
+"focusin"     FOCUSIN         Received when the application signals
+"focusout"    FOCUSOUT        a change of widget focus; for example,
+                              when the user presses the @key{Tab}
+                              key.
+
+"destroy"      WINDELETE      Called when the user closes the
+                              application window.
 
 @end smallexample
 
@@ -13283,6 +13288,14 @@ a subpane window and its data.
 @item handleLeaveNotify
 Handlers for events that are generated when a pointer crosses from one
 window to another.
+
+@cindex handleFocusIn instance variable @idxclscite{X11PaneDispatcher}
+@cindex handleFocusOut instance variable @idxclscite{X11PaneDispatcher}
+@item handleFocusIn
+@item handleFocusOut
+Handles highlighting or un-highlighting a widget when receiving a
+FOCUSIN or FOCUSOUT event from the application; for example, when the
+user presses the @key{Tab} key.
 
 @cindex handleKbdInput instance variable @idxclscite{X11PaneDispatcher}
 @item handleKbdInput

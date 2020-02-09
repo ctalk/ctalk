@@ -1,4 +1,4 @@
-/* $Id: resolve.c,v 1.14 2020/02/08 03:39:40 rkiesling Exp $ */
+/* $Id: resolve.c,v 1.16 2020/02/09 16:01:00 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -972,7 +972,7 @@ static void undefined_receiver_exception (int message_ptr,
 					  int actual_method_idx) {
   OBJECT_CONTEXT error_context;
   MESSAGE *m, *m_actual_method;
-  char e[MAXMSG];
+  char e[MAXMSG], *e_ptr;
   int visible_line;
   m = message_stack_at (message_ptr);
   m_actual_method = message_stack_at (actual_method_idx);
@@ -991,30 +991,41 @@ static void undefined_receiver_exception (int message_ptr,
 	  return;
 	} else {
 	  if (!NON_METHOD_CONTEXT(message_stack_at (actual_method_idx))) {
-	  sprintf 
-	    (e, "\"%s,\" is either not defined as a method, "
-	    "or prototyped as a function", 
-	    M_NAME(m_actual_method));
-	  __ctalkExceptionInternal 
-	    (m, ambiguous_operand_x, e,0);
-	} else {
-	  return;
+	    sprintf 
+	      (e, "\"%s,\" is either not defined as a method, "
+	       "or prototyped as a function", 
+	       M_NAME(m_actual_method));
+	    __ctalkExceptionInternal 
+	      (m, ambiguous_operand_x, e,0);
+	  } else {
+	    return;
+	  }
 	}
-	}
-	} else if (interpreter_pass == method_pass) {
+      } else if (interpreter_pass == method_pass) {
 	if (!NON_METHOD_CONTEXT(message_stack_at (actual_method_idx))) {
+	  e_ptr = collect_errmsg_expr (message_stack (), message_ptr);
 	  sprintf 
 	    (e, "In method, \"%s:\"\n"
-	     "Undefined receiver or variable argument, \"%s\"",
+	     "Undefined receiver or variable argument, \"%s\".\n\n\t %s\n\n",
 	     new_methods[new_method_ptr + 1] -> method -> name,
-	     M_NAME(m_actual_method));
+	     M_NAME(m_actual_method), e_ptr);
+	  __xfree (MEMADDR(e_ptr));
 	} else {
 	  return;
 	}
       } else {
 	if (!NON_METHOD_CONTEXT(message_stack_at (actual_method_idx))) {
-	  sprintf (e, "Undefined receiver or variable argument, \"%s\"",
-	     M_NAME(m_actual_method));
+	  if (interpreter_pass == parsing_pass) {
+	    e_ptr = collect_errmsg_expr (message_stack (), message_ptr);
+	    sprintf 
+	      (e, "Undefined receiver or variable argument, "
+	       "\"%s\".\n\n\t%s\n\n",
+	       M_NAME(m_actual_method), e_ptr);
+	    __xfree (MEMADDR(e_ptr));
+	  } else {
+	    sprintf (e, "Undefined receiver or variable argument, \"%s\"",
+		     M_NAME(m_actual_method));
+	  }
 	} else {
 	  return;
 	}

@@ -1,4 +1,4 @@
-/* $Id: errmsgs.c,v 1.3 2020/02/02 04:02:52 rkiesling Exp $ */
+/* $Id: errmsgs.c,v 1.4 2020/02/09 15:50:09 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -980,4 +980,38 @@ void instancevar_wo_rcvr_warning (MESSAGE_STACK messages, int tok_idx,
       }
     }
   }
+}
+
+char *collect_errmsg_expr (MESSAGE_STACK messages, int tok_idx) {
+  int last_sep_semicolon, last_sep_closeblock;
+  int next_sep;
+  char *expr = NULL;
+  last_sep_semicolon = scanback (message_stack (), tok_idx,
+				  stack_start (message_stack ()), SEMICOLON);
+  last_sep_closeblock = scanback (message_stack (), tok_idx,
+				  stack_start (message_stack ()), CLOSEBLOCK);
+  next_sep = scanforward (message_stack (), tok_idx,
+			  get_stack_top (message_stack ()), SEMICOLON);
+  
+  if (last_sep_closeblock < last_sep_semicolon) {
+    for (;last_sep_closeblock > next_sep; last_sep_closeblock--) {
+      if ((M_TOK(messages[last_sep_closeblock]) != CLOSEBLOCK) &&
+	  !M_ISSPACE(messages[last_sep_closeblock])) {
+	expr = collect_tokens (messages, last_sep_closeblock,
+			       next_sep);
+	break;
+      }
+    }
+  } else {
+    for (;last_sep_semicolon > next_sep; last_sep_semicolon--) {
+      if ((M_TOK(messages[last_sep_semicolon]) != SEMICOLON) &&
+	  !M_ISSPACE(messages[last_sep_semicolon])) {
+	expr = collect_tokens (messages, last_sep_semicolon,
+			       next_sep);
+	break;
+      }
+    }
+    expr = collect_tokens (messages, last_sep_semicolon, next_sep);
+  }
+  return expr;
 }

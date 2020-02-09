@@ -1,4 +1,4 @@
-/* $Id: X11TerminalStream,v 1.24 2020/02/08 20:45:16 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11TerminalStream,v 1.25 2020/02/08 21:16:43 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -44,6 +44,8 @@
 #define WMFOCUSCHANGENOTIFY (1 << 20)
 #define ENTERWINDOWNOTIFY   (1 << 21)
 #define LEAVEWINDOWNOTIFY   (1 << 22)
+#define FOCUSIN             (1 << 23)
+#define FOCUSOUT            (1 << 24)
 
 #include <stdio.h>
 #if defined(__sparc__) && defined(__svr4__)
