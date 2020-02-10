@@ -1,4 +1,4 @@
-/* $Id: x11lib.c,v 1.76 2020/02/08 20:45:17 rkiesling Exp $ -*-c-*-*/
+/* $Id: x11lib.c,v 1.77 2020/02/10 00:29:08 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -2012,7 +2012,7 @@ int __ctalkOpenX11InputClient (OBJECT *streamobject) {
     }
   }
   INTVAL(&shm_mem[SHM_EVENT_READY]) = 0;
-  INTVAL(&shm_mem[SHM_EVENT_MASK]) = 0; /***/
+  INTVAL(&shm_mem[SHM_EVENT_MASK]) = 0;
   
 #if !X11LIB_FRAME
   x11_pane_stream_object = streamobject;
@@ -2246,7 +2246,7 @@ int __have_bitmap_buffers (OBJECT *self_object) {
   return FALSE;
 }
 
-static bool have_event_mask = false; /***/
+static bool have_event_mask = false;
 
 int read_event (int *ev_type_out, unsigned int *win_out,
 		unsigned int data[], int event_mask) {
@@ -2266,7 +2266,6 @@ int read_event (int *ev_type_out, unsigned int *win_out,
     INTVAL(&shm_mem[SHM_EVENT_READY]) = 0;
   } else {
     if (!have_event_mask) {
-      /***/
       /* should not reach this if event_mask is zero */
       INTVAL(&shm_mem[SHM_EVENT_MASK]) = event_mask;
       have_event_mask = true;
@@ -2366,8 +2365,7 @@ static void ev_push (int eventclass, unsigned int win_id,
   ++ev_cnt;
 }
 
-static void event_to_client (int parent_fd,
-			     int eventclass,
+static void event_to_client (int eventclass,
 			     unsigned int win_id,
 			     int eventdata1,
 			     int eventdata2, int eventdata3,
@@ -2375,7 +2373,6 @@ static void event_to_client (int parent_fd,
 			     int eventdata6) {
   int wait_retries = 0;
 
-  /***/
   if (INTVAL(&shm_mem[SHM_EVENT_MASK]) > 0) {
     if (!(INTVAL(&shm_mem[SHM_EVENT_MASK]) & eventclass)) {
       return;
@@ -2386,15 +2383,10 @@ static void event_to_client (int parent_fd,
   fprintf (stderr, "%d %d\n", ev_cnt, ev_reuse_ptr);
 #endif  
 
-  while (INTVAL(&shm_mem[SHM_EVENT_READY])) {
+  if (INTVAL(&shm_mem[SHM_EVENT_READY])) {
     ev_push (eventclass, win_id, eventdata1, eventdata2,
 	       eventdata3, eventdata4, eventdata5, eventdata6);
     return;
-#if 0 /***/
-    if (++wait_retries > 20)
-      return;
-    usleep (100);
-#endif    
   }
 
   INTVAL(&shm_mem[SHM_EVENT_TYPE]) = eventclass;
@@ -2426,13 +2418,13 @@ static void generate_expose (Window w, int x, int y, int width, int height) {
 	      ExposureMask,  &e);
 }
 
-static void resize_event_to_client (int fd, int x, int y,
+static void resize_event_to_client (int x, int y,
 				     int width, int height,
 				     int border_width,
 				     XRectangle *prev,
 				     int win_id,
 				     int *eventclass) {
-  event_to_client (fd, RESIZENOTIFY, win_id,
+  event_to_client (RESIZENOTIFY, win_id,
 		   x, y, width, height, border_width, 0);
   prev -> width = width;
   prev -> height = height;
@@ -2559,25 +2551,19 @@ static int kwin_event_loop (int parent_fd, int mem_handle, int main_win_id) {
 	  break;
 	case FocusIn:
 	case FocusOut:
-	  event_to_client (parent_fd, FOCUSCHANGENOTIFY,
+	  event_to_client (FOCUSCHANGENOTIFY,
 			   e.xfocus.window, e.xfocus.type,
 			   e.xfocus.mode, e.xfocus.detail, 0, 0, 0);
 	  eventclass = 0;
 	  continue;
 	  break;
-#if 0 /***/
-	case FocusIn:
-	  break;
-	case FocusOut:
-	  break;
-#endif	  
 	case PropertyNotify:
 	  break;
   	case MotionNotify:
 	  while (XCheckTypedWindowEvent 
 		 (display, main_win_id, MotionNotify, &e))
 	    ;
-	  event_to_client (parent_fd, MOTIONNOTIFY,
+	  event_to_client (MOTIONNOTIFY,
 			   e.xmotion.window, e.xmotion.x, e.xmotion.y,
 			   e.xmotion.state, e.xmotion.is_hint, 0, 0);
 	  eventclass = 0;
@@ -2611,7 +2597,7 @@ static int kwin_event_loop (int parent_fd, int mem_handle, int main_win_id) {
 	      eventclass = MOVENOTIFY;
 	      prev_d.x = e.xconfigure.x;
 	      prev_d.y = e.xconfigure.y;
-	      event_to_client (parent_fd, eventclass, e.xconfigure.x, 
+	      event_to_client (eventclass, e.xconfigure.x, 
 			       e.xconfigure.y, 
 			       e.xconfigure.width,
 			       e.xconfigure.height,
@@ -2619,8 +2605,7 @@ static int kwin_event_loop (int parent_fd, int mem_handle, int main_win_id) {
 	      if ((prev_d.width != e.xconfigure.width) ||
 		  (prev_d.height != e.xconfigure.height)) {
 		resize_event_to_client
-		  (parent_fd,
-		   e.xconfigure.x, 
+		  (e.xconfigure.x, 
 		   e.xconfigure.y, 
 		   e.xconfigure.width,
 		   e.xconfigure.height,
@@ -2630,11 +2615,11 @@ static int kwin_event_loop (int parent_fd, int mem_handle, int main_win_id) {
 	    } else if ((prev_d.width != e.xconfigure.width) ||
 		       (prev_d.height != e.xconfigure.height)) {
 	      resize_event_to_client
-		(parent_fd, e.xconfigure.x, e.xconfigure.y,
+		(e.xconfigure.x, e.xconfigure.y,
 		 e.xconfigure.width, e.xconfigure.height,
 		 e.xconfigure.border_width, &prev_d, &eventclass);
 	    }
-	    event_to_client (parent_fd, EXPOSE, e.xconfigure.x, 
+	    event_to_client (EXPOSE, e.xconfigure.x, 
 			     e.xconfigure.y, 
 			     e.xconfigure.width,
 			     e.xconfigure.height, 0, 0);
@@ -2664,7 +2649,7 @@ static int kwin_event_loop (int parent_fd, int mem_handle, int main_win_id) {
 	}
       if (eventclass) {
 
-	event_to_client (parent_fd, eventclass, eventdata1, 
+	event_to_client (eventclass, eventdata1, 
 			 eventdata2, eventdata3,
 			 eventdata4, eventdata5, 0);
 
@@ -2734,6 +2719,7 @@ int __ctalkX11InputClient (OBJECT *streamobject, int parent_fd, int mem_handle, 
   memset ((void *)&prev_d, '\0', sizeof (XRectangle));
   e_config.type == -1;
   char *shm_mem_2;
+  EV_CH *ev;
 
 #if 0
   if (wm_kwin)
@@ -2764,8 +2750,7 @@ int __ctalkX11InputClient (OBJECT *streamobject, int parent_fd, int mem_handle, 
 	case ButtonPress:
 	case ButtonRelease:
 	  buttonpressed = (e.type == ButtonPress) ? TRUE : FALSE;
-	  event_to_client (client_sock_fd,
-			   ((e.type == ButtonPress) ?
+	  event_to_client (((e.type == ButtonPress) ?
 			    BUTTONPRESS : BUTTONRELEASE),
 			   e.xbutton.window,
 			   e.xbutton.x,
@@ -2775,7 +2760,7 @@ int __ctalkX11InputClient (OBJECT *streamobject, int parent_fd, int mem_handle, 
 	  continue;
 	  break;
 	case KeyPress:
-	  event_to_client (client_sock_fd, KEYPRESS, e.xkey.window,
+	  event_to_client (KEYPRESS, e.xkey.window,
 			   e.xkey.x, e.xkey.y, e.xkey.state,
 			   e.xkey.keycode,
 			   get_x11_keysym (e.xkey.keycode,
@@ -2783,7 +2768,7 @@ int __ctalkX11InputClient (OBJECT *streamobject, int parent_fd, int mem_handle, 
 	  continue;
 	  break;
 	case KeyRelease:
-	  event_to_client (client_sock_fd, KEYRELEASE, e.xkey.window,
+	  event_to_client (KEYRELEASE, e.xkey.window,
 			   e.xkey.x, e.xkey.y, e.xkey.state,
 			   e.xkey.keycode,
 			   get_x11_keysym (e.xkey.keycode,
@@ -2796,8 +2781,7 @@ int __ctalkX11InputClient (OBJECT *streamobject, int parent_fd, int mem_handle, 
 	    if (resizing) {
 	      resizing = false;
 	      resize_event_to_client
-		(client_sock_fd,
-		 e_config.xconfigure.x, 
+		(e_config.xconfigure.x, 
 		 e_config.xconfigure.y, 
 		 e_config.xconfigure.width,
 		 e_config.xconfigure.height,
@@ -2805,7 +2789,7 @@ int __ctalkX11InputClient (OBJECT *streamobject, int parent_fd, int mem_handle, 
 		 &prev_d, e_config.xconfigure.window,
 		 &eventclass);
 	      eventclass = EXPOSE;
-	      event_to_client (client_sock_fd, eventclass,
+	      event_to_client (eventclass,
 			       e_config.xconfigure.window,
 			       e_expose.xexpose.x,
 			       e_expose.xexpose.y,
@@ -2816,7 +2800,7 @@ int __ctalkX11InputClient (OBJECT *streamobject, int parent_fd, int mem_handle, 
 	      continue;
 	    }
 	  }
-	  event_to_client (parent_fd, WMFOCUSCHANGENOTIFY,
+	  event_to_client (WMFOCUSCHANGENOTIFY,
 			   e.xfocus.window, e.xfocus.type,
 			   e.xfocus.mode, e.xfocus.detail, 0, 0, 0);
 	  eventclass = 0;
@@ -2826,21 +2810,21 @@ int __ctalkX11InputClient (OBJECT *streamobject, int parent_fd, int mem_handle, 
 	  if (e.xfocus.mode == NotifyGrab) {
 	    grabbed = true;
 	  }
-	  event_to_client (parent_fd, WMFOCUSCHANGENOTIFY,
+	  event_to_client (WMFOCUSCHANGENOTIFY,
 			   e.xfocus.window, e.xfocus.type,
 			   e.xfocus.mode, e.xfocus.detail, 0, 0, 0);
 	  eventclass = 0;
 	  continue;
 	  break;
 	case EnterNotify:
-	  event_to_client (parent_fd, ENTERWINDOWNOTIFY,
+	  event_to_client (ENTERWINDOWNOTIFY,
 			   e.xcrossing.window, e.xcrossing.subwindow,
 			   e.xcrossing.mode, e.xcrossing.detail, 0, 0, 0);
 	  eventclass = 0;
 	  continue;
 	  break;
 	case LeaveNotify:
-	  event_to_client (parent_fd, LEAVEWINDOWNOTIFY,
+	  event_to_client (LEAVEWINDOWNOTIFY,
 			   e.xcrossing.window, e.xcrossing.subwindow,
 			   e.xcrossing.mode, e.xcrossing.detail, 0, 0, 0);
 	  eventclass = 0;
@@ -2872,8 +2856,7 @@ int __ctalkX11InputClient (OBJECT *streamobject, int parent_fd, int mem_handle, 
 	  while (XCheckTypedWindowEvent 
 		 (display, main_win_id, MotionNotify, &e))
 	    ;
-	  event_to_client (client_sock_fd,
-			   MOTIONNOTIFY,
+	  event_to_client (MOTIONNOTIFY,
 			   e.xmotion.window,
 			   e.xmotion.x,
 			   e.xmotion.y,
@@ -2909,7 +2892,7 @@ int __ctalkX11InputClient (OBJECT *streamobject, int parent_fd, int mem_handle, 
 	    continue;
 	  }
 
-	  event_to_client (client_sock_fd, EXPOSE,
+	  event_to_client (EXPOSE,
 			   e.xexpose.window, e.xexpose.x, e.xexpose.y,
 			   e.xexpose.width, e.xexpose.height, 0, 0);
 	  eventclass = 0;
@@ -2952,8 +2935,7 @@ int __ctalkX11InputClient (OBJECT *streamobject, int parent_fd, int mem_handle, 
 	      if (e_next.type != ConfigureNotify &&
 		  e_next.type != Expose) {
 	      resize_event_to_client
-		(client_sock_fd,
-		 e.xconfigure.x, 
+		(e.xconfigure.x, 
 		 e.xconfigure.y, 
 		 e.xconfigure.width,
 		 e.xconfigure.height,
@@ -2987,7 +2969,7 @@ int __ctalkX11InputClient (OBJECT *streamobject, int parent_fd, int mem_handle, 
 		eventclass = MOVENOTIFY;
 		prev_d.x = e.xconfigure.x;
 		prev_d.y = e.xconfigure.y;
-		event_to_client (client_sock_fd, eventclass,
+		event_to_client (eventclass,
 				 e.xconfigure.window,
 				 e.xconfigure.x, 
 				 e.xconfigure.y, 
@@ -3002,8 +2984,7 @@ int __ctalkX11InputClient (OBJECT *streamobject, int parent_fd, int mem_handle, 
 			 (display, main_win_id, ConfigureNotify, &e))
 		    ;
 		  resize_event_to_client
-		    (client_sock_fd,
-		     e.xconfigure.x, 
+		    (e.xconfigure.x, 
 		     e.xconfigure.y, 
 		     e.xconfigure.width,
 		     e.xconfigure.height,
@@ -3015,7 +2996,7 @@ int __ctalkX11InputClient (OBJECT *streamobject, int parent_fd, int mem_handle, 
 	      } else if ((prev_d.width != e.xconfigure.width) ||
 			 (prev_d.height != e.xconfigure.height)) {
 		resize_event_to_client
-		  (client_sock_fd, e.xconfigure.x, e.xconfigure.y,
+		  (e.xconfigure.x, e.xconfigure.y,
 		   e.xconfigure.width, e.xconfigure.height,
 		   e.xconfigure.border_width, &prev_d,
 		   e.xconfigure.window, &eventclass);
@@ -3033,7 +3014,7 @@ int __ctalkX11InputClient (OBJECT *streamobject, int parent_fd, int mem_handle, 
 		  ;
 		eventclass = RESIZENOTIFY;
 		resize_event_to_client
-		  (client_sock_fd, e.xconfigure.x, e.xconfigure.y,
+		  (e.xconfigure.x, e.xconfigure.y,
 		   e.xconfigure.width, e.xconfigure.height,
 		   e.xconfigure.border_width, &prev_d,
 		   e.xconfigure.window, &eventclass);
@@ -3055,7 +3036,7 @@ int __ctalkX11InputClient (OBJECT *streamobject, int parent_fd, int mem_handle, 
 	     in the server thread, but we send an event back to the app's
 	     thread so the app can update its state if necessary. */
 	  __xlib_clear_selection (&e);
-	  event_to_client (client_sock_fd, SELECTIONCLEAR,
+	  event_to_client (SELECTIONCLEAR,
 			   e.xselectionclear.window,
 			   0, 0, 0, 0, 0, 0);
 	  continue;
@@ -3077,22 +3058,18 @@ int __ctalkX11InputClient (OBJECT *streamobject, int parent_fd, int mem_handle, 
 	  break;
 	}
       if (eventclass) {
-	event_to_client (client_sock_fd,
-			 eventclass, event_win,eventdata1, eventdata2,
+	event_to_client (eventclass, event_win,eventdata1, eventdata2,
 			 eventdata3, eventdata4, eventdata5, 0);
 	eventclass = eventdata1 = eventdata2 = 0;
       }
     }
-    if (ev_buf != NULL) {
-      EV_CH *ev;
-      if ((ev = ev_unshift ()) != NULL) {
-	event_to_client (client_sock_fd, ev -> event_class,
-			 ev -> win_id, ev -> eventdata1,
-			 ev -> eventdata2, ev -> eventdata3,
-			 ev -> eventdata4, ev -> eventdata5,
-			 ev -> eventdata6);
-	stash_ev (ev);
-      }
+    if ((ev = ev_unshift ()) != NULL) {
+      event_to_client (ev -> event_class,
+		       ev -> win_id, ev -> eventdata1,
+		       ev -> eventdata2, ev -> eventdata3,
+		       ev -> eventdata4, ev -> eventdata5,
+		       ev -> eventdata6);
+      stash_ev (ev);
     }
     if ((s = (char *)get_shmem (mem_id)) == NULL) {
       retval = ERROR;
@@ -3787,7 +3764,6 @@ int __ctalkX11ResizePixmap (int parent_visual,
   return SUCCESS;
 }
 
-/***/
 bool edittext_resize_notify = false;
 
 /*
