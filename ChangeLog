@@ -210,3 +210,12 @@
 2020-02-09
 	- Added collect_errmsg_expr (errmsgs.c), called by
 	undefined_receiver_exception (resolve.c).
+	- Added a null result check and null_result_obj call when
+	calling a prefix method in eval_expr (rt_expr.c).
+	- Do a fixup in _rt_math_op if we have a closing paren
+	before an operator, and the paren tok's object hasn't
+	been filled in, for example, if the value of the
+	left-hand operand expression is NULL (rt_expr.c).
+	- Removed the now unused client_sock_fd argument to
+	event_to_client and resize_event_to_client and removed
+	now unused code from event_to_client (x11lib.c).

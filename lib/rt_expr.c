@@ -1,4 +1,4 @@
-/* $Id: rt_expr.c,v 1.6 2020/01/16 19:54:01 rkiesling Exp $ */
+/* $Id: rt_expr.c,v 1.8 2020/02/10 00:14:32 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -44,6 +44,9 @@ extern DEFAULTCLASSCACHE *rt_defclasses; /* Defined in rtclslib.c. */
 /*
  *  The expression parser stack.
  */
+
+/***/
+static OBJECT *null_result_obj_2 (METHOD *, OBJECT *, int);
 
 static int expr_parser_lvl = 0;
 
@@ -2412,7 +2415,7 @@ OBJECT *eval_expr (char *s, OBJECT *recv_class, METHOD *method,
 			  }
 			have_method_fit:
 			  if (!(m -> attrs & RT_DATA_IS_CACHED_METHOD)) {
-			    _error ("method mismatch!\n");
+			    _error ("method mismatch: %s\n", M_NAME(m));
 			  }
 			}
 		      } else {
@@ -5048,8 +5051,24 @@ OBJECT *_rt_math_op (MESSAGE_STACK messages, int op_ptr, int stack_start,
 
   if (!IS_OBJECT(messages[op1_ptr] -> obj)) {
     if (!IS_OBJECT(messages[op1_ptr] -> value_obj)) {
-      _warning ("rt_math_op (): Invalid operand object.\n");
-      return NULL;
+      /***/
+      if (M_TOK(messages[op1_ptr]) == CLOSEPAREN) {
+	int prev;
+	/* If an operand result is NULL, this may not be filled in,
+	   so we'll do a fixup. */
+	prev = prev_msg (messages, op1_ptr);
+	while (M_TOK(messages[prev]) == CLOSEPAREN)
+	  --prev;
+	if (IS_OBJECT(messages[prev] -> obj)) {
+	  messages[op1_ptr] -> obj = messages[prev] -> obj;
+	} else {
+	  _warning ("rt_math_op (): Invalid operand object.\n");
+	  return NULL;
+	}
+      } else {
+	_warning ("rt_math_op (): Invalid operand object.\n");
+	return NULL;
+      }
     }
   }
   /*
@@ -5524,6 +5543,39 @@ OBJECT *null_result_obj (METHOD *m, int scope) {
 				   scope, "0x0");
     }
   }
+
+  o -> attrs |= OBJECT_IS_NULL_RESULT_OBJECT;
+  o -> instancevars -> attrs |= OBJECT_IS_NULL_RESULT_OBJECT;
+
+  return o;
+}
+
+/* As above, but it takes the object's class from the receiver
+   object. */
+/***/
+static OBJECT *null_result_obj_2 (METHOD *m, OBJECT *rcvr, int scope) {
+
+  OBJECT *o, *return_class;
+
+  o = create_object_init_internal (NULLSTR, rcvr -> __o_class,
+				   scope, "0x0");
+#if 0
+  if (!m || !strcmp (m -> returnclass, "Any")) {
+    o = create_object_init_internal
+      (NULLSTR, rt_defclasses -> p_integer_class, scope, "0x0");
+  } else {
+    if ((return_class = __ctalkGetClass (m -> returnclass)) == NULL) {
+      _warning ("Undefined return class %s.\n",
+		m -> returnclass);
+      o = create_object_init_internal
+	(NULLSTR, rt_defclasses -> p_integer_class, scope, "0x0");
+    } else {
+      o = __ctalkCreateObjectInit (NULLSTR, return_class -> __o_name,
+				   _SUPERCLASSNAME(return_class),
+				   scope, "0x0");
+    }
+  }
+#endif  
 
   o -> attrs |= OBJECT_IS_NULL_RESULT_OBJECT;
   o -> instancevars -> attrs |= OBJECT_IS_NULL_RESULT_OBJECT;
