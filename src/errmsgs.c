@@ -1,4 +1,4 @@
-/* $Id: errmsgs.c,v 1.5 2020/02/14 01:21:31 rkiesling Exp $ */
+/* $Id: errmsgs.c,v 1.6 2020/02/14 17:54:36 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -1035,4 +1035,34 @@ void undefined_blk_method_warning (MESSAGE *m_orig,
     warning (m_orig, "Undefined method, \"%s.\" Receiver, \"%s.\"",
 	     M_NAME(m_method), M_NAME(m_rcvr));
   }
+}
+
+OBJECT *resolve_rcvr_is_undefined (MESSAGE *m_rcvr, MESSAGE *m_method) {
+  /* And we need to check for secure osx lib replacements,
+     and we'll skip them in parser pass. */
+#if defined __APPLE__ && defined _x86_64
+  if (!strstr (m_method -> name, "__builtin_")) {
+    return NULL;
+  } else if (str_eq (M_NAME(m_method), "instanceVariable") ||
+	     str_eq (M_NAME(m_method), "classVariable")) {
+    if (m_method -> receiver_obj == NULL) {
+      error (m_method, "Method \"%s:\" Undefined receiver, \"%s.\"",
+	     M_NAME(m_method), M_NAME(m_rcvr));
+    }
+  } else {
+    return NULL;
+  }
+#else	  
+  if (str_eq (M_NAME(m_method), "instanceVariable") ||
+      str_eq (M_NAME(m_method), "classVariable")) {
+    /* we have to look for bad receiver names here ... */
+    if (m_method -> receiver_obj == NULL) {
+      error (m_method, "Method \"%s:\" Undefined receiver, \"%s.\"",
+	     M_NAME(m_method), M_NAME(m_rcvr));
+    }
+  } else {
+    return M_VALUE_OBJ (m_rcvr);
+  }
+#endif	
+  return NULL;
 }

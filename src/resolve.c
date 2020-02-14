@@ -1,4 +1,4 @@
-/* $Id: resolve.c,v 1.16 2020/02/09 16:01:00 rkiesling Exp $ */
+/* $Id: resolve.c,v 1.18 2020/02/14 17:54:36 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -3035,14 +3035,7 @@ OBJECT *resolve (int message_ptr) {
       if (TOK_HAS_CLASS_TYPECAST (m_prev_label)) {
 	return NULL;
       } else {
-#if defined(__APPLE__) && defined (__x86_64)
-	  /* And we need to check for secure osx lib replacements,
-	     and we'll skip them in parser pass. */
-	if (!strstr (m -> name, "__builtin_")) 
-	    return NULL;
-#else	  
-	return M_VALUE_OBJ (m_prev_label);
-#endif	
+	return resolve_rcvr_is_undefined (m_prev_label, m);
       }
     }
 
