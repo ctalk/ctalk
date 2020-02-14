@@ -1,4 +1,4 @@
-/* $Id: X11ButtonPane,v 1.24 2020/02/14 18:14:13 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11ButtonPane,v 1.25 2020/02/14 18:40:18 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -48,7 +48,7 @@ X11ButtonPane instanceMethod new (String __paneName) {
   contains the name of the new object.  Also sets the
   event handlers that this class overrides."
     Method new exposeMethod, buttonPressMethod, enterMethod,
-    leaveMethod, focusInMethod;
+    leaveMethod, focusInMethod, focusOutMethod;
   X11ButtonPane super new __paneName;
   buttonPressMethod definedInstanceMethod "X11ButtonPane",
     "subPaneButtonPress";
@@ -57,11 +57,13 @@ X11ButtonPane instanceMethod new (String __paneName) {
   enterMethod definedInstanceMethod "X11ButtonPane", "subPaneEnter";
   leaveMethod definedInstanceMethod "X11ButtonPane", "subPaneLeave";
   focusInMethod definedInstanceMethod "X11ButtonPane", "subPaneFocusIn";
+  focusOutMethod definedInstanceMethod "X11ButtonPane", "subPaneFocusOut";
   __paneName setMethodHandler "expose", exposeMethod;
   __paneName setMethodHandler "pointerinput", buttonPressMethod;
   __paneName setMethodHandler "enternotify", enterMethod;
   __paneName setMethodHandler "leavenotify", leaveMethod;
   __paneName setMethodHandler "focusin", focusInMethod;
+  __paneName setMethodHandler "focusout", focusOutMethod;
 
   if (__paneName bevelEdges) {
     __paneName shadowPen colorName = "gray55";
@@ -240,6 +242,16 @@ X11ButtonPane instanceMethod draw (void) {
 X11ButtonPane instanceMethod subPaneFocusIn (void) {
   if (self canFocus) {
     self label highlight = true;
+    self hasFocus = true;
+    self draw;
+    self refresh;
+  }
+}
+
+X11ButtonPane instanceMethod subPaneFocusOut (void) {
+  if (self canFocus) {
+    self label highlight = false;
+    self hasFocus = false;
     self draw;
     self refresh;
   }
