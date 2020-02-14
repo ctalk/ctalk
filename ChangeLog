@@ -219,3 +219,17 @@
 	- Removed the now unused client_sock_fd argument to
 	event_to_client and resize_event_to_client and removed
 	now unused code from event_to_client (x11lib.c).
+2020-02-11
+	- Added the X11PaneDispatcher : canFocus instance variable,
+	and removed the X11CanvasPane-only canFocus instance
+	variable.
+	- Added the X11PaneDispatcher : focusPanePtr instance
+	variable, and added a check for a Tab key press in
+	X11PaneDispatcher : handleSubPaneEvent.  Started on
+	the X11PaneDispatcher : shiftFocus method.
+2020-02-13
+	- Added a recursive superclass lookup to get_instance_variable
+	(object.c).
+	- Added a valid method label check in is_argblk_expr (argblk.c),
+	and a warning function, undefined_blk_method_warning
+	(errmsgs.c).
