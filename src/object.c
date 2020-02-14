@@ -1,4 +1,4 @@
-/* $Id: object.c,v 1.4 2019/12/12 22:31:48 rkiesling Exp $ */
+/* $Id: object.c,v 1.5 2020/02/13 22:14:21 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -317,7 +317,7 @@ OBJECT *get_local_object (char *name, char *classname) {
 
 OBJECT *get_instance_variable (char *name, char *classname, int warn) {
   OBJECT *o,
-    *class_object;
+    *class_object, *superclass_object;
 
   if (classname) {
     if ((class_object = get_class_object (classname)) == NULL) {
@@ -332,11 +332,21 @@ OBJECT *get_instance_variable (char *name, char *classname, int warn) {
 	return o;
     }
 
-    if (class_object -> __o_superclass && 
-	(class_object -> __o_superclass != class_object)) {
-      if ((o = get_instance_variable (name, class_object -> __o_superclass -> __o_name, FALSE)) != NULL)
+    for (superclass_object = class_object -> __o_superclass;
+	 superclass_object;
+	 superclass_object = superclass_object -> __o_superclass) {
+      if ((o = get_instance_variable
+	   (name, superclass_object -> __o_name, FALSE)) != NULL)
 	return o;
     }
+#if 0 /***/
+    if (class_object -> __o_superclass && 
+	(class_object -> __o_superclass != class_object)) {
+      if ((o = get_instance_variable (name,
+				      class_object -> __o_superclass -> __o_name, FALSE)) != NULL)
+	return o;
+    }
+#endif    
 
   } else {
     for (class_object = classes; class_object; 
