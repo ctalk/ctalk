@@ -1,4 +1,4 @@
-/* $Id: primitives.c,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ */
+/* $Id: primitives.c,v 1.3 2020/02/14 17:54:36 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -1776,7 +1776,6 @@ static OBJECT *var_definition (MESSAGE_STACK messages, int idx) {
     _warning ("Undefined class in var_definition ().\n");
     return NULL;
   }
-  strcpy (var_definition_args.classobjname, M_NAME(messages[class_ptr]));
   var_definition_idx.class_obj_name_idx = class_ptr;
 
   if (((arg_ptr = nextlangmsg (messages, idx)) == ERROR) ||
@@ -1920,8 +1919,9 @@ static OBJECT *var_definition (MESSAGE_STACK messages, int idx) {
        class_object_search 
        (M_NAME(messages[var_definition_idx.class_obj_name_idx]),
 	FALSE)) == NULL) {
-    __ctalkExceptionInternal (messages[idx], undefined_class_x, 
-			      var_definition_args.classobjname,0);
+    __ctalkExceptionInternal
+      (messages[idx], undefined_class_x, 
+       M_NAME(messages[var_definition_idx.class_obj_name_idx]),0);
     return NULL;
   }
 

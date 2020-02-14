@@ -234,3 +234,8 @@
 	and a warning function, undefined_blk_method_warning
 	(errmsgs.c).
 	- Moved AssociativeArray : mapKeys to Collection : mapKeys.
+2020-02-14
+	- Removed an unused strcpy call from var_definition (primitives.c).
+	- Added resolve_rcvr_is_undefined (errmsgs.c), to check for a bad
+	receiver to an instanceVariable or classVariable method message in
+	resolve (resolve.c).
