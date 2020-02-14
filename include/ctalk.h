@@ -1,4 +1,4 @@
-/* $Id: ctalk.h,v 1.61 2020/02/09 15:50:09 rkiesling Exp $ -*-Fundamental-*- */
+/* $Id: ctalk.h,v 1.62 2020/02/14 01:21:31 rkiesling Exp $ -*-Fundamental-*- */
 
 /*
   This file is part of Ctalk.
@@ -1212,6 +1212,7 @@ void unknown_format_conversion_warning (MESSAGE_STACK, int);
 void self_instvar_expr_unknown_label (MESSAGE_STACK, int, int);
 void instancevar_wo_rcvr_warning (MESSAGE_STACK, int, bool, int);
 char *collect_errmsg_expr (MESSAGE_STACK, int);
+void undefined_blk_method_warning (MESSAGE *, MESSAGE *, MESSAGE *);
 
 /* error.c */
 #ifdef DEBUG_CODE

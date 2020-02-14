@@ -1,8 +1,8 @@
-/* $Id: errmsgs.c,v 1.4 2020/02/09 15:50:09 rkiesling Exp $ */
+/* $Id: errmsgs.c,v 1.5 2020/02/14 01:21:31 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
-  Copyright © 2014-2019 Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2014-2020 Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
 
@@ -1014,4 +1014,25 @@ char *collect_errmsg_expr (MESSAGE_STACK messages, int tok_idx) {
     expr = collect_tokens (messages, last_sep_semicolon, next_sep);
   }
   return expr;
+}
+
+void undefined_blk_method_warning (MESSAGE *m_orig,
+				   MESSAGE *m_rcvr,
+				   MESSAGE *m_method) {
+  if (IS_OBJECT (m_rcvr->obj)) {
+    if (IS_OBJECT (m_rcvr -> obj -> instancevars)) {
+      warning (m_orig, "Undefined method, \"%s.\" Receiver, \"%s.\""
+	       " (class %s).\n",
+	       M_NAME(m_method), M_NAME(m_rcvr),
+	       m_rcvr -> obj -> instancevars -> __o_class -> __o_name);
+    } else {
+      warning (m_orig, "Undefined method, \"%s.\" Receiver, \"%s.\""
+	       " (class %s).\n,",
+	       M_NAME(m_method), M_NAME(m_rcvr),
+	       m_rcvr -> obj -> __o_class -> __o_name);
+    }
+  } else {
+    warning (m_orig, "Undefined method, \"%s.\" Receiver, \"%s.\"",
+	     M_NAME(m_method), M_NAME(m_rcvr));
+  }
 }

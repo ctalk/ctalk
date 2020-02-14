@@ -1,4 +1,4 @@
-/* $Id: argblk.c,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ */
+/* $Id: argblk.c,v 1.3 2020/02/14 01:21:31 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -536,6 +536,39 @@ int is_argblk_expr (MESSAGE_STACK messages, int rcvr_idx) {
 	    complex_arg_block_rcvr_ptr = rcvr_idx;
 	    create_argblk (messages, lookahead, lookahead2);
 	    for (i_2 = rcvr_idx; i_2 >= lookahead; i_2--) {
+	      /* check that the method label is valid for its receiver
+		 class. */
+#if 1 /***/
+	      if (M_TOK(messages[i_2]) == METHODMSGLABEL) {
+		if (messages[i] -> attrs & TOK_SELF) {
+		  if (!get_instance_method (messages[i],
+					   rcvr_class_obj,
+					    M_NAME(messages[lookahead]),
+					    ANY_ARGS, FALSE)) {
+		    undefined_blk_method_warning
+		      (messages[rcvr_idx], messages[i], messages[lookahead]);
+		  }
+		} else {
+		  if ((messages[rcvr_idx] -> attrs & TOK_SELF) &&
+		      (rcvr_idx != i)) {
+		    OBJECT *instvar;
+		    /* check for an instance variable series */
+		    instvar = get_self_instance_variable_series
+		      (messages[i], rcvr_idx, i, get_stack_top (messages));
+		    if (instvar) {
+		      if (!get_instance_method
+			  (messages[i],
+			   instvar -> instancevars -> __o_class,
+			   M_NAME(messages[lookahead]),
+			   ANY_ARGS, FALSE)) {
+			undefined_blk_method_warning
+			  (messages[rcvr_idx], messages[i], messages[lookahead]);
+		      }
+		    }
+		  }
+		}
+	      }
+#endif	      
 	      ++(messages[i_2]->evaled);
 	      ++(messages[i_2]->output);
 	    }
