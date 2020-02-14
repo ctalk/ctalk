@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.87 2020/02/08 21:16:44 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.88 2020/02/14 04:04:51 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -2109,6 +2109,14 @@ the collection is empty.
 Return an @code{Integer} value of True if the key given as the
 argument is present in the receiver collection, False otherwise.
 
+@cindex @mnm{mapKeys} instance method @idxclscite{Collection}
+@item @mnm{map} (@code{OBJECT *(*}@var{method}@code{)()})
+Execute @var{method}, an instance method of class
+@code{AssociativeArray,} for each key/value pair of the receiver
+array.  The receiver of @var{method} is a @code{Key} object with
+the parent class of @code{AssociativeArray}.  The return value of
+@mnm{mapKeys} is NULL.
+
 @cindex @mnm{removeAt} instance method @idxclscite{Collection}
 @item @mnm{removeAt} (@code{String} @var{key_name})
 Remove the object stored at @var{key_name} from the receiver
@@ -2542,14 +2550,6 @@ Execute @var{method}, an instance method of class
 @code{AssociativeArray,} for each member of the receiver array.  Each
 time @var{method} is executed, @code{self} refers to the object stored
 in the associativeArray.  This method returns NULL.
-
-@cindex @mnm{mapKeys} instance method @idxclscite{AssociativeArray}
-@item @mnm{map} (@code{OBJECT *(*}@var{method}@code{)()})
-Execute @var{method}, an instance method of class
-@code{AssociativeArray,} for each key/value pair of the receiver
-array.  The receiver of @var{method} is a @code{Key} object with
-the parent class of @code{AssociativeArray}.  The return value of
-@mnm{mapKeys} is NULL.
 
 @cindex @mnm{setValue} instance method @idxclscite{AssociativeArray}
 @item @mnm{setValue} (@code{void})

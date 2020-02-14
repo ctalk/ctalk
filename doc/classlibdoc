@@ -994,6 +994,13 @@ the collection is empty.
 Return an Integer value of True if the key given as the
 argument is present in the receiver collection, False otherwise.
 
+>>>Collection::map (OBJECT *(*method)())
+Execute method, an instance method of class
+AssociativeArray, for each key/value pair of the receiver
+array.  The receiver of method is a Key object with
+the parent class of AssociativeArray.  The return value of
+mapKeys is NULL.
+
 >>>Collection::removeAt (String key_name)
 Remove the object stored at key_name from the receiver
 collection and return it.
@@ -1233,13 +1240,6 @@ Execute method, an instance method of class
 AssociativeArray, for each member of the receiver array.  Each
 time method is executed, self refers to the object stored
 in the associativeArray.  This method returns NULL.
-
->>>AssociativeArray::map (OBJECT *(*method)())
-Execute method, an instance method of class
-AssociativeArray, for each key/value pair of the receiver
-array.  The receiver of method is a Key object with
-the parent class of AssociativeArray.  The return value of
-mapKeys is NULL.
 
 >>>AssociativeArray::setValue (void)
 A wrapper method for getValue in class Key. If received

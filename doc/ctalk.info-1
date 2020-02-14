@@ -1574,6 +1574,12 @@ Instance Methods
      Return an 'Integer' value of True if the key given as the argument
      is present in the receiver collection, False otherwise.
 
+'map (OBJECT *(*METHOD)())'
+     Execute METHOD, an instance method of class 'AssociativeArray,' for
+     each key/value pair of the receiver array.  The receiver of METHOD
+     is a 'Key' object with the parent class of 'AssociativeArray'.  The
+     return value of 'mapKeys' is NULL.
+
 'removeAt (String KEY_NAME)'
      Remove the object stored at KEY_NAME from the receiver collection
      and return it.
@@ -1929,12 +1935,6 @@ Instance Methods
      each member of the receiver array.  Each time METHOD is executed,
      'self' refers to the object stored in the associativeArray.  This
      method returns NULL.
-
-'map (OBJECT *(*METHOD)())'
-     Execute METHOD, an instance method of class 'AssociativeArray,' for
-     each key/value pair of the receiver array.  The receiver of METHOD
-     is a 'Key' object with the parent class of 'AssociativeArray'.  The
-     return value of 'mapKeys' is NULL.
 
 'setValue (void)'
      A wrapper method for 'getValue' in class 'Key.' If received by an
