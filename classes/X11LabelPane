@@ -1,4 +1,4 @@
-/* $Id: X11LabelPane,v 1.20 2020/02/08 20:17:19 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11LabelPane,v 1.22 2020/02/14 18:14:13 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -44,8 +44,6 @@ X11LabelPane instanceVariable textColor String "black"
 "Color of the text when not highlighted.";
 X11LabelPane instanceVariable textLine String ""
 "Text of a single-line label.";
-X11LabelPane instanceVariable highlight Boolean false
-"True if the label is highlighted; i.e., the pointer is over the label.";
 X11LabelPane instanceVariable highlightBorderWidth Integer 2
 "Width of a highlighted border.";
 X11LabelPane instanceVariable highlightBorderColor String "black"

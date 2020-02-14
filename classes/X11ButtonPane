@@ -1,4 +1,4 @@
-/* $Id: X11ButtonPane,v 1.21 2020/02/08 20:17:19 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11ButtonPane,v 1.24 2020/02/14 18:14:13 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -34,7 +34,7 @@ X11ButtonPane instanceVariable highlightHPen Pen NULL;
 X11ButtonPane instanceVariable highlightVPen Pen NULL;
 X11ButtonPane instanceVariable bevelEdges Boolean true;
 X11ButtonPane instanceVariable bevelWidth Integer 4;
-X11ButtonPane instanceVariable clicked Boolean false;
+X11ButtonPane instanceVariable clicked Boolean false; /***/
 X11ButtonPane instanceVariable label X11LabelPane NULL;
 X11ButtonPane instanceVariable borderWidth Integer 1;
 X11ButtonPane instanceVariable borderHighlightWidth Integer 2;
@@ -48,7 +48,7 @@ X11ButtonPane instanceMethod new (String __paneName) {
   contains the name of the new object.  Also sets the
   event handlers that this class overrides."
     Method new exposeMethod, buttonPressMethod, enterMethod,
-    leaveMethod;
+    leaveMethod, focusInMethod;
   X11ButtonPane super new __paneName;
   buttonPressMethod definedInstanceMethod "X11ButtonPane",
     "subPaneButtonPress";
@@ -56,10 +56,12 @@ X11ButtonPane instanceMethod new (String __paneName) {
     "subPaneExpose";
   enterMethod definedInstanceMethod "X11ButtonPane", "subPaneEnter";
   leaveMethod definedInstanceMethod "X11ButtonPane", "subPaneLeave";
+  focusInMethod definedInstanceMethod "X11ButtonPane", "subPaneFocusIn";
   __paneName setMethodHandler "expose", exposeMethod;
   __paneName setMethodHandler "pointerinput", buttonPressMethod;
   __paneName setMethodHandler "enternotify", enterMethod;
   __paneName setMethodHandler "leavenotify", leaveMethod;
+  __paneName setMethodHandler "focusin", focusInMethod;
 
   if (__paneName bevelEdges) {
     __paneName shadowPen colorName = "gray55";
@@ -233,6 +235,14 @@ X11ButtonPane instanceMethod draw (void) {
       label_x, label_y;
   }
   
+}
+
+X11ButtonPane instanceMethod subPaneFocusIn (void) {
+  if (self canFocus) {
+    self label highlight = true;
+    self draw;
+    self refresh;
+  }
 }
 
 X11ButtonPane instanceMethod subPaneExpose (Object __subPane,

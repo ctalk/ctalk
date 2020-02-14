@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.88 2020/02/14 04:04:51 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.89 2020/02/14 18:14:14 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -13346,6 +13346,11 @@ An @code{Integer} that is true if the current subpane has the input
 focus.  For programs with only a single widget class, this variable
 is not used.
 
+@cindex @code{highlight} instance variable @idxclscite{X11PaneDispatcher}
+@item highlight
+A @code{Boolean} that indicates whether the widget is displayed
+highlighted.
+
 @end table
 
 @subsubheading Instance Methods
@@ -14442,11 +14447,6 @@ when it is grayed. The default is is @samp{gray}.
 A @code{Boolean} that indicates whether the widget's text is defined
 using the @mnm{multiLine} method, and indicates that the widget should
 format the label's text to span multiple lines.
-
-@cindex @code{highlight} instance variable @idxclscite{X11LabelPane}
-@item highlight
-A @code{Boolean} that indicates whether the widget is displayed
-highlighted.
 
 @cindex @code{highlightBorderColor} instance variable @idxclscite{X11LabelPane}
 @item highlightBackgroundColor

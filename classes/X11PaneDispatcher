@@ -1,4 +1,4 @@
-/* $Id: X11PaneDispatcher,v 1.25 2020/02/08 20:45:16 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11PaneDispatcher,v 1.33 2020/02/14 18:14:13 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -70,6 +70,7 @@ each event.";
  */
 X11PaneDispatcher instanceVariable hasFocus Integer 0;
 X11PaneDispatcher instanceVariable canFocus Boolean true;
+X11PaneDispatcher instanceVariable focusPanePtr Symbol NULL;
 X11PaneDispatcher instanceVariable handleMove Method NULL;
 X11PaneDispatcher instanceVariable handleResize Method NULL;
 X11PaneDispatcher instanceVariable handleKbdInput Method NULL;
@@ -80,9 +81,12 @@ X11PaneDispatcher instanceVariable handleExpose Method NULL;
 X11PaneDispatcher instanceVariable handleSelectionRequest Method NULL;
 X11PaneDispatcher instanceVariable handleSelectionClear Method NULL;
 X11PaneDispatcher instanceVariable handleWMFocusChange Method NULL;
+X11PaneDispatcher instanceVariable handleFocusIn Method NULL;
+X11PaneDispatcher instanceVariable handleFocusOut Method NULL;
 X11PaneDispatcher instanceVariable handleEnterNotify Method NULL;
 X11PaneDispatcher instanceVariable handleLeaveNotify Method NULL;
 X11PaneDispatcher instanceVariable subPaneGeometry String "";
+X11PaneDispatcher instanceVariable highlight Boolean false;
 
 X11PaneDispatcher instanceMethod setMethodHandler (String __handlerType,
 						 Method __handlerMethod) {
@@ -133,6 +137,14 @@ X11PaneDispatcher instanceMethod setMethodHandler (String __handlerType,
   } else if (__handlerType == "wmfocuschange") {
     xstrcpy (method_arg->__o_name, "handleWMFocusChange");
     __ctalkAddInstanceVariable (self, "handleWMFocusChange",
+				method_arg);
+  } else if (__handlerType == "focusin") {
+    xstrcpy (method_arg->__o_name, "handleFocusIn");
+    __ctalkAddInstanceVariable (self, "handleFocusIn",
+				method_arg);
+  } else if (__handlerType == "focusout") {
+    xstrcpy (method_arg->__o_name, "handleFocusOut");
+    __ctalkAddInstanceVariable (self, "handleFocusOut",
 				method_arg);
   } else if (__handlerType == "enternotify") {
     __ctalkAddInstanceVariable (self, "handleEnterNotify",
@@ -378,6 +390,33 @@ X11PaneDispatcher instanceMethod attachTo (Object parentPane,
   return NULL;
 }
 
+X11PaneDispatcher instanceMethod shiftFocus (void) {
+  "Still under construction."
+  X11PaneDispatcher new subPane;
+  if ((*self focusPanePtr) == NULL) {
+    *self focusPanePtr become **self children;
+    subPane become *self focusPanePtr;
+    if (subPane canFocus) {
+      subPane methodObjectMessage subPane handleFocusIn;
+      return;
+    }
+  } else {
+    subPane become *self focusPanePtr;
+    printf ("2. %s\n", subPane name); 
+  }
+#if 0 /***/
+  self children mapKeys {
+  }
+#endif  
+
+}
+
+/* defined in the system's X11/keysymdef.h file, in case some machines
+   define it differently and it needs be changed here */
+#ifndef XK_Tab
+#define XK_Tab  0xff09
+#endif
+
 X11PaneDispatcher instanceMethod handleSubPaneEvent (InputEvent __e) {
   "Handle a X Window System event provided by the
   reciever's parent pane, dispatching the event to each
@@ -413,8 +452,12 @@ X11PaneDispatcher instanceMethod handleSubPaneEvent (InputEvent __e) {
       break;
     case KEYRELEASE:
     case KEYPRESS:
-      self children map {
-	self methodObjectMessage self handleKbdInput, self, __e;
+      if (__e xEventData5 == XK_Tab && __e eventClass == KEYPRESS) {
+	self shiftFocus;
+      } else {
+	self children map {
+	  self methodObjectMessage self handleKbdInput, self, __e;
+	}
       }
       break;
     case BUTTONPRESS:
