@@ -243,3 +243,6 @@
 	removed the highlight instance variable from X11LabelPane.
 	- Added the X11ButtonPane : subPaneFocusIn and X11ButtonPane :
 	subPaneFocusOut instance methods.
+	- Added a lookback in argblk_super_expr for prefix operators
+	(mainly '*') and parentesized prefix expressions when super
+	is used as a C function argument to e.g., printf (argblk.c).

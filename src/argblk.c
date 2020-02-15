@@ -1,4 +1,4 @@
-/* $Id: argblk.c,v 1.3 2020/02/14 01:21:31 rkiesling Exp $ */
+/* $Id: argblk.c,v 1.6 2020/02/15 02:21:14 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -538,7 +538,6 @@ int is_argblk_expr (MESSAGE_STACK messages, int rcvr_idx) {
 	    for (i_2 = rcvr_idx; i_2 >= lookahead; i_2--) {
 	      /* check that the method label is valid for its receiver
 		 class. */
-#if 1 /***/
 	      if (M_TOK(messages[i_2]) == METHODMSGLABEL) {
 		if (messages[i] -> attrs & TOK_SELF) {
 		  if (!get_instance_method (messages[i],
@@ -568,7 +567,6 @@ int is_argblk_expr (MESSAGE_STACK messages, int rcvr_idx) {
 		  }
 		}
 	      }
-#endif	      
 	      ++(messages[i_2]->evaled);
 	      ++(messages[i_2]->output);
 	    }
@@ -765,9 +763,9 @@ static void super_c_argument_context_handler (MSINFO *ms) {
 int argblk_super_expr (MSINFO *ms) {
 
   int arg_idx, fn_label_idx, expr_end_idx, i,
-    prev_tok_idx;
+    prev_tok_idx, prev_tok_idx_2, tmp, expr_start;
   char *expr, *p_cl;
-  static char exprbuf[MAXMSG], expr_buf_out[MAXMSG];
+  static char exprbuf[MAXMSG], expr_buf_out[MAXMSG], exprbuf2[MAXMSG];
   OBJECT_CONTEXT super_context;
   OBJECT *blk_rcvr_object;
 
@@ -826,18 +824,74 @@ int argblk_super_expr (MSINFO *ms) {
 	return SUCCESS;
 	break;
       case argument_context:
+	/***/
+	expr_start = ms -> tok;
+
 	if (ctrlblk_pred) {
 	  ctrlblk_pred_rt_expr (ms -> messages, ms -> tok);
 	} else {
-	  fmt_rt_expr_ms (ms, &expr_end_idx, exprbuf);
-	  register_argblk_c_vars_1 (ms -> messages, ms -> tok, expr_end_idx);
+	  /***/
+	  if ((prev_tok_idx = prevlangmsg (ms -> messages, ms -> tok))
+	      != ERROR) {
+	    if (ms ->  messages[prev_tok_idx] -> attrs & TOK_IS_PREFIX_OPERATOR) {
+	      if (((prev_tok_idx_2 = prevlangmsg (ms -> messages, prev_tok_idx))
+		  != ERROR) &&
+		  (M_TOK(ms -> messages[prev_tok_idx_2]) == OPENPAREN)) {
+		if (is_fmt_arg (ms -> messages, prev_tok_idx_2,
+				ms -> stack_start, ms -> stack_ptr)) {
+		  tmp = ms -> tok;
+		  ms -> tok = expr_start = prev_tok_idx_2;
+		  fmt_rt_expr_ms (ms, &expr_end_idx, exprbuf2);
+		  fmt_printf_fmt_arg (ms -> messages, ms -> tok,
+				      ms -> stack_start, exprbuf2,
+				      exprbuf);
+		  register_argblk_c_vars_1 (ms -> messages, ms -> tok, expr_end_idx);
+		  ms -> tok = tmp;
+		} else {
+		  tmp = ms -> tok;
+		  ms -> tok = expr_start = prev_tok_idx_2;
+		  fmt_rt_expr_ms (ms, &expr_end_idx, exprbuf);
+		  register_argblk_c_vars_1 (ms -> messages, ms -> tok, expr_end_idx);
+		  ms -> tok = tmp;
+		}
+	      } else {
+		while (ms -> messages[++prev_tok_idx]
+		       -> attrs & TOK_IS_PREFIX_OPERATOR)
+		  ;
+		--prev_tok_idx;
+		if (is_fmt_arg (ms -> messages, prev_tok_idx,
+				ms -> stack_start, ms -> stack_ptr)) {
+		  tmp = ms -> tok;
+		  ms -> tok = expr_start = prev_tok_idx;
+		  fmt_rt_expr_ms (ms, &expr_end_idx, exprbuf2);
+		  fmt_printf_fmt_arg (ms -> messages, ms -> tok,
+				      ms -> stack_start, exprbuf2,
+				      exprbuf);
+		  register_argblk_c_vars_1 (ms -> messages, ms -> tok, expr_end_idx);
+		  ms -> tok = tmp;
+		} else {
+		  tmp = ms -> tok;
+		  ms -> tok = expr_start = prev_tok_idx;
+		  fmt_rt_expr_ms (ms, &expr_end_idx, exprbuf2);
+		  register_argblk_c_vars_1 (ms -> messages, ms -> tok, expr_end_idx);
+		}
+	      }
+	    } else {
+	      fmt_rt_expr_ms (ms, &expr_end_idx, exprbuf);
+	      register_argblk_c_vars_1 (ms -> messages, ms -> tok, expr_end_idx);
+	    }
+	  } else {
+	    fmt_rt_expr_ms (ms, &expr_end_idx, exprbuf);
+	    register_argblk_c_vars_1 (ms -> messages, ms -> tok, expr_end_idx);
+	  }
 	  if ((p_cl = use_new_c_rval_semantics_b (ms -> messages, ms -> tok)) != NULL) {
 	    fileout (fmt_rt_return (exprbuf, p_cl,
 					TRUE, expr_buf_out), 0, ms -> tok);
 	  } else {
 	    fileout (exprbuf, 0, ms -> tok);
 	  }
-	  for (i = ms -> tok; i >= expr_end_idx; i--) {
+	  /* for (i = ms -> tok; i >= expr_end_idx; i--) { *//***/
+	  for (i = expr_start; i >= expr_end_idx; i--) {
 	    ++ms -> messages[i] -> evaled;
 	    ++ms -> messages[i] -> output;
 	  }
