@@ -1,4 +1,4 @@
-/* $Id: ctalklib.in,v 1.51 2020/02/08 21:16:43 rkiesling Exp $ -*-c-*-*/
+/* $Id: ctalklib.in,v 1.52 2020/02/16 20:11:49 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -571,6 +571,7 @@ struct _rtfn {
   LIST *user_objects,
     *user_object_ptr;
   int n_user_objs;
+  void *db;
   struct _rtfn *next;
   struct _rtfn *prev;
 };

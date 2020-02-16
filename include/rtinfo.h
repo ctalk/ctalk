@@ -1,4 +1,4 @@
-/* $Id: rtinfo.h,v 1.1.1.1 2019/10/26 23:40:50 rkiesling Exp $ */
+/* $Id: rtinfo.h,v 1.2 2020/02/16 20:11:49 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -51,6 +51,7 @@ typedef struct _rtfn {
   LIST *user_objects,
     *user_object_ptr;
   int n_user_objs;
+  void *db;
   struct _rtfn *next;
   struct _rtfn *prev;
 } RT_FN;
