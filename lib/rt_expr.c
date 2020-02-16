@@ -1,4 +1,4 @@
-/* $Id: rt_expr.c,v 1.8 2020/02/10 00:14:32 rkiesling Exp $ */
+/* $Id: rt_expr.c,v 1.10 2020/02/16 04:29:35 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -1582,6 +1582,56 @@ static inline void set_receiver_msg_and_obj
   }
 }
 
+/*
+ *  For cases where we need to deal with a Symbol-class instance var
+ *  and use the semantics in Symbol : =.  If an expression looks like this:
+ *
+ *    *myObj mySymInstVar = someObj;
+ *
+ *  we change it to the following, and let Symbol : = handle
+ *  the semantics.
+ *
+ *    myObj mySymInstVar = someObj
+ */
+static inline void set_receiver_msg_and_obj_fixup (int tok_idx,
+						   MESSAGE *m,
+						   MESSAGE *m_prev_msg) {
+  int i, lookahead;
+  EXPR_PARSER *p;
+  if (m && m_prev_msg) {
+    if ((m_prev_msg -> attrs & RT_OBJ_IS_INSTANCE_VAR) ||
+	(m_prev_msg -> attrs & RT_OBJ_IS_CLASS_VAR)) {
+      m -> receiver_obj = m_prev_msg -> receiver_obj;
+    } else {
+      m -> receiver_obj = M_VALUE_OBJ(m_prev_msg);
+    }
+    m -> receiver_msg = 
+      ((m_prev_msg -> receiver_msg) ?
+       m_prev_msg -> receiver_msg : m_prev_msg);
+    /***/
+    if ((lookahead = next_msg (e_messages, tok_idx)) != ERROR) {
+      if (IS_C_ASSIGNMENT_OP(M_TOK(e_messages[lookahead]))) {
+	p = expr_parsers[expr_parser_ptr];
+	if (IS_OBJECT(m -> obj -> instancevars) &&
+	    (m -> obj -> instancevars -> __o_class ==
+	     rt_defclasses -> p_symbol_class)) {
+	  for (i = tok_idx; i <= p -> msg_frame_start; ++i) {
+	    if (M_ISSPACE(e_messages[i]))
+	      continue;
+	    if (M_TOK(e_messages[i]) == LABEL)
+	      continue;
+	    if (e_messages[i] -> attrs & RT_TOK_IS_PREFIX_OPERATOR) {
+	      e_messages[i] -> name[0] = ' '; e_messages[i] -> name[1] = '\0';
+	      e_messages[i] -> tokentype = WHITESPACE;
+	      e_messages[i] -> attrs = 0;
+	    }
+	  }
+	}
+      }
+    }
+  }
+}
+
 static inline int set_c_rcvr_idx 
   (MESSAGE *m_prev_msg, int prev_msg_ptr_tmp,
 		    int prev_c_rcvr_idx) {
@@ -2481,7 +2531,7 @@ OBJECT *eval_expr (char *s, OBJECT *recv_class, METHOD *method,
 	      } else if (m_prev_msg && IS_OBJECT(M_VALUE_OBJ(m_prev_msg)) &&
 			 ((m -> obj = instance_var_tmp) != NULL)) {
 		m -> attrs = RT_OBJ_IS_INSTANCE_VAR;
-		set_receiver_msg_and_obj (m, m_prev_msg);
+		set_receiver_msg_and_obj_fixup (i, m, m_prev_msg);
 		if ((c_rcvr_idx = 
 		     set_c_rcvr_idx (m_prev_msg, prev_msg_ptr,
 				     c_rcvr_idx)) != ERROR) {
@@ -5880,6 +5930,39 @@ OBJECT *eval_subexpr (MESSAGE_STACK messages, int idx, int is_arg_expr) {
 	m_next -> receiver_msg = messages[matching_paren_ptr];
 	m_next -> receiver_obj =
 	  M_VALUE_OBJ(messages[matching_paren_ptr]);
+      }
+    } else if (M_TOK(m_next) == EQ) {
+      /*
+       *  In this case we do a fixup if we have an expression like:
+       *
+       *    (*self instVar) = argVar;
+       *
+       *  And instVar is a Symbol.  That's because the semantics
+       *  of Symbol : = require that we evaluate the expression 
+       *  as if it were this:
+       *
+       *    self instVar = argVar;
+       *
+       *  That is, Symbol : = automatically does the assignment
+       *  if the operand is not another Symbol.
+       */
+      if (M_TOK(messages[subexpr_start]) == MULT) {
+	if (messages[subexpr_end] -> attrs & RT_OBJ_IS_INSTANCE_VAR) {
+	  if (IS_OBJECT(messages[subexpr_end] -> obj)) {
+	    if (IS_OBJECT(messages[subexpr_end] -> obj -> instancevars)) {
+	      if (messages[subexpr_end] -> obj -> instancevars -> __o_class
+		  == rt_defclasses -> p_symbol_class) {
+		if (subexpr_rcvr) {
+		  subexpr_start = next_msg (e_messages, subexpr_start);
+		  toks2str (messages, subexpr_start, subexpr_end, token_buf);
+		  subexpr_result = eval_expr (token_buf, subexpr_rcvr -> __o_class, 
+					      method, subexpr_rcvr, subexpr_scope,
+					      is_arg_expr);
+		}
+	      }
+	    }
+	  }
+	}
       }
     }
   }

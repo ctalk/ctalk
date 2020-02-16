@@ -246,3 +246,10 @@
 	- Added a lookback in argblk_super_expr for prefix operators
 	(mainly '*') and parentesized prefix expressions when super
 	is used as a C function argument to e.g., printf (argblk.c).
+2020-02-15
+	- Updated eval_subexpr to do a fixup if we encounter an
+	expression like: (*myList myInstVar) = myArg when myInstVar
+	is a Symbol, to handle the way that Symbol : = makes
+	assignments.
+	- Added set_receiver_msg_and_obj_fixup (lib/rt_expr.c).
+	- Added the rcvrexpr[2-3].c test programs.
