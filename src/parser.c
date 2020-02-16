@@ -1,4 +1,4 @@
-/* $Id: parser.c,v 1.5 2020/01/25 23:05:15 rkiesling Exp $ */
+/* $Id: parser.c,v 1.6 2020/02/16 20:47:51 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -939,7 +939,6 @@ char *parse (char *inbuf, long long bufsize) {
   int scope;
   int n_block_levels = 0;
   int n_parens = 0;
-  int linemarker_line;
   int n_dots;
   int docstr_cx_idx, docstr_cx_idx_2;
   MESSAGE *m;
@@ -1203,7 +1202,7 @@ char *parse (char *inbuf, long long bufsize) {
 	break;
       case INTEGER:
 	if (need_line_no) {
-	  error_line = linemarker_line = atoi (M_NAME(m));
+	  error_line = atoi (M_NAME(m));
 	  need_line_no = FALSE;
 	}
 	break;
