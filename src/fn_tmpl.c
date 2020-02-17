@@ -1,4 +1,4 @@
-/* $Id: fn_tmpl.c,v 1.6 2020/02/17 03:02:00 rkiesling Exp $ */
+/* $Id: fn_tmpl.c,v 1.7 2020/02/17 06:09:40 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -529,7 +529,171 @@ char *template_params (char *template, char *template_name) {
   MESSAGE *m;
   bool is_param;
 
-template_info_method.n_args = 0;
+  stack_end = tokenize (tmpl_message_push, template);
+
+  for (method_name_ptr = N_MESSAGES; 
+       method_name_ptr >= stack_end; 
+       method_name_ptr--)
+    if (!strcmp (template_name, tmpl_messages[method_name_ptr] -> name))
+      break;
+
+  if ((param_start_ptr = scanforward (tmpl_messages, method_name_ptr,
+				      stack_end, OPENPAREN)) == ERROR)
+    _error ("template_params: parser error.\n");
+
+  if ((param_end_ptr = match_paren (tmpl_messages, param_start_ptr,
+				    stack_end)) == ERROR)
+    _error ("template_params: parser error.\n");
+
+  fn_param_declarations (tmpl_messages, param_start_ptr, param_end_ptr,
+			       params, &n_params);
+  template_info_method.n_params = n_params;
+  template_info_method.varargs = fn_decl_varargs ();
+
+  for (i = n_params - 1; i >= 0; i--) {
+    template_info_method.params[i] = 
+      method_param_tok (tmpl_messages, params[i]);
+    while(__ctalkPendingException ()) {
+      /*
+       *  Handle with run-time exception functions, because the
+       *  error locations are from a different stack if they
+       *  originated in method_param_* () or previous.  Note that
+       *  exceptions here, due to C types and typedefs that don't
+       *  map directly to classes, are no-ops at the present.
+       */
+      __ctalkHandleRunTimeException ();
+    }
+    if (! param_class_exists (template_info_method.params[i] -> class))
+      library_search (template_info_method.params[i] -> class, TRUE);
+    __xfree (MEMADDR(params[i]));
+  }
+
+  for (i = N_MESSAGES, *f_tmpl = 0, is_param = False; i >= stack_end; i--) {
+    /*
+     *  Elide the C arguments.
+     */
+    if (i == param_start_ptr) {
+      strcatx2 (f_tmpl, METHOD_C_PARAM, NULL);
+      i = param_end_ptr;
+    } else {
+      /*
+       *  Replace params with library calls.
+       */
+      m = tmpl_messages[i];
+      if (m -> tokentype == LABEL) {
+	for (j = 0; j < template_info_method.n_params; j++) {
+	  if (!strcmp (m -> name, template_info_method.params[j] -> name)) {
+	    tmpl_method_arg_accessor_fn (tmpl_messages, i, 
+				    template_info_method.n_params - 1 - j);
+	    strcatx2 (f_tmpl, m -> name, NULL);
+	    is_param = True;
+	  }
+	}
+	if (m -> attrs & TOK_SELF) {
+	  strcatx2 (f_tmpl, "__ctalk_self_internal ()", NULL);
+	} else {
+	  if (!is_param)
+	    strcatx2 (f_tmpl, m -> name, NULL);
+	  else
+	    is_param = False;
+	}
+      } else {  /* if (m -> tokentype == LABEL) */
+	strcatx2 (f_tmpl, m -> name, NULL);
+      }
+    }
+  }
+
+  for (i = stack_end; i <= N_MESSAGES; i++)
+    reuse_message (tmpl_message_pop ());
+
+  return f_tmpl;
+}
+
+ARGSTR tmpl_argstrs[MAXARGS];
+int tmpl_argstrptr;
+
+int c_tmpl_fn_args (MESSAGE_STACK messages, OBJECT *arg_object, 
+		    int fn_ptr) {
+
+  int arglist_start_ptr,
+    arglist_end_ptr,
+    arg_start_ptr,
+    arg_end_ptr,
+    i,
+    n_parens;
+  char arg_buf[MAXMSG];
+  OBJECT *fn_arg_object;
+  MESSAGE *m_tok;
+  ERROR_LOCATION error_loc;
+
+  if (strncmp (arg_object -> __o_name, messages[fn_ptr] -> name,
+	       strlen (messages[fn_ptr] -> name)))
+    _error ("c_tmpl_fn_args: Parser error.\n");
+
+  if ((arglist_start_ptr = nextlangmsg (messages, fn_ptr)) 
+      == ERROR)
+    _error ("c_tmpl_fn_args: Parser error.\n");
+
+  if ((arglist_end_ptr = match_paren (messages, arglist_start_ptr,
+				   get_stack_top (messages))) == ERROR)
+    _error ("c_tmpl_fn_args: Parser error.\n");
+
+  if ((messages[arglist_start_ptr] -> tokentype != OPENPAREN) ||
+      (messages[arglist_end_ptr] -> tokentype != CLOSEPAREN))
+    _error ("c_tmpl_fn_args: Parser error.\n");
+
+  for (i = arglist_start_ptr, *arg_buf = 0, n_parens = 0, tmpl_argstrptr = 0,
+	 arg_start_ptr = -1, arg_end_ptr = -1; 
+       i >= arglist_end_ptr; i--) {
+
+    m_tok = messages[i];
+
+    switch (m_tok -> tokentype)
+      {
+      case OPENPAREN:
+	if (++n_parens > 1) {
+	  if (arg_start_ptr == -1) arg_start_ptr = i;
+	  strcatx2 (arg_buf, m_tok -> name, NULL);
+	}
+	break;
+      case CLOSEPAREN:
+	switch (--n_parens)
+	  {
+	  case 0:
+	    arg_end_ptr = prevlangmsg (messages, i);
+	    if (arg_start_ptr != -1) {
+	      tmpl_argstrs[tmpl_argstrptr].start_idx = arg_start_ptr;
+	      tmpl_argstrs[tmpl_argstrptr].end_idx = arg_end_ptr;
+	      tmpl_argstrs[tmpl_argstrptr].arg = strdup (arg_buf);
+	      tmpl_argstrs[tmpl_argstrptr].m_s = messages;
+	      arg_start_ptr = arg_end_ptr = -1;
+	      *arg_buf = 0;
+	      ++tmpl_argstrptr;
+	    }
+	    break;
+	  default:
+	    strcatx2 (arg_buf, m_tok -> name, NULL);
+	    break;
+	  }
+	break;
+      case ARGSEPARATOR:
+	arg_end_ptr = prevlangmsg (messages, i);
+	tmpl_argstrs[tmpl_argstrptr].start_idx = arg_start_ptr;
+	tmpl_argstrs[tmpl_argstrptr].end_idx = arg_end_ptr;
+	tmpl_argstrs[tmpl_argstrptr].arg = strdup (arg_buf);
+	tmpl_argstrs[tmpl_argstrptr].m_s = messages;
+	arg_start_ptr = arg_end_ptr = -1;
+	*arg_buf = 0;
+	++tmpl_argstrptr;
+	break;
+      default:
+	strcatx2 (arg_buf, m_tok -> name, NULL);
+	if (arg_start_ptr == -1)
+	  arg_start_ptr = i;
+      }
+  }
+
+  template_info_method.n_args = 0; /***/
 
   if (!template_info_method.varargs &&
       (tmpl_argstrptr != template_info_method.n_params)) {
@@ -606,7 +770,7 @@ int add_method_return (char *template, char *buf) {
   bool have_name;
   MESSAGE *m;
 
-  stack_end_ptr = tokenize_reuse (tmpl_message_push, template);
+  stack_end_ptr = tokenize (tmpl_message_push, template);
 
   for (i = N_MESSAGES, have_name = False; i >= stack_end_ptr; i--) {
 
