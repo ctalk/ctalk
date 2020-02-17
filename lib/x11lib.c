@@ -1,4 +1,4 @@
-/* $Id: x11lib.c,v 1.77 2020/02/10 00:29:08 rkiesling Exp $ -*-c-*-*/
+/* $Id: x11lib.c,v 1.78 2020/02/17 00:12:29 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -4012,7 +4012,8 @@ int __ctalkOpenX11InputClient (OBJECT *streamobject) {
   x_support_error (); return ERROR;
 }
 
-int read_event (int *ev_type_out, unsigned int *win_out, int[]) {
+int read_event (int *ev_type_out, unsigned int *win_out, unsigned int data[],
+		int event_mask) {
   x_support_error (); return ERROR;
 }
 

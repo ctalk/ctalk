@@ -1,4 +1,4 @@
-/* $Id: xgeometry.c,v 1.10 2020/01/20 18:51:14 rkiesling Exp $ -*-c-*-*/
+/* $Id: xgeometry.c,v 1.11 2020/02/17 00:12:29 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -391,7 +391,7 @@ void __ctalkX11FreeSizeHints (void) {
 
 void __ctalkX11SubWindowGeometry (OBJECT *parentpane, char *geomspec,
 				  int *x_out, int *y_out,
-				  int *width_out, int *height_out)
+				  int *width_out, int *height_out) {
     x_support_error ();
 }
 
