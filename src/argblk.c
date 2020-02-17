@@ -1,8 +1,8 @@
-/* $Id: argblk.c,v 1.6 2020/02/15 02:21:14 rkiesling Exp $ */
+/* $Id: argblk.c,v 1.7 2020/02/17 21:05:58 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
-  Copyright © 2005-2018 Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2005-2020 Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
 
@@ -824,13 +824,11 @@ int argblk_super_expr (MSINFO *ms) {
 	return SUCCESS;
 	break;
       case argument_context:
-	/***/
 	expr_start = ms -> tok;
 
 	if (ctrlblk_pred) {
 	  ctrlblk_pred_rt_expr (ms -> messages, ms -> tok);
 	} else {
-	  /***/
 	  if ((prev_tok_idx = prevlangmsg (ms -> messages, ms -> tok))
 	      != ERROR) {
 	    if (ms ->  messages[prev_tok_idx] -> attrs & TOK_IS_PREFIX_OPERATOR) {
@@ -874,6 +872,12 @@ int argblk_super_expr (MSINFO *ms) {
 		  ms -> tok = expr_start = prev_tok_idx;
 		  fmt_rt_expr_ms (ms, &expr_end_idx, exprbuf2);
 		  register_argblk_c_vars_1 (ms -> messages, ms -> tok, expr_end_idx);
+		  fileout (exprbuf2, 0, ms -> tok);
+		  for (i = expr_start; i >= expr_end_idx; i--) {
+		    ++ms -> messages[i] -> evaled;
+		    ++ms -> messages[i] -> output;
+		  }
+		  return SUCCESS;
 		}
 	      }
 	    } else {
@@ -890,7 +894,6 @@ int argblk_super_expr (MSINFO *ms) {
 	  } else {
 	    fileout (exprbuf, 0, ms -> tok);
 	  }
-	  /* for (i = ms -> tok; i >= expr_end_idx; i--) { *//***/
 	  for (i = expr_start; i >= expr_end_idx; i--) {
 	    ++ms -> messages[i] -> evaled;
 	    ++ms -> messages[i] -> output;
