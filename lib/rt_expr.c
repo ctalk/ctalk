@@ -1,4 +1,4 @@
-/* $Id: rt_expr.c,v 1.10 2020/02/16 04:29:35 rkiesling Exp $ */
+/* $Id: rt_expr.c,v 1.11 2020/02/17 22:40:47 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -2263,6 +2263,9 @@ OBJECT *eval_expr (char *s, OBJECT *recv_class, METHOD *method,
   bool typecast_is_ptr, is_arg_value;
   METHOD *m_set[MAXARGS];
   int n_m_set;
+
+  if (*s == '\0')
+    return null_result_obj (method, scope);
 
   /* Deleting the leading whitespace saves unnecessary backtracking. */
   if (isspace ((int)*s)) {
