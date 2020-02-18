@@ -1,4 +1,4 @@
-/* $Id: return.c,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ */
+/* $Id: return.c,v 1.2 2020/02/18 01:29:32 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -2728,6 +2728,8 @@ static int double_fn_return_expr (MESSAGE_STACK messages,
   return FALSE;
 }
 
+static char *NULL_expr = "((void *)0)";
+
 /*
  *  A return NULL is also a no-op here.
  */
@@ -2774,10 +2776,15 @@ static int NULL_return_expr (MESSAGE_STACK messages,
 	break;
       }
   }
-  if (have_void)
+
+  if (have_void) {
+    if (make_argblk_expr)
+      strcpy (g_argblk_expr, NULL_expr);
     return TRUE;
-  else
+  } else {
     return FALSE;
+  }
+
 }
 
 static int eval_expr_return_expr (MESSAGE_STACK messages,
@@ -2876,8 +2883,6 @@ static int eval_stmt_return_expr (MESSAGE_STACK messages,
   }
   return FALSE;
 }
-
-static char *NULL_expr = "((void *)0)";
 
 int eval_return_expr (MESSAGE_STACK messages, int keyword_ptr) {
     int expr_start_idx,
