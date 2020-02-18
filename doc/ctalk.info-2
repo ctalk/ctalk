@@ -1795,6 +1795,12 @@ Instance Variables
      the pointer passes over it, or the application sets the focus; for
      example, by pressing the <Tab> key.
 
+     If this variable is true, which is the default, then the class
+     should also declare event handlers for focus in and focus out
+     events.  Otherwise, the program prints a warning each time the
+     'shiftFocus' method, described below, calls a 'NULL' 'Method'
+     object.
+
 'handleDestroy'
      A 'Method' that provides the default handler to delete a subpane
      window and its data.
@@ -1894,6 +1900,10 @@ Instance Methods
      pane's 'inputStream' provides the event.  *Note
      X11TerminalStream::.
 
+     This method also checks keypresses for the <Tab> key, and calls the
+     'shiftFocus' method in order to shift focus between a window's
+     subpanes when the user presses <Tab>.
+
 'new (DISPATCHERNAME)'
      Create a new 'X11PaneDispatcher' object.  Initializes the instance
      variables to the default subpane event handlers and the container
@@ -1904,6 +1914,17 @@ Instance Methods
 'setMethodHandler (String HANDLERTYPE, Method HANDLERMETHOD)'
      Set the pane's handler for HANDLERTYPE to HANDLERMETHOD.  Currently
      supported handler types are: 'resize'.
+
+'shiftFocus (void)'
+     When the user presses <Tab>, 'handleSubPaneEvent' calls this
+     method, which highlights a window's subpanes in succession, if the
+     subpanes can take the input focus.
+
+     Refer to the 'canFocus' instance variable, and the handlers for
+     focus in and focus out events.  These event handlers are called by
+     the program, and are not the same as the 'handleWMFocusChange'
+     handler, which is called when the window focus changes on the
+     desktop.
 
 'subPaneDestroy (Object SUBPANEREF, InputEvent DESTROYEVENT)'
      The default handler for 'WINDELETE' events.  Like the other method
@@ -2414,7 +2435,6 @@ appreance of a button's text.
 
 Here is a brief example program.
 
-     /* buttons.ca - X11ButtonPane Demonstration */
 
      #include <ctalk/ctalkdefs.h>
 
@@ -2433,18 +2453,24 @@ Here is a brief example program.
        X11PaneDispatcher new dispatcher;
        X11ButtonPane new lbutton;
        X11ButtonPane new rbutton;
+       X11LabelPane new label;
        InputEvent new e;
 
        mainWindow backgroundColor = "blue";
        lbutton backgroundColor = "blue";
        rbutton backgroundColor = "blue";
+       label backgroundColor = "blue";
+       label textColor = "white";
+       label canFocus = false;
+       label borderWidth = 0;
 
-       mainWindow initialize 255, 100;
+       mainWindow initialize 255, 200;
        mainWindow inputStream eventMask =
-         EXPOSE|ENTERWINDOWNOTIFY|LEAVEWINDOWNOTIFY|BUTTONPRESS|BUTTONRELEASE;
+         EXPOSE|ENTERWINDOWNOTIFY|LEAVEWINDOWNOTIFY|BUTTONPRESS|BUTTONRELEASE|KEYPRESS|KEYRELEASE;
        dispatcher attachTo mainWindow;
-       lbutton attachTo dispatcher, "90x50+25+25";
-       rbutton attachTo dispatcher, "90x50+135+25";
+       lbutton attachTo dispatcher, "90x50+25+100";
+       rbutton attachTo dispatcher, "90x50+135+100";
+       label attachTo dispatcher, "127x80+64+10";
 
        mainWindow map;
        mainWindow raiseWindow;
@@ -2459,6 +2485,8 @@ Here is a brief example program.
      #else
        lbutton label font "fixed";
      #endif
+
+       label multiLine "Click one of\nthe buttons.";
 
      #ifndef MULTILINE
        lbutton label text "Left";
@@ -2487,6 +2515,8 @@ Here is a brief example program.
        lbutton refresh;
        rbutton draw;
        rbutton refresh;
+       label draw;
+       label refresh;
 
        while (TRUE) {
          mainWindow inputStream queueInput;
@@ -2499,7 +2529,8 @@ Here is a brief example program.
      	{
      	case EXPOSE:
      	  lbutton subPaneExpose (lbutton, e);
-     	  rbutton subPaneExpose (lbutton, e);
+     	  rbutton subPaneExpose (rbutton, e);
+     	  label subPaneExpose (label, e);
      	  break;
      	default:
      	  if (lbutton haveClick) {

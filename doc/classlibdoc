@@ -6291,7 +6291,11 @@ combination of absolute and relative dimensions.
 >>>X11PaneDispatcher::handleSubPaneEvent (InputEvent event)
 Handle an input event from the window system. Typically the
 parent pane's inputStream provides the event.
- 
+
+
+This method also checks keypresses for the @key{Tab} key, and
+calls the shiftFocus method in order to shift focus between
+a window's subpanes when the user presses @key{Tab}.
 
 >>>X11PaneDispatcher::new (dispatcherName)
 Create a new X11PaneDispatcher object.  Initializes the
@@ -6303,6 +6307,16 @@ with the names of each label.
 >>>X11PaneDispatcher::setMethodHandler (String handlerType, Method handlerMethod)
 Set the pane's handler for handlerType to
 handlerMethod.  Currently supported handler types are: 'resize'.
+
+>>>X11PaneDispatcher::shiftFocus (void)
+When the user presses @key{Tab}, handleSubPaneEvent calls this method,
+which highlights a window's subpanes in succession, if the subpanes can
+take the input focus.
+
+Refer to the canFocus instance variable, and the handlers for focus
+in and focus out events.  These event handlers are called by the program,
+and are not the same as the handleWMFocusChange handler, which
+is called when the window focus changes on the desktop.
 
 >>>X11PaneDispatcher::subPaneDestroy (Object subPaneRef, InputEvent destroyEvent)
 The default handler for WINDELETE events.  Like the

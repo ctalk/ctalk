@@ -17,18 +17,24 @@ int main (void) {
   X11PaneDispatcher new dispatcher;
   X11ButtonPane new lbutton;
   X11ButtonPane new rbutton;
+  X11LabelPane new label;
   InputEvent new e;
 
   mainWindow backgroundColor = "blue";
   lbutton backgroundColor = "blue";
   rbutton backgroundColor = "blue";
+  label backgroundColor = "blue";
+  label textColor = "white";
+  label canFocus = false;
+  label borderWidth = 0;
 
-  mainWindow initialize 255, 100;
+  mainWindow initialize 255, 200;
   mainWindow inputStream eventMask = 
-    EXPOSE|ENTERWINDOWNOTIFY|LEAVEWINDOWNOTIFY|BUTTONPRESS|BUTTONRELEASE;
+    EXPOSE|ENTERWINDOWNOTIFY|LEAVEWINDOWNOTIFY|BUTTONPRESS|BUTTONRELEASE|KEYPRESS|KEYRELEASE;
   dispatcher attachTo mainWindow;
-  lbutton attachTo dispatcher, "90x50+25+25";
-  rbutton attachTo dispatcher, "90x50+135+25";
+  lbutton attachTo dispatcher, "90x50+25+100";
+  rbutton attachTo dispatcher, "90x50+135+100";
+  label attachTo dispatcher, "127x80+64+10";
 
   mainWindow map;
   mainWindow raiseWindow;
@@ -43,6 +49,8 @@ int main (void) {
 #else
   lbutton label font "fixed";
 #endif  
+
+  label multiLine "Click one of\nthe buttons.";
 
 #ifndef MULTILINE
   lbutton label text "Left";
@@ -71,6 +79,8 @@ int main (void) {
   lbutton refresh;
   rbutton draw;
   rbutton refresh;
+  label draw;
+  label refresh;
 
   while (TRUE) {
     mainWindow inputStream queueInput;
@@ -83,7 +93,8 @@ int main (void) {
 	{
 	case EXPOSE:
 	  lbutton subPaneExpose (lbutton, e);
-	  rbutton subPaneExpose (lbutton, e);
+	  rbutton subPaneExpose (rbutton, e);
+	  label subPaneExpose (label, e);
 	  break;
 	default:
 	  if (lbutton haveClick) {

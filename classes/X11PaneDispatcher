@@ -1,4 +1,4 @@
-/* $Id: X11PaneDispatcher,v 1.33 2020/02/14 18:14:13 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11PaneDispatcher,v 1.40 2020/02/18 11:27:25 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -391,8 +391,14 @@ X11PaneDispatcher instanceMethod attachTo (Object parentPane,
 }
 
 X11PaneDispatcher instanceMethod shiftFocus (void) {
-  "Still under construction."
+  "Shifts the focus between successive subpanes.  This is called
+   by handleSubPaneEvent when the user presses the Tab key.  Subpanes
+   that set the canFocus instance variable to true, which is the
+   default, should also include handlers for focus in and focus out
+   events."
   X11PaneDispatcher new subPane;
+  X11PaneDispatcher new focusPane;
+
   if ((*self focusPanePtr) == NULL) {
     *self focusPanePtr become **self children;
     subPane become *self focusPanePtr;
@@ -400,15 +406,37 @@ X11PaneDispatcher instanceMethod shiftFocus (void) {
       subPane methodObjectMessage subPane handleFocusIn;
       return;
     }
-  } else {
-    subPane become *self focusPanePtr;
-    printf ("2. %s\n", subPane name); 
   }
-#if 0 /***/
-  self children mapKeys {
-  }
-#endif  
 
+  focusPane become *self focusPanePtr;
+  focusPane methodObjectMessage focusPane handleFocusOut;
+  self children mapKeys {
+    subPane become *self;
+    if (subPane name == focusPane name) {
+      if (self + 1) {
+	focusPane become *(self + 1);
+	(Symbol *)super focusPanePtr = focusPane;
+	if (focusPane canFocus) {
+	  focusPane methodObjectMessage focusPane handleFocusIn;
+	  return NULL;
+	} else {
+	  focusPane become *(self + 1);
+	  (Symbol *)super focusPanePtr = focusPane;
+	}
+      } else {
+	focusPane become **(super children);
+	(Symbol *)super focusPanePtr  = **(super children);
+	if (focusPane canFocus) {
+	  focusPane methodObjectMessage focusPane handleFocusIn;
+	  return NULL;
+	} else {
+	  focusPane become *(super children + 1);
+	  (Symbol *)super focusPanePtr  = focusPane;
+	}
+      }
+    }
+  }
+  
 }
 
 /* defined in the system's X11/keysymdef.h file, in case some machines

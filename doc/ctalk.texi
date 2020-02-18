@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.90 2020/02/14 18:40:18 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.92 2020/02/18 11:30:54 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -13277,6 +13277,11 @@ A @code{Boolean} that determines whether the widget is highlighed when
 the pointer passes over it, or the application sets the focus; for
 example, by pressing the @key{Tab} key.
 
+If this variable is true, which is the default, then the class should
+also declare event handlers for focus in and focus out events.
+Otherwise, the program prints a warning each time the @mnm{shiftFocus}
+method, described below, calls a @code{NULL} @code{Method} object.
+
 @cindex handleDestroy instance variable @idxclscite{X11PaneDispatcher}
 @item handleDestroy
 A @code{Method} that provides the default handler to delete
@@ -13395,7 +13400,11 @@ combination of absolute and relative dimensions.
 @item @mnm{handleSubPaneEvent} (@code{InputEvent} @var{event})
 Handle an input event from the window system. Typically the
 parent pane's @code{inputStream} provides the event.
-@xref{X11TerminalStream}. 
+@xref{X11TerminalStream}.
+
+This method also checks keypresses for the @key{Tab} key, and
+calls the @code{shiftFocus} method in order to shift focus between
+a window's subpanes when the user presses @key{Tab}.
 
 @cindex @mnm{new} instance method @idxclscite{X11PaneDispatcher}
 @item @mnm{new} (@var{dispatcherName})
@@ -13409,6 +13418,17 @@ with the names of each label.
 @item @mnm{setMethodHandler} (@code{String} @var{handlerType}, @code{Method} @var{handlerMethod})
 Set the pane's handler for @var{handlerType} to
 @var{handlerMethod}.  Currently supported handler types are: @samp{resize}.
+
+@cindex @mnm{shiftFocus} instance method @idxclscite{X11PaneDispatcher}
+@item shiftFocus (@code{void})
+When the user presses @key{Tab}, @code{handleSubPaneEvent} calls this method,
+which highlights a window's subpanes in succession, if the subpanes can
+take the input focus.
+
+Refer to the @code{canFocus} instance variable, and the handlers for focus
+in and focus out events.  These event handlers are called by the program,
+and are not the same as the @code{handleWMFocusChange} handler, which
+is called when the window focus changes on the desktop.
 
 @cindex @mnm{subPaneDestroy} instance method @idxclscite{X11PaneDispatcher}
 @item @mnm{subPaneDestroy} (@code{Object} @var{subPaneRef}, @code{InputEvent} @var{destroyEvent})
@@ -13993,7 +14013,6 @@ Here is a brief example program.
 
 @c demos/x11/buttons.ca
 @example
-/* buttons.ca - X11ButtonPane Demonstration */
 
 #include <ctalk/ctalkdefs.h>
 
@@ -14012,18 +14031,24 @@ int main (void) @{
   X11PaneDispatcher new dispatcher;
   X11ButtonPane new lbutton;
   X11ButtonPane new rbutton;
+  X11LabelPane new label;
   InputEvent new e;
 
   mainWindow backgroundColor = "blue";
   lbutton backgroundColor = "blue";
   rbutton backgroundColor = "blue";
+  label backgroundColor = "blue";
+  label textColor = "white";
+  label canFocus = false;
+  label borderWidth = 0;
 
-  mainWindow initialize 255, 100;
+  mainWindow initialize 255, 200;
   mainWindow inputStream eventMask = 
-    EXPOSE|ENTERWINDOWNOTIFY|LEAVEWINDOWNOTIFY|BUTTONPRESS|BUTTONRELEASE;
+    EXPOSE|ENTERWINDOWNOTIFY|LEAVEWINDOWNOTIFY|BUTTONPRESS|BUTTONRELEASE|KEYPRESS|KEYRELEASE;
   dispatcher attachTo mainWindow;
-  lbutton attachTo dispatcher, "90x50+25+25";
-  rbutton attachTo dispatcher, "90x50+135+25";
+  lbutton attachTo dispatcher, "90x50+25+100";
+  rbutton attachTo dispatcher, "90x50+135+100";
+  label attachTo dispatcher, "127x80+64+10";
 
   mainWindow map;
   mainWindow raiseWindow;
@@ -14038,6 +14063,8 @@ int main (void) @{
 #else
   lbutton label font "fixed";
 #endif  
+
+  label multiLine "Click one of\nthe buttons.";
 
 #ifndef MULTILINE
   lbutton label text "Left";
@@ -14066,6 +14093,8 @@ int main (void) @{
   lbutton refresh;
   rbutton draw;
   rbutton refresh;
+  label draw;
+  label refresh;
 
   while (TRUE) @{
     mainWindow inputStream queueInput;
@@ -14078,7 +14107,8 @@ int main (void) @{
 	@{
 	case EXPOSE:
 	  lbutton subPaneExpose (lbutton, e);
-	  rbutton subPaneExpose (lbutton, e);
+	  rbutton subPaneExpose (rbutton, e);
+	  label subPaneExpose (label, e);
 	  break;
 	default:
 	  if (lbutton haveClick) @{

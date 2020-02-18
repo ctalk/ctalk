@@ -262,3 +262,10 @@
 	directly (argblk.c).
 	- In NULL_return_expr, return a ((void *)0) string for an
 	argument block return (return.c).
+	- Added the X11PaneDispatcher : shiftFocus method, and added a
+	X11LabelPane widget to the demos/x11/buttons.ca example program.
+	Also add a Tab key binding in X11PaneDispatcher :
+	handleSubPaneEvent to shift the focus between widgets.  Also
+	added the X11PaneDispatcher instance variables handleFocusIn
+	and handleFocusOut, as well as the focusin and focusout event
+	types.
