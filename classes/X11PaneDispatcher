@@ -1,4 +1,4 @@
-/* $Id: X11PaneDispatcher,v 1.40 2020/02/18 11:27:25 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11PaneDispatcher,v 1.41 2020/02/19 23:09:42 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -87,6 +87,7 @@ X11PaneDispatcher instanceVariable handleEnterNotify Method NULL;
 X11PaneDispatcher instanceVariable handleLeaveNotify Method NULL;
 X11PaneDispatcher instanceVariable subPaneGeometry String "";
 X11PaneDispatcher instanceVariable highlight Boolean false;
+X11PaneDispatcher instanceVariable tabFocus Boolean true;
 
 X11PaneDispatcher instanceMethod setMethodHandler (String __handlerType,
 						 Method __handlerMethod) {
@@ -480,7 +481,8 @@ X11PaneDispatcher instanceMethod handleSubPaneEvent (InputEvent __e) {
       break;
     case KEYRELEASE:
     case KEYPRESS:
-      if (__e xEventData5 == XK_Tab && __e eventClass == KEYPRESS) {
+      if (self tabFocus && __e xEventData5 == XK_Tab &&
+	  __e eventClass == KEYPRESS) {
 	self shiftFocus;
       } else {
 	self children map {

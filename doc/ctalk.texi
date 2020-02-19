@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.92 2020/02/18 11:30:54 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.93 2020/02/19 23:09:43 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -13356,6 +13356,15 @@ is not used.
 A @code{Boolean} that indicates whether the widget is displayed
 highlighted.
 
+@cindex @code{tabFocus} instance variable @idxclscite{X11PaneDispatcher}
+@item tabFocus
+A @code{Boolean} that determines, if true (which is the default), whether
+the @mnm{handleSubPaneEvent} method intercepts the @key{Tab} key in
+order to shift the input focus when it is pressed.  If @code{tabFocus} is
+true, the subpane's class must implement methods to handle the @code{focusin}
+and @code{focusout} events that shifting focus with the keyboard implements,
+or the program will display warning messages when it can't find the methods.
+
 @end table
 
 @subsubheading Instance Methods
@@ -14064,7 +14073,7 @@ int main (void) @{
   lbutton label font "fixed";
 #endif  
 
-  label multiLine "Click one of\nthe buttons.";
+  label multiLine "X11ButtonPane\nDemo";
 
 #ifndef MULTILINE
   lbutton label text "Left";

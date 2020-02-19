@@ -1861,6 +1861,15 @@ Instance Variables
      A 'Boolean' that indicates whether the widget is displayed
      highlighted.
 
+'tabFocus'
+     A 'Boolean' that determines, if true (which is the default),
+     whether the 'handleSubPaneEvent' method intercepts the <Tab> key in
+     order to shift the input focus when it is pressed.  If 'tabFocus'
+     is true, the subpane's class must implement methods to handle the
+     'focusin' and 'focusout' events that shifting focus with the
+     keyboard implements, or the program will display warning messages
+     when it can't find the methods.
+
 Instance Methods
 ................
 
@@ -2486,7 +2495,7 @@ Here is a brief example program.
        lbutton label font "fixed";
      #endif
 
-       label multiLine "Click one of\nthe buttons.";
+       label multiLine "X11ButtonPane\nDemo";
 
      #ifndef MULTILINE
        lbutton label text "Left";
