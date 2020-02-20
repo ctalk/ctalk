@@ -273,3 +273,10 @@
 	- Added the X11PaneDispatcher : tabFocus instance variable.
 	- Added checks for selecting a saved font from a widget's
 	ftFontVar in X11ButtonPane : draw and X11LabelPane : draw.
+2020-02-20
+	- Added the time member from XKeyEvents and XCrossingEvents to
+	the X event data returned to the app (x11lib.c).  Added the
+	g_ptr_t and g_kbd_t variables in X11PaneDispatcher to record
+	the last focus event, and added the code to save the event
+	times in X11PaneDispatcher : handleSubPaneEvent.
+

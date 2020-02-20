@@ -1,4 +1,4 @@
-/* $Id: X11PaneDispatcher,v 1.41 2020/02/19 23:09:42 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11PaneDispatcher,v 1.42 2020/02/20 23:34:41 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -88,6 +88,9 @@ X11PaneDispatcher instanceVariable handleLeaveNotify Method NULL;
 X11PaneDispatcher instanceVariable subPaneGeometry String "";
 X11PaneDispatcher instanceVariable highlight Boolean false;
 X11PaneDispatcher instanceVariable tabFocus Boolean true;
+
+static unsigned long g_ptr_t = 0;
+static unsigned long g_kbd_t = 0;
 
 X11PaneDispatcher instanceMethod setMethodHandler (String __handlerType,
 						 Method __handlerMethod) {
@@ -483,6 +486,7 @@ X11PaneDispatcher instanceMethod handleSubPaneEvent (InputEvent __e) {
     case KEYPRESS:
       if (self tabFocus && __e xEventData5 == XK_Tab &&
 	  __e eventClass == KEYPRESS) {
+	g_kbd_t = __e xEventData6;
 	self shiftFocus;
       } else {
 	self children map {
@@ -533,14 +537,18 @@ X11PaneDispatcher instanceMethod handleSubPaneEvent (InputEvent __e) {
       break;
     case ENTERWINDOWNOTIFY:
       self children map {
-	if (__e eventData == self xWindowID) 
+	if (__e eventData == self xWindowID) {
+	  g_ptr_t = __e xEventData4;
 	  self methodObjectMessage self handleEnterNotify, self, __e;
+	}
       }
       break;
     case LEAVEWINDOWNOTIFY:
       self children map {
-	if (__e eventData == self xWindowID) 
+	if (__e eventData == self xWindowID) {
+	  g_ptr_t = __e xEventData4;
 	  self methodObjectMessage self handleLeaveNotify, self, __e;
+	}
       }
       break;
     default:

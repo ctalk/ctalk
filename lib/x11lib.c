@@ -1,4 +1,4 @@
-/* $Id: x11lib.c,v 1.78 2020/02/17 00:12:29 rkiesling Exp $ -*-c-*-*/
+/* $Id: x11lib.c,v 1.79 2020/02/20 23:34:41 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -2764,7 +2764,8 @@ int __ctalkX11InputClient (OBJECT *streamobject, int parent_fd, int mem_handle, 
 			   e.xkey.x, e.xkey.y, e.xkey.state,
 			   e.xkey.keycode,
 			   get_x11_keysym (e.xkey.keycode,
-					   e.xkey.state, true), 0);
+					   e.xkey.state, true),
+			   e.xkey.time);
 	  continue;
 	  break;
 	case KeyRelease:
@@ -2772,7 +2773,8 @@ int __ctalkX11InputClient (OBJECT *streamobject, int parent_fd, int mem_handle, 
 			   e.xkey.x, e.xkey.y, e.xkey.state,
 			   e.xkey.keycode,
 			   get_x11_keysym (e.xkey.keycode,
-					   e.xkey.state, false), 0);
+					   e.xkey.state, false),
+			   e.xkey.time);
 	  continue;
 	  break;
 	case FocusIn:
@@ -2819,14 +2821,16 @@ int __ctalkX11InputClient (OBJECT *streamobject, int parent_fd, int mem_handle, 
 	case EnterNotify:
 	  event_to_client (ENTERWINDOWNOTIFY,
 			   e.xcrossing.window, e.xcrossing.subwindow,
-			   e.xcrossing.mode, e.xcrossing.detail, 0, 0, 0);
+			   e.xcrossing.mode, e.xcrossing.detail,
+			   e.xcrossing.time, 0, 0);
 	  eventclass = 0;
 	  continue;
 	  break;
 	case LeaveNotify:
 	  event_to_client (LEAVEWINDOWNOTIFY,
 			   e.xcrossing.window, e.xcrossing.subwindow,
-			   e.xcrossing.mode, e.xcrossing.detail, 0, 0, 0);
+			   e.xcrossing.mode, e.xcrossing.detail,
+			   e.xcrossing.time, 0, 0);
 	  eventclass = 0;
 	  continue;
 	  break;
