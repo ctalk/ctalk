@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.93 2020/02/19 23:09:43 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.94 2020/02/20 03:46:34 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -14023,6 +14023,8 @@ Here is a brief example program.
 @c demos/x11/buttons.ca
 @example
 
+/* buttons.ca - X11ButtonPane Demonstration */
+
 #include <ctalk/ctalkdefs.h>
 
 /* Uncomment this #define to use X bitmap fonts. */
@@ -14034,6 +14036,10 @@ Here is a brief example program.
 /* Define CORNER_RADIUS > 0 for rounded corners (non-beveled, too). 
    The value is the radius of the corner arcs. */
 #define CORNER_RADIUS 0
+
+/* See the X11FreeTypeFont section of the the Ctalk reference. */
+#define FTFONT_BOLD   200
+#define FTFONT_MEDIUM 100
 
 int main (void) @{
   X11Pane new mainWindow;
@@ -14057,7 +14063,7 @@ int main (void) @{
   dispatcher attachTo mainWindow;
   lbutton attachTo dispatcher, "90x50+25+100";
   rbutton attachTo dispatcher, "90x50+135+100";
-  label attachTo dispatcher, "127x80+64+10";
+  label attachTo dispatcher, "147x80+44+15";
 
   mainWindow map;
   mainWindow raiseWindow;
@@ -14067,8 +14073,16 @@ int main (void) @{
   mainWindow setWMTitle "X11ButtonPane Demo";
 
 #ifndef XFONTS
-  lbutton label ftFontVar initFontLib;
-  lbutton label ftFont "DejaVu Sans", 0, 0, 0, 10.0;
+  /*
+   * This is the recommended way to set up fonts for each widget.
+   */
+  label ftFontVar initFontLib;
+  label ftFont "DejaVu Sans", 0, FTFONT_BOLD, 0, 12.0;
+  label ftFontVar saveSelectedFont;
+  lbutton ftFont "DejaVu Sans", 0, FTFONT_MEDIUM, 0, 10.0;
+  lbutton ftFontVar saveSelectedFont;
+  rbutton ftFont "DejaVu Sans", 0, FTFONT_MEDIUM, 0, 10.0;
+  rbutton ftFontVar saveSelectedFont;
 #else
   lbutton label font "fixed";
 #endif  
@@ -14264,6 +14278,24 @@ false.
 @item draw (@code{void})
 Draws the button and its label on the pane's buffer so the
 widget can be displayed with the refresh method.
+
+If the program has saved a font specification to the widget's
+@code{ftFontVar} instance variable, then this method also selects
+the font before drawing the widget.  If you want a button to display
+a different font than the surronding window, this is the way to
+declare and save a font specification.
+
+@example
+
+/* The button inherits the ftFont method from X11Pane class. */
+
+button ftFont "DejaVu Sans", FTFONT_ROMAN, FTFONT_MEDIUM, DEFAULT_DPI, 10.0;
+button ftFontVar saveSelectedFont;
+
+@end example
+
+The @code{X11FreeTypeFont} section describes the parameters that
+the @code{X11FreeTypeFont} class uses when selecting fonts. @xref{X11FreeTypeFont}.
 
 @cindex @code{haveClick} instance method @idxclscite{X11ButtonPane}
 @item haveClicked (@code{void})
@@ -14604,6 +14636,24 @@ class allow programs to adjust how the text is laid out.
 
 The @mnm{drawButtonLayout} method is similar, but it uses a different
 algorithm that is more suited to laying out text on button labels.
+
+If the widget has saved a font specification to its @code{ftFontVar}
+instance variable, then this method also selects the font before
+drawing the label.  If you want a label to have a different font
+than the rest of the window, this is how to declare and save
+a font specification.
+
+@example
+
+/* The label inherits the ftFont method from X11Pane class. */
+
+label ftFont "DejaVu Sans", FTFONT_ROMAN, FTFONT_MEDIUM, DEFAULT_DPI, 10.0;
+label ftFontVar saveSelectedFont;
+
+@end example
+
+The @code{X11FreeTypeFont} section describes the parameters that
+the @code{X11FreeTypeFont} class uses when selecting fonts. @xref{X11FreeTypeFont}.
 
 @cindex @code{new} instance method @idxclscite{X11LabelPane}
 @item new

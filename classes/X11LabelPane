@@ -1,4 +1,4 @@
-/* $Id: X11LabelPane,v 1.22 2020/02/14 18:14:13 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11LabelPane,v 1.23 2020/02/20 03:46:33 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -172,6 +172,11 @@ X11LabelPane instanceMethod __drawJustified (String textArg,
 X11LabelPane instanceMethod draw (void) {
   Integer new ts, parheight, lineStartY, vAir;
   
+  if (self ftFontVar family length > 0) {
+    /* i.e., The app has stored this widget's font selection. */
+    self ftFontVar selectFont;
+  }
+
   self paneBuffer clear;
   if (self border) {
     if (self grayed) {

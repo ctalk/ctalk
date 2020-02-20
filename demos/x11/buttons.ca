@@ -12,6 +12,10 @@
    The value is the radius of the corner arcs. */
 #define CORNER_RADIUS 0
 
+/* See the X11FreeTypeFont section of the the Ctalk reference. */
+#define FTFONT_BOLD   200
+#define FTFONT_MEDIUM 100
+
 int main (void) {
   X11Pane new mainWindow;
   X11PaneDispatcher new dispatcher;
@@ -34,7 +38,7 @@ int main (void) {
   dispatcher attachTo mainWindow;
   lbutton attachTo dispatcher, "90x50+25+100";
   rbutton attachTo dispatcher, "90x50+135+100";
-  label attachTo dispatcher, "127x80+64+10";
+  label attachTo dispatcher, "147x80+44+15";
 
   mainWindow map;
   mainWindow raiseWindow;
@@ -44,8 +48,16 @@ int main (void) {
   mainWindow setWMTitle "X11ButtonPane Demo";
 
 #ifndef XFONTS
-  lbutton label ftFontVar initFontLib;
-  lbutton label ftFont "DejaVu Sans", 0, 0, 0, 10.0;
+  /*
+   * This is the recommended way to set up fonts for each widget.
+   */
+  label ftFontVar initFontLib;
+  label ftFont "DejaVu Sans", 0, FTFONT_BOLD, 0, 12.0;
+  label ftFontVar saveSelectedFont;
+  lbutton ftFont "DejaVu Sans", 0, FTFONT_MEDIUM, 0, 10.0;
+  lbutton ftFontVar saveSelectedFont;
+  rbutton ftFont "DejaVu Sans", 0, FTFONT_MEDIUM, 0, 10.0;
+  rbutton ftFontVar saveSelectedFont;
 #else
   lbutton label font "fixed";
 #endif  
