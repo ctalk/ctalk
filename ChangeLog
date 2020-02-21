@@ -280,4 +280,12 @@
 	the last focus event, and added the code to save the event
 	times in X11PaneDispatcher : handleSubPaneEvent.
 	- Added the X11PaneDispatcher : clearHightlight method.
+	- Added the X11PaneDispatcher : mouseOver instance variable,
+	and the subPaneEnterNotify and subPaneLeaveNotify methods.
+	Also removed the pointIsInFrame method.
+	- In event_to_client, check for MOTIONNOTIFY events, and
+	if we encounter them, don't cache them but send them directly
+	to the client process, and discard any overflow, which
+	works okay for an event stream that is still being generated
+	(x11lib.c).
 

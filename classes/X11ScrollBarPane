@@ -1,4 +1,4 @@
-/* $Id: X11ScrollBarPane,v 1.43 2020/02/21 04:30:53 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11ScrollBarPane,v 1.44 2020/02/21 05:05:25 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -257,8 +257,7 @@ X11ScrollBarPane instanceMethod subPanePointerInput (Object __subPane,
       self useCursor self grabCursor;
       self dragging = TRUE;
     }
-  }
-  if (__event eventClass == 16) {
+  } else if (__event eventClass == 16) {
     if (self mouseOver) {
       self useCursor self arrowCursor;
     } else {
@@ -266,7 +265,7 @@ X11ScrollBarPane instanceMethod subPanePointerInput (Object __subPane,
     }
     if (self dragging)
       self dragging = FALSE;
-    self refresh;
+    /* self refresh; *//***/
   }
   return NULL;
 }
@@ -289,6 +288,8 @@ X11ScrollBarPane instanceMethod __moveThumb (Integer updatedY) {
   }
 }
 
+unsigned int t_t = 0;
+
 X11ScrollBarPane instanceMethod subPanePointerMotion (Object __subPane,
 					  InputEvent __event) {
   "Handle pointer motion events from the parent window's
@@ -305,6 +306,7 @@ X11ScrollBarPane instanceMethod subPanePointerMotion (Object __subPane,
   y = __event xEventData2 value;
 
   if (self dragging) {
+    /* printf ("%u %d\n", t_t++, y); */
     updatedY = THUMBTOPSTARTY + (y - self lastY);
     /* Make adjustments if needed so the thumb doesn't get drawn past
        either end of the pane, or the percent is outside 0-100%. */

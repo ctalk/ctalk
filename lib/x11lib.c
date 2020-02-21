@@ -1,4 +1,4 @@
-/* $Id: x11lib.c,v 1.79 2020/02/20 23:34:41 rkiesling Exp $ -*-c-*-*/
+/* $Id: x11lib.c,v 1.80 2020/02/21 05:05:25 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -2289,7 +2289,7 @@ int read_event (int *ev_type_out, unsigned int *win_out,
 
 #define EV_REUSE_MAX 0xffff
 /* uncomment to print the EV_CH cache levels on a terminal */
-/* #define EV_CACHE_USE  */
+/* #define SHOW_EV_CACHE_USE *//***/
 
 typedef struct ev_ch {
   struct ev_ch *next;
@@ -2373,6 +2373,28 @@ static void event_to_client (int eventclass,
 			     int eventdata6) {
   int wait_retries = 0;
 
+  if (eventclass == MOTIONNOTIFY) {
+    /* Use the version of event_to_client that discards events. */
+
+    while (INTVAL(&shm_mem[SHM_EVENT_READY])) {
+      if (++wait_retries > 20)
+	return;
+      usleep (100);
+    }
+
+    INTVAL(&shm_mem[SHM_EVENT_TYPE]) = eventclass;
+    UINTVAL(&shm_mem[SHM_EVENT_WIN]) = win_id;
+    INTVAL(&shm_mem[SHM_EVENT_DATA1]) = eventdata1;
+    INTVAL(&shm_mem[SHM_EVENT_DATA2]) = eventdata2;
+    INTVAL(&shm_mem[SHM_EVENT_DATA3]) = eventdata3;
+    INTVAL(&shm_mem[SHM_EVENT_DATA4]) = eventdata4;
+    INTVAL(&shm_mem[SHM_EVENT_DATA5]) = eventdata5;
+    INTVAL(&shm_mem[SHM_EVENT_DATA6]) = eventdata6;
+
+    INTVAL(&shm_mem[SHM_EVENT_READY]) = TRUE;
+    return;
+  }
+
   if (INTVAL(&shm_mem[SHM_EVENT_MASK]) > 0) {
     if (!(INTVAL(&shm_mem[SHM_EVENT_MASK]) & eventclass)) {
       return;
@@ -2402,6 +2424,7 @@ static void event_to_client (int eventclass,
 
 }
 
+ 
 static void generate_expose (Window w, int x, int y, int width, int height) {
   XEvent e;
   e.type = Expose;
@@ -2748,10 +2771,18 @@ int __ctalkX11InputClient (OBJECT *streamobject, int parent_fd, int mem_handle, 
       switch (e.type)
 	{
 	case ButtonPress:
+	  buttonpressed = TRUE;
+	  event_to_client (BUTTONPRESS,
+			   e.xbutton.window,
+			   e.xbutton.x,
+			   e.xbutton.y,
+			   e.xbutton.state,
+			   e.xbutton.button, 0, 0);
+	  continue;
+	  break;
 	case ButtonRelease:
-	  buttonpressed = (e.type == ButtonPress) ? TRUE : FALSE;
-	  event_to_client (((e.type == ButtonPress) ?
-			    BUTTONPRESS : BUTTONRELEASE),
+	  buttonpressed = FALSE;
+	  event_to_client (BUTTONRELEASE,
 			   e.xbutton.window,
 			   e.xbutton.x,
 			   e.xbutton.y,
