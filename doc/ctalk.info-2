@@ -1935,6 +1935,12 @@ Instance Methods
      handler, which is called when the window focus changes on the
      desktop.
 
+'clearFocus (void'
+     Called before shifting the focus highlight to a new pane to insure
+     that only one pane indicates that it should receive focus,
+     including the synthetic focus that is assigned when shifting focus
+     using the <Tab> key.
+
 'subPaneDestroy (Object SUBPANEREF, InputEvent DESTROYEVENT)'
      The default handler for 'WINDELETE' events.  Like the other method
      handlers, SUBPANEREF is typically a 'Symbol' object.  The

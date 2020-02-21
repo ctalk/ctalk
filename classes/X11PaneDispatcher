@@ -1,4 +1,4 @@
-/* $Id: X11PaneDispatcher,v 1.42 2020/02/20 23:34:41 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11PaneDispatcher,v 1.43 2020/02/21 03:30:18 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -394,6 +394,19 @@ X11PaneDispatcher instanceMethod attachTo (Object parentPane,
   return NULL;
 }
 
+X11PaneDispatcher instanceMethod clearHighlight (void) {
+  "Called before shifting the focus highlight to a new pane
+   to insure that only one pane indicates that it should 
+   receive focus, including the synthetic focus that is
+   assigned when shifting focus using the Tab key."
+  InputEvent new e;
+  self children map {
+    if (self highlight) {
+      self methodObjectMessage self handleLeaveNotify, self ,e;
+    }
+  }
+}
+
 X11PaneDispatcher instanceMethod shiftFocus (void) {
   "Shifts the focus between successive subpanes.  This is called
    by handleSubPaneEvent when the user presses the Tab key.  Subpanes
@@ -486,6 +499,7 @@ X11PaneDispatcher instanceMethod handleSubPaneEvent (InputEvent __e) {
     case KEYPRESS:
       if (self tabFocus && __e xEventData5 == XK_Tab &&
 	  __e eventClass == KEYPRESS) {
+	self clearHighlight;
 	g_kbd_t = __e xEventData6;
 	self shiftFocus;
       } else {
@@ -536,6 +550,7 @@ X11PaneDispatcher instanceMethod handleSubPaneEvent (InputEvent __e) {
       }
       break;
     case ENTERWINDOWNOTIFY:
+      self clearHighlight;
       self children map {
 	if (__e eventData == self xWindowID) {
 	  g_ptr_t = __e xEventData4;

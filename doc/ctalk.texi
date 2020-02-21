@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.94 2020/02/20 03:46:34 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.95 2020/02/21 03:30:18 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -13438,6 +13438,14 @@ Refer to the @code{canFocus} instance variable, and the handlers for focus
 in and focus out events.  These event handlers are called by the program,
 and are not the same as the @code{handleWMFocusChange} handler, which
 is called when the window focus changes on the desktop.
+
+@cindex @mnm{clearFocus} instance method @idxclscite{X11PaneDispatcher}
+@item @mnm{clearFocus} (@code{void}
+Called before shifting the focus highlight to a new pane to insure
+that only one pane indicates that it should receive focus, including
+the synthetic focus that is assigned when shifting focus using the
+@key{Tab} key.
+
 
 @cindex @mnm{subPaneDestroy} instance method @idxclscite{X11PaneDispatcher}
 @item @mnm{subPaneDestroy} (@code{Object} @var{subPaneRef}, @code{InputEvent} @var{destroyEvent})

@@ -6318,6 +6318,13 @@ in and focus out events.  These event handlers are called by the program,
 and are not the same as the handleWMFocusChange handler, which
 is called when the window focus changes on the desktop.
 
+>>>X11PaneDispatcher::clearFocus
+Called before shifting the focus highlight to a new pane to insure
+that only one pane indicates that it should receive focus, including
+the synthetic focus that is assigned when shifting focus using the
+@key{Tab} key.
+
+
 >>>X11PaneDispatcher::subPaneDestroy (Object subPaneRef, InputEvent destroyEvent)
 The default handler for WINDELETE events.  Like the
 other method handlers, subPaneRef is typically a
