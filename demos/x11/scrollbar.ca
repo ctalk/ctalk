@@ -6,7 +6,6 @@ int main (int argv, char **argc) {
   X11ScrollBarPane new xScrollBarPane;
   X11CanvasPane new xCanvasPane;
   InputEvent new e;
-  Integer new nEvents;
   Exception new ex;
   Application new scrollDemo;
   String new pctstr;
@@ -23,7 +22,7 @@ int main (int argv, char **argc) {
   xPane ftFont "DejaVu Sans", 0, 0, 0, 48.0;
 
   xPane initialize xWindowSize, yWindowSize;
-  xPane inputStream eventMask = WINDELETE|EXPOSE|BUTTONPRESS|BUTTONRELEASE|MOTIONNOTIFY;
+  xPane inputStream eventMask = WINDELETE|EXPOSE|BUTTONPRESS|BUTTONRELEASE|MOTIONNOTIFY|RESIZENOTIFY|ENTERWINDOWNOTIFY|LEAVEWINDOWNOTIFY;
   xTopLevelPane attachTo xPane;
   xScrollBarPane attachTo xTopLevelPane, "20x100%+0+0";
   xCanvasPane attachTo xTopLevelPane, "380x100%+20+0";
@@ -79,14 +78,5 @@ int main (int argv, char **argc) {
  	}
     }
   }
-}
-
-void exit_help (char *cmd) {
-  printf ("\nUsage: %s [-h] | [-f n] | [-m n]\n", cmd);
-  printf ("-bg <color>  Background color.\n");
-  printf ("-fg <color>  Foreground color.\n");
-  printf ("-h           Print this message and exit.\n");
-  printf ("Please report bugs to: rk3314042@gmail.com.\n");
-  exit (0);
 }
 

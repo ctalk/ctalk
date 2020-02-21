@@ -6786,18 +6786,19 @@ margins; i.e,
   
 ---------------------------------------------------------
 
->>>X11ScrollBarPane::pointIsInFrame (Integer x, Integer, y)
 >>>X11ScrollBarPane::pointIsInThumb (Integer x, Integer, y)
-These methods return a Boolean value of true if the point
-x,y is within the scroll bar frame or thumb, respectively.
+This method returns a Boolean value of true if the point
+x,y is within the scroll bar thumb.
 
 >>>X11ScrollBarPane::subPaneDestroy
 >>>X11ScrollBarPane::subPaneExpose
 >>>X11ScrollBarPane::subPanePointerInput
 >>>X11ScrollBarPane::subPanePointerMotion
+>>>X11ScrollBarPane::subPaneEnterNotify
+>>>X11ScrollBarPane::subPaneLeaveNotify
 The X11ScrollBarPane object's event handlers for DESTROY,
-EXPOSE, BUTTONPRESS/BUTTONRELEASE, and MOTIONNOTIFY X Window System
-events.
+EXPOSE, BUTTONPRESS/BUTTONRELEASE, MOTIONNOTIFY, ENTERWINDOWNOTIFY,
+and LEAVEWINDOWNOTIFY X Window System events.
 
 >>>X11ScrollBarPane::thumbDimensions (Integer y, Integer height)
 Calculates the position and size thumb's rectangle within the pane using the vertical y position and the thumb's height.

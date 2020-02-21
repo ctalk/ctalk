@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.95 2020/02/21 03:30:18 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.96 2020/02/21 04:30:53 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -14873,6 +14873,11 @@ event's y coordinate while dragging. @xref{Integer}.
 An @code{Integer} that defines the distance in pixels between the
 pane's edge and the outer edge of the scrollbar frame.
 
+@cindex @code{mouseOver} instance variable @idxclscite{X11ScrollBarPane}
+@item mouseOver
+A @code{Boolean} that is true if the pointer is over the scrollbar frame,
+false otherwise.
+
 @cindex @code{padding} instance variable @idxclscite{X11ScrollBarPane}
 @item padding
 An @code{Integer} that defines the distance in pixels between the inner
@@ -14963,25 +14968,27 @@ usableTrough = aScrollBar size y -
 
 @end example
 
-@cindex @code{pointIsInFrame} instance method @idxclscite{X11ScrollBarPane}
-@item pointIsInFrame (@code{Integer} @var{x}, @code{Integer}, @var{y})
 @cindex @code{pointIsInThumb} instance method @idxclscite{X11ScrollBarPane}
 @item pointIsInThumb (@code{Integer} @var{x}, @code{Integer}, @var{y})
-These methods return a @code{Boolean} value of true if the point
-@var{x,y} is within the scroll bar frame or thumb, respectively.
+This method returns a @code{Boolean} value of true if the point
+@var{x,y} is within the scroll bar thumb.
 
 @cindex @code{subPaneDestroy} instance method @idxclscite{X11ScrollBarPane}
 @cindex @code{subPaneExpose} instance method @idxclscite{X11ScrollBarPane}
 @cindex @code{subPanePointerInput} instance method @idxclscite{X11ScrollBarPane}
 @cindex @code{subPanePointerMotion} instance method @idxclscite{X11ScrollBarPane}
 @cindex @code{subPaneResize} instance method @idxclscite{X11ScrollBarPane}
+@cindex @code{subPaneEnterNotify} instance method @idxclscite{X11ScrollBarPane}
+@cindex @code{subPaneLeaveNotify} instance method @idxclscite{X11ScrollBarPane}
 @item @mnm{subPaneDestroy} (@code{Object} @var{subPane}, @code{InputEvent} @var{event}
 @item @mnm{subPaneExpose} (@code{Object} @var{subPane}, @code{InputEvent} @var{event}
 @item @mnm{subPanePointerInput} (@code{Object} @var{subPane}, @code{InputEvent} @var{event}
 @item @mnm{subPanePointerMotion} (@code{Object} @var{subPane}, @code{InputEvent} @var{event}
+@item @mnm{subPaneEnterNotify} (@code{Object} @var{subPane}, @code{InputEvent} @var{event}
+@item @mnm{subPaneLeaveNotify} (@code{Object} @var{subPane}, @code{InputEvent} @var{event}
 The @code{X11ScrollBarPane} object's event handlers for DESTROY,
-EXPOSE, BUTTONPRESS/BUTTONRELEASE, and MOTIONNOTIFY X Window System
-events.
+EXPOSE, BUTTONPRESS/BUTTONRELEASE, MOTIONNOTIFY, ENTERWINDOWNOTIFY,
+and LEAVEWINDOWNOTIFY X Window System events.
 
 @cindex @code{thumbDimensions} instance method @idxclscite{X11ScrollBarPane}
 @item @mnm{thumbDimensions} (@code{Integer} @var{y}, @code{Integer} @var{height})

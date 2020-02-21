@@ -1,4 +1,4 @@
-/* $Id: X11ScrollBarPane,v 1.42 2020/01/26 19:10:36 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11ScrollBarPane,v 1.43 2020/02/21 04:30:53 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -53,6 +53,7 @@ X11ScrollBarPane instanceVariable margin Integer 1;
 X11ScrollBarPane instanceVariable bevel Boolean true;
 X11ScrollBarPane instanceVariable thumbPix X11Bitmap 0;
 X11ScrollBarPane instanceVariable thumbBackgroundColor String "darkgray";
+X11ScrollBarPane instanceVariable mouseOver Boolean false;
 
 Boolean new haveBevel;
 
@@ -66,23 +67,6 @@ Boolean new haveBevel;
 #define THUMBTOPSTARTY (self thumb top start y)
 #define THUMBBOTTOMENDX (THUMBTOPSTARTX + self thumb bottom end x)
 #define THUMBBOTTOMENDY (THUMBTOPSTARTY + self thumb bottom end y)
-
-X11ScrollBarPane instanceMethod pointIsInFrame (Integer pointX,	
-						Integer pointY) {
-  "Returns a Boolean object with the value of True if the
-  mouse pointer is over the scroll bar frame, False
-  otherwise."
-  returnObjectClass Boolean;
-
-  if (pointX >= WIDGETTOPSTARTX &&
-      pointX <= WIDGETBOTTOMENDX &&
-      pointY >= WIDGETTOPSTARTY &&
-      pointY <= WIDGETBOTTOMENDY) {
-    return TRUE;
-  } else {
-    return FALSE;
-  }
-}
 
 X11ScrollBarPane instanceMethod pointIsInThumb (Integer pointX,
 						Integer pointY) {
@@ -275,7 +259,7 @@ X11ScrollBarPane instanceMethod subPanePointerInput (Object __subPane,
     }
   }
   if (__event eventClass == 16) {
-    if (self pointIsInFrame (__event xEventData1, __event xEventData2)) {
+    if (self mouseOver) {
       self useCursor self arrowCursor;
     } else {
       self defaultCursor;
@@ -334,7 +318,7 @@ X11ScrollBarPane instanceMethod subPanePointerMotion (Object __subPane,
     }
     self __moveThumb updatedY;
   } else {
-    if (self pointIsInFrame  (__event xEventData1, __event xEventData2)) {
+    if (self mouseOver) {
       self useCursor self arrowCursor;
     } else {
       self defaultCursor;
@@ -355,6 +339,7 @@ X11ScrollBarPane instanceMethod new (String __paneName) {
   Method new exposeMethod;
   Method new pointerInputMethod;
   Method new pointerMotionMethod;
+  Method new enterNotifyMethod, leaveNotifyMethod;
   X11ScrollBarPane super new __paneName;
   __paneName arrowCursor scrollArrow;
   __paneName grabCursor grabMove;
@@ -365,11 +350,17 @@ X11ScrollBarPane instanceMethod new (String __paneName) {
     "subPanePointerInput";
   pointerMotionMethod definedInstanceMethod "X11ScrollBarPane", 
     "subPanePointerMotion";
+  enterNotifyMethod definedInstanceMethod "X11ScrollBarPane",
+    "subPaneEnterNotify";
+  leaveNotifyMethod definedInstanceMethod "X11ScrollBarPane",
+    "subPaneLeaveNotify";
   __paneName setMethodHandler "resize", resizeMethod;
   __paneName setMethodHandler "destroy", destroyMethod;
   __paneName setMethodHandler "expose", exposeMethod;
   __paneName setMethodHandler "pointerinput", pointerInputMethod;
   __paneName setMethodHandler "pointermotion", pointerMotionMethod;
+  __paneName setMethodHandler "enternotify", enterNotifyMethod;
+  __paneName setMethodHandler "leavenotify", leaveNotifyMethod;
 
   __paneName background "white";
   __paneName framePen width = __paneName frameWidthVar;
@@ -533,3 +524,15 @@ X11ScrollBarPane instanceMethod percent (void) {
   pct = fl / usableTrough;
   return pct;
 }
+
+X11ScrollBarPane instanceMethod subPaneEnterNotify (void) {
+  self useCursor self arrowCursor;
+    self mouseOver = true;
+}
+
+X11ScrollBarPane instanceMethod subPaneLeaveNotify (void) {
+    self defaultCursor;
+    self mouseOver = false;
+}
+ 
+ 

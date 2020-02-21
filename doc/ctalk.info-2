@@ -3183,6 +3183,10 @@ Instance Variables
      An 'Integer' that defines the distance in pixels between the pane's
      edge and the outer edge of the scrollbar frame.
 
+'mouseOver'
+     A 'Boolean' that is true if the pointer is over the scrollbar
+     frame, false otherwise.
+
 'padding'
      An 'Integer' that defines the distance in pixels between the inner
      edge of the scrollbar frame and the thumb.
@@ -3254,17 +3258,19 @@ Instance Methods
                              (aScrollBar thumbHeight));
 
 
-'pointIsInFrame (Integer X, Integer, Y)'
 'pointIsInThumb (Integer X, Integer, Y)'
-     These methods return a 'Boolean' value of true if the point X,Y is
-     within the scroll bar frame or thumb, respectively.
+     This method returns a 'Boolean' value of true if the point X,Y is
+     within the scroll bar thumb.
 
 'subPaneDestroy (Object SUBPANE, InputEvent EVENT'
 'subPaneExpose (Object SUBPANE, InputEvent EVENT'
 'subPanePointerInput (Object SUBPANE, InputEvent EVENT'
 'subPanePointerMotion (Object SUBPANE, InputEvent EVENT'
+'subPaneEnterNotify (Object SUBPANE, InputEvent EVENT'
+'subPaneLeaveNotify (Object SUBPANE, InputEvent EVENT'
      The 'X11ScrollBarPane' object's event handlers for DESTROY, EXPOSE,
-     BUTTONPRESS/BUTTONRELEASE, and MOTIONNOTIFY X Window System events.
+     BUTTONPRESS/BUTTONRELEASE, MOTIONNOTIFY, ENTERWINDOWNOTIFY, and
+     LEAVEWINDOWNOTIFY X Window System events.
 
 'thumbDimensions (Integer Y, Integer HEIGHT)'
      Calculates the position and size thumb's rectangle within the pane

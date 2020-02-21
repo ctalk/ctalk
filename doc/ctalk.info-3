@@ -3996,7 +3996,7 @@ Index
 * attachTo instance method (X11PaneDispatcher class): X11PaneDispatcher.
                                                              (line  239)
 * attachTo instance method (X11ScrollBarPane class): X11ScrollBarPane.
-                                                             (line  178)
+                                                             (line  182)
 * attachTo instance method (X11TextEditorPane class): X11TextEditorPane.
                                                              (line  171)
 * attachTo instance method (X11TextPane class): X11TextPane. (line  152)
@@ -4010,7 +4010,7 @@ Index
                                                              (line  211)
 * background instance method (X11Pane class): X11Pane.       (line  122)
 * background instance method (X11ScrollBarPane class): X11ScrollBarPane.
-                                                             (line  184)
+                                                             (line  188)
 * background instance method (X11TextEditorPane class): X11TextEditorPane.
                                                              (line  178)
 * background instance method (X11TextPane class): X11TextPane.
@@ -4507,7 +4507,7 @@ Index
 * drawTextW instance method (GLXCanvasPane class): GLXCanvasPane.
                                                              (line  390)
 * drawThumb instance method (X11ScrollBarPane class): X11ScrollBarPane.
-                                                             (line  188)
+                                                             (line  192)
 * drawWithPen instance method (Line class): Line.            (line   71)
 * drawWithPen instance method (Point class): Point.          (line   38)
 * drawWithPen instance method (Rectangle class): Rectangle.  (line  100)
@@ -4520,7 +4520,7 @@ Index
 * end instance variable (Line class):    Line.               (line   54)
 * envVarExists instance method (String class): String.       (line  281)
 * eraseThumb instance method (X11ScrollBarPane class): X11ScrollBarPane.
-                                                             (line  188)
+                                                             (line  192)
 * erf(3) C function:                     CFunction.          (line   86)
 * erf(3) C function <1>:                 erf.                (line    6)
 * erfc(3) C function:                    CFunction.          (line   89)
@@ -4661,7 +4661,7 @@ Index
 * frameRate instance method (GLXCanvasPane class): GLXCanvasPane.
                                                              (line  419)
 * frameWidth instance method (X11ScrollBarPane class): X11ScrollBarPane.
-                                                             (line  193)
+                                                             (line  197)
 * frameWidthVar instance variable (X11ScrollBarPane class): X11ScrollBarPane.
                                                              (line  127)
 * fread(3) C function:                   fread.              (line    6)
@@ -5214,6 +5214,8 @@ Index
                                                              (line  138)
 * month instance variable (CalendarTime class): CalendarTime.
                                                              (line   38)
+* mouseOver instance variable (X11ScrollBarPane class): X11ScrollBarPane.
+                                                             (line  147)
 * moveCursor instance variable (X11CanvasPane class): X11CanvasPane.
                                                              (line  150)
 * multiText instance method (X11LabelPane class): X11LabelPane.
@@ -5257,7 +5259,7 @@ Index
 * new instance method (X11PaneDispatcher class): X11PaneDispatcher.
                                                              (line  279)
 * new instance method (X11ScrollBarPane class): X11ScrollBarPane.
-                                                             (line  197)
+                                                             (line  201)
 * new instance method (X11TextEditorPane class): X11TextEditorPane.
                                                              (line  204)
 * new instance method (X11TextPane class): X11TextPane.      (line  228)
@@ -5372,7 +5374,7 @@ Index
 * padding instance variable (X11LabelPane class): X11LabelPane.
                                                              (line  220)
 * padding instance variable (X11ScrollBarPane class): X11ScrollBarPane.
-                                                             (line  147)
+                                                             (line  151)
 * Pane class:                            Pane.               (line    6)
 * paneBackingStore instance variable:    Ctalk library.      (line 1912)
 * paneBackingStore instance variable (Pane class): Pane.     (line   32)
@@ -5418,7 +5420,7 @@ Index
 * percent instance method (ANSIProgressBarPane class): ANSIProgressBarPane.
                                                              (line   96)
 * percent instance method (X11ScrollBarPane class): X11ScrollBarPane.
-                                                             (line  201)
+                                                             (line  205)
 * percentInt instance variable (ANSIProgressBarPane class): ANSIProgressBarPane.
                                                              (line   59)
 * perror(3) C function:                  perror.             (line    6)
@@ -5435,10 +5437,8 @@ Index
                                                              (line  145)
 * pointerMotionHandler instance variable (GLXCanvasPane class): GLXCanvasPane.
                                                              (line  228)
-* pointIsInFrame instance method (X11ScrollBarPane class): X11ScrollBarPane.
-                                                             (line  218)
 * pointIsInThumb instance method (X11ScrollBarPane class): X11ScrollBarPane.
-                                                             (line  219)
+                                                             (line  222)
 * pointSize instance variable (X11FreeTypeFont class): X11FreeTypeFont.
                                                              (line   75)
 * pop instance method (List class):      List.               (line  136)
@@ -5959,13 +5959,15 @@ Index
 * subPaneDestroy instance method (X11PaneDispatcher class): X11PaneDispatcher.
                                                              (line  307)
 * subPaneDestroy instance method (X11ScrollBarPane class): X11ScrollBarPane.
-                                                             (line  223)
+                                                             (line  226)
 * subPaneDestroy instance method (X11TextPane class): X11TextPane.
                                                              (line  252)
 * subPaneEnter instance method (X11ButtonPane class): X11ButtonPane.
                                                              (line  282)
 * subPaneEnter instance method (X11LabelPane class): X11LabelPane.
                                                              (line  279)
+* subPaneEnterNotify instance method (X11ScrollBarPane class): X11ScrollBarPane.
+                                                             (line  226)
 * subPaneExpose instance method (X11ButtonPane class): X11ButtonPane.
                                                              (line  280)
 * subPaneExpose instance method (X11CanvasPane class): X11CanvasPane.
@@ -5973,7 +5975,7 @@ Index
 * subPaneExpose instance method (X11LabelPane class): X11LabelPane.
                                                              (line  275)
 * subPaneExpose instance method (X11ScrollBarPane class): X11ScrollBarPane.
-                                                             (line  223)
+                                                             (line  226)
 * subPaneExpose instance method (X11TextPane class): X11TextPane.
                                                              (line  257)
 * subPaneFocusIn instance method (X11ButtonPane class): X11ButtonPane.
@@ -5992,6 +5994,8 @@ Index
                                                              (line  283)
 * subPaneLeave instance method (X11LabelPane class): X11LabelPane.
                                                              (line  280)
+* subPaneLeaveNotify instance method (X11ScrollBarPane class): X11ScrollBarPane.
+                                                             (line  226)
 * subPaneMotionNotify instance method (X11TextEditorPane class): X11TextEditorPane.
                                                              (line  226)
 * subPaneMove instance method (X11PaneDispatcher class): X11PaneDispatcher.
@@ -6002,17 +6006,17 @@ Index
 * subPanePointerInput instance method (X11PaneDispatcher class): X11PaneDispatcher.
                                                              (line  334)
 * subPanePointerInput instance method (X11ScrollBarPane class): X11ScrollBarPane.
-                                                             (line  223)
+                                                             (line  226)
 * subPanePointerMotion instance method (X11PaneDispatcher class): X11PaneDispatcher.
                                                              (line  333)
 * subPanePointerMotion instance method (X11ScrollBarPane class): X11ScrollBarPane.
-                                                             (line  223)
+                                                             (line  226)
 * subPaneResize instance method (X11CanvasPane class): X11CanvasPane.
                                                              (line  447)
 * subPaneResize instance method (X11PaneDispatcher class): X11PaneDispatcher.
                                                              (line  340)
 * subPaneResize instance method (X11ScrollBarPane class): X11ScrollBarPane.
-                                                             (line  223)
+                                                             (line  226)
 * subPaneResize instance method (X11TextEditorPane class): X11TextEditorPane.
                                                              (line  229)
 * subPaneResize instance method (X11TextPane class): X11TextPane.
@@ -6113,23 +6117,23 @@ Index
 * textWidthFT instance method (GLXCanvasPane class): GLXCanvasPane.
                                                              (line  711)
 * thumb instance variable (X11ScrollBarPane class): X11ScrollBarPane.
-                                                             (line  151)
-* thumbBackgroundColor instance variable (X11ScrollBarPane class): X11ScrollBarPane.
                                                              (line  155)
-* thumbDimensions instance method (X11ScrollBarPane class): X11ScrollBarPane.
-                                                             (line  230)
-* thumbErasePen instance variable (X11ScrollBarPane class): X11ScrollBarPane.
+* thumbBackgroundColor instance variable (X11ScrollBarPane class): X11ScrollBarPane.
                                                              (line  159)
+* thumbDimensions instance method (X11ScrollBarPane class): X11ScrollBarPane.
+                                                             (line  236)
+* thumbErasePen instance variable (X11ScrollBarPane class): X11ScrollBarPane.
+                                                             (line  163)
 * thumbHeight instance variable (ANSIScrollPane class): ANSIScrollPane.
                                                              (line   66)
 * thumbHeight instance variable (X11ScrollBarPane class): X11ScrollBarPane.
-                                                             (line  163)
-* thumbPen instance variable (X11ScrollBarPane class): X11ScrollBarPane.
                                                              (line  167)
-* thumbPercent instance method (X11ScrollBarPane class): X11ScrollBarPane.
-                                                             (line  234)
-* thumbPix instance variable (X11ScrollBarPane class): X11ScrollBarPane.
+* thumbPen instance variable (X11ScrollBarPane class): X11ScrollBarPane.
                                                              (line  171)
+* thumbPercent instance method (X11ScrollBarPane class): X11ScrollBarPane.
+                                                             (line  240)
+* thumbPix instance variable (X11ScrollBarPane class): X11ScrollBarPane.
+                                                             (line  175)
 * thumbStartLine instance variable (ANSIScrollPane class): ANSIScrollPane.
                                                              (line   70)
 * Time class:                            CTime.              (line    6)
