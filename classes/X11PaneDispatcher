@@ -1,4 +1,4 @@
-/* $Id: X11PaneDispatcher,v 1.43 2020/02/21 03:30:18 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11PaneDispatcher,v 1.44 2020/02/22 08:30:29 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -546,7 +546,7 @@ X11PaneDispatcher instanceMethod handleSubPaneEvent (InputEvent __e) {
       break;
     case WMFOCUSCHANGENOTIFY:
       self children map {
-	self methodObjectMessage self handleFocusChange, self, __e;
+	self methodObjectMessage self handleWMFocusChange, self, __e;
       }
       break;
     case ENTERWINDOWNOTIFY:
