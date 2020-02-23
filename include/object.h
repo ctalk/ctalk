@@ -1,4 +1,4 @@
-/* $Id: object.h,v 1.3 2020/01/13 20:05:19 rkiesling Exp $ */
+/* $Id: object.h,v 1.4 2020/02/23 23:41:07 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -50,7 +50,6 @@
 #define VAR_REF_OBJECT              (1 << 9)
 #define METHOD_USER_OBJECT          (1 << 10)
 #define TYPECAST_OBJECT             (1 << 11)
-#define LVAL_OBJECT_ALIAS           (1 << 12)
 #define SUBSCRIPT_OBJECT_ALIAS      (1 << 13)
 
 #define CREATED_CVAR_SCOPE (LOCAL_VAR | CVAR_VAR_ALIAS_COPY)

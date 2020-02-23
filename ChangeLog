@@ -288,7 +288,11 @@
 	to the client process, and discard any overflow, which
 	works okay for an event stream that is still being generated
 	(x11lib.c).
-	2020-02-21
+2020-02-21
 	- Added a check for a valid object in get_class_object
 	(cclasses.c).
+2020-02-23
+	- Removed references to LVAL_OBJECT_ALIAS scope, which
+	isn't used any longer (resolve.c, mcct.c, object.h).
+
 

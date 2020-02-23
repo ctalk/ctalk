@@ -1,4 +1,4 @@
-/* $Id: mcct.c,v 1.4 2019/11/11 20:21:52 rkiesling Exp $ */
+/* $Id: mcct.c,v 1.5 2020/02/23 23:41:07 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -247,7 +247,6 @@ MCCT_RESULT mcct_check_token (MESSAGE_STACK messages, int i,
 		  messages[lookahead] -> receiver_msg = tok;
 		  messages[lookahead] -> receiver_obj = tok -> obj;
 		  messages[lookahead] -> tokentype = METHODMSGLABEL;
-		  c -> scope |= LVAL_OBJECT_ALIAS;
 		  return mcct_continue;
 		}
 	      }
@@ -844,7 +843,6 @@ static bool var_rep (MESSAGE_STACK messages, int idx,
 		  messages[lookahead] -> receiver_obj =
 		    messages[i] -> obj;
 		  messages[lookahead] -> tokentype = METHODMSGLABEL;
-		  c -> scope |= LVAL_OBJECT_ALIAS;
 		  return true;
 		}
 	      }

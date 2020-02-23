@@ -1,4 +1,4 @@
-/* $Id: resolve.c,v 1.18 2020/02/14 17:54:36 rkiesling Exp $ */
+/* $Id: resolve.c,v 1.19 2020/02/23 23:41:07 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -1272,7 +1272,6 @@ OBJECT *resolve (int message_ptr) {
 		   m_next_label -> receiver_msg = m;
 		   m_next_label -> receiver_obj = m -> obj;
 		   m_next_label -> tokentype = METHODMSGLABEL;
-		   cvar -> scope |= LVAL_OBJECT_ALIAS;
 		   if (ctrlblk_pred) {
 		     ctrlblk_pred_rt_expr (ms.messages, message_ptr);
 		     return NULL;
