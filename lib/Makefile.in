@@ -14,7 +14,7 @@
 
 @SET_MAKE@
 
-# $Id: Makefile.in,v 1.21 2020/02/26 01:34:27 rkiesling Exp $
+# $Id: Makefile.in,v 1.22 2020/02/27 18:37:37 rkiesling Exp $
 
 VPATH = @srcdir@
 am__is_gnu_make = { \
@@ -156,8 +156,8 @@ am_libctalk_la_OBJECTS = ansitime.lo become.lo bintodec.lo bitmap.lo \
 	statfile.lo strcatx.lo strdupx.lo streq.lo strsecure.lo \
 	substrcpy.lo tag.lo tempio.lo tempname.lo termsize.lo \
 	textcx.lo trimstr.lo typecast.lo unixsock.lo val.lo wregex.lo \
-	x11ksym.lo x11lib.lo xcircle.lo xcopypixmap.lo xftlib.lo \
-	xgeometry.lo xlibfont.lo xrender.lo xresource.lo
+	x11ksym.lo x11lib.lo xcircle.lo xcopypixmap.lo xdialog.lo \
+	xftlib.lo xgeometry.lo xlibfont.lo xrender.lo xresource.lo
 libctalk_la_OBJECTS = $(am_libctalk_la_OBJECTS)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
@@ -240,9 +240,9 @@ am__depfiles_remade = ./$(DEPDIR)/ansitime.Plo ./$(DEPDIR)/become.Plo \
 	./$(DEPDIR)/val.Plo ./$(DEPDIR)/wregex.Plo \
 	./$(DEPDIR)/x11ksym.Plo ./$(DEPDIR)/x11lib.Plo \
 	./$(DEPDIR)/xcircle.Plo ./$(DEPDIR)/xcopypixmap.Plo \
-	./$(DEPDIR)/xftlib.Plo ./$(DEPDIR)/xgeometry.Plo \
-	./$(DEPDIR)/xlibfont.Plo ./$(DEPDIR)/xrender.Plo \
-	./$(DEPDIR)/xresource.Plo
+	./$(DEPDIR)/xdialog.Plo ./$(DEPDIR)/xftlib.Plo \
+	./$(DEPDIR)/xgeometry.Plo ./$(DEPDIR)/xlibfont.Plo \
+	./$(DEPDIR)/xrender.Plo ./$(DEPDIR)/xresource.Plo
 am__mv = mv -f
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
@@ -512,8 +512,8 @@ libctalk_la_SOURCES = ansitime.c become.c bintodec.c bitmap.c bnamecmp.c \
 	strdupx.c streq.c strsecure.c substrcpy.c tag.c \
 	tempio.c tempname.c termsize.c textcx.c trimstr.c typecast.c \
 	unixsock.c val.c \
-	wregex.c x11ksym.c x11lib.c xcircle.c xcopypixmap.c xftlib.c \
-	xgeometry.c xlibfont.c xrender.c xresource.c
+	wregex.c x11ksym.c x11lib.c xcircle.c xcopypixmap.c xdialog.c \
+	xftlib.c xgeometry.c xlibfont.c xrender.c xresource.c
 
 libctalk_la_LTLIBOBJS = ansitime.lo become.lo bintodec.lo bitmap.lo \
 	bnamecmp.lo cclasses.lo \
@@ -539,8 +539,8 @@ libctalk_la_LTLIBOBJS = ansitime.lo become.lo bintodec.lo bitmap.lo \
 	strsecure.lo substrcpy.lo tempio.lo tag.lo tempname.lo termsize.lo \
 	textcx.lo trimstr.lo typecast.lo unixsock.lo val.lo wregex.lo \
 	x11ksym.lo \
-	x11lib.lo xcircle.lo xcopypixmap.lo xftlib.lo xgeometry.lo \
-	xlibfont.lo xrender.lo xresource.lo
+	x11lib.lo xcircle.lo xcopypixmap.lo xftlib.lo xdialog.lo \
+	xgeometry.lo xlibfont.lo xrender.lo xresource.lo
 
 lib_LTLIBRARIES = libctalk.la
 libctalk_la_LDFLAGS = -version-info $(LIB_MAJOR_VERSION):$(LIB_MINOR_VERSION) $(LIB_AM_LDFLAGS)
@@ -741,6 +741,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/x11lib.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/xcircle.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/xcopypixmap.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/xdialog.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/xftlib.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/xgeometry.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/xlibfont.Plo@am__quote@ # am--include-marker
@@ -1098,6 +1099,7 @@ distclean: distclean-recursive
 	-rm -f ./$(DEPDIR)/x11lib.Plo
 	-rm -f ./$(DEPDIR)/xcircle.Plo
 	-rm -f ./$(DEPDIR)/xcopypixmap.Plo
+	-rm -f ./$(DEPDIR)/xdialog.Plo
 	-rm -f ./$(DEPDIR)/xftlib.Plo
 	-rm -f ./$(DEPDIR)/xgeometry.Plo
 	-rm -f ./$(DEPDIR)/xlibfont.Plo
@@ -1265,6 +1267,7 @@ maintainer-clean: maintainer-clean-recursive
 	-rm -f ./$(DEPDIR)/x11lib.Plo
 	-rm -f ./$(DEPDIR)/xcircle.Plo
 	-rm -f ./$(DEPDIR)/xcopypixmap.Plo
+	-rm -f ./$(DEPDIR)/xdialog.Plo
 	-rm -f ./$(DEPDIR)/xftlib.Plo
 	-rm -f ./$(DEPDIR)/xgeometry.Plo
 	-rm -f ./$(DEPDIR)/xlibfont.Plo
