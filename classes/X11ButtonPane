@@ -1,4 +1,4 @@
-/* $Id: X11ButtonPane,v 1.27 2020/02/28 14:58:26 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11ButtonPane,v 1.28 2020/02/28 16:08:25 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -114,11 +114,11 @@ X11ButtonPane instanceMethod attachTo (Object parentPane,
    *  until run time.  See the comment in the other, "attachTo,"
    *  method, below.
    */
-  (X11Bitmap *)self paneBuffer create self xWindowID, self size x, 
-    self size y, self depth;
+  (X11Bitmap *)self paneBuffer create self displayPtr, self xWindowID,
+    self size x, self size y, self depth;
   (X11Bitmap *)self paneBuffer background (self backgroundColor);
-  (X11Bitmap *)self paneBackingStore create self xWindowID, self size x, 
-    self size y, self depth;
+  (X11Bitmap *)self paneBackingStore create self displayPtr, self xWindowID,
+    self size x, self size y, self depth;
 
   inset = self bevelWidth;
 

@@ -1,4 +1,4 @@
-/* $Id: X11ScrollBarPane,v 1.45 2020/02/28 15:21:50 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11ScrollBarPane,v 1.46 2020/02/28 16:08:26 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -103,7 +103,7 @@ X11ScrollBarPane instanceMethod thumbDimensions (Integer deltaY,
 X11ScrollBarPane instanceMethod makeThumb (void) {
   
   if (self bevel) {
-    self thumbPix create self xWindowID,
+    self thumbPix create self displayPtr, self xWindowID,
       THUMBPIXMAPWIDTH, self displayHeight, self depth;
     self thumbPix background self thumbBackgroundColor;
     self thumbPix clear;
@@ -397,11 +397,11 @@ X11ScrollBarPane instanceMethod attachTo (Object parentPane) {
     self margin + self frameWidthVar + self padding,
     self thumbHeight;
 
-  (X11Bitmap *)self paneBuffer create self xWindowID, self size x, 
-    self size y, self depth;
+  (X11Bitmap *)self paneBuffer create self displayPtr, self xWindowID,
+    self size x, self size y, self depth;
   (X11Bitmap *)self paneBuffer background (self backgroundColor);
-  (X11Bitmap *)self paneBackingStore create self xWindowID, self size x, 
-    self size y, self depth;
+  (X11Bitmap *)self paneBackingStore create self displayPtr, self xWindowID,
+    self size x, self size y, self depth;
 
   self makeThumb;
 
@@ -440,11 +440,11 @@ X11ScrollBarPane instanceMethod attachTo (Object parentPane,
     self margin + self frameWidthVar + self padding,
     self thumbHeight;
 
-  (X11Bitmap *)self paneBuffer create self xWindowID, self size x, 
-    self size y, self depth;
+  (X11Bitmap *)self paneBuffer create self displayPtr, self xWindowID,
+    self size x, self size y, self depth;
   (X11Bitmap *)self paneBuffer background (self backgroundColor);
-  (X11Bitmap *)self paneBackingStore create self xWindowID, self size x, 
-    self size y, self depth;
+  (X11Bitmap *)self paneBackingStore create self displayPtr, self xWindowID,
+    self size x, self size y, self depth;
 
   self makeThumb;
   return NULL;

@@ -397,6 +397,15 @@ Instance Variables
      Dialogs, which create their own main windows, open their own
      connection to the display.
 
+     When using subpanes, it's convenient to set the subpane's
+     'displayPtr' variable to the value of the main window pane's value.
+     This is generally done in the 'attachTo' methods, with a line that
+     looks something like this.
+
+
+          self displayPtr = self mainWindow displayPtr;
+
+
 'fontVar'
      A 'X11Font' object that contains information about the Window or
      Pane's current font.

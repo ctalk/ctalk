@@ -791,7 +791,7 @@ srcY, srcWidth, and srcHeight.  The method draws the
 source bitmap's contents with the source's upper left-hand corner at
 destX, destY.
 
->>>X11Bitmap::initialize (int parentWindow, int width, int height, int depth)
+>>>X11Bitmap::initialize (void *displayPtr, int parentWindow, int width, int height, int depth)
 Create a X11Bitmap object and its graphics data.
 
 >>>X11Bitmap::delete (void)

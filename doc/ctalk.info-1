@@ -1290,16 +1290,28 @@ Instance Variables
 
 'depth'
      An 'Integer' that contains the depth of the bitmap.
+
+'displayPtr'
+     A 'Symbol' that contains the address of the connection to the X
+     server that was returned by a call to 'XOpenDisplay'.  This is
+     generally the address of the main window pane's 'displayPtr'
+     instance variable, and in this class, it is expressly set in the
+     'create' method.
+
 'height'
      An 'Integer' that contains the height of the bitmap.
+
 'parentDrawable'
      An 'Integer' that contains the window ID of the bitmap's parent
      drawable.  Normally this is set by the 'create' method, below.
+
 'width'
      An 'Integer' that contains the width of the bitmap.
+
 'xGC'
      A 'Symbol' object that contains the address of the X11 graphics
      context.
+
 'xID'
      The X resource ID of the Pixmap associated with this object.
 
@@ -1322,7 +1334,7 @@ Instance Methods
      SRCHEIGHT.  The method draws the source bitmap's contents with the
      source's upper left-hand corner at DESTX, DESTY.
 
-'initialize (int PARENTWINDOW, int WIDTH, int HEIGHT, int DEPTH)'
+'initialize (void *displayPtr, int PARENTWINDOW, int WIDTH, int HEIGHT, int DEPTH)'
      Create a X11Bitmap object and its graphics data.
 
 'delete (void)'

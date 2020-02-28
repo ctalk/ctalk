@@ -1,4 +1,4 @@
-/* $Id: X11Bitmap,v 1.2 2020/01/23 00:10:15 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11Bitmap,v 1.3 2020/02/28 16:08:25 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -37,13 +37,15 @@ and render XPM files on the Pixmap's drawable surface.";
 
 X11Bitmap instanceVariable xID Integer 0;
 X11Bitmap instanceVariable xGC Symbol 0x0;
+X11Bitmap instanceVariable displayPtr Symbol NULL;
 X11Bitmap instanceVariable parentDrawable Integer 0;
 X11Bitmap instanceVariable parentGC Symbol 0;
 X11Bitmap instanceVariable width Integer 0;
 X11Bitmap instanceVariable height Integer 0;
 X11Bitmap instanceVariable depth Integer 0;
 
-X11Bitmap instanceMethod create (Integer parentDrawable, 
+X11Bitmap instanceMethod create (Symbol displayPtr,
+				 Integer parentDrawable,
 				 Integer width, 
 				 Integer height, 
 				 Integer depth) {
@@ -52,7 +54,8 @@ X11Bitmap instanceMethod create (Integer parentDrawable,
   Also creates an associated X11 graphics context, 
   which is stored in the receiver's xGC instance variable.
   The method's prototype is:
-  <X11BitmapObject> create Integer <parentDrawable>,
+  <X11BitmapObject> create Symbol displayPtr,
+                             Integer <parentDrawable>,
                              Integer <width>,
                              Integer <height>,
                              Integer <depth>"
@@ -64,6 +67,7 @@ X11Bitmap instanceMethod create (Integer parentDrawable,
   self_xID_alias = self xID;
 
   self parentDrawable = parentDrawable;
+  self displayPtr = displayPtr;
 
   pixmap_id = __ctalkX11CreatePixmap 
     (parentDrawable, width, height, depth value);

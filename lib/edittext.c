@@ -1,4 +1,4 @@
-/* $Id: edittext.c,v 1.34 2020/02/28 10:08:55 rkiesling Exp $ -*-c-*-*/
+/* $Id: edittext.c,v 1.35 2020/02/28 16:08:27 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -1898,8 +1898,15 @@ int __edittext_get_primary_selection (OBJECT *editorpane_object,
   strcatx (handle_basename_path, P_tmpdir, "/text", ctitoa (getpid (), intbuf),
 	   NULL);
   memset ((void *)shm_mem, 0, SHM_BLKSIZE);
-  make_req (shm_mem, PANE_GET_PRIMARY_SELECTION_REQUEST, 0, 0,
+#if 0 
+  make_req (shm_mem,
+	    SYMVAL(display_ptr_instance_var -> instancevars -> __o_value),
+	    PANE_GET_PRIMARY_SELECTION_REQUEST, 0, 0,
 	    handle_basename_path);
+#else
+  make_req (shm_mem,PANE_GET_PRIMARY_SELECTION_REQUEST, 0, 0,
+	    handle_basename_path);
+#endif  
   wait_req (shm_mem);
 
   strcatx (info_path, handle_basename_path, ".inf", NULL);

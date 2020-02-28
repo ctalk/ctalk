@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.98 2020/02/28 01:53:42 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.99 2020/02/28 16:08:26 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -1756,22 +1756,35 @@ graphics operations.
 @cindex depth instance variable @idxclscite{X11Bitmap}
 @item depth
 An @code{Integer} that contains the depth of the bitmap.
+
+@cindex displayPtr instance variable @idxclscite{X11Bitmap}
+@item displayPtr
+A @code{Symbol} that contains the address of the connection
+to the X server that was returned by a call to @cite{XOpenDisplay}.
+This is generally the address of the main window pane's @code{displayPtr}
+instance variable, and in this class, it is expressly set in
+the @mnm{create} method.
+
 @cindex height instance variable @idxclscite{X11Bitmap}
 @item height
 An @code{Integer} that contains the height of the bitmap.
-@cindex width instance variable @idxclscite{X11Bitmap}
+
 @cindex parentDrawable instance variable @idxclscite{X11Bitmap}
 @item parentDrawable
 An @code{Integer} that contains the window ID of the
 bitmap's parent drawable.  Normally this is set by
 the @mnm{create} method, below.
+
+@cindex width instance variable @idxclscite{X11Bitmap}
 @item width
 An @code{Integer} that contains the width of the bitmap.
+
 @cindex xGC instance variable @idxclscite{X11Bitmap}
 @item xGC 
 A @code{Symbol} object that contains the address of the X11
 graphics context.  
-@cindex xResource instance variable @idxclscite{X11Bitmap}
+
+@cindex xID instance variable @idxclscite{X11Bitmap}
 @item xID
 The X resource ID of the Pixmap associated with this object.
 @end table
@@ -1802,7 +1815,7 @@ source bitmap's contents with the source's upper left-hand corner at
 @var{destX}, @var{destY}.
 
 @cindex @mnm{create} instance method @idxclscite{X11Bitmap}
-@item @mnm{initialize} (@code{int} @var{parentWindow}, @code{int} @var{width}, @code{int} @var{height}, @code{int} @var{depth})
+@item @mnm{initialize} (@code{void *}@code{displayPtr}, @code{int} @var{parentWindow}, @code{int} @var{width}, @code{int} @var{height}, @code{int} @var{depth})
 Create a X11Bitmap object and its graphics data.
 
 @cindex @mnm{delete} instance method @idxclscite{X11Bitmap}
@@ -11675,6 +11688,17 @@ i.e., the @code{Display *} returned by @cite{XOpenDisplay(3)}.
 Most windows use the display connection opened when the main
 window is created. Dialogs, which create their own main windows,
 open their own connection to the display.
+
+When using subpanes, it's convenient to set the subpane's
+@code{displayPtr} variable to the value of the main window pane's
+value.  This is generally done in the @mnm{attachTo} methods, with
+a line that looks something like this.
+
+@example
+
+self displayPtr = self mainWindow displayPtr;
+
+@end example
 
 @cindex @code{fontVar} instance variable @idxclscite{X11Pane}
 @item fontVar

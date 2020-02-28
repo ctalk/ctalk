@@ -1,4 +1,4 @@
-/* $Id: X11TextPane,v 1.5 2020/02/28 15:21:50 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11TextPane,v 1.6 2020/02/28 16:08:26 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -321,10 +321,10 @@ X11TextPane instanceMethod attachTo (X11PaneDispatcher parentPane) {
     self viewWidth = self size x / self fontVar maxWidth;
   }
   self scrollHeight = self  viewHeight - self scrollMargin;
-  (X11Bitmap *)self paneBuffer create self xWindowID, self size x,
-    self size y, self depth;
-  (X11Bitmap *)self paneBackingStore create self xWindowID, self size x,
-    self size y, self depth;
+  (X11Bitmap *)self paneBuffer create self displayPtr, self xWindowID,
+    self size x,self size y, self depth;
+  (X11Bitmap *)self paneBackingStore create self displayPtr, self xWindowID,
+    self size x, self size y, self depth;
 
   mainPane = *parentPane container;
   mainPane inputStream eventMask =
