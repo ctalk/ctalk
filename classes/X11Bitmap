@@ -1,8 +1,8 @@
-/* $Id: X11Bitmap,v 1.4 2020/02/28 17:39:48 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11Bitmap,v 1.5 2020/02/28 19:08:43 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
-  Copyright © 2005-2016, 2019  Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2005-2016, 2019, 2020  Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
 
@@ -101,7 +101,7 @@ X11Bitmap instanceMethod clearRectangle (Integer x, Integer y,
                                     Integer <y>,
                                     Integer <width>,
                                     Integer <height>"
-  __ctalkX11ClearRectangleBasic (self xID, self xGC,
+    __ctalkX11ClearRectangleBasic (self displayPtr, self xID, self xGC,
 				 x, y, width, height);
 }
 

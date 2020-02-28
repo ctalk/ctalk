@@ -1,4 +1,4 @@
-/* $Id: guiclearrectangle.c,v 1.2 2019/12/24 20:46:24 rkiesling Exp $ -*-c-*-*/
+/* $Id: guiclearrectangle.c,v 1.3 2020/02/28 19:08:44 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -56,7 +56,7 @@ int __ctalkGUIPaneClearRectangle (OBJECT *self_object, int x, int y,
 
 #define CLEAR_RECTANGLE_GCV_MASK (GCFunction|GCForeground|GCBackground|GCFillStyle)
 
-int __ctalkX11ClearRectangleBasic (int drawable_id,
+int __ctalkX11ClearRectangleBasic (void *d, int drawable_id,
 				   unsigned long int gc_ptr, 
 				   int x, int y,
 				   int width, int height) {
@@ -68,7 +68,7 @@ int __ctalkX11ClearRectangleBasic (int drawable_id,
 
   if (__client_pid () < 0) {
     gc = (GC)gc_ptr;
-    if (display == NULL) {
+    if ((Display *)d == NULL) {
       if ((l_d = XOpenDisplay (getenv ("DISPLAY"))) != NULL) {
 	_error ("ctalk: This program requires the X Window System. Exiting.\n");
       }
@@ -85,7 +85,7 @@ int __ctalkX11ClearRectangleBasic (int drawable_id,
       XChangeGC (l_d, gc, CLEAR_RECTANGLE_GCV_MASK, &old_v);
       XCloseDisplay (l_d);
     } else {
-      XGetGCValues (display, gc,
+      XGetGCValues ((Display *)d, gc,
 		    CLEAR_RECTANGLE_GCV_MASK, &old_v);
       v.background = old_v.background;
       v.foreground = old_v.background;
@@ -93,9 +93,9 @@ int __ctalkX11ClearRectangleBasic (int drawable_id,
       v.function = GXcopy;
       XChangeGC (display, gc, CLEAR_RECTANGLE_GCV_MASK, &v);
 
-      XFillRectangle (display, (Drawable)drawable_id, gc,
+      XFillRectangle ((Display *)d, (Drawable)drawable_id, gc,
 		      x, y, width, height);
-      XChangeGC (display, gc, CLEAR_RECTANGLE_GCV_MASK, &old_v);
+      XChangeGC ((Display *)d, gc, CLEAR_RECTANGLE_GCV_MASK, &old_v);
     }
     return SUCCESS;
   } else {
@@ -110,8 +110,13 @@ int __ctalkX11ClearRectangleBasic (int drawable_id,
 	     ctitoa (drawable_id, cr_intbuf1), ":",
 	     ctitoa (drawable_id, cr_intbuf2), ":",
 	     NULL);
+#if 1 /***/
     make_req (shm_mem, PANE_CLEAR_RECTANGLE_REQUEST,
 	      drawable_id, gc_ptr, d_buf);
+#else
+    make_req (shm_mem, d, PANE_CLEAR_RECTANGLE_REQUEST,
+	      drawable_id, gc_ptr, d_buf);
+#endif    
 
 #ifdef GRAPHICS_WRITE_SEND_EVENT
     send_event.xgraphicsexpose.type = GraphicsExpose;
@@ -133,7 +138,7 @@ int __ctalkX11PaneClearRectangle (OBJECT *self, int x, int y,
 int __ctalkGUIPaneClearRectangle (OBJECT *self, int x, int y,
 				   int width, int height) {
 
-  OBJECT *self_object, *win_id_value, *gc_value;
+  OBJECT *self_object, *win_id_value, *gc_value, *displayPtr_var;
   int panebuffer_xid, panebackingstore_xid;
   char d_buf[MAXLABEL];
   char cr_intbuf1[MAXLABEL], cr_intbuf2[MAXLABEL], cr_intbuf3[MAXLABEL],
@@ -142,6 +147,9 @@ int __ctalkGUIPaneClearRectangle (OBJECT *self, int x, int y,
   self_object = (IS_VALUE_INSTANCE_VAR (self) ? self->__o_p_obj : self);
   win_id_value = __x11_pane_win_id_value_object (self_object);
   gc_value = __x11_pane_win_gc_value_object (self_object);
+  /***/
+  displayPtr_var = __ctalkGetInstanceVariable (self_object, "displayPtr",
+					       TRUE);
   __get_pane_buffers (self_object, &panebuffer_xid,
 		      &panebackingstore_xid);
   if (panebuffer_xid && panebackingstore_xid) {
@@ -154,9 +162,16 @@ int __ctalkGUIPaneClearRectangle (OBJECT *self, int x, int y,
 	     ctitoa (panebuffer_xid, cr_intbuf5), ":",
 	     ctitoa (panebackingstore_xid, cr_intbuf6), ":",
 	     NULL);
+#if 1 /***/
     make_req (shm_mem, PANE_CLEAR_RECTANGLE_REQUEST,
 	      panebuffer_xid,
 	      SYMVAL(gc_value -> __o_value), d_buf);
+#else
+    make_req (shm_mem, SYMVAL(displayPtr_var -> instancevars -> __o_value),
+	      PANE_CLEAR_RECTANGLE_REQUEST,
+	      panebuffer_xid,
+	      SYMVAL(gc_value -> __o_value), d_buf);
+#endif    
   } else {
     strcatx (d_buf,
 	     ctitoa (x, cr_intbuf1), ":",
@@ -164,9 +179,16 @@ int __ctalkGUIPaneClearRectangle (OBJECT *self, int x, int y,
 	     ctitoa (width, cr_intbuf3), ":",
 	     ctitoa (height, cr_intbuf4), ":0:0:",
 	     NULL);
+#if 1 /***/
     make_req (shm_mem, PANE_CLEAR_RECTANGLE_REQUEST,
 	      INTVAL(win_id_value -> __o_value),
 	      SYMVAL(gc_value -> __o_value), d_buf);
+#else
+    make_req (shm_mem, SYMVAL(displayPtr_var -> instancevars -> __o_value),
+	      PANE_CLEAR_RECTANGLE_REQUEST,
+	      INTVAL(win_id_value -> __o_value),
+	      SYMVAL(gc_value -> __o_value), d_buf);
+#endif    
   }
   wait_req (shm_mem);
   return SUCCESS;
@@ -185,7 +207,7 @@ int __ctalkGUIPaneClearRectangle (OBJECT *self_object, int x, int y,
 				  int width, int height) {
   x_support_error (); return ERROR;
 }
-int __ctalkX11ClearRectangleBasic (int drawable_id,
+int __ctalkX11ClearRectangleBasic (void *, int drawable_id,
 				   unsigned long int gc_ptr, 
 				   int x, int y,
 				   int width, int height) {

@@ -1,4 +1,4 @@
-/* $Id: ctalklib.in,v 1.54 2020/02/28 17:39:48 rkiesling Exp $ -*-c-*-*/
+/* $Id: ctalklib.in,v 1.55 2020/02/28 19:08:43 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -983,7 +983,7 @@ extern int __ctalkIsInstanceMethod (OBJECT *, char *);
 extern int __ctalkIsClassMethod (OBJECT *, char *);
 extern int    __ctalkIsDir (char *);
 extern int    __ctalkIsClassVariableOf (OBJECT *, const char *);
-extern int __ctalkX11ClearRectangleBasic (int, unsigned long int, int, int, int, int);
+extern int __ctalkX11ClearRectangleBasic (void *, int, unsigned long int, int, int, int, int);
 extern int __ctalkCloseGLXPane (OBJECT *);
 extern int __ctalkCloseX11Pane (OBJECT *);
 extern int __ctalkX11CloseParentPane (OBJECT *);

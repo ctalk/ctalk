@@ -322,5 +322,9 @@
 	- Added a displayPtr parameter to X11Bitmap : create and
 	updated documentation. Also added a display parameter to
 	__ctalkX11CreatePixmap (bitmap.c).
+	- Added a display * parameter to __ctalkX11ClearRectangleBasic,
+	and updated __ctalkX11ClearRectangle to fecth the displayPtr
+	instance variable (guiclearrectangle.c)
+
 
 

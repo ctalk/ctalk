@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.100 2020/02/28 17:39:48 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.101 2020/02/28 19:08:44 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -20935,7 +20935,7 @@ hard-coded instance variable names.
 
 
 @idxlibfn{__ctalkX11ClearRectangleBasic}
-@item __ctalkX11ClearRectangleBasic (@code{int} @var{visual_id}, @code{int} @var{gc_ptr}, @code{int} @var{x}, @code{int} @var{y}, @code{int} @var{width}, @code{int} @var{height})
+@item __ctalkX11ClearRectangleBasic (@code{void *}@var{display}, @code{int} @var{visual_id}, @code{int} @var{gc_ptr}, @code{int} @var{x}, @code{int} @var{y}, @code{int} @var{width}, @code{int} @var{height})
 Clear a rectangle of a visual type like a pixmap to the
 background color.
 

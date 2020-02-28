@@ -1,4 +1,4 @@
-/* $Id: ctalk.h,v 1.65 2020/02/28 17:39:49 rkiesling Exp $ -*-Fundamental-*- */
+/* $Id: ctalk.h,v 1.66 2020/02/28 19:08:44 rkiesling Exp $ -*-Fundamental-*- */
 
 /*
   This file is part of Ctalk.
@@ -1663,7 +1663,7 @@ int __ctalkGLXSwapControl (int);
 float __ctalkGLXFrameRate (void);
 
 /* lib/guiclearrectangle.c */
-int __ctalkX11ClearRectangleBasic (int, unsigned long int, int, int, int, int);
+int __ctalkX11ClearRectangleBasic (void *, int, unsigned long int, int, int, int, int);
 int __ctalkX11PaneClearRectangle (OBJECT *self_object, int x, int y,
 				   int width, int height);
 int __ctalkGUIPaneClearRectangle (OBJECT *self_object, int x, int y,

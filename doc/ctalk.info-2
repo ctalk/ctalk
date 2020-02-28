@@ -8162,7 +8162,7 @@ functions.
      being phased out in favor of '__ctalkX11ClearRectangleBasic', which
      does not rely on hard-coded instance variable names.
 
-'__ctalkX11ClearRectangleBasic (int VISUAL_ID, int GC_PTR, int X, int Y, int WIDTH, int HEIGHT)'
+'__ctalkX11ClearRectangleBasic (void *DISPLAY, int VISUAL_ID, int GC_PTR, int X, int Y, int WIDTH, int HEIGHT)'
      Clear a rectangle of a visual type like a pixmap to the background
      color.
 
