@@ -1,4 +1,4 @@
-/* $Id: X11Bitmap,v 1.9 2020/02/28 23:07:49 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11Bitmap,v 1.10 2020/02/28 23:21:43 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -126,7 +126,7 @@ X11Bitmap instanceMethod resize (Integer parent_visual,
 X11Bitmap instanceMethod foreground (String color) {
   "Set the foreground color of the receiver to the argument,
   a String."
-  __ctalkX11SetForegroundBasic (self xID, self xGC, color);
+    __ctalkX11SetForegroundBasic (self displayPtr, self xID, self xGC, color);
 }
 
 X11Bitmap instanceMethod background (String color) {
@@ -196,7 +196,7 @@ X11Bitmap instanceMethod putStr (Integer x, Integer y,
                             String <text>,
                             String <font_desc>,
                             String <foreground_color_name>"
-  __ctalkX11SetForegroundBasic (self xID, self xGC, colorName);
+    __ctalkX11SetForegroundBasic (self displayPtr, self xID, self xGC, colorName);
   __ctalkX11UseFontBasic (self xID, self xGC, font_desc);
   __ctalkX11PanePutStrBasic (self displayPtr, self xID, self xGC, x, y, s);
 }

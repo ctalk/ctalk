@@ -1,4 +1,4 @@
-/* $Id: guisetforeground.c,v 1.1.1.1 2019/10/26 23:40:50 rkiesling Exp $ -*-c-*-*/
+/* $Id: guisetforeground.c,v 1.2 2020/02/28 23:21:44 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -43,13 +43,13 @@ extern char *shm_mem;
 extern int mem_id;
 
 #if X11LIB_FRAME
-int __ctalkX11SetForegroundBasic (int drawable_id,
+int __ctalkX11SetForegroundBasic (void *d, int drawable_id,
 				  unsigned long int gc_ptr,
 				  char *color) {
   return SUCCESS;
 }
 #else /* X11LIB_FRAME */
-int __ctalkX11SetForegroundBasic (int drawable_id, 
+int __ctalkX11SetForegroundBasic (void *d, int drawable_id, 
 				  unsigned long int gc_ptr, 
 				  char *color) {
   char d_buf[MAXLABEL];
@@ -59,8 +59,13 @@ int __ctalkX11SetForegroundBasic (int drawable_id,
   if (!shm_mem)
     return ERROR;
   sprintf (d_buf, ":%ld:%s", GCForeground, color);
+#if 1 /***/
   make_req (shm_mem, PANE_CHANGE_GC_REQUEST,
 	    drawable_id, gc_ptr, d_buf);
+#else
+  make_req (shm_mem, d, PANE_CHANGE_GC_REQUEST,
+	    drawable_id, gc_ptr, d_buf);
+#endif  
 #ifdef GRAPHICS_WRITE_SEND_EVENT
   send_event.xgraphicsexpose.type = GraphicsExpose;
   send_event.xgraphicsexpose.send_event = True;
@@ -73,7 +78,7 @@ int __ctalkX11SetForegroundBasic (int drawable_id,
 }
 #endif /* X11LIB_FRAME */
 #else /* ! defined (DJGPP) && ! defined (WITHOUT_X11) */
-int __ctalkX11SetForegroundBasic (int drawable_id,
+int __ctalkX11SetForegroundBasic (void *d, int drawable_id,
 				  unsigned long int gc_ptr,
 				  char *color) {
   x_support_error (); return ERROR;

@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.105 2020/02/28 23:07:49 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.106 2020/02/28 23:21:43 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -21189,8 +21189,8 @@ Sets the background color of any class with a X11 visual and
 graphics context.
 
 @idxlibfn{__ctalkX11SetForegroundBasic}
-@item __ctalkX11SetForegroundBasic (@code{int} @code{visual_xid}, @code{int} @var{gc_ptr}, @code{char *}@var{color})
-Sets the foreground color of any class with a X11 visual and 
+@item __ctalkX11SetForegroundBasic (@code{void *}@var{display}, @code{int} @code{visual_xid}, @code{int} @var{gc_ptr}, @code{char *}@var{color})
+Sets the foreground color of any class with a X11 drawable and 
 graphics context.
 
 @idxlibfn{__ctalkX11SetResource}

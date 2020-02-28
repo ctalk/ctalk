@@ -8377,8 +8377,8 @@ functions.
      Sets the background color of any class with a X11 visual and
      graphics context.
 
-'__ctalkX11SetForegroundBasic (int visual_xid, int GC_PTR, char *COLOR)'
-     Sets the foreground color of any class with a X11 visual and
+'__ctalkX11SetForegroundBasic (void *DISPLAY, int visual_xid, int GC_PTR, char *COLOR)'
+     Sets the foreground color of any class with a X11 drawable and
      graphics context.
 
 '__ctalkX11SetResource (int DRAWABLE_ID, char *RESOURCE_NAME, char *RESOURCE_VALUE)'
