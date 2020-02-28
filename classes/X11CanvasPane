@@ -1,4 +1,4 @@
-/* $Id: X11CanvasPane,v 1.20 2020/02/28 16:08:25 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11CanvasPane,v 1.21 2020/02/28 17:00:35 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -278,7 +278,7 @@ X11CanvasPane instanceMethod attachTo (Object parentPane,
   (X11Bitmap *)self paneBuffer create self displayPtr, self xWindowID,
     self size x, self size y, self depth;
   (X11Bitmap *)self paneBuffer background (self backgroundColor);
-  (X11Bitmap *)self paneBackingStore create displayPtr, self xWindowID,
+  (X11Bitmap *)self paneBackingStore create self displayPtr, self xWindowID,
     self size x, self size y, self depth;
 
   return NULL;
