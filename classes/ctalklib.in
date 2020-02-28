@@ -1,4 +1,4 @@
-/* $Id: ctalklib.in,v 1.55 2020/02/28 19:08:43 rkiesling Exp $ -*-c-*-*/
+/* $Id: ctalklib.in,v 1.56 2020/02/28 19:48:09 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -1037,7 +1037,7 @@ extern int __ctalkGUIPaneClearRectangle (OBJECT *self_object, int, int, int, int
 extern int __ctalkGUIPaneClearWindow (OBJECT *);
 extern int __ctalkGUIPaneDrawCircleBasic (int, unsigned long int,  int, int, int, int, int, int, char *, char *);
 extern int __ctalkGUIPaneDrawLine (OBJECT *, OBJECT *, OBJECT *);
-extern int __ctalkGUIPaneDrawLineBasic (int, unsigned long int, int, int,
+extern int __ctalkGUIPaneDrawLineBasic (void *, int, unsigned long int, int, int,
 					int, int,
 					int, int, char *);
 extern int __ctalkGUIPaneDrawPoint (OBJECT *, OBJECT *, OBJECT *);
@@ -1068,7 +1068,7 @@ extern int __ctalkX11ResizeWindow (OBJECT *, int, int, int);
 extern int __ctalkX11PaneClearWindow (OBJECT *);
 extern int __ctalkX11PaneClearRectangle (OBJECT *self_object, int, int, int, int);
 extern int __ctalkX11PaneDrawLine (OBJECT *, OBJECT *, OBJECT *);
-extern int __ctalkX11PaneDrawLineBasic (int, unsigned long int, int, int,
+extern int __ctalkX11PaneDrawLineBasic (void *, int, unsigned long int, int, int,
 					int, int, int, int, char *);
 extern int __ctalkX11PaneDrawPoint (OBJECT *, OBJECT *, OBJECT *);
 extern int __ctalkX11PaneDrawPointBasic (int, unsigned long int, int, int,

@@ -944,7 +944,7 @@ Draw a line specified by line_object (an instance of
 Line class) using pen_object (an instance of Pen
 class).
 
->>>__ctalkX11PaneDrawLineBasic (int drawable_id, int gc_ptr, int x_start, int y_start, int x_end, int y_end, int pen_width, int alpha, char *pen_color)
+>>>__ctalkGUIPaneDrawLineBasic (void *display, int drawable_id, int gc_ptr, int x_start, int y_start, int x_end, int y_end, int pen_width, int alpha, char *pen_color):__ctalkX11PaneDrawLineBasic (void *display, int drawable_id, int gc_ptr, int x_start, int y_start, int x_end, int y_end, int pen_width, int alpha, char *pen_color)
 Draw a line between the points (x_start,y_start) and (x_end, y_end)
 with the color, and transparency using the drawable ID, graphics
 context, and pen color, width, and transparency given as arguments.

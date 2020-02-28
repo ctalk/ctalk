@@ -1,4 +1,4 @@
-/* $Id: ctalk.h,v 1.66 2020/02/28 19:08:44 rkiesling Exp $ -*-Fundamental-*- */
+/* $Id: ctalk.h,v 1.67 2020/02/28 19:48:10 rkiesling Exp $ -*-Fundamental-*- */
 
 /*
   This file is part of Ctalk.
@@ -1675,9 +1675,9 @@ int __ctalkGUIPaneClearWindow (OBJECT *);
 /* lib/guidrawline.c */
 int __ctalkGUIPaneDrawLine (OBJECT *, OBJECT *, OBJECT *);
 int __ctalkX11PaneDrawLine (OBJECT *, OBJECT *, OBJECT *);
-int __ctalkGUIPaneDrawLineBasic (int, unsigned long int, int, int, int, int,
+int __ctalkGUIPaneDrawLineBasic (void *, int, unsigned long int, int, int, int, int,
 				 int, int, char *);
-int __ctalkX11PaneDrawLineBasic (int, unsigned long int, int, int, int, int,
+int __ctalkX11PaneDrawLineBasic (void *, int, unsigned long int, int, int, int, int,
 				 int, int, char *);
 
 

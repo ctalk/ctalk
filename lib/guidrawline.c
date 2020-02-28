@@ -1,8 +1,8 @@
-/* $Id: guidrawline.c,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-c-*-*/
+/* $Id: guidrawline.c,v 1.2 2020/02/28 19:48:10 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
-  Copyright © 2005-2012, 2017-2019
+  Copyright © 2005-2012, 2017-2020
     Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
@@ -51,7 +51,7 @@ int __ctalkX11PaneDrawLine (OBJECT *self, OBJECT *line, OBJECT *pen) {
 int __ctalkGUIPaneDrawLine (OBJECT *self, OBJECT *line, OBJECT *pen) {
   return SUCCESS;
 }
-int __ctalkX11PaneDrawLineBasic (int drawable_id,
+int __ctalkX11PaneDrawLineBasic (void *d, int drawable_id,
 				 unsigned long int gc_ptr,
 				 int x_start, int y_start,
 				 int x_end, int y_end,
@@ -62,18 +62,18 @@ int __ctalkX11PaneDrawLineBasic (int drawable_id,
 }
 #else /* X11LIB_FRAME */
 
-int __ctalkGUIPaneDrawLineBasic (int drawable_id,
+int __ctalkGUIPaneDrawLineBasic (void *d, int drawable_id,
 				 unsigned long int gc_ptr,
 				 int x_start, int y_start,
 				 int x_end, int y_end,
 				 int pen_width,
 				 int alpha,
 				 char *pen_color) {
-  return __ctalkX11PaneDrawLineBasic (drawable_id, gc_ptr,
+  return __ctalkX11PaneDrawLineBasic (d, drawable_id, gc_ptr,
 				      x_start, y_start, x_end, y_end,
 				      pen_width, alpha, pen_color);
 }
-int __ctalkX11PaneDrawLineBasic (int drawable_id,
+int __ctalkX11PaneDrawLineBasic (void *d, int drawable_id,
 				 unsigned long int gc_ptr,
 				 int x_start, int y_start,
 				 int x_end, int y_end,
@@ -99,8 +99,13 @@ int __ctalkX11PaneDrawLineBasic (int drawable_id,
 	   ":", pen_color,
 	   NULL);
   
+#if 1 /***/
   make_req (shm_mem, PANE_DRAW_LINE_REQUEST,
    	    drawable_id, gc_ptr, d_buf);
+#else
+  make_req (shm_mem, d, PANE_DRAW_LINE_REQUEST,
+   	    drawable_id, gc_ptr, d_buf);
+#endif  
 #ifdef GRAPHICS_WRITE_SEND_EVENT
   send_event.xgraphicsexpose.type = GraphicsExpose;
   send_event.xgraphicsexpose.send_event = True;
@@ -202,7 +207,7 @@ int __ctalkX11PaneDrawLine (OBJECT *self, OBJECT *line, OBJECT *pen) {
 int __ctalkGUIPaneDrawLine (OBJECT *self, OBJECT *line, OBJECT *pen) {
   x_support_error (); return ERROR;
 }
-int __ctalkX11PaneDrawLineBasic (int drawable_id,
+int __ctalkX11PaneDrawLineBasic (void *d, int drawable_id,
 				 unsigned long int gc_ptr,
 				 int x_start, int y_start,
 				 int x_end, int y_end,

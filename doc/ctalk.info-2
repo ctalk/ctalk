@@ -7274,7 +7274,8 @@ functions.
      Draw a line specified by LINE_OBJECT (an instance of 'Line' class)
      using PEN_OBJECT (an instance of 'Pen' class).
 
-'__ctalkX11PaneDrawLineBasic (int DRAWABLE_ID, int GC_PTR, int X_START, int Y_START, int X_END, int Y_END, int PEN_WIDTH, int ALPHA, char *PEN_COLOR)'
+'__ctalkGUIPaneDrawLineBasic (void *DISPLAY, int DRAWABLE_ID, int GC_PTR, int X_START, int Y_START, int X_END, int Y_END, int PEN_WIDTH, int ALPHA, char *PEN_COLOR)'
+'__ctalkX11PaneDrawLineBasic (void *DISPLAY, int DRAWABLE_ID, int GC_PTR, int X_START, int Y_START, int X_END, int Y_END, int PEN_WIDTH, int ALPHA, char *PEN_COLOR)'
      Draw a line between the points (x_start,y_start) and (x_end, y_end)
      with the color, and transparency using the drawable ID, graphics
      context, and pen color, width, and transparency given as arguments.

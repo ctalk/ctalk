@@ -1,8 +1,8 @@
-/* $Id: guiclearwindow.c,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-c-*-*/
+/* $Id: guiclearwindow.c,v 1.2 2020/02/28 19:34:22 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
-  Copyright © 2005-2012, 2017-2019  Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2005-2012, 2017-2020  Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
 
@@ -53,13 +53,23 @@ int __ctalkX11PaneClearWindow (OBJECT *self) {
   return __ctalkGUIPaneClearWindow (self);
 }
 int __ctalkGUIPaneClearWindow (OBJECT *self) {
-  OBJECT *self_object, *win_id_value, *gc_value;
+  OBJECT *self_object, *win_id_value, *gc_value,
+    *displayPtr_var;
   self_object = (IS_VALUE_INSTANCE_VAR (self) ? self->__o_p_obj : self);
   win_id_value = __x11_pane_win_id_value_object (self_object);
   gc_value = __x11_pane_win_gc_value_object (self_object);
+  displayPtr_var = __ctalkGetInstanceVariable (self_object,
+					       "displayPtr", TRUE);
+#if 1 /***/
   make_req (shm_mem, PANE_CLEAR_WINDOW_REQUEST,
 	    INTVAL(win_id_value ->  __o_value),
 	    SYMVAL(gc_value -> __o_value), "");
+#else
+  make_req (shm_mem, SYMVAL(displayPtr_var -> instancevars -> __o_value),
+	    PANE_CLEAR_WINDOW_REQUEST,
+	    INTVAL(win_id_value ->  __o_value),
+	    SYMVAL(gc_value -> __o_value), "");
+#endif  
   wait_req (shm_mem);
   return SUCCESS;
 }
