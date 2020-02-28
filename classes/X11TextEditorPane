@@ -1,4 +1,4 @@
-/* $Id: X11TextEditorPane,v 1.33 2020/01/31 08:13:28 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11TextEditorPane,v 1.34 2020/02/28 10:08:55 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -109,11 +109,17 @@ X11TextEditorPane instanceMethod attachTo (Object parentPane) {
   "Register the receiver pane as a subpane of the X11Pane
   given as the argument.  Generally parent pane should
   be a X11PaneDispatcher object."
+    X11Pane new mainWin;
   X11Bitmap new xPaneBuffer;
   X11Bitmap new xPaneBackingStore;
+
   self super attachTo parentPane;
   self paneBuffer become xPaneBuffer;
   self paneBackingStore become xPaneBackingStore;
+
+  mainWin = self mainWindow;
+
+  self displayPtr = mainWin displayPtr;
 
   self size x = parentPane size x;
   self size y = parentPane size y;

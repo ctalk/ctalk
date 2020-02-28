@@ -1,4 +1,4 @@
-/* $Id: edittext.c,v 1.33 2020/01/31 08:12:52 rkiesling Exp $ -*-c-*-*/
+/* $Id: edittext.c,v 1.34 2020/02/28 10:08:55 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -429,6 +429,7 @@ static OBJECT *scrollmargin_instance_var = NULL;
 static OBJECT *view_x_offset_instance_var = NULL;
 static OBJECT *rightmargin_instance_var = NULL;
 static OBJECT *win_xid_instance_var = NULL;
+static OBJECT *display_ptr_instance_var = NULL;
 #define DEFAULT_BUFSIZE 8192
 static int bufsize = 0;
 #define XFT (INTVAL(fontvar_fontid_instance_var -> __o_value) == 0)
@@ -559,6 +560,10 @@ static void buf_init (OBJECT *editorpane_object) {
   if (!win_xid_instance_var) {
     win_xid_instance_var = __ctalkGetInstanceVariable
       (editorpane_object, "xWindowID", TRUE);
+  }
+  if (!display_ptr_instance_var) {
+    display_ptr_instance_var = __ctalkGetInstanceVariable
+      (editorpane_object, "displayPtr", TRUE);
   }
   
   if ((newtextlength = strlen (text_instance_var -> __o_value))

@@ -310,5 +310,10 @@
 	__ctalkCreateX11SubWindow to set the pane object's displayPtr
 	instance variable from the main Display * in the app's
 	process space (x11lib.c).
+2020-20-28
+	- Updated X11TextEditorPane : attachTo to set the displayPtr
+	instance variable from the main window's displayPtr, and
+	updated buf_init (edittext.c) to save a pointer to the editor
+	pane's displayPtr instance variable.
 
 

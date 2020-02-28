@@ -1,4 +1,4 @@
-/* $Id: x11defs.h,v 1.11 2020/02/28 01:47:24 rkiesling Exp $ -*-c-*-*/
+/* $Id: x11defs.h,v 1.12 2020/02/28 10:08:55 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -97,6 +97,9 @@
     s[SHM_GC+11] = ((uintptr_t)g & 0xf);			\
     strcpy (&((s)[SHM_DATA]), d); } while (0);
 #else
+
+#if 1 /***/
+
 #define make_req(s,r,w,g,d) do {(s)[SHM_REQ] = (r);	\
     s[SHM_DRAWABLE] = (w & 0xf0000000) >> 28;		\
     s[SHM_DRAWABLE+1] = (w & 0xf000000) >> 24;		\
@@ -115,7 +118,40 @@
     s[SHM_GC+6] = ((uintptr_t)g & 0xf0) >> 4;		\
     s[SHM_GC+7] = ((uintptr_t)g & 0xf);			\
     strcpy (&((s)[SHM_DATA]), d); } while (0);
+
+#else
+
+#define make_req(s,p,r,w,g,d) do {(s)[SHM_REQ] = (r);	\
+    s[SHM_DISPLAY] = (p & 0xf0000000) >> 28;		\
+    s[SHM_DISPLAY+1] = (p & 0xf000000) >> 24;		\
+    s[SHM_DISPLAY+2] = (p & 0xf00000) >> 20;		\
+    s[SHM_DISPLAY+3] = (p & 0xf0000) >> 16;		\
+    s[SHM_DISPLAY+4] = (p & 0xf000) >> 12;		\
+    s[SHM_DISPLAY+5] = (p & 0xf00) >> 8;		\
+    s[SHM_DISPLAY+6] = (p & 0xf0) >> 4;			\
+    s[SHM_DISPLAY+7] = (p & 0xf);			\
+    s[SHM_DRAWABLE] = (w & 0xf0000000) >> 28;		\
+    s[SHM_DRAWABLE+1] = (w & 0xf000000) >> 24;		\
+    s[SHM_DRAWABLE+2] = (w & 0xf00000) >> 20;		\
+    s[SHM_DRAWABLE+3] = (w & 0xf0000) >> 16;		\
+    s[SHM_DRAWABLE+4] = (w & 0xf000) >> 12;		\
+    s[SHM_DRAWABLE+5] = (w & 0xf00) >> 8;		\
+    s[SHM_DRAWABLE+6] = (w & 0xf0) >> 4;		\
+    s[SHM_DRAWABLE+7] = (w & 0xf);			\
+    s[SHM_GC] = ((uintptr_t)g & 0xf0000000) >> 28;		\
+    s[SHM_GC+1] = ((uintptr_t)g & 0xf000000) >> 24;		\
+    s[SHM_GC+2] = ((uintptr_t)g & 0xf00000) >> 20;		\
+    s[SHM_GC+3] = ((uintptr_t)g & 0xf0000) >> 16;		\
+    s[SHM_GC+4] = ((uintptr_t)g & 0xf000) >> 12;		\
+    s[SHM_GC+5] = ((uintptr_t)g & 0xf00) >> 8;		\
+    s[SHM_GC+6] = ((uintptr_t)g & 0xf0) >> 4;		\
+    s[SHM_GC+7] = ((uintptr_t)g & 0xf);			\
+    strcpy (&((s)[SHM_DATA]), d); } while (0);
+
 #endif
+
+#endif
+
 #define wait_req(s) do { usleep (1000); } while ((s)[SHM_REQ]) 
 
 #define DEFAULT_GCV_MASK (GCFunction | GCFillStyle | GCForeground | \
