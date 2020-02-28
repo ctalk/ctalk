@@ -305,5 +305,10 @@
 	- Added xdialog.c and updated lib/Makefile.am.
 	- Added SHM_DISPLAY area in x11defs.h.
 	- Added the X11Pane : displayPtr instance variable.
+	- Added code in __ctalkCreateX11MainWindow,
+	__ctalkCreateX11MainWindowTitle, and
+	__ctalkCreateX11SubWindow to set the pane object's displayPtr
+	instance variable from the main Display * in the app's
+	process space (x11lib.c).
 
 

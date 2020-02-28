@@ -1,4 +1,4 @@
-/* $Id: x11lib.c,v 1.81 2020/02/28 00:14:05 rkiesling Exp $ -*-c-*-*/
+/* $Id: x11lib.c,v 1.82 2020/02/28 02:20:44 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -3270,6 +3270,25 @@ OBJECT *__x11_pane_font_id_value_object (OBJECT *paneobject) {
   return pane_font_fontid_value_object;
 }
 
+OBJECT *__x11_pane_display_value_object (OBJECT *paneobject) {
+  static OBJECT *pane_self_object, *pane_display_object,
+    *pane_display_value_object;
+  if (!IS_OBJECT(paneobject)) return NULL;
+  pane_self_object = (IS_VALUE_INSTANCE_VAR(paneobject) ?
+		      paneobject -> __o_p_obj : paneobject);
+  if ((pane_display_object = 
+       __ctalkGetInstanceVariable (pane_self_object, "displayPtr", TRUE))
+      == NULL)
+    return NULL;
+
+  if ((pane_display_value_object =
+       pane_display_object -> instancevars) == NULL)
+    return NULL;
+
+  return pane_display_value_object;
+  
+}
+
 /* Returns a default of 1 if the instance var isn't found. */
 int __x11_pane_border_width (OBJECT *paneobject) {
   static OBJECT *pane_self_object, *pane_borderwidth_object,
@@ -3336,7 +3355,7 @@ int __ctalkCreateX11MainWindow (OBJECT *self_object) {
   int pane_x, pane_y, pane_width, pane_height, border_width;
   unsigned int width_return, height_return, depth_return, border_width_return;
   int x_org, y_org, x_size, y_size;
-  OBJECT *bgColor;
+  OBJECT *bgColor, *displayPtr_value;
   XColor bg_color;
 
   wm_event_mask = WM_CONFIGURE_EVENTS | WM_INPUT_EVENTS;
@@ -3345,6 +3364,8 @@ int __ctalkCreateX11MainWindow (OBJECT *self_object) {
     return ERROR;
 
   border_width = __x11_pane_border_width (self_object);
+  displayPtr_value = __x11_pane_display_value_object (self_object);
+  SYMVAL(displayPtr_value -> __o_value) = (uintptr_t)display;
   set_attributes.backing_store = Always;
   set_size_hints_internal (self_object, &x_org, &y_org, &x_size, &y_size);
   bgColor = __ctalkGetInstanceVariable (self_object,
@@ -3420,6 +3441,7 @@ int __ctalkCreateX11MainWindowTitle (OBJECT *self_object, char *title) {
   int pane_x, pane_y, pane_width, pane_height, border_width;
   unsigned int width_return, height_return, depth_return, border_width_return;
   int x_org, y_org, x_size, y_size;
+  OBJECT *displayPtr_value;
 
   wm_event_mask = WM_CONFIGURE_EVENTS | WM_INPUT_EVENTS;
 
@@ -3427,6 +3449,8 @@ int __ctalkCreateX11MainWindowTitle (OBJECT *self_object, char *title) {
     return ERROR;
 
   border_width = __x11_pane_border_width (self_object);
+  displayPtr_value = __x11_pane_display_value_object (self_object);
+  SYMVAL(displayPtr_value -> __o_value) = (uintptr_t)display;
   set_attributes.backing_store = Always;
   set_size_hints_internal (self_object, &x_org, &y_org, &x_size, &y_size);
   win_id = XCreateWindow (display, root, 
@@ -3492,6 +3516,7 @@ int __ctalkCreateX11SubWindow (OBJECT *parent, OBJECT *self) {
     *win_depth_value_obj;
   OBJECT *self_gc_value_object;
   OBJECT *bgcolor_obj, *fgcolor_obj;
+  OBJECT *displayPtr_value;
   XColor bgcolor, fgcolor;
   Window parent_id, self_id;
   XWindowAttributes parent_attributes;
@@ -3522,6 +3547,8 @@ int __ctalkCreateX11SubWindow (OBJECT *parent, OBJECT *self) {
     __x11_pane_win_gc_value_object (self_object);
   win_depth_value_obj =
     __x11_pane_win_depth_value_object (self_object);
+  displayPtr_value = __x11_pane_display_value_object (self_object);
+  SYMVAL(displayPtr_value -> __o_value) = (uintptr_t)display;
   parent_id = (Window)*(int *)parent_win_id_value_object -> __o_value;
   self_origin_x_var = pane_pt_var (self_object, "origin", "x");
   self_origin_y_var = pane_pt_var (self_object, "origin", "y");
