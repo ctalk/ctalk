@@ -1,4 +1,4 @@
-/* $Id: ctalk.h,v 1.63 2020/02/14 17:54:35 rkiesling Exp $ -*-Fundamental-*- */
+/* $Id: ctalk.h,v 1.64 2020/02/28 00:14:05 rkiesling Exp $ -*-Fundamental-*- */
 
 /*
   This file is part of Ctalk.
@@ -2749,6 +2749,10 @@ int sizeof_int (void);
 void x_support_error (void);
 #endif /* #if ! defined (DJGPP) && ! defined (WITHOUT_X11) */
 int read_event (int *, unsigned int *, unsigned int [], int);
+
+/* lib/xdialog.c */
+int __ctalkX11CreateDialogWindow (OBJECT *);
+
 
 /* libdeps.c */
 int cache_ctpp_output_file (char *);

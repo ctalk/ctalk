@@ -1,4 +1,4 @@
-/* $Id: x11lib.c,v 1.80 2020/02/21 05:05:25 rkiesling Exp $ -*-c-*-*/
+/* $Id: x11lib.c,v 1.81 2020/02/28 00:14:05 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -99,7 +99,7 @@ static bool wm_xfce, wm_kwin, wm_xquartz;
 
 extern char **fixed_font_set;
 Font fixed_font = 0;
-static int n_fixed_fonts;
+int n_fixed_fonts;
 
 extern XLIBFONT xlibfont; /*  declared in xlibfont.c */
 
@@ -293,15 +293,15 @@ sigaction (SIGTERM, &action, &old_action);
 //  sigaction (SIGCHLD, &action, &old_action);
 }
 
-int lookup_color (XColor *color, char *name) {
+int lookup_color (Display *d, XColor *color, char *name) {
 
   XColor exact_color;
   Colormap default_cmap;
 
-  default_cmap = DefaultColormap (display, screen);
+  default_cmap = DefaultColormap (d, screen);
   
   if (XAllocNamedColor 
-      (display, default_cmap, name, &exact_color, color)) {
+      (d, default_cmap, name, &exact_color, color)) {
     return SUCCESS;
   } else {
     return ERROR;
@@ -310,7 +310,7 @@ int lookup_color (XColor *color, char *name) {
 
 unsigned long lookup_pixel (char *color) {
   XColor c;
-  if (!lookup_color (&c, color)) {
+  if (!lookup_color (display, &c, color)) {
     return c.pixel;
   } else {
     return BlackPixel (display, screen);
@@ -321,7 +321,7 @@ unsigned long lookup_pixel (char *color) {
    still initializing. */
 unsigned long lookup_pixel_d (Display *d, char *color) {
   XColor c;
-  if (!lookup_color (&c, color)) {
+  if (!lookup_color (display, &c, color)) {
     return c.pixel;
   } else {
     return BlackPixel (d, screen);
@@ -332,7 +332,7 @@ int lookup_rgb (char *color, unsigned short int *r_return,
 		unsigned short int *g_return,
 		unsigned short int *b_return) {
   XColor c;
-  if (!lookup_color (&c, color)) {
+  if (!lookup_color (display, &c, color)) {
     *r_return= c.red; *g_return = c.green; *b_return = c.blue;
     return c.pixel;
   } else {
@@ -1738,7 +1738,7 @@ static void release_fixed_font (void) {
   }
 }
 
-static Font get_user_font (OBJECT *self) {
+Font get_user_font (OBJECT *self) {
   OBJECT *self_object, *fontDesc_var, *fontDesc_value_var;
   Font user_font;
   int n_user_fonts;
@@ -3382,7 +3382,7 @@ int __ctalkCreateX11MainWindow (OBJECT *self_object) {
   gcv.function = GXcopy;
   gcv.foreground = BlackPixel (display, screen);
   if (*bgColor -> __o_value) {
-    lookup_color (&bg_color, bgColor -> __o_value);
+    lookup_color (display, &bg_color, bgColor -> __o_value);
     gcv.background = bg_color.pixel;
   } else {
     gcv.background = WhitePixel (display, screen);
@@ -3552,7 +3552,7 @@ int __ctalkCreateX11SubWindow (OBJECT *parent, OBJECT *self) {
     XSetWindowBackground (display, self_id,
 			  BlackPixel (display, DefaultScreen (display)));
   } else {
-    lookup_color (&bgcolor, bgcolor_obj -> instancevars -> __o_value);
+    lookup_color (display, &bgcolor, bgcolor_obj -> instancevars -> __o_value);
     XSetWindowBackground (display, self_id, bgcolor.pixel);
   }
   XClearWindow (display, self_id);
@@ -3582,7 +3582,7 @@ int __ctalkCreateX11SubWindow (OBJECT *parent, OBJECT *self) {
       XSetForeground (display, gc,
 		      WhitePixel (display, DefaultScreen (display)));
     } else {
-      lookup_color (&fgcolor, fgcolor_obj -> instancevars -> __o_value);
+      lookup_color (display, &fgcolor, fgcolor_obj -> instancevars -> __o_value);
       XSetForeground (display, gc, fgcolor.pixel);
     }
   }
@@ -3611,7 +3611,8 @@ int __ctalkRaiseX11Window (OBJECT *self_object) {
   OBJECT *win_id_value_obj;
   win_id_value_obj =
     __x11_pane_win_id_value_object (self_object);
-  win_id = strtoul (win_id_value_obj -> __o_value, NULL, 10);
+  /* win_id = strtoul (win_id_value_obj -> __o_value, NULL, 10); *//***/
+  win_id = INTVAL(win_id_value_obj -> __o_value);
   XRaiseWindow (display, (Window)win_id);
   return SUCCESS; 
 }
