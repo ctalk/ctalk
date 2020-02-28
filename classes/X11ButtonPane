@@ -1,4 +1,4 @@
-/* $Id: X11ButtonPane,v 1.26 2020/02/20 03:46:33 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11ButtonPane,v 1.27 2020/02/28 14:58:26 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -47,9 +47,12 @@ X11ButtonPane instanceMethod new (String __paneName) {
   "The X11ButtonPane constructor.  The argument, a String,
   contains the name of the new object.  Also sets the
   event handlers that this class overrides."
-    Method new exposeMethod, buttonPressMethod, enterMethod,
+
+  Method new exposeMethod, buttonPressMethod, enterMethod,
     leaveMethod, focusInMethod, focusOutMethod;
+
   X11ButtonPane super new __paneName;
+
   buttonPressMethod definedInstanceMethod "X11ButtonPane",
     "subPaneButtonPress";
   exposeMethod definedInstanceMethod "X11ButtonPane",
@@ -82,6 +85,7 @@ X11ButtonPane instanceMethod attachTo (Object parentPane,
   "Register the receiver pane as a subpane of the X11Pane
   given as the argument.  Generally parent pane should
   be a X11PaneDispatcher object."
+  X11Pane new mainWin;
   X11Bitmap new xPaneBuffer;
   X11Bitmap new xPaneBackingStore;
   X11LabelPane new l_local;
@@ -92,6 +96,9 @@ X11ButtonPane instanceMethod attachTo (Object parentPane,
   self super attachTo (parentPane, geomspec);
   self paneBuffer become xPaneBuffer;
   self paneBackingStore become xPaneBackingStore;
+
+  mainWin = self mainWindow;
+  self displayPtr = mainWin displayPtr;
 
   __ctalkX11SubWindowGeometry (parentPane, geomspec,
 				 &x, &y, &width, &height);

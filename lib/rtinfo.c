@@ -1,4 +1,4 @@
-/* $Id: rtinfo.c,v 1.9 2019/11/17 15:29:00 rkiesling Exp $ */
+/* $Id: rtinfo.c,v 1.10 2020/02/28 14:58:26 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -662,7 +662,9 @@ void clear_arg_active_varentry (void) {
  *  the arg is pushed is the method call's RTINFO entry + 1.
  */
 VARENTRY *arg_active_varentry (void) {
-  if (__call_stack_ptr < (MAXARGS - 1))
+  /* if (__call_stack_ptr < (MAXARGS - 1)) *//***/
+  if ((__call_stack_ptr < (MAXARGS - 1)) &&
+      IS_VARENTRY(__call_stack[__call_stack_ptr + 2] -> arg_active_tag))
     return __call_stack[__call_stack_ptr + 2] -> arg_active_tag;
   else
     return NULL;
