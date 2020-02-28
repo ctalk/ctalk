@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.96 2020/02/21 04:30:53 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.98 2020/02/28 01:53:42 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -11668,6 +11668,14 @@ screen.  Ctalk sets this value when creating the window of a
 subclasses.  Normally applications should not need to change this
 value.
 
+@cindex @code{displayPtr} instance variable @idxclscite{X11Pane}
+@item displayPtr
+A @code{Symbol} that holds the pointer to the display connection;
+i.e., the @code{Display *} returned by @cite{XOpenDisplay(3)}.
+Most windows use the display connection opened when the main
+window is created. Dialogs, which create their own main windows,
+open their own connection to the display.
+
 @cindex @code{fontVar} instance variable @idxclscite{X11Pane}
 @item fontVar
 A @code{X11Font} object that contains information about the
@@ -13355,6 +13363,16 @@ is not used.
 @item highlight
 A @code{Boolean} that indicates whether the widget is displayed
 highlighted.
+
+@cindex @code{modalWin} instance variable @idxclscite{X11PaneDispatcher}
+@item modalWin
+When a dialog window is popped up over the main window, this holds
+the window ID of the popup.  The @mnm{handleSubPaneEvent} method uses
+this to determine how the application's main window should respond
+to X events; generally it keeps the dialog window above the main
+window until the dialog window is withdrawn.  When their is no
+window popped up over the main window, the value of @code{modalWin}
+is zero (@samp{0}).
 
 @cindex @code{tabFocus} instance variable @idxclscite{X11PaneDispatcher}
 @item tabFocus

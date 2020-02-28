@@ -1,4 +1,4 @@
-/* $Id: X11Pane,v 1.9 2020/01/26 21:06:45 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11Pane,v 1.10 2020/02/28 01:47:23 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -52,6 +52,7 @@ X11Pane instanceVariable container Symbol NULL;
 X11Pane instanceVariable depth Integer NULL;
 X11Pane instanceVariable backgroundColor String NULL;
 X11Pane instanceVariable borderWidth Integer 1;
+X11Pane instanceVariable displayPtr Symbol NULL;
 
 X11Pane classVariable xDisplay Symbol 0;
 X11Pane classVariable classInit Integer 0;

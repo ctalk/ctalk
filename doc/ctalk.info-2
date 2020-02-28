@@ -390,6 +390,13 @@ Instance Variables
      object or an instance of one of 'X11Pane's' subclasses.  Normally
      applications should not need to change this value.
 
+'displayPtr'
+     A 'Symbol' that holds the pointer to the display connection; i.e.,
+     the 'Display *' returned by 'XOpenDisplay(3)'.  Most windows use
+     the display connection opened when the main window is created.
+     Dialogs, which create their own main windows, open their own
+     connection to the display.
+
 'fontVar'
      A 'X11Font' object that contains information about the Window or
      Pane's current font.
@@ -1860,6 +1867,15 @@ Instance Variables
 'highlight'
      A 'Boolean' that indicates whether the widget is displayed
      highlighted.
+
+'modalWin'
+     When a dialog window is popped up over the main window, this holds
+     the window ID of the popup.  The 'handleSubPaneEvent' method uses
+     this to determine how the application's main window should respond
+     to X events; generally it keeps the dialog window above the main
+     window until the dialog window is withdrawn.  When their is no
+     window popped up over the main window, the value of 'modalWin' is
+     zero ('0').
 
 'tabFocus'
      A 'Boolean' that determines, if true (which is the default),

@@ -1,4 +1,4 @@
-/* $Id: x11defs.h,v 1.10 2020/02/08 21:16:44 rkiesling Exp $ -*-c-*-*/
+/* $Id: x11defs.h,v 1.11 2020/02/28 01:47:24 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -29,10 +29,11 @@
 #endif
 
 #define SHM_REQ 0x00
-#define SHM_DRAWABLE 0x01
-#define SHM_GC 0x20
-#define SHM_DATA 0x40
-#define SHM_RETVAL 0x7f
+#define SHM_DISPLAY 0x01
+#define SHM_DRAWABLE 0x20
+#define SHM_GC 0x40
+#define SHM_DATA 0x60
+#define SHM_RETVAL 0xe0
 #define SHM_SHUTDOWN 0xfe
 /*
  *  Font data locations - will probably need more of them.

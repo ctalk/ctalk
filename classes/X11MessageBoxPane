@@ -1,4 +1,4 @@
-/* $Id: X11MessageBoxPane,v 1.4 2020/02/28 00:14:04 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11MessageBoxPane,v 1.6 2020/02/28 01:47:23 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -24,7 +24,6 @@
 X11PaneDispatcher class X11MessageBoxPane;
 
 X11MessageBoxPane instanceVariable popup Boolean true;
-X11MessageBoxPane instanceVariable displayPtr Symbol NULL;
 
 X11MessageBoxPane instanceMethod new (String paneName) {
   Method new exposeMethod;
@@ -72,6 +71,8 @@ X11MessageBoxPane instanceMethod attachTo (Object parentPane,
   self origin x = x;
   self origin y = y;
 
+  self backgroundColor = "blue";
+
   /*
    *  The evaluation of these statements  needs to be deferred
    *  until run time.  See the comment in the other, "attachTo,"
@@ -83,37 +84,54 @@ X11MessageBoxPane instanceMethod attachTo (Object parentPane,
   (X11Bitmap *)self paneBackingStore create self xWindowID, self size x, 
     self size y, self depth;
 
+  self paneBuffer background self backgroundColor;
+
   return NULL;
 }
 
-X11MessageBoxPane instanceMethod map (void) {
-  "Map the receiver object's window on the display."
-   if (self value is X11MessageBoxPane) {
-    __ctalkMapX11Window (self);
-  }
-  return NULL;
+X11MessageBoxPane instanceMethod draw (void) {
+
+  XFillRectangle (self displayPtr, self paneBuffer xID,
+		  self paneBuffer xGC,
+		  0, 0, self paneBuffer width, self paneBuffer height);
 }
 
-X11MessageBoxPane instanceMethod raiseWindow (void) {
-  "Raise the receiver object's window on the display."
-  if (self value is X11MessageBoxPane)
-    __ctalkRaiseX11Window (self);
-  return NULL;
+X11MessageBoxPane instanceMethod refresh (void) {
+  Display *disp;
+  Drawable buffer_id;
+  Drawable win_id;
+  GC gc;
+
+  disp = self displayPtr;
+  buffer_id = self paneBuffer xID;
+  win_id = self xWindowID;
+  gc = self xGC;
+  XCopyArea (disp, buffer_id, win_id, gc,
+	     0, 0, self size x, self size y, 0, 0);
 }
+
+X11MessageBoxPane instanceMethod withdraw (void) {
+  self deleteAndClose;
+}
+
+extern Atom wm_delete_window;
 
 X11MessageBoxPane instanceMethod show (void) {
   Display *d;
+  Window win_id;
   XEvent xev;
   X11PaneDispatcher new dispatcher;
 
   dispatcher = *self container;
   
-  self xWindowID = __ctalkX11CreateDialogWindow (self);
+  win_id = __ctalkX11CreateDialogWindow (self);
+  self xWindowID = win_id;
+  dispatcher modalWin = win_id;
 
   d = self displayPtr;
 
-  self map;
-  self raiseWindow;
+  XMapWindow (d, win_id);
+  XRaiseWindow (d, win_id);
 
   while (TRUE) {
     if (XPending (d)) {
@@ -121,7 +139,15 @@ X11MessageBoxPane instanceMethod show (void) {
       switch (xev.type)
 	{
 	case Expose:
-	  XClearWindow (d, self xWindowID);
+	  printf ("expose!\n");
+	  self draw;
+	  self refresh;
+	  break;
+	case ClientMessage:
+	  if(xev.xclient.data.l[0] == wm_delete_window) {
+	    self withdraw;
+	    return;
+	  }
 	  break;
 	}
     } else {

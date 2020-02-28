@@ -1,4 +1,4 @@
-/* $Id: X11PaneDispatcher,v 1.44 2020/02/22 08:30:29 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11PaneDispatcher,v 1.45 2020/02/28 01:01:52 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -88,6 +88,7 @@ X11PaneDispatcher instanceVariable handleLeaveNotify Method NULL;
 X11PaneDispatcher instanceVariable subPaneGeometry String "";
 X11PaneDispatcher instanceVariable highlight Boolean false;
 X11PaneDispatcher instanceVariable tabFocus Boolean true;
+X11PaneDispatcher instanceVariable modalWin Integer 0;
 
 static unsigned long g_ptr_t = 0;
 static unsigned long g_kbd_t = 0;
