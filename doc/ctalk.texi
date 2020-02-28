@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.99 2020/02/28 16:08:26 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.100 2020/02/28 17:39:48 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -20965,7 +20965,7 @@ an example, refer the @code{X11CanvasPane} classes' description.
 Create a X GC and return its address as a @code{void *}.
 
 @idxlibfn{__ctalkX11CreatePixmap}
-@item __ctalkX11CreatePixmap (@code{int} @var{x_drawable}, @code{int} @var{width}, @code{int} @var{height}, @code{int} @var{depth})
+@item __ctalkX11CreatePixmap (@code{void *}@var{display}, @code{int} @var{x_drawable}, @code{int} @var{width}, @code{int} @var{height}, @code{int} @var{depth})
 reate a X pixmap and return its X resource ID as an unsigned int.
 
 @idxlibfn{__ctalkX11CreatePaneBuffer}

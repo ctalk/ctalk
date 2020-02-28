@@ -8186,7 +8186,7 @@ functions.
 '__ctalkX11CreateGC (int DRAWABLE)'
      Create a X GC and return its address as a 'void *'.
 
-'__ctalkX11CreatePixmap (int X_DRAWABLE, int WIDTH, int HEIGHT, int DEPTH)'
+'__ctalkX11CreatePixmap (void *DISPLAY, int X_DRAWABLE, int WIDTH, int HEIGHT, int DEPTH)'
      reate a X pixmap and return its X resource ID as an unsigned int.
 
 '__ctalkX11CreatePaneBuffer (OBJECT *PANE_OBJECT, int WIDTH, int HEIGHT, int DEPTH)'

@@ -1,4 +1,4 @@
-/* $Id: bitmap.c,v 1.1.1.1 2019/10/26 23:40:50 rkiesling Exp $ -*-c-*-*/
+/* $Id: bitmap.c,v 1.2 2020/02/28 17:39:49 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -68,27 +68,27 @@ int __xlib_clear_rectangle_basic (Drawable d, int x, int y,
   return SUCCESS;
 }
 
-int __ctalkX11CreatePixmap (int parent,
+int __ctalkX11CreatePixmap (void *d,
+			    int parent,
 			    int width,
 			    int height, 
 			    int depth) {
   Pixmap p;
   GC gc;
   XGCValues v;
-  p = XCreatePixmap (display, 
-		     (Drawable)parent, width, height, depth);
+  p = XCreatePixmap ((Display *)d, (Drawable)parent, width, height, depth);
   v.function = GXcopy;
   v.fill_style = FillSolid;
   v.background = v.foreground = 
-    BlackPixel (display, DefaultScreen (display));
-  gc = XCreateGC (display, p, 
+    BlackPixel ((Display *)d, DefaultScreen (display));
+  gc = XCreateGC ((Display *)d, p, 
 		  GCForeground|\
 		  GCBackground|\
 		  GCFunction|\
 		  GCFillStyle, &v);
-  XFillRectangle (display, p, gc,
+  XFillRectangle ((Display *)d, p, gc,
 		  0, 0, width, height);
-  XFreeGC (display, gc);
+  XFreeGC ((Display *)d, gc);
   return (int)p;
 }
 
@@ -373,7 +373,8 @@ void __ctalkX11FreeGC (unsigned long int gc_ptr) {
 void *__ctalkX11CreateGC (int drawable) {  
   x_support_error (); return NULL;
 }
-int __ctalkX11CreatePixmap (int parent,
+int __ctalkX11CreatePixmap (void *d,
+			    int parent,
 			    int width,
 			    int height, 
 			    int depth) {

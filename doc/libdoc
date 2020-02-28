@@ -1897,7 +1897,7 @@ an example, refer the X11CanvasPane classes' description.
 >>>__ctalkX11CreateGC (int drawable)
 Create a X GC and return its address as a void *.
 
->>>__ctalkX11CreatePixmap (int x_drawable, int width, int height, int depth)
+>>>__ctalkX11CreatePixmap (void *display, int x_drawable, int width, int height, int depth)
 reate a X pixmap and return its X resource ID as an unsigned int.
 
 >>>__ctalkX11CreatePaneBuffer (OBJECT *pane_object, int width, int height, int depth)

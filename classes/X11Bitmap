@@ -1,4 +1,4 @@
-/* $Id: X11Bitmap,v 1.3 2020/02/28 16:08:25 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11Bitmap,v 1.4 2020/02/28 17:39:48 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -70,7 +70,7 @@ X11Bitmap instanceMethod create (Symbol displayPtr,
   self displayPtr = displayPtr;
 
   pixmap_id = __ctalkX11CreatePixmap 
-    (parentDrawable, width, height, depth value);
+    (displayPtr, parentDrawable, width, height, depth value);
   *(int *)self_xID_alias -> __o_value = pixmap_id;
   *(int *)self_xID_alias -> instancevars -> __o_value = pixmap_id;
   self_xGC_alias = self xGC;

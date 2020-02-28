@@ -1,4 +1,4 @@
-/* $Id: ctalk.h,v 1.64 2020/02/28 00:14:05 rkiesling Exp $ -*-Fundamental-*- */
+/* $Id: ctalk.h,v 1.65 2020/02/28 17:39:49 rkiesling Exp $ -*-Fundamental-*- */
 
 /*
   This file is part of Ctalk.
@@ -1367,7 +1367,7 @@ int ascii_bin_to_dec (char *);
 /* lib/bitmap.c */
 void *__ctalkX11CreateGC (int);
 int __ctalkX11CreatePaneBuffer (OBJECT *, int, int, int);
-int __ctalkX11CreatePixmap (int, int, int, int);
+int __ctalkX11CreatePixmap (void *, int, int, int, int);
 void __ctalkX11DeletePixmap (int id);
 void __ctalkX11FreeGC (unsigned long int ptr);
 int __ctalkX11FreePaneBuffer (OBJECT *);
