@@ -1,4 +1,4 @@
-/* $Id: X11CanvasPane,v 1.18 2020/02/04 17:58:15 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11CanvasPane,v 1.19 2020/02/28 15:21:49 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -224,6 +224,8 @@ X11CanvasPane instanceMethod attachTo (Object parentPane) {
   self paneBuffer become xPaneBuffer;
   self paneBackingStore become xPaneBackingStore;
 
+  self displayPtr = self mainWindow displayPtr;
+
   self viewWidth = parentPane size x;
   self viewHeight = parentPane size y;
   self size x = parentPane size x;
@@ -256,6 +258,8 @@ X11CanvasPane instanceMethod attachTo (Object parentPane,
   self super attachTo (parentPane, geomspec);
   self paneBuffer become xPaneBuffer;
   self paneBackingStore become xPaneBackingStore;
+
+  self displayPtr = self mainWindow displayPtr;
 
   __ctalkX11SubWindowGeometry (parentPane, geomspec,
 				 &x, &y, &width, &height);

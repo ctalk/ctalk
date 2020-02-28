@@ -1,4 +1,4 @@
-/* $Id: X11TextPane,v 1.4 2020/01/07 23:20:48 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11TextPane,v 1.5 2020/02/28 15:21:50 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -305,6 +305,8 @@ X11TextPane instanceMethod attachTo (X11PaneDispatcher parentPane) {
   self super attachTo parentPane;
   self paneBuffer become paneBuffer;
   self paneBackingStore become paneBackingStore;
+
+  self displayPtr = self mainWindow displayPtr;
 
   /*
    *  Also set by subPaneResize.

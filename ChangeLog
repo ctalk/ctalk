@@ -314,7 +314,9 @@
 	- Updated X11TextEditorPane : attachTo to set the displayPtr
 	instance variable from the main window's displayPtr, and
 	updated buf_init (edittext.c) to save a pointer to the editor
-	pane's displayPtr instance variable.
+	pane's displayPtr instance variable.  Also updated the attachTo
+	methods in X11ButtonPane, X11CanvasPane, X11MessageBoxPane,
+	X11PaneDispatcher, X11ScrollBarPane, and X11TextPane.
 	- In arg_active_varentry, make sure the arg_active_tag is
 	a valid VARENTRY (rtinfo.c).
 

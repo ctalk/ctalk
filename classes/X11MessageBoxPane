@@ -1,4 +1,4 @@
-/* $Id: X11MessageBoxPane,v 1.6 2020/02/28 01:47:23 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11MessageBoxPane,v 1.7 2020/02/28 15:21:49 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -54,6 +54,8 @@ X11MessageBoxPane instanceMethod attachTo (Object parentPane,
   X11Bitmap new xPaneBackingStore;
   int x, y, width, height;
   
+  self displayPtr = self mainWindow displayPtr;
+
   /* self super attachTo parentPane; *//***/
   /*
    ***  NOTE THIS IS NOT ADDED TO THE DISPATCHER's CHILDREN LIST

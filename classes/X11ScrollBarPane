@@ -1,4 +1,4 @@
-/* $Id: X11ScrollBarPane,v 1.44 2020/02/21 05:05:25 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11ScrollBarPane,v 1.45 2020/02/28 15:21:50 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -389,6 +389,8 @@ X11ScrollBarPane instanceMethod attachTo (Object parentPane) {
   self origin x = 0;
   self origin y = 0;
 
+  self displayPtr = self mainWindow displayPtr;
+
   self frameWidth self frameWidthVar;
 
   self thumbDimensions
@@ -417,6 +419,8 @@ X11ScrollBarPane instanceMethod attachTo (Object parentPane,
   self subPaneGeometry = geomspec;
 
   self super attachTo (parentPane, geomspec);
+
+  self displayPtr = self mainWindow displayPtr;
 
   /* These expressions also remove any buffers created by superclass
      methods, but they don't necessarily delete them immediately. */
