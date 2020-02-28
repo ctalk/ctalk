@@ -334,8 +334,11 @@
 	displayPtr instance var fetch in __ctalkX11DrawPoint (guidrawpoint.c).
 	- Added a displaPtr fetch to __ctalkGUIPaneDrawRoundedRectangle and
 	__ctalkGUIPaneDrawRectangle (guirectangle.c).
-	- Added a void *display parameter to __ctalkX11PanePutStrBasic
-	(guiputstr.c).
+	- Added a void *display parameter to __ctalkX11PanePutStrBasic,
+	and added a displayPtr var fetch to __ctalkX11PanePutStr and
+	__ctalkGUIPanePutStr (guiputstr.c).  Also added a displayPtr
+	instance variable fetch in __ctalkX11PanePutTransformedStr
+	and __ctalkGUIPanePutTransformedStr (guiputxstr.c).
 
 
 
