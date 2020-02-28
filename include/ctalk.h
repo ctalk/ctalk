@@ -1,4 +1,4 @@
-/* $Id: ctalk.h,v 1.71 2020/02/28 23:21:44 rkiesling Exp $ -*-Fundamental-*- */
+/* $Id: ctalk.h,v 1.72 2020/02/28 23:39:32 rkiesling Exp $ -*-Fundamental-*- */
 
 /*
   This file is part of Ctalk.
@@ -1716,7 +1716,7 @@ int __ctalkX11SetBackgroundBasic (void *, int, unsigned long int, char *);
 int __ctalkX11SetForegroundBasic (void *,int, unsigned long int, char *);
 
 /* lib/guitext.c */
-int __ctalkX11TextFromData (int, unsigned long int, char *);
+int __ctalkX11TextFromData (void *, int, unsigned long int, char *);
 
 /* lib/guixpm.c */
 int __ctalkX11XPMFromData (int, unsigned long int, int, int, char **);

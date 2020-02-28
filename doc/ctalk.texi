@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.106 2020/02/28 23:21:43 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.107 2020/02/28 23:39:32 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -19925,7 +19925,7 @@ interpreted as a fraction of the parent window's corresponding
 vertical or horizontal dimension.
 
 @idxlibfn{__ctalkX11TextFromData}
-@item __ctalkX11TextFromData (@code{int} @var{drawable_id}, @code{int} @var{GD_ptr}, @code{char *}@var{text})
+@item __ctalkX11TextFromData (@code{void *}@var{display}, @code{int} @var{drawable_id}, @code{int} @var{GD_ptr}, @code{char *}@var{text})
 Displays @var{text} on @var{drawable_id}.
 
 @idxlibfn{__ctalkX11TextWidth}

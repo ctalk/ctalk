@@ -1003,7 +1003,7 @@ followed by a percent sign (%).  In that case, the dimension is
 interpreted as a fraction of the parent window's corresponding
 vertical or horizontal dimension.
 
->>>__ctalkX11TextFromData (int drawable_id, int GD_ptr, char *text)
+>>>__ctalkX11TextFromData (void *display, int drawable_id, int GD_ptr, char *text)
 Displays text on drawable_id.
 
 >>>__ctalkX11TextWidth (char *fontDesc, char *text)

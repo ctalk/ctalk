@@ -1,4 +1,4 @@
-/* $Id: X11TextEditorPane,v 1.35 2020/02/28 16:08:26 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11TextEditorPane,v 1.36 2020/02/28 23:39:31 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -249,7 +249,7 @@ X11TextEditorPane instanceMethod defaultFormat (void) {
     textBuf += "</format>";
   }
   /* The format sheet isn't actually rendered on a drawing surface. */
-  __ctalkX11TextFromData (0, 0, textBuf);
+  __ctalkX11TextFromData (0, 0, 0, textBuf);
 }
 
 X11TextEditorPane instanceMethod displayText (void) {
@@ -264,7 +264,8 @@ X11TextEditorPane instanceMethod displayText (void) {
 
   output = self point asString + ":" + self viewStartLine asString +
     ":0:0:" + self text;
-  __ctalkX11TextFromData (paneBuffer xID, paneBuffer xGC, output);
+  __ctalkX11TextFromData (paneBuffer displayPtr, paneBuffer xID,
+			  paneBuffer xGC, output);
 
   self refresh;
 }
@@ -282,7 +283,8 @@ X11TextEditorPane instanceMethod displayTextSelection (void) {
   output = self point asString + ":" + self viewStartLine asString +
     ":" + self sStart asString + ":" + self sEnd asString + ":" +
     self text;
-  __ctalkX11TextFromData (paneBuffer xID, paneBuffer xGC, output);
+  __ctalkX11TextFromData (paneBuffer displayPtr, paneBuffer xID,
+			  paneBuffer xGC, output);
 
   self refresh;
 }

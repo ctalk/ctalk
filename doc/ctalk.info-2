@@ -7330,7 +7330,7 @@ functions.
      interpreted as a fraction of the parent window's corresponding
      vertical or horizontal dimension.
 
-'__ctalkX11TextFromData (int DRAWABLE_ID, int GD_PTR, char *TEXT)'
+'__ctalkX11TextFromData (void *DISPLAY, int DRAWABLE_ID, int GD_PTR, char *TEXT)'
      Displays TEXT on DRAWABLE_ID.
 
 '__ctalkX11TextWidth (char *FONTDESC, char *TEXT)'
