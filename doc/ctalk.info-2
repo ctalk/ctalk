@@ -8351,7 +8351,7 @@ functions.
      Rectangle::, and with the line width and color given by PEN_OBJECT
      *Note Pen::.  If FILL is true, draw a filled rectangle.
 
-'__ctalkX11PanePutStrBasic (int VISUAL_ID,int GC_PTR, int X, int Y, char *TEXT)'
+'__ctalkX11PanePutStrBasic (void *DISPLAY, int VISUAL_ID,int GC_PTR, int X, int Y, char *TEXT)'
      Write the string TEXT on the drawable named by VISUAL_ID at X,Y
      using the graphics context pointed to by GC_PTR.  If the drawable
      is a 'X11CanvasPane' buffer, the text will not be visible until the

@@ -2054,7 +2054,7 @@ Draw a rectangle on the drawable identified by pane_object
 pen_object   If fill is true, draw a filled
 rectangle.
 
->>>__ctalkX11PanePutStrBasic (int visual_id,int gc_ptr, int x, int y, char *text)
+>>>__ctalkX11PanePutStrBasic (void *display, int visual_id,int gc_ptr, int x, int y, char *text)
 Write the string text on the drawable named by visual_id at
 X,Y using the graphics context pointed to by gc_ptr.  If the
 drawable is a X11CanvasPane buffer, the text will not be visible

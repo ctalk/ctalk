@@ -1,4 +1,4 @@
-/* $Id: X11Bitmap,v 1.7 2020/02/28 20:17:02 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11Bitmap,v 1.8 2020/02/28 22:16:17 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -169,7 +169,7 @@ X11Bitmap instanceMethod putStr (Integer x, Integer y, String s) {
    <X11BitmapObject> putStr Integer <x>,
                             Integer <y>,
                             String <text>"
-  __ctalkX11PanePutStrBasic (self xID, self xGC, x, y, s);
+    __ctalkX11PanePutStrBasic (self displayPtr, self xID, self xGC, x, y, s);
 }
 
 X11Bitmap instanceMethod putStr (Integer x, Integer y,
@@ -181,7 +181,7 @@ X11Bitmap instanceMethod putStr (Integer x, Integer y,
                             String <text>,
                             String <font_desc>"
   __ctalkX11UseFontBasic (self xID, self xGC, font_desc);
-  __ctalkX11PanePutStrBasic (self xID, self xGC, x, y, s);
+  __ctalkX11PanePutStrBasic (self displayPtr, self xID, self xGC, x, y, s);
 }
 
 X11Bitmap instanceMethod putStr (Integer x, Integer y,
@@ -198,7 +198,7 @@ X11Bitmap instanceMethod putStr (Integer x, Integer y,
                             String <foreground_color_name>"
   __ctalkX11SetForegroundBasic (self xID, self xGC, colorName);
   __ctalkX11UseFontBasic (self xID, self xGC, font_desc);
-  __ctalkX11PanePutStrBasic (self xID, self xGC, x, y, s);
+  __ctalkX11PanePutStrBasic (self displayPtr, self xID, self xGC, x, y, s);
 }
 
 X11Bitmap instanceMethod pixmapFromData (char **xpm_data) {

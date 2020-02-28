@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.103 2020/02/28 20:17:02 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.104 2020/02/28 22:16:18 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -21156,7 +21156,7 @@ Draw a rectangle on the drawable identified by @var{pane_object}
 rectangle.
 
 @idxlibfn{__ctalkX11PanePutStrBasic}
-@item __ctalkX11PanePutStrBasic (@code{int} @var{visual_id},@code{int} @var{gc_ptr}, @code{int} @var{x}, @code{int} @var{y}, @code{char *}@var{text})
+@item __ctalkX11PanePutStrBasic (@code{void *}@var{display}, @code{int} @var{visual_id},@code{int} @var{gc_ptr}, @code{int} @var{x}, @code{int} @var{y}, @code{char *}@var{text})
 Write the string @var{text} on the drawable named by @var{visual_id} at
 @var{X},@var{Y} using the graphics context pointed to by @var{gc_ptr}.  If the
 drawable is a @code{X11CanvasPane} buffer, the text will not be visible

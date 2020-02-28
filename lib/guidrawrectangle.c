@@ -1,8 +1,8 @@
-/* $Id: guidrawrectangle.c,v 1.6 2020/02/04 16:30:37 rkiesling Exp $ -*-c-*-*/
+/* $Id: guidrawrectangle.c,v 1.8 2020/02/28 22:05:59 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
-  Copyright © 2005-2012, 2017-2019  Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2005-2012, 2017-2020  Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
 
@@ -80,6 +80,7 @@ int __ctalkGUIPaneDrawRectangle (OBJECT *self, OBJECT *rectangle, OBJECT *pen,
   OBJECT *rect_top, *rect_top_start, *rect_top_start_x, *rect_top_start_y;
   OBJECT *rect_right, *rect_right_end, *rect_right_end_x, *rect_right_end_y;
   OBJECT *pen_width_object, *pen_color_object;
+  OBJECT *displayptr_var;
   int panebuffer_xid, panebackingstore_xid;
   char d_buf[MAXLABEL];
   char intbuf1[MAXLABEL], intbuf2[MAXLABEL], intbuf3[MAXLABEL];
@@ -96,6 +97,7 @@ int __ctalkGUIPaneDrawRectangle (OBJECT *self, OBJECT *rectangle, OBJECT *pen,
 
   win_id_value = __x11_pane_win_id_value_object (self_object);
   gc_value = __x11_pane_win_gc_value_object (self_object);
+  displayptr_var = __ctalkGetInstanceVariable (self_object, "displayPtr", TRUE);
 
   pen_width_object = 
     __ctalkGetInstanceVariable (pen_object, "width", TRUE);
@@ -151,9 +153,17 @@ int __ctalkGUIPaneDrawRectangle (OBJECT *self, OBJECT *rectangle, OBJECT *pen,
 	   pen_color_object->instancevars->__o_value,
 	   NULL); /***/
 	   
+#if 1 /***/
   make_req (shm_mem, PANE_DRAW_RECTANGLE_REQUEST,
 	    INTVAL(win_id_value -> __o_value),
 	    SYMVAL(gc_value -> __o_value), d_buf);
+#else
+  make_req (shm_mem,
+	    SYMVAL(displayptr_var -> instancevars->__o_value),
+	    PANE_DRAW_RECTANGLE_REQUEST,
+	    INTVAL(win_id_value -> __o_value),
+	    SYMVAL(gc_value -> __o_value), d_buf);
+#endif  
 #ifdef GRAPHICS_WRITE_SEND_EVENT
   send_event.xgraphicsexpose.type = GraphicsExpose;
   send_event.xgraphicsexpose.send_event = True;
@@ -177,7 +187,7 @@ int __ctalkGUIPaneDrawRoundedRectangle (OBJECT *self, OBJECT *rectangle,
   int panebuffer_xid, panebackingstore_xid;
   char d_buf[MAXLABEL];
   char intbuf1[MAXLABEL], intbuf2[MAXLABEL], intbuf3[MAXLABEL];
-  OBJECT *win_id_value, *gc_value;
+  OBJECT *win_id_value, *gc_value, *displayptr_var;
 #ifdef GRAPHICS_WRITE_SEND_EVENT
   XEvent send_event;
 #endif
@@ -186,6 +196,8 @@ int __ctalkGUIPaneDrawRoundedRectangle (OBJECT *self, OBJECT *rectangle,
   pen_object = (IS_VALUE_INSTANCE_VAR (pen) ? pen->__o_p_obj : pen);
   rectangle_object = (IS_VALUE_INSTANCE_VAR (rectangle) ? 
 		      rectangle->__o_p_obj : rectangle);
+  displayptr_var = __ctalkGetInstanceVariable (self_object, "displayPtr",
+					       TRUE);
 
 
   win_id_value = __x11_pane_win_id_value_object (self_object);
@@ -245,9 +257,17 @@ int __ctalkGUIPaneDrawRoundedRectangle (OBJECT *self, OBJECT *rectangle,
 	   pen_color_object->instancevars->__o_value,
 	   NULL); /***/
 	   
+#if 1 /***/
   make_req (shm_mem, PANE_DRAW_RECTANGLE_REQUEST,
 	    INTVAL(win_id_value -> __o_value),
 	    SYMVAL(gc_value -> __o_value), d_buf);
+#else
+  make_req (shm_mem,
+	    SYMVAL(displayptr_var -> instancevars -> __o_value),
+	    PANE_DRAW_RECTANGLE_REQUEST,
+	    INTVAL(win_id_value -> __o_value),
+	    SYMVAL(gc_value -> __o_value), d_buf);
+#endif  
 #ifdef GRAPHICS_WRITE_SEND_EVENT
   send_event.xgraphicsexpose.type = GraphicsExpose;
   send_event.xgraphicsexpose.send_event = True;

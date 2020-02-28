@@ -1,4 +1,4 @@
-/* $Id: guiputstr.c,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-c-*-*/
+/* $Id: guiputstr.c,v 1.2 2020/02/28 22:16:18 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -53,7 +53,7 @@ int __ctalkX11PanePutStr (OBJECT *self_object, int x, int y, char *s) {
 int __ctalkGUIPanePutStr (OBJECT *self_object, int x, int y, char *s) {
   return SUCCESS;
 }
-int __ctalkX11PanePutStrBasic (int visual_id, unsigned long int gc_ptr,
+int __ctalkX11PanePutStrBasic (void *d, int visual_id, unsigned long int gc_ptr,
 			       int x, int y, char *s) {
   return SUCCESS;
 }
@@ -61,7 +61,7 @@ int __ctalkX11PanePutStrBasic (int visual_id, unsigned long int gc_ptr,
 
 #ifdef HAVE_XFT_H
 
-int __ctalkX11PanePutStrBasic (int drawable_id, unsigned long int gc_ptr,
+int __ctalkX11PanePutStrBasic (void *d, int drawable_id, unsigned long int gc_ptr,
 			       int x, int y, char *s) {
   char d_buf[MAXLABEL];
   char *pat;
@@ -79,15 +79,25 @@ int __ctalkX11PanePutStrBasic (int drawable_id, unsigned long int gc_ptr,
 	     ctitoa (y, intbuf2), ":",
 	     s, NULL);
 
+#if 1 
     make_req (shm_mem, PANE_PUT_STR_REQUEST_FT,
 	      drawable_id, gc_ptr, d_buf);
+#else    
+    make_req (shm_mem,d, PANE_PUT_STR_REQUEST_FT,
+	      drawable_id, gc_ptr, d_buf);
+#endif    
   } else { /* if (__ctalkXftInitialized ()) */
     strcatx (d_buf,
 	     ctitoa (x, intbuf1), ":",
 	     ctitoa (y, intbuf2), ":",
 	     s, NULL);
+#if 1 /***/
     make_req (shm_mem, PANE_PUT_STR_REQUEST,
 	      drawable_id, gc_ptr, d_buf);
+#else
+    make_req (shm_mem, d, PANE_PUT_STR_REQUEST,
+	      drawable_id, gc_ptr, d_buf);
+#endif    
   }  /* if (__ctalkXftInitialized ()) */
 #ifdef GRAPHICS_WRITE_SEND_EVENT
   send_event.xgraphicsexpose.type = GraphicsExpose;
@@ -103,7 +113,7 @@ int __ctalkX11PanePutStrBasic (int drawable_id, unsigned long int gc_ptr,
 
 #else /* #ifdef HAVE_XFT_H */
 
-int __ctalkX11PanePutStrBasic (int drawable_id, unsigned long int gc_ptr,
+int __ctalkX11PanePutStrBasic (void *d, int drawable_id, unsigned long int gc_ptr,
 			       int x, int y, char *s) {
   char d_buf[MAXLABEL];
   char intbuf1[MAXLABEL], intbuf2[MAXLABEL];
@@ -273,7 +283,7 @@ int __ctalkX11PanePutStr (OBJECT *self_object, int x, int y, char *s) {
 int __ctalkGUIPanePutStr (OBJECT *self_object, int x, int y, char *s) {
   x_support_error (); return ERROR;
 }
-int __ctalkX11PanePutStrBasic (int visual_id, unsigned long int gc_ptr,
+int __ctalkX11PanePutStrBasic (void *d, int visual_id, unsigned long int gc_ptr,
 			       int x, int y, char *s) {
   x_support_error (); return ERROR;
 }
