@@ -2078,7 +2078,7 @@ function is being phased out because it uses named instance variables
 of pane_object.  Programs should use
 __ctalkX11SetBackgroundBasic (), below, instead.
 
->>>__ctalkX11SetBackgroundBasic (int visual_xid, int gc_ptr, char *color)
+>>>__ctalkX11SetBackgroundBasic (void *display, int visual_xid, int gc_ptr, char *color)
 Sets the background color of any class with a X11 visual and 
 graphics context.
 

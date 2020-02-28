@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.104 2020/02/28 22:16:18 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.105 2020/02/28 23:07:49 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -21184,7 +21184,7 @@ of @var{pane_object}.  Programs should use
 @cite{__ctalkX11SetBackgroundBasic ()}, below, instead.
 
 @idxlibfn{__ctalkX11SetBackgroundBasic}
-@item __ctalkX11SetBackgroundBasic (@code{int} @code{visual_xid}, @code{int} @var{gc_ptr}, @code{char *}@var{color})
+@item __ctalkX11SetBackgroundBasic (@code{void *}@var{display}, @code{int} @code{visual_xid}, @code{int} @var{gc_ptr}, @code{char *}@var{color})
 Sets the background color of any class with a X11 visual and 
 graphics context.
 

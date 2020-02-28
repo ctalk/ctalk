@@ -1,4 +1,4 @@
-/* $Id: guisetbackground.c,v 1.5 2019/12/25 20:27:56 rkiesling Exp $ -*-c-*-*/
+/* $Id: guisetbackground.c,v 1.6 2020/02/28 23:07:50 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -49,7 +49,7 @@ int __ctalkX11SetBackground (OBJECT *self_object) {
 int __ctalkGUISetBackground (OBJECT *self_object) {
   return SUCCESS;
 }
-int __ctalkX11SetBackgroundBasic (int drawable_id,
+int __ctalkX11SetBackgroundBasic (void *d, int drawable_id,
 				  unsigned long int gc_ptr, 
 				  char *color) {
   return SUCCESS;
@@ -59,7 +59,7 @@ int __ctalkX11SetBackground (OBJECT *self, char *color) {
   return __ctalkGUISetBackground (self, color);
 }
 
-int __ctalkX11SetBackgroundBasic (int drawable_id, 
+int __ctalkX11SetBackgroundBasic (void *d, int drawable_id, 
 				  unsigned long int gc_ptr, 
 				  char *color) {
   char d_buf[MAXLABEL];
@@ -94,8 +94,13 @@ int __ctalkX11SetBackgroundBasic (int drawable_id,
       return ERROR;
 
     sprintf (d_buf, ":%ld:%s", GCBackground, color);
+#if 1 /***/
     make_req (shm_mem, PANE_CHANGE_GC_REQUEST,
 	    drawable_id, gc_ptr, d_buf);
+#else
+    make_req (shm_mem, d, PANE_CHANGE_GC_REQUEST,
+	    drawable_id, gc_ptr, d_buf);
+#endif    
 #ifdef GRAPHICS_WRITE_SEND_EVENT
     send_event.xgraphicsexpose.type = GraphicsExpose;
     send_event.xgraphicsexpose.send_event = True;
@@ -109,13 +114,15 @@ int __ctalkX11SetBackgroundBasic (int drawable_id,
 }
 
 int __ctalkGUISetBackground (OBJECT *self, char *color) {
-  OBJECT *win_id_value, *gc_value;
+  OBJECT *win_id_value, *gc_value, *displayptr_var;
 
   win_id_value = __x11_pane_win_id_value_object (self);
   gc_value = __x11_pane_win_gc_value_object (self);
+  displayptr_var = __ctalkGetInstanceVariable (self, "displayPtr", TRUE);
 
   return __ctalkX11SetBackgroundBasic
-    (INTVAL(win_id_value -> __o_value), SYMVAL(gc_value -> __o_value),
+    ((void *)SYMVAL(displayptr_var -> instancevars -> __o_value),
+     INTVAL(win_id_value -> __o_value), SYMVAL(gc_value -> __o_value),
      color);
 }
 
@@ -129,7 +136,7 @@ int __ctalkGUISetBackground (OBJECT *self_object, char *color) {
   x_support_error ();
   return 0; /* notreached */
 }
-int __ctalkX11SetBackgroundBasic (int drawable_id,
+int __ctalkX11SetBackgroundBasic (void *d, int drawable_id,
 				  unsigned long int gc_ptr,
 				  char *color) {
   x_support_error ();

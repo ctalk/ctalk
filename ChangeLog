@@ -339,6 +339,11 @@
 	__ctalkGUIPanePutStr (guiputstr.c).  Also added a displayPtr
 	instance variable fetch in __ctalkX11PanePutTransformedStr
 	and __ctalkGUIPanePutTransformedStr (guiputxstr.c).
+	- Added a displayPtr fetch in __ctalkX11PaneRefresh and
+	__ctalkGUIPaneRefrsh (guirefresh.c).
+	- Added a display * parameter to __ctalkX11SetBackgroundBasic,
+	and a displayPtr fetch to __ctalkX11SetBackground and
+	__ctalkGUISetBackground (guisetbackground.c).
 
 
 

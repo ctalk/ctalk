@@ -1,4 +1,4 @@
-/* $Id: ctalklib.in,v 1.58 2020/02/28 22:16:18 rkiesling Exp $ -*-c-*-*/
+/* $Id: ctalklib.in,v 1.59 2020/02/28 23:07:49 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -1017,7 +1017,7 @@ extern void __ctalkX11DeletePixmap (int);
 extern int __ctalkX11FontCursor (OBJECT *, int);
 extern void __ctalkX11FreeGC (unsigned long int);
 extern int __ctalkX11SetBackground (OBJECT *, char *);
-extern int __ctalkX11SetBackgroundBasic (int, unsigned long int, char *);
+extern int __ctalkX11SetBackgroundBasic (void *, int, unsigned long int, char *);
 extern int __ctalkX11SetForegroundBasic (int, unsigned long int, char *);
 extern int __ctalkX11ParseGeometry (char *, int *, int *, int *, int *);
 extern int __ctalkX11SetSizeHints (int, int, int, int, int);

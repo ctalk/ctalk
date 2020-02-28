@@ -8373,7 +8373,7 @@ functions.
      PANE_OBJECT.  Programs should use '__ctalkX11SetBackgroundBasic
      ()', below, instead.
 
-'__ctalkX11SetBackgroundBasic (int visual_xid, int GC_PTR, char *COLOR)'
+'__ctalkX11SetBackgroundBasic (void *DISPLAY, int visual_xid, int GC_PTR, char *COLOR)'
      Sets the background color of any class with a X11 visual and
      graphics context.
 

@@ -1,4 +1,4 @@
-/* $Id: X11Bitmap,v 1.8 2020/02/28 22:16:17 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11Bitmap,v 1.9 2020/02/28 23:07:49 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -132,7 +132,7 @@ X11Bitmap instanceMethod foreground (String color) {
 X11Bitmap instanceMethod background (String color) {
   "Set the background color of the receiver to the argument,
   a String."
-  __ctalkX11SetBackgroundBasic (self xID, self xGC, color);
+    __ctalkX11SetBackgroundBasic (self  displayPtr, self xID, self xGC, color);
   self clear;
 }
 

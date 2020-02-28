@@ -1,4 +1,4 @@
-/* $Id: guirefresh.c,v 1.1.1.1 2019/10/26 23:40:50 rkiesling Exp $ -*-c-*-*/
+/* $Id: guirefresh.c,v 1.2 2020/02/28 22:48:20 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -63,7 +63,7 @@ int __ctalkGUIPaneRefresh (OBJECT *self,
 			   int src_x_org, int src_y_org,
 			   int src_width, int src_height,
 			   int dest_x_org, int dest_y_org) {
-  OBJECT *self_object, *win_id_value, *gc_value;
+  OBJECT *self_object, *win_id_value, *gc_value, *displayptr_var;
   int panebuffer_xid, panebackingstore_xid;
   char d_buf[MAXLABEL];
   char intbuf1[MAXLABEL];
@@ -74,6 +74,7 @@ int __ctalkGUIPaneRefresh (OBJECT *self,
   self_object = (IS_VALUE_INSTANCE_VAR (self) ? self->__o_p_obj : self);
   win_id_value = __x11_pane_win_id_value_object (self_object);
   gc_value = __x11_pane_win_gc_value_object (self_object);
+  displayptr_var = __ctalkGetInstanceVariable (self_object, "displayPtr", TRUE);
   __get_pane_buffers (self_object, &panebuffer_xid,
 		      &panebackingstore_xid);
   if (!panebuffer_xid)
@@ -87,9 +88,17 @@ int __ctalkGUIPaneRefresh (OBJECT *self,
 	   ascii[src_height], ":",
 	   ascii[dest_x_org], ":",
 	   ascii[dest_y_org], NULL);
+#if 1 /***/
   make_req (shm_mem, PANE_REFRESH_REQUEST,
 	    INTVAL(win_id_value -> __o_value),
 	    SYMVAL(gc_value -> __o_value), d_buf);
+#else
+  make_req (shm_mem,
+	    SYMVAL(displayptr_var -> instancevars -> __o_value),
+	    PANE_REFRESH_REQUEST,
+	    INTVAL(win_id_value -> __o_value),
+	    SYMVAL(gc_value -> __o_value), d_buf);
+#endif  
 #ifdef GRAPHICS_WRITE_SEND_EVENT
   send_event.xgraphicsexpose.type = GraphicsExpose;
   send_event.xgraphicsexpose.send_event = True;
