@@ -1,4 +1,4 @@
-/* $Id: guidrawline.c,v 1.2 2020/02/28 19:48:10 rkiesling Exp $ -*-c-*-*/
+/* $Id: guidrawline.c,v 1.3 2020/02/28 19:58:37 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -128,7 +128,7 @@ int __ctalkGUIPaneDrawLine (OBJECT *self, OBJECT *line, OBJECT *pen) {
   OBJECT *line_end_var, *line_end_x_var, *line_end_y_var;
   OBJECT *pen_width_object, *pen_color_object, *pen_alpha_object; 
   OBJECT *win_id_value, *gc_value;
-  OBJECT *line_object;
+  OBJECT *line_object, *displayPtr_var;
   int start_x, start_y, end_x, end_y;
   char d_buf[MAXMSG];
   int panebuffer_xid, panebackingstore_xid;
@@ -161,6 +161,8 @@ int __ctalkGUIPaneDrawLine (OBJECT *self, OBJECT *line, OBJECT *pen) {
     __ctalkGetInstanceVariable (line_end_var, "y", TRUE);
   __get_pane_buffers (self_object, &panebuffer_xid,
 		      &panebackingstore_xid);
+  displayPtr_var = __ctalkGetInstanceVariable (self_object, "displayPtr",
+					       TRUE);
 
   start_x = *(int *)line_start_x_var->instancevars -> __o_value;
   start_y = *(int *)line_start_y_var->instancevars -> __o_value;
@@ -180,9 +182,19 @@ int __ctalkGUIPaneDrawLine (OBJECT *self, OBJECT *line, OBJECT *pen) {
 	   pen_color_object->instancevars->__o_value,
 	   NULL);
 
+#if  1 /***/
   make_req (shm_mem, PANE_DRAW_LINE_REQUEST,
 	    INTVAL(win_id_value -> __o_value),
 	    SYMVAL(gc_value -> __o_value), d_buf);
+#else
+
+  make_req (shm_mem,
+	    SYMVAL(displayPtr_var -> instancevars -> __o_value),
+	    PANE_DRAW_LINE_REQUEST,
+	    INTVAL(win_id_value -> __o_value),
+	    SYMVAL(gc_value -> __o_value), d_buf);
+
+#endif  
 #ifdef GRAPHICS_WRITE_SEND_EVENT
   send_event.xgraphicsexpose.type = GraphicsExpose;
   send_event.xgraphicsexpose.send_event = True;
