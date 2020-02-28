@@ -1,4 +1,4 @@
-/* $Id: X11Bitmap,v 1.6 2020/02/28 19:48:09 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11Bitmap,v 1.7 2020/02/28 20:17:02 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -274,11 +274,11 @@ X11Bitmap instanceMethod drawPoint (Integer x, Integer y, Pen p) {
   "Draw a point at the x,y coordinates given as the first
    two arguments, using the Pen object given as the third
    argument."
-  __ctalkX11PaneDrawPointBasic (self xID, self xGC,
-				x, y, 
-				p width,
-				p alpha,
-				p colorName);
+    __ctalkX11PaneDrawPointBasic (self displayPtr, self xID, self xGC,
+				  x, y, 
+				  p width,
+				  p alpha,
+				  p colorName);
   return NULL;
 }
 

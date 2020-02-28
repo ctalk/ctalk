@@ -8335,7 +8335,7 @@ functions.
      function is a synonym for '__ctalkGUIPaneDrawPoint' on systems that
      use the X Window system.
 
-'__ctalkX11PaneDrawPointBasic (int DRAWABLE_ID, int GC_PTR, int X, int Y, int PEN_WIDTH, int ALPHA, char *PEN_COLOR)'
+'__ctalkX11PaneDrawPointBasic (void *DISPLAY, int DRAWABLE_ID, int GC_PTR, int X, int Y, int PEN_WIDTH, int ALPHA, char *PEN_COLOR)'
      Draw a point of the size, position, color, and transparency using
      the drawable ID, graphics context, and Pen color, transparency, and
      width given as arguments.

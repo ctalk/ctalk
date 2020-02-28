@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.102 2020/02/28 19:48:10 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.103 2020/02/28 20:17:02 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -21136,7 +21136,7 @@ Draw a point on the drawable id given in @var{pane_object}
 on systems that use the X Window system.
 
 @idxlibfn{__ctalkX11PaneDrawPointBasic}
-@item __ctalkX11PaneDrawPointBasic (@code{int} @var{drawable_id}, @code{int} @var{gc_ptr}, @code{int} @var{x}, @code{int} @var{y}, @code{int} @var{pen_width}, @code{int} @var{alpha}, @code{char *}@var{pen_color})
+@item __ctalkX11PaneDrawPointBasic (@code{void *}@var{display}, @code{int} @var{drawable_id}, @code{int} @var{gc_ptr}, @code{int} @var{x}, @code{int} @var{y}, @code{int} @var{pen_width}, @code{int} @var{alpha}, @code{char *}@var{pen_color})
 Draw a point of the size, position, color, and transparency using the
 drawable ID, graphics context, and Pen color, transparency, and width
 given as arguments.

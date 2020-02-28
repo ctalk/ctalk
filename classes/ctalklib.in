@@ -1,4 +1,4 @@
-/* $Id: ctalklib.in,v 1.56 2020/02/28 19:48:09 rkiesling Exp $ -*-c-*-*/
+/* $Id: ctalklib.in,v 1.57 2020/02/28 20:17:02 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -1071,7 +1071,7 @@ extern int __ctalkX11PaneDrawLine (OBJECT *, OBJECT *, OBJECT *);
 extern int __ctalkX11PaneDrawLineBasic (void *, int, unsigned long int, int, int,
 					int, int, int, int, char *);
 extern int __ctalkX11PaneDrawPoint (OBJECT *, OBJECT *, OBJECT *);
-extern int __ctalkX11PaneDrawPointBasic (int, unsigned long int, int, int,
+extern int __ctalkX11PaneDrawPointBasic (void *, int, unsigned long int, int, int,
 					 int, int, char *);
 extern int __ctalkX11PaneDrawRectangle (OBJECT *, OBJECT *, OBJECT *, int);
 extern int __ctalkX11PaneDrawRoundedRectangle (OBJECT *, OBJECT *, OBJECT *,

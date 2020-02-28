@@ -2037,7 +2037,7 @@ Draw a point on the drawable id given in pane_object
   This function is a synonym for __ctalkGUIPaneDrawPoint
 on systems that use the X Window system.
 
->>>__ctalkX11PaneDrawPointBasic (int drawable_id, int gc_ptr, int x, int y, int pen_width, int alpha, char *pen_color)
+>>>__ctalkX11PaneDrawPointBasic (void *display, int drawable_id, int gc_ptr, int x, int y, int pen_width, int alpha, char *pen_color)
 Draw a point of the size, position, color, and transparency using the
 drawable ID, graphics context, and Pen color, transparency, and width
 given as arguments.
