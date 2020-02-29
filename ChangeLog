@@ -321,3 +321,11 @@
 	a valid VARENTRY (rtinfo.c).
 	- Updated GUI libs for 6-argument make_req macro (32-bit and
 	64-bit)	that includes a Display * argument (x11defs.h, etc).
+2020-02-29
+	- Added local Display * construction from shared memory in
+	__xlib_handle_client_request (x11lib.c).
+	- Added a Display * parameter to __xlib_put_str (x11lib.c),
+	and __xlib_clear_rectangle_basic (bitmap.c).  Removed
+	__ctalkX11ClearBufferRectangle, which is no longer used
+	(bitmap.c).
+

@@ -8157,12 +8157,6 @@ functions.
      For an example of the functions' use, refer to the method 'X11Pane
      : deleteAndClose'.  *Note X11Pane::.
 
-'__ctalkClearBufferRectangle (OBJECT *PANE_OBJECT, int X, int Y, int WIDTH HEIGHT)'
-     Clear a rectangle in PANE_OBJECT's pane buffer starting at X,Y,
-     with width WIDTH and height HEIGHT.  Note that this function is
-     being phased out in favor of '__ctalkX11ClearRectangleBasic', which
-     does not rely on hard-coded instance variable names.
-
 '__ctalkX11ClearRectangleBasic (void *DISPLAY, int VISUAL_ID, int GC_PTR, int X, int Y, int WIDTH, int HEIGHT)'
      Clear a rectangle of a visual type like a pixmap to the background
      color.

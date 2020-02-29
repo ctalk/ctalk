@@ -1864,12 +1864,13 @@ and other data.  Does not delete subpanes - see __ctalkCloseX11Pane ()
 closing and deleting the main window.  For an example of the functions'
 use, refer to the method X11Pane : deleteAndClose. 
 
+@c /***/
 >>>__ctalkClearBufferRectangle (OBJECT *pane_object, int x, int y, int width height)
-Clear a rectangle in pane_object's pane buffer starting at
-X,Y, with width width and height height.  Note that
-this function is being phased out in favor of
-__ctalkX11ClearRectangleBasic, which does not rely on
-hard-coded instance variable names.
+@c Clear a rectangle in pane_object's pane buffer starting at
+@c X,Y, with width width and height height.  Note that
+@c this function is being phased out in favor of
+@c __ctalkX11ClearRectangleBasic, which does not rely on
+@c hard-coded instance variable names.
 
 
 >>>__ctalkX11ClearRectangleBasic (void *display, int visual_id, int gc_ptr, int x, int y, int width, int height)

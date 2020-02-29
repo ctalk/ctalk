@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.113 2020/02/29 01:23:01 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.114 2020/02/29 12:07:29 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -20927,13 +20927,14 @@ and other data.  Does not delete subpanes - see __ctalkCloseX11Pane ()
 closing and deleting the main window.  For an example of the functions'
 use, refer to the method @mnm{X11Pane : deleteAndClose}. @xref{X11Pane}.
 
-@idxlibfn{__ctalkX11ClearBufferRectangle}
-@item __ctalkClearBufferRectangle (@code{OBJECT *}@var{pane_object}, @code{int} @var{x}, @code{int} @var{y}, @code{int} @var{width} @var{height}) 
-Clear a rectangle in @var{pane_object}'s pane buffer starting at
-@var{X},@var{Y}, with width @var{width} and height @var{height}.  Note that
-this function is being phased out in favor of
-@cite{__ctalkX11ClearRectangleBasic}, which does not rely on
-hard-coded instance variable names.
+@c /***/
+@c @idxlibfn{__ctalkX11ClearBufferRectangle}
+@c @item __ctalkClearBufferRectangle (@code{OBJECT *}@var{pane_object}, @code{int} @var{x}, @code{int} @var{y}, @code{int} @var{width} @var{height}) 
+@c Clear a rectangle in @var{pane_object}'s pane buffer starting at
+@c @var{X},@var{Y}, with width @var{width} and height @var{height}.  Note that
+@c this function is being phased out in favor of
+@c @cite{__ctalkX11ClearRectangleBasic}, which does not rely on
+@c hard-coded instance variable names.
 
 
 @idxlibfn{__ctalkX11ClearRectangleBasic}

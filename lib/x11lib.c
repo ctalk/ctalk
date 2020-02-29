@@ -1,4 +1,4 @@
-/* $Id: x11lib.c,v 1.87 2020/02/29 10:21:16 rkiesling Exp $ -*-c-*-*/
+/* $Id: x11lib.c,v 1.90 2020/02/29 12:07:29 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -341,7 +341,8 @@ int lookup_rgb (char *color, unsigned short int *r_return,
   }
 }
 
-extern int __xlib_clear_rectangle_basic (Drawable, int, int, int, int, GC);
+extern int __xlib_clear_rectangle_basic (Display *, Drawable,
+					 int, int, int, int, GC);
 
 static void __xlib_put_str_scan (char *data, int *x, int *y, 
 				 char **str) {
@@ -377,7 +378,7 @@ static void __xlib_put_str_scan (char *data, int *x, int *y,
   *str = ++q;
 }
 
-int __xlib_put_str (Drawable w, GC gc, char *s) {
+int __xlib_put_str (Display *d, Drawable w, GC gc, char *s) {
   int n;
   static Font c_font;
   static XFontStruct *fontinfo = NULL;
@@ -403,32 +404,32 @@ int __xlib_put_str (Drawable w, GC gc, char *s) {
   if (xlibfont.selectedfont && xlibfont.selected_xfs) {
     width = XTextWidth (xlibfont.selected_xfs, c_term,
 			strlen (c_term));
-    __xlib_clear_rectangle_basic (w, x,
+    __xlib_clear_rectangle_basic (d, w, x,
 				  y - xlibfont.selected_xfs -> ascent,
 				  width, 
 				  xlibfont.selected_xfs -> ascent +
 				  xlibfont.selected_xfs -> descent,
 				  gc);
   } else if (xlibfont.selectedfont) {
-    c_font = XLoadFont (display, xlibfont.selectedfont);
-    fontinfo = XQueryFont (display, c_font);
+    c_font = XLoadFont (d, xlibfont.selectedfont);
+    fontinfo = XQueryFont (d, c_font);
     width = XTextWidth (fontinfo, c_term,
 			strlen (c_term));
-    __xlib_clear_rectangle_basic (w, x, y - fontinfo -> ascent, 
+    __xlib_clear_rectangle_basic (d, w, x, y - fontinfo -> ascent, 
 				  width, 
 				  fontinfo -> ascent + fontinfo -> descent,
 				  gc);
-    XFreeFont (display, fontinfo);
+    XFreeFont (d, fontinfo);
   } else {
-    c_font = XLoadFont (display, FIXED_FONT_XLFD);
-    fontinfo = XQueryFont (display, c_font);
+    c_font = XLoadFont (d, FIXED_FONT_XLFD);
+    fontinfo = XQueryFont (d, c_font);
     width = XTextWidth (fontinfo, c_term,
 			strlen (c_term));
-    __xlib_clear_rectangle_basic (w, x, y - fontinfo -> ascent, 
+    __xlib_clear_rectangle_basic (d, w, x, y - fontinfo -> ascent, 
 				  width, 
 				  fontinfo -> ascent + fontinfo -> descent,
 				  gc);
-    XFreeFont (display, fontinfo);
+    XFreeFont (d, fontinfo);
   }
     
     /*
@@ -436,7 +437,7 @@ int __xlib_put_str (Drawable w, GC gc, char *s) {
      *  line.
      */
     if (strcmp (c_term, "\x1b" "[2K"))
-      XDrawImageString (display, w, gc, x, y, 
+      XDrawImageString (d, w, gc, x, y, 
 			c_term, 
 			strlen (c_term));
   return SUCCESS;
@@ -1444,6 +1445,7 @@ int __xlib_handle_client_request (char *shm_mem_2) {
   unsigned int w;
   int r;
   GC gc;
+  Display *d;
   
   if (! *shm_mem_2) goto x_event_cleanup;
 
@@ -1462,6 +1464,19 @@ int __xlib_handle_client_request (char *shm_mem_2) {
     shm_mem_2[SHM_DRAWABLE+7];
   
 #ifdef __x86_64
+  /* the uintptr_t casts indicate that we want this type width */
+  d = (Display *)((((uintptr_t)shm_mem_2[SHM_DISPLAY]) << 44) +
+	    (((uintptr_t)shm_mem_2[SHM_DISPLAY+1]) << 40) +
+	    (((uintptr_t)shm_mem_2[SHM_DISPLAY+2]) << 36) + 
+	    (((uintptr_t)shm_mem_2[SHM_DISPLAY+3]) << 32) +
+	    (((uintptr_t)shm_mem_2[SHM_DISPLAY+4]) << 28) +
+	    (((uintptr_t)shm_mem_2[SHM_DISPLAY+5]) << 24) +
+	    (((uintptr_t)shm_mem_2[SHM_DISPLAY+6]) << 20) +
+	    (((uintptr_t)shm_mem_2[SHM_DISPLAY+7]) << 16) +
+	    (((uintptr_t)shm_mem_2[SHM_DISPLAY+8]) << 12) +
+	    (((uintptr_t)shm_mem_2[SHM_DISPLAY+9]) << 8) +
+	    (((uintptr_t)shm_mem_2[SHM_DISPLAY+10]) << 4) +
+	    shm_mem_2[SHM_DISPLAY+11]);
   gc = (GC)((((uintptr_t)shm_mem_2[SHM_GC]) << 44) +
 	    (((uintptr_t)shm_mem_2[SHM_GC+1]) << 40) +
 	    (((uintptr_t)shm_mem_2[SHM_GC+2]) << 36) + 
@@ -1474,7 +1489,16 @@ int __xlib_handle_client_request (char *shm_mem_2) {
 	    (((uintptr_t)shm_mem_2[SHM_GC+9]) << 8) +
 	    (((uintptr_t)shm_mem_2[SHM_GC+10]) << 4) +
 	    shm_mem_2[SHM_GC+11]);
+
 #else  
+  d = (Display *)((shm_mem_2[SHM_DISPLAY] << 28) +
+		  (shm_mem_2[SHM_DISPLAY + 1] << 24) +
+		  (shm_mem_2[SHM_DISPLAY + 2] << 20) +
+		  (shm_mem_2[SHM_DISPLAY + 3] << 16) +
+		  (shm_mem_2[SHM_DISPLAY + 4] << 12) +
+		  (shm_mem_2[SHM_DISPLAY + 5] << 8) +
+		  (shm_mem_2[SHM_DISPLAY + 6] << 4) +
+		  shm_mem_2[SHM_DISPLAY + 7]);
   gc = (GC)((shm_mem_2[SHM_GC] << 28) +
 	   (shm_mem_2[SHM_GC+1] << 24) +
 	   (shm_mem_2[SHM_GC+2] << 20) +
@@ -1488,7 +1512,7 @@ int __xlib_handle_client_request (char *shm_mem_2) {
   switch (shm_mem_2[SHM_REQ]) 
     {
     case PANE_PUT_STR_REQUEST:
-      __xlib_put_str ((Drawable)w, gc, &shm_mem_2[SHM_DATA]);
+      __xlib_put_str (d, (Drawable)w, gc, &shm_mem_2[SHM_DATA]);
       break;
 #ifdef HAVE_XFT_H
     case PANE_PUT_STR_REQUEST_FT:

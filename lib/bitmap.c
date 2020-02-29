@@ -1,4 +1,4 @@
-/* $Id: bitmap.c,v 1.2 2020/02/28 17:39:49 rkiesling Exp $ -*-c-*-*/
+/* $Id: bitmap.c,v 1.3 2020/02/29 12:07:29 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -52,7 +52,8 @@ int __xlib_clear_pixmap (Drawable d, unsigned int width,
   return SUCCESS;
 }
 
-int __xlib_clear_rectangle_basic (Drawable d, int x, int y, 
+/***/
+int __xlib_clear_rectangle_basic (Display *disp, Drawable d, int x, int y, 
 				  unsigned int width, unsigned int height,
 				  GC gc) {
   XGCValues rectangle_gcv, old_gcv;
@@ -242,11 +243,13 @@ int __ctalkX11ResizePaneBuffer (OBJECT *pane,
   return SUCCESS;
 }
 
+#if 0 /***/
+/* Used? */
 int __ctalkX11ClearBufferRectangle (OBJECT *pane,
 				    int x, int y,
 				    int width, int height) {
   OBJECT *pane_object, *paneBuffer_object, *paneBackingStore_object,
-    *xWindowID_object, *xGC_object;
+    *xWindowID_object, *xGC_object, *displayptr_var;
   GC gc;
   pane_object = (IS_VALUE_INSTANCE_VAR(pane) ? pane -> __o_p_obj :
 		 pane);
@@ -265,25 +268,26 @@ int __ctalkX11ClearBufferRectangle (OBJECT *pane,
 		  xGC_object->instancevars->__o_value);
   }
   __xlib_clear_rectangle_basic 
-    (atoi(paneBuffer_object->instancevars->__o_value), 
+    (display, atoi(paneBuffer_object->instancevars->__o_value), 
      x, y, width, height, gc);
   if ((paneBackingStore_object = 
 	__ctalkGetInstanceVariable (pane_object, "paneBackingStore", TRUE))
        == NULL)
     return ERROR;
   __xlib_clear_rectangle_basic 
-    (atoi(paneBackingStore_object->instancevars->__o_value), 
+    (display, atoi(paneBackingStore_object->instancevars->__o_value), 
      x, y, width, height, gc);
   if ((xWindowID_object = 
        __ctalkGetInstanceVariable (pane_object, "xWindowID", TRUE))
       == NULL)
     return ERROR;
   __xlib_clear_rectangle_basic 
-    (atoi(xWindowID_object->instancevars->__o_value), 
+    (display, atoi(xWindowID_object->instancevars->__o_value), 
      x, y, width, height, gc);
   return SUCCESS;
 
 }
+#endif
 
 int __get_pane_buffers (OBJECT *pane_object, int *panebuffer_xid,
 			int *panebackingstore_xid) {
