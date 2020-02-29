@@ -1,4 +1,4 @@
-/* $Id: ctxlogo.ca,v 1.7 2019/12/25 00:29:00 rkiesling Exp $ */
+/* $Id: ctxlogo.ca,v 1.8 2020/02/29 12:31:00 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -188,6 +188,7 @@ int main (int argc, char **argv) {
   xCanvasPane background bgColor;
 #endif  
 
+  xPane backgroundColor = bgColor;
   xPane initialize xWindowOrg, yWindowOrg, xWindowSize, yWindowSize,
     ctxlogo geomFlags;
   xPane inputStream eventMask =
