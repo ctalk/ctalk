@@ -1,4 +1,4 @@
-/* $Id: xresource.c,v 1.2 2020/02/29 01:23:02 rkiesling Exp $ -*-c-*-*/
+/* $Id: xresource.c,v 1.4 2020/02/29 02:54:05 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -75,13 +75,10 @@ int __ctalkX11SetResource (void *d, int drawable_id,
 
   /* The GC is not used in this call. */
   strcatx (d_buf, ":", resource_name, ":", resource_class, NULL);
-#if 1 /***/
-  make_req (shm_mem, PANE_SET_RESOURCE_REQUEST,
+
+  make_req (shm_mem, (uintptr_t)d, PANE_SET_RESOURCE_REQUEST,
    	    drawable_id, 65535, d_buf);
-#else
-  make_req (shm_mem, d, PANE_SET_RESOURCE_REQUEST,
-   	    drawable_id, 65535, d_buf);
-#endif
+
 #ifdef GRAPHICS_WRITE_SEND_EVENT
   send_event.xgraphicsexpose.type = GraphicsExpose;
   send_event.xgraphicsexpose.send_event = True;

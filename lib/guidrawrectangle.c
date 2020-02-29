@@ -1,4 +1,4 @@
-/* $Id: guidrawrectangle.c,v 1.8 2020/02/28 22:05:59 rkiesling Exp $ -*-c-*-*/
+/* $Id: guidrawrectangle.c,v 1.10 2020/02/29 02:54:05 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -153,17 +153,12 @@ int __ctalkGUIPaneDrawRectangle (OBJECT *self, OBJECT *rectangle, OBJECT *pen,
 	   pen_color_object->instancevars->__o_value,
 	   NULL); /***/
 	   
-#if 1 /***/
-  make_req (shm_mem, PANE_DRAW_RECTANGLE_REQUEST,
-	    INTVAL(win_id_value -> __o_value),
-	    SYMVAL(gc_value -> __o_value), d_buf);
-#else
   make_req (shm_mem,
 	    SYMVAL(displayptr_var -> instancevars->__o_value),
 	    PANE_DRAW_RECTANGLE_REQUEST,
 	    INTVAL(win_id_value -> __o_value),
 	    SYMVAL(gc_value -> __o_value), d_buf);
-#endif  
+
 #ifdef GRAPHICS_WRITE_SEND_EVENT
   send_event.xgraphicsexpose.type = GraphicsExpose;
   send_event.xgraphicsexpose.send_event = True;
@@ -257,17 +252,12 @@ int __ctalkGUIPaneDrawRoundedRectangle (OBJECT *self, OBJECT *rectangle,
 	   pen_color_object->instancevars->__o_value,
 	   NULL); /***/
 	   
-#if 1 /***/
-  make_req (shm_mem, PANE_DRAW_RECTANGLE_REQUEST,
-	    INTVAL(win_id_value -> __o_value),
-	    SYMVAL(gc_value -> __o_value), d_buf);
-#else
   make_req (shm_mem,
 	    SYMVAL(displayptr_var -> instancevars -> __o_value),
 	    PANE_DRAW_RECTANGLE_REQUEST,
 	    INTVAL(win_id_value -> __o_value),
 	    SYMVAL(gc_value -> __o_value), d_buf);
-#endif  
+
 #ifdef GRAPHICS_WRITE_SEND_EVENT
   send_event.xgraphicsexpose.type = GraphicsExpose;
   send_event.xgraphicsexpose.send_event = True;

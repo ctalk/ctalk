@@ -1,4 +1,4 @@
-/* $Id: xlibfont.c,v 1.3 2020/02/29 01:11:22 rkiesling Exp $ -*-c-*-*/
+/* $Id: xlibfont.c,v 1.5 2020/02/29 02:54:05 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -306,25 +306,19 @@ int __ctalkSelectXFontFace (void *d, int drawable_id,
        piece of text, send it to the server side directly. */
     sync_ft_font (true);
     strcatx (d_buf, ctitoa (face, intbuf), NULL);
-#if 1 /***/
-    make_req (shm_mem, PANE_XLIB_FACE_REQUEST_FT,
+
+    make_req (shm_mem, (uintptr_t)d, PANE_XLIB_FACE_REQUEST_FT,
 	      drawable_id, gc_ptr, d_buf);
-#else
-    make_req (shm_mem, d, PANE_XLIB_FACE_REQUEST_FT,
-	      drawable_id, gc_ptr, d_buf);
-#endif    
+
     wait_req (shm_mem);
 
   } else {
 
     strcatx (d_buf, ctitoa (face, intbuf), NULL);
-#if 1 /***/
-    make_req (shm_mem, PANE_XLIB_FACE_REQUEST,
+
+    make_req (shm_mem, (uintptr_t)d, PANE_XLIB_FACE_REQUEST,
 	      drawable_id, gc_ptr, d_buf);
-#else
-    make_req (shm_mem, d, PANE_XLIB_FACE_REQUEST,
-	      drawable_id, gc_ptr, d_buf);
-#endif    
+
     wait_req (shm_mem);
   }
 #ifdef GRAPHICS_WRITE_SEND_EVENT
@@ -353,13 +347,10 @@ int __ctalkSelectXFontFace (void *d, int drawable_id,
     return ERROR;
 
   strcatx (d_buf, ctitoa (face, intbuf), NULL);
-#if 1 /***/
-  make_req (shm_mem, PANE_XLIB_FACE_REQUEST,
+
+  make_req (shm_mem, (uintptr_t)d, PANE_XLIB_FACE_REQUEST,
 	    drawable_id, gc_ptr, d_buf);
-#else
-  make_req (shm_mem, d, PANE_XLIB_FACE_REQUEST,
-	    drawable_id, gc_ptr, d_buf);
-#endif  
+
 #ifdef GRAPHICS_WRITE_SEND_EVENT
   send_event.xgraphicsexpose.type = GraphicsExpose;
   send_event.xgraphicsexpose.send_event = True;

@@ -1,4 +1,4 @@
-/* $Id: guiputxstr.c,v 1.2 2020/02/28 22:39:04 rkiesling Exp $ -*-c-*-*/
+/* $Id: guiputxstr.c,v 1.4 2020/02/29 02:54:05 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -98,29 +98,17 @@ int __ctalkGUIPanePutTransformedStr (OBJECT *self, int x, int y, char *s) {
     __get_pane_buffers (self_object, &panebuffer_xid, 
 			&panebackingstore_xid);
     if (panebuffer_xid) {
-#if 1 /***/
-      make_req (shm_mem, PANE_PUT_STR_REQUEST_FT,
-		panebuffer_xid,
-		SYMVAL(gc_value -> __o_value), d_buf);
-#else
       make_req (shm_mem,
 		SYMVAL(displayptr_var -> instancevars -> __o_value),
 		PANE_PUT_STR_REQUEST_FT,
 		panebuffer_xid,
 		SYMVAL(gc_value -> __o_value), d_buf);
-#endif      
     } else {
-#if 1 /***/
-      make_req (shm_mem, PANE_PUT_STR_REQUEST_FT,
-		INTVAL(win_id_value -> __o_value),
-		SYMVAL(gc_value -> __o_value), d_buf);
-#else
       make_req (shm_mem,
 		SYMVAL(displayptr_var -> instancevars -> __o_value),
 		PANE_PUT_STR_REQUEST_FT,
 		INTVAL(win_id_value -> __o_value),
 		SYMVAL(gc_value -> __o_value), d_buf);
-#endif      
     }
 
   } else { /* if (__ctalkXftInitialized ()) */
@@ -132,27 +120,16 @@ int __ctalkGUIPanePutTransformedStr (OBJECT *self, int x, int y, char *s) {
     __get_pane_buffers (self_object, &panebuffer_xid, 
 			&panebackingstore_xid);
     if (panebuffer_xid) {
-#if 1 /***/
-      make_req (shm_mem, PANE_PUT_STR_REQUEST, panebuffer_xid,
-		SYMVAL(gc_value -> __o_value), d_buf);
-#else
       make_req (shm_mem,
 		SYMVAL(displayptr_var -> instancevars -> __o_value),
 		PANE_PUT_STR_REQUEST, panebuffer_xid,
 		SYMVAL(gc_value -> __o_value), d_buf);
-#endif      
     } else {
-#if 1 /***/
-      make_req (shm_mem, PANE_PUT_STR_REQUEST,
-		INTVAL(win_id_value -> __o_value),
-		SYMVAL(gc_value -> __o_value), d_buf);
-#else
       make_req (shm_mem,
 		SYMVAL(displayptr_var -> instancevars -> __o_value),
 		PANE_PUT_STR_REQUEST,
 		INTVAL(win_id_value -> __o_value),
 		SYMVAL(gc_value -> __o_value), d_buf);
-#endif      
     }
 
   } /* if (__ctalkXftInitialized ()) */
@@ -211,27 +188,16 @@ int __ctalkGUIPanePutTransformedStr (OBJECT *self, int x, int y, char *s) {
   __get_pane_buffers (self_object, &panebuffer_xid, 
 		      &panebackingstore_xid);
   if (panebuffer_xid) {
-#if 1 /***/
-    make_req (shm_mem, PANE_PUT_STR_REQUEST, panebuffer_xid,
-	      SYMVAL(gc_value -> __o_value), d_buf);
-#else
     make_req (shm_mem,
 	      SYMVAL(displayptr_var -> instancevars -> __o_value),
 	      PANE_PUT_STR_REQUEST, panebuffer_xid,
 	      SYMVAL(gc_value -> __o_value), d_buf);
-#endif    
   } else {
-#if 1 /***/
-    make_req (shm_mem, PANE_PUT_STR_REQUEST,
-	      INTVAL(win_id_value -> __o_value),
-	      SYMVAL(gc_value -> __o_value), d_buf);
-#else
     make_req (shm_mem,
 	      SYMVAL(displayptr_var -> instancevars -> __o_value),
 	      PANE_PUT_STR_REQUEST,
 	      INTVAL(win_id_value -> __o_value),
 	      SYMVAL(gc_value -> __o_value), d_buf);
-#endif    
   }
 #ifdef GRAPHICS_WRITE_SEND_EVENT
   send_event.xgraphicsexpose.type = GraphicsExpose;

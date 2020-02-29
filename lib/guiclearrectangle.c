@@ -1,4 +1,4 @@
-/* $Id: guiclearrectangle.c,v 1.3 2020/02/28 19:08:44 rkiesling Exp $ -*-c-*-*/
+/* $Id: guiclearrectangle.c,v 1.5 2020/02/29 02:54:04 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -110,13 +110,8 @@ int __ctalkX11ClearRectangleBasic (void *d, int drawable_id,
 	     ctitoa (drawable_id, cr_intbuf1), ":",
 	     ctitoa (drawable_id, cr_intbuf2), ":",
 	     NULL);
-#if 1 /***/
-    make_req (shm_mem, PANE_CLEAR_RECTANGLE_REQUEST,
+    make_req (shm_mem, (uintptr_t)d, PANE_CLEAR_RECTANGLE_REQUEST,
 	      drawable_id, gc_ptr, d_buf);
-#else
-    make_req (shm_mem, d, PANE_CLEAR_RECTANGLE_REQUEST,
-	      drawable_id, gc_ptr, d_buf);
-#endif    
 
 #ifdef GRAPHICS_WRITE_SEND_EVENT
     send_event.xgraphicsexpose.type = GraphicsExpose;
@@ -162,16 +157,10 @@ int __ctalkGUIPaneClearRectangle (OBJECT *self, int x, int y,
 	     ctitoa (panebuffer_xid, cr_intbuf5), ":",
 	     ctitoa (panebackingstore_xid, cr_intbuf6), ":",
 	     NULL);
-#if 1 /***/
-    make_req (shm_mem, PANE_CLEAR_RECTANGLE_REQUEST,
-	      panebuffer_xid,
-	      SYMVAL(gc_value -> __o_value), d_buf);
-#else
     make_req (shm_mem, SYMVAL(displayPtr_var -> instancevars -> __o_value),
 	      PANE_CLEAR_RECTANGLE_REQUEST,
 	      panebuffer_xid,
 	      SYMVAL(gc_value -> __o_value), d_buf);
-#endif    
   } else {
     strcatx (d_buf,
 	     ctitoa (x, cr_intbuf1), ":",
@@ -179,16 +168,10 @@ int __ctalkGUIPaneClearRectangle (OBJECT *self, int x, int y,
 	     ctitoa (width, cr_intbuf3), ":",
 	     ctitoa (height, cr_intbuf4), ":0:0:",
 	     NULL);
-#if 1 /***/
-    make_req (shm_mem, PANE_CLEAR_RECTANGLE_REQUEST,
-	      INTVAL(win_id_value -> __o_value),
-	      SYMVAL(gc_value -> __o_value), d_buf);
-#else
     make_req (shm_mem, SYMVAL(displayPtr_var -> instancevars -> __o_value),
 	      PANE_CLEAR_RECTANGLE_REQUEST,
 	      INTVAL(win_id_value -> __o_value),
 	      SYMVAL(gc_value -> __o_value), d_buf);
-#endif    
   }
   wait_req (shm_mem);
   return SUCCESS;

@@ -1,4 +1,4 @@
-/* $Id: guirefresh.c,v 1.2 2020/02/28 22:48:20 rkiesling Exp $ -*-c-*-*/
+/* $Id: guirefresh.c,v 1.4 2020/02/29 02:54:05 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -88,17 +88,11 @@ int __ctalkGUIPaneRefresh (OBJECT *self,
 	   ascii[src_height], ":",
 	   ascii[dest_x_org], ":",
 	   ascii[dest_y_org], NULL);
-#if 1 /***/
-  make_req (shm_mem, PANE_REFRESH_REQUEST,
-	    INTVAL(win_id_value -> __o_value),
-	    SYMVAL(gc_value -> __o_value), d_buf);
-#else
   make_req (shm_mem,
 	    SYMVAL(displayptr_var -> instancevars -> __o_value),
 	    PANE_REFRESH_REQUEST,
 	    INTVAL(win_id_value -> __o_value),
 	    SYMVAL(gc_value -> __o_value), d_buf);
-#endif  
 #ifdef GRAPHICS_WRITE_SEND_EVENT
   send_event.xgraphicsexpose.type = GraphicsExpose;
   send_event.xgraphicsexpose.send_event = True;

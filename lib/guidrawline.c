@@ -1,4 +1,4 @@
-/* $Id: guidrawline.c,v 1.3 2020/02/28 19:58:37 rkiesling Exp $ -*-c-*-*/
+/* $Id: guidrawline.c,v 1.5 2020/02/29 02:54:04 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -99,13 +99,8 @@ int __ctalkX11PaneDrawLineBasic (void *d, int drawable_id,
 	   ":", pen_color,
 	   NULL);
   
-#if 1 /***/
-  make_req (shm_mem, PANE_DRAW_LINE_REQUEST,
+  make_req (shm_mem, (uintptr_t)d, PANE_DRAW_LINE_REQUEST,
    	    drawable_id, gc_ptr, d_buf);
-#else
-  make_req (shm_mem, d, PANE_DRAW_LINE_REQUEST,
-   	    drawable_id, gc_ptr, d_buf);
-#endif  
 #ifdef GRAPHICS_WRITE_SEND_EVENT
   send_event.xgraphicsexpose.type = GraphicsExpose;
   send_event.xgraphicsexpose.send_event = True;
@@ -182,19 +177,12 @@ int __ctalkGUIPaneDrawLine (OBJECT *self, OBJECT *line, OBJECT *pen) {
 	   pen_color_object->instancevars->__o_value,
 	   NULL);
 
-#if  1 /***/
-  make_req (shm_mem, PANE_DRAW_LINE_REQUEST,
-	    INTVAL(win_id_value -> __o_value),
-	    SYMVAL(gc_value -> __o_value), d_buf);
-#else
-
   make_req (shm_mem,
 	    SYMVAL(displayPtr_var -> instancevars -> __o_value),
 	    PANE_DRAW_LINE_REQUEST,
 	    INTVAL(win_id_value -> __o_value),
 	    SYMVAL(gc_value -> __o_value), d_buf);
 
-#endif  
 #ifdef GRAPHICS_WRITE_SEND_EVENT
   send_event.xgraphicsexpose.type = GraphicsExpose;
   send_event.xgraphicsexpose.send_event = True;

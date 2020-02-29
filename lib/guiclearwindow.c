@@ -1,4 +1,4 @@
-/* $Id: guiclearwindow.c,v 1.2 2020/02/28 19:34:22 rkiesling Exp $ -*-c-*-*/
+/* $Id: guiclearwindow.c,v 1.4 2020/02/29 02:54:04 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -60,16 +60,10 @@ int __ctalkGUIPaneClearWindow (OBJECT *self) {
   gc_value = __x11_pane_win_gc_value_object (self_object);
   displayPtr_var = __ctalkGetInstanceVariable (self_object,
 					       "displayPtr", TRUE);
-#if 1 /***/
-  make_req (shm_mem, PANE_CLEAR_WINDOW_REQUEST,
-	    INTVAL(win_id_value ->  __o_value),
-	    SYMVAL(gc_value -> __o_value), "");
-#else
   make_req (shm_mem, SYMVAL(displayPtr_var -> instancevars -> __o_value),
 	    PANE_CLEAR_WINDOW_REQUEST,
 	    INTVAL(win_id_value ->  __o_value),
 	    SYMVAL(gc_value -> __o_value), "");
-#endif  
   wait_req (shm_mem);
   return SUCCESS;
 }

@@ -1,4 +1,4 @@
-/* $Id: edittext.c,v 1.35 2020/02/28 16:08:27 rkiesling Exp $ -*-c-*-*/
+/* $Id: edittext.c,v 1.37 2020/02/29 02:54:04 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -1898,15 +1898,10 @@ int __edittext_get_primary_selection (OBJECT *editorpane_object,
   strcatx (handle_basename_path, P_tmpdir, "/text", ctitoa (getpid (), intbuf),
 	   NULL);
   memset ((void *)shm_mem, 0, SHM_BLKSIZE);
-#if 0 
   make_req (shm_mem,
 	    SYMVAL(display_ptr_instance_var -> instancevars -> __o_value),
 	    PANE_GET_PRIMARY_SELECTION_REQUEST, 0, 0,
 	    handle_basename_path);
-#else
-  make_req (shm_mem,PANE_GET_PRIMARY_SELECTION_REQUEST, 0, 0,
-	    handle_basename_path);
-#endif  
   wait_req (shm_mem);
 
   strcatx (info_path, handle_basename_path, ".inf", NULL);
@@ -2265,7 +2260,8 @@ int __edittext_get_primary_selection (OBJECT *editorpane_object,
   char handle_basename_path[FILENAME_MAX], intbuf[0xff],
     data_path[FILENAME_MAX], info_path[FILENAME_MAX];
   int r, s_start, s_end, data_length = 0;
-  OBJECT *win_id_var, *content_var, *sstart_var, *send_var;
+  OBJECT *win_id_var, *content_var, *sstart_var, *send_var,
+    *displayptr_var;
   Display *d_l;
   Drawable win_id, selection_win;
   FILE *f_info, *f_dat;
@@ -2308,7 +2304,11 @@ int __edittext_get_primary_selection (OBJECT *editorpane_object,
   strcatx (handle_basename_path, P_tmpdir, "/text", ctitoa (getpid (), intbuf),
 	   NULL);
   memset ((void *)shm_mem, 0, SHM_BLKSIZE);
-  make_req (shm_mem, PANE_GET_PRIMARY_SELECTION_REQUEST, 0, 0,
+  displayptr_var = __ctalkGetInstanceVariable (editorpane_object, "displayPtr",
+					       TRUE);
+  make_req (shm_mem,
+	    SYMVAL(displayptr_var -> instancevariable -> __o_value),
+	    PANE_GET_PRIMARY_SELECTION_REQUEST, 0, 0,
 	    handle_basename_path);
   wait_req (shm_mem);
 
