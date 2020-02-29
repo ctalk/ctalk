@@ -1,4 +1,4 @@
-/* $Id: X11CanvasPane,v 1.23 2020/02/29 00:59:22 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11CanvasPane,v 1.24 2020/02/29 21:58:21 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -136,10 +136,10 @@ X11CanvasPane instanceMethod subPaneDestroy (Object __subPane,
   X11Pixmap new tmpBuffer;
   tmpBuffer become self paneBuffer;
   __ctalkX11DeletePixmap (tmpBuffer xID);
-  XFreeGC (X11Pane xDisplay, (GC) self paneBuffer xGC);
+  XFreeGC (self displayPtr, (GC) self paneBuffer xGC);
   tmpBuffer become self paneBackingStore;
-  XFreePixmap (X11Pane xDisplay, tmpBuffer xID);
-  XFreeGC (X11Pane xDisplay, (GC) self paneBackingStore xGC);
+  XFreePixmap (self displayPtr, tmpBuffer xID);
+  XFreeGC (self displayPtr, (GC) self paneBackingStore xGC);
 
   return NULL;
 }

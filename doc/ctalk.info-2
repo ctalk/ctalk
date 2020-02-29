@@ -395,7 +395,8 @@ Instance Variables
      the 'Display *' returned by 'XOpenDisplay(3)'.  Most windows use
      the display connection opened when the main window is created.
      Dialogs, which create their own main windows, open their own
-     connection to the display.
+     connection to the display.  Generally, programs should not need to
+     change this.
 
      When using subpanes, it's convenient to set the subpane's
      'displayPtr' variable to the value of the main window pane's value.
@@ -463,10 +464,9 @@ Class Variables
      map.
 'xDisplay'
      An 'Integer' object that contains the address of the X display
-     pointer.  Like many X resources that are opaque types, it is
-     formatted as an integer, rather than as a pointer, to avoid
-     confusing it with 'OBJECT *' values.  An 'Integer' that indicates
-     whether the 'X11Pane' class has been initialized.
+     pointer.  It's use is deprecated; programs should use the
+     displayPtr instance variable instead, which is set when each main
+     window is created in multi-window programs.
 
 Instance Methods
 ................

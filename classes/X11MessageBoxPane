@@ -1,4 +1,4 @@
-/* $Id: X11MessageBoxPane,v 1.8 2020/02/28 16:08:25 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11MessageBoxPane,v 1.9 2020/02/29 22:57:14 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -75,27 +75,15 @@ X11MessageBoxPane instanceMethod attachTo (Object parentPane,
 
   self backgroundColor = "blue";
 
-  /*
-   *  The evaluation of these statements  needs to be deferred
-   *  until run time.  See the comment in the other, "attachTo,"
-   *  method, below.
-   */
-  (X11Bitmap *)self paneBuffer create self displayPtr, self xWindowID,
-    self size x, self size y, self depth;
-  (X11Bitmap *)self paneBuffer background (self backgroundColor);
-  (X11Bitmap *)self paneBackingStore create self displayPtr, self xWindowID,
-    self size x, self size y, self depth;
-
-  self paneBuffer background self backgroundColor;
-
   return NULL;
 }
 
 X11MessageBoxPane instanceMethod draw (void) {
 
-  XFillRectangle (self displayPtr, self paneBuffer xID,
+  /* XFillRectangle (self displayPtr, self paneBuffer xID,
 		  self paneBuffer xGC,
-		  0, 0, self paneBuffer width, self paneBuffer height);
+		  0, 0, self paneBuffer width, self paneBuffer height);*//***/
+  (X11Bitmap *)self paneBuffer clear;
 }
 
 X11MessageBoxPane instanceMethod refresh (void) {
@@ -130,6 +118,14 @@ X11MessageBoxPane instanceMethod show (void) {
   self xWindowID = win_id;
   dispatcher modalWin = win_id;
 
+  (X11Bitmap *)self paneBuffer create self displayPtr, self xWindowID,
+    self size x, self size y, self depth;
+  (X11Bitmap *)self paneBuffer background (self backgroundColor);
+  (X11Bitmap *)self paneBackingStore create self displayPtr, self xWindowID,
+    self size x, self size y, self depth;
+
+  self paneBuffer background self backgroundColor;
+
   d = self displayPtr;
 
   XMapWindow (d, win_id);
@@ -141,7 +137,6 @@ X11MessageBoxPane instanceMethod show (void) {
       switch (xev.type)
 	{
 	case Expose:
-	  printf ("expose!\n");
 	  self draw;
 	  self refresh;
 	  break;

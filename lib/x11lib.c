@@ -1,4 +1,4 @@
-/* $Id: x11lib.c,v 1.108 2020/02/29 21:06:47 rkiesling Exp $ -*-c-*-*/
+/* $Id: x11lib.c,v 1.109 2020/02/29 21:45:46 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -212,7 +212,7 @@ void x11_sig_handler (int sig, siginfo_t *sip, void *ucp) {
 #if X11LIB_PRINT_COPIOUS_DEBUG_INFO  
   fprintf (stderr, "x11_sig_handler: Caught signal %d\n", sig);
 #endif
-// /*   XSync (display, TRUE); */
+  // /*   XSync (display, TRUE); */ /***/
   kill (0, sig);
 }
 
@@ -225,7 +225,7 @@ static bool is_wm_xquartz (void) {
   return false;
 }
 
-static bool is_wm_xfce (void) {
+static bool is_wm_xfce (Display *d) {
   /* Xfce4 names its desktop window "xfdesktop," so we
      simply look for the window name. */
   Window *children_return = NULL, root_return, parent_return;
@@ -234,10 +234,10 @@ static bool is_wm_xfce (void) {
   char *window_name_return = NULL;
   bool retval = false;
 
-  XQueryTree (display, root, &root_return, &parent_return,
+  XQueryTree (d, root, &root_return, &parent_return,
 	      &children_return, &nchildren_return);
   for (i = 0; (i < nchildren_return) && !retval; i++) {
-    if (XFetchName(display, children_return[i], &window_name_return)) {
+    if (XFetchName(d, children_return[i], &window_name_return)) {
       if (str_eq (window_name_return, "xfdesktop")) {
 	retval = true;
       }
@@ -250,14 +250,14 @@ static bool is_wm_xfce (void) {
   return retval;
 }
 
-static bool is_kwin_desktop (void) {
+static bool is_kwin_desktop (Display *d) {
   Atom kde_full_session, type_return;
   int format_return;
   unsigned long nitems_return, bytes_after_return;
   unsigned char *prop_return;
-  if ((kde_full_session = XInternAtom (display, "KDE_FULL_SESSION",
+  if ((kde_full_session = XInternAtom (d, "KDE_FULL_SESSION",
 				       true)) != 0) {
-    XGetWindowProperty (display, root, kde_full_session, 0LL, 16,
+    XGetWindowProperty (d, root, kde_full_session, 0LL, 16,
 			false, XA_STRING, &type_return, &format_return,
 			&nitems_return, &bytes_after_return,
 			&prop_return);
@@ -1713,8 +1713,8 @@ static Display *__x11_open_display (void) {
       _warning ("__x11_open_display: the --without-x11-warnings option.)\n");
 #endif
     }
-    wm_xfce = is_wm_xfce ();
-    wm_kwin = is_kwin_desktop ();
+    wm_xfce = is_wm_xfce (display);
+    wm_kwin = is_kwin_desktop (display);
     wm_xquartz = is_wm_xquartz ();
     return display;
   }

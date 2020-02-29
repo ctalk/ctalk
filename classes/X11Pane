@@ -1,4 +1,4 @@
-/* $Id: X11Pane,v 1.13 2020/02/29 01:23:01 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11Pane,v 1.15 2020/02/29 22:25:27 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -52,9 +52,13 @@ X11Pane instanceVariable container Symbol NULL;
 X11Pane instanceVariable depth Integer NULL;
 X11Pane instanceVariable backgroundColor String NULL;
 X11Pane instanceVariable borderWidth Integer 1;
-X11Pane instanceVariable displayPtr Symbol NULL;
+X11Pane instanceVariable displayPtr Symbol NULL
+"The pointer to the main window pane's display connection.  
+This variable is set when the app creates the main window. 
+Generally, programs should not need to change this.";
 
-X11Pane classVariable xDisplay Symbol 0;
+X11Pane classVariable xDisplay Symbol 0
+"This variable is deprecated, use the displayPtr instance variable instead.";
 X11Pane classVariable classInit Integer 0;
 X11Pane classVariable xColormap Integer 0;
 
@@ -284,6 +288,7 @@ X11Pane instanceMethod deleteAndClose (void) {
   __ctalkCloseX11Pane (self);
   if (self is X11Pane)
     __ctalkX11CloseParentPane (self);
+  self displayPtr = NULL;
   return NULL;
 }
 

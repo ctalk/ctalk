@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.114 2020/02/29 12:07:29 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.115 2020/02/29 22:20:23 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -11687,7 +11687,8 @@ A @code{Symbol} that holds the pointer to the display connection;
 i.e., the @code{Display *} returned by @cite{XOpenDisplay(3)}.
 Most windows use the display connection opened when the main
 window is created. Dialogs, which create their own main windows,
-open their own connection to the display.
+open their own connection to the display.  Generally, programs
+should not need to change this.
 
 When using subpanes, it's convenient to set the subpane's
 @code{displayPtr} variable to the value of the main window pane's
@@ -11768,12 +11769,9 @@ default color map.
 @cindex @code{xDisplay} class variable @idxclscite{X11Pane}
 @item xDisplay
 An @code{Integer} object that contains the address of the 
-X display pointer.  Like many X resources that are opaque
-types, it is formatted as an integer, rather than as a
-pointer, to avoid confusing it with @code{OBJECT *} values.
-@cindex @code{classInit} class variable @idxclscite{X11Pane}
-An @code{Integer} that indicates whether the @code{X11Pane}
-class has been initialized.
+X display pointer.  It's use is deprecated; programs should
+use the displayPtr instance variable instead, which is set
+when each main window is created in multi-window programs.
 @end table
 
 @subsubheading Instance Methods

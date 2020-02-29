@@ -344,4 +344,15 @@
 	__xlib_draw_rectangle, and __xlib_draw_circle (xrender.c). And
 	updated __xlib_render_text and __xlib_get_primary_selection
 	(edittext.c).
+	- Added a Display * parameter to is_wm_xfce and is_kwin_desktop
+	(x11lib.c).
+	- Updated X11CanvasPane : subPaneDestroy, X11ScrollBarPane :
+	subPaneDestroy, and X11PaneDispatcher : subPaneResize and
+	X11PaneDispatcher : subPaneMove to use the receiver's
+	displayPtr instance variable instead of the X11Pane : xDisplay
+	class variable.  Removed the X11Pane : xDisplay variable.
+	- In X11Pane : deleteAndClose, set the displayPtr to NULL.
+	- In X11MessageBox class, moved the buffer creation to the
+	show method, after the dialog window is created and the
+	program has a valid parent ID for the buffers.
 
