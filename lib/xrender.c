@@ -1,4 +1,4 @@
-/* $Id: xrender.c,v 1.9 2020/02/06 13:39:56 rkiesling Exp $ -*-c-*-*/
+/* $Id: xrender.c,v 1.10 2020/02/29 17:12:46 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -1446,7 +1446,7 @@ int __xlib_draw_circle (Drawable w, GC gc, char *data) {
   } /*   /* if (have_useful_xrender) */
 }
 
-int __xlib_draw_point (Drawable drawable_arg, GC gc, char *data) {
+int __xlib_draw_point (Display *d, Drawable drawable_arg, GC gc, char *data) {
   XGCValues point_gcv, old_gcv;
   XftColor rcolor;
   int center_x, center_y, pen_width;
@@ -1482,9 +1482,9 @@ int __xlib_draw_point (Drawable drawable_arg, GC gc, char *data) {
       xr_make_surface (actual_drawable);
 
     if (!get_color (colorname, &rcolor)) {
-      if (XftColorAllocName (display, 
-			     DefaultVisual (display, DefaultScreen (display)),
-			     DefaultColormap (display, DefaultScreen (display)),
+      if (XftColorAllocName (d, 
+			     DefaultVisual (d, DefaultScreen (d)),
+			     DefaultColormap (d, DefaultScreen (d)),
 			     colorname, 
 			     &rcolor)) {
 	save_color (colorname, &rcolor);
@@ -1520,7 +1520,7 @@ int __xlib_draw_point (Drawable drawable_arg, GC gc, char *data) {
       }
     }
 
-    XRenderCompositeDoublePoly (display,
+    XRenderCompositeDoublePoly (d,
 				PictOpOver,
 				surface.fill_picture,
 				surface.picture,
@@ -1531,21 +1531,21 @@ int __xlib_draw_point (Drawable drawable_arg, GC gc, char *data) {
     return SUCCESS;
   } else {
 
-    XGetGCValues (display, gc, DEFAULT_GCV_MASK, &old_gcv);
+    XGetGCValues (d, gc, DEFAULT_GCV_MASK, &old_gcv);
     point_gcv.function = GXcopy;
     point_gcv.foreground = lookup_pixel (colorname);
     point_gcv.fill_style = FillSolid;
-    XChangeGC (display, gc, POINT_GCV_MASK, &point_gcv);
+    XChangeGC (d, gc, POINT_GCV_MASK, &point_gcv);
     if (pen_width < 2) {
-      XDrawPoint (display, actual_drawable, gc,
+      XDrawPoint (d, actual_drawable, gc,
 		  center_x, center_y);
     } else {
-      XFillArc (display, actual_drawable, gc,
+      XFillArc (d, actual_drawable, gc,
 		center_x, center_y,
 		pen_width, pen_width,
 		0, 360 * 64);
     }
-    XChangeGC (display, gc, DEFAULT_GCV_MASK, &old_gcv);
+    XChangeGC (d, gc, DEFAULT_GCV_MASK, &old_gcv);
   }
   return SUCCESS;
 }
@@ -1989,7 +1989,7 @@ int __xlib_draw_circle (unsigned int w, unsigned int gc, char *data) {
   x_support_error (); return ERROR;
 }
 
-int __xlib_draw_point (unsigned int w, unsigned int gc, char *data) {
+int __xlib_draw_point (void *, unsigned int w, unsigned int gc, char *data) {
   x_support_error (); return ERROR;
 }
 

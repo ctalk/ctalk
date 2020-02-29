@@ -1,4 +1,4 @@
-/* $Id: x11lib.c,v 1.92 2020/02/29 16:59:59 rkiesling Exp $ -*-c-*-*/
+/* $Id: x11lib.c,v 1.93 2020/02/29 17:12:46 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -128,7 +128,7 @@ OBJECT *__x11_pane_font_id_value_object (OBJECT *);
 int __xlib_draw_circle (Drawable, GC, char *);
 int __xlib_draw_rectangle (Drawable, GC, char *);
 int __xlib_draw_line (Drawable, GC, char *);
-int __xlib_draw_point (Drawable, GC, char *);
+int __xlib_draw_point (Display *, Drawable, GC, char *);
 /* In edittext.c */
 int __xlib_render_text (Drawable, GC, char *);
 int __xlib_get_primary_selection (Drawable, GC, char *);
@@ -1521,7 +1521,7 @@ int __xlib_handle_client_request (char *shm_mem_2) {
       __xlib_set_wm_name_prop (d, (Drawable)w, gc, &shm_mem_2[SHM_DATA]);
       break;
     case PANE_DRAW_POINT_REQUEST:
-      __xlib_draw_point ((Drawable)w, gc, &shm_mem_2[SHM_DATA]);
+      __xlib_draw_point (d, (Drawable)w, gc, &shm_mem_2[SHM_DATA]);
       break;
     case PANE_DRAW_LINE_REQUEST:
       __xlib_draw_line ((Drawable)w, gc, &shm_mem_2[SHM_DATA]);
@@ -3443,8 +3443,7 @@ int __ctalkCreateX11MainWindow (OBJECT *self_object) {
     XSetWindowBackground (display, win_id, WhitePixel (display, screen));
   }
   __xlib_set_wm_name_prop 
-    ((Display *)SYMVAL(displayPtr_value -> instancevars -> __o_value),
-     win_id, gc, 
+    ((Display *)SYMVAL(displayPtr_value -> __o_value), win_id, gc, 
      basename_w_extent(__argvFileName ()));
 
   __save_pane_to_vars (self_object, gc, win_id,
