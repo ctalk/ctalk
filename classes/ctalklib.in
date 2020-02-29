@@ -1,4 +1,4 @@
-/* $Id: ctalklib.in,v 1.61 2020/02/28 23:39:31 rkiesling Exp $ -*-c-*-*/
+/* $Id: ctalklib.in,v 1.64 2020/02/29 00:45:36 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -999,8 +999,8 @@ extern int __ctalkX11SubWindowGeometry (OBJECT *, char *, int *, int *, int *,
 					int *);
 extern int __ctalkX11TextFromData (void *, int, unsigned long int, char *);
 extern int __ctalkX11TextWidth (char *, char *);
-extern int __ctalkX11XPMFromData (int, unsigned long int, int, int, char **);
-extern int __ctalkX11XPMInfo (char **, int *, int *, int *, int *);
+extern int __ctalkX11XPMFromData (void *, int, unsigned long int, int, int, char **);
+extern int __ctalkX11XPMInfo (void *, char **, int *, int *, int *, int *);
 extern void __ctalkXPMToGLXTexture (char **, unsigned int,
 				    int *, int *, void **);
 /*
@@ -1035,7 +1035,7 @@ extern int __ctalkInitGLEW (void);
 extern int __ctalkIntFromCharConstant (char *);
 extern int __ctalkGUIPaneClearRectangle (OBJECT *self_object, int, int, int, int);
 extern int __ctalkGUIPaneClearWindow (OBJECT *);
-extern int __ctalkGUIPaneDrawCircleBasic (int, unsigned long int,  int, int, int, int, int, int, char *, char *);
+extern int __ctalkGUIPaneDrawCircleBasic (void *, int, unsigned long int,  int, int, int, int, int, int, char *, char *);
 extern int __ctalkGUIPaneDrawLine (OBJECT *, OBJECT *, OBJECT *);
 extern int __ctalkGUIPaneDrawLineBasic (void *, int, unsigned long int, int, int,
 					int, int,
@@ -1046,7 +1046,7 @@ extern int __ctalkGUIPaneDrawRoundedRectangle (OBJECT *, OBJECT *, OBJECT *,
 					       int, int);
 extern int __ctalkGUIPanePutStr (OBJECT *, int, int, char *);
 extern int __ctalkGUIPanePutTransformedStr (OBJECT *, int, int, char *);
-extern int __ctalkX11PaneDrawCircleBasic (int, unsigned long int, int, int, int, int, int, int, char *, char *);
+extern int __ctalkX11PaneDrawCircleBasic (void *, int, unsigned long int, int, int, int, int, int, int, char *, char *);
 extern int __ctalkX11PanePutStrBasic (void *, int, unsigned long int, int, int, char *);
 
 extern void __ctalkX11UseXRender (bool);
@@ -1061,7 +1061,7 @@ extern int __ctalkX11ClearBufferRectangle (OBJECT *, int, int, int, int);
 extern int __ctalkX11CreatePaneBuffer (OBJECT *, int, int, int);
 extern int __ctalkX11FreePaneBuffer (OBJECT *);
 extern int __ctalkX11ResizePaneBuffer (OBJECT *, int, int);
-extern int __ctalkX11ResizePixmap (int, int, unsigned long int, int, int,
+extern int __ctalkX11ResizePixmap (void *, int, int, unsigned long int, int, int,
 				   int, int, int, int *);
 extern int __ctalkX11MoveWindow (OBJECT *, int, int);
 extern int __ctalkX11ResizeWindow (OBJECT *, int, int, int);
@@ -1081,7 +1081,7 @@ extern int __ctalkX11PaneRefresh (OBJECT *, int, int,
 extern int __ctalkX11CloseClient (OBJECT *);
 extern int __ctalkX11QueryFont (OBJECT *, char *);
 extern int __ctalkX11InputClient (OBJECT *, int, int, int);
-extern int __ctalkX11UseFontBasic (int, unsigned long int, char *);
+extern int __ctalkX11UseFontBasic (void *, int, unsigned long int, char *);
 extern int __ctalkMapGLXWindow (OBJECT *);
 extern int __ctalkMapX11Window (OBJECT *);
 extern int __ctalkMatchText (char *, char *, long long int *);

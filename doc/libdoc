@@ -924,7 +924,7 @@ methods that call it), prints an error message and exits.
 These functions return an int with the window's current origin
 and size.
 
->>>__ctalkGUIPaneDrawCircleBasic (int window_id, int gc, int center_x, int center_y, int radius, int fill, int pen_width, int alpha char *fg_color_name, char *bg_color_name)
+>>>__ctalkGUIPaneDrawCircleBasic (void *display, int window_id, int gc, int center_x, int center_y, int radius, int fill, int pen_width, int alpha char *fg_color_name, char *bg_color_name)
 Draws a circle centered at center_x,center_y with radius
 radius. The dimensions are given in pixels.  If filled is
 true, then the function draws a filled circle; otherwise, the circle's
@@ -1969,7 +1969,7 @@ Parses a X11 geometry string and returns the values specified in the x, y, width
 For information about the format of a X11 geometry specification, refer to the
 XParseGeometry(3) manual page.
 
->>>__ctalkX11PaneDrawCircleBasic (int window_id, int gc, int center_x, int center_y, int radius, int fill, int pen_width, int alpha, char *fg_color_name, char * bg_color_name)
+>>>__ctalkX11PaneDrawCircleBasic (void *display, int window_id, int gc, int center_x, int center_y, int radius, int fill, int pen_width, int alpha, char *fg_color_name, char * bg_color_name)
 Draws a circle centered at center_x,center_y with radius radius. The dimensions are given in pixels.  If filled is true, then the function
 draws a filled circle; otherwise, the circle's edge has the width pen_width.
 
@@ -2002,10 +2002,10 @@ Resize pane_object's buffers to width width and height
 height.  New programs should use __ctalkX11ResizePixmap,
 which does not rely on hard-coded instance variable names.
 
->>>__ctalkX11ResizePixmap (int, parent_visual_id, int self_xid, int gc, int old_width, int old_height, int new_width, int new_height, int depth, int *new_pixmap_return)
+>>>__ctalkX11ResizePixmap (void *display, int, parent_drawable_id, int self_xid, int gc, int old_width, int old_height, int new_width, int new_height, int depth, int *new_pixmap_return)
 Create a new Pixmap with the dimensions new_width and
 new_height that contains the contents of the original
-pixmap.  Return the X ID of the new pixmap in new_pixmap_return.
+pixmap.  Returns the X ID of the new pixmap in new_pixmap_return.
 
 >>>__ctalkX11ResizeWindow (OBJECT *pane_object, int width, int height, int depth)
 Resize a pane object's X window.  Returns 1 on success,
@@ -2104,7 +2104,7 @@ If b is true, draw using the X Render entension if it
 is available.  If b is false, use Xlib for drawing
 even if X Render is available.
 
->>>__ctalkX11UseFontBasic (int drawable_id, int gc_ptr, char *font_desc)
+>>>__ctalkX11UseFontBasic (void *display, int drawable_id, int gc_ptr, char *font_desc)
 Sets the font of the graphics context gc_ptr and
 drawable drawable_id for further string printing
 operations.  See use in X11Bitmap class, where the
@@ -2119,12 +2119,12 @@ available when the Ctalk libraries are built, and the program has not
 changed the default setting, normally via __ctalkX11UseRender,
 above.
 
->>>__ctalkX11XPMFromData (int drawable_id, int gc_ptr, int x_org, int y_org, char **xpm_data)
+>>>__ctalkX11XPMFromData (void *display, int drawable_id, int gc_ptr, int x_org, int y_org, char **xpm_data)
 Draw a X pixmap at the x,y position on the drawable named by
 drawable_id.  The xpm_data argument is the declaration of
 the data given in a XPM file, and has the C data type char **.
 
->>>__ctalkX11XPMInfo (char **xpm_data, int *width_ret, int *height_ret, int *n_colors_ret, int *chars_per_color_ret)
+>>>__ctalkX11XPMInfo (void *display, char **xpm_data, int *width_ret, int *height_ret, int *n_colors_ret, int *chars_per_color_ret)
 Returns the width, height, number of colors, and characters per color of the
 XPM data referred to by xpm_data
 

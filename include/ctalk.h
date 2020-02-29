@@ -1,4 +1,4 @@
-/* $Id: ctalk.h,v 1.72 2020/02/28 23:39:32 rkiesling Exp $ -*-Fundamental-*- */
+/* $Id: ctalk.h,v 1.75 2020/02/29 00:45:37 rkiesling Exp $ -*-Fundamental-*- */
 
 /*
   This file is part of Ctalk.
@@ -1719,8 +1719,8 @@ int __ctalkX11SetForegroundBasic (void *,int, unsigned long int, char *);
 int __ctalkX11TextFromData (void *, int, unsigned long int, char *);
 
 /* lib/guixpm.c */
-int __ctalkX11XPMFromData (int, unsigned long int, int, int, char **);
-int __ctalkX11XPMInfo (char **, int *, int *, int *, int *);
+int __ctalkX11XPMFromData (void *, int, unsigned long int, int, int, char **);
+int __ctalkX11XPMInfo (void *, char **, int *, int *, int *, int *);
 
 /* lib/infiles.c */
 int is_input_file (char *);
@@ -2619,8 +2619,8 @@ int __ctalkNMatches (void);
 void __ctalkMatchPrintToks (bool);
 
 /* lib/xcircle.c */
-int __ctalkX11PaneDrawCircleBasic (int, unsigned long int, int, int, int, int, int, int, char *, char *);
-int __ctalkGUIPaneDrawCircleBasic (int, unsigned long int, int, int, int, int, int, int, char *, char *);
+int __ctalkX11PaneDrawCircleBasic (void *, int, unsigned long int, int, int, int, int, int, int, char *, char *);
+int __ctalkGUIPaneDrawCircleBasic (void *, int, unsigned long int, int, int, int, int, int, int, char *, char *);
 
 /* lib/xcopypixmap.c */
 int __ctalkX11CopyPixmapBasic (int, unsigned long int,
@@ -2708,7 +2708,7 @@ int __ctalkCreateX11MainWindow (OBJECT *);
 int __ctalkCreateX11SubWindow (OBJECT *, OBJECT *);
 int __ctalkMapX11Window (OBJECT *);
 int __ctalkOpenX11InputClient (OBJECT *);
-int __ctalkX11ResizePixmap (int, int, unsigned long int, int, int, int, int, int, 
+int __ctalkX11ResizePixmap (void *, int, int, unsigned long int, int, int, int, int, int, 
     int *);
 int __ctalkX11ResizeWindow (OBJECT *, int, int, int);
 int __ctalkX11SetBackground (OBJECT *, char *);
@@ -2728,7 +2728,7 @@ int __ctalkX11Colormap (void);
 */
 void *__ctalkX11Display (void);
 int __ctalkX11SetWMNameProp (OBJECT *, char *);
-int __ctalkX11UseFontBasic (int, unsigned long int, char *);
+int __ctalkX11UseFontBasic (void *, int, unsigned long int, char *);
 int __ctalkX11UseCursor (OBJECT *, OBJECT *);
 void *__ctalkX11NextInputEvent (OBJECT *);
 int __ctalkX11InputClient (OBJECT *, int, int, int); 

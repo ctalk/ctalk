@@ -1,4 +1,4 @@
-/* $Id: X11Bitmap,v 1.10 2020/02/28 23:21:43 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11Bitmap,v 1.12 2020/02/29 00:32:43 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -105,7 +105,7 @@ X11Bitmap instanceMethod clearRectangle (Integer x, Integer y,
 				 x, y, width, height);
 }
 
-X11Bitmap instanceMethod resize (Integer parent_visual,
+X11Bitmap instanceMethod resize (Integer parent_drawable,
 				 Integer new_width,
 				 Integer new_height) {
   "Resize the pixmap.  The method's prototype is:
@@ -114,7 +114,8 @@ X11Bitmap instanceMethod resize (Integer parent_visual,
                            Integer <height>"
   int pixmap_return;
   OBJECT *xID_value_alias;
-  __ctalkX11ResizePixmap (parent_visual, self xID, self xGC,
+  __ctalkX11ResizePixmap (self displayPtr, parent_drawable,
+			  self xID, self xGC,
 			  self width, self height,
 			  new_width, new_height,
 			  self depth, &pixmap_return);
@@ -139,7 +140,7 @@ X11Bitmap instanceMethod background (String color) {
 X11Bitmap instanceMethod font (String font_desc) {
   "Set the font of the receiver to the argument,
    a String."
-  __ctalkX11UseFontBasic (self xID, self xGC, font_desc);
+   __ctalkX11UseFontBasic (self displayPtr, self xID, self xGC, font_desc);
 }
 
 /* these are from ctalkdefs.h */
@@ -180,7 +181,7 @@ X11Bitmap instanceMethod putStr (Integer x, Integer y,
                             Integer <y>,
                             String <text>,
                             String <font_desc>"
-  __ctalkX11UseFontBasic (self xID, self xGC, font_desc);
+  __ctalkX11UseFontBasic (self displayPtr, self xID, self xGC, font_desc);
   __ctalkX11PanePutStrBasic (self displayPtr, self xID, self xGC, x, y, s);
 }
 
@@ -196,8 +197,8 @@ X11Bitmap instanceMethod putStr (Integer x, Integer y,
                             String <text>,
                             String <font_desc>,
                             String <foreground_color_name>"
-    __ctalkX11SetForegroundBasic (self displayPtr, self xID, self xGC, colorName);
-  __ctalkX11UseFontBasic (self xID, self xGC, font_desc);
+  __ctalkX11SetForegroundBasic (self displayPtr, self xID, self xGC, colorName);
+  __ctalkX11UseFontBasic (self displayPtr, self xID, self xGC, font_desc);
   __ctalkX11PanePutStrBasic (self displayPtr, self xID, self xGC, x, y, s);
 }
 
@@ -205,7 +206,7 @@ X11Bitmap instanceMethod pixmapFromData (char **xpm_data) {
   "Create a XPM image on the receiver using the data given
   as the argument.  The data is the contents of a .xpm file,
    and has the C type char **."
-  __ctalkX11XPMFromData (self xID, self xGC, 0, 0, xpm_data);
+    __ctalkX11XPMFromData (self displayPtr, self xID, self xGC, 0, 0, xpm_data);
   return NULL;
 }
 
@@ -218,7 +219,7 @@ X11Bitmap instanceMethod pixmapFromData (int x_org, int y_org,
   image.  The method's prototype (using C data types) is:
   
   X11Bitmap pixmapFromData int xOrg, int yOrg, char **xpmData"
-  __ctalkX11XPMFromData (self xID, self xGC, 
+    __ctalkX11XPMFromData (self displayPtr, self xID, self xGC, 
 			 x_org, y_org, xpm_data);
   return NULL;
 }
@@ -230,7 +231,7 @@ X11Bitmap instanceMethod xpmInfoFromData (char **xpm_data,
    the pixmap data referred to by xpm_data: 
    [width, height, colors, characters_per_color]."
     int w, h, n, c;
-  __ctalkX11XPMInfo (xpm_data, &w, &h, &n, &c);
+  __ctalkX11XPMInfo (self displayPtr, xpm_data, &w, &h, &n, &c);
   dataReturn atPut 0, w;
   dataReturn atPut 1, h;
   dataReturn atPut 2, n;
@@ -242,7 +243,7 @@ X11Bitmap instanceMethod xpmWidthFromData (char **xpm_data) {
    the argument."
   returnObjectClass Integer;
     int w, h, n, c;
-  __ctalkX11XPMInfo (xpm_data, &w, &h, &n, &c);
+    __ctalkX11XPMInfo (self displayPtr, xpm_data, &w, &h, &n, &c);
   return w;
 }
 X11Bitmap instanceMethod xpmHeightFromData (char **xpm_data) { 
@@ -250,7 +251,7 @@ X11Bitmap instanceMethod xpmHeightFromData (char **xpm_data) {
    the argument."
   returnObjectClass Integer;
     int w, h, n, c;
-  __ctalkX11XPMInfo (xpm_data, &w, &h, &n, &c);
+    __ctalkX11XPMInfo (self displayPtr, xpm_data, &w, &h, &n, &c);
   return h;
 }
 X11Bitmap instanceMethod xpmColorsFromData (char **xpm_data) { 
@@ -258,7 +259,7 @@ X11Bitmap instanceMethod xpmColorsFromData (char **xpm_data) {
   as the argument."
   returnObjectClass Integer;
     int w, h, n, c;
-  __ctalkX11XPMInfo (xpm_data, &w, &h, &n, &c);
+    __ctalkX11XPMInfo (self displayPtr, xpm_data, &w, &h, &n, &c);
   return n;
 }
 X11Bitmap instanceMethod xpmCharsPerColorFromData (char **xpm_data) { 
@@ -266,7 +267,7 @@ X11Bitmap instanceMethod xpmCharsPerColorFromData (char **xpm_data) {
    as the argument."
   returnObjectClass Integer;
     int w, h, n, c;
-  __ctalkX11XPMInfo (xpm_data, &w, &h, &n, &c);
+    __ctalkX11XPMInfo (self displayPtr, xpm_data, &w, &h, &n, &c);
   return c;
 }
 

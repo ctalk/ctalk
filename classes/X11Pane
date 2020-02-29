@@ -1,4 +1,4 @@
-/* $Id: X11Pane,v 1.10 2020/02/28 01:47:23 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11Pane,v 1.11 2020/02/29 00:32:43 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -360,7 +360,7 @@ X11Pane instanceMethod font (String fontDesc) {
   variable."
   self fontDescStr = fontDesc;
   self fontVar getFontInfo fontDesc;
-  __ctalkX11UseFontBasic (self xWindowID, self xGC, fontDesc);
+  __ctalkX11UseFontBasic (self displayPtr, self xWindowID, self xGC, fontDesc);
 }
 
 X11Pane instanceMethod ftFont (String family, Integer slant,

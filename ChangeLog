@@ -347,6 +347,15 @@
 	- Added a display * parameter to __ctalkX11SetForegroundBasic,
 	and updated its calls in X11Bitmap.
 	- Added a display * parameter to __ctalkX11TextFromData (guitext.c).
+	- Added a display * parameter to __ctalkX11XPMFromData and
+	__ctalkX11XPMInfo (guixpm.c).
+	- Added displayPtr instance variable fetches in
+	__ctalkX11SetWMNameProp, __ctalkX11ResizeWindow, __ctalkX11UseCursor,
+	__ctalkX11MoveWindow. Also added display params in __ctalkX11UseFontBasic
+	and __ctalkX11ResizePixmap (x11lib.c).
+	- Added a display * parameter to __ctalkX11PaneDrawCircleBasic and
+	__ctalkGUIPaneDrawCircleBasic (xcircle.c).  Also updated the
+	Circle : draw and X11CanvasPane : drawCircle methods.
 
 
 

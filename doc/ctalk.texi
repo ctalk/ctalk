@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.107 2020/02/28 23:39:32 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.110 2020/02/29 00:45:37 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -19832,7 +19832,7 @@ These functions return an int with the window's current origin
 and size.
 
 @idxlibfn{__ctalkGUIPaneDrawCircleBasic}
-@item __ctalkGUIPaneDrawCircleBasic (@code{int} @var{window_id}, @code{int} @var{gc}, @code{int} @var{center_x}, @code{int} @var{center_y}, @code{int} @var{radius}, @code{int} @var{fill}, @code{int} @var{pen_width}, @code{int} @var{alpha} @code{char *}@var{fg_color_name}, @code{char *}@var{bg_color_name})
+@item __ctalkGUIPaneDrawCircleBasic (@code{void *}@var{display}, @code{int} @var{window_id}, @code{int} @var{gc}, @code{int} @var{center_x}, @code{int} @var{center_y}, @code{int} @var{radius}, @code{int} @var{fill}, @code{int} @var{pen_width}, @code{int} @var{alpha} @code{char *}@var{fg_color_name}, @code{char *}@var{bg_color_name})
 Draws a circle centered at @var{center_x},@var{center_y} with radius
 @var{radius}. The dimensions are given in pixels.  If @var{filled} is
 true, then the function draws a filled circle; otherwise, the circle's
@@ -21057,7 +21057,7 @@ For information about the format of a X11 geometry specification, refer to the
 @cite{XParseGeometry(3)} manual page.
 
 @idxlibfn{__ctalkX11PaneDrawCircleBasic}
-@item __ctalkX11PaneDrawCircleBasic (@code{int} @var{window_id}, @code{int} @var{gc}, @code{int} @var{center_x}, @code{int} @var{center_y}, @code{int} @var{radius}, @code{int} @var{fill}, @code{int} @var{pen_width}, @code{int} @var{alpha}, @code{char *}@var{fg_color_name}, @code{char *} @var{bg_color_name})
+@item __ctalkX11PaneDrawCircleBasic (@code{void *}@var{display}, @code{int} @var{window_id}, @code{int} @var{gc}, @code{int} @var{center_x}, @code{int} @var{center_y}, @code{int} @var{radius}, @code{int} @var{fill}, @code{int} @var{pen_width}, @code{int} @var{alpha}, @code{char *}@var{fg_color_name}, @code{char *} @var{bg_color_name})
 Draws a circle centered at @var{center_x},@var{center_y} with radius @var{radius}. The dimensions are given in pixels.  If @var{filled} is true, then the function
 draws a filled circle; otherwise, the circle's edge has the width @var{pen_width}.
 
@@ -21095,10 +21095,10 @@ Resize @var{pane_object}'s buffers to width @var{width} and height
 which does not rely on hard-coded instance variable names.
 
 @idxlibfn{__ctalkX11ResizePixmap}
-@item __ctalkX11ResizePixmap (@code{int}, @var{parent_visual_id}, @code{int} @var{self_xid}, @code{int} @var{gc}, @code{int} @var{old_width}, @code{int} @var{old_height}, @code{int} @var{new_width}, @code{int} @var{new_height}, @code{int} @var{depth}, @code{int *}@var{new_pixmap_return})
+@item __ctalkX11ResizePixmap (@code{void *}@var{display}, @code{int}, @var{parent_drawable_id}, @code{int} @var{self_xid}, @code{int} @var{gc}, @code{int} @var{old_width}, @code{int} @var{old_height}, @code{int} @var{new_width}, @code{int} @var{new_height}, @code{int} @var{depth}, @code{int *}@var{new_pixmap_return})
 Create a new Pixmap with the dimensions @var{new_width} and
 @var{new_height} that contains the contents of the original
-pixmap.  Return the X ID of the new pixmap in @var{new_pixmap_return}.
+pixmap.  Returns the X ID of the new pixmap in @var{new_pixmap_return}.
 
 @idxlibfn{__ctalkX11ResizeWindow}
 @item __ctalkX11ResizeWindow (@code{OBJECT *}@var{pane_object}, @code{int} @var{width}, @code{int} @var{height}, @code{int} @var{depth})
@@ -21216,7 +21216,7 @@ is available.  If @var{b} is false, use Xlib for drawing
 even if X Render is available.
 
 @idxlibfn{__ctalkX11UseFontBasic}
-@item __ctalkX11UseFontBasic (@code{int} @var{drawable_id}, @code{int} @var{gc_ptr}, @code{char *}@var{font_desc})
+@item __ctalkX11UseFontBasic (@code{void *}@var{display}, @code{int} @var{drawable_id}, @code{int} @var{gc_ptr}, @code{char *}@var{font_desc})
 Sets the font of the graphics context @var{gc_ptr} and
 drawable @var{drawable_id} for further string printing
 operations.  See use in @code{X11Bitmap} class, where the
@@ -21233,13 +21233,13 @@ changed the default setting, normally via @cite{__ctalkX11UseRender},
 above.
 
 @idxlibfn{__ctalkX11XPMFromData}
-@item __ctalkX11XPMFromData (@code{int} @var{drawable_id}, @code{int} @var{gc_ptr}, @code{int} @var{x_org}, @code{int} @var{y_org}, @code{char **}@var{xpm_data})
+@item __ctalkX11XPMFromData (@code{void *}@var{display}, @code{int} @var{drawable_id}, @code{int} @var{gc_ptr}, @code{int} @var{x_org}, @code{int} @var{y_org}, @code{char **}@var{xpm_data})
 Draw a X pixmap at the x,y position on the drawable named by
 @var{drawable_id}.  The @var{xpm_data} argument is the declaration of
 the data given in a XPM file, and has the C data type @code{char **}.
 
 @idxlibfn{__ctalkX11XPMInfo}
-@item __ctalkX11XPMInfo (@code{char **}@var{xpm_data}, @code{int *}@var{width_ret}, @code{int *}@var{height_ret}, @code{int *}@var{n_colors_ret}, @code{int *}@var{chars_per_color_ret})
+@item __ctalkX11XPMInfo (@code{void *}@var{display}, @code{char **}@var{xpm_data}, @code{int *}@var{width_ret}, @code{int *}@var{height_ret}, @code{int *}@var{n_colors_ret}, @code{int *}@var{chars_per_color_ret})
 Returns the width, height, number of colors, and characters per color of the
 XPM data referred to by @var{xpm_data}
 

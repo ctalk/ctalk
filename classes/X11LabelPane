@@ -1,4 +1,4 @@
-/* $Id: X11LabelPane,v 1.23 2020/02/20 03:46:33 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11LabelPane,v 1.24 2020/02/29 00:32:43 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -123,7 +123,7 @@ X11LabelPane instanceMethod font (String fontDesc) {
   self paneBuffer font fontDesc;
   self fontDescStr = fontDesc;
   self fontVar getFontInfo fontDesc;
-  __ctalkX11UseFontBasic (self xWindowID, self xGC, fontDesc);
+  __ctalkX11UseFontBasic (self displayPtr, self xWindowID, self xGC, fontDesc);
 }
 
 X11LabelPane instanceMethod text (String textArg) {

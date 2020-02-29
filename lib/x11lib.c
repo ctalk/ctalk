@@ -1,4 +1,4 @@
-/* $Id: x11lib.c,v 1.82 2020/02/28 02:20:44 rkiesling Exp $ -*-c-*-*/
+/* $Id: x11lib.c,v 1.83 2020/02/29 00:32:44 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -2182,7 +2182,7 @@ int __ctalkRaiseX11Window (OBJECT *self_object) {
 int __ctalkX11SetWMNameProp (OBJECT *self_object, char *title) {
   return SUCCESS;
 }
-int __ctalkX11UseFontBasic (int drawable_id, unsigned long int gc_ptr,
+int __ctalkX11UseFontBasic (void * d, int drawable_id, unsigned long int gc_ptr,
 			    char *xlfd) {
   return SUCCESS;
 }
@@ -3645,7 +3645,7 @@ int __ctalkRaiseX11Window (OBJECT *self_object) {
 }
 
 int __ctalkX11SetWMNameProp (OBJECT *self_object, char *title) {
-  OBJECT *win_id_value, *gc_value;
+  OBJECT *win_id_value, *gc_value, *displayptr_var;
 
   if (mem_id == 0) {
 #ifndef WITHOUT_X11_WARNINGS
@@ -3658,13 +3658,22 @@ int __ctalkX11SetWMNameProp (OBJECT *self_object, char *title) {
 
   win_id_value = __x11_pane_win_id_value_object (self_object);
   gc_value = __x11_pane_win_gc_value_object (self_object);
+  displayptr_var = __ctalkGetInstanceVariable (self_object, "displayPtr", TRUE);
+#if 1 /***/
   make_req (shm_mem, PANE_WM_TITLE_REQUEST,
 	    INTVAL(win_id_value -> __o_value),
 	    SYMVAL(gc_value -> __o_value), title);
+#else
+  make_req (shm_mem,
+	    SYMVAL(displayptr_var -> instancevars -> __o_value),
+	    PANE_WM_TITLE_REQUEST,
+	    INTVAL(win_id_value -> __o_value),
+	    SYMVAL(gc_value -> __o_value), title);
+#endif  
   return SUCCESS;
 }
 
-int __ctalkX11UseFontBasic (int drawable_id, unsigned long int gc_ptr,
+int __ctalkX11UseFontBasic (void *d, int drawable_id, unsigned long int gc_ptr,
 			    char *xlfd) {
   char d_buf[MAXLABEL];
   GC gc;
@@ -3696,8 +3705,13 @@ int __ctalkX11UseFontBasic (int drawable_id, unsigned long int gc_ptr,
     if (!shm_mem)
       return ERROR;
     sprintf (d_buf, ":%ld:%s", GCFont, xlfd);
+#if 1 /***/
     make_req (shm_mem, PANE_CHANGE_GC_REQUEST,
 	      drawable_id, gc_ptr, d_buf);
+#else
+    make_req (shm_mem, d, PANE_CHANGE_GC_REQUEST,
+	      drawable_id, gc_ptr, d_buf);
+#endif    
 #ifdef GRAPHICS_WRITE_SEND_EVENT
     send_event.xgraphicsexpose.type = GraphicsExpose;
     send_event.xgraphicsexpose.send_event = True;
@@ -3710,7 +3724,7 @@ int __ctalkX11UseFontBasic (int drawable_id, unsigned long int gc_ptr,
   }
 }
 
-static int __x11_resize_request_internal (int width, int height, int depth,
+static int __x11_resize_request_internal (void *d, int width, int height, int depth,
 					  int win_id_value,
 					  GC gc_value) {
 
@@ -3724,8 +3738,13 @@ static int __x11_resize_request_internal (int width, int height, int depth,
 	   ascii[height], ":",
 	   ascii[depth], NULL);
 
+#if 1 /***/
   make_req (shm_mem, PANE_RESIZE_REQUEST,
 	    win_id_value, gc_value, d_buf);
+#else
+  make_req (shm_mem, d, PANE_RESIZE_REQUEST,
+	    win_id_value, gc_value, d_buf);
+#endif  
 #ifdef GRAPHICS_WRITE_SEND_EVENT
   send_event.xgraphicsexpose.type = GraphicsExpose;
   send_event.xgraphicsexpose.send_event = True;
@@ -3780,25 +3799,35 @@ int __ctalkX11FontCursor (OBJECT *self, int cursor_id) {
    window's) cursor.
 */
 int __ctalkX11UseCursor (OBJECT *pane_object, OBJECT *cursor_object) {
-  OBJECT *win_id_value, *gc_value;
+  OBJECT *win_id_value, *gc_value, *displayvar_value;
   Cursor cursor;
   char d_buf[MAXMSG];
   win_id_value = __x11_pane_win_id_value_object (pane_object);
   gc_value = __x11_pane_win_gc_value_object (pane_object);
+  displayvar_value = __ctalkGetInstanceVariable (pane_object, "displayPtr",
+						 TRUE);
   if (cursor_object) {
     cursor = (Cursor) atoi (cursor_object -> instancevars -> __o_value);
   } else {
     cursor = None;
   }
   __ctalkDecimalIntegerToASCII ((int)cursor, d_buf);
+#if 1 /***/
   make_req (shm_mem, PANE_CURSOR_REQUEST,
 	    INTVAL(win_id_value -> __o_value),
 	    SYMVAL(gc_value -> __o_value), d_buf);
+#else
+  make_req (shm_mem,
+	    SYMVAL(displayptr_var -> instancevars -> __o_value),
+	    PANE_CURSOR_REQUEST,
+	    INTVAL(win_id_value -> __o_value),
+	    SYMVAL(gc_value -> __o_value), d_buf);
+#endif  
   wait_req (shm_mem);
   return SUCCESS;
 }
 
-int __ctalkX11ResizePixmap (int parent_visual, 
+int __ctalkX11ResizePixmap (void *d, int parent_visual, 
 			    int old_pixmap, 
 			    unsigned long int gc,
 			    int old_width, int old_height,
@@ -3814,9 +3843,13 @@ int __ctalkX11ResizePixmap (int parent_visual,
 	   ascii[new_width], ":",
 	   ascii[new_height], ":",
 	   ascii[depth], ":", NULL);
-
+#if 1 /***/
   make_req (shm_mem, PANE_RESIZE_PIXMAP_REQUEST, 
 	    parent_visual, gc, d_buf);
+#else
+  make_req (shm_mem, d, PANE_RESIZE_PIXMAP_REQUEST, 
+	    parent_visual, gc, d_buf);
+#endif  
   wait_req (shm_mem);
   errno = 0;
   *new_pixmap_return = strtoul (&shm_mem[SHM_RETVAL], NULL, 10);
@@ -3837,7 +3870,7 @@ int __ctalkX11ResizeWindow (OBJECT *self, int width, int height,
 			    int depth) {
   OBJECT *self_object, *win_id_value, *gc_value;
   OBJECT *pane_size_point_object, *pane_size_point_y_object, 
-    *pane_size_point_x_object;
+    *pane_size_point_x_object, *displayPtr_var;
   int old_x_size, old_y_size, n_resize_retries;
 #ifdef GRAPHICS_WRITE_SEND_EVENT
   XEvent send_event;
@@ -3845,6 +3878,7 @@ int __ctalkX11ResizeWindow (OBJECT *self, int width, int height,
   self_object = (IS_VALUE_INSTANCE_VAR (self) ? self->__o_p_obj : self);
   win_id_value = __x11_pane_win_id_value_object (self_object);
   gc_value = __x11_pane_win_gc_value_object (self_object);
+  displayPtr_var = __ctalkGetInstanceVariable (self_object, "displayPtr,", TRUE);
   if ((pane_size_point_object =
        __ctalkGetInstanceVariable (self_object, "size", TRUE))
       == NULL)
@@ -3863,7 +3897,8 @@ int __ctalkX11ResizeWindow (OBJECT *self, int width, int height,
   n_resize_retries = 0;
  try_resize_request:
   if (!__x11_resize_request_internal 
-      (width, height, depth,
+      ((void *)SYMVAL(displayPtr_var -> instancevars -> __o_value),
+       width, height, depth,
        INTVAL(win_id_value -> __o_value),
        (GC)SYMVAL(gc_value -> __o_value))) {
     return 1;
@@ -3895,7 +3930,7 @@ int __ctalkX11ResizeWindow (OBJECT *self, int width, int height,
 }
 
 int __ctalkX11MoveWindow (OBJECT *self, int x, int y) {
-  OBJECT *self_object, *win_id_value, *gc_value;
+  OBJECT *self_object, *win_id_value, *gc_value, *displayptr_var;
   char d_buf[MAXLABEL];
 #ifdef GRAPHICS_WRITE_SEND_EVENT
   XEvent send_event;
@@ -3903,11 +3938,21 @@ int __ctalkX11MoveWindow (OBJECT *self, int x, int y) {
   self_object = (IS_VALUE_INSTANCE_VAR (self) ? self->__o_p_obj : self);
   win_id_value = __x11_pane_win_id_value_object (self_object);
   gc_value = __x11_pane_win_gc_value_object (self_object);
+  displayptr_var = __ctalkGetInstanceVariable (self_object, "displayPtr",
+					       TRUE);
 
   strcatx (d_buf, ascii[x], ":", ascii[y], ":", NULL);
+#if 1 /***/
   make_req (shm_mem, PANE_MOVE_REQUEST,
 	    INTVAL(win_id_value -> __o_value),
 	    SYMVAL(gc_value -> __o_value), d_buf);
+#else
+  make_req (shm_mem,
+	    SYMVAL(displayptr_var -> instancevars -> __o_value),
+	    PANE_MOVE_REQUEST,
+	    INTVAL(win_id_value -> __o_value),
+	    SYMVAL(gc_value -> __o_value), d_buf);
+#endif  
 
 #ifdef GRAPHICS_WRITE_SEND_EVENT
   send_event.xgraphicsexpose.type = GraphicsExpose;
@@ -4044,7 +4089,7 @@ int __ctalkX11UseCursor (OBJECT *pane_object, OBJECT *cursor_object) {
 int __ctalkX11FontCursor (OBJECT *self, int cursor_id) {
   x_support_error (); return ERROR;
 }
-int __ctalkX11UseFontBasic (int drawable_id, unsigned long int gc_ptr,
+int __ctalkX11UseFontBasic (void *d, int drawable_id, unsigned long int gc_ptr,
 			    char *xlfd) {
   x_support_error (); return ERROR;
 }
@@ -4063,7 +4108,7 @@ int __ctalkX11Colormap (void) {
 void *__ctalkX11Display (void) {
   x_support_error (); return NULL;
 }
-int __ctalkX11ResizePixmap (int parent_visual, 
+int __ctalkX11ResizePixmap (void *d, int parent_visual, 
 			    int old_pixmap, 
 			    unsigned long int gc,
 			    int old_width, int old_height,

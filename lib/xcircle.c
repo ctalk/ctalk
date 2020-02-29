@@ -1,4 +1,4 @@
-/* $Id: xcircle.c,v 1.1.1.1 2019/10/26 23:40:50 rkiesling Exp $ -*-c-*-*/
+/* $Id: xcircle.c,v 1.2 2020/02/29 00:45:37 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -42,7 +42,7 @@ extern char *ascii[8193];             /* from intascii.h */
 
 #if X11LIB_FRAME
 
-int __ctalkX11PaneDrawCircleBasic (int drawable_id,
+int __ctalkX11PaneDrawCircleBasic (void *d, int drawable_id,
 				   unsigned long int gc_ptr,
 				   int x_center, int y_center,
 				   int radius,
@@ -53,7 +53,7 @@ int __ctalkX11PaneDrawCircleBasic (int drawable_id,
 				   char *bg_color) {
   return SUCCESS;
 }
-int __ctalkGUIPaneDrawCircleBasic (int drawable_id,
+int __ctalkGUIPaneDrawCircleBasic (void *d, int drawable_id,
 				   unsigned long int gc_ptr,
 				   int x_center, int y_center,
 				   int radius,
@@ -66,7 +66,7 @@ int __ctalkGUIPaneDrawCircleBasic (int drawable_id,
 }
 #else /* X11LIB_FRAME */
 
-int __ctalkX11PaneDrawCircleBasic (int drawable_id,
+int __ctalkX11PaneDrawCircleBasic (void *d, int drawable_id,
 				   unsigned long int gc_ptr,
 				   int x_center, int y_center,
 				   int radius,
@@ -105,7 +105,7 @@ int __ctalkX11PaneDrawCircleBasic (int drawable_id,
 
   return SUCCESS;
 }
-int __ctalkGUIPaneDrawCircleBasic (int drawable_id,
+int __ctalkGUIPaneDrawCircleBasic (void *d, int drawable_id,
 				   unsigned long int gc_ptr,
 				   int x_center, int y_center,
 				   int radius,
@@ -115,7 +115,7 @@ int __ctalkGUIPaneDrawCircleBasic (int drawable_id,
 				   char *color,
 				   char *bg_color) {
   
-  return __ctalkX11PaneDrawCircleBasic (drawable_id, gc_ptr,
+  return __ctalkX11PaneDrawCircleBasic (d, drawable_id, gc_ptr,
 					x_center, y_center,
 					radius,
 					fill,
@@ -129,7 +129,7 @@ int __ctalkGUIPaneDrawCircleBasic (int drawable_id,
 
 #else /* ! defined (DJGPP) && ! defined (WITHOUT_X11) */
 
-int __ctalkX11PaneDrawCircleBasic (int drawable_id,
+int __ctalkX11PaneDrawCircleBasic (void *d, int drawable_id,
 				   unsigned long int gc_ptr,
 				   int x_center, int y_center,
 				   int radius,
@@ -139,7 +139,7 @@ int __ctalkX11PaneDrawCircleBasic (int drawable_id,
 				   char *pen_color, char *fill_color) {  
   x_support_error (); return ERROR;
 }
-int __ctalkGUIPaneDrawCircleBasic (int drawable_id,
+int __ctalkGUIPaneDrawCircleBasic (void *d, int drawable_id,
 				   unsigned long int gc_ptr,
 				   int x_center, int y_center,
 				   int radius,
