@@ -1,4 +1,4 @@
-/* $Id: x11lib.c,v 1.97 2020/02/29 19:41:37 rkiesling Exp $ -*-c-*-*/
+/* $Id: x11lib.c,v 1.108 2020/02/29 21:06:47 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -125,13 +125,13 @@ static OBJECT *pane_pt_var (OBJECT *, char *, char *);
 OBJECT *__x11_pane_font_id_value_object (OBJECT *);
 
 /* In xrender.c */
-int __xlib_draw_circle (Drawable, GC, char *);
+int __xlib_draw_circle (Display *d, Drawable, GC, char *);
 int __xlib_draw_rectangle (Display *, Drawable, GC, char *);
 int __xlib_draw_line (Display *, Drawable, GC, char *);
 int __xlib_draw_point (Display *, Drawable, GC, char *);
 /* In edittext.c */
-int __xlib_render_text (Drawable, GC, char *);
-int __xlib_get_primary_selection (Drawable, GC, char *);
+int __xlib_render_text (Display *, Drawable, GC, char *);
+int __xlib_get_primary_selection (Display *, Drawable, GC, char *);
 int __xlib_send_selection (XEvent *);
 int __xlib_clear_selection (XEvent *);
 
@@ -732,7 +732,7 @@ int __xlib_clear_rectangle (Display *d, Drawable drawable, GC gc, char *data) {
 
 extern int __xlib_clear_pixmap (Drawable, unsigned int, unsigned int,
 				GC gc);
-int __xlib_resize_window (Drawable drawable, GC gc, char *data) {
+int __xlib_resize_window (Display *d, Drawable drawable, GC gc, char *data) {
   unsigned int width, height;
   int depth, r;
 
@@ -750,7 +750,7 @@ int __xlib_resize_window (Drawable drawable, GC gc, char *data) {
 #endif
     return ERROR;
   }
-  r = XResizeWindow (display, drawable, width, height);
+  r = XResizeWindow (d, drawable, width, height);
   /* The C library uses the opposite convention - 0 for success,
      non-zero for error. Changes this to the C convention */
   r = (r == 0) ? 1 : 0;
@@ -758,7 +758,7 @@ int __xlib_resize_window (Drawable drawable, GC gc, char *data) {
   return r;
 }
 
-int __xlib_move_window (Drawable drawable, GC gc, char *data) {
+int __xlib_move_window (Display *d, Drawable drawable, GC gc, char *data) {
   int x, y, r;
   if ((r = sscanf (data, "%d:%d", &x, &y)) != 2) {
 #ifndef WITHOUT_X11_WARNINGS
@@ -766,11 +766,11 @@ int __xlib_move_window (Drawable drawable, GC gc, char *data) {
 #endif
     return ERROR;
   }
-  XMoveWindow (display, drawable, x, y);
+  XMoveWindow (d, drawable, x, y);
   return SUCCESS;
 }
 
-int __xlib_refresh_window (Drawable drawable, GC gc, char *data) {
+int __xlib_refresh_window (Display *d, Drawable drawable, GC gc, char *data) {
   int r;
   unsigned int buffer_id;
   unsigned int src_x_org, src_y_org, width, height,
@@ -795,14 +795,14 @@ int __xlib_refresh_window (Drawable drawable, GC gc, char *data) {
     return ERROR;
   }
   
-  XCopyArea (display, (Drawable)buffer_id, drawable, gc, 
+  XCopyArea (d, (Drawable)buffer_id, drawable, gc, 
 	     src_x_org, src_y_org,
 	     width, height,
 	     dest_x_org, dest_y_org);
   return SUCCESS;
 }
 
-int __xlib_use_cursor (Drawable drawable, GC gc, char *data) {
+int __xlib_use_cursor (Display *d, Drawable drawable, GC gc, char *data) {
   int r;
   unsigned int cursor;
 
@@ -810,11 +810,11 @@ int __xlib_use_cursor (Drawable drawable, GC gc, char *data) {
   cursor = strtoul (data, NULL, 10);
   if (errno)
     strtol_error (errno, "__xlib_use_cursor", data);
-  XDefineCursor (display, drawable, (Cursor)cursor);
+  XDefineCursor (d, drawable, (Cursor)cursor);
   return SUCCESS;
 }
 
-int __xlib_change_gc (Drawable drawable, GC gc, char *data) {
+int __xlib_change_gc (Display *d, Drawable drawable, GC gc, char *data) {
   int r;
   unsigned long int valuemask;
   Font f;
@@ -846,21 +846,21 @@ int __xlib_change_gc (Drawable drawable, GC gc, char *data) {
       load_xlib_fonts_internal (value);
       /* xlibfont.selectedfont is set in xlibfont.c */
       v.font = xlibfont.selected_xfs -> fid;
-      r = XChangeGC (display, gc, valuemask, &v);
+      r = XChangeGC (d, gc, valuemask, &v);
       break;
     case GCBackground:
       v.background = lookup_pixel (value);
-      r = XChangeGC (display, gc, valuemask, &v);
+      r = XChangeGC (d, gc, valuemask, &v);
       break;
     case GCForeground:
       v.foreground = lookup_pixel (value);
-      r = XChangeGC (display, gc, valuemask, &v);
+      r = XChangeGC (d, gc, valuemask, &v);
       break;
     }
   return SUCCESS;
 }
 
-int __xlib_resize_pixmap (Drawable drawable, GC gc,
+int __xlib_resize_pixmap (Display *d, Drawable drawable, GC gc,
 			  char *data) {
   int r;
   Pixmap old_pixmap, new_pixmap;
@@ -886,14 +886,14 @@ int __xlib_resize_pixmap (Drawable drawable, GC gc,
 #endif
     return ERROR;
   }
-  if ((new_pixmap = XCreatePixmap (display, drawable, 
+  if ((new_pixmap = XCreatePixmap (d, drawable, 
 				   new_width, new_height,
 				   depth)) == 0) {
     strcpy (data, "0");
     return ERROR;
   }
   __xlib_clear_pixmap (new_pixmap, new_width, new_height, gc);
-  XFreePixmap (display, old_pixmap);
+  XFreePixmap (d, old_pixmap);
   __ctalkDecimalIntegerToASCII (new_pixmap, data);
   return SUCCESS;
 }
@@ -1021,7 +1021,7 @@ static unsigned long rgb_to_pix (Display *d,
   ((d >= 'A' && d <= 'F') ? d - 55 :				\
    ((d >= 'a' && d <= 'f') ? d - 87 : 0)))
 
-int __xlib_xpm_from_data (Drawable drawable, GC gc, char *data) {
+int __xlib_xpm_from_data (Display *d, Drawable drawable, GC gc, char *data) {
   int r;
   char handle_path[FILENAME_MAX];
   char *p, *q;
@@ -1077,7 +1077,7 @@ int __xlib_xpm_from_data (Drawable drawable, GC gc, char *data) {
     for (x = 0, x_out = 0; x_out < width; ++x_out, x += chars_per_pixel) {
       if (!strncmp (&xpm_lines[y][x], old_color_pixels, chars_per_pixel)) {
    	// Re-use a color if it's the same as the previous pixel.
-	XDrawPoint (display, drawable, gc, x_out + user_x_org, 
+	XDrawPoint (d, drawable, gc, x_out + user_x_org, 
 		    y_out + user_y_org);
       } else {
    	for (nth_color = color_1_row, have_color = FALSE;
@@ -1128,10 +1128,10 @@ int __xlib_xpm_from_data (Drawable drawable, GC gc, char *data) {
 		  bb = bbbb >> 4;
 		}
    		have_color = TRUE;
-		pix = rgb_to_pix (display, rr << 8, gg << 8, bb << 8);
+		pix = rgb_to_pix (d, rr << 8, gg << 8, bb << 8);
 		gcv.foreground = pix;
-		XChangeGC (display, gc, GCForeground, &gcv);
-		XDrawPoint (display, drawable, gc, 
+		XChangeGC (d, gc, GCForeground, &gcv);
+		XDrawPoint (d, drawable, gc, 
 			    x_out + user_x_org, 
 			    y_out + user_y_org);
 
@@ -1183,7 +1183,7 @@ int __xlib_xpm_from_data (Drawable drawable, GC gc, char *data) {
 }
 
 
-int __xlib_set_resources (Drawable drawable, GC gc,
+int __xlib_set_resources (Display *d, Drawable drawable, GC gc,
 			  char *data) {
   XClassHint *class_hints;
   int r;
@@ -1231,7 +1231,7 @@ int __xlib_set_resources (Drawable drawable, GC gc,
   return SUCCESS;
 }
 
-int __xlib_change_window_background (Drawable drawable, GC gc,
+int __xlib_change_window_background (Display *d, Drawable drawable, GC gc,
 				     char *data) {
   int r;
   char color[MAXLABEL];
@@ -1245,11 +1245,11 @@ int __xlib_change_window_background (Drawable drawable, GC gc,
   }
   if (color) 
     XSetWindowBackground 
-      (display, drawable, lookup_pixel (color));
+      (d, drawable, lookup_pixel (color));
   return SUCCESS;
 }
 
-int __xlib_copy_pixmap (Drawable dest_drawable, GC dest_gc,
+int __xlib_copy_pixmap (Display *d, Drawable dest_drawable, GC dest_gc,
 			char *data) {
   Pixmap src_drawable;
   int r;
@@ -1281,18 +1281,18 @@ int __xlib_copy_pixmap (Drawable dest_drawable, GC dest_gc,
   src_drawable = (Pixmap)src_drawable_uint;
 
   gcv.function = GXcopy;
-  copyGC = XCreateGC (display, dest_drawable, GCFunction, &gcv);
+  copyGC = XCreateGC (d, dest_drawable, GCFunction, &gcv);
 
-  r = XCopyArea (display, src_drawable, (Pixmap)dest_drawable, copyGC,
+  r = XCopyArea (d, src_drawable, (Pixmap)dest_drawable, copyGC,
 	     (int)src_x_org, (int)src_y_org, 
 	     src_width, src_height, 
 	     (int)dest_x_org, (int)dest_y_org);
 
-  XFreeGC (display, copyGC);
+  XFreeGC (d, copyGC);
   return SUCCESS;
 }
 
-int __xlib_change_face_request (Drawable d, GC gc, char *data) {
+int __xlib_change_face_request (Display *d, Drawable w, GC gc, char *data) {
   int face_id, r;
   XGCValues v;
   XFontStruct *xfs;
@@ -1343,22 +1343,22 @@ int __xlib_change_face_request (Drawable d, GC gc, char *data) {
 
   if (xlibfont.selectedfont && xlibfont.selected_xfs) {
     v.font = xlibfont.selected_xfs -> fid;
-    r = XChangeGC (display, gc, GCFont, &v);
+    r = XChangeGC (d, gc, GCFont, &v);
     if (r) {
       ctitoa (xlibfont.selected_xfs -> fid, buf);
       strcpy (&shm_mem[SHM_FONT_FID], buf); 
       strcpy (&shm_mem[SHM_FONT_XLFD], xlibfont.selectedfont);
     }
   } else if (xlibfont.selectedfont) {
-    xfs = XLoadQueryFont (display, xlibfont.selectedfont);
+    xfs = XLoadQueryFont (d, xlibfont.selectedfont);
     v.font = xfs -> fid;
-    r = XChangeGC (display, gc, GCFont, &v);
+    r = XChangeGC (d, gc, GCFont, &v);
     if (r) {
       ctitoa (xlibfont.selected_xfs -> fid, buf);
       strcpy (&shm_mem[SHM_FONT_FID], buf); 
       strcpy (&shm_mem[SHM_FONT_XLFD], xlibfont.selectedfont);
     }
-    XFreeFont (display, xfs);
+    XFreeFont (d, xfs);
     if (r) {
       return SUCCESS;
     } else {
@@ -1372,7 +1372,7 @@ int __xlib_change_face_request (Drawable d, GC gc, char *data) {
 extern void sync_ft_font (bool);
 
 #ifdef HAVE_XFT_H
- int __xlib_change_face_request_ft (Drawable d, GC gc, char *data) {
+int __xlib_change_face_request_ft (Display *d, Drawable w, GC gc, char *data) {
   int face_id, r, slant_def, weight_def;
   int dpi_def;
   double ptsize_def;
@@ -1536,54 +1536,54 @@ int __xlib_handle_client_request (char *shm_mem_2) {
       __xlib_clear_rectangle (d, (Drawable)w, gc, &shm_mem_2[SHM_DATA]);
       break;
     case PANE_RESIZE_REQUEST:
-      __xlib_resize_window ((Drawable)w, gc, &shm_mem_2[SHM_DATA]);
+      __xlib_resize_window (d, (Drawable)w, gc, &shm_mem_2[SHM_DATA]);
       strcpy (&shm_mem_2[SHM_RETVAL], &shm_mem_2[SHM_DATA]);
       break;
     case PANE_MOVE_REQUEST:
-      __xlib_move_window ((Drawable)w, gc, &shm_mem_2[SHM_DATA]);
+      __xlib_move_window (d, (Drawable)w, gc, &shm_mem_2[SHM_DATA]);
       break;
     case PANE_REFRESH_REQUEST:
-      __xlib_refresh_window ((Drawable)w, gc, &shm_mem_2[SHM_DATA]);
+      __xlib_refresh_window (d, (Drawable)w, gc, &shm_mem_2[SHM_DATA]);
       break;
     case PANE_CURSOR_REQUEST:
-      __xlib_use_cursor ((Drawable)w, gc, &shm_mem_2[SHM_DATA]);
+      __xlib_use_cursor (d, (Drawable)w, gc, &shm_mem_2[SHM_DATA]);
       break;
     case PANE_CHANGE_GC_REQUEST:
-      __xlib_change_gc ((Drawable)w, gc, &shm_mem_2[SHM_DATA]);
+      __xlib_change_gc (d, (Drawable)w, gc, &shm_mem_2[SHM_DATA]);
       break;
     case PANE_SET_WINDOW_BACKGROUND_REQUEST:
       __xlib_change_window_background 
-	((Drawable)w, gc, &shm_mem_2[SHM_DATA]);
+	(d, (Drawable)w, gc, &shm_mem_2[SHM_DATA]);
       break;
     case PANE_RESIZE_PIXMAP_REQUEST:
-      __xlib_resize_pixmap ((Drawable)w, gc, &shm_mem_2[SHM_DATA]);
+      __xlib_resize_pixmap (d, (Drawable)w, gc, &shm_mem_2[SHM_DATA]);
       strcpy (&shm_mem_2[SHM_RETVAL], &shm_mem_2[SHM_DATA]);
       break;
     case PANE_XPM_FROM_DATA_REQUEST:
-      __xlib_xpm_from_data ((Drawable)w, gc, &shm_mem_2[SHM_DATA]);
+      __xlib_xpm_from_data (d, (Drawable)w, gc, &shm_mem_2[SHM_DATA]);
       break;
     case PANE_SET_RESOURCE_REQUEST:
-      __xlib_set_resources ((Drawable)w, gc, &shm_mem_2[SHM_DATA]);
+      __xlib_set_resources (d, (Drawable)w, gc, &shm_mem_2[SHM_DATA]);
       break;
     case PANE_COPY_PIXMAP_REQUEST:
-      __xlib_copy_pixmap ((Drawable)w, gc, &shm_mem_2[SHM_DATA]);
+      __xlib_copy_pixmap (d, (Drawable)w, gc, &shm_mem_2[SHM_DATA]);
 	break;
     case PANE_DRAW_CIRCLE_REQUEST:
-      __xlib_draw_circle ((Drawable)w, gc, &shm_mem_2[SHM_DATA]);
+      __xlib_draw_circle (d, (Drawable)w, gc, &shm_mem_2[SHM_DATA]);
       break;
     case PANE_XLIB_FACE_REQUEST:
-      __xlib_change_face_request ((Drawable)w, gc, &shm_mem_2[SHM_DATA]);
+      __xlib_change_face_request (d, (Drawable)w, gc, &shm_mem_2[SHM_DATA]);
       break;
 #ifdef HAVE_XFT_H
     case PANE_XLIB_FACE_REQUEST_FT:
-      __xlib_change_face_request_ft ((Drawable)w, gc, &shm_mem_2[SHM_DATA]);
+      __xlib_change_face_request_ft (d, (Drawable)w, gc, &shm_mem_2[SHM_DATA]);
       break;
 #endif
     case PANE_TEXT_FROM_DATA_REQUEST:
-      __xlib_render_text ((Drawable)w, gc, &shm_mem_2[SHM_DATA]);
+      __xlib_render_text (d, (Drawable)w, gc, &shm_mem_2[SHM_DATA]);
       break;
     case PANE_GET_PRIMARY_SELECTION_REQUEST:
-      __xlib_get_primary_selection ((Drawable)w, gc, &shm_mem_2[SHM_DATA]);
+      __xlib_get_primary_selection (d, (Drawable)w, gc, &shm_mem_2[SHM_DATA]);
       break;
     } 
  x_event_cleanup:

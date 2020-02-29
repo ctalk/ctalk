@@ -1,4 +1,4 @@
-/* $Id: xrender.c,v 1.12 2020/02/29 18:58:50 rkiesling Exp $ -*-c-*-*/
+/* $Id: xrender.c,v 1.13 2020/02/29 20:47:26 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -66,7 +66,7 @@ int __xlib_draw_line (Drawable drawable_arg, GC gc, char *data) {
   return SUCCESS;
 }
 
-int __xlib_draw_circle (Drawable drawable_arg, GC gc, char *data) {
+int __xlib_draw_circle (Display *d, Drawable drawable_arg, GC gc, char *data) {
   return SUCCESS;
 }
 
@@ -1249,7 +1249,7 @@ int __xlib_draw_line (Display *d, Drawable drawable_arg, GC gc, char *data) {
   }  /* if (have_useful_xrender) */
 }
 
-int __xlib_draw_circle (Drawable w, GC gc, char *data) {
+int __xlib_draw_circle (Display *d, Drawable w, GC gc, char *data) {
   XGCValues gcv, old_gcv;
   int center_x, center_y, radius, pen_width, fill, r;
   double i, p, opp, adj;
@@ -1300,9 +1300,9 @@ int __xlib_draw_circle (Drawable w, GC gc, char *data) {
       xr_make_surface (w);
 
     if (!get_color (colorname, &rcolor)) {
-      if (XftColorAllocName (display, 
-			     DefaultVisual (display, DefaultScreen (display)),
-			     DefaultColormap (display, DefaultScreen (display)),
+      if (XftColorAllocName (d, 
+			     DefaultVisual (d, DefaultScreen (d)),
+			     DefaultColormap (d, DefaultScreen (d)),
 			     colorname, 
 			     &rcolor)) {
 	rcolor.color.alpha = pen_alpha;
@@ -1334,7 +1334,7 @@ int __xlib_draw_circle (Drawable w, GC gc, char *data) {
 	++path_idx;
       }
 
-      XRenderCompositeDoublePoly (display,
+      XRenderCompositeDoublePoly (d,
 				  PictOpOver,
 				  surface.fill_picture,
 				  surface.picture,
@@ -1353,7 +1353,7 @@ int __xlib_draw_circle (Drawable w, GC gc, char *data) {
 	++path_idx;
       }
 
-      XRenderCompositeDoublePoly (display,
+      XRenderCompositeDoublePoly (d,
 				  PictOpOver,
 				  surface.fill_picture,
 				  surface.picture,
@@ -1362,11 +1362,11 @@ int __xlib_draw_circle (Drawable w, GC gc, char *data) {
 				  360, 
 				  WindingRule);
       if (!get_color (bg_color_name, &rcolor)) {
-	if (XftColorAllocName (display, 
-			       DefaultVisual (display, 
-					      DefaultScreen (display)),
-			       DefaultColormap (display, 
-						DefaultScreen (display)),
+	if (XftColorAllocName (d, 
+			       DefaultVisual (d, 
+					      DefaultScreen (d)),
+			       DefaultColormap (d, 
+						DefaultScreen (d)),
 			       bg_color_name, 
 			       &rcolor)) {
 	  rcolor.color.alpha = pen_alpha;
@@ -1391,7 +1391,7 @@ int __xlib_draw_circle (Drawable w, GC gc, char *data) {
 	++path_idx;
       }
 
-      XRenderCompositeDoublePoly (display,
+      XRenderCompositeDoublePoly (d,
 				  PictOpOver,
 				  surface.fill_picture,
 				  surface.picture,
@@ -1403,9 +1403,9 @@ int __xlib_draw_circle (Drawable w, GC gc, char *data) {
     } /* if (fill) */
   } else { /* if (have_useful_xrender) */
     if (fill) {
-      XGetGCValues (display, gc, CIRCLE_GCV, &old_gcv);
+      XGetGCValues (d, gc, CIRCLE_GCV, &old_gcv);
       gcv.foreground = lookup_pixel (colorname);
-      XChangeGC (display, gc, CIRCLE_GCV, &gcv);
+      XChangeGC (d, gc, CIRCLE_GCV, &gcv);
       path_idx = 0;
       for (i = 0; i <= 360.0; i += 0.5 ){
 	opp = opp_side (i, ((double)radius));
@@ -1414,13 +1414,13 @@ int __xlib_draw_circle (Drawable w, GC gc, char *data) {
 	path[path_idx].y = (int)adj + center_y;
 	++path_idx;
       }
-      XFillPolygon (display, w, gc, path, (360 * 2), Convex,
+      XFillPolygon (d, w, gc, path, (360 * 2), Convex,
 		    CoordModeOrigin);
-      XChangeGC (display, gc, CIRCLE_GCV, &old_gcv);
+      XChangeGC (d, gc, CIRCLE_GCV, &old_gcv);
     } else {
-      XGetGCValues (display, gc, CIRCLE_GCV, &old_gcv);
+      XGetGCValues (d, gc, CIRCLE_GCV, &old_gcv);
       gcv.foreground = lookup_pixel (colorname);
-      XChangeGC (display, gc, CIRCLE_GCV, &gcv);
+      XChangeGC (d, gc, CIRCLE_GCV, &gcv);
       /* This turns out to be more efficient that drawing the points
 	 in one call (or pen_width * calls) using XDrawPoints. */
       if (pen_width > 1) {
@@ -1428,7 +1428,7 @@ int __xlib_draw_circle (Drawable w, GC gc, char *data) {
 	  for (i = 0; i <= 360.0; i += 0.2 ){
 	    opp = opp_side (i, ((double)radius + p));
 	    adj = adj_side (i, ((double)radius + p));
-	    XDrawPoint (display, w, gc, (int)opp + center_x, 
+	    XDrawPoint (d, w, gc, (int)opp + center_x, 
 			(int)adj +  center_y);
 	  }
 	}
@@ -1436,11 +1436,11 @@ int __xlib_draw_circle (Drawable w, GC gc, char *data) {
 	for (i = 0; i <= 360.0; i += 0.2 ){
 	  opp = opp_side (i, ((double)radius + p));
 	  adj = adj_side (i, ((double)radius + p));
-	  XDrawPoint (display, w, gc, (int)opp + center_x, 
+	  XDrawPoint (d, w, gc, (int)opp + center_x, 
 		      (int)adj +  center_y);
 	}
       }
-      XChangeGC (display, gc, CIRCLE_GCV, &old_gcv);
+      XChangeGC (d, gc, CIRCLE_GCV, &old_gcv);
     }
     return SUCCESS;
   } /*   /* if (have_useful_xrender) */
@@ -1846,7 +1846,7 @@ int __xlib_draw_line (Display *d, Drawable drawable_arg, GC gc, char *data) {
 
 }
 
-int __xlib_draw_circle (Drawable w, GC gc, char *data) {
+int __xlib_draw_circle (Display *d, Drawable w, GC gc, char *data) {
   XGCValues gcv, old_gcv;
   int center_x, center_y, radius, pen_width, fill;
   int r;
@@ -1892,7 +1892,7 @@ int __xlib_draw_circle (Drawable w, GC gc, char *data) {
   if (fill) {
     XGetGCValues (display, gc, CIRCLE_GCV, &old_gcv);
     gcv.foreground = lookup_pixel (colorname);
-    XChangeGC (display, gc, CIRCLE_GCV, &gcv);
+    XChangeGC (d, gc, CIRCLE_GCV, &gcv);
     path_idx = 0;
     for (i = 0; i <= 360.0; i += 0.5 ){
       opp = opp_side (i, ((double)radius));
@@ -1901,13 +1901,13 @@ int __xlib_draw_circle (Drawable w, GC gc, char *data) {
       path[path_idx].y = (int)adj + center_y;
       ++path_idx;
     }
-    XFillPolygon (display, w, gc, path, (360 * 2), Convex,
+    XFillPolygon (d, w, gc, path, (360 * 2), Convex,
 		  CoordModeOrigin);
-    XChangeGC (display, gc, CIRCLE_GCV, &old_gcv);
+    XChangeGC (d, gc, CIRCLE_GCV, &old_gcv);
   } else {
-    XGetGCValues (display, gc, CIRCLE_GCV, &old_gcv);
+    XGetGCValues (d, gc, CIRCLE_GCV, &old_gcv);
     gcv.foreground = lookup_pixel (colorname);
-    XChangeGC (display, gc, CIRCLE_GCV, &gcv);
+    XChangeGC (d, gc, CIRCLE_GCV, &gcv);
     /* This turns out to be more efficient that drawing the points
        in one call (or pen_width * calls) using XDrawPoints. */
     if (pen_width > 1) {
@@ -1915,7 +1915,7 @@ int __xlib_draw_circle (Drawable w, GC gc, char *data) {
 	for (i = 0; i <= 360.0; i += 0.2 ){
 	  opp = opp_side (i, ((double)radius + p));
 	  adj = adj_side (i, ((double)radius + p));
-	  XDrawPoint (display, w, gc, (int)opp + center_x, 
+	  XDrawPoint (d, w, gc, (int)opp + center_x, 
 		      (int)adj +  center_y);
 	}
       }
@@ -1923,11 +1923,11 @@ int __xlib_draw_circle (Drawable w, GC gc, char *data) {
       for (i = 0; i <= 360.0; i += 0.2 ){
 	opp = opp_side (i, ((double)radius + p));
 	adj = adj_side (i, ((double)radius + p));
-	XDrawPoint (display, w, gc, (int)opp + center_x, 
+	XDrawPoint (d, w, gc, (int)opp + center_x, 
 		    (int)adj +  center_y);
       }
     }
-    XChangeGC (display, gc, CIRCLE_GCV, &old_gcv);
+    XChangeGC (d, gc, CIRCLE_GCV, &old_gcv);
   }
 
   return SUCCESS;
@@ -1985,7 +1985,7 @@ int __xlib_draw_line (void *, unsigned int w, unsigned int gc, char *data) {
   x_support_error (); return ERROR;
 }
 
-int __xlib_draw_circle (unsigned int w, unsigned int gc, char *data) {
+int __xlib_draw_circle (void *, unsigned int w, unsigned int gc, char *data) {
   x_support_error (); return ERROR;
 }
 

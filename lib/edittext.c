@@ -1,4 +1,4 @@
-/* $Id: edittext.c,v 1.37 2020/02/29 02:54:04 rkiesling Exp $ -*-c-*-*/
+/* $Id: edittext.c,v 1.38 2020/02/29 21:06:47 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -1929,7 +1929,7 @@ int __edittext_get_primary_selection (OBJECT *editorpane_object,
   return SUCCESS;
 }
 
-int __xlib_get_primary_selection (Drawable pixmap, GC gc, char
+int __xlib_get_primary_selection (Display *d, Drawable pixmap, GC gc, char
 				  *handle_basename_path) {
   Window owner;
   int fmt_return;
@@ -1943,19 +1943,19 @@ int __xlib_get_primary_selection (Drawable pixmap, GC gc, char
 
   strcatx (info_path, handle_basename_path, ".inf", NULL);
   strcatx (data_path, handle_basename_path, ".dat", NULL);
-  if ((owner = XGetSelectionOwner (display, XA_PRIMARY)) == None)
+  if ((owner = XGetSelectionOwner (d, XA_PRIMARY)) == None)
     return SUCCESS;
 
-  XConvertSelection (display, XA_PRIMARY, XA_STRING, 0, owner,
+  XConvertSelection (d, XA_PRIMARY, XA_STRING, 0, owner,
 		     (Time)time (NULL));
 
-  XFlush (display);
-  XGetWindowProperty (display, owner, XA_STRING, 0, 0, False,
+  XFlush (d);
+  XGetWindowProperty (d, owner, XA_STRING, 0, 0, False,
 		      AnyPropertyType, &type_return, &fmt_return,
 		      &nitems, &bytes_left, &data);
 
   if (bytes_left) {
-    if (!XGetWindowProperty (display, owner, XA_STRING, 0,
+    if (!XGetWindowProperty (d, owner, XA_STRING, 0,
 			     bytes_left, 0, AnyPropertyType,
 			     &type_return, &fmt_return,
 			     &nitems, &dummy, &data)) {
@@ -2002,7 +2002,7 @@ int __xlib_send_selection (XEvent *e) {
   return SUCCESS;
 }
 
-int __xlib_render_text (Drawable pixmap, GC gc, char *fn) {
+int __xlib_render_text (Display *d, Drawable pixmap, GC gc, char *fn) {
   char *text, *content;
   char starting_xlfd[255];
   int line_y, cursor_y, view_start_y, view_end_y, line_x, i_x;
@@ -2066,18 +2066,18 @@ int __xlib_render_text (Drawable pixmap, GC gc, char *fn) {
     fgColor.green = (unsigned short)__ctalkXftFgGreen ();
     fgColor.blue = (unsigned short)__ctalkXftFgBlue ();
     fgColor.alpha = (unsigned short)0xffff;
-    XftColorAllocValue(display,
-		       DefaultVisual (display, DefaultScreen (display)),
-		       DefaultColormap (display, DefaultScreen (display)),
+    XftColorAllocValue(d,
+		       DefaultVisual (d, DefaultScreen (d)),
+		       DefaultColormap (d, DefaultScreen (d)),
 		       &fgColor, &ftFg);
     line_height = selected_font -> ascent + selected_font -> descent;
   } else {
     /***/
-    XAllocNamedColor (display,
-		      DefaultColormap (display, DefaultScreen (display)),
+    XAllocNamedColor (d,
+		      DefaultColormap (d, DefaultScreen (d)),
 		      fgcolorname, &fg_screen, &fg_exact);
     xgcv_foreground.foreground = fg_screen.pixel;
-    XChangeGC (display, gc, GCForeground, &xgcv_foreground);
+    XChangeGC (d, gc, GCForeground, &xgcv_foreground);
   }
   line_y = line_height;
   visible_line = 0;
@@ -2091,7 +2091,7 @@ int __xlib_render_text (Drawable pixmap, GC gc, char *fn) {
 			(unsigned char *)l -> text,
 			strlen (l -> text));
       } else {
-	XDrawImageString (display, pixmap, gc,
+	XDrawImageString (d, pixmap, gc,
 			  left_margin, line_y, 
 			  (char *)l -> text, strlen ((char *)l -> text));
       }
@@ -2118,43 +2118,43 @@ int __xlib_render_text (Drawable pixmap, GC gc, char *fn) {
 		      0, selected_font -> ascent,
 		      (char *)(l -> text) + point_x, 1);
     }
-    XCopyArea (display, cursor, pixmap, gc, 0, 0,
+    XCopyArea (d, cursor, pixmap, gc, 0, 0,
 	       cursor_char_width, selected_font -> height,
 	       left_margin + (cursor_char_width * point_x),
 	       cursor_y - selected_font -> ascent);
   } else {
-    XGetGCValues (display, gc, GCForeground|GCBackground|GCFont,
+    XGetGCValues (d, gc, GCForeground|GCBackground|GCFont,
 		  &xgcv_content);
     xgcv_point.foreground = xgcv_content.background;
     xgcv_point.background = xgcv_content.foreground;
     xgcv_point.font = xgcv_content.font;
-    cursor_gc = XCreateGC (display, pixmap,
+    cursor_gc = XCreateGC (d, pixmap,
 			   GCForeground|GCBackground|GCFont,
 			   &xgcv_point);
     if (cursor_char_width == -1) {
-      cursor_xfs = XQueryFont (display, xgcv_content.font);
+      cursor_xfs = XQueryFont (d, xgcv_content.font);
       cursor_char_width = cursor_xfs -> max_bounds.width;
     }
     if (point_x >= strlen (l -> text)) {
-      XDrawImageString (display, pixmap, cursor_gc,
+      XDrawImageString (d, pixmap, cursor_gc,
 			left_margin + (cursor_char_width * point_x),
 			cursor_y, cursor_space, 1);
     } else {
-      XDrawImageString (display, pixmap, cursor_gc,
+      XDrawImageString (d, pixmap, cursor_gc,
 			left_margin + (cursor_char_width * point_x),
 			cursor_y, (char *)(l -> text) + point_x, 1);
     }
-    XFreeGC (display, cursor_gc);
+    XFreeGC (d, cursor_gc);
   } /* if (!xft) { */
    
   if (selection_start != 0) {
     if (selection_start > selection_end) {
       swap_selection_ends (&selection_start, &selection_end);
     }
-    XSetSelectionOwner (display, XA_PRIMARY, win_xid,
+    XSetSelectionOwner (d, XA_PRIMARY, win_xid,
 			CurrentTime);
-    XFlush (display);
-    if ((selection_owner = XGetSelectionOwner (display, XA_PRIMARY))
+    XFlush (d);
+    if ((selection_owner = XGetSelectionOwner (d, XA_PRIMARY))
 	!= win_xid) {
       /* TODO *** Request the selection here, with retries. */
       fprintf (stderr, "ctalk: failed to get X selection owner = %u.\n",
@@ -2186,7 +2186,7 @@ int __xlib_render_text (Drawable pixmap, GC gc, char *fn) {
 	      XftDrawString8 (ftSelection, &ftSfg, selected_font,
 			      0, selected_font -> ascent,
 			      (unsigned char *)&l -> text[i_x], 1);
-	      XCopyArea (display, selectionchar, pixmap, gc, 0, 0,
+	      XCopyArea (d, selectionchar, pixmap, gc, 0, 0,
 			 cursor_char_width, selected_font -> height,
 			 left_margin + (cursor_char_width * i_x),
 			 line_y - selected_font -> ascent);
@@ -2197,20 +2197,20 @@ int __xlib_render_text (Drawable pixmap, GC gc, char *fn) {
 	++visible_line;
       }
     } else { /* if (xft)  */
-      XGetGCValues (display, gc, GCForeground|GCBackground|GCFont,
+      XGetGCValues (d, gc, GCForeground|GCBackground|GCFont,
 		   &xgcv_content);
       xgcv_point.foreground = xgcv_content.foreground;
       xgcv_point.font = xgcv_content.font;
-      XAllocNamedColor (display,
-			DefaultColormap (display, DefaultScreen (display)),
+      XAllocNamedColor (d,
+			DefaultColormap (d, DefaultScreen (d)),
 			selectionbgcolorname, &l_selection_screen,
 			&l_selection_exact);
       xgcv_point.background = l_selection_screen.pixel;
-      selection_gc = XCreateGC (display, pixmap,
+      selection_gc = XCreateGC (d, pixmap,
 				GCForeground|GCBackground|GCFont,
 				&xgcv_point);
       if (cursor_char_width == -1) {
-	cursor_xfs = XQueryFont (display, xgcv_content.font);
+	cursor_xfs = XQueryFont (d, xgcv_content.font);
 	cursor_char_width = cursor_xfs -> max_bounds.width;
       }
       line_y = line_height;
@@ -2231,7 +2231,7 @@ int __xlib_render_text (Drawable pixmap, GC gc, char *fn) {
 				(unsigned char *)l -> text,
 				strlen (l -> text));
 	      } else {
-		XDrawImageString (display, pixmap, selection_gc,
+		XDrawImageString (d, pixmap, selection_gc,
 				  left_margin + (i_x * cursor_char_width),
 				  line_y, 
 				  (char *)&(l -> text[i_x]), 1);
@@ -2243,7 +2243,7 @@ int __xlib_render_text (Drawable pixmap, GC gc, char *fn) {
 	++visible_line;
       }
 
-      XFreeGC (display, selection_gc);
+      XFreeGC (d, selection_gc);
     } /* if (xft) */
   }
 
@@ -2337,7 +2337,7 @@ int __edittext_get_primary_selection (OBJECT *editorpane_object,
   return SUCCESS;
 }
 
-int __xlib_get_primary_selection (Drawable pixmap, GC gc, char
+int __xlib_get_primary_selection (Display *d, Drawable pixmap, GC gc, char
 				  *handle_basename_path) {
   Window owner;
   int fmt_return;
@@ -2351,19 +2351,19 @@ int __xlib_get_primary_selection (Drawable pixmap, GC gc, char
 
   strcatx (info_path, handle_basename_path, ".inf", NULL);
   strcatx (data_path, handle_basename_path, ".dat", NULL);
-  if ((owner = XGetSelectionOwner (display, XA_PRIMARY)) == None)
+  if ((owner = XGetSelectionOwner (d, XA_PRIMARY)) == None)
     return SUCCESS;
 
-  XConvertSelection (display, XA_PRIMARY, XA_STRING, 0, owner,
+  XConvertSelection (d, XA_PRIMARY, XA_STRING, 0, owner,
 		     (Time)time (NULL));
 
-  XFlush (display);
-  XGetWindowProperty (display, owner, XA_STRING, 0, 0, False,
+  XFlush (d);
+  XGetWindowProperty (d, owner, XA_STRING, 0, 0, False,
 		      AnyPropertyType, &type_return, &fmt_return,
 		      &nitems, &bytes_left, &data);
 
   if (bytes_left) {
-    if (!XGetWindowProperty (display, owner, XA_STRING, 0,
+    if (!XGetWindowProperty (d, owner, XA_STRING, 0,
 			     bytes_left, 0, AnyPropertyType,
 			     &type_return, &fmt_return,
 			     &nitems, &dummy, &data)) {
@@ -2412,7 +2412,7 @@ int __xlib_send_selection (XEvent *e) {
   return SUCCESS;
 }
 
-int __xlib_render_text (Drawable pixmap, GC gc, char *fn) {
+int __xlib_render_text (Display *d, Drawable pixmap, GC gc, char *fn) {
   char *text, *content;
   char starting_xlfd[255];
   int selection_start, selection_end;
@@ -2453,7 +2453,7 @@ int __xlib_render_text (Drawable pixmap, GC gc, char *fn) {
   visible_line = 0;
   for (l = text_lines; l; l = l -> next) {
     if (visible_line >= view_start_y && visible_line <= view_end_y) {
-      XDrawImageString (display, pixmap, gc,
+      XDrawImageString (d, pixmap, gc,
 			left_margin, line_y, 
 			(char *)l -> text, strlen ((char *)l -> text));
       line_y += line_height;
@@ -2464,28 +2464,28 @@ int __xlib_render_text (Drawable pixmap, GC gc, char *fn) {
   /* Draw the point cursor. */
   l = calc_point_cursor (text_lines, point, view_start_y, &point_x, &point_y);
   cursor_y = point_y * line_height;
-  XGetGCValues (display, gc, GCForeground|GCBackground|GCFont,
+  XGetGCValues (d, gc, GCForeground|GCBackground|GCFont,
 		&xgcv_content);
   xgcv_point.foreground = xgcv_content.background;
   xgcv_point.background = xgcv_content.foreground;
   xgcv_point.font = xgcv_content.font;
-  cursor_gc = XCreateGC (display, pixmap,
+  cursor_gc = XCreateGC (d, pixmap,
 			 GCForeground|GCBackground|GCFont,
 			 &xgcv_point);
   if (cursor_char_width == -1) {
-    cursor_xfs = XQueryFont (display, xgcv_content.font);
+    cursor_xfs = XQueryFont (d, xgcv_content.font);
     cursor_char_width = cursor_xfs -> max_bounds.width;
   }
   if (point_x >= strlen (l -> text)) {
-    XDrawImageString (display, pixmap, cursor_gc,
+    XDrawImageString (d, pixmap, cursor_gc,
 		      left_margin + (cursor_char_width * point_x),
 		      cursor_y, cursor_space, 1);
   } else {
-    XDrawImageString (display, pixmap, cursor_gc,
+    XDrawImageString (d, pixmap, cursor_gc,
 		      left_margin + (cursor_char_width * point_x),
 		      cursor_y, (char *)(l -> text) + point_x, 1);
   }
-  XFreeGC (display, cursor_gc);
+  XFreeGC (d, cursor_gc);
    
   if (selection_start != 0) {
     if (selection_start > selection_end) {
@@ -2496,20 +2496,20 @@ int __xlib_render_text (Drawable pixmap, GC gc, char *fn) {
       selection_start = selection_end;
       selection_end = selection_tmp;
     }
-    XGetGCValues (display, gc, GCForeground|GCBackground|GCFont,
+    XGetGCValues (d, gc, GCForeground|GCBackground|GCFont,
 		  &xgcv_content);
     xgcv_point.foreground = xgcv_content.foreground;
     xgcv_point.font = xgcv_content.font;
-    XAllocNamedColor (display,
-		      DefaultColormap (display, DefaultScreen (display)),
+    XAllocNamedColor (d,
+		      DefaultColormap (d, DefaultScreen (d)),
 		      selectionbgcolorname, &l_selection_screen,
 		      &l_selection_exact);
     xgcv_point.background = l_selection_screen.pixel;
-    selection_gc = XCreateGC (display, pixmap,
+    selection_gc = XCreateGC (d, pixmap,
 			      GCForeground|GCBackground|GCFont,
 			      &xgcv_point);
     if (cursor_char_width == -1) {
-      cursor_xfs = XQueryFont (display, xgcv_content.font);
+      cursor_xfs = XQueryFont (d, xgcv_content.font);
       cursor_char_width = cursor_xfs -> max_bounds.width;
     }
     line_y = line_height;
@@ -2524,7 +2524,7 @@ int __xlib_render_text (Drawable pixmap, GC gc, char *fn) {
 	for (i_x = 0; l -> text[i_x]; ++i_x) {
 	  if ((line_x + i_x >= selection_start) &&
 	      (line_x + i_x <= selection_end)) {
-	    XDrawImageString (display, pixmap, selection_gc,
+	    XDrawImageString (d, pixmap, selection_gc,
 			      left_margin + (i_x * cursor_char_width),
 			      line_y, 
 			      (char *)&(l -> text[i_x]), 1);
@@ -2535,7 +2535,7 @@ int __xlib_render_text (Drawable pixmap, GC gc, char *fn) {
       ++visible_line;
     }
 
-    XFreeGC (display, selection_gc);
+    XFreeGC (d, selection_gc);
   }
 
   delete_lines (&text_lines);
@@ -2555,7 +2555,7 @@ int __edittext_insert_at_point (OBJECT *editorpane_object,
   exit (EXIT_FAILURE);
 }
 
-int __xlib_render_text (int pixmap, unsigned long int gc, char *fn) {
+ int __xlib_render_text (void *d, int pixmap, unsigned long int gc, char *fn) {
   fprintf (stderr, "__xlib_render_text: This function requires "
 	   "the X Window System.\n");
   exit (EXIT_FAILURE);
@@ -2672,4 +2672,10 @@ unsigned int __edittext_xk_keysym (int keycode, int shift_state,
   exit (EXIT_FAILURE);
 }
 
+int __xlib_get_primary_selection (void *d, unsigned int pixmap, uintptr_t gc,
+				  char  *handle_basename_path) {
+  fprintf (stderr, "__edittext_get_primary_selection: This function requires "
+	   "the X Window System.\n");
+  exit (EXIT_FAILURE);
+}
 #endif /* ! defined (DJGPP) && ! defined (WITHOUT_X11) */
