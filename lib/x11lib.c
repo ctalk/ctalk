@@ -1,4 +1,4 @@
-/* $Id: x11lib.c,v 1.91 2020/02/29 12:42:55 rkiesling Exp $ -*-c-*-*/
+/* $Id: x11lib.c,v 1.92 2020/02/29 16:59:59 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -553,7 +553,7 @@ int __xlib_put_str_ft (Display *d, Drawable w, GC gc, char *s) {
 #define WITHOUT_X11_WARNINGS
 #endif
 
-int __xlib_set_wm_name_prop (Drawable drawable, GC gc, char *s) {
+int __xlib_set_wm_name_prop (Display *d, Drawable drawable, GC gc, char *s) {
   XTextProperty text_prop, text_prop_return;
   Atom wm_name;
   char *s_1;
@@ -569,17 +569,17 @@ int __xlib_set_wm_name_prop (Drawable drawable, GC gc, char *s) {
     XStringListToTextProperty (&s_1, 1, &text_prop);
     text_prop_return.value = NULL;
     do {
-      XSetTextProperty (display, drawable, &text_prop, wm_name);
+      XSetTextProperty (d, drawable, &text_prop, wm_name);
       if (text_prop_return.value)
 	XFree (text_prop_return.value);
-    } while (!XGetTextProperty (display, drawable, 
+    } while (!XGetTextProperty (d, drawable, 
 				&text_prop_return, wm_name));
     if (text_prop_return.value)
       XFree (text_prop_return.value);
     XFree (text_prop.value);
     __xfree (MEMADDR(s_1));
   }
-  XFlush (display);
+  XFlush (d);
   return SUCCESS;
 }
 
@@ -1518,7 +1518,7 @@ int __xlib_handle_client_request (char *shm_mem_2) {
       break;
 #endif
     case PANE_WM_TITLE_REQUEST:
-      __xlib_set_wm_name_prop ((Drawable)w, gc, &shm_mem_2[SHM_DATA]);
+      __xlib_set_wm_name_prop (d, (Drawable)w, gc, &shm_mem_2[SHM_DATA]);
       break;
     case PANE_DRAW_POINT_REQUEST:
       __xlib_draw_point ((Drawable)w, gc, &shm_mem_2[SHM_DATA]);
@@ -3443,7 +3443,8 @@ int __ctalkCreateX11MainWindow (OBJECT *self_object) {
     XSetWindowBackground (display, win_id, WhitePixel (display, screen));
   }
   __xlib_set_wm_name_prop 
-    (win_id, gc, 
+    ((Display *)SYMVAL(displayPtr_value -> instancevars -> __o_value),
+     win_id, gc, 
      basename_w_extent(__argvFileName ()));
 
   __save_pane_to_vars (self_object, gc, win_id,
@@ -3517,11 +3518,13 @@ int __ctalkCreateX11MainWindowTitle (OBJECT *self_object, char *title) {
   gc = XCreateGC (display, win_id, DEFAULT_GCV_MASK, &gcv);
   XSetWindowBackground (display, win_id, WhitePixel (display, screen));
   if (title) {
-    __xlib_set_wm_name_prop (win_id, gc, title);
+    __xlib_set_wm_name_prop
+      ((Display *)SYMVAL(displayPtr_value -> instancevars -> __o_value),
+       win_id, gc, title);
   } else {
     __xlib_set_wm_name_prop 
-      (win_id, gc, 
-       basename_w_extent(__argvFileName ()));
+      ((Display *)SYMVAL(displayPtr_value -> instancevars -> __o_value),
+       win_id, gc, basename_w_extent(__argvFileName ()));
   }
 
   __save_pane_to_vars (self_object, gc, win_id,
