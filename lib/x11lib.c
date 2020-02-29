@@ -1,4 +1,4 @@
-/* $Id: x11lib.c,v 1.90 2020/02/29 12:07:29 rkiesling Exp $ -*-c-*-*/
+/* $Id: x11lib.c,v 1.91 2020/02/29 12:42:55 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -463,7 +463,7 @@ XftColor g_ftFg = {-1,};
 
 XRENDERDRAWREC ft_str = {0, NULL, 0, 0, NULL, NULL, NULL};
 
-int __xlib_put_str_ft (Drawable w, GC gc, char *s) {
+int __xlib_put_str_ft (Display *d, Drawable w, GC gc, char *s) {
   int n;
   int font_ascent = 0, font_descent = 0;  /* Avoid warnings. */
 
@@ -519,21 +519,19 @@ int __xlib_put_str_ft (Drawable w, GC gc, char *s) {
   fgColor.blue = (unsigned short)shm_mem[SHM_FONT_FT_BLUE];
   fgColor.alpha = (unsigned short)shm_mem[SHM_FONT_FT_ALPHA];
 
-#define DEFAULT_VISUAL DefaultVisual(display, DefaultScreen (display))
+#define DEFAULT_VISUAL DefaultVisual(d, DefaultScreen (d))
   if (ft_str.draw == NULL || w != ft_str.drawable) {
     if (ft_str.draw != NULL)
       XftDrawDestroy (ft_str.draw);
     ft_str.drawable = w;
-    ft_str.draw = XftDrawCreate (display, w,
-				 DefaultVisual (display,
-						DefaultScreen (display)),
-				 DefaultColormap (display,
-						  (DefaultScreen (display))));
+    ft_str.draw = XftDrawCreate (d, w,
+				 DEFAULT_VISUAL,
+				 /*DefaultVisual (d, DefaultScreen (d)),*/
+				 DefaultColormap (d, (DefaultScreen (d))));
   }
   if (new_color_spec (&fgColor) || g_ftFg.pixel == -1) {
-    ftColorMap =  DefaultColormap(display, DefaultScreen (display));
-    XftColorAllocValue(display, DEFAULT_VISUAL,
-		       ftColorMap, &fgColor, &g_ftFg);
+    ftColorMap =  DefaultColormap(d, DefaultScreen (d));
+    XftColorAllocValue(d, DEFAULT_VISUAL, ftColorMap, &fgColor, &g_ftFg);
     save_new_color_spec (&fgColor);
   }
   /*
@@ -1516,7 +1514,7 @@ int __xlib_handle_client_request (char *shm_mem_2) {
       break;
 #ifdef HAVE_XFT_H
     case PANE_PUT_STR_REQUEST_FT:
-      __xlib_put_str_ft ((Drawable)w, gc, &shm_mem_2[SHM_DATA]);
+      __xlib_put_str_ft (d, (Drawable)w, gc, &shm_mem_2[SHM_DATA]);
       break;
 #endif
     case PANE_WM_TITLE_REQUEST:
