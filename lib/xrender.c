@@ -1,4 +1,4 @@
-/* $Id: xrender.c,v 1.11 2020/02/29 18:49:35 rkiesling Exp $ -*-c-*-*/
+/* $Id: xrender.c,v 1.12 2020/02/29 18:58:50 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -81,7 +81,7 @@ bool __ctalkX11UsingXRender (void) {
   return false;
 }
 
-int __xlib_draw_rectangle (Drawable drawable_arg, GC gc, char *data) {
+int __xlib_draw_rectangle (d, Drawable drawable_arg, GC gc, char *data) {
   return SUCCESS;
 }
 
@@ -379,7 +379,7 @@ static void __xlib_draw_rectangle_scan (char *data,
   rect -> color_name = ++q;
 }
 
-int __xlib_draw_rectangle (Drawable drawable_arg, GC gc, char *data) {
+int __xlib_draw_rectangle (Display *d, Drawable drawable_arg, GC gc, char *data) {
   XGCValues rectangle_gcv, old_gcv;
   int actual_drawable, r;
   int pen_half, path_idx;
@@ -412,9 +412,9 @@ int __xlib_draw_rectangle (Drawable drawable_arg, GC gc, char *data) {
       xr_make_surface (actual_drawable);
 
     if (!get_color (rect.color_name, &rcolor)) {
-      if (XftColorAllocName (display, 
-			     DefaultVisual (display, DefaultScreen (display)),
-			     DefaultColormap (display, DefaultScreen (display)),
+      if (XftColorAllocName (d, 
+			     DefaultVisual (d, DefaultScreen (d)),
+			     DefaultColormap (d, DefaultScreen (d)),
 			     rect.color_name, 
 			     &rcolor)) {
 	/* rcolor.color.alpha = pen_alpha; *//***/
@@ -434,8 +434,8 @@ int __xlib_draw_rectangle (Drawable drawable_arg, GC gc, char *data) {
     rectangle_gcv.foreground = lookup_pixel (rect.color_name);
     rectangle_gcv.fill_style = FillSolid;
     rectangle_gcv.line_width = rect.pen_width;
-    XGetGCValues (display, gc, DEFAULT_GCV_MASK, &old_gcv);
-    XChangeGC (display, gc, RECTANGLE_GCV_MASK, &rectangle_gcv);
+    XGetGCValues (d, gc, DEFAULT_GCV_MASK, &old_gcv);
+    XChangeGC (d, gc, RECTANGLE_GCV_MASK, &rectangle_gcv);
 
     if (rect.fill) {
       if (rect.corner_radius) {
@@ -448,7 +448,7 @@ int __xlib_draw_rectangle (Drawable drawable_arg, GC gc, char *data) {
 	poly[3].x = rect.r.x + rect.corner_radius;
 	poly[3].y = rect.r.y + rect.r.height;
 
-	XRenderCompositeDoublePoly (display,
+	XRenderCompositeDoublePoly (d,
 				    PictOpOver,
 				    surface.fill_picture,
 				    surface.picture,
@@ -464,7 +464,7 @@ int __xlib_draw_rectangle (Drawable drawable_arg, GC gc, char *data) {
 	poly[3].x = rect.r.x;
 	poly[3].y = rect.r.y + rect.r.height - rect.corner_radius;
 
-	XRenderCompositeDoublePoly (display,
+	XRenderCompositeDoublePoly (d,
 				    PictOpOver,
 				    surface.fill_picture,
 				    surface.picture,
@@ -493,7 +493,7 @@ int __xlib_draw_rectangle (Drawable drawable_arg, GC gc, char *data) {
 	poly[3].x = rect.r.x;
 	poly[3].y = rect.r.y + rect.r.height;
 
-	XRenderCompositeDoublePoly (display,
+	XRenderCompositeDoublePoly (d,
 				    PictOpOver,
 				    surface.fill_picture,
 				    surface.picture,
@@ -511,7 +511,7 @@ int __xlib_draw_rectangle (Drawable drawable_arg, GC gc, char *data) {
 	poly[2].y = rect.r.y + rect.pen_width;
 	poly[3].x = rect.r.x + rect.corner_radius;
 	poly[3].y = rect.r.y + rect.pen_width;
-	XRenderCompositeDoublePoly (display,
+	XRenderCompositeDoublePoly (d,
 				    PictOpOver,
 				    surface.fill_picture,
 				    surface.picture,
@@ -527,7 +527,7 @@ int __xlib_draw_rectangle (Drawable drawable_arg, GC gc, char *data) {
 	poly[2].y = rect.r.y + rect.r.height - rect.corner_radius;
 	poly[3].x = rect.r.x + rect.r.width - rect.pen_width;
 	poly[3].y = rect.r.y + rect.corner_radius;
-	XRenderCompositeDoublePoly (display,
+	XRenderCompositeDoublePoly (d,
 				    PictOpOver,
 				    surface.fill_picture,
 				    surface.picture,
@@ -543,7 +543,7 @@ int __xlib_draw_rectangle (Drawable drawable_arg, GC gc, char *data) {
 	poly[2].y = rect.r.y + rect.r.height - rect.pen_width;
 	poly[3].x = rect.r.x + rect.r.width - rect.corner_radius;
 	poly[3].y = rect.r.y + rect.r.height - rect.pen_width;
-	XRenderCompositeDoublePoly (display,
+	XRenderCompositeDoublePoly (d,
 				    PictOpOver,
 				    surface.fill_picture,
 				    surface.picture,
@@ -559,7 +559,7 @@ int __xlib_draw_rectangle (Drawable drawable_arg, GC gc, char *data) {
 	poly[2].y = rect.r.y + rect.corner_radius;
 	poly[3].x = rect.r.x;
 	poly[3].y = rect.r.y + rect.corner_radius;
-	XRenderCompositeDoublePoly (display,
+	XRenderCompositeDoublePoly (d,
 				    PictOpOver,
 				    surface.fill_picture,
 				    surface.picture,
@@ -592,7 +592,7 @@ int __xlib_draw_rectangle (Drawable drawable_arg, GC gc, char *data) {
 	poly[2].y = rect.r.y + rect.pen_width;
 	poly[3].x = rect.r.x;
 	poly[3].y = rect.r.y + rect.pen_width;
-	XRenderCompositeDoublePoly (display,
+	XRenderCompositeDoublePoly (d,
 				    PictOpOver,
 				    surface.fill_picture,
 				    surface.picture,
@@ -608,7 +608,7 @@ int __xlib_draw_rectangle (Drawable drawable_arg, GC gc, char *data) {
 	poly[2].y = rect.r.y + rect.r.height;
 	poly[3].x = rect.r.x + rect.r.width - rect.pen_width;
 	poly[3].y = rect.r.y;
-	XRenderCompositeDoublePoly (display,
+	XRenderCompositeDoublePoly (d,
 				    PictOpOver,
 				    surface.fill_picture,
 				    surface.picture,
@@ -624,7 +624,7 @@ int __xlib_draw_rectangle (Drawable drawable_arg, GC gc, char *data) {
 	poly[2].y = rect.r.y + rect.r.height - rect.pen_width;
 	poly[3].x = rect.r.x + rect.r.width;
 	poly[3].y = rect.r.y + rect.r.height - rect.pen_width;
-	XRenderCompositeDoublePoly (display,
+	XRenderCompositeDoublePoly (d,
 				    PictOpOver,
 				    surface.fill_picture,
 				    surface.picture,
@@ -640,7 +640,7 @@ int __xlib_draw_rectangle (Drawable drawable_arg, GC gc, char *data) {
 	poly[2].y = rect.r.y;
 	poly[3].x = rect.r.x;
 	poly[3].y = rect.r.y;
-	XRenderCompositeDoublePoly (display,
+	XRenderCompositeDoublePoly (d,
 				    PictOpOver,
 				    surface.fill_picture,
 				    surface.picture,
@@ -655,17 +655,17 @@ int __xlib_draw_rectangle (Drawable drawable_arg, GC gc, char *data) {
     rectangle_gcv.foreground = lookup_pixel (rect.color_name);
     rectangle_gcv.fill_style = FillSolid;
     rectangle_gcv.line_width = rect.pen_width;
-    XGetGCValues (display, gc, DEFAULT_GCV_MASK, &old_gcv);
-    XChangeGC (display, gc, RECTANGLE_GCV_MASK, &rectangle_gcv);
+    XGetGCValues (d, gc, DEFAULT_GCV_MASK, &old_gcv);
+    XChangeGC (d, gc, RECTANGLE_GCV_MASK, &rectangle_gcv);
 
     if (rect.fill) {
       if (rect.corner_radius) {
-	XFillRectangle (display, actual_drawable, gc,
+	XFillRectangle (d, actual_drawable, gc,
 			rect.r.x + rect.corner_radius,
 			rect.r.y,
 			rect.r.width - (rect.corner_radius * 2),
 			rect.r.height);
-	XFillRectangle (display, actual_drawable, gc,
+	XFillRectangle (d, actual_drawable, gc,
 			rect.r.x,
 			rect.r.y + rect.corner_radius,
 			rect.r.width,
@@ -696,9 +696,9 @@ int __xlib_draw_rectangle (Drawable drawable_arg, GC gc, char *data) {
 	arcs[3].angle1 = -90 * 64;
 	arcs[3].angle2 = -90 * 64;
 
-	XFillArcs (display, actual_drawable, gc, (XArc *)arcs, 4);
+	XFillArcs (d, actual_drawable, gc, (XArc *)arcs, 4);
       } else {
-	XFillRectangle (display, actual_drawable, gc,
+	XFillRectangle (d, actual_drawable, gc,
 			rect.r.x, rect.r.y, rect.r.width, rect.r.height);
       }
 
@@ -720,7 +720,7 @@ int __xlib_draw_rectangle (Drawable drawable_arg, GC gc, char *data) {
 	segments[3].y1 = rect.r.height - rect.corner_radius;
 	segments[3].x2 = rect.r.x;
 	segments[3].y2 = rect.r.y + rect.corner_radius;
-	XDrawSegments (display, actual_drawable, gc,
+	XDrawSegments (d, actual_drawable, gc,
 		       (XSegment *)&segments, 4);
 
 	arcs[0].x = rect.r.x;
@@ -748,14 +748,14 @@ int __xlib_draw_rectangle (Drawable drawable_arg, GC gc, char *data) {
 	arcs[3].angle1 = -90 * 64;
 	arcs[3].angle2 = -90 * 64;
 
-	XDrawArcs (display, actual_drawable, gc, (XArc *)arcs, 4);
+	XDrawArcs (d, actual_drawable, gc, (XArc *)arcs, 4);
 
       } else {
-	XDrawRectangle (display, actual_drawable, gc,
+	XDrawRectangle (d, actual_drawable, gc,
 			rect.r.x, rect.r.y, rect.r.width, rect.r.height);
       }
     }
-    XChangeGC (display, gc, DEFAULT_GCV_MASK, &old_gcv);
+    XChangeGC (d, gc, DEFAULT_GCV_MASK, &old_gcv);
   } /* if (have_useful_xrender) */
   return SUCCESS;
 }
@@ -1672,7 +1672,7 @@ static void __xlib_draw_rectangle_scan (char *data,
   rect -> color_name = ++q;
 }
 
-int __xlib_draw_rectangle (Drawable drawable_arg, GC gc, char *data) {
+int __xlib_draw_rectangle (Display *d, Drawable drawable_arg, GC gc, char *data) {
   XGCValues rectangle_gcv, old_gcv;
   int actual_drawable, r;
   struct rectinfo rect;
@@ -1697,17 +1697,17 @@ int __xlib_draw_rectangle (Drawable drawable_arg, GC gc, char *data) {
   rectangle_gcv.foreground = lookup_pixel (rect.color_name);
   rectangle_gcv.fill_style = FillSolid;
   rectangle_gcv.line_width = rect.pen_width;
-  XGetGCValues (display, gc, DEFAULT_GCV_MASK, &old_gcv);
-  XChangeGC (display, gc, RECTANGLE_GCV_MASK, &rectangle_gcv);
+  XGetGCValues (d, gc, DEFAULT_GCV_MASK, &old_gcv);
+  XChangeGC (d, gc, RECTANGLE_GCV_MASK, &rectangle_gcv);
 
   if (rect.fill) {
     if (rect.corner_radius) {
-      XFillRectangle (display, actual_drawable, gc,
+      XFillRectangle (d, actual_drawable, gc,
 		      rect.r.x + rect.corner_radius,
 		      rect.r.y,
 		      rect.r.width - (rect.corner_radius * 2),
 		      rect.r.height);
-      XFillRectangle (display, actual_drawable, gc,
+      XFillRectangle (d, actual_drawable, gc,
 		      rect.r.x,
 		      rect.r.y + rect.corner_radius,
 		      rect.r.width,
@@ -1738,9 +1738,9 @@ int __xlib_draw_rectangle (Drawable drawable_arg, GC gc, char *data) {
       arcs[3].angle1 = -90 * 64;
       arcs[3].angle2 = -90 * 64;
 
-      XFillArcs (display, actual_drawable, gc, (XArc *)arcs, 4);
+      XFillArcs (d, actual_drawable, gc, (XArc *)arcs, 4);
     } else {
-      XFillRectangle (display, actual_drawable, gc,
+      XFillRectangle (d, actual_drawable, gc,
 		      rect.r.x, rect.r.y, rect.r.width, rect.r.height);
     }
 
@@ -1762,7 +1762,7 @@ int __xlib_draw_rectangle (Drawable drawable_arg, GC gc, char *data) {
       segments[3].y1 = rect.r.height - rect.corner_radius;
       segments[3].x2 = rect.r.x;
       segments[3].y2 = rect.r.y + rect.corner_radius;
-      XDrawSegments (display, actual_drawable, gc,
+      XDrawSegments (d, actual_drawable, gc,
 		     (XSegment *)&segments, 4);
 
       arcs[0].x = rect.r.x;
@@ -1790,14 +1790,14 @@ int __xlib_draw_rectangle (Drawable drawable_arg, GC gc, char *data) {
       arcs[3].angle1 = -90 * 64;
       arcs[3].angle2 = -90 * 64;
 
-      XDrawArcs (display, actual_drawable, gc, (XArc *)arcs, 4);
+      XDrawArcs (d, actual_drawable, gc, (XArc *)arcs, 4);
 
     } else {
-      XDrawRectangle (display, actual_drawable, gc,
+      XDrawRectangle (d, actual_drawable, gc,
 		      rect.r.x, rect.r.y, rect.r.width, rect.r.height);
     }
   }
-  XChangeGC (display, gc, DEFAULT_GCV_MASK, &old_gcv);
+  XChangeGC (d, gc, DEFAULT_GCV_MASK, &old_gcv);
   return SUCCESS;
 }
 
@@ -2001,7 +2001,7 @@ bool __ctalkX11UsingXRender (void) {
   x_support_error (); return false;
 }
 
-int __xlib_draw_rectangle (unsigned int w, unsigned int gc, char *data) {
+int __xlib_draw_rectangle (void *, unsigned int w, unsigned int gc, char *data) {
   x_support_error (); return false;
 }
 
