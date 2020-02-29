@@ -1,4 +1,4 @@
-/* $Id: x11lib.c,v 1.95 2020/02/29 18:58:50 rkiesling Exp $ -*-c-*-*/
+/* $Id: x11lib.c,v 1.97 2020/02/29 19:41:37 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -583,8 +583,8 @@ int __xlib_set_wm_name_prop (Display *d, Drawable drawable, GC gc, char *s) {
   return SUCCESS;
 }
 
-int __xlib_clear_window (Drawable drawable, GC gc) {
-   XClearWindow (display, drawable);
+int __xlib_clear_window (Display *d, Drawable drawable, GC gc) {
+   XClearWindow (d, drawable);
    return SUCCESS;
 }
 
@@ -694,7 +694,7 @@ static void __xlib_clear_rectangle_scan (char *data,
     
 }
 
-int __xlib_clear_rectangle (Drawable drawable, GC gc, char *data) {
+int __xlib_clear_rectangle (Display *d, Drawable drawable, GC gc, char *data) {
   int r, x, y, width, height;
   int panebuffer_id, panebackingstore_id;
   XGCValues gcv, old_gcv;
@@ -710,21 +710,21 @@ int __xlib_clear_rectangle (Drawable drawable, GC gc, char *data) {
 			       &panebuffer_id, &panebackingstore_id);
 
   if (!panebuffer_id && !panebackingstore_id) {
-    XClearArea (display, drawable, x, y, width, height, True);
+    XClearArea (d, drawable, x, y, width, height, True);
   } else {
 #define CLEAR_RECTANGLE_GCV_MASK (GCFunction|GCForeground|GCBackground|GCFillStyle)
-    XGetGCValues (display, gc,
+    XGetGCValues (d, gc,
 		  CLEAR_RECTANGLE_GCV_MASK, &old_gcv);
     gcv.background = old_gcv.background;
     gcv.foreground = old_gcv.background;
     gcv.fill_style = FillSolid;
     gcv.function = GXcopy;
-    XChangeGC (display, gc, CLEAR_RECTANGLE_GCV_MASK, &gcv);
+    XChangeGC (d, gc, CLEAR_RECTANGLE_GCV_MASK, &gcv);
 
-    XFillRectangle (display, (Drawable)panebuffer_id, gc,
+    XFillRectangle (d, (Drawable)panebuffer_id, gc,
  		    x, y, width, height);
 
-    XChangeGC (display, gc, CLEAR_RECTANGLE_GCV_MASK, &old_gcv);
+    XChangeGC (d, gc, CLEAR_RECTANGLE_GCV_MASK, &old_gcv);
 
   }
   return SUCCESS;
@@ -1530,10 +1530,10 @@ int __xlib_handle_client_request (char *shm_mem_2) {
       __xlib_draw_rectangle (d, (Drawable)w, gc, &shm_mem_2[SHM_DATA]);
       break;
     case PANE_CLEAR_WINDOW_REQUEST:
-      __xlib_clear_window ((Drawable)w, gc);
+      __xlib_clear_window (d, (Drawable)w, gc);
       break;
     case PANE_CLEAR_RECTANGLE_REQUEST:
-      __xlib_clear_rectangle ((Drawable)w, gc, &shm_mem_2[SHM_DATA]);
+      __xlib_clear_rectangle (d, (Drawable)w, gc, &shm_mem_2[SHM_DATA]);
       break;
     case PANE_RESIZE_REQUEST:
       __xlib_resize_window ((Drawable)w, gc, &shm_mem_2[SHM_DATA]);

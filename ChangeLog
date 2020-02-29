@@ -333,7 +333,8 @@
 	- Updated __xlib_put_str_ft to use a local Display * (x11lib.c).
 	Also added expression to set the main window background color in
 	demos/xft/xfthello.c.
-	- Updated __xlib_set_wm_name_prop to use a Display * argument
-	(x11lib.c). Also updated __xlib_draw_point, __xlib_draw_line,
-	and __xlib_draw_rectangle (xrender.c).
+	- Updated __xlib_set_wm_name_prop, __xlib_draw_window and
+	__xlib_clear_rectangle to use a Display * argument (x11lib.c).
+	Also updated __xlib_draw_point, __xlib_draw_line, and
+	__xlib_draw_rectangle (xrender.c).
 
