@@ -1,4 +1,4 @@
-/* $Id: x11lib.c,v 1.86 2020/02/29 02:54:05 rkiesling Exp $ -*-c-*-*/
+/* $Id: x11lib.c,v 1.87 2020/02/29 10:21:16 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -3699,7 +3699,7 @@ int __ctalkX11UseFontBasic (void *d, int drawable_id, unsigned long int gc_ptr,
     if (!shm_mem)
       return ERROR;
     sprintf (d_buf, ":%ld:%s", GCFont, xlfd);
-    make_req (shm_mem, (uintptr_t)d, PANE_CHANGE_GC_REQUEST,
+    make_req (shm_mem, d, PANE_CHANGE_GC_REQUEST,
 	      drawable_id, gc_ptr, d_buf);
 #ifdef GRAPHICS_WRITE_SEND_EVENT
     send_event.xgraphicsexpose.type = GraphicsExpose;
@@ -3727,7 +3727,7 @@ static int __x11_resize_request_internal (void *d, int width, int height, int de
 	   ascii[height], ":",
 	   ascii[depth], NULL);
 
-  make_req (shm_mem, (uintptr_t)d, PANE_RESIZE_REQUEST,
+  make_req (shm_mem, d, PANE_RESIZE_REQUEST,
 	    win_id_value, gc_value, d_buf);
 
 #ifdef GRAPHICS_WRITE_SEND_EVENT
@@ -3825,7 +3825,7 @@ int __ctalkX11ResizePixmap (void *d, int parent_visual,
 	   ascii[new_height], ":",
 	   ascii[depth], ":", NULL);
 
-  make_req (shm_mem, (uintptr_t)d, PANE_RESIZE_PIXMAP_REQUEST, 
+  make_req (shm_mem, d, PANE_RESIZE_PIXMAP_REQUEST, 
 	    parent_visual, gc, d_buf);
 
   wait_req (shm_mem);

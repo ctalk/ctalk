@@ -1,4 +1,4 @@
-/* $Id: guixpm.c,v 1.4 2020/02/29 02:54:05 rkiesling Exp $ -*-c-*-*/
+/* $Id: guixpm.c,v 1.5 2020/02/29 10:21:16 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -118,7 +118,7 @@ int __ctalkX11XPMFromData (void *d, int drawable_id,
 	   ":", ctitoa (x_org, intbuf1),
 	   ":", ctitoa (y_org, intbuf2),
 	   ":", h, NULL);
-  make_req (shm_mem, (uintptr_t)d, PANE_XPM_FROM_DATA_REQUEST,
+  make_req (shm_mem, d, PANE_XPM_FROM_DATA_REQUEST,
    	    drawable_id, gc_ptr, d_buf);
 
 #ifdef GRAPHICS_WRITE_SEND_EVENT

@@ -1,4 +1,4 @@
-/* $Id: x11defs.h,v 1.14 2020/02/29 02:54:04 rkiesling Exp $ -*-c-*-*/
+/* $Id: x11defs.h,v 1.15 2020/02/29 10:21:15 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -74,7 +74,19 @@
   make_req(s,r,w,strtoul(g, NULL, 0),d)
 
 #ifdef __x86_64
-#define make_req(s,r,w,g,d) do {(s)[SHM_REQ] = (r);	\
+#define make_req(s,p,r,w,g,d) do {(s)[SHM_REQ] = (r);	\
+    s[SHM_DISPLAY] =   ((uintptr_t)p & 0xf00000000000) >> 44;	\
+    s[SHM_DISPLAY+1] = ((uintptr_t)p & 0xf0000000000) >> 40;	\
+    s[SHM_DISPLAY+2] = ((uintptr_t)p & 0xf000000000) >> 36;	\
+    s[SHM_DISPLAY+3] = ((uintptr_t)p & 0xf00000000) >> 32;	\
+    s[SHM_DISPLAY+4] = ((uintptr_t)p & 0xf0000000) >> 28;	\
+    s[SHM_DISPLAY+5] = ((uintptr_t)p & 0xf000000) >> 24;	\
+    s[SHM_DISPLAY+6] = ((uintptr_t)p & 0xf00000) >> 20;		\
+    s[SHM_DISPLAY+7] = ((uintptr_t)p & 0xf0000) >> 16;		\
+    s[SHM_DISPLAY+8] = ((uintptr_t)p & 0xf000) >> 12;		\
+    s[SHM_DISPLAY+9] = ((uintptr_t)p & 0xf00) >> 8;		\
+    s[SHM_DISPLAY+10] = ((uintptr_t)p & 0xf0) >> 4;		\
+    s[SHM_DISPLAY+11] = ((uintptr_t)p & 0xf);			\
     s[SHM_DRAWABLE] = (w & 0xf0000000) >> 28;		\
     s[SHM_DRAWABLE+1] = (w & 0xf000000) >> 24;		\
     s[SHM_DRAWABLE+2] = (w & 0xf00000) >> 20;		\
@@ -83,30 +95,30 @@
     s[SHM_DRAWABLE+5] = (w & 0xf00) >> 8;		\
     s[SHM_DRAWABLE+6] = (w & 0xf0) >> 4;		\
     s[SHM_DRAWABLE+7] = (w & 0xf);			\
-    s[SHM_GC] = ((uintptr_t)g & 0xf00000000000) >> 44;		\
-    s[SHM_GC+1] = ((uintptr_t)g & 0xf0000000000) >> 40;		\
-    s[SHM_GC+2] = ((uintptr_t)g & 0xf000000000) >> 36;		\
-    s[SHM_GC+3] = ((uintptr_t)g & 0xf00000000) >> 32;		\
-    s[SHM_GC+4] = ((uintptr_t)g & 0xf0000000) >> 28;		\
-    s[SHM_GC+5] = ((uintptr_t)g & 0xf000000) >> 24;		\
-    s[SHM_GC+6] = ((uintptr_t)g & 0xf00000) >> 20;		\
-    s[SHM_GC+7] = ((uintptr_t)g & 0xf0000) >> 16;		\
-    s[SHM_GC+8] = ((uintptr_t)g & 0xf000) >> 12;		\
+    s[SHM_GC] = ((uintptr_t)g & 0xf00000000000) >> 44;	\
+    s[SHM_GC+1] = ((uintptr_t)g & 0xf0000000000) >> 40;	\
+    s[SHM_GC+2] = ((uintptr_t)g & 0xf000000000) >> 36;	\
+    s[SHM_GC+3] = ((uintptr_t)g & 0xf00000000) >> 32;	\
+    s[SHM_GC+4] = ((uintptr_t)g & 0xf0000000) >> 28;	\
+    s[SHM_GC+5] = ((uintptr_t)g & 0xf000000) >> 24;	\
+    s[SHM_GC+6] = ((uintptr_t)g & 0xf00000) >> 20;	\
+    s[SHM_GC+7] = ((uintptr_t)g & 0xf0000) >> 16;	\
+    s[SHM_GC+8] = ((uintptr_t)g & 0xf000) >> 12;	\
     s[SHM_GC+9] = ((uintptr_t)g & 0xf00) >> 8;		\
     s[SHM_GC+10] = ((uintptr_t)g & 0xf0) >> 4;		\
-    s[SHM_GC+11] = ((uintptr_t)g & 0xf);			\
+    s[SHM_GC+11] = ((uintptr_t)g & 0xf);		\
     strcpy (&((s)[SHM_DATA]), d); } while (0);
 #else
 
 #define make_req(s,p,r,w,g,d) do {(s)[SHM_REQ] = (r);	\
-    s[SHM_DISPLAY] = (p & 0xf0000000) >> 28;		\
-    s[SHM_DISPLAY+1] = (p & 0xf000000) >> 24;		\
-    s[SHM_DISPLAY+2] = (p & 0xf00000) >> 20;		\
-    s[SHM_DISPLAY+3] = (p & 0xf0000) >> 16;		\
-    s[SHM_DISPLAY+4] = (p & 0xf000) >> 12;		\
-    s[SHM_DISPLAY+5] = (p & 0xf00) >> 8;		\
-    s[SHM_DISPLAY+6] = (p & 0xf0) >> 4;			\
-    s[SHM_DISPLAY+7] = (p & 0xf);			\
+    s[SHM_DISPLAY] = ((uintptr_t)p & 0xf0000000) >> 28;		\
+    s[SHM_DISPLAY+1] = ((uintptr_t)p & 0xf000000) >> 24;	\
+    s[SHM_DISPLAY+2] = ((uintptr_t)p & 0xf00000) >> 20;		\
+    s[SHM_DISPLAY+3] = ((uintptr_t)p & 0xf0000) >> 16;		\
+    s[SHM_DISPLAY+4] = ((uintptr_t)p & 0xf000) >> 12;		\
+    s[SHM_DISPLAY+5] = ((uintptr_t)p & 0xf00) >> 8;		\
+    s[SHM_DISPLAY+6] = ((uintptr_t)p & 0xf0) >> 4;		\
+    s[SHM_DISPLAY+7] = ((uintptr_t)p & 0xf);			\
     s[SHM_DRAWABLE] = (w & 0xf0000000) >> 28;		\
     s[SHM_DRAWABLE+1] = (w & 0xf000000) >> 24;		\
     s[SHM_DRAWABLE+2] = (w & 0xf00000) >> 20;		\

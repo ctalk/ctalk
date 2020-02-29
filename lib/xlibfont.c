@@ -1,4 +1,4 @@
-/* $Id: xlibfont.c,v 1.5 2020/02/29 02:54:05 rkiesling Exp $ -*-c-*-*/
+/* $Id: xlibfont.c,v 1.6 2020/02/29 10:21:16 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -307,7 +307,7 @@ int __ctalkSelectXFontFace (void *d, int drawable_id,
     sync_ft_font (true);
     strcatx (d_buf, ctitoa (face, intbuf), NULL);
 
-    make_req (shm_mem, (uintptr_t)d, PANE_XLIB_FACE_REQUEST_FT,
+    make_req (shm_mem, d, PANE_XLIB_FACE_REQUEST_FT,
 	      drawable_id, gc_ptr, d_buf);
 
     wait_req (shm_mem);
@@ -316,7 +316,7 @@ int __ctalkSelectXFontFace (void *d, int drawable_id,
 
     strcatx (d_buf, ctitoa (face, intbuf), NULL);
 
-    make_req (shm_mem, (uintptr_t)d, PANE_XLIB_FACE_REQUEST,
+    make_req (shm_mem, d, PANE_XLIB_FACE_REQUEST,
 	      drawable_id, gc_ptr, d_buf);
 
     wait_req (shm_mem);
@@ -348,7 +348,7 @@ int __ctalkSelectXFontFace (void *d, int drawable_id,
 
   strcatx (d_buf, ctitoa (face, intbuf), NULL);
 
-  make_req (shm_mem, (uintptr_t)d, PANE_XLIB_FACE_REQUEST,
+  make_req (shm_mem, d, PANE_XLIB_FACE_REQUEST,
 	    drawable_id, gc_ptr, d_buf);
 
 #ifdef GRAPHICS_WRITE_SEND_EVENT

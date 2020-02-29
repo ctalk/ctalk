@@ -1,4 +1,4 @@
-/* $Id: xcopypixmap.c,v 1.4 2020/02/29 02:54:05 rkiesling Exp $ -*-c-*-*/
+/* $Id: xcopypixmap.c,v 1.5 2020/02/29 10:21:16 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -77,7 +77,7 @@ int __ctalkX11CopyPixmapBasic (void *d, int dest_drawable_id,
 	   ":", ctitoa ((unsigned int)dest_y_org, intbuf7), 
 	   ":", NULL);
 
-  make_req (shm_mem, (uintptr_t)d, PANE_COPY_PIXMAP_REQUEST,
+  make_req (shm_mem, d, PANE_COPY_PIXMAP_REQUEST,
    	    dest_drawable_id, dest_gc_ptr, d_buf);
 
 #ifdef GRAPHICS_WRITE_SEND_EVENT

@@ -1,4 +1,4 @@
-/* $Id: guiputstr.c,v 1.5 2020/02/29 02:54:05 rkiesling Exp $ -*-c-*-*/
+/* $Id: guiputstr.c,v 1.6 2020/02/29 10:21:16 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -79,7 +79,7 @@ int __ctalkX11PanePutStrBasic (void *d, int drawable_id, unsigned long int gc_pt
 	     ctitoa (y, intbuf2), ":",
 	     s, NULL);
 
-    make_req (shm_mem, (uintptr_t)d, PANE_PUT_STR_REQUEST_FT,
+    make_req (shm_mem, d, PANE_PUT_STR_REQUEST_FT,
 	      drawable_id, gc_ptr, d_buf);
 
   } else { /* if (__ctalkXftInitialized ()) */
@@ -88,7 +88,7 @@ int __ctalkX11PanePutStrBasic (void *d, int drawable_id, unsigned long int gc_pt
 	     ctitoa (y, intbuf2), ":",
 	     s, NULL);
 
-    make_req (shm_mem, (uintptr_t)d, PANE_PUT_STR_REQUEST,
+    make_req (shm_mem, d, PANE_PUT_STR_REQUEST,
 	      drawable_id, gc_ptr, d_buf);
 
   }  /* if (__ctalkXftInitialized ()) */
@@ -121,7 +121,7 @@ int __ctalkX11PanePutStrBasic (void *d, int drawable_id, unsigned long int gc_pt
 	   ctitoa (y, intbuf2), ":",
 	   s, NULL);
 
-  make_req (shm_mem, (uintptr_t)d, PANE_PUT_STR_REQUEST,
+  make_req (shm_mem, d, PANE_PUT_STR_REQUEST,
 	    drawable_id, gc_ptr, d_buf);
 
 #ifdef GRAPHICS_WRITE_SEND_EVENT

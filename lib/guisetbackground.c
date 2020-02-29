@@ -1,4 +1,4 @@
-/* $Id: guisetbackground.c,v 1.8 2020/02/29 02:54:05 rkiesling Exp $ -*-c-*-*/
+/* $Id: guisetbackground.c,v 1.9 2020/02/29 10:21:16 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -94,7 +94,7 @@ int __ctalkX11SetBackgroundBasic (void *d, int drawable_id,
       return ERROR;
 
     sprintf (d_buf, ":%ld:%s", GCBackground, color);
-    make_req (shm_mem, (uintptr_t)d, PANE_CHANGE_GC_REQUEST,
+    make_req (shm_mem, d, PANE_CHANGE_GC_REQUEST,
 	    drawable_id, gc_ptr, d_buf);
 #ifdef GRAPHICS_WRITE_SEND_EVENT
     send_event.xgraphicsexpose.type = GraphicsExpose;

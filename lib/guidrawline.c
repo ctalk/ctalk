@@ -1,4 +1,4 @@
-/* $Id: guidrawline.c,v 1.5 2020/02/29 02:54:04 rkiesling Exp $ -*-c-*-*/
+/* $Id: guidrawline.c,v 1.6 2020/02/29 10:21:15 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -99,7 +99,7 @@ int __ctalkX11PaneDrawLineBasic (void *d, int drawable_id,
 	   ":", pen_color,
 	   NULL);
   
-  make_req (shm_mem, (uintptr_t)d, PANE_DRAW_LINE_REQUEST,
+  make_req (shm_mem, d, PANE_DRAW_LINE_REQUEST,
    	    drawable_id, gc_ptr, d_buf);
 #ifdef GRAPHICS_WRITE_SEND_EVENT
   send_event.xgraphicsexpose.type = GraphicsExpose;
