@@ -1,4 +1,4 @@
-/* $Id: xrender.c,v 1.10 2020/02/29 17:12:46 rkiesling Exp $ -*-c-*-*/
+/* $Id: xrender.c,v 1.11 2020/02/29 18:49:35 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -70,7 +70,7 @@ int __xlib_draw_circle (Drawable drawable_arg, GC gc, char *data) {
   return SUCCESS;
 }
 
-int __xlib_draw_point (Drawable drawable_arg, GC gc, char *data) {
+int __xlib_draw_point (Display *d, Drawable drawable_arg, GC gc, char *data) {
   return SUCCESS;
 }
 void __ctalkX11UseXRender (bool b) {
@@ -1137,7 +1137,7 @@ static void clear_draw_rec (XRENDERDRAWREC *r) {
   r -> drawable = 0;
 }
 
-int __xlib_draw_line (Drawable drawable_arg, GC gc, char *data) {
+int __xlib_draw_line (Display *d, Drawable drawable_arg, GC gc, char *data) {
   XGCValues line_gcv, old_gcv;
   int line_start_x, line_start_y, line_end_x, line_end_y, pen_width;
   int panebuffer_id, panebackingstore_id, actual_drawable;
@@ -1175,9 +1175,9 @@ int __xlib_draw_line (Drawable drawable_arg, GC gc, char *data) {
     if (actual_drawable != surface.drawable)
       xr_make_surface (actual_drawable);
     if (!get_color (colorname, &rcolor)) {
-      if (XftColorAllocName (display, 
-			     DefaultVisual (display, DefaultScreen (display)),
-			     DefaultColormap (display, DefaultScreen (display)),
+      if (XftColorAllocName (d, 
+			     DefaultVisual (d, DefaultScreen (d)),
+			     DefaultColormap (d, DefaultScreen (d)),
 			     colorname, 
 			     &rcolor)) {
 	rcolor.color.alpha = pen_alpha;
@@ -1222,7 +1222,7 @@ int __xlib_draw_line (Drawable drawable_arg, GC gc, char *data) {
       poly[3].y = ((double)line_start_y);
     }
   
-    XRenderCompositeDoublePoly (display,
+    XRenderCompositeDoublePoly (d,
 				PictOpOver,
 				surface.fill_picture,
 				surface.picture,
@@ -1236,15 +1236,15 @@ int __xlib_draw_line (Drawable drawable_arg, GC gc, char *data) {
     line_gcv.foreground = lookup_pixel (colorname);
     line_gcv.fill_style = FillSolid;
     line_gcv.line_width = pen_width;
-    XGetGCValues (display, gc, DEFAULT_GCV_MASK, &old_gcv);
-    XChangeGC (display, gc, LINE_GCV_MASK, &line_gcv);
+    XGetGCValues (d, gc, DEFAULT_GCV_MASK, &old_gcv);
+    XChangeGC (d, gc, LINE_GCV_MASK, &line_gcv);
 
-    XDrawLine (display, actual_drawable, gc,
+    XDrawLine (d, actual_drawable, gc,
 	       line_start_x,
 	       line_start_y,
 	       line_end_x,
 	       line_end_y);
-    XChangeGC (display, gc, DEFAULT_GCV_MASK, &old_gcv);
+    XChangeGC (d, gc, DEFAULT_GCV_MASK, &old_gcv);
     return SUCCESS;
   }  /* if (have_useful_xrender) */
 }
@@ -1801,7 +1801,7 @@ int __xlib_draw_rectangle (Drawable drawable_arg, GC gc, char *data) {
   return SUCCESS;
 }
 
-int __xlib_draw_line (Drawable drawable_arg, GC gc, char *data) {
+int __xlib_draw_line (Display *d, Drawable drawable_arg, GC gc, char *data) {
   XGCValues line_gcv, old_gcv;
   int line_start_x, line_start_y, line_end_x, line_end_y, pen_width;
   unsigned short int pen_alpha;
@@ -1833,15 +1833,15 @@ int __xlib_draw_line (Drawable drawable_arg, GC gc, char *data) {
   line_gcv.foreground = lookup_pixel (colorname);
   line_gcv.fill_style = FillSolid;
   line_gcv.line_width = pen_width;
-  XGetGCValues (display, gc, DEFAULT_GCV_MASK, &old_gcv);
-  XChangeGC (display, gc, LINE_GCV_MASK, &line_gcv);
+  XGetGCValues (d, gc, DEFAULT_GCV_MASK, &old_gcv);
+  XChangeGC (d, gc, LINE_GCV_MASK, &line_gcv);
 
-  XDrawLine (display, actual_drawable, gc,
+  XDrawLine (d, actual_drawable, gc,
 	     line_start_x,
 	     line_start_y,
 	     line_end_x,
 	     line_end_y);
-  XChangeGC (display, gc, DEFAULT_GCV_MASK, &old_gcv);
+  XChangeGC (d, gc, DEFAULT_GCV_MASK, &old_gcv);
   return SUCCESS;
 
 }
@@ -1933,7 +1933,7 @@ int __xlib_draw_circle (Drawable w, GC gc, char *data) {
   return SUCCESS;
 }
 
-int __xlib_draw_point (Drawable drawable_arg, GC gc, char *data) {
+int __xlib_draw_point (Display *d, Drawable drawable_arg, GC gc, char *data) {
   XGCValues point_gcv, old_gcv;
   int center_x, center_y, pen_width;
   unsigned short int pen_alpha;
@@ -1957,21 +1957,21 @@ int __xlib_draw_point (Drawable drawable_arg, GC gc, char *data) {
     actual_drawable = panebuffer_id;
   }
 
-  XGetGCValues (display, gc, DEFAULT_GCV_MASK, &old_gcv);
+  XGetGCValues (d, gc, DEFAULT_GCV_MASK, &old_gcv);
   point_gcv.function = GXcopy;
   point_gcv.foreground = lookup_pixel (colorname);
   point_gcv.fill_style = FillSolid;
-  XChangeGC (display, gc, POINT_GCV_MASK, &point_gcv);
+  XChangeGC (d, gc, POINT_GCV_MASK, &point_gcv);
   if (pen_width < 2) {
-    XDrawPoint (display, actual_drawable, gc,
+    XDrawPoint (d, actual_drawable, gc,
 		center_x, center_y);
   } else {
-    XFillArc (display, actual_drawable, gc,
+    XFillArc (d, actual_drawable, gc,
 	      center_x, center_y,
 	      pen_width, pen_width,
 	      0, 360 * 64);
   }
-  XChangeGC (display, gc, DEFAULT_GCV_MASK, &old_gcv);
+  XChangeGC (d, gc, DEFAULT_GCV_MASK, &old_gcv);
   return SUCCESS;
 }
 
@@ -1981,7 +1981,7 @@ int __xlib_draw_point (Drawable drawable_arg, GC gc, char *data) {
 
 #else /* ! defined (DJGPP) && ! defined (WITHOUT_X11) */
 
-int __xlib_draw_line (unsigned int w, unsigned int gc, char *data) {
+int __xlib_draw_line (void *, unsigned int w, unsigned int gc, char *data) {
   x_support_error (); return ERROR;
 }
 

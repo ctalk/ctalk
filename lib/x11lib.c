@@ -1,4 +1,4 @@
-/* $Id: x11lib.c,v 1.93 2020/02/29 17:12:46 rkiesling Exp $ -*-c-*-*/
+/* $Id: x11lib.c,v 1.94 2020/02/29 18:49:35 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -127,7 +127,7 @@ OBJECT *__x11_pane_font_id_value_object (OBJECT *);
 /* In xrender.c */
 int __xlib_draw_circle (Drawable, GC, char *);
 int __xlib_draw_rectangle (Drawable, GC, char *);
-int __xlib_draw_line (Drawable, GC, char *);
+int __xlib_draw_line (Display *, Drawable, GC, char *);
 int __xlib_draw_point (Display *, Drawable, GC, char *);
 /* In edittext.c */
 int __xlib_render_text (Drawable, GC, char *);
@@ -1524,7 +1524,7 @@ int __xlib_handle_client_request (char *shm_mem_2) {
       __xlib_draw_point (d, (Drawable)w, gc, &shm_mem_2[SHM_DATA]);
       break;
     case PANE_DRAW_LINE_REQUEST:
-      __xlib_draw_line ((Drawable)w, gc, &shm_mem_2[SHM_DATA]);
+      __xlib_draw_line (d, (Drawable)w, gc, &shm_mem_2[SHM_DATA]);
       break;
     case PANE_DRAW_RECTANGLE_REQUEST:
       __xlib_draw_rectangle ((Drawable)w, gc, &shm_mem_2[SHM_DATA]);
