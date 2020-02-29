@@ -1,4 +1,4 @@
-/* $Id: xhello.c,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ */
+/* $Id: xhello.c,v 1.2 2020/02/29 12:22:21 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -67,10 +67,11 @@ int main (int argv, char **argc) {
   Integer new nEvents;
   Integer new verbose;
 
+  xPane backgroundColor = "white";
+  
   xPane initialize 200, 100;
   xPane map;
   xPane raiseWindow;
-
 
   xPane openEventStream;
 
