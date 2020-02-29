@@ -7845,7 +7845,7 @@ functions.
      Finds all occurrences of PATTERN in BUFFER, and returns the
      positions of the matches in OFFSETS, terminated by -1.
 
-'__ctalkSelectXFontFace (int DRAWABLE_ID, int GC_PTR, int FACE)'
+'__ctalkSelectXFontFace (void *DISPLAY, int DRAWABLE_ID, int GC_PTR, int FACE)'
      Selects the typeface of the currently selected font, if available,
      which should have been loaded with a call like
      '__ctalkX11UseFontBasic', or the equivalent calls for FreeType
@@ -8173,7 +8173,7 @@ functions.
      of the DefaultColormap's dependent macros after DefaultColormap,
      which is not compatible with the ctpp preprocessor.
 
-'__ctalkX11CopyPixmapBasic (int DEST_DRAWABLE_ID, int DEST_GC_PTR, int SRC_DRAWABLE_ID, int SRC_X_ORG, int SRC_Y_ORG, int SRC_WIDTH, int SRC_HEIGHT, int DEST_X_ORG, int DEST_Y_ORG)'
+'__ctalkX11CopyPixmapBasic (void *DISPLAY, int DEST_DRAWABLE_ID, int DEST_GC_PTR, int SRC_DRAWABLE_ID, int SRC_X_ORG, int SRC_Y_ORG, int SRC_WIDTH, int SRC_HEIGHT, int DEST_X_ORG, int DEST_Y_ORG)'
      Copies the drawable SRC_DRAWABLE_ID to DEST_DRAWABLE_ID, with the
      dimensions of the source graphic given by SRC_X_ORG, SRC_Y_ORG,
      SRC_WIDTH, and SRC_HEIGHT.  The image is drawn with its upper

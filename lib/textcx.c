@@ -1,4 +1,4 @@
-/* $Id: textcx.c,v 1.1.1.1 2019/10/26 23:40:50 rkiesling Exp $ -*-c-*-*/
+/* $Id: textcx.c,v 1.2 2020/02/29 01:11:22 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -276,7 +276,7 @@ static int xlib_text_width (Display *d_l, char *text, XFontStruct **xfs) {
 
 static void select_new_face (Display *d_l, Drawable d, unsigned long int gc_ptr,
 			     int typeface, XFontStruct **xfs) {
-  __ctalkSelectXFontFace (d, gc_ptr, typeface);
+  __ctalkSelectXFontFace (d_l, d, gc_ptr, typeface);
   if (!__ctalkXftInitialized ()) {
     if (*xfs) XFreeFont (d_l, *xfs);
     *xfs = NULL;

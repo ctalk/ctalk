@@ -1539,7 +1539,7 @@ Returns the class object of the currently executing method.
 Finds all occurrences of pattern in buffer, and
 returns the positions of the matches in offsets, terminated by -1.
 
->>>__ctalkSelectXFontFace (int drawable_id, int gc_ptr, int face)
+>>>__ctalkSelectXFontFace (void *display, int drawable_id, int gc_ptr, int face)
 Selects the typeface of the currently selected font, if available,
 which should have been loaded with a call like
 __ctalkX11UseFontBasic, or the equivalent calls for
@@ -1883,7 +1883,7 @@ the X headers define some of the DefaultColormap's
 dependent macros after DefaultColormap, which is not 
 compatible with the ctpp preprocessor.
 
->>>__ctalkX11CopyPixmapBasic (int dest_drawable_id, int dest_gc_ptr, int src_drawable_id, int src_x_org, int src_y_org, int src_width, int src_height, int dest_x_org, int dest_y_org)
+>>>__ctalkX11CopyPixmapBasic (void *display, int dest_drawable_id, int dest_gc_ptr, int src_drawable_id, int src_x_org, int src_y_org, int src_width, int src_height, int dest_x_org, int dest_y_org)
 Copies the drawable src_drawable_id to dest_drawable_id,
 with the dimensions of the source graphic given by src_x_org,
 src_y_org, src_width, and src_height.  The image is

@@ -1,4 +1,4 @@
-/* $Id: X11Bitmap,v 1.12 2020/02/29 00:32:43 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11Bitmap,v 1.14 2020/02/29 01:11:22 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -150,19 +150,19 @@ X11Bitmap instanceMethod font (String font_desc) {
 #define X_FACE_BOLD_ITALIC (1 << 3)
 
 X11Bitmap instanceMethod faceBold (void) {
-  __ctalkSelectXFontFace (self xID, self xGC, X_FACE_BOLD);
+  __ctalkSelectXFontFace (self displayPtr, self xID, self xGC, X_FACE_BOLD);
 }
 
 X11Bitmap instanceMethod faceRegular (void) {
-  __ctalkSelectXFontFace (self xID, self xGC, X_FACE_REGULAR);
+  __ctalkSelectXFontFace (self displayPtr, self xID, self xGC, X_FACE_REGULAR);
 }
 
 X11Bitmap instanceMethod faceItalic (void) {
-  __ctalkSelectXFontFace (self xID, self xGC, X_FACE_ITALIC);
+  __ctalkSelectXFontFace (self displayPtr, self xID, self xGC, X_FACE_ITALIC);
 }
 
 X11Bitmap instanceMethod faceBoldItalic (void) {
-  __ctalkSelectXFontFace (self xID, self xGC, X_FACE_BOLD_ITALIC);
+  __ctalkSelectXFontFace (self displayPtr, self xID, self xGC, X_FACE_BOLD_ITALIC);
 }
 
 X11Bitmap instanceMethod putStr (Integer x, Integer y, String s) {
@@ -305,7 +305,7 @@ X11Bitmap instanceMethod copy (X11Bitmap srcBitmap,
    the receiver pane the refresh message for the changes to be
    visible."
 
-  __ctalkX11CopyPixmapBasic (self xID, self xGC,
+    __ctalkX11CopyPixmapBasic (self displayPtr, self xID, self xGC,
 			     srcBitmap xID, srcXOrg, srcYOrg, 
 			     srcWidth, srcHeight,
 			     destXOrg, destYOrg);

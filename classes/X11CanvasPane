@@ -1,4 +1,4 @@
-/* $Id: X11CanvasPane,v 1.22 2020/02/29 00:45:36 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11CanvasPane,v 1.23 2020/02/29 00:59:22 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -594,7 +594,7 @@ X11CanvasPane instanceMethod directCopy (X11Bitmap srcBitmap,
 					 Integer destXOrg, Integer destYOrg) {
   "Copies the the X11Bitmap object that is the first argument
    directly to the receiver pane's window."
-  __ctalkX11CopyPixmapBasic (self xWindowID, self xGC,
+    __ctalkX11CopyPixmapBasic (self displayPtr, self xWindowID, self xGC,
 			     srcBitmap xID, srcXOrg, srcYOrg, 
 			     srcWidth, srcHeight,
 			     destXOrg, destYOrg);
@@ -617,7 +617,8 @@ X11CanvasPane instanceMethod copy (X11Bitmap srcBitmap,
      have xID or xGC instance variables.) */
   localPaneBuffer = self paneBuffer;
 
-  __ctalkX11CopyPixmapBasic (localPaneBuffer xID,
+  __ctalkX11CopyPixmapBasic (localPaneBuffer displayPtr,
+			     localPaneBuffer xID,
 			     localPaneBuffer xGC,
 			     srcBitmap xID, srcXOrg, srcYOrg, 
 			     srcWidth, srcHeight,

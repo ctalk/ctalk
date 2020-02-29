@@ -1,4 +1,4 @@
-/* $Id: ctalk.h,v 1.75 2020/02/29 00:45:37 rkiesling Exp $ -*-Fundamental-*- */
+/* $Id: ctalk.h,v 1.77 2020/02/29 01:11:22 rkiesling Exp $ -*-Fundamental-*- */
 
 /*
   This file is part of Ctalk.
@@ -2623,7 +2623,7 @@ int __ctalkX11PaneDrawCircleBasic (void *, int, unsigned long int, int, int, int
 int __ctalkGUIPaneDrawCircleBasic (void *, int, unsigned long int, int, int, int, int, int, int, char *, char *);
 
 /* lib/xcopypixmap.c */
-int __ctalkX11CopyPixmapBasic (int, unsigned long int,
+int __ctalkX11CopyPixmapBasic (void *, int, unsigned long int,
                                int, int, int, int, int,
 			       int, int);
 
@@ -2639,7 +2639,7 @@ void __ctalkX11SubWindowGeometry (OBJECT *, char *, int *, int *, int *, int *);
 int load_xlib_fonts_internal (char *);
 int load_xlib_fonts_internal_1t (char *);
 void clear_font_descriptors (void);
-int __ctalkSelectXFontFace (int, unsigned long int, int);
+int __ctalkSelectXFontFace (void *, int, unsigned long int, int);
 
 /* lib/xrender.c */
 void __ctalkX11UseXRender (bool);

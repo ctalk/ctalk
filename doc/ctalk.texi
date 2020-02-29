@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.110 2020/02/29 00:45:37 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.112 2020/02/29 01:11:22 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -20556,7 +20556,7 @@ returns the positions of the matches in @var{offsets}, terminated by -1.
 
 @idxlibfn{__ctalkSelectXFontFace}
 @idxlibfn{__ctalkX11UseFontBasic}
-@item __ctalkSelectXFontFace (@code{int} @var{drawable_id}, @code{int} @var{gc_ptr}, @code{int} @var{face})
+@item __ctalkSelectXFontFace (@code{void *}@var{display}, @code{int} @var{drawable_id}, @code{int} @var{gc_ptr}, @code{int} @var{face})
 Selects the typeface of the currently selected font, if available,
 which should have been loaded with a call like
 @cite{__ctalkX11UseFontBasic}, or the equivalent calls for
@@ -20950,7 +20950,7 @@ dependent macros after DefaultColormap, which is not
 compatible with the ctpp preprocessor.
 
 @idxlibfn{__ctalkX11CopyPixmapBasic}
-@item __ctalkX11CopyPixmapBasic (@code{int} @var{dest_drawable_id}, @code{int} @var{dest_gc_ptr}, @code{int} @var{src_drawable_id}, @code{int} @var{src_x_org}, @code{int} @var{src_y_org}, @code{int} @var{src_width}, @code{int} @var{src_height}, @code{int} @var{dest_x_org}, @code{int} @var{dest_y_org})
+@item __ctalkX11CopyPixmapBasic (@code{void *}@var{display}, @code{int} @var{dest_drawable_id}, @code{int} @var{dest_gc_ptr}, @code{int} @var{src_drawable_id}, @code{int} @var{src_x_org}, @code{int} @var{src_y_org}, @code{int} @var{src_width}, @code{int} @var{src_height}, @code{int} @var{dest_x_org}, @code{int} @var{dest_y_org})
 Copies the drawable @var{src_drawable_id} to @var{dest_drawable_id},
 with the dimensions of the source graphic given by @var{src_x_org},
 @var{src_y_org}, @var{src_width}, and @var{src_height}.  The image is
