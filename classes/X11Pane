@@ -1,4 +1,4 @@
-/* $Id: X11Pane,v 1.12 2020/02/29 01:11:22 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11Pane,v 1.13 2020/02/29 01:23:01 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -446,7 +446,8 @@ X11Pane instanceMethod setResources (String resourceName,
   the window title.  The resource class is how the X
   resource database refers to the application."
 
-  __ctalkX11SetResource (self xWindowID, resourceName, resourceClass);
+    __ctalkX11SetResource (self displayPtr, self xWindowID,
+			   resourceName, resourceClass);
 }
 
 X11Pane instanceMethod displayHeight (void) {

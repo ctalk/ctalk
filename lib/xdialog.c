@@ -1,4 +1,4 @@
-/* $Id: xdialog.c,v 1.2 2020/02/28 00:14:05 rkiesling Exp $ -*-c-*-*/
+/* $Id: xdialog.c,v 1.3 2020/02/29 01:39:40 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -99,7 +99,7 @@ int __ctalkX11CreateDialogWindow (OBJECT *self_object) {
   } else {
     displayPtr = __ctalkGetInstanceVariable (self_object,
 					     "displayPtr", TRUE);
-    SYMVAL(displayPtr -> instancevars -> __o_value) = d;
+    SYMVAL(displayPtr -> instancevars -> __o_value) = (uintptr_t)d;
   }
 
   border_width = __x11_pane_border_width (self_object);

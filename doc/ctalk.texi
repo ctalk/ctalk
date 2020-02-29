@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.112 2020/02/29 01:11:22 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.113 2020/02/29 01:23:01 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -21194,7 +21194,7 @@ Sets the foreground color of any class with a X11 drawable and
 graphics context.
 
 @idxlibfn{__ctalkX11SetResource}
-@item __ctalkX11SetResource (@code{int} @var{drawable_id}, @code{char *}@var{resource_name}, @code{char *}@var{resource_value}) 
+@item __ctalkX11SetResource (@code{void *}@var{display}, @code{int} @var{drawable_id}, @code{char *}@var{resource_name}, @code{char *}@var{resource_value}) 
 Sets the X11 resource @var{resource_name} to @var{resource_value} for
 the drawable identified by @var{drawable_id}.
 

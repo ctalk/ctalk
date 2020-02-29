@@ -8381,7 +8381,7 @@ functions.
      Sets the foreground color of any class with a X11 drawable and
      graphics context.
 
-'__ctalkX11SetResource (int DRAWABLE_ID, char *RESOURCE_NAME, char *RESOURCE_VALUE)'
+'__ctalkX11SetResource (void *DISPLAY, int DRAWABLE_ID, char *RESOURCE_NAME, char *RESOURCE_VALUE)'
      Sets the X11 resource RESOURCE_NAME to RESOURCE_VALUE for the
      drawable identified by DRAWABLE_ID.
 
