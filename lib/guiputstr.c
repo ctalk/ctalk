@@ -1,4 +1,4 @@
-/* $Id: guiputstr.c,v 1.6 2020/02/29 10:21:16 rkiesling Exp $ -*-c-*-*/
+/* $Id: guiputstr.c,v 1.7 2020/03/03 01:36:43 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -241,7 +241,7 @@ int __ctalkGUIPanePutStr (OBJECT *self, int x, int y, char *s) {
   OBJECT *self_object, *win_id_value, *gc_value, *displayptr_var;
   int panebuffer_xid, panebackingstore_xid;
   char d_buf[MAXLABEL], f_buf[MAXLABEL], fname_buf[MAXLABEL];
-  char w_buf[MAXLABEL];
+  /* char w_buf[MAXLABEL]; *//***/
 #ifdef GRAPHICS_WRITE_SEND_EVENT
   XEvent send_event;
 #endif
@@ -259,7 +259,7 @@ int __ctalkGUIPanePutStr (OBJECT *self, int x, int y, char *s) {
   __get_pane_buffers (self_object, &panebuffer_xid, 
 		      &panebackingstore_xid);
   if (panebuffer_xid) {
-    __ctalkDecimalIntegerToASCII (panebuffer_xid, w_buf);
+    /* __ctalkDecimalIntegerToASCII (panebuffer_xid, w_buf);*//***/
     make_req (shm_mem,
 	      SYMVAL(displayptr_var -> instancevars -> __o_value),
 	      PANE_PUT_STR_REQUEST, panebuffer_xid,

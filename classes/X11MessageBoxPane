@@ -1,4 +1,4 @@
-/* $Id: X11MessageBoxPane,v 1.9 2020/02/29 22:57:14 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11MessageBoxPane,v 1.14 2020/03/03 02:25:04 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -21,6 +21,8 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
 */
 
+/* DON'T USE THIS AT THE MOMENT */
+
 X11PaneDispatcher class X11MessageBoxPane;
 
 X11MessageBoxPane instanceVariable popup Boolean true;
@@ -39,10 +41,8 @@ X11MessageBoxPane instanceMethod subPaneExpose (Object __subPane,
 					  InputEvent __event) {
   "Handle an Expose event by redrawing the pane's contents
   on the parent window."
-    printf ("subPaneExpose!\n");
-#if 0 /***/
+    __subPane draw;
     __subPane refresh;
-#endif  
 }
 
 X11MessageBoxPane instanceMethod attachTo (Object parentPane,
@@ -79,25 +79,20 @@ X11MessageBoxPane instanceMethod attachTo (Object parentPane,
 }
 
 X11MessageBoxPane instanceMethod draw (void) {
-
-  /* XFillRectangle (self displayPtr, self paneBuffer xID,
-		  self paneBuffer xGC,
-		  0, 0, self paneBuffer width, self paneBuffer height);*//***/
-  (X11Bitmap *)self paneBuffer clear;
+  printf ("draw\n");
+  self clearWindow;
+  self paneBuffer background "red";
+  self paneBuffer foreground "black";
+  self paneBuffer clear;
+  self paneBuffer putStr 10, 10, "Hello", "Deja Vu", "black";
 }
 
 X11MessageBoxPane instanceMethod refresh (void) {
-  Display *disp;
-  Drawable buffer_id;
-  Drawable win_id;
-  GC gc;
-
-  disp = self displayPtr;
-  buffer_id = self paneBuffer xID;
-  win_id = self xWindowID;
-  gc = self xGC;
-  XCopyArea (disp, buffer_id, win_id, gc,
-	     0, 0, self size x, self size y, 0, 0);
+  printf ("refresh\n");
+  __ctalkGUIPaneRefresh (self, 0, 0,
+   			 self size x,
+   			 self size y,
+   			 0, 0);
 }
 
 X11MessageBoxPane instanceMethod withdraw (void) {
@@ -111,45 +106,65 @@ X11MessageBoxPane instanceMethod show (void) {
   Window win_id;
   XEvent xev;
   X11PaneDispatcher new dispatcher;
+  X11Pane new mainWin;
+  InputEvent new e;
 
   dispatcher = *self container;
+  mainWin = dispatcher mainWindow;
   
+  self depth = self mainWindow depth;
   win_id = __ctalkX11CreateDialogWindow (self);
   self xWindowID = win_id;
   dispatcher modalWin = win_id;
+  dispatcher modalPane = self;
 
-  (X11Bitmap *)self paneBuffer create self displayPtr, self xWindowID,
-    self size x, self size y, self depth;
-  (X11Bitmap *)self paneBuffer background (self backgroundColor);
+  d = self displayPtr;
+  (X11Bitmap *)self paneBuffer create self displayPtr, self xWindowID, 
+
+     self size x, self size y, self depth value;
+  /* (X11Bitmap *)self paneBuffer create d, win_id,
+     self size x, self size y, self depth value; *//***/
+  (X11Bitmap *)self paneBuffer background "red";
+  (X11Bitmap *)self paneBuffer foreground "red";
+  /* (X11Bitmap *)self paneBuffer background (self backgroundColor);*//***/
   (X11Bitmap *)self paneBackingStore create self displayPtr, self xWindowID,
     self size x, self size y, self depth;
 
-  self paneBuffer background self backgroundColor;
-
-  d = self displayPtr;
 
   XMapWindow (d, win_id);
   XRaiseWindow (d, win_id);
 
-  while (TRUE) {
+  while (1) {
     if (XPending (d)) {
       XNextEvent (d, &xev);
       switch (xev.type)
 	{
 	case Expose:
-	  self draw;
-	  self refresh;
+	  self methodObjectMessage self handleExpose, self, e;
 	  break;
-	case ClientMessage:
-	  if(xev.xclient.data.l[0] == wm_delete_window) {
-	    self withdraw;
-	    return;
-	  }
+	}
+    }
+	
+  }
+    
+
+#if 0
+  while (TRUE) {
+    mainWin inputStream queueInput;
+    if (mainWin inputStream eventPending) {
+      e become (mainWin inputStream inputQueue unshift);
+      printf ("%d, %d, %d\n", e eventClass value, win_id, e eventData);
+      switch (e eventClass value)
+	{
+	case EXPOSE:
+	  printf ("EXPOSE\n");
+	  self methodObjectMessage self handleExpose, self, e;
 	  break;
 	}
     } else {
       usleep (1000);
     }
   }
+#endif  
   return self;
 }

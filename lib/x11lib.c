@@ -1,4 +1,4 @@
-/* $Id: x11lib.c,v 1.109 2020/02/29 21:45:46 rkiesling Exp $ -*-c-*-*/
+/* $Id: x11lib.c,v 1.110 2020/03/03 02:25:05 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -775,6 +775,7 @@ int __xlib_refresh_window (Display *d, Drawable drawable, GC gc, char *data) {
   unsigned int buffer_id;
   unsigned int src_x_org, src_y_org, width, height,
     dest_x_org, dest_y_org;
+  XGCValues v;
 
 #ifdef GC_RANGE_CHECK
 
@@ -795,6 +796,9 @@ int __xlib_refresh_window (Display *d, Drawable drawable, GC gc, char *data) {
     return ERROR;
   }
   
+  v.function = GXcopy;
+  XChangeGC (d, gc, GCFunction, &v);
+
   XCopyArea (d, (Drawable)buffer_id, drawable, gc, 
 	     src_x_org, src_y_org,
 	     width, height,

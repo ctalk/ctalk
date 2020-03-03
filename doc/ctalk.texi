@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.115 2020/02/29 22:20:23 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.116 2020/03/03 02:25:04 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -20962,8 +20962,16 @@ an example, refer the @code{X11CanvasPane} classes' description.
 @xref{X11CanvasPane}.
 
 @idxlibfn{__ctalkX11CreateGC}
-@item __ctalkX11CreateGC (@code{int} @var{drawable})
-Create a X GC and return its address as a @code{void *}.
+@item __ctalkX11CreateGC (@code{void *}@var{display}, @code{int} @var{drawable})
+Create a X Graphics Context and return its address as a @code{void *}.
+The GC is created without setting any values, so programs must set the
+values using XChangeGC if it is used outside of the Ctalk library
+functions, which change any parameters of the GC that are necessary
+for an operation.  The exception to this are the library functions
+@cite{__ctalkX11SetForegroundBasic},
+@cite{__ctalkX11SetBackgroundBasic}, and @cite{__ctalkX11UseFontBasic}
+functions.
+
 
 @idxlibfn{__ctalkX11CreatePixmap}
 @item __ctalkX11CreatePixmap (@code{void *}@var{display}, @code{int} @var{x_drawable}, @code{int} @var{width}, @code{int} @var{height}, @code{int} @var{depth})

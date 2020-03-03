@@ -1,4 +1,4 @@
-/* $Id: bitmap.c,v 1.3 2020/02/29 12:07:29 rkiesling Exp $ -*-c-*-*/
+/* $Id: bitmap.c,v 1.6 2020/03/03 02:25:05 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -57,15 +57,15 @@ int __xlib_clear_rectangle_basic (Display *disp, Drawable d, int x, int y,
 				  unsigned int width, unsigned int height,
 				  GC gc) {
   XGCValues rectangle_gcv, old_gcv;
-  XGetGCValues (display, gc, DEFAULT_GCV_MASK, &old_gcv);
+  XGetGCValues (disp, gc, DEFAULT_GCV_MASK, &old_gcv);
   rectangle_gcv.function = GXset;
   rectangle_gcv.fill_style = FillSolid;
   rectangle_gcv.background = old_gcv.background;
   rectangle_gcv.foreground = old_gcv.background;
-  XChangeGC (display, gc, RECTANGLE_GCV_MASK, &rectangle_gcv);
-  XFillRectangle (display, d, gc,
+  XChangeGC (disp, gc, RECTANGLE_GCV_MASK, &rectangle_gcv);
+  XFillRectangle (disp, d, gc,
  		  x, y, width, height);
-  XChangeGC (display, gc, DEFAULT_GCV_MASK, &old_gcv);
+  XChangeGC (disp, gc, DEFAULT_GCV_MASK, &old_gcv);
   return SUCCESS;
 }
 
@@ -101,10 +101,10 @@ void __ctalkX11FreeGC (unsigned long int gc_ptr) {
   XFreeGC (display, (GC)gc_ptr);
 }
 
-void * __ctalkX11CreateGC (int drawable) {
+void * __ctalkX11CreateGC (void *d, int drawable) {
   GC gc;
   XGCValues v;
-  gc = XCreateGC (display, (Drawable)drawable, 0, &v);
+  gc = XCreateGC ((Display *)d, (Drawable)drawable, 0, &v);
   return (void *)gc;
 }
 
@@ -374,7 +374,7 @@ void __ctalkX11FreeGC (unsigned long int gc_ptr) {
   x_support_error ();
 }
 
-void *__ctalkX11CreateGC (int drawable) {  
+void *__ctalkX11CreateGC (void *d, int drawable) {  
   x_support_error (); return NULL;
 }
 int __ctalkX11CreatePixmap (void *d,

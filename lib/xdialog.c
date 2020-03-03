@@ -1,4 +1,4 @@
-/* $Id: xdialog.c,v 1.3 2020/02/29 01:39:40 rkiesling Exp $ -*-c-*-*/
+/* $Id: xdialog.c,v 1.6 2020/03/03 02:25:05 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -36,6 +36,7 @@
 
 #if ! defined (DJGPP) && ! defined (WITHOUT_X11)
 #include "x11defs.h"
+#include <X11/Xutil.h>
 
 static Display *d = NULL;   /* Defined in x11lib.c. */
 static Window d_root = 0;
@@ -47,7 +48,7 @@ extern int n_fixed_fonts;
 
 int lookup_color (Display *, XColor *, char *);
 Font get_user_font (OBJECT *);
-int __xlib_set_wm_name_prop (Drawable, GC, char *);
+int __xlib_set_wm_name_prop (Display *, Drawable, GC, char *);
 void __save_pane_to_vars (OBJECT *, GC, int, int);
 void x_support_error ();
 int __x11_pane_border_width (OBJECT *);
@@ -70,6 +71,7 @@ static int open_dialog_display_connection (void) {
     }
     d_screen = DefaultScreen (d);
     d_root = RootWindow (d, d_screen);
+    d_screen_depth = DefaultDepth (d, d_screen);
   }
   return SUCCESS;
 }
@@ -80,9 +82,7 @@ int __ctalkX11CreateDialogWindow (OBJECT *self_object) {
   XGCValues gcv;
   GC gc;
   OBJECT *displayPtr;
-#if 0 /***/
   XWMHints wm_hints;
-#endif  
   char buf[MAXLABEL];
   static int wm_event_mask;
   int geom_ret, x_return, y_return;
@@ -101,56 +101,45 @@ int __ctalkX11CreateDialogWindow (OBJECT *self_object) {
 					     "displayPtr", TRUE);
     SYMVAL(displayPtr -> instancevars -> __o_value) = (uintptr_t)d;
   }
-
+  
   border_width = __x11_pane_border_width (self_object);
   set_attributes.backing_store = Always;
-  set_size_hints_internal (self_object, &x_org, &y_org, &x_size, &y_size);
+  set_attributes.save_under = true;
+  /* set_size_hints_internal (self_object, &x_org, &y_org, &x_size, &y_size); */
+  x_org = __pane_x_org (self_object);
+  y_org = __pane_y_org (self_object);
+  x_size = __pane_x_size (self_object);
+  y_size = __pane_y_size (self_object);
   bgColor = __ctalkGetInstanceVariable (self_object,
 					"backgroundColor", TRUE);
   win_id = XCreateWindow (d, d_root, 
 			  x_org, y_org, x_size, y_size,
 			  border_width, d_screen_depth,
 			  CopyFromParent, CopyFromParent, 
-			  CWBackingStore,
+			  CWBackingStore|CWSaveUnder,
 			  &set_attributes);
-#if 0 /***/
+
   wm_hints.flags = (InputHint|StateHint);
-  wm_hints.input = TRUE;;
+  wm_hints.input = TRUE;
   wm_hints.initial_state = NormalState;
   XSetWMHints (d, win_id, &wm_hints);
-#endif  
   
   wm_delete_dialog = XInternAtom (d, "WM_DELETE_WINDOW", False);
   XSetWMProtocols (d, win_id, &wm_delete_dialog, 1);
-
-#if 0 /***/
-  if (size_hints) {
-    XSetWMNormalHints (d, win_id, size_hints);
-    geom_ret = XGetGeometry (d, win_id, &root_return,
-     			     &x_return, &y_return,
-     			     &width_return, &height_return,
-     			     &border_width_return,
-     			     &depth_return);
-    size_hints -> x = x_return;
-    size_hints -> y = y_return;
-    size_hints -> base_width = width_return;
-    size_hints -> base_height = height_return;
-  }
-#endif  
 
   XSetWindowBorder (d, win_id, BlackPixel(d, d_screen));
   XSelectInput(d, win_id, wm_event_mask);
   gcv.fill_style = FillSolid;
   gcv.function = GXcopy;
   gcv.foreground = BlackPixel (d, d_screen);
-#if 0 /***/
+
   if (*bgColor -> __o_value) {
     lookup_color (d, &bg_color, bgColor -> __o_value);
     gcv.background = bg_color.pixel;
   } else {
     gcv.background = WhitePixel (d, d_screen);
   }
-#endif  
+
   if ((gcv.font = get_user_font (self_object)) == 0) {
     if (n_fixed_fonts && !fixed_font)
       fixed_font = XLoadFont (d, fixed_font_set[0]);
@@ -158,18 +147,17 @@ int __ctalkX11CreateDialogWindow (OBJECT *self_object) {
       gcv.font = fixed_font;
   }
   gc = XCreateGC (d, win_id, DEFAULT_GCV_MASK, &gcv);
-#if 0 /***/
+
   if (*bgColor -> __o_value) {
     XSetWindowBackground (d, win_id, bg_color.pixel);
   } else {
     XSetWindowBackground (d, win_id, WhitePixel (d, d_screen));
   }
-#endif  
-#if 0 /***/
+
+
   __xlib_set_wm_name_prop 
-    (win_id, gc, 
+    (d, win_id, gc, 
      basename_w_extent(__argvFileName ()));
-#endif  
 
   __save_pane_to_vars (self_object, gc, win_id,
 		       DefaultDepth (d, DefaultScreen (d)));

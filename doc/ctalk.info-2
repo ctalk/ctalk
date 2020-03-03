@@ -8178,8 +8178,15 @@ functions.
      example, refer the 'X11CanvasPane' classes' description.  *Note
      X11CanvasPane::.
 
-'__ctalkX11CreateGC (int DRAWABLE)'
-     Create a X GC and return its address as a 'void *'.
+'__ctalkX11CreateGC (void *DISPLAY, int DRAWABLE)'
+     Create a X Graphics Context and return its address as a 'void *'.
+     The GC is created without setting any values, so programs must set
+     the values using XChangeGC if it is used outside of the Ctalk
+     library functions, which change any parameters of the GC that are
+     necessary for an operation.  The exception to this are the library
+     functions '__ctalkX11SetForegroundBasic',
+     '__ctalkX11SetBackgroundBasic', and '__ctalkX11UseFontBasic'
+     functions.
 
 '__ctalkX11CreatePixmap (void *DISPLAY, int X_DRAWABLE, int WIDTH, int HEIGHT, int DEPTH)'
      reate a X pixmap and return its X resource ID as an unsigned int.

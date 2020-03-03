@@ -1,4 +1,4 @@
-/* $Id: ctalklib.in,v 1.68 2020/02/29 12:07:28 rkiesling Exp $ -*-c-*-*/
+/* $Id: ctalklib.in,v 1.70 2020/03/03 02:25:04 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -991,7 +991,7 @@ extern int __ctalkX11Colormap (void);
 extern int __ctalkX11CopyPixmapBasic (void *, int, unsigned long int, int, int,
 				      int, int, int, int, int);
 extern int __ctalkX11CreateDialogWindow (OBJECT *);
-extern void *__ctalkX11CreateGC (int);
+extern void *__ctalkX11CreateGC (void *, int);
 extern int __ctalkX11CreatePixmap (void *, int, int, int, int);
 extern int __ctalkX11MakeEvent (OBJECT *, OBJECT *);
 extern int __ctalkX11SetResource (void *, int, char *, char *);
