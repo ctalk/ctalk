@@ -361,4 +361,6 @@
 	value and its "value" variable value (x11lib.c).
 	- Updated the __xlib_set_wm_name_prop call in
 	__ctalkCreateX11MainWindowTitle (x11lib.c).
+	- Changed the lookup_color calls in __xlib_change_gc to
+	lookup_color_d, which uses a Display * argument (x11lib.c).
 

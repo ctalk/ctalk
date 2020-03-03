@@ -1,4 +1,4 @@
-/* $Id: x11lib.c,v 1.113 2020/03/03 03:38:51 rkiesling Exp $ -*-c-*-*/
+/* $Id: x11lib.c,v 1.114 2020/03/03 04:12:30 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -853,11 +853,11 @@ int __xlib_change_gc (Display *d, Drawable drawable, GC gc, char *data) {
       r = XChangeGC (d, gc, valuemask, &v);
       break;
     case GCBackground:
-      v.background = lookup_pixel (value);
+      v.background = lookup_pixel_d (d, value);
       r = XChangeGC (d, gc, valuemask, &v);
       break;
     case GCForeground:
-      v.foreground = lookup_pixel (value);
+      v.foreground = lookup_pixel_d (d, value);
       r = XChangeGC (d, gc, valuemask, &v);
       break;
     }
