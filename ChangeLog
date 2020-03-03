@@ -357,4 +357,8 @@
 	program has a valid parent ID for the buffers.
 2020-03-02
 	- Added a Display * argument to __ctalkX11CreateGC (bitmap.c).
+	- Updated __save_pane_to_vars to retrieve and set the pane's "depth"
+	value and its "value" variable value (x11lib.c).
+	- Updated the __xlib_set_wm_name_prop call in
+	__ctalkCreateX11MainWindowTitle (x11lib.c).
 

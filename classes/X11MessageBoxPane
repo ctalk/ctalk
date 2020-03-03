@@ -1,4 +1,4 @@
-/* $Id: X11MessageBoxPane,v 1.14 2020/03/03 02:25:04 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11MessageBoxPane,v 1.15 2020/03/03 03:22:58 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -81,10 +81,16 @@ X11MessageBoxPane instanceMethod attachTo (Object parentPane,
 X11MessageBoxPane instanceMethod draw (void) {
   printf ("draw\n");
   self clearWindow;
-  self paneBuffer background "red";
-  self paneBuffer foreground "black";
+  XDrawLine (self displayPtr, self xWindowID, self xGC,
+	     10, 10, 80, 80);
+  self paneBuffer background "blue";
+  self paneBuffer foreground "blue";
   self paneBuffer clear;
   self paneBuffer putStr 10, 10, "Hello", "Deja Vu", "black";
+#if 1 
+  XCopyArea (self displayPtr, self paneBuffer xID, self xWindowID,
+	     self paneBuffer xGC, 0, 0, self size x, self size y, 0, 0);
+#endif  
 }
 
 X11MessageBoxPane instanceMethod refresh (void) {
@@ -112,7 +118,6 @@ X11MessageBoxPane instanceMethod show (void) {
   dispatcher = *self container;
   mainWin = dispatcher mainWindow;
   
-  self depth = self mainWindow depth;
   win_id = __ctalkX11CreateDialogWindow (self);
   self xWindowID = win_id;
   dispatcher modalWin = win_id;
@@ -121,7 +126,7 @@ X11MessageBoxPane instanceMethod show (void) {
   d = self displayPtr;
   (X11Bitmap *)self paneBuffer create self displayPtr, self xWindowID, 
 
-     self size x, self size y, self depth value;
+     self size x, self size y, self depth;
   /* (X11Bitmap *)self paneBuffer create d, win_id,
      self size x, self size y, self depth value; *//***/
   (X11Bitmap *)self paneBuffer background "red";

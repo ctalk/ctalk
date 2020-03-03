@@ -1,4 +1,4 @@
-/* $Id: x11lib.c,v 1.110 2020/03/03 02:25:05 rkiesling Exp $ -*-c-*-*/
+/* $Id: x11lib.c,v 1.113 2020/03/03 03:38:51 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -3337,14 +3337,14 @@ int __x11_pane_border_width (OBJECT *paneobject) {
 void __save_pane_to_vars (OBJECT *pane_object, GC gc,
 			  int win_id, int screen_depth) {
   OBJECT *win_gc_value_obj, *win_id_value_obj,
-    *win_depth_value_obj;
+    *win_depth_obj;
   char buf[MAXLABEL];
 
   win_id_value_obj =
     __x11_pane_win_id_value_object (pane_object);
   win_gc_value_obj = 
     __x11_pane_win_gc_value_object (pane_object);
-  win_depth_value_obj = 
+  win_depth_obj = 
     __x11_pane_win_depth_value_object (pane_object);
   
   *(uintptr_t *)win_gc_value_obj -> __o_value = (uintptr_t)gc;
@@ -3356,11 +3356,17 @@ void __save_pane_to_vars (OBJECT *pane_object, GC gc,
   if (IS_OBJECT(win_id_value_obj -> __o_p_obj))
     *(unsigned int *)win_id_value_obj -> __o_p_obj -> __o_value = win_id;
 
+#if 0 /***/
   *(int *)win_depth_value_obj -> __o_value =
     DefaultDepth (display, DefaultScreen (display));
   if (IS_OBJECT(win_depth_value_obj -> __o_p_obj))
     *(int *)win_depth_value_obj -> __o_p_obj -> __o_value =
       DefaultDepth (display, DefaultScreen (display));
+#endif  
+  *(int *)win_depth_obj -> __o_value = screen_depth;
+  if (IS_OBJECT(win_depth_obj -> instancevars))
+    *(int *)win_depth_obj -> instancevars -> __o_value = screen_depth;
+
     
 }
 			  
@@ -3520,16 +3526,13 @@ int __ctalkCreateX11MainWindowTitle (OBJECT *self_object, char *title) {
   }
   gc = XCreateGC (display, win_id, DEFAULT_GCV_MASK, &gcv);
   XSetWindowBackground (display, win_id, WhitePixel (display, screen));
-  if (title) {
-    __xlib_set_wm_name_prop
-      ((Display *)SYMVAL(displayPtr_value -> instancevars -> __o_value),
-       win_id, gc, title);
-  } else {
-    __xlib_set_wm_name_prop 
-      ((Display *)SYMVAL(displayPtr_value -> instancevars -> __o_value),
-       win_id, gc, basename_w_extent(__argvFileName ()));
-  }
-
+  __xlib_set_wm_name_prop
+    ((Display *)SYMVAL(IS_OBJECT(displayPtr_value -> instancevars) ?
+		       displayPtr_value -> instancevars -> __o_value :
+		       displayPtr_value -> __o_value),
+     win_id, gc,
+     ((title) ? title : basename_w_extent (__argvFileName())));
+       
   __save_pane_to_vars (self_object, gc, win_id,
 		       DefaultDepth (display, DefaultScreen (display)));
   return win_id;
