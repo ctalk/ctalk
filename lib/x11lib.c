@@ -1,4 +1,4 @@
-/* $Id: x11lib.c,v 1.114 2020/03/03 04:12:30 rkiesling Exp $ -*-c-*-*/
+/* $Id: x11lib.c,v 1.116 2020/03/06 01:15:41 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -298,7 +298,7 @@ int lookup_color (Display *d, XColor *color, char *name) {
   XColor exact_color;
   Colormap default_cmap;
 
-  default_cmap = DefaultColormap (d, screen);
+  default_cmap = DefaultColormap (d, DefaultScreen (d));
   
   if (XAllocNamedColor 
       (d, default_cmap, name, &exact_color, color)) {
@@ -321,7 +321,7 @@ unsigned long lookup_pixel (char *color) {
    still initializing. */
 unsigned long lookup_pixel_d (Display *d, char *color) {
   XColor c;
-  if (!lookup_color (display, &c, color)) {
+  if (!lookup_color (d, &c, color)) {
     return c.pixel;
   } else {
     return BlackPixel (d, screen);
@@ -772,7 +772,7 @@ int __xlib_move_window (Display *d, Drawable drawable, GC gc, char *data) {
 
 int __xlib_refresh_window (Display *d, Drawable drawable, GC gc, char *data) {
   int r;
-  unsigned int buffer_id;
+  long unsigned int buffer_id;
   unsigned int src_x_org, src_y_org, width, height,
     dest_x_org, dest_y_org;
   XGCValues v;
@@ -784,7 +784,7 @@ int __xlib_refresh_window (Display *d, Drawable drawable, GC gc, char *data) {
 
 #endif
 
-  if ((r = sscanf (data, "%u:%u:%u:%u:%u:%u:%u", 
+  if ((r = sscanf (data, "%lu:%u:%u:%u:%u:%u:%u", 
 		   &buffer_id, 
 		   &src_x_org, &src_y_org,
 		   &width, &height,
@@ -796,9 +796,9 @@ int __xlib_refresh_window (Display *d, Drawable drawable, GC gc, char *data) {
     return ERROR;
   }
   
-  v.function = GXcopy;
-  XChangeGC (d, gc, GCFunction, &v);
-
+  /* v.function = GXcopy;
+     XChangeGC (d, gc, GCFunction, &v); */
+  
   XCopyArea (d, (Drawable)buffer_id, drawable, gc, 
 	     src_x_org, src_y_org,
 	     width, height,
