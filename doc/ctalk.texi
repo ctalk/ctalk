@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.117 2020/03/06 00:39:22 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.118 2020/03/06 02:13:15 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -1768,6 +1768,12 @@ the @mnm{create} method.
 @cindex height instance variable @idxclscite{X11Bitmap}
 @item height
 An @code{Integer} that contains the height of the bitmap.
+
+@cindex modal instance variable @idxclscite{X11Bitmap}
+@item modal
+A @code{Boolean} that helps determine how Ctalk draws graphics on the
+X11Bitmap.  True for X11Bitmap objects that are displayed in popup
+windows, false otherwise.
 
 @cindex parentDrawable instance variable @idxclscite{X11Bitmap}
 @item parentDrawable
@@ -11694,6 +11700,11 @@ When using subpanes, it's convenient to set the subpane's
 @code{displayPtr} variable to the value of the main window pane's
 value.  This is generally done in the @mnm{attachTo} methods, with
 a line that looks something like this.
+
+@cindex @code{modal} instance variable @idxclscite{X11Pane}
+@item modal
+A @code{Boolean} that determines how Ctalk draws in the window.
+True for popup windows, false otherwise.
 
 @example
 

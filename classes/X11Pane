@@ -1,4 +1,4 @@
-/* $Id: X11Pane,v 1.15 2020/02/29 22:25:27 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11Pane,v 1.16 2020/03/06 02:13:14 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -56,6 +56,9 @@ X11Pane instanceVariable displayPtr Symbol NULL
 "The pointer to the main window pane's display connection.  
 This variable is set when the app creates the main window. 
 Generally, programs should not need to change this.";
+X11Pane instanceVariable modal Boolean false
+"Helps determine how Ctalk draws on the pane.  True for popup windows,
+false for everything else.";
 
 X11Pane classVariable xDisplay Symbol 0
 "This variable is deprecated, use the displayPtr instance variable instead.";

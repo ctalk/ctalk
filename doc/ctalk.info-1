@@ -1301,6 +1301,11 @@ Instance Variables
 'height'
      An 'Integer' that contains the height of the bitmap.
 
+'modal'
+     A 'Boolean' that helps determine how Ctalk draws graphics on the
+     X11Bitmap.  True for X11Bitmap objects that are displayed in popup
+     windows, false otherwise.
+
 'parentDrawable'
      An 'Integer' that contains the window ID of the bitmap's parent
      drawable.  Normally this is set by the 'create' method, below.

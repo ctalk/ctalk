@@ -1,4 +1,4 @@
-/* $Id: X11Bitmap,v 1.16 2020/03/03 03:22:58 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11Bitmap,v 1.17 2020/03/06 02:13:14 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -43,6 +43,7 @@ X11Bitmap instanceVariable parentGC Symbol 0;
 X11Bitmap instanceVariable width Integer 0;
 X11Bitmap instanceVariable height Integer 0;
 X11Bitmap instanceVariable depth Integer 0;
+X11Bitmap instanceVariable modal Boolean false;
 
 X11Bitmap instanceMethod create (Symbol displayPtr,
 				 Integer parentDrawable,
