@@ -1,4 +1,4 @@
-/* $Id: xdialog.c,v 1.6 2020/03/03 02:25:05 rkiesling Exp $ -*-c-*-*/
+/* $Id: xdialog.c,v 1.9 2020/03/05 01:02:27 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -38,7 +38,9 @@
 #include "x11defs.h"
 #include <X11/Xutil.h>
 
-static Display *d = NULL;   /* Defined in x11lib.c. */
+/***/
+/* static Display *d = NULL;*/   /* Defined in x11lib.c. */
+Display *d = NULL;   /* Defined in x11lib.c. */
 static Window d_root = 0;
 static int d_screen = 0, d_screen_depth = 0;
 Atom wm_delete_dialog;

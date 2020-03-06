@@ -1,4 +1,4 @@
-/* $Id: ctalk.h,v 1.77 2020/02/29 01:11:22 rkiesling Exp $ -*-Fundamental-*- */
+/* $Id: ctalk.h,v 1.83 2020/03/05 00:24:17 rkiesling Exp $ -*-Fundamental-*- */
 
 /*
   This file is part of Ctalk.
@@ -1365,14 +1365,15 @@ int __ctalkAliasReceiver (OBJECT *, OBJECT *);
 int ascii_bin_to_dec (char *);
 
 /* lib/bitmap.c */
-void *__ctalkX11CreateGC (int);
+void *__ctalkX11CreateGC (void *, int);
 int __ctalkX11CreatePaneBuffer (OBJECT *, int, int, int);
 int __ctalkX11CreatePixmap (void *, int, int, int, int);
 void __ctalkX11DeletePixmap (int id);
 void __ctalkX11FreeGC (unsigned long int ptr);
 int __ctalkX11FreePaneBuffer (OBJECT *);
 int __ctalkX11ResizePaneBuffer (OBJECT *, int, int);
-int __ctalkX11ClearBufferRectangle (OBJECT *, int, int, int, int);
+/***/
+/* int __ctalkX11ClearBufferRectangle (OBJECT *, int, int, int, int); */
 int __get_pane_buffers (OBJECT *, int *, int *);
 
 /* lib/bnamecmp.c */
@@ -2646,7 +2647,7 @@ void __ctalkX11UseXRender (bool);
 bool __ctalkX11UsingXRender (void);
 
 /* lib/xresource.c */
-int __ctalkX11SetResource (int, char *, char *);
+int __ctalkX11SetResource (void *, int, char *, char *);
 
 /* lib/xftlib.c */
 int __ctalkXftInitLib (void);

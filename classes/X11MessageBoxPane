@@ -1,4 +1,4 @@
-/* $Id: X11MessageBoxPane,v 1.15 2020/03/03 03:22:58 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11MessageBoxPane,v 1.19 2020/03/05 01:02:27 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -79,26 +79,35 @@ X11MessageBoxPane instanceMethod attachTo (Object parentPane,
 }
 
 X11MessageBoxPane instanceMethod draw (void) {
-  printf ("draw\n");
+  Pixmap g_p;
   self clearWindow;
   XDrawLine (self displayPtr, self xWindowID, self xGC,
 	     10, 10, 80, 80);
-  self paneBuffer background "blue";
-  self paneBuffer foreground "blue";
-  self paneBuffer clear;
-  self paneBuffer putStr 10, 10, "Hello", "Deja Vu", "black";
-#if 1 
+  /* self paneBuffer background "red";
+     self paneBuffer foreground "red"; */
+  /* self paneBuffer clear;
+     self paneBuffer putStr 10, 10, "Hello", "Deja Vu", "black"; */
+#if 1
+
+  XDrawRectangle (self displayPtr, self paneBuffer xID, self paneBuffer xGC,
+		  10, 10, 30, 30);
+#else
   XCopyArea (self displayPtr, self paneBuffer xID, self xWindowID,
-	     self paneBuffer xGC, 0, 0, self size x, self size y, 0, 0);
+	     self xGC, 0, 0, self size x, self size y, 0, 0);
 #endif  
 }
 
 X11MessageBoxPane instanceMethod refresh (void) {
-  printf ("refresh\n");
+#if 1
+  /* This should probably be temporary. */
+  XCopyArea (self displayPtr, self paneBuffer xID, self xWindowID,
+	     self xGC, 0, 0, self size x, self size y, 0, 0);
+#else
   __ctalkGUIPaneRefresh (self, 0, 0,
    			 self size x,
    			 self size y,
    			 0, 0);
+#endif  
 }
 
 X11MessageBoxPane instanceMethod withdraw (void) {
@@ -108,7 +117,7 @@ X11MessageBoxPane instanceMethod withdraw (void) {
 extern Atom wm_delete_window;
 
 X11MessageBoxPane instanceMethod show (void) {
-  Display *d;
+  Display *display;
   Window win_id;
   XEvent xev;
   X11PaneDispatcher new dispatcher;
@@ -123,25 +132,20 @@ X11MessageBoxPane instanceMethod show (void) {
   dispatcher modalWin = win_id;
   dispatcher modalPane = self;
 
-  d = self displayPtr;
+  display = self displayPtr;
   (X11Bitmap *)self paneBuffer create self displayPtr, self xWindowID, 
-
      self size x, self size y, self depth;
-  /* (X11Bitmap *)self paneBuffer create d, win_id,
-     self size x, self size y, self depth value; *//***/
-  (X11Bitmap *)self paneBuffer background "red";
-  (X11Bitmap *)self paneBuffer foreground "red";
-  /* (X11Bitmap *)self paneBuffer background (self backgroundColor);*//***/
+  (X11Bitmap *)self paneBuffer background (self backgroundColor);
   (X11Bitmap *)self paneBackingStore create self displayPtr, self xWindowID,
     self size x, self size y, self depth;
 
 
-  XMapWindow (d, win_id);
-  XRaiseWindow (d, win_id);
+  XMapWindow (display, win_id);
+  XRaiseWindow (display, win_id);
 
   while (1) {
-    if (XPending (d)) {
-      XNextEvent (d, &xev);
+    if (XPending (display)) {
+      XNextEvent (display, &xev);
       switch (xev.type)
 	{
 	case Expose:

@@ -1897,13 +1897,17 @@ an example, refer the X11CanvasPane classes' description.
 
 >>>__ctalkX11CreateGC (void *display, int drawable)
 Create a X Graphics Context and return its address as a void *.
-The GC is created without setting any values, so programs must set the
-values using XChangeGC if it is used outside of the Ctalk library
-functions, which change any parameters of the GC that are necessary
-for an operation.  The exception to this are the library functions
-__ctalkX11SetForegroundBasic,
-__ctalkX11SetBackgroundBasic, and __ctalkX11UseFontBasic
-functions.
+The GC is created with the following values:
+
+---------------------------------------------------------
+
+foreground     white
+background     black
+fill_style     FillSolid
+function       GXcopy
+font           fixed
+
+---------------------------------------------------------
 
 
 >>>__ctalkX11CreatePixmap (void *display, int x_drawable, int width, int height, int depth)

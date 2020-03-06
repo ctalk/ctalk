@@ -1,4 +1,4 @@
-/* $Id: bitmap.c,v 1.7 2020/03/03 03:22:59 rkiesling Exp $ -*-c-*-*/
+/* $Id: bitmap.c,v 1.8 2020/03/05 00:42:56 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -105,7 +105,12 @@ void * __ctalkX11CreateGC (void *d, int drawable) {
   GC gc;
   XGCValues v;
   v.function = GXcopy;
-  gc = XCreateGC ((Display *)d, (Drawable)drawable, GCFunction, &v);
+  v.foreground = WhitePixel (d, DefaultScreen (d));
+  v.background = BlackPixel (d, DefaultScreen (d));
+  v.fill_style = FillSolid;
+  v.font = XLoadFont (d, "fixed");
+  gc = XCreateGC ((Display *)d, (Drawable)drawable,
+		  DEFAULT_GCV_MASK, &v);
   return (void *)gc;
 }
 
