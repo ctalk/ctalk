@@ -1,4 +1,4 @@
-/* $Id: rtobjvar.c,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-c-*-*/
+/* $Id: rtobjvar.c,v 1.2 2020/03/07 03:37:26 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -627,6 +627,19 @@ OBJECT *__ctalkDefineInstanceVariable (char *classname, char *varname,
 	      var -> __o_value, sizeof (int));
       var -> attrs |= OBJECT_VALUE_IS_BIN_INT;
       var -> instancevars -> attrs |= OBJECT_VALUE_IS_BIN_INT;
+    } else if (var_class_object -> attrs & BOOL_BUF_SIZE_INIT) { /***/
+      int intval;
+      __xfree (MEMADDR(var -> __o_value));
+      __xfree (MEMADDR(var -> instancevars -> __o_value));
+      var -> __o_value = __xalloc (INTBUFSIZE);
+      var -> instancevars -> __o_value = __xalloc (INTBUFSIZE);
+      intval = atoi (init_expr);
+      intval = (intval) ? 1 : 0;
+      memcpy (var -> __o_value, &intval, sizeof (int));
+      memcpy (var -> instancevars -> __o_value,
+	      var -> __o_value, sizeof (int));
+      var -> attrs |= OBJECT_VALUE_IS_BIN_BOOL;
+      var -> instancevars -> attrs |= OBJECT_VALUE_IS_BIN_BOOL;
     } else if (var_class_object -> attrs & LONGLONG_BUF_SIZE_INIT) {
       long long int llval;
       __xfree (MEMADDR(var -> __o_value));
@@ -780,6 +793,7 @@ OBJECT *__ctalkDefineClassVariable (char *classname, char *varname,
     }
     var -> attrs |= OBJECT_VALUE_IS_BIN_INT;
     var -> instancevars -> attrs |= OBJECT_VALUE_IS_BIN_INT;
+    __ctalkSetObjectValueClass (var, var_class_object);
   } else if (var_class_object -> attrs & LONGLONG_BUF_SIZE_INIT) {
     __xfree (MEMADDR(var -> __o_value));
     __xfree (MEMADDR(var -> instancevars -> __o_value));
@@ -797,6 +811,7 @@ OBJECT *__ctalkDefineClassVariable (char *classname, char *varname,
     }
     var -> attrs |= OBJECT_VALUE_IS_BIN_LONGLONG;
     var -> instancevars -> attrs |= OBJECT_VALUE_IS_BIN_LONGLONG;
+    __ctalkSetObjectValueClass (var, var_class_object);
   } else if (var -> __o_class -> attrs & CHAR_BUF_SIZE_INIT) {
     /* E.g., Character class - This needs to be initialized
        like a binary int value buffer, so we can treat them
@@ -809,6 +824,7 @@ OBJECT *__ctalkDefineClassVariable (char *classname, char *varname,
       strcpy (var -> __o_value, init_expr);
       strcpy (var -> instancevars -> __o_value, init_expr);
     }
+    __ctalkSetObjectValueClass (var, var_class_object);
   } else if (var -> __o_class -> attrs & BOOL_BUF_SIZE_INIT) {
     /* We'll just use an int-size buf here too, so we can
        just use ints */
@@ -832,6 +848,7 @@ OBJECT *__ctalkDefineClassVariable (char *classname, char *varname,
 	  *var -> instancevars -> __o_value = 1;
       }
     }
+    /* NOTE: We do not need to call  __ctalkSetObjectValueClass here. */
   } else if (var -> __o_class -> attrs & SYMBOL_BUF_SIZE_INIT) {
     __xfree (MEMADDR(var -> __o_value));
     __xfree (MEMADDR(var -> instancevars -> __o_value));
@@ -849,9 +866,10 @@ OBJECT *__ctalkDefineClassVariable (char *classname, char *varname,
       *(unsigned long *)var -> instancevars -> __o_value = symbol_value;
       *(unsigned long *)var -> __o_value = symbol_value;
     }
+    __ctalkSetObjectValueClass (var, var_class_object);
+  } else {
+    __ctalkSetObjectValueClass (var, var_class_object);
   }
-
-  __ctalkSetObjectValueClass (var, var_class_object);
   __ctalkSetObjectScope (var, class_object -> scope);
 
   /*
@@ -914,6 +932,14 @@ static void copy_instance_vars_from_class (OBJECT *class, OBJECT *o) {
       new_var -> attrs = var -> attrs;
       if (var -> instancevars -> __o_class -> attrs & INT_BUF_SIZE_INIT) {
 	var -> instancevars -> attrs |= OBJECT_VALUE_IS_BIN_INT;
+	new_var -> instancevars -> attrs |= OBJECT_VALUE_IS_BIN_INT;
+      } else if (var -> instancevars -> __o_class -> attrs & BOOL_BUF_SIZE_INIT) {
+	var -> instancevars -> attrs |= OBJECT_VALUE_IS_BIN_BOOL;
+	new_var -> instancevars -> attrs |= OBJECT_VALUE_IS_BIN_BOOL;
+	__xfree (MEMADDR(new_var -> instancevars -> __o_value));
+	new_var->instancevars->__o_value = __xalloc (BOOLBUFSIZE);
+	memcpy ((void *)new_var -> instancevars -> __o_value,
+		(void *)var -> instancevars -> __o_value, BOOLBUFSIZE);
       }
 
       t -> next = new_var;

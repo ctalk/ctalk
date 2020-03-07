@@ -1,4 +1,4 @@
-/* $Id: ctalk.h,v 1.83 2020/03/05 00:24:17 rkiesling Exp $ -*-Fundamental-*- */
+/* $Id: ctalk.h,v 1.86 2020/03/07 03:37:26 rkiesling Exp $ -*-Fundamental-*- */
 
 /*
   This file is part of Ctalk.
@@ -179,6 +179,7 @@
 #warning __SIZEOF_INT__ not defined.  You might need to check your compiler documentation.
 #define INTBUFSIZE 5
 #endif
+#define BOOLBUFSIZE INTBUFSIZE
 
 #ifdef __SIZEOF_LONG_LONG__
 #define LLBUFSIZE __SIZEOF_LONG_LONG__ + 1
@@ -2753,7 +2754,6 @@ int read_event (int *, unsigned int *, unsigned int [], int);
 
 /* lib/xdialog.c */
 int __ctalkX11CreateDialogWindow (OBJECT *);
-
 
 /* libdeps.c */
 int cache_ctpp_output_file (char *);

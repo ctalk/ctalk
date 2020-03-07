@@ -1,4 +1,4 @@
-/* $Id: rtnewobj.c,v 1.1.1.1 2019/10/26 23:40:50 rkiesling Exp $ -*-c-*-*/
+/* $Id: rtnewobj.c,v 1.2 2020/03/07 03:37:26 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -926,6 +926,13 @@ int __ctalkSetObjectValueClass (OBJECT *__o, OBJECT *value_class_obj) {
     __xfree (MEMADDR(value_var -> __o_value));
     value_var -> __o_value = __xalloc (INTBUFSIZE);
     value_var -> attrs |= OBJECT_VALUE_IS_BIN_INT;
+  } else if (value_class_obj -> attrs & BOOL_BUF_SIZE_INIT) { /***/
+    __o -> attrs |= OBJECT_VALUE_IS_BIN_BOOL;
+    __o -> instancevars -> attrs |= OBJECT_VALUE_IS_BIN_BOOL;
+    __xfree (MEMADDR(__o -> __o_value));
+    __xfree (MEMADDR(__o -> instancevars -> __o_value));
+    __o -> __o_value = __xalloc (INTBUFSIZE);
+    __o -> instancevars -> __o_value = __xalloc (INTBUFSIZE);
   }
   return SUCCESS;
 }

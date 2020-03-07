@@ -377,5 +377,16 @@
 	calling lookup_color (x11lib.c).
 	- Added the X11Pane : modal and X11Bitmap : modal instance
 	variables.
+2020-03-06
+	- Updated __ctalkDefineInstanceVariable and __ctalkSetObjectValueClass
+	to check BOOL_BUF_SIZE_INIT and set OBJECT_VALUE_IS_BIN_BOOL
+	(rtobjvar.c and rtnewobj.c).
+	- In copy_instance_vars_from_class, if the source var's "value"
+	var class attributes includes OBJECT_VALUE_IS_BIN_BOOL, then
+	set the new var's "value" instance var's value to INTBUFSIZE,
+	and copy the class object's var prototype value to the new
+	variable (rtobjvar.c).
+	- In ctalk.h, #define BOOLBUFSIZE as an alias for INTBUFSIZE.
+
 
 
