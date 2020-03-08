@@ -1,4 +1,4 @@
-/* $Id: x11lib.c,v 1.119 2020/03/08 21:08:55 rkiesling Exp $ -*-c-*-*/
+/* $Id: x11lib.c,v 1.120 2020/03/08 22:33:14 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -550,6 +550,7 @@ int __xlib_put_str_ft (Display *d, Drawable w, GC gc, char *s) {
     XftDrawDestroy (ft_str.draw);
     ft_str.draw = NULL;
     ft_str.drawable = 0;
+    g_ftFg.pixel = -1;
   }
 
   return SUCCESS;
@@ -3559,7 +3560,7 @@ int __ctalkCreateX11SubWindow (OBJECT *parent, OBJECT *self) {
     *win_depth_value_obj;
   OBJECT *self_gc_value_object;
   OBJECT *bgcolor_obj, *fgcolor_obj;
-  OBJECT *displayPtr_value;
+  OBJECT *self_displayPtr_value, *parent_displayPtr_value;
   XColor bgcolor, fgcolor;
   Window parent_id, self_id;
   XWindowAttributes parent_attributes;
@@ -3567,6 +3568,8 @@ int __ctalkCreateX11SubWindow (OBJECT *parent, OBJECT *self) {
   XGCValues gcv;
   GC gc;
   char buf[MAXLABEL];
+  Display *p_display;
+  
   self_object = IS_VALUE_INSTANCE_VAR(self) ? self -> __o_p_obj : self;
   parent_object = NULL;
   if (IS_OBJECT(parent -> instancevars)) {
@@ -3590,14 +3593,16 @@ int __ctalkCreateX11SubWindow (OBJECT *parent, OBJECT *self) {
     __x11_pane_win_gc_value_object (self_object);
   win_depth_value_obj =
     __x11_pane_win_depth_value_object (self_object);
-  displayPtr_value = __x11_pane_display_value_object (self_object);
-  SYMVAL(displayPtr_value -> __o_value) = (uintptr_t)display;
+  self_displayPtr_value = __x11_pane_display_value_object (self_object);
+  parent_displayPtr_value = __x11_pane_display_value_object (parent_object);
+  p_display = (Display *)SYMVAL(parent_displayPtr_value -> __o_value);
+  SYMVAL(self_displayPtr_value -> __o_value) = (uintptr_t)p_display;
   parent_id = (Window)*(int *)parent_win_id_value_object -> __o_value;
   self_origin_x_var = pane_pt_var (self_object, "origin", "x");
   self_origin_y_var = pane_pt_var (self_object, "origin", "y");
   self_size_x_var = pane_pt_var (self_object, "size", "x");
   self_size_y_var = pane_pt_var (self_object, "size", "y");
-  if (!display) {
+  if (!p_display) {
     _warning ("__ctalkX11CreateSubWindow: Could not open display, \"%s.\"\n",
 	      getenv ("DISPLAY"));
     exit (EXIT_FAILURE);
@@ -3606,9 +3611,9 @@ int __ctalkCreateX11SubWindow (OBJECT *parent, OBJECT *self) {
     _warning ("__ctalkX11CreateSubWindow: Invalid parent window.\n");
     return ERROR;
   }
-  XGetWindowAttributes (display, parent_id, &parent_attributes);
+  XGetWindowAttributes (p_display, parent_id, &parent_attributes);
   self_attributes.backing_store = parent_attributes.backing_store;
-  self_id = XCreateWindow (display, parent_id, 
+  self_id = XCreateWindow (p_display, parent_id, 
 			   INTVAL(self_origin_x_var -> __o_value),
 			   INTVAL(self_origin_y_var -> __o_value),
 			   INTVAL(self_size_x_var -> __o_value),
@@ -3619,25 +3624,25 @@ int __ctalkCreateX11SubWindow (OBJECT *parent, OBJECT *self) {
 			   CWBackingStore, &self_attributes);
   bgcolor_obj = __ctalkGetInstanceVariable (self, "backgroundColor", TRUE);
   if (str_eq (bgcolor_obj -> instancevars -> __o_value, NULLSTR)) {
-    XSetWindowBackground (display, self_id,
-			  BlackPixel (display, DefaultScreen (display)));
+    XSetWindowBackground (p_display, self_id,
+			  BlackPixel (p_display, DefaultScreen (p_display)));
   } else {
-    lookup_color (display, &bgcolor, bgcolor_obj -> instancevars -> __o_value);
-    XSetWindowBackground (display, self_id, bgcolor.pixel);
+    lookup_color (p_display, &bgcolor, bgcolor_obj -> instancevars -> __o_value);
+    XSetWindowBackground (p_display, self_id, bgcolor.pixel);
   }
-  XClearWindow (display, self_id);
-  XSelectInput(display, self_id, (WM_CONFIGURE_EVENTS|WM_INPUT_EVENTS));
+  XClearWindow (p_display, self_id);
+  XSelectInput(p_display, self_id, (WM_CONFIGURE_EVENTS|WM_INPUT_EVENTS));
   gcv.fill_style = FillSolid;
   gcv.function = GXcopy;
-  gcv.foreground = BlackPixel (display, screen);
-  gcv.background = WhitePixel (display, screen);
+  gcv.foreground = BlackPixel (p_display, screen);
+  gcv.background = WhitePixel (p_display, screen);
   if ((gcv.font = get_user_font (self_object)) == 0) {
     if (n_fixed_fonts && !fixed_font)
-      fixed_font = XLoadFont (display, fixed_font_set[0]);
+      fixed_font = XLoadFont (p_display, fixed_font_set[0]);
     if (fixed_font)
       gcv.font = fixed_font;
   }
-  gc = XCreateGC (display, self_id, DEFAULT_GCV_MASK, &gcv);
+  gc = XCreateGC (p_display, self_id, DEFAULT_GCV_MASK, &gcv);
   *(int *)self_win_id_value_object -> __o_value = (int)self_id;
 
   *(uintptr_t *)self_gc_value_object -> __o_value = (uintptr_t)gc; 
@@ -3649,19 +3654,19 @@ int __ctalkCreateX11SubWindow (OBJECT *parent, OBJECT *self) {
   if ((fgcolor_obj = __ctalkGetInstanceVariable (self, "foregroundColor",
 						 FALSE)) != NULL) {
     if (str_eq (bgcolor_obj -> instancevars -> __o_value, NULLSTR)) {
-      XSetForeground (display, gc,
-		      WhitePixel (display, DefaultScreen (display)));
+      XSetForeground (p_display, gc,
+		      WhitePixel (p_display, DefaultScreen (p_display)));
     } else {
-      lookup_color (display, &fgcolor, fgcolor_obj -> instancevars -> __o_value);
-      XSetForeground (display, gc, fgcolor.pixel);
+      lookup_color (p_display, &fgcolor, fgcolor_obj -> instancevars -> __o_value);
+      XSetForeground (p_display, gc, fgcolor.pixel);
     }
   }
 
 
   *(int *)win_depth_value_obj -> __o_value =
-    DefaultDepth (display, DefaultScreen (display));
+    DefaultDepth (p_display, DefaultScreen (p_display));
   *(int *)win_depth_value_obj -> instancevars -> __o_value =
-    DefaultDepth (display, DefaultScreen (display));
+    DefaultDepth (p_display, DefaultScreen (p_display));
   return self_id;
 }
 
