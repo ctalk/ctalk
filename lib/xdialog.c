@@ -1,4 +1,4 @@
-/* $Id: xdialog.c,v 1.9 2020/03/05 01:02:27 rkiesling Exp $ -*-c-*-*/
+/* $Id: xdialog.c,v 1.15 2020/03/08 19:52:00 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -38,11 +38,9 @@
 #include "x11defs.h"
 #include <X11/Xutil.h>
 
-/***/
-/* static Display *d = NULL;*/   /* Defined in x11lib.c. */
-Display *d = NULL;   /* Defined in x11lib.c. */
-static Window d_root = 0;
-static int d_screen = 0, d_screen_depth = 0;
+Display *d_p = NULL;
+static Window d_p_root = 0;
+static int d_p_screen = 0, d_p_screen_depth = 0;
 Atom wm_delete_dialog;
 extern Font fixed_font;
 extern char **fixed_font_set;
@@ -64,16 +62,35 @@ int __ctalkX11CreateDialogWindow (OBJECT *self_object) {
   return SUCCESS;
 }
 
+int __ctalkX11DialogSetBackground (OBJECT *, char *) {
+  return SUCCESS;
+}
+int __ctalkX11DialogSetForeground (OBJECT *, char *) {
+  return SUCCESS;
+}
+int __ctalkX11DialogSetGXFunction (OBJECT *, unsigned long) {
+  return SUCCESS;
+}
+int __ctalkX11DialogSetFillStyle (OBJECT *, unsigned long) {
+  return SUCCESS;
+}
+int __ctalkX11DialogSetFont (OBJECT *, char *) {
+  return SUCCESS;
+}
+int __ctalkCloseX11DialogPane (OBJECT *self) {
+  return SUCCESS;
+}
+
 #else /* X11LIB_FRAME */
 
 static int open_dialog_display_connection (void) {
-  if (d == NULL) {
-    if ((d = XOpenDisplay (getenv ("DISPLAY"))) == NULL) {
+  if (d_p == NULL) {
+    if ((d_p = XOpenDisplay (getenv ("DISPLAY"))) == NULL) {
       return ERROR;
     }
-    d_screen = DefaultScreen (d);
-    d_root = RootWindow (d, d_screen);
-    d_screen_depth = DefaultDepth (d, d_screen);
+    d_p_screen = DefaultScreen (d_p);
+    d_p_root = RootWindow (d_p, d_p_screen);
+    d_p_screen_depth = DefaultDepth (d_p, d_p_screen);
   }
   return SUCCESS;
 }
@@ -101,7 +118,7 @@ int __ctalkX11CreateDialogWindow (OBJECT *self_object) {
   } else {
     displayPtr = __ctalkGetInstanceVariable (self_object,
 					     "displayPtr", TRUE);
-    SYMVAL(displayPtr -> instancevars -> __o_value) = (uintptr_t)d;
+    SYMVAL(displayPtr -> instancevars -> __o_value) = (uintptr_t)d_p;
   }
   
   border_width = __x11_pane_border_width (self_object);
@@ -114,9 +131,9 @@ int __ctalkX11CreateDialogWindow (OBJECT *self_object) {
   y_size = __pane_y_size (self_object);
   bgColor = __ctalkGetInstanceVariable (self_object,
 					"backgroundColor", TRUE);
-  win_id = XCreateWindow (d, d_root, 
+  win_id = XCreateWindow (d_p, d_p_root, 
 			  x_org, y_org, x_size, y_size,
-			  border_width, d_screen_depth,
+			  border_width, d_p_screen_depth,
 			  CopyFromParent, CopyFromParent, 
 			  CWBackingStore|CWSaveUnder,
 			  &set_attributes);
@@ -124,46 +141,74 @@ int __ctalkX11CreateDialogWindow (OBJECT *self_object) {
   wm_hints.flags = (InputHint|StateHint);
   wm_hints.input = TRUE;
   wm_hints.initial_state = NormalState;
-  XSetWMHints (d, win_id, &wm_hints);
+  XSetWMHints (d_p, win_id, &wm_hints);
   
-  wm_delete_dialog = XInternAtom (d, "WM_DELETE_WINDOW", False);
-  XSetWMProtocols (d, win_id, &wm_delete_dialog, 1);
+  wm_delete_dialog = XInternAtom (d_p, "WM_DELETE_WINDOW", False);
+  XSetWMProtocols (d_p, win_id, &wm_delete_dialog, 1);
 
-  XSetWindowBorder (d, win_id, BlackPixel(d, d_screen));
-  XSelectInput(d, win_id, wm_event_mask);
+  XSetWindowBorder (d_p, win_id, BlackPixel(d_p, d_p_screen));
+  XSelectInput(d_p, win_id, wm_event_mask);
   gcv.fill_style = FillSolid;
   gcv.function = GXcopy;
-  gcv.foreground = BlackPixel (d, d_screen);
+  gcv.foreground = BlackPixel (d_p, d_p_screen);
 
   if (*bgColor -> __o_value) {
-    lookup_color (d, &bg_color, bgColor -> __o_value);
+    lookup_color (d_p, &bg_color, bgColor -> __o_value);
     gcv.background = bg_color.pixel;
   } else {
-    gcv.background = WhitePixel (d, d_screen);
+    gcv.background = WhitePixel (d_p, d_p_screen);
   }
 
   if ((gcv.font = get_user_font (self_object)) == 0) {
     if (n_fixed_fonts && !fixed_font)
-      fixed_font = XLoadFont (d, fixed_font_set[0]);
+      fixed_font = XLoadFont (d_p, fixed_font_set[0]);
     if (fixed_font)
       gcv.font = fixed_font;
   }
-  gc = XCreateGC (d, win_id, DEFAULT_GCV_MASK, &gcv);
+  gc = XCreateGC (d_p, win_id, DEFAULT_GCV_MASK, &gcv);
 
   if (*bgColor -> __o_value) {
-    XSetWindowBackground (d, win_id, bg_color.pixel);
+    XSetWindowBackground (d_p, win_id, bg_color.pixel);
   } else {
-    XSetWindowBackground (d, win_id, WhitePixel (d, d_screen));
+    XSetWindowBackground (d_p, win_id, WhitePixel (d_p, d_p_screen));
   }
 
 
   __xlib_set_wm_name_prop 
-    (d, win_id, gc, 
+    (d_p, win_id, gc, 
      basename_w_extent(__argvFileName ()));
 
   __save_pane_to_vars (self_object, gc, win_id,
-		       DefaultDepth (d, DefaultScreen (d)));
+		       DefaultDepth (d_p, DefaultScreen (d_p)));
   return win_id;
+}
+
+int __ctalkCloseX11DialogPane (OBJECT *self) {
+  OBJECT *gc_value_var;
+  GC gc;
+  OBJECT *win_id_value_var;
+  Window w;
+
+  gc_value_var = __x11_pane_win_gc_value_object (self);
+
+  if ((gc = (GC)generic_ptr_str (gc_value_var->__o_value)) != NULL) {
+    XFreeGC (d_p, gc);
+    gc_value_var->__o_value[0] = '\0'; 
+  }
+
+  win_id_value_var = __x11_pane_win_id_value_object (self);
+  if ((w = *(int *)win_id_value_var -> __o_value) != (Window)0)
+    XDestroyWindow (d_p, w);
+
+  if (__have_bitmap_buffers (self)) {
+    __ctalkX11FreePaneBuffer (self);
+  }  
+
+  XCloseDisplay (d_p);
+  d_p = NULL;
+  d_p_root = d_p_screen = d_p_screen_depth = 0;
+  wm_delete_dialog = (Atom)0;
+  return SUCCESS;
 }
 
 #endif /* #if 0 */
@@ -173,6 +218,32 @@ int __ctalkX11CreateDialogWindow (OBJECT *self_object) {
 #else /* ! defined (DJGPP) && ! defined (WITHOUT_X11) */
 
 int __ctalkX11CreateDialogWindow (OBJECT *self_object) {
+  x_support_error ();
+  return 0;  /* notreached */
+}
+
+int __ctalkX11DialogSetBackground (OBJECT *, char *) {
+  x_support_error ();
+  return 0;  /* notreached */
+}
+int __ctalkX11DialogSetForeground (OBJECT *, char *) {
+  x_support_error ();
+  return 0;  /* notreached */
+}
+int __ctalkX11DialogSetGXFunction (OBJECT *, unsigned long) {
+  x_support_error ();
+  return 0;  /* notreached */
+}
+int __ctalkX11DialogSetFillStyle (OBJECT *, unsigned long) {
+  x_support_error ();
+  return 0;  /* notreached */
+}
+int __ctalkX11DialogSetFont (OBJECT *, char *) {
+  x_support_error ();
+  return 0;  /* notreached */
+}
+
+int __ctalkCloseX11DialogPane (OBJECT *self) {
   x_support_error ();
   return 0;  /* notreached */
 }

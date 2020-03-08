@@ -1,4 +1,4 @@
-/* $Id: x11lib.c,v 1.117 2020/03/08 12:32:10 rkiesling Exp $ -*-c-*-*/
+/* $Id: x11lib.c,v 1.119 2020/03/08 21:08:55 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -528,7 +528,6 @@ int __xlib_put_str_ft (Display *d, Drawable w, GC gc, char *s) {
     ft_str.drawable = w;
     ft_str.draw = XftDrawCreate (d, w,
 				 DEFAULT_VISUAL,
-				 /*DefaultVisual (d, DefaultScreen (d)),*/
 				 DefaultColormap (d, (DefaultScreen (d))));
   }
   if (new_color_spec (&fgColor) || g_ftFg.pixel == -1) {
@@ -545,6 +544,13 @@ int __xlib_put_str_ft (Display *d, Drawable w, GC gc, char *s) {
     XftDrawString8 (ft_str.draw, &g_ftFg, ft_font.normal, x, y,
 		      (unsigned char *)c_term, 
 		      strlen (c_term));
+
+  if (DIALOG(d)) {
+    /* The next call may be a completely new server connection. */
+    XftDrawDestroy (ft_str.draw);
+    ft_str.draw = NULL;
+    ft_str.drawable = 0;
+  }
 
   return SUCCESS;
 }
@@ -851,8 +857,12 @@ int __xlib_change_gc (Display *d, Drawable drawable, GC gc, char *data) {
     case GCFont:
       load_xlib_fonts_internal (d, value);
       /* xlibfont.selectedfont is set in xlibfont.c */
-      v.font = xlibfont.selected_xfs -> fid;
-      r = XChangeGC (d, gc, valuemask, &v);
+      if (xlibfont.selected_xfs) {
+	v.font = xlibfont.selected_xfs -> fid;
+	r = XChangeGC (d, gc, valuemask, &v);
+      } else {
+	fprintf (stderr, "ctalk: Couldn't load font, \"%s.\"\n", value);
+      }
       break;
     case GCBackground:
       v.background = lookup_pixel_d (d, value);
