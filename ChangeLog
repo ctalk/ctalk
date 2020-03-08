@@ -387,6 +387,13 @@
 	and copy the class object's var prototype value to the new
 	variable (rtobjvar.c).
 	- In ctalk.h, #define BOOLBUFSIZE as an alias for INTBUFSIZE.
+2020-03-07
+	- In __method_object_init, set the isInitialized instance
+	variable as a boolean binary value (rt_vmthd.c).
+	- In __create_object_internal, added an OBJECT_VALUE_IS_BIN_BOOL
+	value initialization (rtnewobj.c).
+	- Updated __glxlib_visual_attributes to use binary boolean
+	values (glxlib.c).
 
 
 

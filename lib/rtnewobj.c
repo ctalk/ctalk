@@ -1,4 +1,4 @@
-/* $Id: rtnewobj.c,v 1.2 2020/03/07 03:37:26 rkiesling Exp $ -*-c-*-*/
+/* $Id: rtnewobj.c,v 1.3 2020/03/08 00:06:56 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -600,6 +600,10 @@ OBJECT *__create_object_internal (char *name, char *class, char *superclass,
     o -> __o_value = __xalloc (INTBUFSIZE);
     if (value != NULL)
       memcpy ((void *)o -> __o_value, (void *)value, sizeof (int));
+  } else if (attrs & OBJECT_VALUE_IS_BIN_BOOL) {
+    o -> __o_value = __xalloc (BOOLBUFSIZE);
+    if (value != NULL)
+      memcpy ((void *)o -> __o_value, (void *)value, BOOLBUFSIZE);
   } else if (o -> __o_class -> attrs & INT_BUF_SIZE_INIT) {
     o -> __o_value = __xalloc (INTBUFSIZE);
     if (value != NULL) 

@@ -1,4 +1,4 @@
-/* $Id: glxlib.c,v 1.21 2019/11/22 20:50:56 rkiesling Exp $ -*-c-*-*/
+/* $Id: glxlib.c,v 1.22 2020/03/08 00:20:44 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -95,6 +95,7 @@ static void __glxlib_visual_attributes (OBJECT *pane_object) {
     *visualAlphaAccumSize_instance_var;
   int att_ptr = 0;
   int int_val;
+  bool bool_val;
   visualDepthSize_instance_var =
     __ctalkGetInstanceVariable (pane_object, "visualDepthSize", TRUE);
   visualRGBA_instance_var =
@@ -127,13 +128,13 @@ static void __glxlib_visual_attributes (OBJECT *pane_object) {
     __ctalkGetInstanceVariable (pane_object, "visualAlphaAccumSize", TRUE);
 
   /* GLX_DOUBLEBUFFER <boolean> */
-  int_val = atoi (visualDoubleBuffer_instance_var -> __o_value);
-  if (int_val) {
+  bool_val = (bool)INTVAL(visualDoubleBuffer_instance_var->__o_value);
+  if (bool_val) {
     att[att_ptr++] = GLX_DOUBLEBUFFER;
   }
   /* GLX_RGBA <boolean> */
-  int_val = atoi (visualRGBA_instance_var -> __o_value);
-  if (int_val) {
+  bool_val = (bool)INTVAL(visualRGBA_instance_var -> __o_value); 
+  if (bool_val) {
     att[att_ptr++] = GLX_RGBA;
   }
   /* GLX_DEPTH_SIZE, <int_val> */
@@ -149,8 +150,8 @@ static void __glxlib_visual_attributes (OBJECT *pane_object) {
     att[att_ptr++] = int_val;
   }
   /* GLX_STEREO <boolean> */
-  int_val = atoi (visualStereo_instance_var -> __o_value);
-  if (int_val) {
+  bool_val = (bool)INTVAL(visualStereo_instance_var -> __o_value);
+  if (bool_val) {
     att[att_ptr++] = GLX_STEREO;
   }
   /* GLX_AUX_BUFFERS, <int_val> */

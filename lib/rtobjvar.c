@@ -1,4 +1,4 @@
-/* $Id: rtobjvar.c,v 1.2 2020/03/07 03:37:26 rkiesling Exp $ -*-c-*-*/
+/* $Id: rtobjvar.c,v 1.3 2020/03/08 00:06:56 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -936,6 +936,10 @@ static void copy_instance_vars_from_class (OBJECT *class, OBJECT *o) {
       } else if (var -> instancevars -> __o_class -> attrs & BOOL_BUF_SIZE_INIT) {
 	var -> instancevars -> attrs |= OBJECT_VALUE_IS_BIN_BOOL;
 	new_var -> instancevars -> attrs |= OBJECT_VALUE_IS_BIN_BOOL;
+	__xfree (MEMADDR(new_var -> __o_value));
+	new_var->__o_value = __xalloc (BOOLBUFSIZE);
+	memcpy ((void *)new_var -> __o_value,
+		(void *)var -> instancevars -> __o_value, BOOLBUFSIZE);
 	__xfree (MEMADDR(new_var -> instancevars -> __o_value));
 	new_var->instancevars->__o_value = __xalloc (BOOLBUFSIZE);
 	memcpy ((void *)new_var -> instancevars -> __o_value,
