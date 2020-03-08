@@ -1,4 +1,4 @@
-/* $Id: x11defs.h,v 1.15 2020/02/29 10:21:15 rkiesling Exp $ -*-c-*-*/
+/* $Id: x11defs.h,v 1.16 2020/03/08 11:33:15 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -251,5 +251,7 @@
 /* Comment out if you don't want to use the GC range check. (The
    X11 server glue still uses the SIGSEGV handler.) */
 #define GC_RANGE_CHECK
+
+#define DIALOG(d) (d == d_p)
 
 #endif /* _X11DEFS_H */

@@ -1,4 +1,4 @@
-/* $Id: guiputstr.c,v 1.7 2020/03/03 01:36:43 rkiesling Exp $ -*-c-*-*/
+/* $Id: guiputstr.c,v 1.8 2020/03/08 12:32:10 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -61,11 +61,15 @@ int __ctalkX11PanePutStrBasic (void *d, int visual_id, unsigned long int gc_ptr,
 
 #ifdef HAVE_XFT_H
 
+extern Display *d_p;
+int __xlib_put_str (Display *, Drawable, GC, char *);
+int __xlib_put_str_ft (Display *, Drawable, GC, char *);
+
 int __ctalkX11PanePutStrBasic (void *d, int drawable_id, unsigned long int gc_ptr,
 			       int x, int y, char *s) {
   char d_buf[MAXLABEL];
   char *pat;
-  char intbuf1[MAXLABEL], intbuf2[MAXLABEL];
+  /* char intbuf1[MAXLABEL], intbuf2[MAXLABEL]; *//***/
 #ifdef GRAPHICS_WRITE_SEND_EVENT
   XEvent send_event;
 #endif
@@ -73,20 +77,36 @@ int __ctalkX11PanePutStrBasic (void *d, int drawable_id, unsigned long int gc_pt
     return ERROR;
   if (__ctalkXftInitialized ()) {
 
-    strcatx (d_buf, 
-	     ":",
+    strcatx (d_buf, ":", ascii[x], ":", ascii[y], ":",
+#if 0 /***/
 	     ctitoa (x, intbuf1), ":",
 	     ctitoa (y, intbuf2), ":",
+#endif	     
 	     s, NULL);
+
+    if (DIALOG(d)) {
+      __xlib_put_str_ft (d, drawable_id, (GC)gc_ptr, d_buf);
+      return SUCCESS;
+     }
 
     make_req (shm_mem, d, PANE_PUT_STR_REQUEST_FT,
 	      drawable_id, gc_ptr, d_buf);
 
   } else { /* if (__ctalkXftInitialized ()) */
+
     strcatx (d_buf,
+	     ascii[x], ":",
+	     ascii[y], ":",
+#if 0 /***/
 	     ctitoa (x, intbuf1), ":",
 	     ctitoa (y, intbuf2), ":",
+#endif	     
 	     s, NULL);
+
+    if (DIALOG(d)) {
+      __xlib_put_str (d, drawable_id, (GC)gc_ptr, d_buf);
+      return SUCCESS;
+    }
 
     make_req (shm_mem, d, PANE_PUT_STR_REQUEST,
 	      drawable_id, gc_ptr, d_buf);
@@ -106,10 +126,14 @@ int __ctalkX11PanePutStrBasic (void *d, int drawable_id, unsigned long int gc_pt
 
 #else /* #ifdef HAVE_XFT_H */
 
+extern Display *d_p;
+int __xlib_change_gc (Display *, Drawable, GC, char *);
+int __xlib_put_str_ft (Display *, Drawable, GC, char *);
+
 int __ctalkX11PanePutStrBasic (void *d, int drawable_id, unsigned long int gc_ptr,
 			       int x, int y, char *s) {
   char d_buf[MAXLABEL];
-  char intbuf1[MAXLABEL], intbuf2[MAXLABEL];
+  /* char intbuf1[MAXLABEL], intbuf2[MAXLABEL]; *//***/
 #ifdef GRAPHICS_WRITE_SEND_EVENT
   XEvent send_event;
 #endif
@@ -117,8 +141,12 @@ int __ctalkX11PanePutStrBasic (void *d, int drawable_id, unsigned long int gc_pt
     return ERROR;
 
   strcatx (d_buf,
+	     ascii[x], ":",
+	     ascii[y], ":",
+#if 0 /***/
 	   ctitoa (x, intbuf1), ":",
 	   ctitoa (y, intbuf2), ":",
+#endif	   
 	   s, NULL);
 
   make_req (shm_mem, d, PANE_PUT_STR_REQUEST,

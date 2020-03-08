@@ -1,4 +1,4 @@
-/* $Id: x11lib.c,v 1.116 2020/03/06 01:15:41 rkiesling Exp $ -*-c-*-*/
+/* $Id: x11lib.c,v 1.117 2020/03/08 12:32:10 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -96,6 +96,8 @@ static int screen, screen_depth;
 int display_width, display_height;
 static Window root;
 static bool wm_xfce, wm_kwin, wm_xquartz;
+
+extern Display *d_p;
 
 extern char **fixed_font_set;
 Font fixed_font = 0;
@@ -847,7 +849,7 @@ int __xlib_change_gc (Display *d, Drawable drawable, GC gc, char *data) {
   switch (valuemask)
     {
     case GCFont:
-      load_xlib_fonts_internal (value);
+      load_xlib_fonts_internal (d, value);
       /* xlibfont.selectedfont is set in xlibfont.c */
       v.font = xlibfont.selected_xfs -> fid;
       r = XChangeGC (d, gc, valuemask, &v);
@@ -2720,7 +2722,7 @@ static int kwin_event_loop (int parent_fd, int mem_handle, int main_win_id) {
       if (shutdown (parent_fd, SHUT_WR))
 	fprintf (stderr, "__ctalkX11InputClient: shutdown: %s.\n",
 		 strerror (errno));
-      clear_font_descriptors ();
+      clear_font_descriptors (display);
       return SUCCESS;
     } else {
       handle_count = detach_shmem (mem_id, s);
@@ -3147,7 +3149,7 @@ int __ctalkX11InputClient (OBJECT *streamobject, int parent_fd, int mem_handle, 
       if (shutdown (client_sock_fd, SHUT_WR))
 	fprintf (stderr, "__ctalkX11InputClient: shutdown: %s.\n",
 		 strerror (errno));
-      clear_font_descriptors ();
+      clear_font_descriptors (display);
       retval = SUCCESS;
       goto client_loop_done;
     } else {
@@ -3713,33 +3715,43 @@ int __ctalkX11UseFontBasic (void *d, int drawable_id, unsigned long int gc_ptr,
   if (__client_pid () < 0) {
     if ((gc = (GC) gc_ptr) == NULL)
       return ERROR;
-    if (display == NULL) {
+    if (d == NULL) {
       if ((l_d = XOpenDisplay (getenv ("DISPLAY"))) == NULL) {
 	_error ("ctalk: This program requires the X Window System. Exiting.\n");
       }
-      load_xlib_fonts_internal_1t (xlfd);
+      load_xlib_fonts_internal_1t (l_d, xlfd);
       v.font = xlibfont.selected_xfs -> fid;
-      r = XChangeGC (display, gc, GCFont, &v);
+      r = XChangeGC (l_d, gc, GCFont, &v);
       XCloseDisplay (l_d);
     } else {
-      load_xlib_fonts_internal_1t (xlfd);
+      load_xlib_fonts_internal_1t (d, xlfd);
       v.font = xlibfont.selected_xfs -> fid;
-      r = XChangeGC (display, gc, GCFont, &v);
+      r = XChangeGC (d, gc, GCFont, &v);
     }
   } else {
     if (!shm_mem)
       return ERROR;
+
     sprintf (d_buf, ":%ld:%s", GCFont, xlfd);
-    make_req (shm_mem, d, PANE_CHANGE_GC_REQUEST,
-	      drawable_id, gc_ptr, d_buf);
+
+    if (DIALOG(d)) {
+
+      __xlib_change_gc (d, drawable_id, (GC)gc_ptr, d_buf);
+
+    } else {
+
+      make_req (shm_mem, d, PANE_CHANGE_GC_REQUEST,
+		drawable_id, gc_ptr, d_buf);
 #ifdef GRAPHICS_WRITE_SEND_EVENT
-    send_event.xgraphicsexpose.type = GraphicsExpose;
-    send_event.xgraphicsexpose.send_event = True;
-    send_event.xgraphicsexpose.display = display;
-    send_event.xgraphicsexpose.drawable = drawable_id;
-    XSendEvent (display, drawable_id, False, 0L, &send_event);
+      send_event.xgraphicsexpose.type = GraphicsExpose;
+      send_event.xgraphicsexpose.send_event = True;
+      send_event.xgraphicsexpose.display = display;
+      send_event.xgraphicsexpose.drawable = drawable_id;
+      XSendEvent (display, drawable_id, False, 0L, &send_event);
 #endif
-    wait_req (shm_mem);
+      wait_req (shm_mem);
+
+    }
     return SUCCESS;
   }
 }

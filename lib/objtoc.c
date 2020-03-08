@@ -1,4 +1,4 @@
-/* $Id: objtoc.c,v 1.2 2020/01/26 18:52:48 rkiesling Exp $ */
+/* $Id: objtoc.c,v 1.3 2020/03/08 17:53:54 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -528,6 +528,9 @@ long int __ctalkToCLongInteger (OBJECT *o, int keep) {
 
   if (o_value -> attrs & OBJECT_VALUE_IS_BIN_SYMBOL) {
     i = *(long int *)o_value -> __o_value;
+    return i;
+  } else if (o_value -> attrs & OBJECT_VALUE_IS_BIN_INT) {
+    i = INTVAL(o_value -> __o_value);
     return i;
   }
 

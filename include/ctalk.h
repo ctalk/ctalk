@@ -1,4 +1,4 @@
-/* $Id: ctalk.h,v 1.86 2020/03/07 03:37:26 rkiesling Exp $ -*-Fundamental-*- */
+/* $Id: ctalk.h,v 1.89 2020/03/08 14:35:00 rkiesling Exp $ -*-Fundamental-*- */
 
 /*
   This file is part of Ctalk.
@@ -2638,9 +2638,9 @@ void __ctalkX11FreeSizeHints (void);
 void __ctalkX11SubWindowGeometry (OBJECT *, char *, int *, int *, int *, int *);
 
 /* lib/xlibfont.c */
-int load_xlib_fonts_internal (char *);
-int load_xlib_fonts_internal_1t (char *);
-void clear_font_descriptors (void);
+int load_xlib_fonts_internal (void *, char *);
+int load_xlib_fonts_internal_1t (void *, char *);
+void clear_font_descriptors (void *);
 int __ctalkSelectXFontFace (void *, int, unsigned long int, int);
 
 /* lib/xrender.c */
@@ -2754,6 +2754,7 @@ int read_event (int *, unsigned int *, unsigned int [], int);
 
 /* lib/xdialog.c */
 int __ctalkX11CreateDialogWindow (OBJECT *);
+int __ctalkCloseX11DialogPane (OBJECT *);
 
 /* libdeps.c */
 int cache_ctpp_output_file (char *);

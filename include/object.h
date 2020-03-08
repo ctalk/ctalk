@@ -1,8 +1,8 @@
-/* $Id: object.h,v 1.4 2020/02/23 23:41:07 rkiesling Exp $ */
+/* $Id: object.h,v 1.5 2020/03/08 17:53:54 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
-  Copyright © 2005-2015, 2017-2019 Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2005-2015, 2017-2020 Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
 

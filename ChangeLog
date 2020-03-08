@@ -394,6 +394,16 @@
 	value initialization (rtnewobj.c).
 	- Updated __glxlib_visual_attributes to use binary boolean
 	values (glxlib.c).
+2020-03-08
+	- Added __ctalkCloseX11DialogPane (xdialog.c).
+	- Updated __ctalkX11SetBackgroundBasic and __ctalkX11SetForegroundBasic
+	to work with xdialog.c windows (guisetbackground.c, guisetforeground.c),
+	and also updated the functions __ctalkX11PutStrBasic and
+	__ctalkX11UseFontBasic to work with dialog windows (guiputstr.c,
+	x11lib.c).
+	- In __ctalkToCLongInteger, check for an OBJECT_VALUE_IS_BIN_INT
+	attribute and return the int value (lib/objtoc.c).
+
 
 
 

@@ -1,4 +1,4 @@
-/* $Id: guisetbackground.c,v 1.9 2020/02/29 10:21:16 rkiesling Exp $ -*-c-*-*/
+/* $Id: guisetbackground.c,v 1.10 2020/03/08 11:33:15 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -55,6 +55,10 @@ int __ctalkX11SetBackgroundBasic (void *d, int drawable_id,
   return SUCCESS;
 }
 #else /* X11LIB_FRAME */
+
+extern Display *d_p;
+int __xlib_change_gc (Display *, Drawable, GC, char *);
+
 int __ctalkX11SetBackground (OBJECT *self, char *color) {
   return __ctalkGUISetBackground (self, color);
 }
@@ -94,16 +98,20 @@ int __ctalkX11SetBackgroundBasic (void *d, int drawable_id,
       return ERROR;
 
     sprintf (d_buf, ":%ld:%s", GCBackground, color);
-    make_req (shm_mem, d, PANE_CHANGE_GC_REQUEST,
-	    drawable_id, gc_ptr, d_buf);
+    if (DIALOG(d)) {
+      __xlib_change_gc (d, drawable_id, (GC)gc_ptr, d_buf);
+    } else {
+      make_req (shm_mem, d, PANE_CHANGE_GC_REQUEST,
+		drawable_id, gc_ptr, d_buf);
 #ifdef GRAPHICS_WRITE_SEND_EVENT
-    send_event.xgraphicsexpose.type = GraphicsExpose;
-    send_event.xgraphicsexpose.send_event = True;
-    send_event.xgraphicsexpose.display = display;
-    send_event.xgraphicsexpose.drawable = drawable_id;
-    XSendEvent (display, drawable_id, False, 0L, &send_event);
+      send_event.xgraphicsexpose.type = GraphicsExpose;
+      send_event.xgraphicsexpose.send_event = True;
+      send_event.xgraphicsexpose.display = display;
+      send_event.xgraphicsexpose.drawable = drawable_id;
+      XSendEvent (display, drawable_id, False, 0L, &send_event);
 #endif
-    wait_req (shm_mem);
+      wait_req (shm_mem);
+    }
     return SUCCESS;
   }
 }
