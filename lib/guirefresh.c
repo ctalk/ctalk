@@ -1,4 +1,4 @@
-/* $Id: guirefresh.c,v 1.4 2020/02/29 02:54:05 rkiesling Exp $ -*-c-*-*/
+/* $Id: guirefresh.c,v 1.5 2020/03/08 21:44:58 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -51,6 +51,10 @@ int __ctalkGUIPaneRefresh (OBJECT *self) {
   return SUCCESS;
 }
 #else /* X11LIB_FRAME */
+
+extern Display *d_p;
+int __xlib_refresh_window (Display *, Drawable, GC, char *);
+
 int __ctalkX11PaneRefresh (OBJECT *self, 
 			   int src_x_org, int src_y_org,
 			   int src_width, int src_height,
@@ -68,6 +72,7 @@ int __ctalkGUIPaneRefresh (OBJECT *self,
   char d_buf[MAXLABEL];
   char intbuf1[MAXLABEL];
   memset (d_buf, 0, MAXLABEL);
+  Display *l_d;
 #ifdef GRAPHICS_WRITE_SEND_EVENT
   XEvent send_event;
 #endif
@@ -88,20 +93,28 @@ int __ctalkGUIPaneRefresh (OBJECT *self,
 	   ascii[src_height], ":",
 	   ascii[dest_x_org], ":",
 	   ascii[dest_y_org], NULL);
-  make_req (shm_mem,
-	    SYMVAL(displayptr_var -> instancevars -> __o_value),
-	    PANE_REFRESH_REQUEST,
-	    INTVAL(win_id_value -> __o_value),
-	    SYMVAL(gc_value -> __o_value), d_buf);
+
+  l_d = (Display *)SYMVAL(displayptr_var -> instancevars -> __o_value);
+  if (DIALOG(l_d)) {
+    __xlib_refresh_window (l_d,
+			   INTVAL(win_id_value -> __o_value),
+			   (GC)SYMVAL(gc_value -> __o_value), d_buf);
+  } else {
+    make_req (shm_mem,
+	      SYMVAL(displayptr_var -> instancevars -> __o_value),
+	      PANE_REFRESH_REQUEST,
+	      INTVAL(win_id_value -> __o_value),
+	      SYMVAL(gc_value -> __o_value), d_buf);
 #ifdef GRAPHICS_WRITE_SEND_EVENT
-  send_event.xgraphicsexpose.type = GraphicsExpose;
-  send_event.xgraphicsexpose.send_event = True;
-  send_event.xgraphicsexpose.display = display;
-  send_event.xgraphicsexpose.drawable = atoi(win_id_value->__o_value);
-  XSendEvent (display, atoi(win_id_value->__o_value),
- 	      False, 0L, &send_event);
+    send_event.xgraphicsexpose.type = GraphicsExpose;
+    send_event.xgraphicsexpose.send_event = True;
+    send_event.xgraphicsexpose.display = display;
+    send_event.xgraphicsexpose.drawable = atoi(win_id_value->__o_value);
+    XSendEvent (display, atoi(win_id_value->__o_value),
+		False, 0L, &send_event);
 #endif
-  wait_req (shm_mem);
+    wait_req (shm_mem);
+  }
 #if X11LIB_PRINT_COPIOUS_DEBUG_INFO    
   fprintf (stderr, "shm_mem = %s, %s, %s.\n", shm_mem, 
 	   &shm_mem[SHM_GC], &shm_mem[SHM_DATA]);

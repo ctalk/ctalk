@@ -400,10 +400,10 @@
 	to work with xdialog.c windows (guisetbackground.c, guisetforeground.c),
 	and also updated the functions __ctalkX11PutStrBasic and
 	__ctalkX11UseFontBasic to work with dialog windows (guiputstr.c,
-	x11lib.c).
+	x11lib.c), and __ctalkGUIPaneRefresh (guirefresh.c).
 	- In __ctalkToCLongInteger, check for an OBJECT_VALUE_IS_BIN_INT
 	attribute and return the int value (lib/objtoc.c).
-
-
-
-
+	- In __xlib_draw_str_ft, if we have a dialog call, completely
+	delete the XftDraw (x11lib.c).  Also close the X display connection
+	to the dialog in __ctalkCloseX11DialogWindow when closing the
+	window (xdialog.c).

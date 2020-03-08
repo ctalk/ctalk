@@ -1,4 +1,4 @@
-/* $Id: X11MessageBoxPane,v 1.19 2020/03/05 01:02:27 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11MessageBoxPane,v 1.26 2020/03/08 21:44:58 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -78,43 +78,51 @@ X11MessageBoxPane instanceMethod attachTo (Object parentPane,
   return NULL;
 }
 
-X11MessageBoxPane instanceMethod draw (void) {
-  Pixmap g_p;
-  self clearWindow;
-  XDrawLine (self displayPtr, self xWindowID, self xGC,
-	     10, 10, 80, 80);
-  /* self paneBuffer background "red";
-     self paneBuffer foreground "red"; */
-  /* self paneBuffer clear;
-     self paneBuffer putStr 10, 10, "Hello", "Deja Vu", "black"; */
-#if 1
+unsigned long lookup_pixel_d (void *, char *);
+extern Display *d;
 
-  XDrawRectangle (self displayPtr, self paneBuffer xID, self paneBuffer xGC,
-		  10, 10, 30, 30);
-#else
-  XCopyArea (self displayPtr, self paneBuffer xID, self xWindowID,
-	     self xGC, 0, 0, self size x, self size y, 0, 0);
-#endif  
+X11MessageBoxPane instanceMethod draw (void) {
+
+  self clearWindow;
+
+  self paneBuffer background "black";
+  self paneBuffer foreground "blue";
+  
+  self paneBuffer putStr 20, 20, "Hello";
+
 }
 
 X11MessageBoxPane instanceMethod refresh (void) {
-#if 1
-  /* This should probably be temporary. */
-  XCopyArea (self displayPtr, self paneBuffer xID, self xWindowID,
-	     self xGC, 0, 0, self size x, self size y, 0, 0);
-#else
   __ctalkGUIPaneRefresh (self, 0, 0,
    			 self size x,
    			 self size y,
    			 0, 0);
-#endif  
 }
 
 X11MessageBoxPane instanceMethod withdraw (void) {
   self deleteAndClose;
 }
 
-extern Atom wm_delete_window;
+extern Atom wm_delete_dialog;
+
+X11MessageBoxPane instanceMethod deleteAndClose (void) {
+  "Call the delete handlers for each of the subpanes,
+  then delete the buffer and window associated with 
+  the receiver pane.
+  TODO - 
+  Make sure we can delete the backing store here, too."
+#if 0
+    self children map {
+    eval self deleteAndClose;
+  }
+#endif
+  __ctalkDeleteWinBuffer (self paneBuffer);
+  XUnmapWindow (self displayPtr, self xWindowID);
+  XUnmapSubwindows (self displayPtr, self xWindowID);
+  __ctalkCloseX11DialogPane (self);
+  self displayPtr = NULL;
+  return NULL;
+}
 
 X11MessageBoxPane instanceMethod show (void) {
   Display *display;
@@ -140,6 +148,9 @@ X11MessageBoxPane instanceMethod show (void) {
     self size x, self size y, self depth;
 
 
+  self ftFontVar initFontLib;
+  self ftFont "URW Gothic L", 0, 0, 0, 12.0;
+
   XMapWindow (display, win_id);
   XRaiseWindow (display, win_id);
 
@@ -151,29 +162,18 @@ X11MessageBoxPane instanceMethod show (void) {
 	case Expose:
 	  self methodObjectMessage self handleExpose, self, e;
 	  break;
+	case ClientMessage:
+	  if(xev.xclient.data.l[0] == wm_delete_dialog) {
+	    self deleteAndClose;
+	    dispatcher modalWin = 0;
+	    dispatcher modalPane = NULL;
+	    return self;
+	  }
+	  break;
 	}
     }
 	
   }
-    
 
-#if 0
-  while (TRUE) {
-    mainWin inputStream queueInput;
-    if (mainWin inputStream eventPending) {
-      e become (mainWin inputStream inputQueue unshift);
-      printf ("%d, %d, %d\n", e eventClass value, win_id, e eventData);
-      switch (e eventClass value)
-	{
-	case EXPOSE:
-	  printf ("EXPOSE\n");
-	  self methodObjectMessage self handleExpose, self, e;
-	  break;
-	}
-    } else {
-      usleep (1000);
-    }
-  }
-#endif  
   return self;
 }
