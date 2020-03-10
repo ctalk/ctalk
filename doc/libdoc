@@ -317,21 +317,30 @@ by self_object.
 
 Called by the initialize methods (class X11Pane) to
 create a X window.  Returns the window system's ID for the window, an
-int. 
+int.
 
-char *title)
-Similar to __ctalkCreateX11MainWindow, except that if title
-is non-null, the function uses it to set the new window's title.  Returns
-the X resource ID of the new window, an int.  
+
+If a program doesn't specify a window size, then default size is
+250x250 pixels.  If the program doesn't specify a location for the
+window, then this function sets the window's X,Y origin to 0,
+although the actual window placement depends on the machine's window
+manager.  
 
 Application programs can provide a window geometry specification which
 is used to set the window's size and placement
 
 
-If a program doesn't specify a window size, then default size is
-250x250 pixels.  If the program doesn't specify a location for the
-window, then this function tries to do something intelligent with the
-initial window placement.  
+If a program doesn't specify a foreground and background color,
+the window's background is set to white and the foreground is set to
+black.
+
+Refer also to the __ctalkCreateX11MainWindowTitle and
+__ctalkCreanteX11SubWindow functions. 
+
+char *title)
+Similar to __ctalkCreateX11MainWindow, except that if title
+is non-null, the function uses it to set the new window's title.  Returns
+the X resource ID of the new window, an int.  
 
 Creates an X subwindow that has the parent window defined by
 parentpane_object's xWindowID instance variable.  The

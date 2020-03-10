@@ -1,4 +1,4 @@
-/* $Id: xdialog.c,v 1.15 2020/03/08 19:52:00 rkiesling Exp $ -*-c-*-*/
+/* $Id: xdialog.c,v 1.17 2020/03/10 23:02:55 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -95,6 +95,8 @@ static int open_dialog_display_connection (void) {
   return SUCCESS;
 }
 
+extern GC create_pane_win_gc (Display *d, Window w, OBJECT *pane);
+
 int __ctalkX11CreateDialogWindow (OBJECT *self_object) {
   Window win_id, root_return;
   XSetWindowAttributes set_attributes;
@@ -108,8 +110,6 @@ int __ctalkX11CreateDialogWindow (OBJECT *self_object) {
   int pane_x, pane_y, pane_width, pane_height, border_width;
   unsigned int width_return, height_return, depth_return, border_width_return;
   int x_org, y_org, x_size, y_size;
-  OBJECT *bgColor;
-  XColor bg_color;
 
   wm_event_mask = WM_CONFIGURE_EVENTS | WM_INPUT_EVENTS;
 
@@ -124,13 +124,11 @@ int __ctalkX11CreateDialogWindow (OBJECT *self_object) {
   border_width = __x11_pane_border_width (self_object);
   set_attributes.backing_store = Always;
   set_attributes.save_under = true;
-  /* set_size_hints_internal (self_object, &x_org, &y_org, &x_size, &y_size); */
   x_org = __pane_x_org (self_object);
   y_org = __pane_y_org (self_object);
   x_size = __pane_x_size (self_object);
   y_size = __pane_y_size (self_object);
-  bgColor = __ctalkGetInstanceVariable (self_object,
-					"backgroundColor", TRUE);
+
   win_id = XCreateWindow (d_p, d_p_root, 
 			  x_org, y_org, x_size, y_size,
 			  border_width, d_p_screen_depth,
@@ -148,31 +146,8 @@ int __ctalkX11CreateDialogWindow (OBJECT *self_object) {
 
   XSetWindowBorder (d_p, win_id, BlackPixel(d_p, d_p_screen));
   XSelectInput(d_p, win_id, wm_event_mask);
-  gcv.fill_style = FillSolid;
-  gcv.function = GXcopy;
-  gcv.foreground = BlackPixel (d_p, d_p_screen);
 
-  if (*bgColor -> __o_value) {
-    lookup_color (d_p, &bg_color, bgColor -> __o_value);
-    gcv.background = bg_color.pixel;
-  } else {
-    gcv.background = WhitePixel (d_p, d_p_screen);
-  }
-
-  if ((gcv.font = get_user_font (self_object)) == 0) {
-    if (n_fixed_fonts && !fixed_font)
-      fixed_font = XLoadFont (d_p, fixed_font_set[0]);
-    if (fixed_font)
-      gcv.font = fixed_font;
-  }
-  gc = XCreateGC (d_p, win_id, DEFAULT_GCV_MASK, &gcv);
-
-  if (*bgColor -> __o_value) {
-    XSetWindowBackground (d_p, win_id, bg_color.pixel);
-  } else {
-    XSetWindowBackground (d_p, win_id, WhitePixel (d_p, d_p_screen));
-  }
-
+  gc = create_pane_win_gc (d_p, win_id, self_object);
 
   __xlib_set_wm_name_prop 
     (d_p, win_id, gc, 

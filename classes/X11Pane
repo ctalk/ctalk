@@ -1,4 +1,4 @@
-/* $Id: X11Pane,v 1.16 2020/03/06 02:13:14 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11Pane,v 1.19 2020/03/10 23:02:55 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -51,6 +51,7 @@ X11Pane instanceVariable ftFontVar X11FreeTypeFont NULL;
 X11Pane instanceVariable container Symbol NULL;
 X11Pane instanceVariable depth Integer NULL;
 X11Pane instanceVariable backgroundColor String NULL;
+X11Pane instanceVariable foregroundColor String NULL;
 X11Pane instanceVariable borderWidth Integer 1;
 X11Pane instanceVariable displayPtr Symbol NULL
 "The pointer to the main window pane's display connection.  
@@ -404,7 +405,7 @@ X11Pane instanceMethod subPaneNotify (InputEvent event) {
   return NULL;
 }
 
-X11Pane instanceMethod background (String color) {
+X11Pane instanceMethod background (String colorName) {
   "Set the receiver pane's background color to
   the argument, a String.  This method also 
   sets the background color of the receiver pane's
@@ -419,18 +420,21 @@ X11Pane instanceMethod background (String color) {
   __ctalkX11SetBackgroundBasic instead.  Again, this
   can be implemented in the classes' background method.
   
-  Remember that trying to change the background
-  of a window before initializing the X client can cause
-  a segfault.  E.g., send the X11Pane object an
-  openEventStream message before using this 
-  method.
-  
-  Also remember that this method only changes the color;
-  it does not update the window on the screen. For
-  that, use the clearWindow method after this one."
+  If the program doesn't specify a color, the default
+  window background is white."
 
-  self backgroundColor = color;
-  __ctalkGUISetBackground (self, color);
+  self backgroundColor = colorName;
+  __ctalkGUISetBackground (self, colorName);
+}
+
+X11Pane instanceMethod foreground (String colorName) {
+  "Sets the window's foreground color (i.e., the default
+   color for drawing on the window) to the name of the
+   color given as the argument.  If a program doesn't
+    set a foreground color, the default color is black."
+  self foregroundColor = colorName;
+  __ctalkX11SetForegroundBasic (self displayPtr, self xWindowID,
+				self xGC, colorName);
 }
 
 X11Pane instanceMethod useCursor (X11Cursor cursor) {

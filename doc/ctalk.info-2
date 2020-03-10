@@ -375,6 +375,8 @@ Instance Variables
      subpanes.  Normally this value is set by the 'background' method,
      described below.
 
+     If unset, the default background color is black.
+
 'borderWidth'
      An 'Integer' object that contains the window's border width in
      pixels.  The default is 1 pixel.
@@ -419,6 +421,10 @@ Instance Variables
      A 'String' that contains a X Logical Font Descriptor for the font
      to be used by the window.  If the value is '(null)', the window
      uses the system's fixed font.
+
+'foregroundColor'
+     A 'String' object that contains the name of the window's foreground
+     color.  If unset, the default foreground color is black.
 
 'ftFontVar'
      An 'X11FreeTypeFont' object that contains the pane's current font,
@@ -485,6 +491,9 @@ Instance Methods
      Pane independently.  This method also has the effect of clearing
      the window.
 
+     If a program doesn't set a background color for the window, the
+     default background color is white.
+
 'clearRectangle (int X, int Y, int WIDTH, int HEIGHT)'
      Clear the area of the receiver's window with the dimensions given
      as the arguments.
@@ -527,6 +536,11 @@ Instance Methods
      information, it is generally necessary to call this method after
      the 'openEventStream' method, for the program to calculate the
      character spacing of multiple typefaces correctly.
+
+'foreground (String COLORNAME)'
+     Sets the window's foreground color (the default color for drawing
+     on the window) to COLORNAME.  If a program doesn't set the window's
+     foreground color, the default color is black.
 
 'ftFont (String FAMILY, Integer SLANT,'
      'Integer' WEIGHT 'Integer' DPI, 'Float' POINTSIZE) Selects an
@@ -6610,21 +6624,28 @@ functions.
 
      Called by the 'initialize' methods (class 'X11Pane') to create a X
      window.  Returns the window system's ID for the window, an 'int'.
-     *Note X11Pane::.
 
-     'char *'TITLE) Similar to '__ctalkCreateX11MainWindow', except that
-     if TITLE is non-null, the function uses it to set the new window's
-     title.  Returns the X resource ID of the new window, an 'int'.
-     *Note X11Pane::.
+     If a program doesn't specify a window size, then default size is
+     250x250 pixels.  If the program doesn't specify a location for the
+     window, then this function sets the window's _X,Y_ origin to 0,
+     although the actual window placement depends on the machine's
+     window manager.  *Note ctalkX11SetSizeHints::.
 
      Application programs can provide a window geometry specification
      which is used to set the window's size and placement *Note
      parseX11Geometry::.
 
-     If a program doesn't specify a window size, then default size is
-     250x250 pixels.  If the program doesn't specify a location for the
-     window, then this function tries to do something intelligent with
-     the initial window placement.  *Note ctalkX11SetSizeHints::.
+     If a program doesn't specify a foreground and background color, the
+     window's background is set to white and the foreground is set to
+     black.
+
+     Refer also to the '__ctalkCreateX11MainWindowTitle' and
+     '__ctalkCreanteX11SubWindow' functions.  *Note X11Pane::.
+
+     'char *'TITLE) Similar to '__ctalkCreateX11MainWindow', except that
+     if TITLE is non-null, the function uses it to set the new window's
+     title.  Returns the X resource ID of the new window, an 'int'.
+     *Note X11Pane::.
 
      Creates an X subwindow that has the parent window defined by
      PARENTPANE_OBJECT'S 'xWindowID' instance variable.  The dimensions

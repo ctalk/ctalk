@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.118 2020/03/06 02:13:15 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.119 2020/03/10 22:44:58 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -11668,6 +11668,8 @@ of the window, independent of the background color of any
 buffers used by subpanes.  Normally this value is set by the
 @mnm{background} method, described below.
 
+If unset, the default background color is black.
+
 @cindex @code{borderWidth} instance variable @idxclscite{X11Pane}
 @item borderWidth
 An @code{Integer} object that contains the window's border width
@@ -11722,6 +11724,11 @@ Window or Pane's current font.
 A @code{String} that contains a X Logical Font Descriptor
 for the font to be used by the window.  If the value is
 @samp{(null)}, the window uses the system's fixed font.
+
+@cindex @code{foregroundColor} instance variable @idxclscite{X11Pane}
+@item foregroundColor
+A @code{String} object that contains the name of the window's
+foreground color.  If unset, the default foreground color is black.
 
 @cindex @code{ftFontVar} instancevariable @idxclscite{X11TextEditorPane}
 @item ftFontVar
@@ -11801,6 +11808,9 @@ Panes, programs need to set the background color of that Pane
 independently.  This method also has the effect of clearing the
 window.
 
+If a program doesn't set a background color for the window, the
+default background color is white.
+
 @cindex @mnm{clearRectangle} instance method @idxclscite{X11Pane}
 @item @mnm{clearRectangle} (@code{int} @var{x}, @code{int} @var{y}, @code{int} @var{width}, @code{int} @var{height})
 Clear the area of the receiver's window with the dimensions 
@@ -11855,6 +11865,12 @@ Because the Ctalk libraries use shared memory to manage font
 information, it is generally necessary to call this method
 after the @mnm{openEventStream} method, for the program to
 calculate the character spacing of multiple typefaces correctly.
+
+@cindex @mnm{foreground} instance method @idxclscite{X11Pane}
+@item @mnm{foreground} (@code{String} @var{colorName})
+Sets the window's foreground color (the default color for drawing
+on the window) to @var{colorName}.  If a program doesn't set
+the window's foreground color, the default color is black.
 
 @cindex @mnm{ftFont} instance method @idxclscite{X11Pane}
 @item @mnm{ftFont} (@code{String} @var{family}, @code{Integer} @var{slant},
@@ -19070,7 +19086,25 @@ by @var{self_object}.
 @cindex __ctalkCreateX11MainWindow (@code{OBJECT *}@var{x11pane_object})
 Called by the @mnm{initialize} methods (class @code{X11Pane}) to
 create a X window.  Returns the window system's ID for the window, an
-@code{int}. @xref{X11Pane}.
+@code{int}.
+
+
+If a program doesn't specify a window size, then default size is
+250x250 pixels.  If the program doesn't specify a location for the
+window, then this function sets the window's @emph{X,Y} origin to 0,
+although the actual window placement depends on the machine's window
+manager.  @xref{ctalkX11SetSizeHints}.
+
+Application programs can provide a window geometry specification which
+is used to set the window's size and placement
+@xref{parseX11Geometry}.
+
+If a program doesn't specify a foreground and background color,
+the window's background is set to white and the foreground is set to
+black.
+
+Refer also to the @cite{__ctalkCreateX11MainWindowTitle} and
+@cite{__ctalkCreanteX11SubWindow} functions. @xref{X11Pane}.
 
 @cindex __ctalkCreateX11MainWindowTitle function
 @cindex __ctalkCreateX11MainWindowTitle (@code{OBJECT *}@var{x11pane_object},
@@ -19078,15 +19112,6 @@ create a X window.  Returns the window system's ID for the window, an
 Similar to @cite{__ctalkCreateX11MainWindow}, except that if @var{title}
 is non-null, the function uses it to set the new window's title.  Returns
 the X resource ID of the new window, an @code{int}.  @xref{X11Pane}.
-
-Application programs can provide a window geometry specification which
-is used to set the window's size and placement
-@xref{parseX11Geometry}.
-
-If a program doesn't specify a window size, then default size is
-250x250 pixels.  If the program doesn't specify a location for the
-window, then this function tries to do something intelligent with the
-initial window placement.  @xref{ctalkX11SetSizeHints}.
 
 @cindex __ctalkCreateX11SubWindow function
 @cindex __ctalkCreateX11SubWindow (@code{OBJECT *}@var{subpane_object}, @code{OBJECT *}@var{parentpane_object})

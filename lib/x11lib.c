@@ -1,4 +1,4 @@
-/* $Id: x11lib.c,v 1.120 2020/03/08 22:33:14 rkiesling Exp $ -*-c-*-*/
+/* $Id: x11lib.c,v 1.124 2020/03/10 23:02:55 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -3369,24 +3369,54 @@ void __save_pane_to_vars (OBJECT *pane_object, GC gc,
   if (IS_OBJECT(win_id_value_obj -> __o_p_obj))
     *(unsigned int *)win_id_value_obj -> __o_p_obj -> __o_value = win_id;
 
-#if 0 /***/
-  *(int *)win_depth_value_obj -> __o_value =
-    DefaultDepth (display, DefaultScreen (display));
-  if (IS_OBJECT(win_depth_value_obj -> __o_p_obj))
-    *(int *)win_depth_value_obj -> __o_p_obj -> __o_value =
-      DefaultDepth (display, DefaultScreen (display));
-#endif  
   *(int *)win_depth_obj -> __o_value = screen_depth;
   if (IS_OBJECT(win_depth_obj -> instancevars))
     *(int *)win_depth_obj -> instancevars -> __o_value = screen_depth;
-
-    
 }
 			  
 
 /* Declared in xgeometry.c */
 extern XSizeHints *size_hints;
 extern int __geomFlags;
+
+GC create_pane_win_gc (Display *d, Window w, OBJECT *pane) {
+  /* Also sets the window background if backgroundColor is set,
+     white otherwise.  */
+  int l_screen;
+  static GC gc;
+  XGCValues gcv;
+  OBJECT *bgColor, *fgColor;
+  XColor bg_color, fg_color;
+
+  l_screen = DefaultScreen (d);
+  bgColor = __ctalkGetInstanceVariable (pane, "backgroundColor", TRUE);
+  fgColor = __ctalkGetInstanceVariable (pane, "foregroundColor", TRUE);
+  if (*bgColor -> __o_value && !str_eq (bgColor -> __o_value, NULLSTR)) {
+    lookup_color (d, &bg_color, bgColor -> __o_value);
+    gcv.background = bg_color.pixel;
+    XSetWindowBackground (d, w, bg_color.pixel);
+  } else {
+    gcv.background = WhitePixel (d, l_screen);
+    XSetWindowBackground (d, w, WhitePixel (display, l_screen));
+  }
+  if (*fgColor -> __o_value && !str_eq (fgColor -> __o_value, NULLSTR)) {
+    lookup_color (d, &fg_color, fgColor -> __o_value);
+    gcv.foreground = fg_color.pixel;
+  } else {
+    gcv.foreground = BlackPixel (d, l_screen);
+  }
+  if ((gcv.font = get_user_font (pane)) == 0) {
+    if (n_fixed_fonts && !fixed_font)
+      fixed_font = XLoadFont (d, fixed_font_set[0]);
+    if (fixed_font)
+      gcv.font = fixed_font;
+  }
+  gcv.fill_style = FillSolid;
+  gcv.function = GXcopy;
+  gc = XCreateGC (d, w, DEFAULT_GCV_MASK, &gcv);
+
+  return gc;
+}
 
 int __ctalkCreateX11MainWindow (OBJECT *self_object) {
   Window win_id, root_return;
@@ -3400,8 +3430,7 @@ int __ctalkCreateX11MainWindow (OBJECT *self_object) {
   int pane_x, pane_y, pane_width, pane_height, border_width;
   unsigned int width_return, height_return, depth_return, border_width_return;
   int x_org, y_org, x_size, y_size;
-  OBJECT *bgColor, *displayPtr_value;
-  XColor bg_color;
+  OBJECT *displayPtr_value;
 
   wm_event_mask = WM_CONFIGURE_EVENTS | WM_INPUT_EVENTS;
 
@@ -3413,8 +3442,7 @@ int __ctalkCreateX11MainWindow (OBJECT *self_object) {
   SYMVAL(displayPtr_value -> __o_value) = (uintptr_t)display;
   set_attributes.backing_store = Always;
   set_size_hints_internal (self_object, &x_org, &y_org, &x_size, &y_size);
-  bgColor = __ctalkGetInstanceVariable (self_object,
-					"backgroundColor", TRUE);
+
   win_id = XCreateWindow (display, root, 
 			  x_org, y_org, x_size, y_size,
 			  border_width, screen_depth,
@@ -3444,27 +3472,9 @@ int __ctalkCreateX11MainWindow (OBJECT *self_object) {
 
   XSetWindowBorder (display, win_id, BlackPixel(display, screen));
   XSelectInput(display, win_id, wm_event_mask);
-  gcv.fill_style = FillSolid;
-  gcv.function = GXcopy;
-  gcv.foreground = BlackPixel (display, screen);
-  if (*bgColor -> __o_value) {
-    lookup_color (display, &bg_color, bgColor -> __o_value);
-    gcv.background = bg_color.pixel;
-  } else {
-    gcv.background = WhitePixel (display, screen);
-  }
-  if ((gcv.font = get_user_font (self_object)) == 0) {
-    if (n_fixed_fonts && !fixed_font)
-      fixed_font = XLoadFont (display, fixed_font_set[0]);
-    if (fixed_font)
-      gcv.font = fixed_font;
-  }
-  gc = XCreateGC (display, win_id, DEFAULT_GCV_MASK, &gcv);
-  if (*bgColor -> __o_value) {
-    XSetWindowBackground (display, win_id, bg_color.pixel);
-  } else {
-    XSetWindowBackground (display, win_id, WhitePixel (display, screen));
-  }
+
+  gc = create_pane_win_gc (display, win_id, self_object);
+
   __xlib_set_wm_name_prop 
     ((Display *)SYMVAL(displayPtr_value -> __o_value), win_id, gc, 
      basename_w_extent(__argvFileName ()));
@@ -3527,18 +3537,9 @@ int __ctalkCreateX11MainWindowTitle (OBJECT *self_object, char *title) {
 
   XSetWindowBorder (display, win_id, BlackPixel(display, screen));
   XSelectInput(display, win_id, wm_event_mask);
-  gcv.fill_style = FillSolid;
-  gcv.function = GXcopy;
-  gcv.foreground = BlackPixel (display, screen);
-  gcv.background = WhitePixel (display, screen);
-  if ((gcv.font = get_user_font (self_object)) == 0) {
-    if (n_fixed_fonts && !fixed_font)
-      fixed_font = XLoadFont (display, fixed_font_set[0]);
-    if (fixed_font)
-      gcv.font = fixed_font;
-  }
-  gc = XCreateGC (display, win_id, DEFAULT_GCV_MASK, &gcv);
-  XSetWindowBackground (display, win_id, WhitePixel (display, screen));
+
+  gc = create_pane_win_gc (display, win_id, self_object);
+
   __xlib_set_wm_name_prop
     ((Display *)SYMVAL(IS_OBJECT(displayPtr_value -> instancevars) ?
 		       displayPtr_value -> instancevars -> __o_value :
@@ -3561,7 +3562,6 @@ int __ctalkCreateX11SubWindow (OBJECT *parent, OBJECT *self) {
   OBJECT *self_gc_value_object;
   OBJECT *bgcolor_obj, *fgcolor_obj;
   OBJECT *self_displayPtr_value, *parent_displayPtr_value;
-  XColor bgcolor, fgcolor;
   Window parent_id, self_id;
   XWindowAttributes parent_attributes;
   XSetWindowAttributes self_attributes;
@@ -3622,47 +3622,14 @@ int __ctalkCreateX11SubWindow (OBJECT *parent, OBJECT *self) {
 			   CopyFromParent,
 			   CopyFromParent, CopyFromParent, 
 			   CWBackingStore, &self_attributes);
-  bgcolor_obj = __ctalkGetInstanceVariable (self, "backgroundColor", TRUE);
-  if (str_eq (bgcolor_obj -> instancevars -> __o_value, NULLSTR)) {
-    XSetWindowBackground (p_display, self_id,
-			  BlackPixel (p_display, DefaultScreen (p_display)));
-  } else {
-    lookup_color (p_display, &bgcolor, bgcolor_obj -> instancevars -> __o_value);
-    XSetWindowBackground (p_display, self_id, bgcolor.pixel);
-  }
-  XClearWindow (p_display, self_id);
+
   XSelectInput(p_display, self_id, (WM_CONFIGURE_EVENTS|WM_INPUT_EVENTS));
-  gcv.fill_style = FillSolid;
-  gcv.function = GXcopy;
-  gcv.foreground = BlackPixel (p_display, screen);
-  gcv.background = WhitePixel (p_display, screen);
-  if ((gcv.font = get_user_font (self_object)) == 0) {
-    if (n_fixed_fonts && !fixed_font)
-      fixed_font = XLoadFont (p_display, fixed_font_set[0]);
-    if (fixed_font)
-      gcv.font = fixed_font;
-  }
-  gc = XCreateGC (p_display, self_id, DEFAULT_GCV_MASK, &gcv);
-  *(int *)self_win_id_value_object -> __o_value = (int)self_id;
 
-  *(uintptr_t *)self_gc_value_object -> __o_value = (uintptr_t)gc; 
-  if (IS_OBJECT(self_gc_value_object -> __o_p_obj)) {
-    *(uintptr_t *)self_gc_value_object -> __o_p_obj -> __o_value =
-      (uintptr_t)gc;
-  }
+  gc = create_pane_win_gc (p_display, self_id, self_object);
 
-  if ((fgcolor_obj = __ctalkGetInstanceVariable (self, "foregroundColor",
-						 FALSE)) != NULL) {
-    if (str_eq (bgcolor_obj -> instancevars -> __o_value, NULLSTR)) {
-      XSetForeground (p_display, gc,
-		      WhitePixel (p_display, DefaultScreen (p_display)));
-    } else {
-      lookup_color (p_display, &fgcolor, fgcolor_obj -> instancevars -> __o_value);
-      XSetForeground (p_display, gc, fgcolor.pixel);
-    }
-  }
-
-
+  __save_pane_to_vars (self_object, gc, self_id,
+		       DefaultDepth (p_display, DefaultScreen (p_display)));
+  
   *(int *)win_depth_value_obj -> __o_value =
     DefaultDepth (p_display, DefaultScreen (p_display));
   *(int *)win_depth_value_obj -> instancevars -> __o_value =

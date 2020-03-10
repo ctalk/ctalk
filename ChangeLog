@@ -409,3 +409,9 @@
 	window (xdialog.c).
 	- Updated __ctalkCreateX11SubWinwdow to use the parent pane's
 	Display * (x11lib.c).
+2020-03-10
+	- Added create_pane_win_gc (x11lib.c), which can be called by
+	__ctalkCreateX11Window, __ctalkCreateX11WindowTitle,
+	__ctalkCreateX11SubWindow, and __ctalkX11CreateDialogWindow.
+	- Added the X11Pane :foregroundColor instance variable and
+	the X11Pane : foreground method.
