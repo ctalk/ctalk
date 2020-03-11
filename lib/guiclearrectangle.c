@@ -1,4 +1,4 @@
-/* $Id: guiclearrectangle.c,v 1.5 2020/02/29 02:54:04 rkiesling Exp $ -*-c-*-*/
+/* $Id: guiclearrectangle.c,v 1.6 2020/03/11 03:02:40 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -190,7 +190,7 @@ int __ctalkGUIPaneClearRectangle (OBJECT *self_object, int x, int y,
 				  int width, int height) {
   x_support_error (); return ERROR;
 }
-int __ctalkX11ClearRectangleBasic (void *, int drawable_id,
+int __ctalkX11ClearRectangleBasic (void *d, int drawable_id,
 				   unsigned long int gc_ptr, 
 				   int x, int y,
 				   int width, int height) {

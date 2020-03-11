@@ -1,4 +1,4 @@
-/* $Id: xlibfont.c,v 1.8 2020/03/08 21:08:55 rkiesling Exp $ -*-c-*-*/
+/* $Id: xlibfont.c,v 1.9 2020/03/11 03:02:40 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -40,8 +40,7 @@ extern Display *display;   /* Defined in x11lib.c. */
 int clear_font_descriptors_internal (void) {
   return SUCCESS;
 }
-int load_xlib_fonts_internal (int x, int y, int width, int height,
-			    int geomflags) {
+int load_xlib_fonts_internal (void *d, char *xlfd) {
   return SUCCESS;
 }
 #else /* X11LIB_FRAME */
@@ -375,7 +374,7 @@ int __ctalkSelectXFontFace (void *d, int drawable_id,
 static void gui_support_error (void) {
   x_support_error ();
 }
-int load_xlib_fonts_internal (char *s) {
+int load_xlib_fonts_internal (void *d, char *xlfd) {
   x_support_error (); return ERROR;
 }
 

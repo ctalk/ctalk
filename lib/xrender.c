@@ -1,4 +1,4 @@
-/* $Id: xrender.c,v 1.13 2020/02/29 20:47:26 rkiesling Exp $ -*-c-*-*/
+/* $Id: xrender.c,v 1.14 2020/03/11 03:02:40 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -1981,15 +1981,15 @@ int __xlib_draw_point (Display *d, Drawable drawable_arg, GC gc, char *data) {
 
 #else /* ! defined (DJGPP) && ! defined (WITHOUT_X11) */
 
-int __xlib_draw_line (void *, unsigned int w, unsigned int gc, char *data) {
+int __xlib_draw_line (void *d, unsigned int w, unsigned int gc, char *data) {
   x_support_error (); return ERROR;
 }
 
-int __xlib_draw_circle (void *, unsigned int w, unsigned int gc, char *data) {
+int __xlib_draw_circle (void *d, unsigned int w, unsigned int gc, char *data) {
   x_support_error (); return ERROR;
 }
 
-int __xlib_draw_point (void *, unsigned int w, unsigned int gc, char *data) {
+int __xlib_draw_point (void *d, unsigned int w, unsigned int gc, char *data) {
   x_support_error (); return ERROR;
 }
 
@@ -2001,7 +2001,7 @@ bool __ctalkX11UsingXRender (void) {
   x_support_error (); return false;
 }
 
-int __xlib_draw_rectangle (void *, unsigned int w, unsigned int gc, char *data) {
+int __xlib_draw_rectangle (void *d, unsigned int w, unsigned int gc, char *data) {
   x_support_error (); return false;
 }
 

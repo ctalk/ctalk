@@ -1,4 +1,4 @@
-/* $Id: xdialog.c,v 1.17 2020/03/10 23:02:55 rkiesling Exp $ -*-c-*-*/
+/* $Id: xdialog.c,v 1.18 2020/03/11 03:02:40 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -62,21 +62,6 @@ int __ctalkX11CreateDialogWindow (OBJECT *self_object) {
   return SUCCESS;
 }
 
-int __ctalkX11DialogSetBackground (OBJECT *, char *) {
-  return SUCCESS;
-}
-int __ctalkX11DialogSetForeground (OBJECT *, char *) {
-  return SUCCESS;
-}
-int __ctalkX11DialogSetGXFunction (OBJECT *, unsigned long) {
-  return SUCCESS;
-}
-int __ctalkX11DialogSetFillStyle (OBJECT *, unsigned long) {
-  return SUCCESS;
-}
-int __ctalkX11DialogSetFont (OBJECT *, char *) {
-  return SUCCESS;
-}
 int __ctalkCloseX11DialogPane (OBJECT *self) {
   return SUCCESS;
 }
@@ -196,28 +181,6 @@ int __ctalkX11CreateDialogWindow (OBJECT *self_object) {
   x_support_error ();
   return 0;  /* notreached */
 }
-
-int __ctalkX11DialogSetBackground (OBJECT *, char *) {
-  x_support_error ();
-  return 0;  /* notreached */
-}
-int __ctalkX11DialogSetForeground (OBJECT *, char *) {
-  x_support_error ();
-  return 0;  /* notreached */
-}
-int __ctalkX11DialogSetGXFunction (OBJECT *, unsigned long) {
-  x_support_error ();
-  return 0;  /* notreached */
-}
-int __ctalkX11DialogSetFillStyle (OBJECT *, unsigned long) {
-  x_support_error ();
-  return 0;  /* notreached */
-}
-int __ctalkX11DialogSetFont (OBJECT *, char *) {
-  x_support_error ();
-  return 0;  /* notreached */
-}
-
 int __ctalkCloseX11DialogPane (OBJECT *self) {
   x_support_error ();
   return 0;  /* notreached */
