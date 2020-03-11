@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.8 2019/11/28 17:32:52 rkiesling Exp $
+# $Id: Makefile.am,v 1.10 2020/03/10 23:35:32 rkiesling Exp $
 
 SUBDIRS=classes doc libctpp ctpp lib src 
 HOST_OS=@host_os@
@@ -36,6 +36,7 @@ EXTRA_DIST=$(top_builddir)/build/gccincdir.sh \
 	$(top_builddir)/build/glh.sh \
 	$(top_builddir)/build/have_llvm.sh \
 	$(top_builddir)/build/fn_decl.pl \
+	$(top_builddir)/build/confcttest.sh \
 	$(top_builddir)/m4/* \
 	$(top_builddir)/ChangeLog \
 	$(top_builddir)/tools/langtools \
@@ -92,6 +93,10 @@ distclean-local:
 	  $(top_builddir)/build/.pthread_gcc_option \
           $(top_builddir)/build/.gccdonthavenoformatoverflowopt \
           $(top_builddir)/build/.gcchavenoformatoverflowopt \
+	  $(top_builddir)/build/.cttest_no_pointer_to_int_cast \
+	  $(top_builddir)/build/.cttest_no_stringop_overflow \
+	  $(top_builddir)/build/.cttest_no_address_of_packed_member \
+	  $(top_builldir)/build/.cttest_no_format_overflow \
 	  $(top_builddir)/build/.no_gl_h \
 	  $(top_builddir)/build/.no_glx_h \
           $(top_builddir)/build/.no_glew_h \

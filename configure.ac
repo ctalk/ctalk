@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.29 2019/12/14 00:02:42 rkiesling Exp $
+# $Id: configure.ac,v 1.32 2020/03/10 23:54:26 rkiesling Exp $
 AC_INIT(ctalk, 0.0.65, rk3314042@gmail.com, "")
 
 # Contained in acinclude.m4 and generated aclocal.m4
@@ -192,6 +192,7 @@ accret=$?
 if test $accret = "0"; then
 AS_ECHO "yes"
 def_cflags=$def_cflags" -Wno-pointer-to-int-cast "
+touch build/.cttest_no_pointer_to_int_cast
 else
 AS_ECHO "no"
 fi
@@ -215,6 +216,7 @@ accret=$?
 if test $accret = "0"; then
 AS_ECHO "yes"
 no_stringop_overflow_warning="-Wno-stringop-overflow "
+touch build/.cttest_no_stringop_overflow
 else
 AS_ECHO "no"
 no_stringop_overflow_warning=" "
@@ -240,6 +242,7 @@ accret=$?
 if test $accret = "0"; then
 AS_ECHO "yes"
 address_of_packed_member_warning="-Wno-address-of-packed-member "
+touch build/.cttest_no_address_of_packed_member
 else
 AS_ECHO "no"
 address_of_packed_member_warning=" "
@@ -519,6 +522,7 @@ if test -f build/.gccdonthavenoformatoverflowopt; then
 elif test -f build/.gcchavenoformatoverflowopt; then
    AS_ECHO yes;
    def_cflags=$def_cflags" -Wno-format-overflow"
+   touch build/.cttest_no_format_overflow
 fi
 
 if test "$user_long_double"+yes != "yes";  then
@@ -1557,6 +1561,8 @@ cat <<EOF
 Configuring default compile and link options in ctcc\(1\) and ctdb\(1\).
 EOF
 ./build/lcflags.sh "\"$def_ctalkflags\"" "\"$def_cflags\"" "\"$def_optflags\"" "\"$ctdb_ctcc_ldflags\"" "\"$ct_x_cflags\"" "\"$x_ldflags $lib_freetype_ld_opts $glut_ldflags $glew_ldflags\""
+
+./build/confcttest.sh
 
 if test -z $makeinfo_path; then
 AC_MSG_WARN(Makeinfo Missing)
