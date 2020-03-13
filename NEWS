@@ -1,15 +1,33 @@
-Ctalk News - xxxx xx, 2019
+Ctalk News - March 14, 2020
 
 Ctalk Home page: http://sourceforge.net/projects/ctalk.
 Ctalk Wiki:      http://sourceforge.net/p/ctalk/wiki/Home.
 Github:          http://github.com/ctalk/ctalk
 
 
-What's New in Release 0.0.65 2019-..-..
+What's New in Release 0.0.66 2020-03-14
 ---------------------------------------
 
+- The widget classes X11LabelPane and X11ButtonPane.  The classes
+X11PaneDispatcher, X11CanvasPane, and X11ScrollBarPane have updates to
+work with multiple subpanes.  Also, X11PaneDispatcher adds new
+instance variables that enable the installation of event handlers for
+entering and leaving windows and changing window focus, as well as
+instance variables like highlight, canFocus, and hasFocus, which are
+common to all widget classes.
+
+- Updates to __ctalkCreateX11SubWindow and __ctalkX11SubWindowGeometry,
+which provide support for multiple X11 subwindows used by the widget
+classes.
+
+- The X11 libraries now use shared memory to send events from the
+display server to the application.
+
+- The demonstration programs scrollbar.ca and buttons.ca in the
+demos/x11 subdirectory.
+
 - String : tokenize now collects multi-character math operators
-into a single token; e.g. +=, <<, ||.
+into a single token; e.g. +=, <=, ||.
 
 
 What's New in Release 0.0.65 2019-11-27
