@@ -1,4 +1,4 @@
-/* $Id: cvartab.c,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ */
+/* $Id: cvartab.c,v 1.3 2019/12/05 01:52:06 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -1027,7 +1027,7 @@ void function_param_cvar_tab_entry (MESSAGE_STACK messages, int idx,
       }
       function_vartab_init_statement (vartab_init_entry);
     } else if (c -> type_attrs & CVAR_TYPE_SHORT) {
-      if (c -> type_attrs & CVAR_TYPE_SHORT) {
+      if (c -> is_unsigned || (c -> type_attrs & CVAR_TYPE_UNSIGNED)) {
 	strcatx (vartab_init_entry, 
 		 fn_name, "_", c -> name, " = ",
 		 (((c -> n_derefs == 2) ? "(unsigned short int ***)" : 
@@ -1035,12 +1035,13 @@ void function_param_cvar_tab_entry (MESSAGE_STACK messages, int idx,
 		    ((c -> n_derefs == 0) ? "(unsigned short int *)" : "")))),
 		 "&", c -> name, ";\n", NULL);
       } else {
+	/***/
 	strcatx (vartab_init_entry, 
 		 fn_name, "_", c -> name, " = ",
 		 (((c -> n_derefs == 2) ? "(short int ***)" : 
 		   ((c -> n_derefs == 1) ? "(short int **)" : 
-		    ((c -> n_derefs == 0) ? "(short int *)" : "")))), "&",
-		 c -> name, ";\n", NULL);
+		    ((c -> n_derefs == 0) ? "(short int *)" : "")))),
+		 "&", c -> name, ";\n", NULL);
       }
       function_vartab_init_statement (vartab_init_entry);
     } else if (c -> type_attrs & CVAR_TYPE_INT) {

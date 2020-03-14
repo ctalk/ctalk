@@ -1,8 +1,8 @@
-/* $Id: X11TerminalStream,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11TerminalStream,v 1.25 2020/02/08 21:16:43 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
-  Copyright © 2005 - 2012  Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2005 - 2012, 2019  Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
 
@@ -25,24 +25,27 @@
  *    X11TerminalStream class.
  */
 
-#define KBDCHAR          (1 << 0)
-#define KBDCUR           (1 << 1)
-#define WINDELETE        (1 << 2)
-#define BUTTONPRESS      (1 << 3)
-#define BUTTONRELEASE    (1 << 4)
-#define KEYPRESS         (1 << 5)
-#define KEYRELEASE       (1 << 6)
-#define MOTIONNOTIFY     (1 << 7)
-#define EXPOSE           (1 << 8)
-#define DESTROYNOTIFY    (1 << 9)
-#define VISIBILITYCHANGE (1 << 10)
-#define STRUCTURENOTIFY  (1 << 11)
-#define MAPNOTIFY        (1 << 12)
-#define MAPREQUEST       (1 << 13)
-#define CONFIGUREREQUEST (1 << 14)
-#define CONFIGURENOTIFY  (1 << 15)
-#define MOVENOTIFY       (1 << 16)
-#define RESIZENOTIFY     (1 << 17)
+/* X event classes */
+#define KBDCHAR             (1 << 0)
+#define KBDCUR              (1 << 1)
+#define WINDELETE           (1 << 2)
+#define BUTTONPRESS         (1 << 3)
+#define BUTTONRELEASE       (1 << 4)
+#define KEYPRESS            (1 << 5)
+#define KEYRELEASE          (1 << 6)
+#define MOTIONNOTIFY        (1 << 7)
+#define EXPOSE              (1 << 8)
+#define MAPNOTIFY           (1 << 12)
+#define CONFIGURENOTIFY     (1 << 15)
+#define MOVENOTIFY          (1 << 16)
+#define RESIZENOTIFY        (1 << 17)
+#define SELECTIONREQUEST    (1 << 18)
+#define SELECTIONCLEAR      (1 << 19)
+#define WMFOCUSCHANGENOTIFY (1 << 20)
+#define ENTERWINDOWNOTIFY   (1 << 21)
+#define LEAVEWINDOWNOTIFY   (1 << 22)
+#define FOCUSIN             (1 << 23)
+#define FOCUSOUT            (1 << 24)
 
 #include <stdio.h>
 #if defined(__sparc__) && defined(__svr4__)
@@ -50,6 +53,9 @@
 #else /* Linux */
 #include <sys/select.h>
 #endif
+
+#include <string.h>
+#include <errno.h>
 
 TerminalStream class X11TerminalStream
 "A X11TerminalStream object maintains input from the
@@ -68,6 +74,7 @@ X11TerminalStream instanceMethod openInputClient (void) {
   "Start the X Window System client and server."
   __ctalkOpenX11InputClient (self);
   client_handle = self clientFD;
+  event_mask = self eventMask;
   return self;
 }
 
@@ -99,69 +106,79 @@ X11TerminalStream instanceMethod parentPane (void) {
  EXPOSE           xexpose     x           y           width       height      count
  */
 
+void save_x_event (OBJECT *event_value_obj, int event_class,
+		   unsigned int win, unsigned int data[]) {
+  OBJECT *var;
+  int i;
+  /* Relies on the fact that instance variables are ordered in the
+     parent object in the same order that they are declared.  If that
+     ever changes, the equivalent assigments are in the #ifdef-#else
+     clause below.  For now, this is faster. */
+  var = event_value_obj -> next;
+  INTVAL(var -> instancevars -> __o_value) =
+    INTVAL(var -> __o_value) = event_class;
+  var = var -> next;
+  INTVAL(var -> instancevars -> __o_value) =
+    INTVAL(var -> __o_value) = win;
+
+  for (var = var -> next, i = 0; i < 6; var = var -> next, ++i)
+    INTVAL(var -> instancevars -> __o_value) =
+      INTVAL(var -> __o_value) = data[i];
+}
+
 X11TerminalStream instanceMethod queueInput (void) {
   "Retrieve a X event, and return it as an InputEvent
   object."
-  int r, n_read;
-  int event_class, event_data1, event_data2, event_data3,
-    event_data4, event_data5, n_bits;
-  char buf[MAXMSG];
-  fd_set rfds;
-  struct timeval tv;
+  int event_class;
+  unsigned int win, data[6];
   InputEvent new clientEvent;
 
-  /* This only gets set once. */
-  if (event_mask == -1)
-    event_mask = self eventMask;
-
-  FD_ZERO(&rfds);
-  FD_SET(client_handle, &rfds);
-  tv.tv_sec = 0;
-  tv.tv_usec = 500;
- select_again:
-  if ((r = select (client_handle + 1, &rfds, NULL, NULL, &tv)) > 0) {
-    if ((n_read = read (client_handle, (void *)buf, MAXMSG)) > 0) {
-      buf[n_read] = '\0';
-      n_bits = sscanf (buf, "%d:%d:%d:%d:%d:%d", &event_class, 
-		       &event_data1, 
-		       &event_data2,
-		       &event_data3,
-		       &event_data4,
-		       &event_data5);
-      if (event_mask != 0) {
-	if (!(event_mask & event_class)) {
-	  goto select_again;
-	}
-      }
-      clientEvent eventClass = event_class;
-      clientEvent xEventData1 = event_data1;
-      clientEvent xEventData2 = event_data2;
-      clientEvent xEventData3 = event_data3;
-      clientEvent xEventData4 = event_data4;
-      clientEvent xEventData5 = event_data5;
-      switch (event_class)
-	{
-	case CONFIGURENOTIFY:
-	  if (clientEvent xEventData1)
-	    self parentPane origin x = clientEvent xEventData1;
-	  if (clientEvent xEventData2)
-	    self parentPane origin y = clientEvent xEventData2;
-	  self parentPane size x = clientEvent xEventData3;
-	  self parentPane size y = clientEvent xEventData4;
-	  break;
-	case MOVENOTIFY:
-	  self parentPane origin x = clientEvent xEventData1;
-	  self parentPane origin y = clientEvent xEventData2;
-	  self parentPane size x = clientEvent xEventData3;
-	  self parentPane size y = clientEvent xEventData4;
-	  break;
-	case RESIZENOTIFY:
-	  self parentPane size x = clientEvent xEventData3;
-	  self parentPane size y = clientEvent xEventData4;
-	  break;
-	}
-      self inputQueue push clientEvent;
+ read_again:
+  if (read_event (&event_class, &win, data, event_mask) < 0)
+    return NULL;
+    
+#if 0 /***/
+  if (event_mask != 0) {
+    if (!(event_mask & event_class)) {
+      goto read_again;
     }
   }
+#endif  
+
+#if 1
+  save_x_event (clientEvent, event_class, win, data);
+#else 
+  clientEvent eventClass = event_class;
+  clientEvent eventData = win;
+  clientEvent xEventData1 = data[0];
+  clientEvent xEventData2 = data[1];
+  clientEvent xEventData3 = data[2];
+  clientEvent xEventData4 = data[3];
+  clientEvent xEventData5 = data[4];
+  clientEvent xEventData6 = data[5];
+#endif      
+
+  switch (event_class)
+    {
+    case CONFIGURENOTIFY:
+      if (clientEvent xEventData1)
+	self parentPane origin x = clientEvent xEventData1;
+      if (clientEvent xEventData2)
+	self parentPane origin y = clientEvent xEventData2;
+      self parentPane size x = clientEvent xEventData3;
+      self parentPane size y = clientEvent xEventData4;
+      break;
+    case MOVENOTIFY:
+      self parentPane origin x = clientEvent xEventData1;
+      self parentPane origin y = clientEvent xEventData2;
+      self parentPane size x = clientEvent xEventData3;
+      self parentPane size y = clientEvent xEventData4;
+      break;
+    case RESIZENOTIFY:
+      self parentPane size x = clientEvent xEventData3;
+      self parentPane size y = clientEvent xEventData4;
+      break;
+    }
+  self inputQueue push clientEvent;
 }
 

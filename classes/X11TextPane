@@ -1,8 +1,8 @@
-/* $Id: X11TextPane,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11TextPane,v 1.6 2020/02/28 16:08:26 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
-  Copyright © 2005 - 2018  Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2005 - 2020  Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
 
@@ -73,65 +73,40 @@ X11TextPane instanceMethod subPaneExpose (Object __subPane,
 
 }
 
-X11TextPane instanceMethod subPaneResize (X11TextPane __subPane,
- 					  InputEvent __event) {
-  "Handle a resize event."
-    Integer new prevWidth, prevHeight;
-  Boolean new redraw;
-  redraw = FALSE;
-  if ((*__subPane container) containerMode == "full") {
+X11TextPane instanceMethod subPaneResize (X11TextEditorPane __subPane, 
+					  InputEvent __event) {
+  "Resize the receiver pane.  This is the resize event
+  handler called by the parent window's pane
+  dispatcher."
+  X11Pane new container;
+
+  if (__ctalkX11ResizeWindow (__subPane, __event xEventData3,
+			      __event xEventData4,
+			      __subPane depth) > 0) {
+    if (__subPane ftFontVar libIsInitialized) {
+      __subPane viewWidth = __event xEventData3 /
+	__subPane ftFontVar maxAdvance;
+      __subPane viewHeight = __event xEventData4 /
+	__subPane ftFontVar height;
+    } else if (__subPane fontVar fontId != 0) {
+      __subPane viewWidth = __event xEventData3 /
+	__subPane fontVar maxWidth;
+      __subPane viewHeight = __event xEventData4 /
+	__subPane fontVar height;
+    } else {
+      __subPane viewWidth = __event xEventData3 / 12;
+      __subPane viewHeight = __event xEventData4 / 14;
+    }
     __subPane size x = __event xEventData3;
     __subPane size y = __event xEventData4;
-    /* Note that we check three different receiver expressions
-       when retrieving xWindowID.  This helps to test the argument
-       list parsing.
-    */
-    (X11Bitmap *)self paneBuffer resize 
-      (*self container) xWindowID,
+    (X11Bitmap *)self paneBuffer resize self xWindowID,
       __event xEventData3, __event xEventData4;
-
-    if (__subPane fontVar fontId == 0) {
-      if (__subPane viewHeight != __subPane size y / 14) {
-	__subPane viewHeight = 
-	  __subPane size y / 14;
-	redraw = TRUE;
-      }
-      if (__subPane viewWidth != __subPane size x / 12) {
-	__subPane viewWidth = 
-	  __subPane size x / 12;
-	redraw = TRUE;
-      }
-    } else {
-      if (__subPane viewHeight != __subPane size y / __subPane fontVar height) {
-	__subPane viewHeight = __subPane size y /
-	  __subPane fontVar height;
-	redraw = TRUE;
-      }
-      if (__subPane viewWidth != __subPane size x / __subPane fontVar maxWidth) {
-	__subPane viewWidth = __subPane size x /
-	  __subPane fontVar maxWidth;
-	redraw = TRUE;
-      }
-    }
-    if (redraw) {
-      __subPane scrollHeight = __subPane viewHeight - __subPane scrollMargin;
-      self textList delete;
-      __ctalkSplitText (self text, self textList);
-      __ctalkWrapText (self xWindowID, self xGC,
-		       self textList, self size x,
-		       self viewXOffset);
-      g_text_lines = 0;
-      self textList map {
-	if (self wrapAfter) {
-	  ++g_text_lines;
-	}
-      }
-      __subPane displayText;
-    }
-  } else {
-    fprintf (stderr, 
-     "Error: subPaneResize (class X11TextPane): unknown container mode!\n");
+    (X11Bitmap *)self paneBackingStore resize self xWindowID,
+      __event xEventData3, __event xEventData4;
   }
+
+  self displayText;
+
   return NULL;
 }
 
@@ -330,33 +305,31 @@ X11TextPane instanceMethod attachTo (X11PaneDispatcher parentPane) {
   self super attachTo parentPane;
   self paneBuffer become paneBuffer;
   self paneBackingStore become paneBackingStore;
-  if (parentPane containerMode == "full") {
-    /*
-     *  Also set by subPaneResize.
-     */
-    self size x = parentPane size x;
-    self size y = parentPane size y;
-    if (self fontVar fontId == 0) {
-       self viewHeight = self size y / 14;
-       self viewWidth = self size x / 12;
-    } else {
-       self viewHeight = self size y / self fontVar height;
-       self viewWidth = self size x / self fontVar maxWidth;
-    }
-    self scrollHeight = self  viewHeight - self scrollMargin;
-    (X11Bitmap *)self paneBuffer create self xWindowID, self size x,
-      self size y, self depth;
-    (X11Bitmap *)self paneBackingStore create self xWindowID, self size x,
-      self size y, self depth;
 
-    mainPane = *parentPane container;
-    mainPane inputStream eventMask =
-      KEYPRESS|KEYRELEASE|WINDELETE|EXPOSE|RESIZENOTIFY;
+  self displayPtr = self mainWindow displayPtr;
 
+  /*
+   *  Also set by subPaneResize.
+   */
+  self size x = parentPane size x;
+  self size y = parentPane size y;
+  if (self fontVar fontId == 0) {
+    self viewHeight = self size y / 14;
+    self viewWidth = self size x / 12;
   } else {
-    fprintf (stderr, 
-	     "attachTo (class X11TextPane) : undefined containerMode.\n");
+    self viewHeight = self size y / self fontVar height;
+    self viewWidth = self size x / self fontVar maxWidth;
   }
+  self scrollHeight = self  viewHeight - self scrollMargin;
+  (X11Bitmap *)self paneBuffer create self displayPtr, self xWindowID,
+    self size x,self size y, self depth;
+  (X11Bitmap *)self paneBackingStore create self displayPtr, self xWindowID,
+    self size x, self size y, self depth;
+
+  mainPane = *parentPane container;
+  mainPane inputStream eventMask =
+    KEYPRESS|KEYRELEASE|WINDELETE|EXPOSE|RESIZENOTIFY;
+
   return NULL;
 }
 
@@ -418,7 +391,6 @@ X11TextPane instanceMethod addText (String __text) {
     g_text_lines = 0;
     self textList map {
       if (self wrapAfter) {
-	/* ++super textLines; */
 	++g_text_lines;
       }
     }
@@ -547,12 +519,16 @@ X11TextPane instanceMethod displayText (void) {
   return NULL;
 }
 
-/*
- *  See the note for X11Bitmap : background method.
- */
 X11TextPane instanceMethod background (String color) {
-  "Set the receiver's background color."
-  self paneBuffer background color;
+  "Set the receiver's background color to the argument,
+  a String.  Also has the effect of clearing the pane's
+  buffer."
+    self backgroundColor = color;
+    if (self paneBuffer xID > 0) {
+      /* the pane has been initialized */
+      self super background color;
+      self paneBuffer background color;
+    }
 }
 
 X11TextPane instanceMethod foreground (String color) {

@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.22 2019/11/26 04:15:27 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.120 2020/03/13 03:35:19 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -7,7 +7,7 @@
 @paragraphindent 0
 @c %**end of header
 
-@set VERSION 0.0.65
+@set VERSION 0.0.66
 
 @macro idxfncite{fnname}
 @cite{\fnname\} C function
@@ -448,7 +448,9 @@ Object
    GLXCanvasPane
    X11PaneDispatcher
     X11CanvasPane
-    X11ScrollBarPane
+     X11ButtonPane
+     X11LabelPane
+     X11ScrollBarPane
     X11TextPane
      X11TextEditorPane
  Symbol
@@ -535,7 +537,9 @@ Object
 *    GLXCanvasPane::
 *    X11PaneDispatcher::
 *     X11CanvasPane::
-*     X11ScrollBarPane::
+*      X11ButtonPane::
+*      X11LabelPane::
+*      X11ScrollBarPane::
 *     X11TextPane::
 *      X11TextEditorPane::
 *  Symbol::
@@ -1752,22 +1756,41 @@ graphics operations.
 @cindex depth instance variable @idxclscite{X11Bitmap}
 @item depth
 An @code{Integer} that contains the depth of the bitmap.
+
+@cindex displayPtr instance variable @idxclscite{X11Bitmap}
+@item displayPtr
+A @code{Symbol} that contains the address of the connection
+to the X server that was returned by a call to @cite{XOpenDisplay}.
+This is generally the address of the main window pane's @code{displayPtr}
+instance variable, and in this class, it is expressly set in
+the @mnm{create} method.
+
 @cindex height instance variable @idxclscite{X11Bitmap}
 @item height
 An @code{Integer} that contains the height of the bitmap.
-@cindex width instance variable @idxclscite{X11Bitmap}
+
+@cindex modal instance variable @idxclscite{X11Bitmap}
+@item modal
+A @code{Boolean} that helps determine how Ctalk draws graphics on the
+X11Bitmap.  True for X11Bitmap objects that are displayed in popup
+windows, false otherwise.
+
 @cindex parentDrawable instance variable @idxclscite{X11Bitmap}
 @item parentDrawable
 An @code{Integer} that contains the window ID of the
 bitmap's parent drawable.  Normally this is set by
 the @mnm{create} method, below.
+
+@cindex width instance variable @idxclscite{X11Bitmap}
 @item width
 An @code{Integer} that contains the width of the bitmap.
+
 @cindex xGC instance variable @idxclscite{X11Bitmap}
 @item xGC 
 A @code{Symbol} object that contains the address of the X11
 graphics context.  
-@cindex xResource instance variable @idxclscite{X11Bitmap}
+
+@cindex xID instance variable @idxclscite{X11Bitmap}
 @item xID
 The X resource ID of the Pixmap associated with this object.
 @end table
@@ -1789,8 +1812,16 @@ Clear the receiver to the background color.
 @item @mnm{clearRectangle} (@code{Integer} @var{x}, @code{Integer} @var{y}, @code{Integer} @var{width}, @code{Integer} @var{height})
 Clear the specified area to the background color.
 
+@cindex @mnm{copy} instance method @idxclscite{X11Bitmap}
+@cindex copy (@code{X11Bitmap} @var{srcBitmap}, @code{Integer} @var{srcX}, @code{Integer} @var{srcY}, @code{Integer} @var{srcWidth}, @code{Integer} @var{srcHeight}, @code{Integer} @var{destX}, @code{Integer} @var{destY})
+Copies the contents of @var{srcBitmap} to the receiver's drawing
+surface.  The source dimensions are determined by @var{srcX},
+@var{srcY}, @var{srcWidth}, and @var{srcHeight}.  The method draws the
+source bitmap's contents with the source's upper left-hand corner at
+@var{destX}, @var{destY}.
+
 @cindex @mnm{create} instance method @idxclscite{X11Bitmap}
-@item @mnm{initialize} (@code{int} @var{parentWindow}, @code{int} @var{width}, @code{int} @var{height}, @code{int} @var{depth})
+@item @mnm{initialize} (@code{void *}@code{displayPtr}, @code{int} @var{parentWindow}, @code{int} @var{width}, @code{int} @var{height}, @code{int} @var{depth})
 Create a X11Bitmap object and its graphics data.
 
 @cindex @mnm{delete} instance method @idxclscite{X11Bitmap}
@@ -1879,21 +1910,22 @@ X11CanvasPane instanceMethod subPaneResize (Object __subPane,
   "Resize the receiver pane.  This is the resize event
   handler called by the parent window's pane
   dispatcher."
-  if (__subPane container containerMode == "full") @{
-    (X11Bitmap *)self paneBuffer resize self xWindowID, __event xEventData3, 
-      __event xEventData4;
-    (X11Bitmap *)self paneBackingStore resize self xWindowID, __event xEventData3, 
-      __event xEventData4;
 
+  if (__ctalkX11ResizeWindow (__subPane, __event xEventData3,
+			      __event xEventData4,
+			      __subPane depth) > 0) @{
+    /* refreshReframe uses viewWidth and viewHeight, refresh uses size x
+       and size y */
     __subPane viewWidth = __event xEventData3;
     __subPane viewHeight = __event xEventData4;
     __subPane size x = __event xEventData3;
     __subPane size y = __event xEventData4;
-    __subPane refresh;
-  @} else @{
-    fprintf (stderr, 
-     "Error: subPaneResize (class X11CanvasPane): unknown container mode!\n");
+    (X11Bitmap *)self paneBuffer resize self xWindowID,
+      __event xEventData3, __event xEventData4;
+    (X11Bitmap *)self paneBackingStore resize self xWindowID,
+      __event xEventData3, __event xEventData4;
   @}
+
   return NULL;
 @}
 
@@ -2095,6 +2127,14 @@ the collection is empty.
 @item @mnm{keyExists} (@code{String} @var{keyName})
 Return an @code{Integer} value of True if the key given as the
 argument is present in the receiver collection, False otherwise.
+
+@cindex @mnm{mapKeys} instance method @idxclscite{Collection}
+@item @mnm{map} (@code{OBJECT *(*}@var{method}@code{)()})
+Execute @var{method}, an instance method of class
+@code{AssociativeArray,} for each key/value pair of the receiver
+array.  The receiver of @var{method} is a @code{Key} object with
+the parent class of @code{AssociativeArray}.  The return value of
+@mnm{mapKeys} is NULL.
 
 @cindex @mnm{removeAt} instance method @idxclscite{Collection}
 @item @mnm{removeAt} (@code{String} @var{key_name})
@@ -2529,14 +2569,6 @@ Execute @var{method}, an instance method of class
 @code{AssociativeArray,} for each member of the receiver array.  Each
 time @var{method} is executed, @code{self} refers to the object stored
 in the associativeArray.  This method returns NULL.
-
-@cindex @mnm{mapKeys} instance method @idxclscite{AssociativeArray}
-@item @mnm{map} (@code{OBJECT *(*}@var{method}@code{)()})
-Execute @var{method}, an instance method of class
-@code{AssociativeArray,} for each key/value pair of the receiver
-array.  The receiver of @var{method} is a @code{Key} object with
-the parent class of @code{AssociativeArray}.  The return value of
-@mnm{mapKeys} is NULL.
 
 @cindex @mnm{setValue} instance method @idxclscite{AssociativeArray}
 @item @mnm{setValue} (@code{void})
@@ -5958,8 +5990,14 @@ KBDCUR         # Cursor Keys.
 @end example
 @cindex @code{eventData} instanceVariable @idxclscite{InputEvent}
 @item eventData
-An @code{Integer} that contains the data specific to an input event;
-for example, the ASCII value of a keypress.
+An @code{Integer} that contains the data specific to an input event.
+
+For example, when used with subclasses of @code{ANSITerminalPane,}
+@code{eventData} holds the ASCII value of a keypress.
+
+When used with subclasses of X11Pane (actually, any subclass or
+program that uses X11TerminalStream : queueInput), @code{eventData}
+generally holds the ID of the window that received the event.
 
 @cindex @code{xEventData1} instanceVariable @idxclscite{InputEvent}
 @cindex @code{xEventData2} instanceVariable @idxclscite{InputEvent}
@@ -11630,6 +11668,8 @@ of the window, independent of the background color of any
 buffers used by subpanes.  Normally this value is set by the
 @mnm{background} method, described below.
 
+If unset, the default background color is black.
+
 @cindex @code{borderWidth} instance variable @idxclscite{X11Pane}
 @item borderWidth
 An @code{Integer} object that contains the window's border width
@@ -11649,6 +11689,31 @@ screen.  Ctalk sets this value when creating the window of a
 subclasses.  Normally applications should not need to change this
 value.
 
+@cindex @code{displayPtr} instance variable @idxclscite{X11Pane}
+@item displayPtr
+A @code{Symbol} that holds the pointer to the display connection;
+i.e., the @code{Display *} returned by @cite{XOpenDisplay(3)}.
+Most windows use the display connection opened when the main
+window is created. Dialogs, which create their own main windows,
+open their own connection to the display.  Generally, programs
+should not need to change this.
+
+When using subpanes, it's convenient to set the subpane's
+@code{displayPtr} variable to the value of the main window pane's
+value.  This is generally done in the @mnm{attachTo} methods, with
+a line that looks something like this.
+
+@cindex @code{modal} instance variable @idxclscite{X11Pane}
+@item modal
+A @code{Boolean} that determines how Ctalk draws in the window.
+True for popup windows, false otherwise.
+
+@example
+
+self displayPtr = self mainWindow displayPtr;
+
+@end example
+
 @cindex @code{fontVar} instance variable @idxclscite{X11Pane}
 @item fontVar
 A @code{X11Font} object that contains information about the
@@ -11659,6 +11724,11 @@ Window or Pane's current font.
 A @code{String} that contains a X Logical Font Descriptor
 for the font to be used by the window.  If the value is
 @samp{(null)}, the window uses the system's fixed font.
+
+@cindex @code{foregroundColor} instance variable @idxclscite{X11Pane}
+@item foregroundColor
+A @code{String} object that contains the name of the window's
+foreground color.  If unset, the default foreground color is black.
 
 @cindex @code{ftFontVar} instancevariable @idxclscite{X11TextEditorPane}
 @item ftFontVar
@@ -11717,12 +11787,9 @@ default color map.
 @cindex @code{xDisplay} class variable @idxclscite{X11Pane}
 @item xDisplay
 An @code{Integer} object that contains the address of the 
-X display pointer.  Like many X resources that are opaque
-types, it is formatted as an integer, rather than as a
-pointer, to avoid confusing it with @code{OBJECT *} values.
-@cindex @code{classInit} class variable @idxclscite{X11Pane}
-An @code{Integer} that indicates whether the @code{X11Pane}
-class has been initialized.
+X display pointer.  It's use is deprecated; programs should
+use the displayPtr instance variable instead, which is set
+when each main window is created in multi-window programs.
 @end table
 
 @subsubheading Instance Methods
@@ -11740,6 +11807,9 @@ Sets the background color of the pane object's window.  For buffered
 Panes, programs need to set the background color of that Pane
 independently.  This method also has the effect of clearing the
 window.
+
+If a program doesn't set a background color for the window, the
+default background color is white.
 
 @cindex @mnm{clearRectangle} instance method @idxclscite{X11Pane}
 @item @mnm{clearRectangle} (@code{int} @var{x}, @code{int} @var{y}, @code{int} @var{width}, @code{int} @var{height})
@@ -11787,9 +11857,20 @@ class), and the pane has established a connection to the X server
 
 @cindex @mnm{font} instance method @idxclscite{X11Pane}
 @item @mnm{font} (@code{String} @var{font_desc})
-Set the font used for drawing on the window.  This font can
+Set the X font used for drawing on the window.  This font can
 be set independently of the fonts used by subpanes.
 @xref{X11TextPane}, and @xref{X11Bitmap}.
+
+Because the Ctalk libraries use shared memory to manage font
+information, it is generally necessary to call this method
+after the @mnm{openEventStream} method, for the program to
+calculate the character spacing of multiple typefaces correctly.
+
+@cindex @mnm{foreground} instance method @idxclscite{X11Pane}
+@item @mnm{foreground} (@code{String} @var{colorName})
+Sets the window's foreground color (the default color for drawing
+on the window) to @var{colorName}.  If a program doesn't set
+the window's foreground color, the default color is black.
 
 @cindex @mnm{ftFont} instance method @idxclscite{X11Pane}
 @item @mnm{ftFont} (@code{String} @var{family}, @code{Integer} @var{slant},
@@ -11875,6 +11956,14 @@ string @var{win_title}.
 @cindex @mnm{isTopLevel} instance method @idxclscite{X11Pane}
 @item isTopLevel (@code{void})
 Return @code{TRUE} if the receiver's container pane is @code{NULL}.
+
+@cindex @mnm{mainWindow} instance method @idxclscite{X11Pane}
+@item mainWindow (@code{void})
+Returns the @code{X11Pane} object that manages a program's
+main window.  The method retrieves the main window object
+by following the references of each subpane's @code{container}
+instance variable.  If the top-level pane object is not a
+@code{X11Pane}, the method prints a warning.
 
 @cindex @mnm{map} instance method @idxclscite{X11Pane}
 @item map (@code{void})
@@ -12354,31 +12443,41 @@ value is read only.
 
 @table @code
 
-@cindex @mnm{alphaFT} instance method  @idxclscite{GLXCanvasPane}
-@item alphaFT (@code{Float} @var{alpha})
+@cindex @mnm{alpha} instance method  @idxclscite{GLXCanvasPane}
+@item alpha (@code{Float} @var{alpha})
 Sets the alpha channel (opacity) when rendering outline fonts.  Values
-should be between 0.0 (transparent) and 1.0 (opaque).  The default value
-is 1.0.
+should be between 0.0 (transparent) and 1.0 (opaque).  The Ctalk
+library's default value is 1.0.  Calling this method also sets
+the value of the receiver pane's @code{ftFontVar fgAlpha} instance
+variable.
 
 @cindex @mnm{deleteAndClose} instance method @idxclscite{GLXCanvasPane}
 @item deleteAndClose (@code{void})
 Releases the receiver pane's GLX context and deletes the X11 window,
 and shuts down the application's X11 input client.
 
-@cindex @mnm{drawFmtText} index method @idxclscite{GLXCanvasPane}
+@cindex @mnm{displayHeight} instance method @idxclscite{GLXCanvasPane}
+@cindex @mnm{displayWidth} instance method @idxclscite{GLXCanvasPane}
+
+@item @mnm{displayHeigth} (@code{void})
+@item @mnm{displayWidth} (@code{void})
+These methods return an @code{Integer} with the display height and
+width in pixels, respectively.
+
+@cindex @mnm{drawFmtText} instance method @idxclscite{GLXCanvasPane}
 @item @mnm{drawFmtText} (@code{Float} @var{xOrg}, @code{Float} @var{yOrg}, @code{String} @var{fmt}, ...)
 Draws the text given by @var{fmt} and its arguments at the matrix
 position given by @var{xOrg},@var{yOrg}.
 
 
-@cindex @mnm{drawFmtTextFT} index method @idxclscite{GLXCanvasPane}
+@cindex @mnm{drawFmtTextFT} instance method @idxclscite{GLXCanvasPane}
 @item @mnm{drawFmtTextFT} (@code{Float} @var{xOrg}, @code{Float} @var{yOrg}, @code{String} @var{fmt}, ...)
 Display the string given by @var{fmt} and its arguments at the matrix
 coordinates @var{xOrg}, @var{yOrg} in the currently selected Freetype
 font.  This call, like all calls that render text, should be preceded
 by a call to @mnm{useFTFont}.
 
-@cindex @mnm{drawFmtTextW} index method @idxclscite{GLXCanvasPane}
+@cindex @mnm{drawFmtTextW} instance method @idxclscite{GLXCanvasPane}
 @item @mnm{drawFmtTextW} (@code{Integer} @var{xOrg}, @code{Integer} @var{yOrg}, @code{String} @var{fmt}, ...)
 Draws the formatted text of @var{fmt} and its arguments at the pixel
 position given by @var{xOrg}, @var{yOrg}.  OpenGL uses the lower
@@ -12398,8 +12497,16 @@ draws the text using the last OpenGL color setting.
 
 @cindex @mnm{drawTextFT} instance method @idxclscite{GLXCanvasPane}
 @item @mnm{drawTextFT} (@code{Float} @var{xOrg}, @code{Float} @var{yOrg}, @code{String} @var{text})
+@item @mnm{drawTextFT} (@code{Float} @var{xOrg}, @code{Float} @var{yOrg}, @code{Float} @var{red}, @code{Float} @var{green}, @code{Float} @var{blue}, @code{Float} @var{alpha}, @code{String} @var{text})
 Draws the string given by @var{text} at the matrix coordinates
 @var{xOrg}, @var{yOrg}.
+
+The @var{red, green, blue,} and @var{alpha} arguments, if used, should
+be between the values of 0.0 and 1.0, so they can be passed along to
+the OpenGL API directly, and also to set the receiver's
+@code{ftFontVar} instance variable (a @code{X11FreeTypeFont} values
+for its instance variables: @code{fgRed, fgGreen, fgBlue,} and
+@code{fgAlpha} @xref{X11FreeTypeFont}.
 
 @cindex @mnm{drawTextW} instance method @idxclscite{GLXCanvasPane}
 @item drawTextW (@code{Float} @var{xOrg}, @code{Float} @var{yOrg}, @code{String} @var{text})
@@ -13068,15 +13175,20 @@ system's display, control posititioning and rendering of
 subpanes within the main pane, and help communicate events
 between the main window's pane and the subwindows' panes.
 
-The positioning of subpane windows is controlled by the
-@code{X11PaneDispatcher's} @code{containerMode} instance
-variable, a @code{String}.  Setting the @code{containerMode}
-to one of the following values has these effects.
-@table @samp
-@item full
-Fill the main window with a single subpane window.  This is
-the default @code{containerMode} value.
-@end table
+The positioning of subwindows within the parent window is controlled
+by the arguments to the @mnm{attachTo} methods; in particular, these
+methods accept a geometry specification, as an argument, which has
+the following format.
+
+@example
+
+width[%]xheight[%]+x[%]+y[%]
+
+@end example
+
+If a dimension does not contain a percent (@samp{%}) sign, the dimensions
+are in pixels.  With a percent sign, the dimensions are a fractional
+percentage of the parent pane's width or height.
 
 The @code{X11PaneDispatcher} method @mnm{new} creates a X
 window, although the window of the @code{X11PaneDispatcher}
@@ -13150,9 +13262,28 @@ Handler Class  Event Class    Description                     Default Handler Me
                               internally but applications can use this
                               event to update their status if
                               necessary.
+"wmfocuschange" WMFOCUSCHANGENOTIFY
+                              Received from the window manager when the
+                              pointer enters or leaves a window, or when
+                              the window manager raises a window.  The
+                              xEventData1 instance variable contains the
+                              type of X event, either FocusIn or FocusOut.
 
-"destroy"      WINDELETE      Called when the user closes     subPaneDestroy
-                              the application window.
+"enternotify" ENTERWINDOWNOTIFY
+                              Received when the pointer enters a
+                              window from another window.
+
+"leavenotify" LEAVEWINDOWNOTIFY
+                              Received when the pointer leaves a
+                              window.
+
+"focusin"     FOCUSIN         Received when the application signals
+"focusout"    FOCUSOUT        a change of widget focus; for example,
+                              when the user presses the @key{Tab}
+                              key.
+
+"destroy"      WINDELETE      Called when the user closes the
+                              application window.
 
 @end smallexample
 
@@ -13166,21 +13297,26 @@ be able to pass the event along to any subpanes of the
 receiver pane if necessary, by checking whether subpanes
 implement their own handlers.  Here, for example, is the
 @code{X11PaneDispatcher} class's @mnm{subPaneResize} method.
+
 @example
-X11PaneDispatcher instanceMethod subPaneResize (Object __subPaneRef, 
+
+X11PaneDispatcher instanceMethod subPaneResize (Object __subPane, 
 					      InputEvent __event) @{
-  if (self containerMode == "full") @{
-    if (__subPaneRef getValue isInstanceMethod "subPaneResize") @{
-      __subPaneRef getValue handleResize withArg __subPaneRef;
-      __subPaneRef getValue handleResize withArg __event;
-      __subPaneRef getValue methodObjectMessage __subPaneRef getValue handleResize;
-     @}
-  @} else @{
-    fprintf (stderr, "X11PaneDispatcher : subPaneResize:\n");
-    fprintf (stderr, "Warning: Unknown container mode.\n");
+  "Dispatch an Resize event to the subpanes of the
+   receiver pane."
+  X11Pane new containerPane;
+  self size x = __event xEventData3;
+  self size y = __event xEventData4;
+  containerPane = *self container;
+  XResizeWindow (containerPane xDisplay, containerPane xWindowID,
+		 self size x, self size y);
+  if (__subPane isInstanceMethod "subPaneResize") @{
+    __subPane methodObjectMessage __subPane handleResize, __subPane,
+      __event;
   @}
   return NULL;
 @}
+
 @end example
 
 The internals of the subpane API are likely to change and be
@@ -13188,18 +13324,40 @@ expanded in future releases.  Using the methods described
 here and in other sections should help insure that
 applications are compatible with future Ctalk releases.
 
-@subheading Instance Variables
+@subsubheading Instance Variables
 
 @table @code
-@cindex containerMode instance variable @idxclscite{X11PaneDispatcher}
-@item containerMode
-A @code{String} that contains the method that the
-@code{X11PaneDispatcher} uses to position subwindows.
+
+@cindex @code{canFocus} instance variable @idxclscite{X11LabelPane}
+@item canFocus
+A @code{Boolean} that determines whether the widget is highlighed when
+the pointer passes over it, or the application sets the focus; for
+example, by pressing the @key{Tab} key.
+
+If this variable is true, which is the default, then the class should
+also declare event handlers for focus in and focus out events.
+Otherwise, the program prints a warning each time the @mnm{shiftFocus}
+method, described below, calls a @code{NULL} @code{Method} object.
 
 @cindex handleDestroy instance variable @idxclscite{X11PaneDispatcher}
 @item handleDestroy
 A @code{Method} that provides the default handler to delete
 a subpane window and its data.
+
+@cindex handleEnterNotify instance variable @idxclscite{X11PaneDispatcher}
+@cindex handleLeaveNotify instance variable @idxclscite{X11PaneDispatcher}
+@item handleEnterNotify
+@item handleLeaveNotify
+Handlers for events that are generated when a pointer crosses from one
+window to another.
+
+@cindex handleFocusIn instance variable @idxclscite{X11PaneDispatcher}
+@cindex handleFocusOut instance variable @idxclscite{X11PaneDispatcher}
+@item handleFocusIn
+@item handleFocusOut
+Handles highlighting or un-highlighting a widget when receiving a
+FOCUSIN or FOCUSOUT event from the application; for example, when the
+user presses the @key{Tab} key.
 
 @cindex handleKbdInput instance variable @idxclscite{X11PaneDispatcher}
 @item handleKbdInput
@@ -13238,11 +13396,41 @@ events.  Currently, this callback is here for completeness; X selection
 events are handled internally, and only in the library functions used
 by @code{X11TextEditorPane} objects.
 
+@cindex handleWMFocusChage instance variable @idxclscite{X11PaneDispatcher}
+@item handleWMFocusChange
+The method that handles the events received from the desktop's window
+manager when it changes the window focus in response to a pointer
+motion or click; or when the window manager raises a window.
+
 @cindex hasFocus
 @item hasFocus
 An @code{Integer} that is true if the current subpane has the input
 focus.  For programs with only a single widget class, this variable
 is not used.
+
+@cindex @code{highlight} instance variable @idxclscite{X11PaneDispatcher}
+@item highlight
+A @code{Boolean} that indicates whether the widget is displayed
+highlighted.
+
+@cindex @code{modalWin} instance variable @idxclscite{X11PaneDispatcher}
+@item modalWin
+When a dialog window is popped up over the main window, this holds
+the window ID of the popup.  The @mnm{handleSubPaneEvent} method uses
+this to determine how the application's main window should respond
+to X events; generally it keeps the dialog window above the main
+window until the dialog window is withdrawn.  When their is no
+window popped up over the main window, the value of @code{modalWin}
+is zero (@samp{0}).
+
+@cindex @code{tabFocus} instance variable @idxclscite{X11PaneDispatcher}
+@item tabFocus
+A @code{Boolean} that determines, if true (which is the default), whether
+the @mnm{handleSubPaneEvent} method intercepts the @key{Tab} key in
+order to shift the input focus when it is pressed.  If @code{tabFocus} is
+true, the subpane's class must implement methods to handle the @code{focusin}
+and @code{focusout} events that shifting focus with the keyboard implements,
+or the program will display warning messages when it can't find the methods.
 
 @end table
 
@@ -13251,15 +13439,48 @@ is not used.
 
 @cindex @mnm{attachTo} instance method @idxclscite{X11PaneDispatcher}
 @item @mnm{attachTo} (@code{Object} @var{parentPane})
-Attach the receiver to its parent pane, typically a
-@code{X11Pane}.  Also creates a X window, although
+@item @mnm{attachTo} (@code{Object} @var{parentPane}, @code{String} @var{geometry})
+Attach the receiver to its parent pane, typically a @code{X11Pane} or
+@code{X11PaneDispatcher}.  Also creates a X window, although
 @code{X11PaneDispatcher} windows themselves are not normally visible.
+
+When the subwindow is attached to the parent window, the Ctalk library
+creates the pane object's window and graphics context, and clears the
+window to the background color of the pane object's @code{backgroundColor}
+instance variable; for example, with an expression like this:
+
+@example
+
+myCanvasPane backgroundColor = "blue";
+
+@end example
+
+Otherwise, the method clears the subpane's window to black.
+
+The @var{geometry} argument, if present, defines the size and placement
+of the subpane's window within the parent window.  A geometry specification
+has the form:
+
+@example
+
+width[%]xheight[%]+x[%]+y[%]
+
+@end example
+
+The dimensions are in pixels, unless a percent sign (@samp{%}) follows
+a dimension.  In that case, the dimension is a fractional percentage
+of the parent pane's width or height. The @code{String} may contain a
+combination of absolute and relative dimensions.
 
 @cindex @mnm{handleSubPaneEvent} instance method @idxclscite{X11PaneDispatcher} 
 @item @mnm{handleSubPaneEvent} (@code{InputEvent} @var{event})
 Handle an input event from the window system. Typically the
 parent pane's @code{inputStream} provides the event.
-@xref{X11TerminalStream}. 
+@xref{X11TerminalStream}.
+
+This method also checks keypresses for the @key{Tab} key, and
+calls the @code{shiftFocus} method in order to shift focus between
+a window's subpanes when the user presses @key{Tab}.
 
 @cindex @mnm{new} instance method @idxclscite{X11PaneDispatcher}
 @item @mnm{new} (@var{dispatcherName})
@@ -13274,12 +13495,37 @@ with the names of each label.
 Set the pane's handler for @var{handlerType} to
 @var{handlerMethod}.  Currently supported handler types are: @samp{resize}.
 
+@cindex @mnm{shiftFocus} instance method @idxclscite{X11PaneDispatcher}
+@item shiftFocus (@code{void})
+When the user presses @key{Tab}, @code{handleSubPaneEvent} calls this method,
+which highlights a window's subpanes in succession, if the subpanes can
+take the input focus.
+
+Refer to the @code{canFocus} instance variable, and the handlers for focus
+in and focus out events.  These event handlers are called by the program,
+and are not the same as the @code{handleWMFocusChange} handler, which
+is called when the window focus changes on the desktop.
+
+@cindex @mnm{clearFocus} instance method @idxclscite{X11PaneDispatcher}
+@item @mnm{clearFocus} (@code{void}
+Called before shifting the focus highlight to a new pane to insure
+that only one pane indicates that it should receive focus, including
+the synthetic focus that is assigned when shifting focus using the
+@key{Tab} key.
+
+
 @cindex @mnm{subPaneDestroy} instance method @idxclscite{X11PaneDispatcher}
 @item @mnm{subPaneDestroy} (@code{Object} @var{subPaneRef}, @code{InputEvent} @var{destroyEvent})
 The default handler for @code{WINDELETE} events.  Like the
 other method handlers, @var{subPaneRef} is typically a
 @code{Symbol} object.  The @code{X11TerminalStream} section
 describes these events.  @xref{X11TerminalStream}.
+
+@cindex @mnm{subPaneGeometry} instance method @idxclscite{X11PaneDispatcher} 
+@item subPaneGeometry
+A @code{String} that stores a subpane's geometry specification, if
+any.  For an explanation of geometry string's format, refer to the
+@mnm{attachTo} method, below.
 
 @cindex @mnm{subPaneKbdInput} instance method @idxclscite{X11PaneDispatcher}
 @item @mnm{subPaneKbdInput} (@code{Object} @var{subPaneRef}, @code{InputEvent} @var{kbdInputEvent})
@@ -13320,7 +13566,7 @@ system's GUI.  @xref{X11TerminalStream}.
 
 @end table
 
-@node X11CanvasPane, X11ScrollBarPane, X11PaneDispatcher, Classes
+@node X11CanvasPane, X11ButtonPane, X11PaneDispatcher, Classes
 @iftex
 @section @code{X11CanvasPane} Class
 @end iftex
@@ -13519,6 +13765,7 @@ visible rectangle within a window or view port.
 @table @code
 @cindex @mnm{attachTo} instance method @idxclscite{X11CanvasPane}
 @item @mnm{attachTo} (@code{Object} @var{parent_pane})
+@item @mnm{attachTo} (@code{Object} @var{parent_pane}, @code{String} @var{geometry})
 @item @mnm{attachTo} (@code{Object} @var{parent_pane}, @code{Integer} @var{xOrg}, @code{Integer} @var{yOrg})
 @item @mnm{attachTo} (@code{Object} @var{parent_pane}, @code{Integer} @var{xOrg}, @code{Integer} @var{yOrg}, @code{Integer} @var{xSize}, @code{Integer} @var{ySize})
 Attach a @code{X11CanvasPane} object to its parent pane, which is
@@ -13526,6 +13773,21 @@ typically a @code{X11PaneDispatcher} object.  With one argument, this
 method initializes the size of the pane's window and buffers to
 the parent pane's dimensions, and positions the pane at the upper left-hand
 origin of the main window.
+
+If two arguments are present, the second is a @code{String} with the
+geometry specifcation for the subpane.  Subpane geometry strings have
+the form:
+
+@example
+
+width[%]xheight[%]+x[%]+y[%]
+
+@end example
+
+The dimensions are in pixels, unless a percent sign (@samp{%}) follows
+a dimension.  In that case, the dimension is a fractional percentage
+of the parent pane's width or height.  The @code{String} may contain a
+combination of absolute and relative dimensions.
 
 With three arguments, the method positions the pane at
 @var{xOrg},@var{yOrg} within the parent pane, which usually is
@@ -13647,6 +13909,17 @@ int main () @{
 
 @end example
 
+@emph{Note:} The @mnm{copy} method retrieves the @code{paneBuffer}
+instance variable.  If you use an expresion like the following,
+then the program calls the @code{X11Bitmap : copy} method instead.
+@xref{X11Bitmap}.
+
+@example
+
+  myRcvrPane paneBuffer copy ...
+
+@end example
+
 
 @cindex @mnm{defineRegion} instance method @idxclscite{X11CanvasPane}
 @item @mnm{defineRegion} (@code{String} @var{regionName}, @code{Integer} @var{xOrg}, @code{Integer} @var{yOrg}, @code{Integer} @var{xSize}, @code{Integer} @var{ySize})
@@ -13698,12 +13971,24 @@ line width and color defined by the receiver's @code{pen} instance
 variable; otherwise uses the line width and color defined by the
 @code{Pen} argument.
 
+@cindex @mnm{drawRoundedRectangle} instance method @idxclscite{X11CanvasPane}
+@item @mnm{drawRoundedRectangle} (@code{Intger} @var{xOrg}, @code{Integer} @var{yOrg}, @code{Integer} @var{xSize}, @code{Integer} @var{ySize}, @code{Integer} @var{radius})
+Similar to @mnm{drawFilledRectangle}, but this method takes an extra
+argument, the radius of the corner arcs that round the rendered rectangle's
+corners.
+
 @cindex @mnm{drawRectangle} instance method @idxclscite{X11CanvasPane}
-@item @mnm{drawLine} (@code{Intger} @var{xOrg}, @code{Integer} @var{yOrg}, @code{Integer} @var{xSize}, @code{Integer} @var{ySize})
+@item @mnm{drawRectangle} (@code{Intger} @var{xOrg}, @code{Integer} @var{yOrg}, @code{Integer} @var{xSize}, @code{Integer} @var{ySize})
 Draw the borders of a rectangle on the pane's window with
 the upper-left hand corner at the point given by the
 @var{xOrg} and @var{yOrg} arguments, with the width
 @var{xSize} and the height @var{ySize}.
+
+@cindex @mnm{drawRoundedRectangle} instance method @idxclscite{X11CanvasPane}
+@item @mnm{drawRoundedRectangle} (@code{Intger} @var{xOrg}, @code{Integer} @var{yOrg}, @code{Integer} @var{xSize}, @code{Integer} @var{ySize}, @code{Integer} @var{radius})
+This method is similar to @mnm{drawRectangle}, except that it takes an
+extra argument, @var{radius}, which specifies the radius of the arcs
+that form the rectangle's corners.
 
 @cindex @mnm{directCopy} instance method @idxclscite{X11CanvasPane}
 @item @mnm{directCopy} (@code{X11Bitmap} @var{src_bitmap}, @code{Integer} @var{src_x_ort}, @code{Integer} @var{src_y_org}, @code{Integer} @var{src_width}, @code{Integer} @var{src_height}, @code{Integer} @var{dest_x_org}, @code{Integer} @var{dest_y_org})
@@ -13789,7 +14074,709 @@ The handler for Resize events from the X display.  Resizes the pane's
 X window and adjusts the pane's dimensions.
 @end table
 
-@node X11ScrollBarPane, X11TextPane, X11CanvasPane, Classes
+@node X11ButtonPane, X11LabelPane, X11CanvasPane, Classes
+@iftex
+@section @code{X11ButtonPane} Class
+@end iftex
+@ifnottex
+@subheading @code{X11ButtonPane} Class
+@end ifnottex
+@cindex @code{X11ButtonPane} class
+
+The @code{X11ButtonPane} class defines instance variables and methods
+that draw buttons on X windows.  The buttons' appearance is defined
+by the values in the instance variables, and they may be used to define
+the format of customized buttons and labels.
+
+The definitions of the @code{X11ButtonPane's} instance variables'
+define the parameters for basic buttons with beveled and non-beveled
+edges, and the buttons' text is contained in a @code{X11LabelPane}
+object, which defines the appreance of a button's text.
+
+Here is a brief example program.
+
+@c demos/x11/buttons.ca
+@example
+
+/* buttons.ca - X11ButtonPane Demonstration */
+
+#include <ctalk/ctalkdefs.h>
+
+/* Uncomment this #define to use X bitmap fonts. */
+/* #define XFONTS */
+
+/* Also, uncomment this to draw a multiline label. */
+/* #define MULTILINE */
+
+/* Define CORNER_RADIUS > 0 for rounded corners (non-beveled, too). 
+   The value is the radius of the corner arcs. */
+#define CORNER_RADIUS 0
+
+/* See the X11FreeTypeFont section of the the Ctalk reference. */
+#define FTFONT_BOLD   200
+#define FTFONT_MEDIUM 100
+
+int main (void) @{
+  X11Pane new mainWindow;
+  X11PaneDispatcher new dispatcher;
+  X11ButtonPane new lbutton;
+  X11ButtonPane new rbutton;
+  X11LabelPane new label;
+  InputEvent new e;
+
+  mainWindow backgroundColor = "blue";
+  lbutton backgroundColor = "blue";
+  rbutton backgroundColor = "blue";
+  label backgroundColor = "blue";
+  label textColor = "white";
+  label canFocus = false;
+  label borderWidth = 0;
+
+  mainWindow initialize 255, 200;
+  mainWindow inputStream eventMask = 
+    EXPOSE|ENTERWINDOWNOTIFY|LEAVEWINDOWNOTIFY|BUTTONPRESS|BUTTONRELEASE|KEYPRESS|KEYRELEASE;
+  dispatcher attachTo mainWindow;
+  lbutton attachTo dispatcher, "90x50+25+100";
+  rbutton attachTo dispatcher, "90x50+135+100";
+  label attachTo dispatcher, "147x80+44+15";
+
+  mainWindow map;
+  mainWindow raiseWindow;
+
+  mainWindow openEventStream;
+
+  mainWindow setWMTitle "X11ButtonPane Demo";
+
+#ifndef XFONTS
+  /*
+   * This is the recommended way to set up fonts for each widget.
+   */
+  label ftFontVar initFontLib;
+  label ftFont "DejaVu Sans", 0, FTFONT_BOLD, 0, 12.0;
+  label ftFontVar saveSelectedFont;
+  lbutton ftFont "DejaVu Sans", 0, FTFONT_MEDIUM, 0, 10.0;
+  lbutton ftFontVar saveSelectedFont;
+  rbutton ftFont "DejaVu Sans", 0, FTFONT_MEDIUM, 0, 10.0;
+  rbutton ftFontVar saveSelectedFont;
+#else
+  lbutton label font "fixed";
+#endif  
+
+  label multiLine "X11ButtonPane\nDemo";
+
+#ifndef MULTILINE
+  lbutton label text "Left";
+  rbutton label text "Right";
+#else
+  lbutton label multiLine "Click\nHere";
+  rbutton label multiLine "Click\nHere, Too";
+#endif
+
+#if CORNER_RADIUS > 0
+  lbutton bevelEdges = false;
+  lbutton radius = CORNER_RADIUS;
+  lbutton label radius = CORNER_RADIUS;
+  rbutton bevelEdges = false;
+  rbutton radius = CORNER_RADIUS;
+  rbutton label radius = CORNER_RADIUS;
+#endif  
+
+  lbutton label highlightBackgroundColor = "gray90";
+  rbutton label highlightBackgroundColor = "gray90";
+
+  lbutton label highlightTextColor = "gray";
+  rbutton label highlightTextColor = "gray";
+
+  lbutton draw;
+  lbutton refresh;
+  rbutton draw;
+  rbutton refresh;
+  label draw;
+  label refresh;
+
+  while (TRUE) @{
+    mainWindow inputStream queueInput;
+    if (mainWindow inputStream eventPending) @{
+      e become mainWindow inputStream inputQueue unshift;
+
+      mainWindow subPaneNotify e;
+
+      switch (e eventClass value)
+	@{
+	case EXPOSE:
+	  lbutton subPaneExpose (lbutton, e);
+	  rbutton subPaneExpose (rbutton, e);
+	  label subPaneExpose (label, e);
+	  break;
+	default:
+	  if (lbutton haveClick) @{
+	    printf ("left button!\n");
+	    lbutton clearClick;
+	  @} else if (rbutton haveClick) @{
+	    printf ("right button!\n");
+	    rbutton clearClick;
+	  @}
+	  break;
+	@}
+    @} else @{
+      usleep (1000);
+    @}
+  @}
+
+@}
+
+@end example
+
+@subsubheading Retrieving Button States
+
+The @code{X11ButtonPane} class provides several methods to
+retrieve the state of a button object.  
+
+@table @code
+
+@item haveClick
+Returns true or false depending on whether the button has
+been clicked recently.  This means that programs do not
+need to constantly monitor a button's state.  If @mnm{haveClick}
+returns true, then the click state can be cleared with the
+@mnm{clearClick} method (below).
+
+@item isClicked
+This method returns true or false depending on whether the
+pointer's button 1 is currently pressed within the button's
+area.
+
+@item clearClick
+Resets a previous clicked state as returned by the @mnm{haveClick}
+method, above.
+
+@item text
+Returns a @code{String} with the button's text.  If the text is
+displayed on several lines, the method concatenates the lines with
+a space character @samp{' '} between them.
+
+@end table
+
+
+@subsubheading Instance Variables
+
+@table @code
+
+@cindex @code{bevelEdges} instance variable @idxclscite{X11ButtonPane}
+@item bevelEdges
+A @code{Boolean} that causes the widget to display beveled edges
+if true.
+
+@cindex @code{bevelWidth} instance variable @idxclscite{X11ButtonPane}
+@item bevelWidth
+An @code{Integer} that defines the width of the button's bevelled
+edges in pixels.
+
+@cindex @code{borderColor} instance variable @idxclscite{X11ButtonPane}
+@item borderColor
+A @code{String} that contains the name of the button's border color when
+drawing a non-beveled button.
+
+@cindex @code{borderMargin} instance variable @idxclscite{X11ButtonPane}
+@item borderMargin
+An @code{Integer} that defines the distance between the border and the
+pane's edge in pixels, when drawing a non-beveled button.
+
+@cindex @code{borderWidth} instance variable @idxclscite{X11ButtonPane}
+@cindex @code{borderHighlightWidth} instance variable @idxclscite{X11ButtonPane}
+@item borderWidth
+@item borderHighlighWidth
+@code{Integer} values that determine the width a non-beveled button when it is clicked on and in its non-highlighted state.
+
+@cindex @code{clicked} instance variable @idxclscite{X11ButtonPane}
+@item clicked
+A @code{Boolean} that is true when the pointer's Button 1 is
+pressed while over the widget, and false otherwise.
+
+@cindex @code{highlightHPen} instance variable @idxclscite{X11ButtonPane}
+@cindex @code{highlightVPen} instance variable @idxclscite{X11ButtonPane}
+@cindex @code{shadowPen} instance variable @idxclscite{X11ButtonPane}
+@item highlightHPen
+@item highlightVPen
+@item shadowPen
+@code{Pen} objects that defines the color of the edges' bevels
+when drawing a beveled widget.
+
+@cindex @code{label} instance variable @idxclscite{X11ButtonPane}
+@item label
+A @code{X11LabelPane} object that contains a button's text
+and provides the methods to draw on the button's surface.
+@xref{X11LabelPane}.
+
+@cindex @code{radius} instance variable @idxclscite{X11ButtonPane}
+@item radius
+If greater than zero (@samp{0}), this @code{Integer} defines the
+radius in pixels of the curves displayed when the button is drawn
+with rounded corners.
+
+@end table
+
+@subsubheading Instance Methods
+
+@table @code
+
+@cindex @code{attachTo} instance method @idxclscite{X11ButtonPane}
+@item attachTo (@code{Object} @var{parentPane}, @code{String} @var{geometry})
+Attaches the receiver to the parentPane named by @var{parentPane},
+with the placement and size given by @code{geometry}.  The parent pane
+should generally be a @code{X11PaneDispatcher} which directs X events
+to the correct subpane.
+
+The positioning of subwindows within the parent window is controlled
+by the arguments to the @mnm{attachTo} methods; in particular, these
+methods accept a geometry specification, as an argument, which has
+the following format.
+
+@example
+
+width[%]xheight[%]+x[%]+y[%]
+
+@end example
+
+If a dimension does not contain a percent (@samp{%}) sign, the dimensions
+are in pixels.  With a percent sign, the dimensions are a fractional
+percentage of the parent pane's width or height, or a horizontal or
+vertical distance that places the subwindow's upper left-hand corner
+that distance from the parent window's upper left-hand corner.
+
+@cindex @code{clearClick} instance method @idxclscite{X11ButtonPane}
+@item clearClick (@code{void})
+Resets a button's clicked state as returned by @mnm{haveClick} to
+false.
+
+@cindex @code{draw} instance method @idxclscite{X11ButtonPane}
+@item draw (@code{void})
+Draws the button and its label on the pane's buffer so the
+widget can be displayed with the refresh method.
+
+If the program has saved a font specification to the widget's
+@code{ftFontVar} instance variable, then this method also selects
+the font before drawing the widget.  If you want a button to display
+a different font than the surronding window, this is the way to
+declare and save a font specification.
+
+@example
+
+/* The button inherits the ftFont method from X11Pane class. */
+
+button ftFont "DejaVu Sans", FTFONT_ROMAN, FTFONT_MEDIUM, DEFAULT_DPI, 10.0;
+button ftFontVar saveSelectedFont;
+
+@end example
+
+The @code{X11FreeTypeFont} section describes the parameters that
+the @code{X11FreeTypeFont} class uses when selecting fonts. @xref{X11FreeTypeFont}.
+
+@cindex @code{haveClick} instance method @idxclscite{X11ButtonPane}
+@item haveClicked (@code{void})
+Returns a @code{Boolean} true or false depending on whether the
+button has been clicked previously.  In that case, the program
+should call the @mnm{clearClick} method to detect further
+button clicks.
+
+@cindex @code{isClicked} instance method @idxclscite{X11ButtonPane}
+@item isClicked (@code{void})
+Returns a @code{Boolean} value of true or false depending on
+whether the pointer's button 1 is currently pressed within the
+button. 
+
+@cindex @code{new} instance method @idxclscite{X11ButtonPane}
+@item new (@code{String} @var{newObjectName})
+The @code{X11ButtonPane} constructor.  Creates a @code{X11ButtonPane}
+object with the classes' instance variables, and initialized the
+object's event handlers and @code{Pen} objects for drawing a beveled
+button.
+
+@cindex @code{subPaneExpose} instance method @idxclscite{X11ButtonPane}
+@item subPaneExpose (@code{Object} @var{subPane}, @code{InputEvent} @var{event})
+@cindex @code{subPaneButtonPress} instance method @idxclscite{X11ButtonPane}
+@item subPaneButtonPress (@code{Object} @var{subPane}, @code{InputEvent} @var{event})
+@cindex @code{subPaneEnter} instance method @idxclscite{X11ButtonPane}
+@item subPaneEnter (@code{Object} @var{subPane}, @code{InputEvent} @var{event})
+@cindex @code{subPaneLeave} instance method @idxclscite{X11ButtonPane}
+@item subPaneLeave (@code{Object} @var{subPane}, @code{InputEvent} @var{event})
+The class's handlers for events generated by the X server.
+
+@cindex @code{subPaneFocusIn} instance method @idxclscite{X11ButtonPane}
+@cindex @code{subPaneFocusOut} instance method @idxclscite{X11ButtonPane}
+@item subPaneFocusIn (@code{void})
+@item subPaneFocusOut (@code{void})
+Handlers for focus changes generated by the application.  These do not
+respond to X events and don't require any arguments. These methods are
+designed to be called by methods like @code{X11PaneDispatcher :
+shiftFocus} (e.g., in response to a @key{Tab} keypress).
+
+@cindex @code{text} instance method @idxclscite{X11ButtonPane}
+@item text (@code{void})
+Returns a @code{String} with the button's text.  If the text is
+displayed on multiple lines, this method concatenates the lines
+with a space character (@samp{ }) between them.
+
+@end table
+
+
+@node X11LabelPane, X11ScrollBarPane, X11ButtonPane, Classes
+@iftex
+@section @code{X11LabelPane} Class
+@end iftex
+@ifnottex
+@subheading @code{X11LabelPane} Class
+@end ifnottex
+@cindex @code{X11LabelPane} class
+
+@code{X11LabelPane} objects display text in graphical windows.  The
+class provides instance variables and methods that control the label's
+font, border, justification, whether the label is highlighted when the
+pointer is over it, and formatting of single and multiple line labels.
+
+Formatting label text for multiple line labels, as well as controlling
+the text's justification, is described in the subsections below.
+
+Here is a simple example program that displays a X11LabelPane widget.
+
+@c test/expect/examples-x11/x11labelpane.ca
+@example
+
+#include <ctalk/ctalkdefs.h>
+
+#define FTFONTS    /* Comment this line out to use X fonts. */
+#define MULTILINE  /* Comment out to display a single line label. */
+#define ROUNDED    /* Comment out to draw borders with straight edges. */
+
+int main (int argv, char **argc) @{
+  X11Pane new xPane;
+  X11PaneDispatcher new xTopLevelPane;
+  X11CanvasPane new xCanvasPane;
+  X11LabelPane new xLabelPane;
+  InputEvent new e;
+  Integer new verbose;
+  Exception new ex;
+
+#ifdef FTFONTS 
+  xPane ftFontVar initFontLib;
+#endif       
+
+  xPane initialize 0, 0, 300, 300;
+  xPane inputStream eventMask =
+    WINDELETE|EXPOSE|ENTERWINDOWNOTIFY|LEAVEWINDOWNOTIFY;
+  xTopLevelPane attachTo xPane;
+  xLabelPane attachTo xTopLevelPane, "100x100+25+50";
+  xPane map;
+  xPane raiseWindow;
+
+  xPane openEventStream;
+
+#ifdef FTFONTS
+  xLabelPane ftFont "DejaVu Sans", 0, 0, 72, 11.0;
+#else
+  xLabelPane font "-*-helvetica-medium-r-*-*-*-80-*-*-*-*-*-*";
+#endif       
+  xLabelPane textColor = "navyblue";
+
+#ifdef MULTILINE
+  xLabelPane multiLine "Labels\ncan occupy\nmultiple\nlines.";
+#else
+  xLabelPane text "A Label";
+#endif
+
+#ifdef ROUNDED
+  xLabelPane radius = 10;
+#endif  
+
+  xLabelPane draw;
+  
+  while (TRUE) @{
+    xPane inputStream queueInput;
+    if (xPane inputStream eventPending) @{
+      e become xPane inputStream inputQueue unshift;
+      xPane subPaneNotify e;  /* Call the classes' event handlers. */
+      if (ex pending)
+	ex handle;
+      
+      switch (e eventClass value)
+     	@{
+     	case WINDELETE:
+      	  xPane deleteAndClose;
+     	  exit (0);
+     	  break;
+     	default:
+     	  break;
+     	@}
+    @}
+  @}
+@}
+
+
+@end example
+
+@subsubheading Multiple Line Labels
+
+If the label's text contains embedded newline @samp{\n} characters,
+and the text is defined using the @mnm{multiLine} method, below, then
+the text is display on multiple lines, with the breaks appearing where
+the newline characters appear in the text.  The text is displayed
+centered vertically, and justified as described in the next section.
+
+For single line labels, use the @mnm{text} method with a @code{String}
+argument to fit on one line.
+
+@subsubheading Justification
+
+The @code{X11LabelPane} widget contains a simple layout engine that can
+center label text, or justify it against the right or left margins.
+
+The text's justification is determined by the setting of the
+@code{justification} instance variable, which can have one of three
+values, which are defined by the following macros:
+
+@example
+
+LABEL_LEFT
+LABEL_RIGHT
+LABEL_CENTER
+
+@end example
+
+These macros are defined in the @flnm{ctalk/ctalkdefs.h} include file.
+To use them, add the line
+
+@example
+
+#include <ctalk/ctalkdefs.h>
+
+@end example
+
+to the beginning of the source module.
+
+The widget calculates the right and left margins as the following:
+
+@example
+
+(aLabel margin) + (aLabel highlightBorderWidth) + (aLabel padding)
+
+@end example
+
+The highlighted border width is included regardless of whether the
+border actually is drawn or the label is hightlighted, so text
+alignment remains constant if a program draws and then obscures the
+border, or when the pointer passes over the label.
+
+
+@subsubheading Instance Variables
+
+@table @code
+@cindex @code{border} instance variable @idxclscite{X11LabelPane}
+@item border
+A @code{Boolean} that controls whether the label displays a border.
+The default is @samp{true}.
+
+@cindex @code{borderColor} instance variable @idxclscite{X11LabelPane}
+@item borderColor
+A @code{String} that contains the name of the border's color if the
+label displays a border.  The default is @samp{black}.
+
+@cindex @code{borderWidth} instance variable @idxclscite{X11LabelPane}
+@item borderWidth
+An @code{Integer} that defines the width of the border in pixels when
+the widget is not highlighted.  The default is @samp{2}.
+
+@cindex @code{grayed} instance variable @idxclscite{X11LabelPane}
+@item grayed
+A @code{Boolean} that determines whether to draw the widget in a
+grayed, or inactive, state.  The state has no other effect for a
+@code{X11LabelPane} object.  It can indicate the state of other
+controls in the window.  The default is @code{false}.
+
+@cindex @code{grayedColor} instance variable @idxclscite{X11LabelPane}
+@item grayedColor
+A @code{String} that contains the name of the color to draw the widget
+when it is grayed. The default is is @samp{gray}.
+
+@cindex @code{haveMultiLine} instance variable @idxclscite{X11LabelPane}
+@item haveMultiLine
+A @code{Boolean} that indicates whether the widget's text is defined
+using the @mnm{multiLine} method, and indicates that the widget should
+format the label's text to span multiple lines.
+
+@cindex @code{highlightBorderColor} instance variable @idxclscite{X11LabelPane}
+@item highlightBackgroundColor
+A @code{String} that contains the color to draw a highlighted label's
+background.
+
+@cindex @code{highlightBorderColor} instance variable @idxclscite{X11LabelPane}
+@item highlightBorderColor
+A @code{String} that contain's the name of a highlighed border's
+color.  The default is @samp{black}.
+
+@cindex @code{highlightBorderWidth} instance variable @idxclscite{X11LabelPane}
+@item highlightBorderWidth
+An @code{Integer} that determines the width in pixels of the label's
+border when the widget is highlighed.  The default is two pixels.
+
+@cindex @code{highlighTextBold} instance variable @idxclscite{X11LabelPane}
+@item highlightTextBold
+A @code{Boolean} that indicates whether the widget should draw a
+highlighted widget's text using a bold typeface.  The default is
+@code{false}.
+
+This variable has no effect when using X11 bitmap fonts.
+@cindex @code{highlightTextColor} instance variable @idxclscite{X11LabelPane}
+
+@item highlightTextColor
+A @code{String} that contains the name of the text color when the widget
+is drawn highlighted.  The default is @samp{black}.
+
+@cindex @code{justify} instance variable @idxclscite{X11LabelPane}
+@item justify
+An @code{Integer} that determines whether to draw the label's text
+centered horizontally, or justified on the right or left margins.
+
+This variable recognizes three values, which are #defines in the
+@flnm{ctalk/ctalkdefs.h} include file.  The definitions are:
+
+@example
+
+LABEL_LEFT
+LABEL_CENTER
+LABEL_RIGHT
+
+@end example
+
+To use these macros, add the statement
+
+@example
+
+#include <ctalk/ctalkdefs.h>
+
+@end example
+
+near the top of the source module.
+
+@cindex @code{leading} instance variable @idxclscite{X11LabelPane}
+@item leading
+An @code{Integer} that defines the space between lines of a multi-line
+label.  This variable only affects text drawn using scalable fonts of
+the Freetype library.  X11 bitmap fonts contain the leading in the
+character glyphs.
+
+@cindex @code{margin} instance variable @idxclscite{X11LabelPane}
+@item margin
+An @code{Integer} that defines the distance in pixels between the
+border and the edges of the @code{X11LabelPane} object.
+
+@cindex @code{padding} instance variable @idxclscite{X11LabelPane}
+@item padding
+An @code{Integer} that defines the minimum distance in pixels between the
+inner edge of the border and the pane object's text.
+
+@cindex @code{radius} instance variable @idxclscite{X11LabelPane}
+@item radius
+An @code{Integer} that describes the radius to round the corners
+of the border with.  If the value is @samp{0} (the default), then
+draw borders with straight edges.
+
+@cindex @code{textColor} instance variable @idxclscite{X11LabelPane}
+@item textColor
+A @code{String} that defines the name of the text color when the
+widget is not highlighted.  The default is @samp{black}.
+
+@cindex @code{textLine} instance variable @idxclscite{X11LabelPane}
+@item textLine
+A @code{String} that contains the label's text if the text is to
+appear on a single line.  The default is an empty string.
+
+@cindex @code{textLines} instance variable @idxclscite{X11LabelPane}
+@item textLines
+An @code{Array} that contains a multi-line widget's text, as set using
+the @mnm{multiLine} method.
+
+@end table
+
+@subsubsection Instance Methods
+
+@table @code
+
+@cindex @code{draw} instance method @idxclscite{X11LabelPane}
+@cindex @code{drawButtonLayout} instance method @idxclscite{X11LabelPane}
+@item draw (@code{void})
+@item drawButtonLayout (@code{void})
+Draws the text of the label, and updates the visible label on the
+display.  The instance variables in this class and the text font's
+class allow programs to adjust how the text is laid out.
+
+The @mnm{drawButtonLayout} method is similar, but it uses a different
+algorithm that is more suited to laying out text on button labels.
+
+If the widget has saved a font specification to its @code{ftFontVar}
+instance variable, then this method also selects the font before
+drawing the label.  If you want a label to have a different font
+than the rest of the window, this is how to declare and save
+a font specification.
+
+@example
+
+/* The label inherits the ftFont method from X11Pane class. */
+
+label ftFont "DejaVu Sans", FTFONT_ROMAN, FTFONT_MEDIUM, DEFAULT_DPI, 10.0;
+label ftFontVar saveSelectedFont;
+
+@end example
+
+The @code{X11FreeTypeFont} section describes the parameters that
+the @code{X11FreeTypeFont} class uses when selecting fonts. @xref{X11FreeTypeFont}.
+
+@cindex @code{new} instance method @idxclscite{X11LabelPane}
+@item new
+Creates a new @code{X11LabelPane} object, initializes the object's
+instance variables and event handlers, and sets the pane's default
+foreground and background colors.
+
+@cindex @code{subPaneExpose} instance method @idxclscite{X11LabelPane}
+@item subPaneExpose (@code{Object} @var{subPane}, @code{InputEvent} @var{event})
+The widget's Expose event handler.  When the widget receives an Expose
+event, this method redraws the widget.
+
+@cindex @code{subPaneEnter} instance method @idxclscite{X11LabelPane}
+@item subPaneEnter (@code{Object} @var{subPane}, @code{InputEvent} @var{event})
+@cindex @code{subPaneLeave} instance method @idxclscite{X11LabelPane}
+@item subPaneLeave (@code{Object} @var{subPane}, @code{InputEvent} @var{event})
+The widget's EnterNotify and LeaveNotify event handlers.  These
+methods set the @code{subPane's} @code{highlight} instance variable to
+true or false (if the widget is configured to accept input focus),
+then calls the @mnm{draw} method to redraw the label.
+
+@cindex @code{font} instance method @idxclscite{X11LabelPane}
+@item font (@code{String} @var{fontdesc})
+Sets the X11 font to use for the label's text.  When drawing using
+Freetype scalable fonts, the widget uses the @mnm{ftFont} method from
+@code{X11CanvasPane}.
+
+@cindex @code{text} instance method @idxclscite{X11LabelPane}
+@item text (@code{String} @var{labelText})
+Sets the text of a single-line label.
+
+@cindex @code{text} instance method @idxclscite{X11LabelPane}
+@item text (@code{String} @var{labelText})
+Sets the receiver's @code{textLine} instance variable for single-line
+labels.
+
+@cindex @code{multiText} instance method @idxclscite{X11LabelPane}
+@item multiText (@code{String} @var{labelText})
+Divides the text given as the argument into lines where newline
+characters @samp{\n} appear in the text, and sets the elements of the
+receiver's @code{textLine} instance variable to one line for each
+array element.  Also sets the @code{haveMultiLine} instance variable
+to @code{true}.
+
+@end table
+
+
+@node X11ScrollBarPane, X11TextPane, X11LabelPane, Classes
 @iftex
 @section @code{X11ScrollBarPane} Class
 @end iftex
@@ -13817,11 +14804,8 @@ object's instance variables. @xref{Rectangle}.
 Here is an example program that demonstrates the basic steps needed
 to draw a scroll bar.
 
-@c test/expect/examples-x11/scrollbar.c
+@c demos/x11/scrollbar.ca
 @example
-
-String new fgColor;
-String new bgColor;
 
 int main (int argv, char **argc) @{
   Integer new xWindowSize;
@@ -13829,10 +14813,12 @@ int main (int argv, char **argc) @{
   X11Pane new xPane;
   X11PaneDispatcher new xTopLevelPane;
   X11ScrollBarPane new xScrollBarPane;
+  X11CanvasPane new xCanvasPane;
   InputEvent new e;
-  Integer new nEvents;
   Exception new ex;
   Application new scrollDemo;
+  String new pctstr;
+  Integer new strWidth;
 
   scrollDemo enableExceptionTrace;
   scrollDemo installExitHandlerBasic;
@@ -13841,29 +14827,31 @@ int main (int argv, char **argc) @{
   xWindowSize = 400;
   yWindowSize = 400;
 
-  fgColor = "white";
-  bgColor = "white";
-
-  parse_args (argc, argv);
+  xPane ftFontVar initFontLib;
+  xPane ftFont "DejaVu Sans", 0, 0, 0, 48.0;
 
   xPane initialize xWindowSize, yWindowSize;
+  xPane inputStream eventMask = WINDELETE|EXPOSE|BUTTONPRESS|BUTTONRELEASE|MOTIONNOTIFY;
   xTopLevelPane attachTo xPane;
-  xScrollBarPane attachTo xTopLevelPane;
+  xScrollBarPane attachTo xTopLevelPane, "20x100%+0+0";
+  xCanvasPane attachTo xTopLevelPane, "380x100%+20+0";
 
   xPane map;
   xPane raiseWindow;
 
-  /*
-   *  When animating, the old position of the scroll thumb
-   *  normally is set to the scrollbar's background color.
-   */
-  xScrollBarPane thumbErasePen colorName = bgColor;
-
   xPane openEventStream;
 
-  xScrollBarPane background bgColor;
-  xScrollBarPane foreground fgColor;
-  xScrollBarPane clear;
+  xScrollBarPane background "lightblue";
+  xScrollBarPane refresh;
+  
+  xCanvasPane background "navy";
+  xCanvasPane foreground "navy";
+  xPane ftFontVar namedX11Color "white";
+  xCanvasPane clear;
+  pctstr printOn "%0.2f%%", xScrollBarPane percent * 100.0;
+  strWidth = xPane ftFontVar textWidth pctstr;
+  xCanvasPane putStrXY (380 / 2) - (strWidth / 2), (400 / 2), pctstr;
+  xCanvasPane refresh;
 
   while (TRUE) @{
 
@@ -13879,58 +14867,31 @@ int main (int argv, char **argc) @{
       switch (e eventClass value)
  	@{
 	case EXPOSE:
-	  xScrollBarPane refresh;
+	  xCanvasPane paneBuffer clear;
+	  pctstr printOn "%0.2f%%", xScrollBarPane percent * 100;
+	  strWidth = xPane ftFontVar textWidth pctstr;
+	  xCanvasPane putStrXY (380 / 2) - (strWidth / 2), (400 / 2), pctstr;
+	  xCanvasPane refresh;
 	  break;
  	case WINDELETE:
   	  xPane deleteAndClose;
  	  exit (0);
  	  break;
   	default:
+	  xCanvasPane paneBuffer clear;
+	  pctstr printOn "%0.2f%%", xScrollBarPane percent * 100;
+	  strWidth = xPane ftFontVar textWidth pctstr;
+	  xCanvasPane putStrXY (380 / 2) - (strWidth / 2), (400 / 2), pctstr;
+	  xCanvasPane refresh;
   	  break;
  	@}
     @}
   @}
 @}
 
-void exit_help (char *cmd) @{
-  printf ("\nUsage: %s [-h] | [-f n] | [-m n]\n", cmd);
-  printf ("-bg <color>  Background color.\n");
-  printf ("-fg <color>  Foreground color.\n");
-  printf ("-h           Print this message and exit.\n");
-  printf ("Please report bugs to: rk3314042@@gmail.com.\n");
-  exit (0);
-@}
-
-int parse_args (int c, char **a) @{
-  int i;
-  for (i = 1; i < c; i++) @{
-    if (a[i][0] == '-') @{
-      switch (a[i][1])
-	@{
-	case 'b':
-	  /* Braces are necessary here. */
-	  @{
-	    bgColor = a[++i];
-	  @}
-	  break;
-	case 'h':
-	  exit_help (a[0]);
-	  break;
-	case 'f':
-	  if (a[i][2] == 'g') @{
-	    fgColor = a[++i];
-	  @}
-	  break;
-	@}
-    @} else @{
-      exit_help (a[0]);
-    @}
-  @}
-@}
-
 @end example
 
-@subheading Instance Variables
+@subsubheading Instance Variables
 
 @table @code
 
@@ -13939,38 +14900,30 @@ int parse_args (int c, char **a) @{
 A @code{X11Cursor} object that contains the resource ID of the widget's
 arrow cursor. @xref{X11Cursor}.
 
+@cindex @code{bevel} instance variable @idxclscite{X11ScrollBarPane}
+@item bevel
+A @code{Boolean} that determines whether the scroll thumb is drawn
+as a beveled widget.
+
 @cindex @code{dragging} instance variable @idxclscite{X11ScrollBarPane}
 @item dragging
 A @code{Boolean} object that is True while the right mouse button is
 clicked while over the scroll thumb. @xref{Boolean}.
-
-@cindex @code{dragStartX} instance variable @idxclscite{X11ScrollBarPane}
-@cindex @code{dragStartY} instance variable @idxclscite{X11ScrollBarPane}
-@item dragStartX
-@item dragStartY
-The x and y coordinates of the mouse pointer when starting to drag the
-scroll thumb. @xref{Integer}.
 
 @cindex @code{frame} instance variable @idxclscite{X11ScrollBarPane}
 @item frame
 A @code{Rectangle} object that contains coordinates of the scroll bar frame.
 @xref{Rectangle}.
 
+@cindex @code{frameWidthVar} instance variable @idxclscite{X11ScrollBarPane}
+@item frameWidthVar
+An @code{Integer} that contains the width of the scrollbar's visible frame
+in pixels.
+
 @cindex @code{framePen} instance variable @idxclscite{X11ScrollBarPane}
 @item framePen
 A @code{Pen} object that sets the line color and width of the scroll bar frame.
 @xref{Pen}.
-
-@cindex @code{frameTopStartX} instance variable @idxclscite{X11ScrollBarPane}
-@cindex @code{frameTopStartY} instance variable @idxclscite{X11ScrollBarPane}
-@cindex @code{frameBottomEndX} instance variable @idxclscite{X11ScrollBarPane}
-@cindex @code{frameBottomEndY} instance variable @idxclscite{X11ScrollBarPane}
-@item frameTopStartX
-@item frameTopStartY
-@item frameBottomEndX
-@item frameBottomEndY
-@code{Integer} objects that are set to the frame coordinates and used
-when the widget handles PointerMotion events. @xref{Integer}.
 
 @cindex @code{grabCursor} instance variable @idxclscite{X11ScrollBarPane}
 @item grabCursor
@@ -13982,10 +14935,30 @@ grab cursor. @xref{X11Cursor}.
 An @code{Integer} object that contains the previous PointerMotion
 event's y coordinate while dragging. @xref{Integer}.
 
+@cindex @code{margin} instance variable @idxclscite{X11ScrollBarPane}
+@item margin
+An @code{Integer} that defines the distance in pixels between the
+pane's edge and the outer edge of the scrollbar frame.
+
+@cindex @code{mouseOver} instance variable @idxclscite{X11ScrollBarPane}
+@item mouseOver
+A @code{Boolean} that is true if the pointer is over the scrollbar frame,
+false otherwise.
+
+@cindex @code{padding} instance variable @idxclscite{X11ScrollBarPane}
+@item padding
+An @code{Integer} that defines the distance in pixels between the inner
+edge of the scrollbar frame and the thumb.
+
 @cindex @code{thumb} instance variable @idxclscite{X11ScrollBarPane}
 @item thumb
 A @code{Rectangle} object that contains coordinates of the scroll thumb.
 @xref{Rectangle}.
+
+@cindex @code{thumbBackgroundColor} instance variable @idxclscite{X11ScrollBarPane}
+@item thumbBackgrondColor
+A @code{String} that contains the name of the X11 color used to draw
+the thumb.
 
 @cindex @code{thumbErasePen} instance variable @idxclscite{X11ScrollBarPane}
 @item thumbErasePen
@@ -14003,16 +14976,100 @@ An @code{Integer} that sets the height of the scroll thumb.
 A @code{Pen} object that sets the color and line width of the scroll thumb.
 @xref{Pen}.
 
-@cindex @code{thumbTopStartX} instance variable @idxclscite{X11ScrollBarPane}
-@cindex @code{thumbTopStartY} instance variable @idxclscite{X11ScrollBarPane}
-@cindex @code{thumbBottomEndX} instance variable @idxclscite{X11ScrollBarPane}
-@cindex @code{thumbBottomEndY} instance variable @idxclscite{X11ScrollBarPane}
-@item thumbTopStartX
-@item thumbTopStartY
-@item thumbBottomEndX
-@item thumbBottomEndY
-@code{Integer} objects that are set to the thumb coordinates and used
-when the widget handles PointerMotion events. @xref{Integer}.
+@cindex @code{thumbPix} instance variable @idxclscite{X11ScrollBarPane}
+@item thumbPix
+A @code{X11Bitmap} that contains the thumb's beveled image, if the
+pane is drawn with @code{bevel} set to @samp{true}.
+@end table
+
+@subsubheading Instance Methods
+
+@table @code
+
+@cindex @code{attachTo} instance method @idxclscite{X11ScrollBarPane}
+@item @mnm{attachTo} (@code{Object} @var{parentPane})
+Attaches the @code{X11ScrollBarPane} object to its parent pane,
+which is usually a @code{X11PaneDispatcher} object.  Also sizes the
+pane and its buffers to fit within the visible window, and sets the
+dimensions of the scrollbar's visible frame and thumb.
+
+@cindex @code{background} instance method @idxclscite{X11ScrollBarPane}
+@item background (@code{String} @var{colorName})
+Sets the pane's background color to @var{colorName}, and also sets
+the color to use when performing scrollbar animations.
+
+@cindex @code{drawThumb} instance method @idxclscite{X11ScrollBarPane}
+@cindex @code{eraseThumb} instance method @idxclscite{X11ScrollBarPane}
+@item @mnm{drawThumb} (@code{void})
+@item @mnm{eraseThumb} (@code{void})
+These methods animate the thumb so that it tracks the pointer's
+position within the scrollbar.
+
+@cindex @code{frameWidth} instance method @idxclscite{X11ScrollBarPane}
+@item @mnm{frameWidth} (@code{Integer} @var{lineWidth})
+Calculates the scrollbar frame's dimensions within the pane's margins
+for the line width in pixels given as the argument.
+
+@cindex @code{new} instance method @idxclscite{X11ScrollBarPane}
+@item @mnm{new} (@code{String} @var{paneName})
+Creates a new @code{X11ScrollBarPane} object, initializes the pane's
+event handlers, and sets the default colors of the pane's elements.
+
+@cindex @code{percent} instance method @idxclscite{X11ScrollBarPane}
+@item percent (@code{void})
+Returns a @code{Float} with the position of the thumb's top edge
+in the usable trough of the scrollbar, as a percentage between 0.0
+and 1.0.
+
+The usable area of the trough is defined as the distance that the
+top edge of the scrollbar thumb can travel within the scrollbar's
+margins; i.e,
+
+@example
+
+usableTrough = aScrollBar size y -
+                  ((aScrollBar margin * 2) +
+                   (aScrollBar frameWidthVar * 2) +
+                   (aScrollBar padding * 2) +
+                   (aScrollBar thumbHeight));
+
+@end example
+
+@cindex @code{pointIsInThumb} instance method @idxclscite{X11ScrollBarPane}
+@item pointIsInThumb (@code{Integer} @var{x}, @code{Integer}, @var{y})
+This method returns a @code{Boolean} value of true if the point
+@var{x,y} is within the scroll bar thumb.
+
+@cindex @code{subPaneDestroy} instance method @idxclscite{X11ScrollBarPane}
+@cindex @code{subPaneExpose} instance method @idxclscite{X11ScrollBarPane}
+@cindex @code{subPanePointerInput} instance method @idxclscite{X11ScrollBarPane}
+@cindex @code{subPanePointerMotion} instance method @idxclscite{X11ScrollBarPane}
+@cindex @code{subPaneResize} instance method @idxclscite{X11ScrollBarPane}
+@cindex @code{subPaneEnterNotify} instance method @idxclscite{X11ScrollBarPane}
+@cindex @code{subPaneLeaveNotify} instance method @idxclscite{X11ScrollBarPane}
+@item @mnm{subPaneDestroy} (@code{Object} @var{subPane}, @code{InputEvent} @var{event}
+@item @mnm{subPaneExpose} (@code{Object} @var{subPane}, @code{InputEvent} @var{event}
+@item @mnm{subPanePointerInput} (@code{Object} @var{subPane}, @code{InputEvent} @var{event}
+@item @mnm{subPanePointerMotion} (@code{Object} @var{subPane}, @code{InputEvent} @var{event}
+@item @mnm{subPaneEnterNotify} (@code{Object} @var{subPane}, @code{InputEvent} @var{event}
+@item @mnm{subPaneLeaveNotify} (@code{Object} @var{subPane}, @code{InputEvent} @var{event}
+The @code{X11ScrollBarPane} object's event handlers for DESTROY,
+EXPOSE, BUTTONPRESS/BUTTONRELEASE, MOTIONNOTIFY, ENTERWINDOWNOTIFY,
+and LEAVEWINDOWNOTIFY X Window System events.
+
+@cindex @code{thumbDimensions} instance method @idxclscite{X11ScrollBarPane}
+@item @mnm{thumbDimensions} (@code{Integer} @var{y}, @code{Integer} @var{height})
+Calculates the position and size thumb's rectangle within the pane using the vertical @var{y} position and the thumb's @var{height}.
+
+@cindex @code{thumbPercent} instance method @idxclscite{X11ScrollBarPane}
+@item @mnm{thumbPercent} (@code{Float} @var{pct})
+Calculates the thumb's height as a percent of the trough's vertical distance.
+The argument, @var{pct}, is a @code{Float} between 0.0 and 1.0.
+
+Note that, in order to make these calculations and update the thumb height in
+the pane's viewing area, the scrollbar must already be attached to its parent
+pane, and the program needs to be receiving X events.  So this method should
+only be used after a call to, for example, X11Pane : openEventStream.
 
 @end table
 
@@ -14199,9 +15256,7 @@ variable.
 @item attachTo (@code{Object} @var{parentPane})
 Attaches the @code{X11TextPane} object to its parent pane.
 The parent pane should always be a @code{X11PaneDispatcher}
-object.  This method sets the height and width of the pane
-and its buffers based on the parent pane's
-@code{containerMode}.  @xref{X11PaneDispatcher}.
+object.  
 
 @cindex @mnm{cursorPos} instance method @idxclscite{X11TextPane}
 @item cursorPos (@code{Integer} @var{x}, @code{Integer} @var{y})
@@ -14415,7 +15470,7 @@ center pointer button at the point where you want the text inserted.
 If the program has text selected and another program tries to place
 its contents in the X primary selection, the class will allow the
 selection ownership to change to the other program. Any text that was
-selected in the @code{X11TextEditor} pane's window will not longer be
+selected in the @code{X11TextEditor} pane's window will no longer be
 selected.
 
 In general, X programs aren't required to send their to the display's
@@ -14465,12 +15520,12 @@ information about how to select fonts. @xref{X11FreeTypeFont}, @xref{X11Font}.
 
 @subsubheading Instance Variables
 @table @code
-@cindex @code{bufLength} instancevariable @idxclscite{X11TextEditorPane}
+@cindex @code{bufLength} instance variable @idxclscite{X11TextEditorPane}
 @item bufLength
 An @code{Integer} that records the size of the object's text buffer.
 The class adjusts the buffer's size automatically if necessary.
 
-@cindex @code{button} instancevariable @idxclscite{X11TextEditorPane}
+@cindex @code{button} instance variable @idxclscite{X11TextEditorPane}
 @item button
 An @code{Integer} that records the state of the mouse buttons, i.e., whether
 they are pressed or not.  The values that the the variable might contain
@@ -14484,31 +15539,43 @@ are composed of these definitions.
 
 @end example
 
-@cindex @code{foregroundColor} instancevariable @idxclscite{X11TextEditorPane}
+@cindex @code{foregroundColor} instance variable @idxclscite{X11TextEditorPane}
 @item foregroundColor
 A @code{String} that contains the window's foreground color.  The
 variable is included here to facilitate drawing the cursor in reverse
 video.  The @code{backgroundColor} instance variable is declared in
 @code{X11Pane} class. @xref{X11Pane}.
 
-@cindex @code{lineWidth} instancevariable @idxclscite{X11TextEditorPane}
+@cindex @code{lineWidth} instance variable @idxclscite{X11TextEditorPane}
 An @code{Integer} that defines the right margin in character columns.
-Setting this to zero @samp{0} sets the line width limit to the right
-edge of the window.
+Setting this to zero @samp{0} sets the line width limit to the line
+length, so the line width in character columns is calculated as:
 
-@cindex @code{point} instancevariable @idxclscite{X11TextEditorPane}
+@example
+
+lineWidth = (window_width_px - left_margin_px - right_margin_px) /
+               character_width_px;
+
+@end example
+
+@cindex @code{rightMargin} instance variable @idxclscite{X11TextEditorPane}
+@item rightMargin
+The distance in pixels from the right edge of the window, leftward to
+the right-hand limit of each line's length.
+
+@cindex @code{point} instance variable @idxclscite{X11TextEditorPane}
 @item point
 An @code{Integer} that contains the current position in the text where
 editing occurs.
 
-@cindex @code{selectionBackgroundColor} instancevariable @idxclscite{X11TextEditorPane}
+@cindex @code{selectionBackgroundColor} instance variable @idxclscite{X11TextEditorPane}
 @item selectionBackgroundColor
 A @code{String} that contains the background color of selected text.
 The foreground color is the same as normal text.
 
-@cindex @code{sStart} instancevariable @idxclscite{X11TextEditorPane}
-@cindex @code{sEnd} instancevariable @idxclscite{X11TextEditorPane}
-@cindex @code{selecting} instancevariable @idxclscite{X11TextEditorPane}
+@cindex @code{sStart} instance variable @idxclscite{X11TextEditorPane}
+@cindex @code{sEnd} instance variable @idxclscite{X11TextEditorPane}
+@cindex @code{selecting} instance variable @idxclscite{X11TextEditorPane}
 @item sStart
 @item sEnd
 @item selecting
@@ -14517,12 +15584,12 @@ beginning and end of selected text as character indexes into the text.
 The @code{Boolean} variable @code{selecting} is true while the pointer
 is being dragged across text while Button 1 is pressed.
 
-@cindex @code{shiftState} instancevariable @idxclscite{X11TextEditorPane}
+@cindex @code{shiftState} instance variable @idxclscite{X11TextEditorPane}
 @item shiftState
 An @code{Integer} that records whether the Shift of Control keys
 are currently pressed.
 
-@cindex @code{textLength} instancevariable @idxclscite{X11TextEditorPane}
+@cindex @code{textLength} instance variable @idxclscite{X11TextEditorPane}
 @item textLength
 An @code{Integer} that records the length of the object's text.
 
@@ -14530,6 +15597,14 @@ An @code{Integer} that records the length of the object's text.
 
 @subsubheading Instance Methods
 @table @code
+@cindex @mnm{attachTo} instance method @idxclscite{X11TextEditorPane}
+@item @mnm{attachTo} (@code{Object} @var{parent_pane})
+Attach a @code{X11TextEditorPane} object to its parent pane, which is
+typically a @code{X11PaneDispatcher} object.  This method initializes
+the size of the pane's window and buffers to the parent pane's
+dimensions, and positions the pane at the upper left-hand origin of
+the main window.
+
 @cindex @mnm{background} instance method @idxclscite{X11TextEditorPane}
 @cindex @mnm{foreground} instance method @idxclscite{X11TextEditorPane}
 @item background (@code{String} @var{colorName})
@@ -14537,14 +15612,16 @@ An @code{Integer} that records the length of the object's text.
 Sets the foreground and backgrounds color of the pane's window and
 buffers.
 
+@cindex @mnm{clearSelection} instance method @idxclscite{X11TextEditorPane}
+@item clearSelection (@code{void})
+Sets the @code{sStart} and @code{sEnd} instance variables to @samp{0},
+cancelling text selection.
+
 @cindex @mnm{defaultFormat} instance method @idxclscite{X11TextEditorPane}
-@cindex @mnm{defaultFormatFT} instance method @idxclscite{X11TextEditorPane}
 @item defaultFormat (@code{void})
-@item defaultFormatFT (@code{X11FreeTypeFontObject})
-Sets the document-wide margins, text colors.  The
-@code{defaultFormatFT} method takes as its argument a
-@code{X11FreeTypeFont} object, which needs to be configured before
-calling this method. @xref{X11FreeTypeFont}.
+Sets the document-wide margins and text text colors.  If the pane is
+using an @code{X11FreeTypeFont} object to render text, the font needs
+to be configured before calling this method.  @xref{X11FreeTypeFont}.
 
 @cindex @mnm{displayText} instance method @idxclscite{X11TextEditorPane}
 @item displayText (@code{void})
@@ -14552,6 +15629,12 @@ Displays the text and editing cursor.  Programs should call this
 method as soon as possible after the program starts the X event loop
 (which it does by calling the @code{X11TerminalStream :
 openEventStream} method), and after every editing operation.
+
+@cindex @mnm{gotoChar} instance method @idxclscite{X11TextEditorPane}
+@item gotoChar (@code{Integer} @var{n})
+Sets the @code{point} instance variable to the @var{n}'th character in
+the text.  If @var{n} is greater than the length of the text, sets
+@code{point} to the end of the text.
 
 @cindex @mnm{new} instance method @idxclscite{X11TextEditorPane}
 @item new (@code{String} @var{paneName})
@@ -16767,15 +17850,6 @@ other variable-argument function) might vary from the
 @code{__ctalkLibcFnWithMethodVarArgs} prototype, but it tells the
 compiler not to print a warning message in that case.
 
-@subsubheading Pointer and Scalar Format Conversions
-@cindex __ctalkCPrintFmtToCtalkFmt function
-Natively, objects only work with pointer types.  However, a program's
-method or template can call @code{__ctalkCPrintFmtToCtalkFmt} before
-@code{__ctalkLibcFnWithMethodVarArgs.}  This preforms print
-format-argument translations for scalar conversions (for example,
-@samp{%d}).
-@xref{__ctalkCPrintFmtToCtalkFmt}.
-
 @cindex @mnm{writeFormat} method @idxclscite{WriteFileStream}
 @cindex @mnm{writeFormat} method @idxclscite{String}
 @cindex @mnm{printOn} method @idxclscite{String}
@@ -17961,15 +19035,6 @@ method arguments, it is necessary to alias the argument to an object.
 See @mnm{at} (class @code{Array}) and @mnm{atPut} (class
 @code{AssociativeArray}) for examples.
 
-@anchor{__ctalkCPrintFmtToCtalkFmt}
-@cindex __ctalkCPrintFmtToCtalkFmt function
-@cindex @idxfncite{printf(3)}
-@item __ctalkCPrintFmtToCtalkFmt (@code{char *}@var{c_fmt}, @code{char *}@var{ctalk_fmt})
-Translate a C @cite{printf(3)} type format string to a Ctalk
-compatible format string.  The function translates the
-format characters @code{[diouxXeEfFgGaAcsp],} but it does
-not perform translations of field widths or precisions.
-
 @cindex __ctalkCreateArgEntry function
 @item __ctalkCreateArgEntry (@code{void})
 Used internally to create an ARG type, which maintains a method's
@@ -18021,7 +19086,25 @@ by @var{self_object}.
 @cindex __ctalkCreateX11MainWindow (@code{OBJECT *}@var{x11pane_object})
 Called by the @mnm{initialize} methods (class @code{X11Pane}) to
 create a X window.  Returns the window system's ID for the window, an
-@code{int}. @xref{X11Pane}.
+@code{int}.
+
+
+If a program doesn't specify a window size, then default size is
+250x250 pixels.  If the program doesn't specify a location for the
+window, then this function sets the window's @emph{X,Y} origin to 0,
+although the actual window placement depends on the machine's window
+manager.  @xref{ctalkX11SetSizeHints}.
+
+Application programs can provide a window geometry specification which
+is used to set the window's size and placement
+@xref{parseX11Geometry}.
+
+If a program doesn't specify a foreground and background color,
+the window's background is set to white and the foreground is set to
+black.
+
+Refer also to the @cite{__ctalkCreateX11MainWindowTitle} and
+@cite{__ctalkCreanteX11SubWindow} functions. @xref{X11Pane}.
 
 @cindex __ctalkCreateX11MainWindowTitle function
 @cindex __ctalkCreateX11MainWindowTitle (@code{OBJECT *}@var{x11pane_object},
@@ -18030,14 +19113,32 @@ Similar to @cite{__ctalkCreateX11MainWindow}, except that if @var{title}
 is non-null, the function uses it to set the new window's title.  Returns
 the X resource ID of the new window, an @code{int}.  @xref{X11Pane}.
 
-Application programs can provide a window geometry specification which
-is used to set the window's size and placement
-@xref{parseX11Geometry}.
+@cindex __ctalkCreateX11SubWindow function
+@cindex __ctalkCreateX11SubWindow (@code{OBJECT *}@var{subpane_object}, @code{OBJECT *}@var{parentpane_object})
+Creates an X subwindow that has the parent window defined by
+@var{parentpane_object's} @code{xWindowID} instance variable.  The
+dimensions of the subwindow within the parent window are determined by
+the @var{subpane_object's} @code{origin} and @code{size} instance
+variables.  Creates a new graphics context for the window and saves
+its address in the @var{subpane_object's} @code{xGC} instance
+variable.
 
-If a program doesn't specify a window size, then default size is
-250x250 pixels.  If the program doesn't specify a location for the
-window, then this function tries to do something intelligent with the
-initial window placement.  @xref{ctalkX11SetSizeHints}.
+If the @var{subpane_object}'s @code{backgroundColor} instance variable
+is set; for example, with a statement like this:
+
+@example
+
+myCanvasPane backgroundColor = "blue";
+
+@end example
+
+Then the function initiazes and clears the window to the value of
+the @code{backgroundColor} instance variable.  Otherwise, the function
+sets the window's color to black and clears the window.
+
+Also sets the display depth in the @code{depth} instance
+variable, and the ID of the subwindow in the @code{xWindowID} instance
+variable.
 
 @cindex __ctalkCriticalExceptionInternal function
 @cindex @mnm{raiseCriticalException} method @idxclscite{SysErrnoException}
@@ -18074,10 +19175,21 @@ formatted character @samp{(char)(n & 255)}.
 @item __ctalkDecimalIntegerToASCII (@code{int} @var{i}, @code{char *}@var{s});
 Format an ASCII representation of @var{i}, a decimal integer, in @var{s}.
 
-@cindex __ctalkDecimalLongLongToASCII function
-@item __ctalkDecimalLongLongToASCII (@code{long long int} @var{l}, @code{char *}@var{s});
-Format an ASCII representation of @var{l}, a decimal long long
-integer, in @var{s}.
+@cindex __ctalkLongLongToDecimalASCII function
+@cindex __ctalkLongLongToHexASCII function
+@cindex __ctalkLongToDecimalASCII function
+@cindex __ctalkLongToHexASCII function
+@item __ctalkLongLongToDecimalASCII (@code{long long int} @var{l}, @code{char *}@var{buf});
+@item __ctalkLongLongToHexASCII (@code{long long int} @var{l}, @code{char *}@var{buf}, @code{bool} @var{uppercase});
+@item __ctalkLongToDecimalASCII (@code{long int} @var{l}, @code{char *}@var{buf});
+@item __ctalkLongToHexASCII (@code{long int} @var{l}, @code{char *}@var{buf}, @code{bool} @var{uppercase});
+Format a decimal or hexadecimal ASCII representation of @var{l}, a
+long long int, in @var{buf}, and return @var{buf}.
+
+When using @cite{__ctalkLongLongToHexASCII,} or
+@cite{__ctalkLongToHexASCII,} if @var{uppercase} is @code{true},
+format the number using uppercase letters; e.g., @samp{0XFFFF};
+otherwise format the number using lowercase letters: @samp{0xffff}.
 
 @cindex __ctalkDefaultSignalHandler function
 @item __ctalkDefaultSignalHandler (@code{int} @var{signo})
@@ -18208,8 +19320,12 @@ Ctalk-specific documentation is installed on the system (i.e.,
 documentation other than man pages and Texinfo manuals).
 
 @cindex __ctalkDoubleToASCII function
+@cindex __ctalkFloatToASCII function
+@cindex __ctalkLongDoubleToASCII function
 @item __ctalkDoubleToASCII (@code{double} @var{d}, @code{char *}@var{s});
-Format an ASCII representation of @var{d}, a double, in @var{s}.  Returns
+@item __ctalkFloatToASCII (@code{float} @var{f}, @code{char *}@var{s});
+@item __ctalkLongDoubleToASCII (@code{long double} @var{f}, @code{char *}@var{s});
+Format an ASCII representation of the first argument in @var{s}.  Returns
 @var{s}.
 
 @idxfncite{__ctalkEnterArgBlockScope}
@@ -18612,10 +19728,11 @@ to the @cite{glob(3)} and related manual pages.
 The functions that make up Ctalk's glue layer for the GLUT API.  For
 their use, refer to the methods in GLUTApplication class.
 
-@idxlibfn{__ctalkGLXalphaFT}
+@idxlibfn{__ctalkGLXAlphaFT}
 @item __ctalkGLXAlpha (@code{float} @var{alpha})
 Sets the alpha (opacity) channel for outline text rendering.
-The default is 1.0.
+Values should be between 0.0 (transparent) and 1.0 (opaque).
+The Ctalk library's default value is 1.0 (opaque).
 
 @idxlibfn{__ctalkGLXDrawText}
 @item __ctalkGLXDrawText (@code{char *}@var{text})
@@ -18749,7 +19866,7 @@ These functions return an int with the window's current origin
 and size.
 
 @idxlibfn{__ctalkGUIPaneDrawCircleBasic}
-@item __ctalkGUIPaneDrawCircleBasic (@code{int} @var{window_id}, @code{int} @var{gc}, @code{int} @var{center_x}, @code{int} @var{center_y}, @code{int} @var{radius}, @code{int} @var{fill}, @code{int} @var{pen_width}, @code{int} @var{alpha} @code{char *}@var{fg_color_name}, @code{char *}@var{bg_color_name})
+@item __ctalkGUIPaneDrawCircleBasic (@code{void *}@var{display}, @code{int} @var{window_id}, @code{int} @var{gc}, @code{int} @var{center_x}, @code{int} @var{center_y}, @code{int} @var{radius}, @code{int} @var{fill}, @code{int} @var{pen_width}, @code{int} @var{alpha} @code{char *}@var{fg_color_name}, @code{char *}@var{bg_color_name})
 Draws a circle centered at @var{center_x},@var{center_y} with radius
 @var{radius}. The dimensions are given in pixels.  If @var{filled} is
 true, then the function draws a filled circle; otherwise, the circle's
@@ -18773,7 +19890,9 @@ Draw a line specified by @var{line_object} (an instance of
 class).
 
 @idxlibfn{__ctalkGUIPaneDrawLineBasic}
-@item __ctalkX11PaneDrawLineBasic (@code{int} @var{drawable_id}, @code{int} @var{gc_ptr}, @code{int} @var{x_start}, @code{int} @var{y_start}, @code{int} @var{x_end}, @code{int} @var{y_end}, @code{int} @var{pen_width}, @code{int} @var{alpha}, @code{char *}@var{pen_color})
+@idxlibfn{__ctalkX11PaneDrawLineBasic}
+@item __ctalkGUIPaneDrawLineBasic (@code{void *}@var{display}, @code{int} @var{drawable_id}, @code{int} @var{gc_ptr}, @code{int} @var{x_start}, @code{int} @var{y_start}, @code{int} @var{x_end}, @code{int} @var{y_end}, @code{int} @var{pen_width}, @code{int} @var{alpha}, @code{char *}@var{pen_color})
+@item __ctalkX11PaneDrawLineBasic (@code{void *}@var{display}, @code{int} @var{drawable_id}, @code{int} @var{gc_ptr}, @code{int} @var{x_start}, @code{int} @var{y_start}, @code{int} @var{x_end}, @code{int} @var{y_end}, @code{int} @var{pen_width}, @code{int} @var{alpha}, @code{char *}@var{pen_color})
 Draw a line between the points (x_start,y_start) and (x_end, y_end)
 with the color, and transparency using the drawable ID, graphics
 context, and pen color, width, and transparency given as arguments.
@@ -18790,6 +19909,10 @@ Draw a point on @var{pane_object} specified by
 Draw a rectangle on @var{pane_object} specified by
 @var{rectangle_object} using @var{pen_object}.  If
 @var{fill} is non-zero, draw a filled rectangle.
+
+@idxlibfn{__ctalkGUIPaneDrawRoundedRectangle}
+@item __ctalkGUIPaneDrawRoundedRectangle (@code{OBJECT *}@var{pane_object}, @code{OBJECT *}@var{rectangle_object}, @code{OBJECT *}@var{pen_object}, @code{int} @var{fill}, @code{int} @var{radius})
+This is similar to @cite{__ctalkGUIPaneDrawRectangle}, except that it takes an extra argument, @var{radius}, which specifies the radius of the arcs that are used to draw the corners.
 
 @idxlibfn{__ctalkGUIPanePutStr}
 @item __ctalkGUIPanePutStr (@code{OBJECT *}@var{pane_object}, @code{int} @var{x}, @code{int} @var{y}, @code{char *}@var{string})
@@ -18815,8 +19938,28 @@ an actual window; e.g., @code{X11Pane} objects.  For all
 other visual types, like pixmaps, use
 __ctalkX11SetBackgroundBasic.
 
+@idxlibfn{__ctalkX11SubWindowGeometry}
+@item __ctalkX11SubWindowGeometry (@code{OBJECT *} @var{parentpane}, @code{char *} @var{geomstr}, @code{int *}@var{x_out}, @code{int *}@var{y_out}, @code{int *}@code{width_out}, @code{int *}@var{height_out})
+Parses a string that contains the geometry specification of a
+subwindow, and returns the width and height of the subwindow and its
+X,Y position within the parent pane's window.
+
+A geometry specification has the form:
+
+@example
+
+width[%]xheight[%]+x_org[%]+y_org[%]
+
+@end example
+
+The @emph{x, y, width, and height} parameters are interpreted as the
+actual origin and size of the subwindow, unless a parameter is
+followed by a percent sign (@samp{%}).  In that case, the dimension is
+interpreted as a fraction of the parent window's corresponding
+vertical or horizontal dimension.
+
 @idxlibfn{__ctalkX11TextFromData}
-@item __ctalkX11TextFromData (@code{int} @var{drawable_id}, @code{int} @var{GD_ptr}, @code{char *}@var{text})
+@item __ctalkX11TextFromData (@code{void *}@var{display}, @code{int} @var{drawable_id}, @code{int} @var{GD_ptr}, @code{char *}@var{text})
 Displays @var{text} on @var{drawable_id}.
 
 @idxlibfn{__ctalkX11TextWidth}
@@ -19076,21 +20219,6 @@ issues a warning and returns @code{NULL.}
 Formats the message given as the argument and writes the
 message to the system's syslog facility.
 
-@idxlibfn{__ctalkLongLongRadixToDecimal}
-@item __ctalkLongLongRadixToDecimal (@code{char *}@var{s})
-Convert the radix of the formatted @code{long long int} in @var{s} to 
-decimal and return a string containing the formatted @code{long long
-int.}  @emph{Note:} Do not use this function in new code.  It's been
-replaced by @cite{__ctalkLongLongToDecimalASCII}, below.
-
-@idxlibfn{__ctalkLongLongToDecimalASCII}
-@item __ctalkLongLongToDecimalASCII (@code{char *}@var{number_in}, @code{char *} @var{decimal_out})
-Convert the radix of the ASCII formatted @code{long long int} in
-@var{number_in} to decimal and format the decimal integer in
-@var{decimal_out}.  The radix of @var{number_in} may be decimal,
-octal, hexadecimal, or binary.  The function also returns a @code{char
-*} to @var{decimal_out}.
-
 @idxlibfn{__ctalkMatchAt}
 @idxlibfn{__ctalkMatchIndexAt}
 @item __ctalkMatchAt (@code{Integer} @var{n})
@@ -19126,7 +20254,8 @@ instance variable. @xref{GLXCanvasPane}.
 @idxlibfn{__ctalkMapX11Window}
 @item __ctalkMapX11Window (@code{OBJECT *}@var{x11pane_object})
 The X library interface of the @mnm{map} (class @code{X11Pane})
-method. 
+method @xref{X11Pane}. This function is a wrapper for the @cite{XMapWindow} and
+@cite{XMapSubwindows} Xlib functions.
 
 @idxlibfn{__ctalkMethodObjectMessage}
 @item __ctalkMethodObjectMessage (@code{OBJECT *}@var{rcvr}, @code{OBJECT *}@var{method_instance})
@@ -19461,7 +20590,7 @@ returns the positions of the matches in @var{offsets}, terminated by -1.
 
 @idxlibfn{__ctalkSelectXFontFace}
 @idxlibfn{__ctalkX11UseFontBasic}
-@item __ctalkSelectXFontFace (@code{int} @var{drawable_id}, @code{int} @var{gc_ptr}, @code{int} @var{face})
+@item __ctalkSelectXFontFace (@code{void *}@var{display}, @code{int} @var{drawable_id}, @code{int} @var{gc_ptr}, @code{int} @var{face})
 Selects the typeface of the currently selected font, if available,
 which should have been loaded with a call like
 @cite{__ctalkX11UseFontBasic}, or the equivalent calls for
@@ -19477,6 +20606,11 @@ X_FACE_ITALIC
 X_FACE_BOLD_ITALIC
 
 @end example
+
+Because these functions use shared memory to manage each X typeface's
+metrics, it is generally necessary to call this function after calling
+@cite{__ctalkOpenX11InputClient} in order to display multiple faces
+with the correct character spacing.
 
 @idxlibfn{__ctalkSelfPrintOn}
 @item __ctalkSelfPrintOn (void)
@@ -19827,17 +20961,18 @@ and other data.  Does not delete subpanes - see __ctalkCloseX11Pane ()
 closing and deleting the main window.  For an example of the functions'
 use, refer to the method @mnm{X11Pane : deleteAndClose}. @xref{X11Pane}.
 
-@idxlibfn{__ctalkX11ClearBufferRectangle}
-@item __ctalkClearBufferRectangle (@code{OBJECT *}@var{pane_object}, @code{int} @var{x}, @code{int} @var{y}, @code{int} @var{width} @var{height}) 
-Clear a rectangle in @var{pane_object}'s pane buffer starting at
-@var{X},@var{Y}, with width @var{width} and height @var{height}.  Note that
-this function is being phased out in favor of
-@cite{__ctalkX11ClearRectangleBasic}, which does not rely on
-hard-coded instance variable names.
+@c /***/
+@c @idxlibfn{__ctalkX11ClearBufferRectangle}
+@c @item __ctalkClearBufferRectangle (@code{OBJECT *}@var{pane_object}, @code{int} @var{x}, @code{int} @var{y}, @code{int} @var{width} @var{height}) 
+@c Clear a rectangle in @var{pane_object}'s pane buffer starting at
+@c @var{X},@var{Y}, with width @var{width} and height @var{height}.  Note that
+@c this function is being phased out in favor of
+@c @cite{__ctalkX11ClearRectangleBasic}, which does not rely on
+@c hard-coded instance variable names.
 
 
 @idxlibfn{__ctalkX11ClearRectangleBasic}
-@item __ctalkX11ClearRectangleBasic (@code{int} @var{visual_id}, @code{int} @var{gc_ptr}, @code{int} @var{x}, @code{int} @var{y}, @code{int} @var{width}, @code{int} @var{height})
+@item __ctalkX11ClearRectangleBasic (@code{void *}@var{display}, @code{int} @var{visual_id}, @code{int} @var{gc_ptr}, @code{int} @var{x}, @code{int} @var{y}, @code{int} @var{width}, @code{int} @var{height})
 Clear a rectangle of a visual type like a pixmap to the
 background color.
 
@@ -19850,7 +20985,7 @@ dependent macros after DefaultColormap, which is not
 compatible with the ctpp preprocessor.
 
 @idxlibfn{__ctalkX11CopyPixmapBasic}
-@item __ctalkX11CopyPixmapBasic (@code{int} @var{dest_drawable_id}, @code{int} @var{dest_gc_ptr}, @code{int} @var{src_drawable_id}, @code{int} @var{src_x_org}, @code{int} @var{src_y_org}, @code{int} @var{src_width}, @code{int} @var{src_height}, @code{int} @var{dest_x_org}, @code{int} @var{dest_y_org})
+@item __ctalkX11CopyPixmapBasic (@code{void *}@var{display}, @code{int} @var{dest_drawable_id}, @code{int} @var{dest_gc_ptr}, @code{int} @var{src_drawable_id}, @code{int} @var{src_x_org}, @code{int} @var{src_y_org}, @code{int} @var{src_width}, @code{int} @var{src_height}, @code{int} @var{dest_x_org}, @code{int} @var{dest_y_org})
 Copies the drawable @var{src_drawable_id} to @var{dest_drawable_id},
 with the dimensions of the source graphic given by @var{src_x_org},
 @var{src_y_org}, @var{src_width}, and @var{src_height}.  The image is
@@ -19863,11 +20998,23 @@ an example, refer the @code{X11CanvasPane} classes' description.
 @xref{X11CanvasPane}.
 
 @idxlibfn{__ctalkX11CreateGC}
-@item __ctalkX11CreateGC (@code{int} @var{drawable})
-Create a X GC and return its address as a @code{void *}.
+@item __ctalkX11CreateGC (@code{void *}@var{display}, @code{int} @var{drawable})
+Create a X Graphics Context and return its address as a @code{void *}.
+The GC is created with the following values:
+
+@example
+
+foreground     white
+background     black
+fill_style     FillSolid
+function       GXcopy
+font           fixed
+
+@end example
+
 
 @idxlibfn{__ctalkX11CreatePixmap}
-@item __ctalkX11CreatePixmap (@code{int} @var{x_drawable}, @code{int} @var{width}, @code{int} @var{height}, @code{int} @var{depth})
+@item __ctalkX11CreatePixmap (@code{void *}@var{display}, @code{int} @var{x_drawable}, @code{int} @var{width}, @code{int} @var{height}, @code{int} @var{depth})
 reate a X pixmap and return its X resource ID as an unsigned int.
 
 @idxlibfn{__ctalkX11CreatePaneBuffer}
@@ -19957,7 +21104,7 @@ For information about the format of a X11 geometry specification, refer to the
 @cite{XParseGeometry(3)} manual page.
 
 @idxlibfn{__ctalkX11PaneDrawCircleBasic}
-@item __ctalkX11PaneDrawCircleBasic (@code{int} @var{window_id}, @code{int} @var{gc}, @code{int} @var{center_x}, @code{int} @var{center_y}, @code{int} @var{radius}, @code{int} @var{fill}, @code{int} @var{pen_width}, @code{int} @var{alpha}, @code{char *}@var{fg_color_name}, @code{char *} @var{bg_color_name})
+@item __ctalkX11PaneDrawCircleBasic (@code{void *}@var{display}, @code{int} @var{window_id}, @code{int} @var{gc}, @code{int} @var{center_x}, @code{int} @var{center_y}, @code{int} @var{radius}, @code{int} @var{fill}, @code{int} @var{pen_width}, @code{int} @var{alpha}, @code{char *}@var{fg_color_name}, @code{char *} @var{bg_color_name})
 Draws a circle centered at @var{center_x},@var{center_y} with radius @var{radius}. The dimensions are given in pixels.  If @var{filled} is true, then the function
 draws a filled circle; otherwise, the circle's edge has the width @var{pen_width}.
 
@@ -19995,19 +21142,16 @@ Resize @var{pane_object}'s buffers to width @var{width} and height
 which does not rely on hard-coded instance variable names.
 
 @idxlibfn{__ctalkX11ResizePixmap}
-@item __ctalkX11ResizePixmap (@code{int}, @var{parent_visual_id}, @code{int} @var{self_xid}, @code{int} @var{gc}, @code{int} @var{old_width}, @code{int} @var{old_height}, @code{int} @var{new_width}, @code{int} @var{new_height}, @code{int} @var{depth}, @code{int *}@var{new_pixmap_return})
+@item __ctalkX11ResizePixmap (@code{void *}@var{display}, @code{int}, @var{parent_drawable_id}, @code{int} @var{self_xid}, @code{int} @var{gc}, @code{int} @var{old_width}, @code{int} @var{old_height}, @code{int} @var{new_width}, @code{int} @var{new_height}, @code{int} @var{depth}, @code{int *}@var{new_pixmap_return})
 Create a new Pixmap with the dimensions @var{new_width} and
 @var{new_height} that contains the contents of the original
-pixmap.  Return the X ID of the new pixmap in @var{new_pixmap_return}.
+pixmap.  Returns the X ID of the new pixmap in @var{new_pixmap_return}.
 
 @idxlibfn{__ctalkX11ResizeWindow}
 @item __ctalkX11ResizeWindow (@code{OBJECT *}@var{pane_object}, @code{int} @var{width}, @code{int} @var{height}, @code{int} @var{depth})
-Resize a pane object's X window.  This function adjusts the object's width and
-height instance variables and buffers if the object defines
-them. @emph{Note: Do not use this function with windows that
-use X11Bitmap objects for buffers.  This function will
-eventually be phased out.  Use the methods in X11Bitmap
-class instead.} 
+Resize a pane object's X window.  Returns @samp{1} on success,
+@samp{0} if the window's new size is <= its current size, and
+@samp{-1} if there is an error.
 
 @idxlibfn{__ctalkX11PaneClearRectangle}
 @item __ctalkX11PaneClearRectangle (@code{OBJECT *}@var{pane_object}, @code{int}  @var{x}, @code{int} @var{y}, @code{int} @var{width}, @code{int} @var{height})
@@ -20039,7 +21183,7 @@ Draw a point on the drawable id given in @var{pane_object}
 on systems that use the X Window system.
 
 @idxlibfn{__ctalkX11PaneDrawPointBasic}
-@item __ctalkX11PaneDrawPointBasic (@code{int} @var{drawable_id}, @code{int} @var{gc_ptr}, @code{int} @var{x}, @code{int} @var{y}, @code{int} @var{pen_width}, @code{int} @var{alpha}, @code{char *}@var{pen_color})
+@item __ctalkX11PaneDrawPointBasic (@code{void *}@var{display}, @code{int} @var{drawable_id}, @code{int} @var{gc_ptr}, @code{int} @var{x}, @code{int} @var{y}, @code{int} @var{pen_width}, @code{int} @var{alpha}, @code{char *}@var{pen_color})
 Draw a point of the size, position, color, and transparency using the
 drawable ID, graphics context, and Pen color, transparency, and width
 given as arguments.
@@ -20059,7 +21203,7 @@ Draw a rectangle on the drawable identified by @var{pane_object}
 rectangle.
 
 @idxlibfn{__ctalkX11PanePutStrBasic}
-@item __ctalkX11PanePutStrBasic (@code{int} @var{visual_id},@code{int} @var{gc_ptr}, @code{int} @var{x}, @code{int} @var{y}, @code{char *}@var{text})
+@item __ctalkX11PanePutStrBasic (@code{void *}@var{display}, @code{int} @var{visual_id},@code{int} @var{gc_ptr}, @code{int} @var{x}, @code{int} @var{y}, @code{char *}@var{text})
 Write the string @var{text} on the drawable named by @var{visual_id} at
 @var{X},@var{Y} using the graphics context pointed to by @var{gc_ptr}.  If the
 drawable is a @code{X11CanvasPane} buffer, the text will not be visible
@@ -20087,17 +21231,17 @@ of @var{pane_object}.  Programs should use
 @cite{__ctalkX11SetBackgroundBasic ()}, below, instead.
 
 @idxlibfn{__ctalkX11SetBackgroundBasic}
-@item __ctalkX11SetBackgroundBasic (@code{int} @code{visual_xid}, @code{int} @var{gc_ptr}, @code{char *}@var{color})
+@item __ctalkX11SetBackgroundBasic (@code{void *}@var{display}, @code{int} @code{visual_xid}, @code{int} @var{gc_ptr}, @code{char *}@var{color})
 Sets the background color of any class with a X11 visual and 
 graphics context.
 
 @idxlibfn{__ctalkX11SetForegroundBasic}
-@item __ctalkX11SetForegroundBasic (@code{int} @code{visual_xid}, @code{int} @var{gc_ptr}, @code{char *}@var{color})
-Sets the foreground color of any class with a X11 visual and 
+@item __ctalkX11SetForegroundBasic (@code{void *}@var{display}, @code{int} @code{visual_xid}, @code{int} @var{gc_ptr}, @code{char *}@var{color})
+Sets the foreground color of any class with a X11 drawable and 
 graphics context.
 
 @idxlibfn{__ctalkX11SetResource}
-@item __ctalkX11SetResource (@code{int} @var{drawable_id}, @code{char *}@var{resource_name}, @code{char *}@var{resource_value}) 
+@item __ctalkX11SetResource (@code{void *}@var{display}, @code{int} @var{drawable_id}, @code{char *}@var{resource_name}, @code{char *}@var{resource_value}) 
 Sets the X11 resource @var{resource_name} to @var{resource_value} for
 the drawable identified by @var{drawable_id}.
 
@@ -20112,11 +21256,6 @@ frame's title.
 Sets the X11 cursor of @var{pane_object} to
 @var{cursor_object}. @xref{X11Cursor}.
 
-@idxlibfn{__ctalkX11UseFont}
-@item __ctalkX11UseFont ()
-Do not use this function - it relies on specific instance
-variable names.  Use __ctalkX11UseFontBasic, below, instead.
-
 @idxlibfn{__ctalkX11UseXRender}
 @item __ctalkX11UseXRender (@code{bool} @var{b})
 If @var{b} is true, draw using the X Render entension if it
@@ -20124,7 +21263,7 @@ is available.  If @var{b} is false, use Xlib for drawing
 even if X Render is available.
 
 @idxlibfn{__ctalkX11UseFontBasic}
-@item __ctalkX11UseFontBasic (@code{int} @var{drawable_id}, @code{int} @var{gc_ptr}, @code{char *}@var{font_desc})
+@item __ctalkX11UseFontBasic (@code{void *}@var{display}, @code{int} @var{drawable_id}, @code{int} @var{gc_ptr}, @code{char *}@var{font_desc})
 Sets the font of the graphics context @var{gc_ptr} and
 drawable @var{drawable_id} for further string printing
 operations.  See use in @code{X11Bitmap} class, where the
@@ -20141,13 +21280,13 @@ changed the default setting, normally via @cite{__ctalkX11UseRender},
 above.
 
 @idxlibfn{__ctalkX11XPMFromData}
-@item __ctalkX11XPMFromData (@code{int} @var{drawable_id}, @code{int} @var{gc_ptr}, @code{int} @var{x_org}, @code{int} @var{y_org}, @code{char **}@var{xpm_data})
+@item __ctalkX11XPMFromData (@code{void *}@var{display}, @code{int} @var{drawable_id}, @code{int} @var{gc_ptr}, @code{int} @var{x_org}, @code{int} @var{y_org}, @code{char **}@var{xpm_data})
 Draw a X pixmap at the x,y position on the drawable named by
 @var{drawable_id}.  The @var{xpm_data} argument is the declaration of
 the data given in a XPM file, and has the C data type @code{char **}.
 
 @idxlibfn{__ctalkX11XPMInfo}
-@item __ctalkX11XPMInfo (@code{char **}@var{xpm_data}, @code{int *}@var{width_ret}, @code{int *}@var{height_ret}, @code{int *}@var{n_colors_ret}, @code{int *}@var{chars_per_color_ret})
+@item __ctalkX11XPMInfo (@code{void *}@var{display}, @code{char **}@var{xpm_data}, @code{int *}@var{width_ret}, @code{int *}@var{height_ret}, @code{int *}@var{n_colors_ret}, @code{int *}@var{chars_per_color_ret})
 Returns the width, height, number of colors, and characters per color of the
 XPM data referred to by @var{xpm_data}
 
@@ -20598,6 +21737,7 @@ is, if the value of the object is an empty string, @samp{(NULL)}, or
 @code{NULLs} in C expressions without the generating compiler warnings.
 
 @idxlibfn{__edittext_insert_at_point}
+@idxlibfn{__edittext_xk_keysym}
 @idxlibfn{__edittext_prev_char}
 @idxlibfn{__edittext_next_char}
 @idxlibfn{__edittext_prev_line}
@@ -20610,9 +21750,14 @@ is, if the value of the object is an empty string, @samp{(NULL)}, or
 @idxlibfn{__edittext_text_start}
 @idxlibfn{__edittext_text_end}
 @idxlibfn{__edittext_point_to_click}
+@idxlibfn{__edittext_rol_col_from_mark}
 @idxlibfn{__edittext_index_from_pointer}
 @idxlibfn{__edittext_index_from_pointer}
+@idxlibfn{__edittext_insert_str_at_click}
 @idxlibfn{__edittext_insert_str_at_point}
+@idxlibfn{__edittext_recenter}
+@idxlibfn{__edittext_scroll_down}
+@idxlibfn{__edittext_scroll_up}
 @idxlibfn{__edittext_set_selection_owner}
 @idxclscite {X11TextEditorPane}
 @cindex Text editing
@@ -20622,21 +21767,26 @@ is, if the value of the object is an empty string, @samp{(NULL)}, or
 @item __edittext_insert_at_point (OBJECT *x11texteditorpane_object, int keycode, int shift_state, int keypress)
 @item __edittext_line_end (OBJECT *x11texteditorpane_object)
 @item __edittext_line_start (OBJECT *x11texteditorpane_object)
+@item __edittext_xk_keysym (@code{int} @var{keycode}, @code{int} @var{shift_state}, @code{int} @var{keypress})
 @item __edittext_next_char (OBJECT *x11texteditorpane_object)
 @item __edittext_next_line (OBJECT *x11texteditorpane_object)
 @item __edittext_next_page (OBJECT *x11texteditorpane_object)
 @item __edittext_prev_char (OBJECT *x11texteditorpane_object)
 @item __edittext_prev_line (OBJECT *x11texteditorpane_object)
 @item __edittext_prev_page (OBJECT *x11texteditorpane_object)
+@item __edittext_scroll_down (OBJECT *x11texteditorpane_object)
+@item __edittext_scroll_up (OBJECT *x11texteditorpane_object)
 @item __edittext_text_start (OBJECT *x11texteditorpane_object)
 @item __edittext_text_end (OBJECT *x11texteditorpane_object)
 @item __edittext_point_to_click (OBJECT *x11texteditorpane_object, int pointer_x, int pointer_y)
 @item __edittext_index_from_pointer (OBJECT *x11texteditorpane_object, int pointer_x, int pointer_y)
-@item __edittext_insert_str_at_point (OBJECT *x11texteditorpan_object, char *)
-@item __edittext_get_primary_selection (OBJECT *x11texteditorpan_object, void **buf_out, int *size_out)
+@item __edittext_insert_str_at_click (OBJECT *x11texteditorpane_object, int click_x, int click_y, char *)
+@item __edittext_insert_str_at_point (OBJECT *x11texteditorpane_object, char *)
+@item __edittext_get_primary_selection (OBJECT *x11texteditorpan_eobject, void **buf_out, int *size_out)
 @item __edittext_set_selection_owner (OBJECT *x11texteditorpane_object)
+@item __edittext_recenter (OBJECT *x11texteditorpane_object)
 Text editing functions used by @code{X11TextEditorPane} objects.
-For more information, refer to the @code{X11TextEditorPane} section.
+For more information, refer to @code{X11TextEditorPane} class..
 @xref{X11TextEditorPane}.
 
 @anchor{errorfuncs}
@@ -20915,6 +22065,8 @@ A macro that trims nested single quotes from a literal character.
 the actual character.
 
 @idxlibfn{xfopen}
+@idxlibfn{xfprintf}
+@idxlibfn{xfscanf}
 @idxlibfn{xmemcpy}
 @idxlibfn{xmemmove}
 @idxlibfn{xmemset}
@@ -20924,6 +22076,8 @@ the actual character.
 @idxlibfn{xstrcat}
 @idxlibfn{xstrncat}
 @item xfopen (const char *path, const char *mode)
+@item xfprintf (FILE *stream, const char *fmt, ...)
+@item xfscanf (FILE *stream, const char *fmt, ...)
 @item xmemcpy (void *s, const void *s, size_t)
 @item xmemmove (void *s, const void *s, size_t)
 @item xmemset (void *s, int c, size_t n)
@@ -24386,7 +25540,10 @@ permit their use in free software.
 @c
 @ifnottex
 @node Index, , GNU Free Documentation License, Top
+@subheading Index
 @end ifnottex
+@iftex
 @chapter Index
+@end iftex
 @printindex cp
 @bye

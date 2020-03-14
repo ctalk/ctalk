@@ -1,0 +1,397 @@
+/* $Id: X11LabelPane,v 1.24 2020/02/29 00:32:43 rkiesling Exp $ -*-c-*-*/
+
+/*
+  This file is part of Ctalk.
+  Copyright © 2020  Robert Kiesling, rk3314042@gmail.com.
+  Permission is granted to copy this software provided that this copyright
+  notice is included in all source code modules.
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+*/
+
+/*
+ *    X11LabelPane class.
+ */
+
+X11CanvasPane class X11LabelPane;
+
+#include <ctalk/ctalkdefs.h>
+
+X11LabelPane instanceVariable border Boolean true
+"Draw a border around the label.";
+X11LabelPane instanceVariable borderColor String "black"
+"The normal color of the border.";
+X11LabelPane instanceVariable borderWidth Integer 1
+"The normal width of the border.";
+X11LabelPane instanceVariable margin Integer 2
+"The distance between the border and the edge of the pane.";
+X11LabelPane instanceVariable padding Integer 2
+"The minimum distance between the interior of the border and the 
+label's text.";
+X11LabelPane instanceVariable textColor String "black"
+"Color of the text when not highlighted.";
+X11LabelPane instanceVariable textLine String ""
+"Text of a single-line label.";
+X11LabelPane instanceVariable highlightBorderWidth Integer 2
+"Width of a highlighted border.";
+X11LabelPane instanceVariable highlightBorderColor String "black"
+"Color of a highlighted border.";
+X11LabelPane instanceVariable highlightTextColor String "black"
+"Color of highlighted text.";
+X11LabelPane instanceVariable highlightBackgroundColor String "skyblue"
+"Color of highlighted background.";
+X11LabelPane instanceVariable grayed Boolean false
+"True if the label is grayed.";
+X11LabelPane instanceVariable grayedColor String "gray"
+"Color of grayed text.";
+X11LabelPane instanceVariable haveMultiLine Boolean false
+"True if the label text is composed of multiple lines.";
+X11LabelPane instanceVariable textLines Array NULL
+"Text of a multi-line label.";
+X11LabelPane instanceVariable leading Integer 1
+"Distance between text lines.  This is only effective when using
+Freetype fonts - X fonts have leading included in the character
+glyphs.";
+X11LabelPane instanceVariable justify Integer LABEL_CENTER
+"Justify the text on the left or right side of the label, or center
+the text.";
+X11LabelPane instanceVariable highlightTextBold Boolean false
+"If true, display the label text in a bold typeface when the label is
+highlighted.  This is only effective (so far) when using Freetype fonts.";
+X11LabelPane instanceVariable radius Integer 0
+"If greater than 0, draw borders as rounded rectangles with the radius
+equal to this value";
+
+X11LabelPane instanceMethod new (String __paneName) {
+  Method new exposeMethod;
+  Method new enterMethod;
+  Method new leaveMethod;
+
+  X11LabelPane super new __paneName;
+
+  exposeMethod definedInstanceMethod "X11LabelPane", "subPaneExpose";
+  __paneName setMethodHandler "expose", exposeMethod;
+  enterMethod definedInstanceMethod "X11LabelPane", "subPaneEnter";
+  __paneName setMethodHandler "enternotify", enterMethod;
+  leaveMethod definedInstanceMethod "X11LabelPane", "subPaneLeave";
+  __paneName setMethodHandler "leavenotify", leaveMethod;
+
+  __paneName background "white";
+  __paneName foreground "black";
+  /* For Freetype fonts */
+  __paneName textColor "black";
+
+  return __paneName;
+}
+
+X11LabelPane instanceMethod subPaneExpose (Object __subPane,
+					  InputEvent __event) {
+  "Handle an Expose event by redrawing the pane's contents
+  on the parent window."
+    self draw;
+}
+
+X11LabelPane instanceMethod subPaneEnter (Object __subPane,
+					  InputEvent __event) {
+  if (__subPane canFocus) {
+    __subPane highlight = true;
+    __subPane draw;
+  }
+}
+
+X11LabelPane instanceMethod subPaneLeave (Object __subPane,
+					  InputEvent __event) {
+  if (__subPane canFocus) {
+    __subPane highlight = false;
+    __subPane draw;
+  }
+}
+
+X11LabelPane instanceMethod font (String fontDesc) {
+  self paneBuffer font fontDesc;
+  self fontDescStr = fontDesc;
+  self fontVar getFontInfo fontDesc;
+  __ctalkX11UseFontBasic (self displayPtr, self xWindowID, self xGC, fontDesc);
+}
+
+X11LabelPane instanceMethod text (String textArg) {
+  self textLine = textArg;
+}
+
+X11LabelPane instanceMethod multiLine (String textArg) {
+
+  textArg split "\n", self textLines;
+  self haveMultiLine = true;
+}
+
+X11LabelPane instanceMethod __highlightBackground (String color) {
+  "Highlight the background without affecting the original
+   background color containd in the receiver's backgroundColor
+   instance variable."
+  if (self paneBuffer xID > 0) {
+      self paneBuffer background color;
+    }
+}
+
+X11LabelPane instanceMethod __drawJustified (String textArg,
+					     Integer textWidth,
+					     Integer lineStartY) {
+  switch (self justify)
+    {
+    case LABEL_LEFT:
+      self putStrXY self margin + self padding +
+	self highlightBorderWidth, lineStartY, textArg;
+      break;
+    case LABEL_CENTER:
+      self putStrXY ((self size x / 2) - (textWidth / 2)),
+	lineStartY, textArg;
+      break;
+    case LABEL_RIGHT:
+      self putStrXY ((self size x) -
+		     (self margin + self padding +
+		      self highlightBorderWidth) -
+		     textWidth,
+		     lineStartY, textArg);
+      break;
+    }
+
+}
+
+X11LabelPane instanceMethod draw (void) {
+  Integer new ts, parheight, lineStartY, vAir;
+  
+  if (self ftFontVar family length > 0) {
+    /* i.e., The app has stored this widget's font selection. */
+    self ftFontVar selectFont;
+  }
+
+  self paneBuffer clear;
+  if (self border) {
+    if (self grayed) {
+	self pen width = self borderWidth;
+	self pen colorName = self grayedColor;
+    } else {
+      if (self highlight) {
+	self pen width = self highlightBorderWidth;
+	self pen colorName = self highlightBorderColor;
+	self __highlightBackground self highlightBackgroundColor;
+      } else {
+	self pen width = self borderWidth;
+	self pen colorName = self borderColor;
+	self background self backgroundColor;
+      }
+    }
+    if (self radius > 0) {
+      self drawRoundedRectangle (self margin),
+	(self margin), 
+	self size x - (self margin * 2),
+	self size y - (self margin * 2),
+	self radius;
+    } else {
+      self drawRectangle (self margin),
+	(self margin), 
+	self size x - (self margin * 2),
+	self size y - (self margin * 2);
+    }
+  }
+
+  if (self fontVar fontId == 0) {
+    /* X11FreeTypeFont */
+    if (self grayed) {
+      self faceRegular;
+      self ftFontVar namedX11Color self grayedColor;
+    } else {
+      if (self highlight) {
+	if (self highlightTextBold) {
+	  self faceBold;
+ 	} else {
+	  self faceRegular;
+	}
+	self ftFontVar namedX11Color self highlightTextColor;
+      } else {
+	self faceRegular;
+	self ftFontVar namedX11Color self textColor;
+      }
+    }
+    if (self haveMultiLine) {
+
+      parheight = (self ftFontVar height + self leading) *
+	self textLines size;
+      vAir = self size y / 10;
+      lineStartY = (self size y / 2) - (parheight / 2) + vAir;
+
+      self textLines map {
+	ts = super ftFontVar textWidth self;
+	super __drawJustified self, ts, lineStartY;
+	lineStartY += super ftFontVar height + super leading;
+      }
+      
+    } else {
+
+      ts = self ftFontVar textWidth (self textLine);
+      self __drawJustified self textLine, ts,
+	(self size y / 2) - (self ftFontVar height / 2) +
+	(self ftFontVar height / 2);
+
+    }
+  } else {
+    if (self grayed) {
+      self foreground self grayedColor;
+    } else {
+      if (self highlight) {
+	self foreground self highlightTextColor;
+      } else {
+	self foreground self textColor;
+      }
+    }
+    if (self haveMultiLine) {
+
+      parheight = self fontVar height  *
+	self textLines size;
+      vAir = self size y / 10;
+      lineStartY = (self size y / 2) - (parheight / 2) + vAir;
+
+      self textLines map {
+	ts = super fontVar textWidth self;
+	super __drawJustified self, ts, lineStartY;
+	lineStartY += super fontVar height;
+      }
+
+    } else {
+
+      ts = self fontVar textWidth (self textLine);
+      self __drawJustified self textLine, ts,
+	((self size y / 2) - (self fontVar height / 2)) +
+	(self fontVar height / 2);
+
+    }
+  }
+
+  self refresh;
+}
+
+X11LabelPane instanceMethod drawButtonLayout (void) {
+  "Similar to the draw method, except this method uses
+   a different algorithm for spacing text."
+    Integer new ts, parheight, lineStartY, vAir;
+  
+  self paneBuffer clear;
+  if (self border) {
+    if (self grayed) {
+	self pen width = self borderWidth;
+	self pen colorName = self grayedColor;
+    } else {
+      if (self highlight) {
+	self pen width = self highlightBorderWidth;
+	self pen colorName = self highlightBorderColor;
+	self __highlightBackground self highlightBackgroundColor;
+      } else {
+	self pen width = self borderWidth;
+	self pen colorName = self borderColor;
+	self background self backgroundColor;
+      }
+    }
+
+    if (self radius > 0) {
+      self drawRoundedRectangle (self margin),
+	(self margin), 
+	self size x - (self margin * 2),
+	self size y - (self margin * 2),
+	self radius;
+    } else {
+      self drawRectangle (self margin),
+	(self margin), 
+	self size x - (self margin * 2),
+	self size y - (self margin * 2);
+    }
+  }
+
+  if (self fontVar fontId == 0) {
+    /* X11FreeTypeFont */
+    if (self grayed) {
+      self faceRegular;
+      self ftFontVar namedX11Color self grayedColor;
+    } else {
+      if (self highlight) {
+	if (self highlightTextBold) {
+	  self faceBold;
+ 	} else {
+	  self faceRegular;
+	}
+	self ftFontVar namedX11Color self highlightTextColor;
+      } else {
+	self faceRegular;
+	self ftFontVar namedX11Color self textColor;
+      }
+    }
+    if (self haveMultiLine) {
+
+      parheight = (self ftFontVar ascent + self leading) *
+	self textLines size;
+      vAir = self size y / 20;
+      lineStartY = (self size y / 2) - (parheight / 2) +
+	self ftFontVar ascent - vAir;
+
+      self textLines map {
+	ts = super ftFontVar textWidth self;
+	super __drawJustified self, ts, lineStartY;
+	lineStartY += super ftFontVar ascent + super leading;
+      }
+      
+    } else {
+
+      vAir = self size y / 20;
+      ts = self ftFontVar textWidth (self textLine);
+      self __drawJustified self textLine, ts,
+	(self size y / 2) + (self ftFontVar ascent / 2) - vAir;
+
+    }
+  } else {
+    if (self grayed) {
+      self foreground self grayedColor;
+    } else {
+      if (self highlight) {
+	self foreground self highlightTextColor;
+      } else {
+	self foreground self textColor;
+      }
+    }
+    if (self haveMultiLine) {
+
+      vAir = self size y / 10;
+      parheight = self fontVar ascent  *
+	self textLines size;
+      lineStartY = (self size y / 2) - (parheight / 2) +
+	(self fontVar ascent / 2) +  vAir;
+
+      self textLines map {
+	ts = super fontVar textWidth self;
+	super __drawJustified self, ts, lineStartY;
+	lineStartY += super fontVar ascent;
+      }
+
+    } else {
+
+      vAir = self size y / 20;
+      ts = self fontVar textWidth (self textLine);
+      self __drawJustified self textLine, ts,
+	(self size y / 2) + (self fontVar ascent / 2) - vAir;
+
+    }
+  }
+
+  self refresh;
+}
+

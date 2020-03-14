@@ -1,4 +1,4 @@
-/* $Id: GLXCanvasPane,v 1.24 2019/11/26 04:15:26 rkiesling Exp $ -*-c-*-*/
+/* $Id: GLXCanvasPane,v 1.31 2020/01/19 12:04:36 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -618,7 +618,7 @@ GLXCanvasPane instanceMethod drawText (Float xOrg, Float yOrg,
   "Draw text on the receiver pane at the matrix coordinates
    xOrg, yOrg.  The program must first register the font
    used for drawing by a previous call to useXFont."
-  glRasterPos2f (xOrg, yOrg);
+    glRasterPos2f (xOrg, yOrg);
   __ctalkGLXDrawText (text);
   return NULL;
 }
@@ -681,7 +681,7 @@ GLXCanvasPane instanceMethod drawTextW (Integer xOrg, Integer yOrg,
    register the font used for drawing by a previous call to
    useXFont."
   glColor3f (red, green, blue);
-    __ctalkGLXWindowPos2i (xOrg, yOrg);
+  __ctalkGLXWindowPos2i (xOrg, yOrg);
   __ctalkGLXDrawText (text);
   return NULL;
 }
@@ -720,6 +720,23 @@ GLXCanvasPane instanceMethod drawTextFT (Float xOrg, Float yOrg,
   return NULL;
 }
 
+GLXCanvasPane instanceMethod drawTextFT (Float xOrg, Float yOrg,
+					 Float red, Float green,
+					 Float blue, Float alpha,
+					 String text) {
+  "Draw text on the receiver pane at the matrix coordinates
+   xOrg, yOrg.  The program must first register the font
+   used for drawing by a previous call to useXFont."
+   glColor3f (red, green, blue);
+   __ctalkGLXAlphaFT (alpha);
+   __ctalkGLXDrawTextFT (text, xOrg, yOrg);
+  self ftFontVar fgRed = red;
+  self ftFontVar fgGreen = green;
+  self ftFontVar fgBlue = blue;
+  self ftFontVar fgAlpha = alpha;
+  return NULL;
+}
+
 GLXCanvasPane instanceMethod refreshRate (void) {
   returnObjectClass Float;
   return __ctalkGLXRefreshRate ();
@@ -729,7 +746,7 @@ GLXCanvasPane instanceMethod syncSwap (Integer interval) {
   "If the argument > 0, set the swap interval to 1/n to
    sync with the video refresh rate.  An argument of 0
    disables swap synchronization."
-  return __ctalkGLXSwapControl (interval);
+    return __ctalkGLXSwapControl (interval);
 }
 
 GLXCanvasPane instanceMethod frameRate (void) {
@@ -807,3 +824,29 @@ GLXCanvasPane instanceMethod hasExtension (String extensionName) {
   returnObjectClass Boolean;
   return __ctalkGLXExtensionSupported (extensionName);
 }
+
+GLXCanvasPane instanceMethod alpha (Float alphaParam) {
+  "Sets the alpha channel (transparency) of the outline font
+   defined by the receiver's ftFontVar instance variable.
+   Calling this method affects both the ftFontVar : alpha
+   instance variable value, and the Ctalk library's
+   setting for the alpha channel, so the change is immediate.
+   The parameter, a Float, should be between 0.0 (transparent)
+   and 1.0 (opaque).  The Ctalk library's default alpha value
+   is 1.0 (opaque)."
+  self ftFontVar fgAlpha = alphaParam;
+  __ctalkGLXAlphaFT (alphaParam);
+}
+
+GLXCanvasPane instanceMethod displayHeight (void) {
+  "Returns an Integer containing the display width in pixels."
+  returnObjectClass Integer;
+  return __ctalkX11DisplayHeight ();
+}
+
+GLXCanvasPane instanceMethod displayWidth (void) {
+  "Returns an Integer containing the display height in pixels."
+  returnObjectClass Integer;
+  return __ctalkX11DisplayWidth ();
+}
+

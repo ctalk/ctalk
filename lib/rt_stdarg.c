@@ -1,4 +1,4 @@
-/* $Id: rt_stdarg.c,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ */
+/* $Id: rt_stdarg.c,v 1.2 2019/12/02 01:49:42 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -315,18 +315,6 @@ void args_to_method_args (METHOD *method, STDARG_CALL_INFO *stdarg_call_info) {
     }
   }
 
-}
-
-int __rt_check_stdargs (void) {
-  int i = 0;
-  while (i < fmt_tok_idx) {
-    if (!strpbrk (fmt_tokens[i], "cs")) {
-      _warning ("__call_fn_w_args: Only c and s format characters are allowed in variable argument formats.\n");
-      return ERROR;
-    }
-    ++i;
-  }
-  return SUCCESS;
 }
 
 int tokenize_fmt (char *fmt) {

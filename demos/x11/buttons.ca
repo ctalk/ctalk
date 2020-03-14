@@ -1,0 +1,126 @@
+/* buttons.ca - X11ButtonPane Demonstration */
+
+#include <ctalk/ctalkdefs.h>
+
+/* Uncomment this #define to use X bitmap fonts. */
+/* #define XFONTS */
+
+/* Also, uncomment this to draw a multiline label. */
+/* #define MULTILINE */
+
+/* Define CORNER_RADIUS > 0 for rounded corners (non-beveled, too). 
+   The value is the radius of the corner arcs. */
+#define CORNER_RADIUS 0
+
+/* See the X11FreeTypeFont section of the the Ctalk reference. */
+#define FTFONT_BOLD   200
+#define FTFONT_MEDIUM 100
+
+int main (void) {
+  X11Pane new mainWindow;
+  X11PaneDispatcher new dispatcher;
+  X11ButtonPane new lbutton;
+  X11ButtonPane new rbutton;
+  X11LabelPane new label;
+  InputEvent new e;
+
+  mainWindow backgroundColor = "blue";
+  lbutton backgroundColor = "blue";
+  rbutton backgroundColor = "blue";
+  label backgroundColor = "blue";
+  label textColor = "white";
+  label canFocus = false;
+  label borderWidth = 0;
+
+  mainWindow initialize 255, 200;
+  mainWindow inputStream eventMask = 
+    EXPOSE|ENTERWINDOWNOTIFY|LEAVEWINDOWNOTIFY|BUTTONPRESS|BUTTONRELEASE|KEYPRESS|KEYRELEASE;
+  dispatcher attachTo mainWindow;
+  lbutton attachTo dispatcher, "90x50+25+100";
+  rbutton attachTo dispatcher, "90x50+135+100";
+  label attachTo dispatcher, "147x80+44+15";
+
+  mainWindow map;
+  mainWindow raiseWindow;
+
+  mainWindow openEventStream;
+
+  mainWindow setWMTitle "X11ButtonPane Demo";
+
+#ifndef XFONTS
+  /*
+   * This is the recommended way to set up fonts for each widget.
+   */
+  label ftFontVar initFontLib;
+  label ftFont "DejaVu Sans", 0, FTFONT_BOLD, 0, 12.0;
+  label ftFontVar saveSelectedFont;
+  lbutton ftFont "DejaVu Sans", 0, FTFONT_MEDIUM, 0, 10.0;
+  lbutton ftFontVar saveSelectedFont;
+  rbutton ftFont "DejaVu Sans", 0, FTFONT_MEDIUM, 0, 10.0;
+  rbutton ftFontVar saveSelectedFont;
+#else
+  lbutton label font "fixed";
+#endif  
+
+  label multiLine "X11ButtonPane\nDemo";
+
+#ifndef MULTILINE
+  lbutton label text "Left";
+  rbutton label text "Right";
+#else
+  lbutton label multiLine "Click\nHere";
+  rbutton label multiLine "Click\nHere, Too";
+#endif
+
+#if CORNER_RADIUS > 0
+  lbutton bevelEdges = false;
+  lbutton radius = CORNER_RADIUS;
+  lbutton label radius = CORNER_RADIUS;
+  rbutton bevelEdges = false;
+  rbutton radius = CORNER_RADIUS;
+  rbutton label radius = CORNER_RADIUS;
+#endif  
+
+  lbutton label highlightBackgroundColor = "gray90";
+  rbutton label highlightBackgroundColor = "gray90";
+
+  lbutton label highlightTextColor = "gray";
+  rbutton label highlightTextColor = "gray";
+
+  lbutton draw;
+  lbutton refresh;
+  rbutton draw;
+  rbutton refresh;
+  label draw;
+  label refresh;
+
+  while (TRUE) {
+    mainWindow inputStream queueInput;
+    if (mainWindow inputStream eventPending) {
+      e become mainWindow inputStream inputQueue unshift;
+
+      mainWindow subPaneNotify e;
+
+      switch (e eventClass value)
+	{
+	case EXPOSE:
+	  lbutton subPaneExpose (lbutton, e);
+	  rbutton subPaneExpose (rbutton, e);
+	  label subPaneExpose (label, e);
+	  break;
+	default:
+	  if (lbutton haveClick) {
+	    printf ("left button!\n");
+	    lbutton clearClick;
+	  } else if (rbutton haveClick) {
+	    printf ("right button!\n");
+	    rbutton clearClick;
+	  }
+	  break;
+	}
+    } else {
+      usleep (1000);
+    }
+  }
+
+}

@@ -1,8 +1,8 @@
-/* $Id: r,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-c-*-**/
+/* $Id: r,v 1.3 2019/12/09 00:02:01 rkiesling Exp $ -*-c-*-**/
 
 /*
   This file is part of Ctalk.
-  Copyright © 2005-2012, 2015 Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2005-2012, 2015, 2019 Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
 
@@ -37,10 +37,8 @@ cRand (void) { \n\
 
 #define rmdir \n\
 cRmdir (char *_s) {\n\
-  int r; \n\
   char buf[MAXLABEL]; \n\
-  r = rmdir (__ctalk_to_c_char_ptr(ARG(0))); \n\
-  sprintf (buf, "%d", r); \n\
+  __ctalkDecimalIntegerToASCII (rmdir (__ctalk_to_c_char_ptr(ARG(0))), buf);\n\
   return __ctalkCreateObjectInit ("result", "Integer", \n\
      "Magnitude", LOCAL_VAR, buf); \n\
 }
@@ -49,7 +47,8 @@ cRmdir (char *_s) {\n\
 cRint (double d) { \n\
   char buf[MAXLABEL]; \n\
   if (__ctalkIsObject (ARG(0))) \n\
-    sprintf (buf, "%f", rint (__ctalk_to_c_double (ARG(0)))); \n\
+    __ctalkDecimalIntegerToASCII (rint (__ctalk_to_c_double (ARG(0))), \
+				  buf); \n\
   return __ctalkCreateObjectInit ("result", "Float", \n\
 		       "Magnitude", LOCAL_VAR, buf); \n\
 }
@@ -58,7 +57,7 @@ cRint (double d) { \n\
 cRound (double d) { \n\
   char buf[MAXLABEL]; \n\
   if (__ctalkIsObject (ARG(0))) \n\
-    sprintf (buf, "%f", round (__ctalk_to_c_double (ARG(0)))); \n\
+    __ctalkDoubleToASCII (round (__ctalk_to_c_double (ARG(0))), buf); \n\
   return __ctalkCreateObjectInit ("result", "Float", \n\
 		       "Magnitude", LOCAL_VAR, buf); \n\
 }

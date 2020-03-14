@@ -1,4 +1,4 @@
-/* $Id: rt_cvar.c,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ */
+/* $Id: rt_cvar.c,v 1.5 2019/12/05 21:52:25 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -229,7 +229,7 @@ static inline void longdouble_conv (CVAR *c, void *var,
     case 0:
       c -> val.__type = LONGDOUBLE_T;
     
-#ifndef __APPLE__
+#if !(defined(__APPLE__) && defined(__ppc__))
       if (var != NULL)
 	c -> val.__value.__ld = *(long double *)var;
       else
@@ -487,8 +487,13 @@ int __ctalk_register_c_method_arg (char *decl, char *type,
     short_int_conv (c, var, have_array_member);
     add_method_arg_cvar (c);
     return SUCCESS;
+  } else if (((c -> type_attrs & CVAR_TYPE_INT) ||
+	      (c -> type_attrs & CVAR_TYPE_LONG)) &&
+	     !(c -> type_attrs & CVAR_TYPE_DOUBLE)) { /***/
+#if 0 /***/
   } else if ((c -> type_attrs & CVAR_TYPE_INT) ||
 	     (c -> type_attrs & CVAR_TYPE_LONG)) {
+#endif    
     int_conv (c, var, have_array_member);
     add_method_arg_cvar (c);
     return SUCCESS;
@@ -498,7 +503,12 @@ int __ctalk_register_c_method_arg (char *decl, char *type,
     return SUCCESS;
   }
 
+  if ((c -> type_attrs & CVAR_TYPE_LONGDOUBLE) ||
+      ((c -> type_attrs & CVAR_TYPE_LONG) &&
+       (c -> type_attrs & CVAR_TYPE_DOUBLE))){ /***/
+#if 0 /***/
   if (c -> type_attrs & CVAR_TYPE_LONGDOUBLE) {
+#endif    
     longdouble_conv (c, var, have_array_member);
   } else if (c -> type_attrs & CVAR_TYPE_DOUBLE) {
     double_conv (c, var, have_array_member);
@@ -572,8 +582,10 @@ int __ctalk_register_c_method_arg_b (char *decl, char *type,
     longlong_int_conv (c, var, have_array_member);
     add_method_arg_cvar (c);
     return SUCCESS;
-  } else if ((c -> type_attrs & CVAR_TYPE_INT) ||
-	     (c -> type_attrs & CVAR_TYPE_LONG)) {
+  } else if (((c -> type_attrs & CVAR_TYPE_INT) ||
+	      (c -> type_attrs & CVAR_TYPE_LONG)) &&
+	     !(c -> type_attrs & CVAR_TYPE_DOUBLE)) { /***/
+    /* CVAR_TYPE_LONG|CVAR_TYPE_DOUBLE == long double, handled below. */
     int_conv (c, var, have_array_member);
     add_method_arg_cvar (c);
     return SUCCESS;
@@ -583,7 +595,9 @@ int __ctalk_register_c_method_arg_b (char *decl, char *type,
     return SUCCESS;
   }
 
-  if (c -> type_attrs & CVAR_TYPE_LONGDOUBLE) {
+  if ((c -> type_attrs & CVAR_TYPE_LONGDOUBLE) ||
+      ((c -> type_attrs & CVAR_TYPE_LONG) &&
+       (c -> type_attrs & CVAR_TYPE_DOUBLE))){ /***/
     longdouble_conv (c, var, have_array_member);
   } else if (c -> type_attrs & CVAR_TYPE_DOUBLE) {
     double_conv (c, var, have_array_member);
@@ -652,8 +666,13 @@ int __ctalk_register_c_method_arg_c (char *decl, char *type,
     longlong_int_conv (c, var, have_array_member);
     add_method_arg_cvar (c);
     return SUCCESS;
+  } else if (((c -> type_attrs & CVAR_TYPE_INT) ||
+	      (c -> type_attrs & CVAR_TYPE_LONG)) &&
+	     !(c -> type_attrs & CVAR_TYPE_DOUBLE)) { /***/
+#if 0 /***/
   } else if ((c -> type_attrs & CVAR_TYPE_INT) ||
 	     (c -> type_attrs & CVAR_TYPE_LONG)) {
+#endif    
     int_conv (c, var, have_array_member);
     add_method_arg_cvar (c);
     return SUCCESS;
@@ -663,7 +682,12 @@ int __ctalk_register_c_method_arg_c (char *decl, char *type,
     return SUCCESS;
   }
 
+  if ((c -> type_attrs & CVAR_TYPE_LONGDOUBLE) ||
+      ((c -> type_attrs & CVAR_TYPE_LONG) &&
+       (c -> type_attrs & CVAR_TYPE_DOUBLE))){ /***/
+#if 0 /***/
   if (c -> type_attrs & CVAR_TYPE_LONGDOUBLE) {
+#endif    
     longdouble_conv (c, var, have_array_member);
   } else if (c -> type_attrs & CVAR_TYPE_DOUBLE) {
     double_conv (c, var, have_array_member);
@@ -730,8 +754,13 @@ int __ctalk_register_c_method_arg_d (char *type,
     longlong_int_conv (c, var, have_array_member);
     add_method_arg_cvar (c);
     return SUCCESS;
+  } else if (((c -> type_attrs & CVAR_TYPE_INT) ||
+	      (c -> type_attrs & CVAR_TYPE_LONG)) &&
+	     !(c -> type_attrs & CVAR_TYPE_DOUBLE)) { /***/
+#if 0 /***/
   } else if ((c -> type_attrs & CVAR_TYPE_INT) ||
 	     (c -> type_attrs & CVAR_TYPE_LONG)) {
+#endif    
     int_conv (c, var, have_array_member);
     add_method_arg_cvar (c);
     return SUCCESS;
@@ -741,7 +770,12 @@ int __ctalk_register_c_method_arg_d (char *type,
     return SUCCESS;
   }
 
+  if ((c -> type_attrs & CVAR_TYPE_LONGDOUBLE) ||
+      ((c -> type_attrs & CVAR_TYPE_LONG) &&
+       (c -> type_attrs & CVAR_TYPE_DOUBLE))){ /***/
+#if 0 /***/
   if (c -> type_attrs & CVAR_TYPE_LONGDOUBLE) {
+#endif    
     longdouble_conv (c, var, have_array_member);
   } else if (c -> type_attrs & CVAR_TYPE_DOUBLE) {
     double_conv (c, var, have_array_member);
@@ -2025,6 +2059,23 @@ OBJECT *cvar_object (CVAR *c, int *obj_is_created) {
 	(c -> name, rt_defclasses -> p_float_class, d_scope, buf);
       *obj_is_created = TRUE;
       break;
+#if !(defined(__APPLE__) && defined(__ppc__))
+    case LONGDOUBLE_T: /***/
+      if (c -> n_derefs && c -> initializer_size) {
+	/* untested for now */
+#if defined (__GNUC__) && defined (__x86_64) && defined (__amd64__)
+	sprintf (buf, "%#lx", (unsigned long int)c -> val.__deref_ptr);
+#else
+	(void)htoa (buf, (unsigned int)c -> val.__deref_ptr);
+#endif
+      } else {
+	snprintf (buf, MAXLABEL, "%Lf", c -> val.__value.__ld);
+      }
+      o = create_object_init_internal
+	(c -> name, rt_defclasses -> p_float_class, d_scope, buf);
+      *obj_is_created = TRUE;
+      break;
+#endif      /* !(defined(__APPLE__) && defined(__ppc__)) */
     case OBJECT_T:
       return object_from_CVAR (c, &o, obj_is_created);
       break;

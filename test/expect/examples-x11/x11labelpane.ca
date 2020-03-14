@@ -1,0 +1,68 @@
+#include <ctalk/ctalkdefs.h>
+
+#define FTFONTS    /* Comment this line out to use X fonts. */
+#define MULTILINE  /* Comment out to display a single line label. */
+#define ROUNDED    /* Comment out to draw borders with straight edges. */
+
+int main (int argv, char **argc) {
+  X11Pane new xPane;
+  X11PaneDispatcher new xTopLevelPane;
+  X11CanvasPane new xCanvasPane;
+  X11LabelPane new xLabelPane;
+  InputEvent new e;
+  Integer new verbose;
+  Exception new ex;
+
+#ifdef FTFONTS 
+  xPane ftFontVar initFontLib;
+#endif       
+
+  xPane initialize 0, 0, 300, 300;
+  xPane inputStream eventMask =
+    WINDELETE|EXPOSE|ENTERWINDOWNOTIFY|LEAVEWINDOWNOTIFY;
+  xTopLevelPane attachTo xPane;
+  xLabelPane attachTo xTopLevelPane, "100x100+25+50";
+  xPane map;
+  xPane raiseWindow;
+
+  xPane openEventStream;
+
+#ifdef FTFONTS
+  xLabelPane ftFont "DejaVu Sans", 0, 0, 72, 11.0;
+#else
+  xLabelPane font "-*-helvetica-medium-r-*-*-*-80-*-*-*-*-*-*";
+#endif       
+  xLabelPane textColor = "navyblue";
+
+#ifdef MULTILINE
+  xLabelPane multiLine "Labels\ncan occupy\nmultiple\nlines.";
+#else
+  xLabelPane text "A Label";
+#endif
+
+#ifdef ROUNDED
+  xLabelPane radius = 10;
+#endif  
+
+  xLabelPane draw;
+  
+  while (TRUE) {
+    xPane inputStream queueInput;
+    if (xPane inputStream eventPending) {
+      e become xPane inputStream inputQueue unshift;
+      xPane subPaneNotify e;  /* Call the classes' event handlers. */
+      if (ex pending)
+	ex handle;
+      
+      switch (e eventClass value)
+     	{
+     	case WINDELETE:
+      	  xPane deleteAndClose;
+     	  exit (0);
+     	  break;
+     	default:
+     	  break;
+     	}
+    }
+  }
+}

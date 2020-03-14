@@ -1,4 +1,4 @@
-/* $Id: sformat.c,v 1.1.1.1 2019/10/26 23:40:50 rkiesling Exp $ -*-c-*-*/
+/* $Id: sformat.c,v 1.2 2020/01/01 01:44:01 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -36,6 +36,7 @@
 
 extern DEFAULTCLASSCACHE *rt_defclasses; /* Declared in rtclslib.c. */
 
+#if 0 /***/
 char *__ctalkCPrintFmtToCtalkFmt (char *c_fmt, char *ctalk_fmt) {
 
   int i, j;
@@ -53,6 +54,7 @@ char *__ctalkCPrintFmtToCtalkFmt (char *c_fmt, char *ctalk_fmt) {
   ctalk_fmt[j] = '\0';
   return ctalk_fmt;
 }
+#endif
 
 static char __fmtbuf[0xFFFF];
 static char __tmpbuf[0xFFFF];

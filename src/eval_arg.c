@@ -1,4 +1,4 @@
-/* $Id: eval_arg.c,v 1.3 2019/11/11 02:56:14 rkiesling Exp $ */
+/* $Id: eval_arg.c,v 1.11 2020/02/02 04:02:52 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -580,7 +580,7 @@ static OBJECT *resolve_single_token_arg (METHOD *rcvr_method,
 	     */
 	    method_arg_accessor_fn (messages, message_ptr, 
 				    method -> n_params - i - 1,
-				    null_context);
+				    null_context, method -> varargs);
 	    message_stack_at (argbuf -> start_idx) -> attrs |=
 	      OBJ_IS_SINGLE_TOK_ARG_ACCESSOR;
 	    message_stack_at (argbuf -> start_idx) -> attr_data =
@@ -1235,6 +1235,55 @@ OBJECT *eval_arg (METHOD *method, OBJECT *rcvr_class, ARGSTR *argbuf,
 	m_arg -> attrs |= TOK_SELF;
       } else if (str_eq (M_NAME(m_arg), "super")) {
 	m_arg -> attrs |= TOK_SUPER;
+      } else if (is_class_typecast (&msi, i)) { /***/
+	int i_2, cast_lookahead;
+	int cast_start_l, cast_end_l = stack_end, i_3;
+	leading_typecast_indexes (main_stack_idx,
+				  &argbuf -> typecast_start_idx,
+				  &argbuf -> typecast_end_idx);
+	argbuf -> leading_typecast = true;
+	argbuf -> typecast_expr =
+	  collect_tokens (message_stack (), argbuf -> typecast_start_idx,
+			  argbuf -> typecast_end_idx);
+	for (i_2 = i - 1; i_2 > stack_end; i_2--) {
+	  if (M_TOK(m_messages[i_2]) == CLOSEPAREN) {
+	    cast_end_l = i_2;
+	    cast_lookahead = nextlangmsg (m_messages, i_2);
+	    m_messages[cast_lookahead] -> receiver_msg = m_arg;
+	    m_messages[cast_lookahead] -> receiver_msg -> obj =
+	      get_class_object (M_NAME(m_messages[i]));
+	    break;
+	  }
+	}
+	if (m_messages[start_stack] -> attrs & TOK_IS_PREFIX_OPERATOR) {
+	  /* 
+	     Handle a case where we have a class typecast preceded
+	     by a prefix operator; i.e.,
+
+	       *(Integer *)myInt myInstanceVar;
+
+	     We do this my setting the cast expression tokens
+	     to spaces (on the main stack!), but keeping the 
+	     cast attributes and objects.
+
+	   */
+	  cast_start_l = prevlangmsg (m_messages, i);
+	  for (i_2 = argbuf -> typecast_start_idx,
+		 i_3 = cast_start_l;
+	       (i_2 >= argbuf -> typecast_end_idx) &&
+		 (i_3 >= cast_end_l); i_2 --, i_3--) {
+	    message_stack_at (i_2) -> name[0] = ' ';
+	    message_stack_at (i_2) -> name[1] = '\0';
+	    message_stack_at (i_2) -> tokentype = WHITESPACE;
+	    m_messages[i_3] -> name[0] = ' ';
+	    m_messages[i_3] -> name[1] = '\0';
+	    m_messages[i_3] -> tokentype = WHITESPACE;
+	  }
+	  argbuf -> start_idx = prevlangmsg (message_stack (),
+					     argbuf -> typecast_start_idx);
+	  argbuf -> leading_typecast = false;
+	}
+	continue;
       }
     } else if (IS_C_UNARY_MATH_OP (M_TOK(m_arg)) || M_TOK(m_arg) == MINUS) {
       if (prefix_method_attr (m_messages, i)) {
@@ -1536,16 +1585,19 @@ OBJECT *eval_arg (METHOD *method, OBJECT *rcvr_class, ARGSTR *argbuf,
 	    m_arg -> obj = instantiate_self_object_from_class
 	      (m_arg -> receiver_msg -> obj);
 	  }
-	  leading_typecast_indexes (main_stack_idx,
-				    &(argbuf -> typecast_start_idx),
-				    &(argbuf -> typecast_end_idx));
-	  if ((_a_s = nextlangmsg (message_stack (),
-				   argbuf -> typecast_end_idx)) != ERROR)
-	    argbuf -> start_idx = _a_s;
-	  for (_i_2 = argbuf -> typecast_start_idx; 
-	       _i_2 >= argbuf -> typecast_end_idx; --_i_2) {
-	    ++message_stack_at (_i_2) -> evaled;
-	    ++message_stack_at (_i_2) -> output;
+	  if (!(m_messages[start_stack] -> attrs & TOK_IS_PREFIX_OPERATOR)) {
+	    /* handled above - see comments there */
+	    leading_typecast_indexes (main_stack_idx,
+				      &(argbuf -> typecast_start_idx),
+				      &(argbuf -> typecast_end_idx));
+	    if ((_a_s = nextlangmsg (message_stack (),
+				     argbuf -> typecast_end_idx)) != ERROR)
+	      argbuf -> start_idx = _a_s;
+	    for (_i_2 = argbuf -> typecast_start_idx; 
+		 _i_2 >= argbuf -> typecast_end_idx; --_i_2) {
+	      ++message_stack_at (_i_2) -> evaled;
+	      ++message_stack_at (_i_2) -> output;
+	    }
 	  }
 	}
 
@@ -1844,6 +1896,37 @@ OBJECT *eval_arg (METHOD *method, OBJECT *rcvr_class, ARGSTR *argbuf,
 		if (str_eq (method -> name, "->")) {
 		  if (is_OBJECT_member (M_NAME(m_messages[i])))
 		    continue;
+		} else {
+		  /* check for instance and class variable typos,
+		     like the var on its own */
+		  /***/
+		  instancevar_wo_rcvr_warning
+		    (m_messages, i, (first_label_idx == -1),
+		     main_stack_idx);
+#if 0 /***/
+		  if (M_TOK(m_arg) == LABEL &&
+		      interpreter_pass != expr_check) {
+		    if (first_label_idx != -1) {
+		      int p = 0;
+		      if ((p = prevlangmsg (m_messages, i)) != -1) {
+			if ((M_TOK(m_messages[p]) != LABEL) &&
+			    (M_TOK(m_messages[p]) != CLOSEPAREN)) {
+			  /* a closing paren as the previous token
+			     can be the end of a receiver expression,
+			     i.e., the label is a method, so don't 
+			     check if the label is defined here */
+			  if (!(m_arg -> attrs & TOK_SELF) &&
+			      !(m_arg -> attrs & TOK_SUPER) &&
+			      !IS_DEFINED_LABEL(M_NAME(m_arg))) {
+			    warning (message_stack_at (main_stack_idx),
+				     "Undefined label, \"%s.\"",
+				     M_NAME(m_arg));
+			  }
+			}
+		      }
+		    }
+		  }
+#endif		
 		}
 	      }  /* if ((method -> n_args == 0) ... */
 	    }

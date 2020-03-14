@@ -5,7 +5,7 @@ START-INFO-DIR-ENTRY
 * ctalk: (ctalk).	The Ctalk language reference manual.
 END-INFO-DIR-ENTRY
 
-This file documents Ctalk version 0.0.65.
+This file documents Ctalk version 0.0.66.
 
 Copyright (C) 2007-2015 Robert Kiesling
 
@@ -375,6 +375,8 @@ Instance Variables
      subpanes.  Normally this value is set by the 'background' method,
      described below.
 
+     If unset, the default background color is black.
+
 'borderWidth'
      An 'Integer' object that contains the window's border width in
      pixels.  The default is 1 pixel.
@@ -390,6 +392,27 @@ Instance Variables
      object or an instance of one of 'X11Pane's' subclasses.  Normally
      applications should not need to change this value.
 
+'displayPtr'
+     A 'Symbol' that holds the pointer to the display connection; i.e.,
+     the 'Display *' returned by 'XOpenDisplay(3)'.  Most windows use
+     the display connection opened when the main window is created.
+     Dialogs, which create their own main windows, open their own
+     connection to the display.  Generally, programs should not need to
+     change this.
+
+     When using subpanes, it's convenient to set the subpane's
+     'displayPtr' variable to the value of the main window pane's value.
+     This is generally done in the 'attachTo' methods, with a line that
+     looks something like this.
+
+'modal'
+     A 'Boolean' that determines how Ctalk draws in the window.  True
+     for popup windows, false otherwise.
+
+
+          self displayPtr = self mainWindow displayPtr;
+
+
 'fontVar'
      A 'X11Font' object that contains information about the Window or
      Pane's current font.
@@ -398,6 +421,10 @@ Instance Variables
      A 'String' that contains a X Logical Font Descriptor for the font
      to be used by the window.  If the value is '(null)', the window
      uses the system's fixed font.
+
+'foregroundColor'
+     A 'String' object that contains the name of the window's foreground
+     color.  If unset, the default foreground color is black.
 
 'ftFontVar'
      An 'X11FreeTypeFont' object that contains the pane's current font,
@@ -447,10 +474,9 @@ Class Variables
      map.
 'xDisplay'
      An 'Integer' object that contains the address of the X display
-     pointer.  Like many X resources that are opaque types, it is
-     formatted as an integer, rather than as a pointer, to avoid
-     confusing it with 'OBJECT *' values.  An 'Integer' that indicates
-     whether the 'X11Pane' class has been initialized.
+     pointer.  It's use is deprecated; programs should use the
+     displayPtr instance variable instead, which is set when each main
+     window is created in multi-window programs.
 
 Instance Methods
 ................
@@ -464,6 +490,9 @@ Instance Methods
      buffered Panes, programs need to set the background color of that
      Pane independently.  This method also has the effect of clearing
      the window.
+
+     If a program doesn't set a background color for the window, the
+     default background color is white.
 
 'clearRectangle (int X, int Y, int WIDTH, int HEIGHT)'
      Clear the area of the receiver's window with the dimensions given
@@ -499,9 +528,19 @@ Instance Methods
      (with the 'openEventStream' method).
 
 'font (String FONT_DESC)'
-     Set the font used for drawing on the window.  This font can be set
-     independently of the fonts used by subpanes.  *Note X11TextPane::,
-     and *Note X11Bitmap::.
+     Set the X font used for drawing on the window.  This font can be
+     set independently of the fonts used by subpanes.  *Note
+     X11TextPane::, and *Note X11Bitmap::.
+
+     Because the Ctalk libraries use shared memory to manage font
+     information, it is generally necessary to call this method after
+     the 'openEventStream' method, for the program to calculate the
+     character spacing of multiple typefaces correctly.
+
+'foreground (String COLORNAME)'
+     Sets the window's foreground color (the default color for drawing
+     on the window) to COLORNAME.  If a program doesn't set the window's
+     foreground color, the default color is black.
 
 'ftFont (String FAMILY, Integer SLANT,'
      'Integer' WEIGHT 'Integer' DPI, 'Float' POINTSIZE) Selects an
@@ -577,6 +616,13 @@ Instance Methods
 
 'isTopLevel (void)'
      Return 'TRUE' if the receiver's container pane is 'NULL'.
+
+'mainWindow (void)'
+     Returns the 'X11Pane' object that manages a program's main window.
+     The method retrieves the main window object by following the
+     references of each subpane's 'container' instance variable.  If the
+     top-level pane object is not a 'X11Pane', the method prints a
+     warning.
 
 'map (void)'
      Map the receiver window onto the X display.
@@ -980,14 +1026,21 @@ Instance Variables
 Instance Methods
 ................
 
-'alphaFT (Float ALPHA)'
+'alpha (Float ALPHA)'
      Sets the alpha channel (opacity) when rendering outline fonts.
      Values should be between 0.0 (transparent) and 1.0 (opaque).  The
-     default value is 1.0.
+     Ctalk library's default value is 1.0.  Calling this method also
+     sets the value of the receiver pane's 'ftFontVar fgAlpha' instance
+     variable.
 
 'deleteAndClose (void)'
      Releases the receiver pane's GLX context and deletes the X11
      window, and shuts down the application's X11 input client.
+
+'displayHeigth (void)'
+'displayWidth (void)'
+     These methods return an 'Integer' with the display height and width
+     in pixels, respectively.
 
 'drawFmtText (Float XORG, Float YORG, String FMT, ...)'
      Draws the text given by FMT and its arguments at the matrix
@@ -1016,8 +1069,16 @@ Instance Methods
      the text using the last OpenGL color setting.
 
 'drawTextFT (Float XORG, Float YORG, String TEXT)'
+'drawTextFT (Float XORG, Float YORG, Float RED, Float GREEN, Float BLUE, Float ALPHA, String TEXT)'
      Draws the string given by TEXT at the matrix coordinates XORG,
      YORG.
+
+     The RED, GREEN, BLUE, and ALPHA arguments, if used, should be
+     between the values of 0.0 and 1.0, so they can be passed along to
+     the OpenGL API directly, and also to set the receiver's 'ftFontVar'
+     instance variable (a 'X11FreeTypeFont' values for its instance
+     variables: 'fgRed, fgGreen, fgBlue,' and 'fgAlpha' *Note
+     X11FreeTypeFont::.
 
 'drawTextW (Float XORG, Float YORG, String TEXT)'
 'drawTextW (Float XORG, Float YORG, Float RED, Float GREEN, Float BLUE, String TEXT)'
@@ -1618,13 +1679,18 @@ control posititioning and rendering of subpanes within the main pane,
 and help communicate events between the main window's pane and the
 subwindows' panes.
 
-The positioning of subpane windows is controlled by the
-'X11PaneDispatcher's' 'containerMode' instance variable, a 'String'.
-Setting the 'containerMode' to one of the following values has these
-effects.
-'full'
-     Fill the main window with a single subpane window.  This is the
-     default 'containerMode' value.
+The positioning of subwindows within the parent window is controlled by
+the arguments to the 'attachTo' methods; in particular, these methods
+accept a geometry specification, as an argument, which has the following
+format.
+
+
+     width[%]xheight[%]+x[%]+y[%]
+
+
+If a dimension does not contain a percent ('%') sign, the dimensions are
+in pixels.  With a percent sign, the dimensions are a fractional
+percentage of the parent pane's width or height.
 
 The 'X11PaneDispatcher' method 'new' creates a X window, although the
 window of the 'X11PaneDispatcher' itself is not normally visible, the
@@ -1696,9 +1762,28 @@ system.  *Note X11TerminalStream::.
                                    internally but applications can use this
                                    event to update their status if
                                    necessary.
+     "wmfocuschange" WMFOCUSCHANGENOTIFY
+                                   Received from the window manager when the
+                                   pointer enters or leaves a window, or when
+                                   the window manager raises a window.  The
+                                   xEventData1 instance variable contains the
+                                   type of X event, either FocusIn or FocusOut.
 
-     "destroy"      WINDELETE      Called when the user closes     subPaneDestroy
-                                   the application window.
+     "enternotify" ENTERWINDOWNOTIFY
+                                   Received when the pointer enters a
+                                   window from another window.
+
+     "leavenotify" LEAVEWINDOWNOTIFY
+                                   Received when the pointer leaves a
+                                   window.
+
+     "focusin"     FOCUSIN         Received when the application signals
+     "focusout"    FOCUSOUT        a change of widget focus; for example,
+                                   when the user presses the <Tab>
+                                   key.
+
+     "destroy"      WINDELETE      Called when the user closes the
+                                   application window.
 
 
 Handler Methods
@@ -1711,20 +1796,25 @@ defined by the 'attachTo' method.  The handler should be able to pass
 the event along to any subpanes of the receiver pane if necessary, by
 checking whether subpanes implement their own handlers.  Here, for
 example, is the 'X11PaneDispatcher' class's 'subPaneResize' method.
-     X11PaneDispatcher instanceMethod subPaneResize (Object __subPaneRef,
+
+
+     X11PaneDispatcher instanceMethod subPaneResize (Object __subPane,
      					      InputEvent __event) {
-       if (self containerMode == "full") {
-         if (__subPaneRef getValue isInstanceMethod "subPaneResize") {
-           __subPaneRef getValue handleResize withArg __subPaneRef;
-           __subPaneRef getValue handleResize withArg __event;
-           __subPaneRef getValue methodObjectMessage __subPaneRef getValue handleResize;
-          }
-       } else {
-         fprintf (stderr, "X11PaneDispatcher : subPaneResize:\n");
-         fprintf (stderr, "Warning: Unknown container mode.\n");
+       "Dispatch an Resize event to the subpanes of the
+        receiver pane."
+       X11Pane new containerPane;
+       self size x = __event xEventData3;
+       self size y = __event xEventData4;
+       containerPane = *self container;
+       XResizeWindow (containerPane xDisplay, containerPane xWindowID,
+     		 self size x, self size y);
+       if (__subPane isInstanceMethod "subPaneResize") {
+         __subPane methodObjectMessage __subPane handleResize, __subPane,
+           __event;
        }
        return NULL;
      }
+
 
 The internals of the subpane API are likely to change and be expanded in
 future releases.  Using the methods described here and in other sections
@@ -1732,15 +1822,33 @@ should help insure that applications are compatible with future Ctalk
 releases.
 
 Instance Variables
-------------------
+..................
 
-'containerMode'
-     A 'String' that contains the method that the 'X11PaneDispatcher'
-     uses to position subwindows.
+'canFocus'
+     A 'Boolean' that determines whether the widget is highlighed when
+     the pointer passes over it, or the application sets the focus; for
+     example, by pressing the <Tab> key.
+
+     If this variable is true, which is the default, then the class
+     should also declare event handlers for focus in and focus out
+     events.  Otherwise, the program prints a warning each time the
+     'shiftFocus' method, described below, calls a 'NULL' 'Method'
+     object.
 
 'handleDestroy'
      A 'Method' that provides the default handler to delete a subpane
      window and its data.
+
+'handleEnterNotify'
+'handleLeaveNotify'
+     Handlers for events that are generated when a pointer crosses from
+     one window to another.
+
+'handleFocusIn'
+'handleFocusOut'
+     Handles highlighting or un-highlighting a widget when receiving a
+     FOCUSIN or FOCUSOUT event from the application; for example, when
+     the user presses the <Tab> key.
 
 'handleKbdInput'
      A 'Method' that provides the default handler for subpanes to handle
@@ -1772,23 +1880,81 @@ Instance Variables
      selection events are handled internally, and only in the library
      functions used by 'X11TextEditorPane' objects.
 
+'handleWMFocusChange'
+     The method that handles the events received from the desktop's
+     window manager when it changes the window focus in response to a
+     pointer motion or click; or when the window manager raises a
+     window.
+
 'hasFocus'
      An 'Integer' that is true if the current subpane has the input
      focus.  For programs with only a single widget class, this variable
      is not used.
 
+'highlight'
+     A 'Boolean' that indicates whether the widget is displayed
+     highlighted.
+
+'modalWin'
+     When a dialog window is popped up over the main window, this holds
+     the window ID of the popup.  The 'handleSubPaneEvent' method uses
+     this to determine how the application's main window should respond
+     to X events; generally it keeps the dialog window above the main
+     window until the dialog window is withdrawn.  When their is no
+     window popped up over the main window, the value of 'modalWin' is
+     zero ('0').
+
+'tabFocus'
+     A 'Boolean' that determines, if true (which is the default),
+     whether the 'handleSubPaneEvent' method intercepts the <Tab> key in
+     order to shift the input focus when it is pressed.  If 'tabFocus'
+     is true, the subpane's class must implement methods to handle the
+     'focusin' and 'focusout' events that shifting focus with the
+     keyboard implements, or the program will display warning messages
+     when it can't find the methods.
+
 Instance Methods
 ................
 
 'attachTo (Object PARENTPANE)'
-     Attach the receiver to its parent pane, typically a 'X11Pane'.
-     Also creates a X window, although 'X11PaneDispatcher' windows
-     themselves are not normally visible.
+'attachTo (Object PARENTPANE, String GEOMETRY)'
+     Attach the receiver to its parent pane, typically a 'X11Pane' or
+     'X11PaneDispatcher'.  Also creates a X window, although
+     'X11PaneDispatcher' windows themselves are not normally visible.
+
+     When the subwindow is attached to the parent window, the Ctalk
+     library creates the pane object's window and graphics context, and
+     clears the window to the background color of the pane object's
+     'backgroundColor' instance variable; for example, with an
+     expression like this:
+
+
+          myCanvasPane backgroundColor = "blue";
+
+
+     Otherwise, the method clears the subpane's window to black.
+
+     The GEOMETRY argument, if present, defines the size and placement
+     of the subpane's window within the parent window.  A geometry
+     specification has the form:
+
+
+          width[%]xheight[%]+x[%]+y[%]
+
+
+     The dimensions are in pixels, unless a percent sign ('%') follows a
+     dimension.  In that case, the dimension is a fractional percentage
+     of the parent pane's width or height.  The 'String' may contain a
+     combination of absolute and relative dimensions.
 
 'handleSubPaneEvent (InputEvent EVENT)'
      Handle an input event from the window system.  Typically the parent
      pane's 'inputStream' provides the event.  *Note
      X11TerminalStream::.
+
+     This method also checks keypresses for the <Tab> key, and calls the
+     'shiftFocus' method in order to shift focus between a window's
+     subpanes when the user presses <Tab>.
 
 'new (DISPATCHERNAME)'
      Create a new 'X11PaneDispatcher' object.  Initializes the instance
@@ -1801,11 +1967,33 @@ Instance Methods
      Set the pane's handler for HANDLERTYPE to HANDLERMETHOD.  Currently
      supported handler types are: 'resize'.
 
+'shiftFocus (void)'
+     When the user presses <Tab>, 'handleSubPaneEvent' calls this
+     method, which highlights a window's subpanes in succession, if the
+     subpanes can take the input focus.
+
+     Refer to the 'canFocus' instance variable, and the handlers for
+     focus in and focus out events.  These event handlers are called by
+     the program, and are not the same as the 'handleWMFocusChange'
+     handler, which is called when the window focus changes on the
+     desktop.
+
+'clearFocus (void'
+     Called before shifting the focus highlight to a new pane to insure
+     that only one pane indicates that it should receive focus,
+     including the synthetic focus that is assigned when shifting focus
+     using the <Tab> key.
+
 'subPaneDestroy (Object SUBPANEREF, InputEvent DESTROYEVENT)'
      The default handler for 'WINDELETE' events.  Like the other method
      handlers, SUBPANEREF is typically a 'Symbol' object.  The
      'X11TerminalStream' section describes these events.  *Note
      X11TerminalStream::.
+
+'subPaneGeometry'
+     A 'String' that stores a subpane's geometry specification, if any.
+     For an explanation of geometry string's format, refer to the
+     'attachTo' method, below.
 
 'subPaneKbdInput (Object SUBPANEREF, InputEvent KBDINPUTEVENT)'
      The default handler for 'KEYPRESS' and 'KEYRELEASE' events.  Like
@@ -1837,7 +2025,7 @@ Instance Methods
      X11TerminalStream::.
 
 
-File: ctalk.info,  Node: X11CanvasPane,  Next: X11ScrollBarPane,  Prev: X11PaneDispatcher,  Up: Classes
+File: ctalk.info,  Node: X11CanvasPane,  Next: X11ButtonPane,  Prev: X11PaneDispatcher,  Up: Classes
 
 'X11CanvasPane' Class
 ---------------------
@@ -2018,6 +2206,7 @@ Instance Methods
 ................
 
 'attachTo (Object PARENT_PANE)'
+'attachTo (Object PARENT_PANE, String GEOMETRY)'
 'attachTo (Object PARENT_PANE, Integer XORG, Integer YORG)'
 'attachTo (Object PARENT_PANE, Integer XORG, Integer YORG, Integer XSIZE, Integer YSIZE)'
      Attach a 'X11CanvasPane' object to its parent pane, which is
@@ -2025,6 +2214,19 @@ Instance Methods
      method initializes the size of the pane's window and buffers to the
      parent pane's dimensions, and positions the pane at the upper
      left-hand origin of the main window.
+
+     If two arguments are present, the second is a 'String' with the
+     geometry specifcation for the subpane.  Subpane geometry strings
+     have the form:
+
+
+          width[%]xheight[%]+x[%]+y[%]
+
+
+     The dimensions are in pixels, unless a percent sign ('%') follows a
+     dimension.  In that case, the dimension is a fractional percentage
+     of the parent pane's width or height.  The 'String' may contain a
+     combination of absolute and relative dimensions.
 
      With three arguments, the method positions the pane at XORG,YORG
      within the parent pane, which usually is relative to the upper left
@@ -2140,6 +2342,15 @@ Instance Methods
           }
 
 
+     _Note:_ The 'copy' method retrieves the 'paneBuffer' instance
+     variable.  If you use an expresion like the following, then the
+     program calls the 'X11Bitmap : copy' method instead.  *Note
+     X11Bitmap::.
+
+
+            myRcvrPane paneBuffer copy ...
+
+
 'defineRegion (String REGIONNAME, Integer XORG, Integer YORG, Integer XSIZE, Integer YSIZE)'
      Define a rectangular region with name REGIONNAME with the upper
      left-hand corner at XORG, YORG relative to the upper left-hand
@@ -2182,10 +2393,20 @@ Instance Methods
      'pen' instance variable; otherwise uses the line width and color
      defined by the 'Pen' argument.
 
-'drawLine (Intger XORG, Integer YORG, Integer XSIZE, Integer YSIZE)'
+'drawRoundedRectangle (Intger XORG, Integer YORG, Integer XSIZE, Integer YSIZE, Integer RADIUS)'
+     Similar to 'drawFilledRectangle', but this method takes an extra
+     argument, the radius of the corner arcs that round the rendered
+     rectangle's corners.
+
+'drawRectangle (Intger XORG, Integer YORG, Integer XSIZE, Integer YSIZE)'
      Draw the borders of a rectangle on the pane's window with the
      upper-left hand corner at the point given by the XORG and YORG
      arguments, with the width XSIZE and the height YSIZE.
+
+'drawRoundedRectangle (Intger XORG, Integer YORG, Integer XSIZE, Integer YSIZE, Integer RADIUS)'
+     This method is similar to 'drawRectangle', except that it takes an
+     extra argument, RADIUS, which specifies the radius of the arcs that
+     form the rectangle's corners.
 
 'directCopy (X11Bitmap SRC_BITMAP, Integer SRC_X_ORT, Integer SRC_Y_ORG, Integer SRC_WIDTH, Integer SRC_HEIGHT, Integer DEST_X_ORG, Integer DEST_Y_ORG)'
      Similar to the 'copy' method, above, except 'directCopy' copies the
@@ -2255,7 +2476,611 @@ Instance Methods
      pane's X window and adjusts the pane's dimensions.
 
 
-File: ctalk.info,  Node: X11ScrollBarPane,  Next: X11TextPane,  Prev: X11CanvasPane,  Up: Classes
+File: ctalk.info,  Node: X11ButtonPane,  Next: X11LabelPane,  Prev: X11CanvasPane,  Up: Classes
+
+'X11ButtonPane' Class
+---------------------
+
+The 'X11ButtonPane' class defines instance variables and methods that
+draw buttons on X windows.  The buttons' appearance is defined by the
+values in the instance variables, and they may be used to define the
+format of customized buttons and labels.
+
+The definitions of the 'X11ButtonPane's' instance variables' define the
+parameters for basic buttons with beveled and non-beveled edges, and the
+buttons' text is contained in a 'X11LabelPane' object, which defines the
+appreance of a button's text.
+
+Here is a brief example program.
+
+
+     /* buttons.ca - X11ButtonPane Demonstration */
+
+     #include <ctalk/ctalkdefs.h>
+
+     /* Uncomment this #define to use X bitmap fonts. */
+     /* #define XFONTS */
+
+     /* Also, uncomment this to draw a multiline label. */
+     /* #define MULTILINE */
+
+     /* Define CORNER_RADIUS > 0 for rounded corners (non-beveled, too).
+        The value is the radius of the corner arcs. */
+     #define CORNER_RADIUS 0
+
+     /* See the X11FreeTypeFont section of the the Ctalk reference. */
+     #define FTFONT_BOLD   200
+     #define FTFONT_MEDIUM 100
+
+     int main (void) {
+       X11Pane new mainWindow;
+       X11PaneDispatcher new dispatcher;
+       X11ButtonPane new lbutton;
+       X11ButtonPane new rbutton;
+       X11LabelPane new label;
+       InputEvent new e;
+
+       mainWindow backgroundColor = "blue";
+       lbutton backgroundColor = "blue";
+       rbutton backgroundColor = "blue";
+       label backgroundColor = "blue";
+       label textColor = "white";
+       label canFocus = false;
+       label borderWidth = 0;
+
+       mainWindow initialize 255, 200;
+       mainWindow inputStream eventMask =
+         EXPOSE|ENTERWINDOWNOTIFY|LEAVEWINDOWNOTIFY|BUTTONPRESS|BUTTONRELEASE|KEYPRESS|KEYRELEASE;
+       dispatcher attachTo mainWindow;
+       lbutton attachTo dispatcher, "90x50+25+100";
+       rbutton attachTo dispatcher, "90x50+135+100";
+       label attachTo dispatcher, "147x80+44+15";
+
+       mainWindow map;
+       mainWindow raiseWindow;
+
+       mainWindow openEventStream;
+
+       mainWindow setWMTitle "X11ButtonPane Demo";
+
+     #ifndef XFONTS
+       /*
+        * This is the recommended way to set up fonts for each widget.
+        */
+       label ftFontVar initFontLib;
+       label ftFont "DejaVu Sans", 0, FTFONT_BOLD, 0, 12.0;
+       label ftFontVar saveSelectedFont;
+       lbutton ftFont "DejaVu Sans", 0, FTFONT_MEDIUM, 0, 10.0;
+       lbutton ftFontVar saveSelectedFont;
+       rbutton ftFont "DejaVu Sans", 0, FTFONT_MEDIUM, 0, 10.0;
+       rbutton ftFontVar saveSelectedFont;
+     #else
+       lbutton label font "fixed";
+     #endif
+
+       label multiLine "X11ButtonPane\nDemo";
+
+     #ifndef MULTILINE
+       lbutton label text "Left";
+       rbutton label text "Right";
+     #else
+       lbutton label multiLine "Click\nHere";
+       rbutton label multiLine "Click\nHere, Too";
+     #endif
+
+     #if CORNER_RADIUS > 0
+       lbutton bevelEdges = false;
+       lbutton radius = CORNER_RADIUS;
+       lbutton label radius = CORNER_RADIUS;
+       rbutton bevelEdges = false;
+       rbutton radius = CORNER_RADIUS;
+       rbutton label radius = CORNER_RADIUS;
+     #endif
+
+       lbutton label highlightBackgroundColor = "gray90";
+       rbutton label highlightBackgroundColor = "gray90";
+
+       lbutton label highlightTextColor = "gray";
+       rbutton label highlightTextColor = "gray";
+
+       lbutton draw;
+       lbutton refresh;
+       rbutton draw;
+       rbutton refresh;
+       label draw;
+       label refresh;
+
+       while (TRUE) {
+         mainWindow inputStream queueInput;
+         if (mainWindow inputStream eventPending) {
+           e become mainWindow inputStream inputQueue unshift;
+
+           mainWindow subPaneNotify e;
+
+           switch (e eventClass value)
+     	{
+     	case EXPOSE:
+     	  lbutton subPaneExpose (lbutton, e);
+     	  rbutton subPaneExpose (rbutton, e);
+     	  label subPaneExpose (label, e);
+     	  break;
+     	default:
+     	  if (lbutton haveClick) {
+     	    printf ("left button!\n");
+     	    lbutton clearClick;
+     	  } else if (rbutton haveClick) {
+     	    printf ("right button!\n");
+     	    rbutton clearClick;
+     	  }
+     	  break;
+     	}
+         } else {
+           usleep (1000);
+         }
+       }
+
+     }
+
+
+Retrieving Button States
+........................
+
+The 'X11ButtonPane' class provides several methods to retrieve the state
+of a button object.
+
+'haveClick'
+     Returns true or false depending on whether the button has been
+     clicked recently.  This means that programs do not need to
+     constantly monitor a button's state.  If 'haveClick' returns true,
+     then the click state can be cleared with the 'clearClick' method
+     (below).
+
+'isClicked'
+     This method returns true or false depending on whether the
+     pointer's button 1 is currently pressed within the button's area.
+
+'clearClick'
+     Resets a previous clicked state as returned by the 'haveClick'
+     method, above.
+
+'text'
+     Returns a 'String' with the button's text.  If the text is
+     displayed on several lines, the method concatenates the lines with
+     a space character '' '' between them.
+
+Instance Variables
+..................
+
+'bevelEdges'
+     A 'Boolean' that causes the widget to display beveled edges if
+     true.
+
+'bevelWidth'
+     An 'Integer' that defines the width of the button's bevelled edges
+     in pixels.
+
+'borderColor'
+     A 'String' that contains the name of the button's border color when
+     drawing a non-beveled button.
+
+'borderMargin'
+     An 'Integer' that defines the distance between the border and the
+     pane's edge in pixels, when drawing a non-beveled button.
+
+'borderWidth'
+'borderHighlighWidth'
+     'Integer' values that determine the width a non-beveled button when
+     it is clicked on and in its non-highlighted state.
+
+'clicked'
+     A 'Boolean' that is true when the pointer's Button 1 is pressed
+     while over the widget, and false otherwise.
+
+'highlightHPen'
+'highlightVPen'
+'shadowPen'
+     'Pen' objects that defines the color of the edges' bevels when
+     drawing a beveled widget.
+
+'label'
+     A 'X11LabelPane' object that contains a button's text and provides
+     the methods to draw on the button's surface.  *Note X11LabelPane::.
+
+'radius'
+     If greater than zero ('0'), this 'Integer' defines the radius in
+     pixels of the curves displayed when the button is drawn with
+     rounded corners.
+
+Instance Methods
+................
+
+'attachTo (Object PARENTPANE, String GEOMETRY)'
+     Attaches the receiver to the parentPane named by PARENTPANE, with
+     the placement and size given by 'geometry'.  The parent pane should
+     generally be a 'X11PaneDispatcher' which directs X events to the
+     correct subpane.
+
+     The positioning of subwindows within the parent window is
+     controlled by the arguments to the 'attachTo' methods; in
+     particular, these methods accept a geometry specification, as an
+     argument, which has the following format.
+
+
+          width[%]xheight[%]+x[%]+y[%]
+
+
+     If a dimension does not contain a percent ('%') sign, the
+     dimensions are in pixels.  With a percent sign, the dimensions are
+     a fractional percentage of the parent pane's width or height, or a
+     horizontal or vertical distance that places the subwindow's upper
+     left-hand corner that distance from the parent window's upper
+     left-hand corner.
+
+'clearClick (void)'
+     Resets a button's clicked state as returned by 'haveClick' to
+     false.
+
+'draw (void)'
+     Draws the button and its label on the pane's buffer so the widget
+     can be displayed with the refresh method.
+
+     If the program has saved a font specification to the widget's
+     'ftFontVar' instance variable, then this method also selects the
+     font before drawing the widget.  If you want a button to display a
+     different font than the surronding window, this is the way to
+     declare and save a font specification.
+
+
+          /* The button inherits the ftFont method from X11Pane class. */
+
+          button ftFont "DejaVu Sans", FTFONT_ROMAN, FTFONT_MEDIUM, DEFAULT_DPI, 10.0;
+          button ftFontVar saveSelectedFont;
+
+
+     The 'X11FreeTypeFont' section describes the parameters that the
+     'X11FreeTypeFont' class uses when selecting fonts.  *Note
+     X11FreeTypeFont::.
+
+'haveClicked (void)'
+     Returns a 'Boolean' true or false depending on whether the button
+     has been clicked previously.  In that case, the program should call
+     the 'clearClick' method to detect further button clicks.
+
+'isClicked (void)'
+     Returns a 'Boolean' value of true or false depending on whether the
+     pointer's button 1 is currently pressed within the button.
+
+'new (String NEWOBJECTNAME)'
+     The 'X11ButtonPane' constructor.  Creates a 'X11ButtonPane' object
+     with the classes' instance variables, and initialized the object's
+     event handlers and 'Pen' objects for drawing a beveled button.
+
+'subPaneExpose (Object SUBPANE, InputEvent EVENT)'
+'subPaneButtonPress (Object SUBPANE, InputEvent EVENT)'
+'subPaneEnter (Object SUBPANE, InputEvent EVENT)'
+'subPaneLeave (Object SUBPANE, InputEvent EVENT)'
+     The class's handlers for events generated by the X server.
+
+'subPaneFocusIn (void)'
+'subPaneFocusOut (void)'
+     Handlers for focus changes generated by the application.  These do
+     not respond to X events and don't require any arguments.  These
+     methods are designed to be called by methods like
+     'X11PaneDispatcher : shiftFocus' (e.g., in response to a <Tab>
+     keypress).
+
+'text (void)'
+     Returns a 'String' with the button's text.  If the text is
+     displayed on multiple lines, this method concatenates the lines
+     with a space character (' ') between them.
+
+
+File: ctalk.info,  Node: X11LabelPane,  Next: X11ScrollBarPane,  Prev: X11ButtonPane,  Up: Classes
+
+'X11LabelPane' Class
+--------------------
+
+'X11LabelPane' objects display text in graphical windows.  The class
+provides instance variables and methods that control the label's font,
+border, justification, whether the label is highlighted when the pointer
+is over it, and formatting of single and multiple line labels.
+
+Formatting label text for multiple line labels, as well as controlling
+the text's justification, is described in the subsections below.
+
+Here is a simple example program that displays a X11LabelPane widget.
+
+
+     #include <ctalk/ctalkdefs.h>
+
+     #define FTFONTS    /* Comment this line out to use X fonts. */
+     #define MULTILINE  /* Comment out to display a single line label. */
+     #define ROUNDED    /* Comment out to draw borders with straight edges. */
+
+     int main (int argv, char **argc) {
+       X11Pane new xPane;
+       X11PaneDispatcher new xTopLevelPane;
+       X11CanvasPane new xCanvasPane;
+       X11LabelPane new xLabelPane;
+       InputEvent new e;
+       Integer new verbose;
+       Exception new ex;
+
+     #ifdef FTFONTS
+       xPane ftFontVar initFontLib;
+     #endif
+
+       xPane initialize 0, 0, 300, 300;
+       xPane inputStream eventMask =
+         WINDELETE|EXPOSE|ENTERWINDOWNOTIFY|LEAVEWINDOWNOTIFY;
+       xTopLevelPane attachTo xPane;
+       xLabelPane attachTo xTopLevelPane, "100x100+25+50";
+       xPane map;
+       xPane raiseWindow;
+
+       xPane openEventStream;
+
+     #ifdef FTFONTS
+       xLabelPane ftFont "DejaVu Sans", 0, 0, 72, 11.0;
+     #else
+       xLabelPane font "-*-helvetica-medium-r-*-*-*-80-*-*-*-*-*-*";
+     #endif
+       xLabelPane textColor = "navyblue";
+
+     #ifdef MULTILINE
+       xLabelPane multiLine "Labels\ncan occupy\nmultiple\nlines.";
+     #else
+       xLabelPane text "A Label";
+     #endif
+
+     #ifdef ROUNDED
+       xLabelPane radius = 10;
+     #endif
+
+       xLabelPane draw;
+
+       while (TRUE) {
+         xPane inputStream queueInput;
+         if (xPane inputStream eventPending) {
+           e become xPane inputStream inputQueue unshift;
+           xPane subPaneNotify e;  /* Call the classes' event handlers. */
+           if (ex pending)
+     	ex handle;
+
+           switch (e eventClass value)
+          	{
+          	case WINDELETE:
+           	  xPane deleteAndClose;
+          	  exit (0);
+          	  break;
+          	default:
+          	  break;
+          	}
+         }
+       }
+     }
+
+
+
+Multiple Line Labels
+....................
+
+If the label's text contains embedded newline '\n' characters, and the
+text is defined using the 'multiLine' method, below, then the text is
+display on multiple lines, with the breaks appearing where the newline
+characters appear in the text.  The text is displayed centered
+vertically, and justified as described in the next section.
+
+For single line labels, use the 'text' method with a 'String' argument
+to fit on one line.
+
+Justification
+.............
+
+The 'X11LabelPane' widget contains a simple layout engine that can
+center label text, or justify it against the right or left margins.
+
+The text's justification is determined by the setting of the
+'justification' instance variable, which can have one of three values,
+which are defined by the following macros:
+
+
+     LABEL_LEFT
+     LABEL_RIGHT
+     LABEL_CENTER
+
+
+These macros are defined in the 'ctalk/ctalkdefs.h' include file.  To
+use them, add the line
+
+
+     #include <ctalk/ctalkdefs.h>
+
+
+to the beginning of the source module.
+
+The widget calculates the right and left margins as the following:
+
+
+     (aLabel margin) + (aLabel highlightBorderWidth) + (aLabel padding)
+
+
+The highlighted border width is included regardless of whether the
+border actually is drawn or the label is hightlighted, so text alignment
+remains constant if a program draws and then obscures the border, or
+when the pointer passes over the label.
+
+Instance Variables
+..................
+
+'border'
+     A 'Boolean' that controls whether the label displays a border.  The
+     default is 'true'.
+
+'borderColor'
+     A 'String' that contains the name of the border's color if the
+     label displays a border.  The default is 'black'.
+
+'borderWidth'
+     An 'Integer' that defines the width of the border in pixels when
+     the widget is not highlighted.  The default is '2'.
+
+'grayed'
+     A 'Boolean' that determines whether to draw the widget in a grayed,
+     or inactive, state.  The state has no other effect for a
+     'X11LabelPane' object.  It can indicate the state of other controls
+     in the window.  The default is 'false'.
+
+'grayedColor'
+     A 'String' that contains the name of the color to draw the widget
+     when it is grayed.  The default is is 'gray'.
+
+'haveMultiLine'
+     A 'Boolean' that indicates whether the widget's text is defined
+     using the 'multiLine' method, and indicates that the widget should
+     format the label's text to span multiple lines.
+
+'highlightBackgroundColor'
+     A 'String' that contains the color to draw a highlighted label's
+     background.
+
+'highlightBorderColor'
+     A 'String' that contain's the name of a highlighed border's color.
+     The default is 'black'.
+
+'highlightBorderWidth'
+     An 'Integer' that determines the width in pixels of the label's
+     border when the widget is highlighed.  The default is two pixels.
+
+'highlightTextBold'
+     A 'Boolean' that indicates whether the widget should draw a
+     highlighted widget's text using a bold typeface.  The default is
+     'false'.
+
+     This variable has no effect when using X11 bitmap fonts.
+
+'highlightTextColor'
+     A 'String' that contains the name of the text color when the widget
+     is drawn highlighted.  The default is 'black'.
+
+'justify'
+     An 'Integer' that determines whether to draw the label's text
+     centered horizontally, or justified on the right or left margins.
+
+     This variable recognizes three values, which are #defines in the
+     'ctalk/ctalkdefs.h' include file.  The definitions are:
+
+
+          LABEL_LEFT
+          LABEL_CENTER
+          LABEL_RIGHT
+
+
+     To use these macros, add the statement
+
+
+          #include <ctalk/ctalkdefs.h>
+
+
+     near the top of the source module.
+
+'leading'
+     An 'Integer' that defines the space between lines of a multi-line
+     label.  This variable only affects text drawn using scalable fonts
+     of the Freetype library.  X11 bitmap fonts contain the leading in
+     the character glyphs.
+
+'margin'
+     An 'Integer' that defines the distance in pixels between the border
+     and the edges of the 'X11LabelPane' object.
+
+'padding'
+     An 'Integer' that defines the minimum distance in pixels between
+     the inner edge of the border and the pane object's text.
+
+'radius'
+     An 'Integer' that describes the radius to round the corners of the
+     border with.  If the value is '0' (the default), then draw borders
+     with straight edges.
+
+'textColor'
+     A 'String' that defines the name of the text color when the widget
+     is not highlighted.  The default is 'black'.
+
+'textLine'
+     A 'String' that contains the label's text if the text is to appear
+     on a single line.  The default is an empty string.
+
+'textLines'
+     An 'Array' that contains a multi-line widget's text, as set using
+     the 'multiLine' method.
+
+1 Instance Methods
+..................
+
+'draw (void)'
+'drawButtonLayout (void)'
+     Draws the text of the label, and updates the visible label on the
+     display.  The instance variables in this class and the text font's
+     class allow programs to adjust how the text is laid out.
+
+     The 'drawButtonLayout' method is similar, but it uses a different
+     algorithm that is more suited to laying out text on button labels.
+
+     If the widget has saved a font specification to its 'ftFontVar'
+     instance variable, then this method also selects the font before
+     drawing the label.  If you want a label to have a different font
+     than the rest of the window, this is how to declare and save a font
+     specification.
+
+
+          /* The label inherits the ftFont method from X11Pane class. */
+
+          label ftFont "DejaVu Sans", FTFONT_ROMAN, FTFONT_MEDIUM, DEFAULT_DPI, 10.0;
+          label ftFontVar saveSelectedFont;
+
+
+     The 'X11FreeTypeFont' section describes the parameters that the
+     'X11FreeTypeFont' class uses when selecting fonts.  *Note
+     X11FreeTypeFont::.
+
+'new'
+     Creates a new 'X11LabelPane' object, initializes the object's
+     instance variables and event handlers, and sets the pane's default
+     foreground and background colors.
+
+'subPaneExpose (Object SUBPANE, InputEvent EVENT)'
+     The widget's Expose event handler.  When the widget receives an
+     Expose event, this method redraws the widget.
+
+'subPaneEnter (Object SUBPANE, InputEvent EVENT)'
+'subPaneLeave (Object SUBPANE, InputEvent EVENT)'
+     The widget's EnterNotify and LeaveNotify event handlers.  These
+     methods set the 'subPane's' 'highlight' instance variable to true
+     or false (if the widget is configured to accept input focus), then
+     calls the 'draw' method to redraw the label.
+
+'font (String FONTDESC)'
+     Sets the X11 font to use for the label's text.  When drawing using
+     Freetype scalable fonts, the widget uses the 'ftFont' method from
+     'X11CanvasPane'.
+
+'text (String LABELTEXT)'
+     Sets the text of a single-line label.
+
+'text (String LABELTEXT)'
+     Sets the receiver's 'textLine' instance variable for single-line
+     labels.
+
+'multiText (String LABELTEXT)'
+     Divides the text given as the argument into lines where newline
+     characters '\n' appear in the text, and sets the elements of the
+     receiver's 'textLine' instance variable to one line for each array
+     element.  Also sets the 'haveMultiLine' instance variable to
+     'true'.
+
+
+File: ctalk.info,  Node: X11ScrollBarPane,  Next: X11TextPane,  Prev: X11LabelPane,  Up: Classes
 
 'X11ScrollBarPane' Class
 ------------------------
@@ -2279,19 +3104,18 @@ Here is an example program that demonstrates the basic steps needed to
 draw a scroll bar.
 
 
-     String new fgColor;
-     String new bgColor;
-
      int main (int argv, char **argc) {
        Integer new xWindowSize;
        Integer new yWindowSize;
        X11Pane new xPane;
        X11PaneDispatcher new xTopLevelPane;
        X11ScrollBarPane new xScrollBarPane;
+       X11CanvasPane new xCanvasPane;
        InputEvent new e;
-       Integer new nEvents;
        Exception new ex;
        Application new scrollDemo;
+       String new pctstr;
+       Integer new strWidth;
 
        scrollDemo enableExceptionTrace;
        scrollDemo installExitHandlerBasic;
@@ -2300,29 +3124,31 @@ draw a scroll bar.
        xWindowSize = 400;
        yWindowSize = 400;
 
-       fgColor = "white";
-       bgColor = "white";
-
-       parse_args (argc, argv);
+       xPane ftFontVar initFontLib;
+       xPane ftFont "DejaVu Sans", 0, 0, 0, 48.0;
 
        xPane initialize xWindowSize, yWindowSize;
+       xPane inputStream eventMask = WINDELETE|EXPOSE|BUTTONPRESS|BUTTONRELEASE|MOTIONNOTIFY;
        xTopLevelPane attachTo xPane;
-       xScrollBarPane attachTo xTopLevelPane;
+       xScrollBarPane attachTo xTopLevelPane, "20x100%+0+0";
+       xCanvasPane attachTo xTopLevelPane, "380x100%+20+0";
 
        xPane map;
        xPane raiseWindow;
 
-       /*
-        *  When animating, the old position of the scroll thumb
-        *  normally is set to the scrollbar's background color.
-        */
-       xScrollBarPane thumbErasePen colorName = bgColor;
-
        xPane openEventStream;
 
-       xScrollBarPane background bgColor;
-       xScrollBarPane foreground fgColor;
-       xScrollBarPane clear;
+       xScrollBarPane background "lightblue";
+       xScrollBarPane refresh;
+
+       xCanvasPane background "navy";
+       xCanvasPane foreground "navy";
+       xPane ftFontVar namedX11Color "white";
+       xCanvasPane clear;
+       pctstr printOn "%0.2f%%", xScrollBarPane percent * 100.0;
+       strWidth = xPane ftFontVar textWidth pctstr;
+       xCanvasPane putStrXY (380 / 2) - (strWidth / 2), (400 / 2), pctstr;
+       xCanvasPane refresh;
 
        while (TRUE) {
 
@@ -2338,86 +3164,55 @@ draw a scroll bar.
            switch (e eventClass value)
       	{
      	case EXPOSE:
-     	  xScrollBarPane refresh;
+     	  xCanvasPane paneBuffer clear;
+     	  pctstr printOn "%0.2f%%", xScrollBarPane percent * 100;
+     	  strWidth = xPane ftFontVar textWidth pctstr;
+     	  xCanvasPane putStrXY (380 / 2) - (strWidth / 2), (400 / 2), pctstr;
+     	  xCanvasPane refresh;
      	  break;
       	case WINDELETE:
        	  xPane deleteAndClose;
       	  exit (0);
       	  break;
        	default:
+     	  xCanvasPane paneBuffer clear;
+     	  pctstr printOn "%0.2f%%", xScrollBarPane percent * 100;
+     	  strWidth = xPane ftFontVar textWidth pctstr;
+     	  xCanvasPane putStrXY (380 / 2) - (strWidth / 2), (400 / 2), pctstr;
+     	  xCanvasPane refresh;
        	  break;
       	}
          }
        }
      }
 
-     void exit_help (char *cmd) {
-       printf ("\nUsage: %s [-h] | [-f n] | [-m n]\n", cmd);
-       printf ("-bg <color>  Background color.\n");
-       printf ("-fg <color>  Foreground color.\n");
-       printf ("-h           Print this message and exit.\n");
-       printf ("Please report bugs to: rk3314042@gmail.com.\n");
-       exit (0);
-     }
-
-     int parse_args (int c, char **a) {
-       int i;
-       for (i = 1; i < c; i++) {
-         if (a[i][0] == '-') {
-           switch (a[i][1])
-     	{
-     	case 'b':
-     	  /* Braces are necessary here. */
-     	  {
-     	    bgColor = a[++i];
-     	  }
-     	  break;
-     	case 'h':
-     	  exit_help (a[0]);
-     	  break;
-     	case 'f':
-     	  if (a[i][2] == 'g') {
-     	    fgColor = a[++i];
-     	  }
-     	  break;
-     	}
-         } else {
-           exit_help (a[0]);
-         }
-       }
-     }
-
 
 Instance Variables
-------------------
+..................
 
 'arrowCursor'
      A 'X11Cursor' object that contains the resource ID of the widget's
      arrow cursor.  *Note X11Cursor::.
 
+'bevel'
+     A 'Boolean' that determines whether the scroll thumb is drawn as a
+     beveled widget.
+
 'dragging'
      A 'Boolean' object that is True while the right mouse button is
      clicked while over the scroll thumb.  *Note Boolean::.
-
-'dragStartX'
-'dragStartY'
-     The x and y coordinates of the mouse pointer when starting to drag
-     the scroll thumb.  *Note Integer::.
 
 'frame'
      A 'Rectangle' object that contains coordinates of the scroll bar
      frame.  *Note Rectangle::.
 
+'frameWidthVar'
+     An 'Integer' that contains the width of the scrollbar's visible
+     frame in pixels.
+
 'framePen'
      A 'Pen' object that sets the line color and width of the scroll bar
      frame.  *Note Pen::.
-
-'frameTopStartX'
-'frameTopStartY'
-'frameBottomEndX'
-'frameBottomEndY'
-     'Integer' objects that are set to the frame coordinates and used
-     when the widget handles PointerMotion events.  *Note Integer::.
 
 'grabCursor'
      A 'X11Cursor' object that contains the resource ID of the widget's
@@ -2427,9 +3222,25 @@ Instance Variables
      An 'Integer' object that contains the previous PointerMotion
      event's y coordinate while dragging.  *Note Integer::.
 
+'margin'
+     An 'Integer' that defines the distance in pixels between the pane's
+     edge and the outer edge of the scrollbar frame.
+
+'mouseOver'
+     A 'Boolean' that is true if the pointer is over the scrollbar
+     frame, false otherwise.
+
+'padding'
+     An 'Integer' that defines the distance in pixels between the inner
+     edge of the scrollbar frame and the thumb.
+
 'thumb'
      A 'Rectangle' object that contains coordinates of the scroll thumb.
      *Note Rectangle::.
+
+'thumbBackgrondColor'
+     A 'String' that contains the name of the X11 color used to draw the
+     thumb.
 
 'thumbErasePen'
      A 'Pen' object that sets the color and line width of the scroll
@@ -2443,12 +3254,80 @@ Instance Variables
      A 'Pen' object that sets the color and line width of the scroll
      thumb.  *Note Pen::.
 
-'thumbTopStartX'
-'thumbTopStartY'
-'thumbBottomEndX'
-'thumbBottomEndY'
-     'Integer' objects that are set to the thumb coordinates and used
-     when the widget handles PointerMotion events.  *Note Integer::.
+'thumbPix'
+     A 'X11Bitmap' that contains the thumb's beveled image, if the pane
+     is drawn with 'bevel' set to 'true'.
+
+Instance Methods
+................
+
+'attachTo (Object PARENTPANE)'
+     Attaches the 'X11ScrollBarPane' object to its parent pane, which is
+     usually a 'X11PaneDispatcher' object.  Also sizes the pane and its
+     buffers to fit within the visible window, and sets the dimensions
+     of the scrollbar's visible frame and thumb.
+
+'background (String COLORNAME)'
+     Sets the pane's background color to COLORNAME, and also sets the
+     color to use when performing scrollbar animations.
+
+'drawThumb (void)'
+'eraseThumb (void)'
+     These methods animate the thumb so that it tracks the pointer's
+     position within the scrollbar.
+
+'frameWidth (Integer LINEWIDTH)'
+     Calculates the scrollbar frame's dimensions within the pane's
+     margins for the line width in pixels given as the argument.
+
+'new (String PANENAME)'
+     Creates a new 'X11ScrollBarPane' object, initializes the pane's
+     event handlers, and sets the default colors of the pane's elements.
+
+'percent (void)'
+     Returns a 'Float' with the position of the thumb's top edge in the
+     usable trough of the scrollbar, as a percentage between 0.0 and
+     1.0.
+
+     The usable area of the trough is defined as the distance that the
+     top edge of the scrollbar thumb can travel within the scrollbar's
+     margins; i.e,
+
+
+          usableTrough = aScrollBar size y -
+                            ((aScrollBar margin * 2) +
+                             (aScrollBar frameWidthVar * 2) +
+                             (aScrollBar padding * 2) +
+                             (aScrollBar thumbHeight));
+
+
+'pointIsInThumb (Integer X, Integer, Y)'
+     This method returns a 'Boolean' value of true if the point X,Y is
+     within the scroll bar thumb.
+
+'subPaneDestroy (Object SUBPANE, InputEvent EVENT'
+'subPaneExpose (Object SUBPANE, InputEvent EVENT'
+'subPanePointerInput (Object SUBPANE, InputEvent EVENT'
+'subPanePointerMotion (Object SUBPANE, InputEvent EVENT'
+'subPaneEnterNotify (Object SUBPANE, InputEvent EVENT'
+'subPaneLeaveNotify (Object SUBPANE, InputEvent EVENT'
+     The 'X11ScrollBarPane' object's event handlers for DESTROY, EXPOSE,
+     BUTTONPRESS/BUTTONRELEASE, MOTIONNOTIFY, ENTERWINDOWNOTIFY, and
+     LEAVEWINDOWNOTIFY X Window System events.
+
+'thumbDimensions (Integer Y, Integer HEIGHT)'
+     Calculates the position and size thumb's rectangle within the pane
+     using the vertical Y position and the thumb's HEIGHT.
+
+'thumbPercent (Float PCT)'
+     Calculates the thumb's height as a percent of the trough's vertical
+     distance.  The argument, PCT, is a 'Float' between 0.0 and 1.0.
+
+     Note that, in order to make these calculations and update the thumb
+     height in the pane's viewing area, the scrollbar must already be
+     attached to its parent pane, and the program needs to be receiving
+     X events.  So this method should only be used after a call to, for
+     example, X11Pane : openEventStream.
 
 
 File: ctalk.info,  Node: X11TextPane,  Next: X11TextEditorPane,  Prev: X11ScrollBarPane,  Up: Classes
@@ -2604,9 +3483,7 @@ Instance Methods
 
 'attachTo (Object PARENTPANE)'
      Attaches the 'X11TextPane' object to its parent pane.  The parent
-     pane should always be a 'X11PaneDispatcher' object.  This method
-     sets the height and width of the pane and its buffers based on the
-     parent pane's 'containerMode'.  *Note X11PaneDispatcher::.
+     pane should always be a 'X11PaneDispatcher' object.
 
 'cursorPos (Integer X, Integer Y)'
      Set the pane's cursor to the coordinates given as arguments.
@@ -2787,7 +3664,7 @@ button at the point where you want the text inserted.
 If the program has text selected and another program tries to place its
 contents in the X primary selection, the class will allow the selection
 ownership to change to the other program.  Any text that was selected in
-the 'X11TextEditor' pane's window will not longer be selected.
+the 'X11TextEditor' pane's window will no longer be selected.
 
 In general, X programs aren't required to send their to the display's X
 selection buffers.  Many programs only use selected contents internally,
@@ -2853,8 +3730,17 @@ Instance Variables
      in 'X11Pane' class.  *Note X11Pane::.
 
      An 'Integer' that defines the right margin in character columns.
-     Setting this to zero '0' sets the line width limit to the right
-     edge of the window.
+     Setting this to zero '0' sets the line width limit to the line
+     length, so the line width in character columns is calculated as:
+
+
+          lineWidth = (window_width_px - left_margin_px - right_margin_px) /
+                         character_width_px;
+
+
+'rightMargin'
+     The distance in pixels from the right edge of the window, leftward
+     to the right-hand limit of each line's length.
 
 'point'
      An 'Integer' that contains the current position in the text where
@@ -2882,16 +3768,26 @@ Instance Variables
 Instance Methods
 ................
 
+'attachTo (Object PARENT_PANE)'
+     Attach a 'X11TextEditorPane' object to its parent pane, which is
+     typically a 'X11PaneDispatcher' object.  This method initializes
+     the size of the pane's window and buffers to the parent pane's
+     dimensions, and positions the pane at the upper left-hand origin of
+     the main window.
+
 'background (String COLORNAME)'
 'foreground (String COLORNAME)'
      Sets the foreground and backgrounds color of the pane's window and
      buffers.
 
+'clearSelection (void)'
+     Sets the 'sStart' and 'sEnd' instance variables to '0', cancelling
+     text selection.
+
 'defaultFormat (void)'
-'defaultFormatFT (X11FreeTypeFontObject)'
-     Sets the document-wide margins, text colors.  The 'defaultFormatFT'
-     method takes as its argument a 'X11FreeTypeFont' object, which
-     needs to be configured before calling this method.  *Note
+     Sets the document-wide margins and text text colors.  If the pane
+     is using an 'X11FreeTypeFont' object to render text, the font needs
+     to be configured before calling this method.  *Note
      X11FreeTypeFont::.
 
 'displayText (void)'
@@ -2899,6 +3795,11 @@ Instance Methods
      method as soon as possible after the program starts the X event
      loop (which it does by calling the 'X11TerminalStream :
      openEventStream' method), and after every editing operation.
+
+'gotoChar (Integer N)'
+     Sets the 'point' instance variable to the N'th character in the
+     text.  If N is greater than the length of the text, sets 'point' to
+     the end of the text.
 
 'new (String PANENAME)'
      Initializes the 'X11TextEditorPane' object's event handlers, and
@@ -4729,15 +5630,6 @@ function) might vary from the '__ctalkLibcFnWithMethodVarArgs'
 prototype, but it tells the compiler not to print a warning message in
 that case.
 
-Pointer and Scalar Format Conversions
-.....................................
-
-Natively, objects only work with pointer types.  However, a program's
-method or template can call '__ctalkCPrintFmtToCtalkFmt' before
-'__ctalkLibcFnWithMethodVarArgs.' This preforms print format-argument
-translations for scalar conversions (for example, '%d').  *Note
-__ctalkCPrintFmtToCtalkFmt::.
-
 If you simply need to print formatted output, the 'writeFormat' or
 'printOn' methods (implemented in 'String', 'WriteFileStream' and many
 other classes classes) perform format-argument translations
@@ -5176,7 +6068,7 @@ Method Keywords
      than the receiver class.  *Note Return values::.
 
 'self'
-     Return the method's receiver object.  In version 0.0.65, you can
+     Return the method's receiver object.  In version 0.0.66, you can
      also use 'self' in arguments as a synonym for the receiver of the
      statement, as in this example.
           String new path;
@@ -5185,7 +6077,7 @@ Method Keywords
           printf ("%s", path subString 1, self length - 1);
 
      The use of 'self' in method arguments is experimental in version
-     0.0.65, and it should be used with caution.
+     0.0.66, and it should be used with caution.
 
 'super'
      The keyword 'super' has two different meanings.  It can modify a
@@ -5692,12 +6584,6 @@ functions.
      'at' (class 'Array') and 'atPut' (class 'AssociativeArray') for
      examples.
 
-'__ctalkCPrintFmtToCtalkFmt (char *C_FMT, char *CTALK_FMT)'
-     Translate a C 'printf(3)' type format string to a Ctalk compatible
-     format string.  The function translates the format characters
-     '[diouxXeEfFgGaAcsp],' but it does not perform translations of
-     field widths or precisions.
-
 '__ctalkCreateArgEntry (void)'
      Used internally to create an ARG type, which maintains a method's
      argument entries.
@@ -5738,21 +6624,49 @@ functions.
 
      Called by the 'initialize' methods (class 'X11Pane') to create a X
      window.  Returns the window system's ID for the window, an 'int'.
-     *Note X11Pane::.
+
+     If a program doesn't specify a window size, then default size is
+     250x250 pixels.  If the program doesn't specify a location for the
+     window, then this function sets the window's _X,Y_ origin to 0,
+     although the actual window placement depends on the machine's
+     window manager.  *Note ctalkX11SetSizeHints::.
+
+     Application programs can provide a window geometry specification
+     which is used to set the window's size and placement *Note
+     parseX11Geometry::.
+
+     If a program doesn't specify a foreground and background color, the
+     window's background is set to white and the foreground is set to
+     black.
+
+     Refer also to the '__ctalkCreateX11MainWindowTitle' and
+     '__ctalkCreanteX11SubWindow' functions.  *Note X11Pane::.
 
      'char *'TITLE) Similar to '__ctalkCreateX11MainWindow', except that
      if TITLE is non-null, the function uses it to set the new window's
      title.  Returns the X resource ID of the new window, an 'int'.
      *Note X11Pane::.
 
-     Application programs can provide a window geometry specification
-     which is used to set the window's size and placement *Note
-     parseX11Geometry::.
+     Creates an X subwindow that has the parent window defined by
+     PARENTPANE_OBJECT'S 'xWindowID' instance variable.  The dimensions
+     of the subwindow within the parent window are determined by the
+     SUBPANE_OBJECT'S 'origin' and 'size' instance variables.  Creates a
+     new graphics context for the window and saves its address in the
+     SUBPANE_OBJECT'S 'xGC' instance variable.
 
-     If a program doesn't specify a window size, then default size is
-     250x250 pixels.  If the program doesn't specify a location for the
-     window, then this function tries to do something intelligent with
-     the initial window placement.  *Note ctalkX11SetSizeHints::.
+     If the SUBPANE_OBJECT's 'backgroundColor' instance variable is set;
+     for example, with a statement like this:
+
+
+          myCanvasPane backgroundColor = "blue";
+
+
+     Then the function initiazes and clears the window to the value of
+     the 'backgroundColor' instance variable.  Otherwise, the function
+     sets the window's color to black and clears the window.
+
+     Also sets the display depth in the 'depth' instance variable, and
+     the ID of the subwindow in the 'xWindowID' instance variable.
 
 '__ctalkCriticalExceptionInternal (MESSAGE *ORIG, EXCEPTION EX, char *TEXT)'
      Raise a critical exception at run time.  The argument ORIG should
@@ -5783,9 +6697,17 @@ functions.
 '__ctalkDecimalIntegerToASCII (int I, char *S);'
      Format an ASCII representation of I, a decimal integer, in S.
 
-'__ctalkDecimalLongLongToASCII (long long int L, char *S);'
-     Format an ASCII representation of L, a decimal long long integer,
-     in S.
+'__ctalkLongLongToDecimalASCII (long long int L, char *BUF);'
+'__ctalkLongLongToHexASCII (long long int L, char *BUF, bool UPPERCASE);'
+'__ctalkLongToDecimalASCII (long int L, char *BUF);'
+'__ctalkLongToHexASCII (long int L, char *BUF, bool UPPERCASE);'
+     Format a decimal or hexadecimal ASCII representation of L, a long
+     long int, in BUF, and return BUF.
+
+     When using '__ctalkLongLongToHexASCII,' or '__ctalkLongToHexASCII,'
+     if UPPERCASE is 'true', format the number using uppercase letters;
+     e.g., '0XFFFF'; otherwise format the number using lowercase
+     letters: '0xffff'.
 
 '__ctalkDefaultSignalHandler (int SIGNO)'
      Set the handler of signal SIGNO to the system's default handler.
@@ -5893,7 +6815,10 @@ functions.
      than man pages and Texinfo manuals).
 
 '__ctalkDoubleToASCII (double D, char *S);'
-     Format an ASCII representation of D, a double, in S.  Returns S.
+'__ctalkFloatToASCII (float F, char *S);'
+'__ctalkLongDoubleToASCII (long double F, char *S);'
+     Format an ASCII representation of the first argument in S.  Returns
+     S.
 
      '__ctalkEnterArgBlockScope' C function
 '__ctalkEnterArgBlockScope (void)'
@@ -6242,8 +7167,9 @@ functions.
      their use, refer to the methods in GLUTApplication class.
 
 '__ctalkGLXAlpha (float ALPHA)'
-     Sets the alpha (opacity) channel for outline text rendering.  The
-     default is 1.0.
+     Sets the alpha (opacity) channel for outline text rendering.
+     Values should be between 0.0 (transparent) and 1.0 (opaque).  The
+     Ctalk library's default value is 1.0 (opaque).
 
 '__ctalkGLXDrawText (char *TEXT)'
      This is another convenience function that draws text on a
@@ -6354,7 +7280,7 @@ functions.
      These functions return an int with the window's current origin and
      size.
 
-'__ctalkGUIPaneDrawCircleBasic (int WINDOW_ID, int GC, int CENTER_X, int CENTER_Y, int RADIUS, int FILL, int PEN_WIDTH, int ALPHA char *FG_COLOR_NAME, char *BG_COLOR_NAME)'
+'__ctalkGUIPaneDrawCircleBasic (void *DISPLAY, int WINDOW_ID, int GC, int CENTER_X, int CENTER_Y, int RADIUS, int FILL, int PEN_WIDTH, int ALPHA char *FG_COLOR_NAME, char *BG_COLOR_NAME)'
      Draws a circle centered at CENTER_X,CENTER_Y with radius RADIUS.
      The dimensions are given in pixels.  If FILLED is true, then the
      function draws a filled circle; otherwise, the circle's edge has
@@ -6373,7 +7299,8 @@ functions.
      Draw a line specified by LINE_OBJECT (an instance of 'Line' class)
      using PEN_OBJECT (an instance of 'Pen' class).
 
-'__ctalkX11PaneDrawLineBasic (int DRAWABLE_ID, int GC_PTR, int X_START, int Y_START, int X_END, int Y_END, int PEN_WIDTH, int ALPHA, char *PEN_COLOR)'
+'__ctalkGUIPaneDrawLineBasic (void *DISPLAY, int DRAWABLE_ID, int GC_PTR, int X_START, int Y_START, int X_END, int Y_END, int PEN_WIDTH, int ALPHA, char *PEN_COLOR)'
+'__ctalkX11PaneDrawLineBasic (void *DISPLAY, int DRAWABLE_ID, int GC_PTR, int X_START, int Y_START, int X_END, int Y_END, int PEN_WIDTH, int ALPHA, char *PEN_COLOR)'
      Draw a line between the points (x_start,y_start) and (x_end, y_end)
      with the color, and transparency using the drawable ID, graphics
      context, and pen color, width, and transparency given as arguments.
@@ -6387,6 +7314,11 @@ functions.
 '__ctalkGUIPaneDrawRectangle (OBJECT *PANE_OBJECT, OBJECT *RECTANGLE_OBJECT, OBJECT *PEN_OBJECT, int FILL)'
      Draw a rectangle on PANE_OBJECT specified by RECTANGLE_OBJECT using
      PEN_OBJECT.  If FILL is non-zero, draw a filled rectangle.
+
+'__ctalkGUIPaneDrawRoundedRectangle (OBJECT *PANE_OBJECT, OBJECT *RECTANGLE_OBJECT, OBJECT *PEN_OBJECT, int FILL, int RADIUS)'
+     This is similar to '__ctalkGUIPaneDrawRectangle', except that it
+     takes an extra argument, RADIUS, which specifies the radius of the
+     arcs that are used to draw the corners.
 
 '__ctalkGUIPanePutStr (OBJECT *PANE_OBJECT, int X, int Y, char *STRING)'
      Display 'String' object STRING at coordinates X,Y on PANE_OBJECT.
@@ -6406,7 +7338,24 @@ functions.
      'X11Pane' objects.  For all other visual types, like pixmaps, use
      __ctalkX11SetBackgroundBasic.
 
-'__ctalkX11TextFromData (int DRAWABLE_ID, int GD_PTR, char *TEXT)'
+'__ctalkX11SubWindowGeometry (OBJECT * PARENTPANE, char * GEOMSTR, int *X_OUT, int *Y_OUT, int *width_out, int *HEIGHT_OUT)'
+     Parses a string that contains the geometry specification of a
+     subwindow, and returns the width and height of the subwindow and
+     its X,Y position within the parent pane's window.
+
+     A geometry specification has the form:
+
+
+          width[%]xheight[%]+x_org[%]+y_org[%]
+
+
+     The _x, y, width, and height_ parameters are interpreted as the
+     actual origin and size of the subwindow, unless a parameter is
+     followed by a percent sign ('%').  In that case, the dimension is
+     interpreted as a fraction of the parent window's corresponding
+     vertical or horizontal dimension.
+
+'__ctalkX11TextFromData (void *DISPLAY, int DRAWABLE_ID, int GD_PTR, char *TEXT)'
      Displays TEXT on DRAWABLE_ID.
 
 '__ctalkX11TextWidth (char *FONTDESC, char *TEXT)'
@@ -6622,18 +7571,6 @@ functions.
      Formats the message given as the argument and writes the message to
      the system's syslog facility.
 
-'__ctalkLongLongRadixToDecimal (char *S)'
-     Convert the radix of the formatted 'long long int' in S to decimal
-     and return a string containing the formatted 'long long int.'
-     _Note:_ Do not use this function in new code.  It's been replaced
-     by '__ctalkLongLongToDecimalASCII', below.
-
-'__ctalkLongLongToDecimalASCII (char *NUMBER_IN, char * DECIMAL_OUT)'
-     Convert the radix of the ASCII formatted 'long long int' in
-     NUMBER_IN to decimal and format the decimal integer in DECIMAL_OUT.
-     The radix of NUMBER_IN may be decimal, octal, hexadecimal, or
-     binary.  The function also returns a 'char *' to DECIMAL_OUT.
-
 '__ctalkMatchAt (Integer N)'
 '__ctalkMatchIndexAt (Integer N)'
      Returns, respectively, the text, or the character index matched by
@@ -6661,7 +7598,9 @@ functions.
      instance variable.  *Note GLXCanvasPane::.
 
 '__ctalkMapX11Window (OBJECT *X11PANE_OBJECT)'
-     The X library interface of the 'map' (class 'X11Pane') method.
+     The X library interface of the 'map' (class 'X11Pane') method *Note
+     X11Pane::.  This function is a wrapper for the 'XMapWindow' and
+     'XMapSubwindows' Xlib functions.
 
 '__ctalkMethodObjectMessage (OBJECT *RCVR, OBJECT *METHOD_INSTANCE)'
      Perform a method call by sending RCVR the message defined by
@@ -6931,7 +7870,7 @@ functions.
      Finds all occurrences of PATTERN in BUFFER, and returns the
      positions of the matches in OFFSETS, terminated by -1.
 
-'__ctalkSelectXFontFace (int DRAWABLE_ID, int GC_PTR, int FACE)'
+'__ctalkSelectXFontFace (void *DISPLAY, int DRAWABLE_ID, int GC_PTR, int FACE)'
      Selects the typeface of the currently selected font, if available,
      which should have been loaded with a call like
      '__ctalkX11UseFontBasic', or the equivalent calls for FreeType
@@ -6945,6 +7884,11 @@ functions.
           X_FACE_ITALIC
           X_FACE_BOLD_ITALIC
 
+
+     Because these functions use shared memory to manage each X
+     typeface's metrics, it is generally necessary to call this function
+     after calling '__ctalkOpenX11InputClient' in order to display
+     multiple faces with the correct character spacing.
 
 '__ctalkSelfPrintOn (void)'
      Print the calling method's arguments to the receiver.  This
@@ -7238,13 +8182,7 @@ functions.
      For an example of the functions' use, refer to the method 'X11Pane
      : deleteAndClose'.  *Note X11Pane::.
 
-'__ctalkClearBufferRectangle (OBJECT *PANE_OBJECT, int X, int Y, int WIDTH HEIGHT)'
-     Clear a rectangle in PANE_OBJECT's pane buffer starting at X,Y,
-     with width WIDTH and height HEIGHT.  Note that this function is
-     being phased out in favor of '__ctalkX11ClearRectangleBasic', which
-     does not rely on hard-coded instance variable names.
-
-'__ctalkX11ClearRectangleBasic (int VISUAL_ID, int GC_PTR, int X, int Y, int WIDTH, int HEIGHT)'
+'__ctalkX11ClearRectangleBasic (void *DISPLAY, int VISUAL_ID, int GC_PTR, int X, int Y, int WIDTH, int HEIGHT)'
      Clear a rectangle of a visual type like a pixmap to the background
      color.
 
@@ -7254,7 +8192,7 @@ functions.
      of the DefaultColormap's dependent macros after DefaultColormap,
      which is not compatible with the ctpp preprocessor.
 
-'__ctalkX11CopyPixmapBasic (int DEST_DRAWABLE_ID, int DEST_GC_PTR, int SRC_DRAWABLE_ID, int SRC_X_ORG, int SRC_Y_ORG, int SRC_WIDTH, int SRC_HEIGHT, int DEST_X_ORG, int DEST_Y_ORG)'
+'__ctalkX11CopyPixmapBasic (void *DISPLAY, int DEST_DRAWABLE_ID, int DEST_GC_PTR, int SRC_DRAWABLE_ID, int SRC_X_ORG, int SRC_Y_ORG, int SRC_WIDTH, int SRC_HEIGHT, int DEST_X_ORG, int DEST_Y_ORG)'
      Copies the drawable SRC_DRAWABLE_ID to DEST_DRAWABLE_ID, with the
      dimensions of the source graphic given by SRC_X_ORG, SRC_Y_ORG,
      SRC_WIDTH, and SRC_HEIGHT.  The image is drawn with its upper
@@ -7265,10 +8203,19 @@ functions.
      example, refer the 'X11CanvasPane' classes' description.  *Note
      X11CanvasPane::.
 
-'__ctalkX11CreateGC (int DRAWABLE)'
-     Create a X GC and return its address as a 'void *'.
+'__ctalkX11CreateGC (void *DISPLAY, int DRAWABLE)'
+     Create a X Graphics Context and return its address as a 'void *'.
+     The GC is created with the following values:
 
-'__ctalkX11CreatePixmap (int X_DRAWABLE, int WIDTH, int HEIGHT, int DEPTH)'
+
+          foreground     white
+          background     black
+          fill_style     FillSolid
+          function       GXcopy
+          font           fixed
+
+
+'__ctalkX11CreatePixmap (void *DISPLAY, int X_DRAWABLE, int WIDTH, int HEIGHT, int DEPTH)'
      reate a X pixmap and return its X resource ID as an unsigned int.
 
 '__ctalkX11CreatePaneBuffer (OBJECT *PANE_OBJECT, int WIDTH, int HEIGHT, int DEPTH)'
@@ -7346,7 +8293,7 @@ functions.
      For information about the format of a X11 geometry specification,
      refer to the 'XParseGeometry(3)' manual page.
 
-'__ctalkX11PaneDrawCircleBasic (int WINDOW_ID, int GC, int CENTER_X, int CENTER_Y, int RADIUS, int FILL, int PEN_WIDTH, int ALPHA, char *FG_COLOR_NAME, char * BG_COLOR_NAME)'
+'__ctalkX11PaneDrawCircleBasic (void *DISPLAY, int WINDOW_ID, int GC, int CENTER_X, int CENTER_Y, int RADIUS, int FILL, int PEN_WIDTH, int ALPHA, char *FG_COLOR_NAME, char * BG_COLOR_NAME)'
      Draws a circle centered at CENTER_X,CENTER_Y with radius RADIUS.
      The dimensions are given in pixels.  If FILLED is true, then the
      function draws a filled circle; otherwise, the circle's edge has
@@ -7381,18 +8328,15 @@ functions.
      programs should use '__ctalkX11ResizePixmap', which does not rely
      on hard-coded instance variable names.
 
-'__ctalkX11ResizePixmap (int, PARENT_VISUAL_ID, int SELF_XID, int GC, int OLD_WIDTH, int OLD_HEIGHT, int NEW_WIDTH, int NEW_HEIGHT, int DEPTH, int *NEW_PIXMAP_RETURN)'
+'__ctalkX11ResizePixmap (void *DISPLAY, int, PARENT_DRAWABLE_ID, int SELF_XID, int GC, int OLD_WIDTH, int OLD_HEIGHT, int NEW_WIDTH, int NEW_HEIGHT, int DEPTH, int *NEW_PIXMAP_RETURN)'
      Create a new Pixmap with the dimensions NEW_WIDTH and NEW_HEIGHT
-     that contains the contents of the original pixmap.  Return the X ID
-     of the new pixmap in NEW_PIXMAP_RETURN.
+     that contains the contents of the original pixmap.  Returns the X
+     ID of the new pixmap in NEW_PIXMAP_RETURN.
 
 '__ctalkX11ResizeWindow (OBJECT *PANE_OBJECT, int WIDTH, int HEIGHT, int DEPTH)'
-     Resize a pane object's X window.  This function adjusts the
-     object's width and height instance variables and buffers if the
-     object defines them.  _Note: Do not use this function with windows
-     that use X11Bitmap objects for buffers.  This function will
-     eventually be phased out.  Use the methods in X11Bitmap class
-     instead._
+     Resize a pane object's X window.  Returns '1' on success, '0' if
+     the window's new size is <= its current size, and '-1' if there is
+     an error.
 
 '__ctalkX11PaneClearRectangle (OBJECT *PANE_OBJECT, int X, int Y, int WIDTH, int HEIGHT)'
      Clears a rectangle in PANE_OBJECT's window.  Note that this
@@ -7419,7 +8363,7 @@ functions.
      function is a synonym for '__ctalkGUIPaneDrawPoint' on systems that
      use the X Window system.
 
-'__ctalkX11PaneDrawPointBasic (int DRAWABLE_ID, int GC_PTR, int X, int Y, int PEN_WIDTH, int ALPHA, char *PEN_COLOR)'
+'__ctalkX11PaneDrawPointBasic (void *DISPLAY, int DRAWABLE_ID, int GC_PTR, int X, int Y, int PEN_WIDTH, int ALPHA, char *PEN_COLOR)'
      Draw a point of the size, position, color, and transparency using
      the drawable ID, graphics context, and Pen color, transparency, and
      width given as arguments.
@@ -7435,7 +8379,7 @@ functions.
      Rectangle::, and with the line width and color given by PEN_OBJECT
      *Note Pen::.  If FILL is true, draw a filled rectangle.
 
-'__ctalkX11PanePutStrBasic (int VISUAL_ID,int GC_PTR, int X, int Y, char *TEXT)'
+'__ctalkX11PanePutStrBasic (void *DISPLAY, int VISUAL_ID,int GC_PTR, int X, int Y, char *TEXT)'
      Write the string TEXT on the drawable named by VISUAL_ID at X,Y
      using the graphics context pointed to by GC_PTR.  If the drawable
      is a 'X11CanvasPane' buffer, the text will not be visible until the
@@ -7457,15 +8401,15 @@ functions.
      PANE_OBJECT.  Programs should use '__ctalkX11SetBackgroundBasic
      ()', below, instead.
 
-'__ctalkX11SetBackgroundBasic (int visual_xid, int GC_PTR, char *COLOR)'
+'__ctalkX11SetBackgroundBasic (void *DISPLAY, int visual_xid, int GC_PTR, char *COLOR)'
      Sets the background color of any class with a X11 visual and
      graphics context.
 
-'__ctalkX11SetForegroundBasic (int visual_xid, int GC_PTR, char *COLOR)'
-     Sets the foreground color of any class with a X11 visual and
+'__ctalkX11SetForegroundBasic (void *DISPLAY, int visual_xid, int GC_PTR, char *COLOR)'
+     Sets the foreground color of any class with a X11 drawable and
      graphics context.
 
-'__ctalkX11SetResource (int DRAWABLE_ID, char *RESOURCE_NAME, char *RESOURCE_VALUE)'
+'__ctalkX11SetResource (void *DISPLAY, int DRAWABLE_ID, char *RESOURCE_NAME, char *RESOURCE_VALUE)'
      Sets the X11 resource RESOURCE_NAME to RESOURCE_VALUE for the
      drawable identified by DRAWABLE_ID.
 
@@ -7478,15 +8422,11 @@ functions.
      Sets the X11 cursor of PANE_OBJECT to CURSOR_OBJECT.  *Note
      X11Cursor::.
 
-'__ctalkX11UseFont ()'
-     Do not use this function - it relies on specific instance variable
-     names.  Use __ctalkX11UseFontBasic, below, instead.
-
 '__ctalkX11UseXRender (bool B)'
      If B is true, draw using the X Render entension if it is available.
      If B is false, use Xlib for drawing even if X Render is available.
 
-'__ctalkX11UseFontBasic (int DRAWABLE_ID, int GC_PTR, char *FONT_DESC)'
+'__ctalkX11UseFontBasic (void *DISPLAY, int DRAWABLE_ID, int GC_PTR, char *FONT_DESC)'
      Sets the font of the graphics context GC_PTR and drawable
      DRAWABLE_ID for further string printing operations.  See use in
      'X11Bitmap' class, where the GC pointer, which is an opaque object,
@@ -7501,12 +8441,12 @@ functions.
      not changed the default setting, normally via
      '__ctalkX11UseRender', above.
 
-'__ctalkX11XPMFromData (int DRAWABLE_ID, int GC_PTR, int X_ORG, int Y_ORG, char **XPM_DATA)'
+'__ctalkX11XPMFromData (void *DISPLAY, int DRAWABLE_ID, int GC_PTR, int X_ORG, int Y_ORG, char **XPM_DATA)'
      Draw a X pixmap at the x,y position on the drawable named by
      DRAWABLE_ID.  The XPM_DATA argument is the declaration of the data
      given in a XPM file, and has the C data type 'char **'.
 
-'__ctalkX11XPMInfo (char **XPM_DATA, int *WIDTH_RET, int *HEIGHT_RET, int *N_COLORS_RET, int *CHARS_PER_COLOR_RET)'
+'__ctalkX11XPMInfo (void *DISPLAY, char **XPM_DATA, int *WIDTH_RET, int *HEIGHT_RET, int *N_COLORS_RET, int *CHARS_PER_COLOR_RET)'
      Returns the width, height, number of colors, and characters per
      color of the XPM data referred to by XPM_DATA
 
@@ -7877,21 +8817,26 @@ functions.
 '__edittext_insert_at_point (OBJECT *x11texteditorpane_object, int keycode, int shift_state, int keypress)'
 '__edittext_line_end (OBJECT *x11texteditorpane_object)'
 '__edittext_line_start (OBJECT *x11texteditorpane_object)'
+'__edittext_xk_keysym (int KEYCODE, int SHIFT_STATE, int KEYPRESS)'
 '__edittext_next_char (OBJECT *x11texteditorpane_object)'
 '__edittext_next_line (OBJECT *x11texteditorpane_object)'
 '__edittext_next_page (OBJECT *x11texteditorpane_object)'
 '__edittext_prev_char (OBJECT *x11texteditorpane_object)'
 '__edittext_prev_line (OBJECT *x11texteditorpane_object)'
 '__edittext_prev_page (OBJECT *x11texteditorpane_object)'
+'__edittext_scroll_down (OBJECT *x11texteditorpane_object)'
+'__edittext_scroll_up (OBJECT *x11texteditorpane_object)'
 '__edittext_text_start (OBJECT *x11texteditorpane_object)'
 '__edittext_text_end (OBJECT *x11texteditorpane_object)'
 '__edittext_point_to_click (OBJECT *x11texteditorpane_object, int pointer_x, int pointer_y)'
 '__edittext_index_from_pointer (OBJECT *x11texteditorpane_object, int pointer_x, int pointer_y)'
-'__edittext_insert_str_at_point (OBJECT *x11texteditorpan_object, char *)'
-'__edittext_get_primary_selection (OBJECT *x11texteditorpan_object, void **buf_out, int *size_out)'
+'__edittext_insert_str_at_click (OBJECT *x11texteditorpane_object, int click_x, int click_y, char *)'
+'__edittext_insert_str_at_point (OBJECT *x11texteditorpane_object, char *)'
+'__edittext_get_primary_selection (OBJECT *x11texteditorpan_eobject, void **buf_out, int *size_out)'
 '__edittext_set_selection_owner (OBJECT *x11texteditorpane_object)'
+'__edittext_recenter (OBJECT *x11texteditorpane_object)'
      Text editing functions used by 'X11TextEditorPane' objects.  For
-     more information, refer to the 'X11TextEditorPane' section.  *Note
+     more information, refer to 'X11TextEditorPane' class..  *Note
      X11TextEditorPane::.
 
 '_error (char *FMT, ...)'
@@ -8114,6 +9059,8 @@ functions.
      actual character.
 
 'xfopen (const char *path, const char *mode)'
+'xfprintf (FILE *stream, const char *fmt, ...)'
+'xfscanf (FILE *stream, const char *fmt, ...)'
 'xmemcpy (void *s, const void *s, size_t)'
 'xmemmove (void *s, const void *s, size_t)'
 'xmemset (void *s, int c, size_t n)'

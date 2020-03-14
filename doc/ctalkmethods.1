@@ -1,7 +1,7 @@
-.\" $Id: ctalkmethods.1,v 1.9 2019/11/23 19:45:16 rkiesling Exp $
+.\" $Id: ctalkmethods.1,v 1.11 2020/02/25 02:22:07 rkiesling Exp $
 .\"
 .\" This file is part of ctalk.
-.\" Copyright © 2019 Robert Kiesling, rk3314042@gmail.com.
+.\" Copyright © 2019, 2020 Robert Kiesling, rk3314042@gmail.com.
 .\" Permission is granted to copy this software provided that this copyright
 .\" notice is included in all source code modules.
 .\" 
@@ -30,7 +30,7 @@
 .fi
 ..
 
-.TH CTALKMETHODS 1 "2019-11-20"
+.TH CTALKMETHODS 1 "2020-02-23"
 .SH NAME
 ctalkmethods \- How to use objects in Ctalk methods.
 .SH DESCRIPTION
@@ -776,6 +776,138 @@ Since it's important to be familiar with OBJECT *'s when working
 in C, many of the following examples describe the OBJECT typedef's
 members in detail.
 
+.SH OBJECT SCOPES AND ATTRIBUTES
+
+In order to help insure that an object is usable at any point in a
+program,
+.B Ctalk
+uses scopes and attributes.  There are the usual method- and
+function-local scopes, and global scope, and there are also a number
+of scopes that
+.B Ctalk
+uses internally.  The classes may be combined.  They are defined in
+\fIinclude/object.h\fP and the \fIctalklib\fP runtimes.  These are
+their names and functions.
+
+.Vb 4
+\&    GLOBAL_VAR                - An object declared with a \fInew\fP
+\&                                method outside of any function or
+\&                                method, and class objects.
+\&    LOCAL_VAR                 - Objects declared with a \fInew\fP
+\&                                or \fIbasicNew\fP method within a
+\&                                method or function.
+\&    ARG_VAR                   - Objects defined in a method's
+\&                                parameter list.
+\&    RECEIVER_VAR              - Used in some cases to identify
+\&                                receiver objects that are created from
+\&                                constant expressions.
+\&    PROTOTYPE_VAR             - Objects created when parsing
+\&                                prototypes.
+\&    CREATED_PARAM             - Created for symbols in partially
+\&                                evaluated expressions, and/or symbols
+\&                                that can't be resolved at some stage
+\&                                of evaluation.
+\&    CVAR_VAR_ALIAS_COPY       - A copy of a C variable.  The object's
+\&                                value is taken from the variable.
+\&    SUBEXPR_CREATED_RESULT    - The temporary result when evaluating
+\&                                a subexpression; may become the result
+\&                                of a complete expression.
+\&    VAR_REF_OBJECT            - An object that is referred to by
+\&                                another object; generally the object
+\&                                that contains the reference is a
+\&                                Symbol or Key object.
+\&    METHOD_USER_OBJECT        - Objects that have gone out of scope
+\&                                but may still be referred to, and
+\&                                are stored in a method's object pool.
+\&    TYPECAST_OBJECT           - Objects that are created when parsing
+\&                                type casts.
+\&    SUBSCRIPT_OBJECT_ALIAS    - Objects that are created when parsing
+\&                                and evaluating subscripts.
+.Ve
+
+Methods generally do not need to set the scope of objects, unless they
+create objects using the C library.  Here's an example.
+
+.Vb 4
+\&myObject = __ctalkCreateObjectInit (name, classname, superclassname,
+\&                                    LOCAL_VAR, value_exxpr);
+.Ve
+
+Objects' scopes are stored, as you might expect, in the \fIscope\fP
+member of the C OBJECT * type.  When setting an object's scope, it is
+always necessary to make sure that a parent object and all of its
+instance variables have the same scope.
+
+.B Ctalk
+provides a function to do this, \fI__ctalkSetObjectScope.\fP  Here
+is an example of how to use it to add an additional scope to an object.
+
+.Vb 4
+\&OBJECT *myObjectAlias;
+\&
+\&myObjectAlias = someObject;
+\&
+\&__ctalkSetObjectScope(myObjectAlias,
+\&                      myObjectAlias -> scope | VAR_REF_OBJECT);
+\&
+.Ve
+
+.SH OBJECT ATTRIBUTES
+
+In addition to scopes, objects may also have attributes, which can
+indicate the context that the object appears in, or other
+characteristics.  Many are used only internally by
+.B Ctalk;
+but some of them are also used in methods.
+
+Generally, the safest way to set an object's attribute is with the
+\fI__ctalkSetObjectAttr\fP library function, as in this example.
+
+.Vb 4
+\&__ctalkSetObjectAttr(myObject, OBJECT_IS_DEREF_RESULT);
+.Ve
+
+Here is a list of the object attributes definitions that
+.B Ctalk
+uses.  Should you need to check them when debugging, the
+attribute values are stored in the \fIattr\fP member of the
+OBJECT * typedef.
+
+.Vb 4
+\&    OBJECT_IS_VALUE_VAR                     (1 << 0)
+\&    OBJECT_VALUE_IS_C_CHAR_PTR_PTR          (1 << 1)
+\&    OBJECT_IS_NULL_RESULT_OBJECT            (1 << 2)
+\&    OBJECT_HAS_PTR_CX                       (1 << 3)
+\&    OBJECT_IS_GLOBAL_COPY                   (1 << 4)
+\&    OBJECT_IS_I_RESULT                      (1 << 5)
+\&    OBJECT_IS_STRING_LITERAL                (1 << 6)
+\&    OBJECT_IS_MEMBER_OF_PARENT_COLLECTION   (1 << 7)
+\&    OBJECT_HAS_LOCAL_TAG                    (1 << 8)
+\&    OBJECT_IS_LITERAL_CHAR                  (1 <<  9)
+\&    OBJECT_IS_CONSTANT_INT_OR_LONG          (1 << 10)
+\&    OBJECT_IS_CONSTANT_LONGLONG             (1 << 11)
+\&    OBJECT_IS_CONSTANT_FLOAT                (1 << 12)
+\&    OBJECT_VALUE_IS_MEMORY_VECTOR           (1 << 13)
+\&    OBJECT_IS_DEREF_RESULT                  (1 << 14)
+\&    OBJECT_IS_FN_ARG_OBJECT                 (1 << 15)
+\&    OBJECT_REF_IS_CVAR_PTR_TGT              (1 << 16)
+\&    ZERO_LENGTH_STR_INIT                    (1 << 17)
+\&    INT_BUF_SIZE_INIT                       (1 << 18)
+\&    BOOL_BUF_SIZE_INIT                      (1 << 19)
+\&    CHAR_BUF_SIZE_INIT                      (1 << 20)
+\&    LONGLONG_BUF_SIZE_INIT                  (1 << 21)
+\&    SYMBOL_BUF_SIZE_INIT                    (1 << 22)  
+\&    OBJECT_VALUE_IS_BIN_INT                 (1 << 23)
+\&    OBJECT_VALUE_IS_BIN_BOOL                (1 << 24)
+\&    OBJECT_VALUE_IS_BIN_LONGLONG            (1 << 25)
+\&    OBJECT_VALUE_IS_BIN_SYMBOL              (1 << 26)  
+\&    OBJECT_IS_BEING_CLEANED_UP              (1 << 27)
+.Ve
+
+The definitions of the object attributes are maintained in the source
+files \fIinclude/object.h\fP and \fIclasses/ctalklib.in.\fP
+
+
 .SH A METHOD WRITTEN IN C
 
 This section describes C interface of the method above in detail.
@@ -1444,9 +1576,12 @@ or
 .B Ctalk 
 is written and maintained by Robert Kiesling,
 .br
-rk3314042@gmail.com.  The
+rk3314042@gmail.com.
 .B Ctalk
-Web site is at
-.br
-http://sourceforge.net/projects/ctalk/.
+is downloadable at:
+.Vb 4
+\&
+\&http://sourceforge.net/projects/ctalk/
+\&https://github.com/ctalk/ctalk
+.Ve
 

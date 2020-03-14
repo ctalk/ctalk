@@ -1,8 +1,8 @@
-/* $Id: f,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-c-*-**/
+/* $Id: f,v 1.4 2019/12/09 00:15:17 rkiesling Exp $ -*-c-*-**/
 
 /*
   This file is part of ctalk.
-  Copyright © 2005-2012, 2015 Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2005-2012, 2015, 2019 Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
 
@@ -37,7 +37,7 @@
 \n\
 cFabs (double d) { \n\
   char buf[MAXLABEL]; \n\
-  sprintf (buf, "%f", fabs (__ctalk_to_c_double (ARG(0)))) ; \n\
+  __ctalkDoubleToASCII (fabs (__ctalk_to_c_double (ARG(0))), buf); \n\
   return __ctalkCreateObjectInit ("result", "Float", \n\
      "Magnitude", LOCAL_VAR, buf); \n\
 } \n\
@@ -139,7 +139,7 @@ cFscanf (FILE *s, char *fmt,...) {\n\
 cFloor (double d) { \n\
   OBJECT *result; \n\
   char buf[MAXLABEL]; \n\
-  sprintf (buf, "%f", floor (__ctalk_to_c_double (ARG(0)))); \n\
+  __ctalkDoubleToASCII (floor (__ctalk_to_c_double (ARG(0))), buf); \n\
   return __ctalkCreateObjectInit ("result", "Float", "Magnitude", \n\
 				  LOCAL_VAR, buf); \n\
 }\n\
@@ -148,7 +148,7 @@ cFloor (double d) { \n\
 cFloorf (double d) { \n\
   OBJECT *result; \n\
   char buf[MAXLABEL]; \n\
-  sprintf (buf, "%f", floorf (__ctalk_to_c_double (ARG(0)))); \n\
+  __ctalkFloatToASCII (floorf ((float)__ctalk_to_c_double (ARG(0))), buf); \n\
   return __ctalkCreateObjectInit ("result", "Float", "Magnitude", \n\
 				  LOCAL_VAR, buf); \n\
 }\n\
@@ -157,7 +157,7 @@ cFloorf (double d) { \n\
 cFloorl (double d) { \n\
   OBJECT *result; \n\
   char buf[MAXLABEL]; \n\
-  sprintf (buf, "%Lf", floorl (__ctalk_to_c_double (ARG(0)))); \n\
+  __ctalkLongDoubleToASCII (floorl (__ctalk_to_c_double (ARG(0))), buf); \n\
   return __ctalkCreateObjectInit ("result", "Float", "Magnitude", \n\
 				  LOCAL_VAR, buf); \n\
 }\n\

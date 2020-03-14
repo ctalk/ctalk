@@ -1,4 +1,4 @@
-/* $Id: guiputstr.c,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-c-*-*/
+/* $Id: guiputstr.c,v 1.8 2020/03/08 12:32:10 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -53,7 +53,7 @@ int __ctalkX11PanePutStr (OBJECT *self_object, int x, int y, char *s) {
 int __ctalkGUIPanePutStr (OBJECT *self_object, int x, int y, char *s) {
   return SUCCESS;
 }
-int __ctalkX11PanePutStrBasic (int visual_id, unsigned long int gc_ptr,
+int __ctalkX11PanePutStrBasic (void *d, int visual_id, unsigned long int gc_ptr,
 			       int x, int y, char *s) {
   return SUCCESS;
 }
@@ -61,11 +61,15 @@ int __ctalkX11PanePutStrBasic (int visual_id, unsigned long int gc_ptr,
 
 #ifdef HAVE_XFT_H
 
-int __ctalkX11PanePutStrBasic (int drawable_id, unsigned long int gc_ptr,
+extern Display *d_p;
+int __xlib_put_str (Display *, Drawable, GC, char *);
+int __xlib_put_str_ft (Display *, Drawable, GC, char *);
+
+int __ctalkX11PanePutStrBasic (void *d, int drawable_id, unsigned long int gc_ptr,
 			       int x, int y, char *s) {
   char d_buf[MAXLABEL];
   char *pat;
-  char intbuf1[MAXLABEL], intbuf2[MAXLABEL];
+  /* char intbuf1[MAXLABEL], intbuf2[MAXLABEL]; *//***/
 #ifdef GRAPHICS_WRITE_SEND_EVENT
   XEvent send_event;
 #endif
@@ -73,21 +77,40 @@ int __ctalkX11PanePutStrBasic (int drawable_id, unsigned long int gc_ptr,
     return ERROR;
   if (__ctalkXftInitialized ()) {
 
-    strcatx (d_buf, 
-	     ":",
+    strcatx (d_buf, ":", ascii[x], ":", ascii[y], ":",
+#if 0 /***/
 	     ctitoa (x, intbuf1), ":",
 	     ctitoa (y, intbuf2), ":",
+#endif	     
 	     s, NULL);
 
-    make_req (shm_mem, PANE_PUT_STR_REQUEST_FT,
+    if (DIALOG(d)) {
+      __xlib_put_str_ft (d, drawable_id, (GC)gc_ptr, d_buf);
+      return SUCCESS;
+     }
+
+    make_req (shm_mem, d, PANE_PUT_STR_REQUEST_FT,
 	      drawable_id, gc_ptr, d_buf);
+
   } else { /* if (__ctalkXftInitialized ()) */
+
     strcatx (d_buf,
+	     ascii[x], ":",
+	     ascii[y], ":",
+#if 0 /***/
 	     ctitoa (x, intbuf1), ":",
 	     ctitoa (y, intbuf2), ":",
+#endif	     
 	     s, NULL);
-    make_req (shm_mem, PANE_PUT_STR_REQUEST,
+
+    if (DIALOG(d)) {
+      __xlib_put_str (d, drawable_id, (GC)gc_ptr, d_buf);
+      return SUCCESS;
+    }
+
+    make_req (shm_mem, d, PANE_PUT_STR_REQUEST,
 	      drawable_id, gc_ptr, d_buf);
+
   }  /* if (__ctalkXftInitialized ()) */
 #ifdef GRAPHICS_WRITE_SEND_EVENT
   send_event.xgraphicsexpose.type = GraphicsExpose;
@@ -103,10 +126,14 @@ int __ctalkX11PanePutStrBasic (int drawable_id, unsigned long int gc_ptr,
 
 #else /* #ifdef HAVE_XFT_H */
 
-int __ctalkX11PanePutStrBasic (int drawable_id, unsigned long int gc_ptr,
+extern Display *d_p;
+int __xlib_change_gc (Display *, Drawable, GC, char *);
+int __xlib_put_str_ft (Display *, Drawable, GC, char *);
+
+int __ctalkX11PanePutStrBasic (void *d, int drawable_id, unsigned long int gc_ptr,
 			       int x, int y, char *s) {
   char d_buf[MAXLABEL];
-  char intbuf1[MAXLABEL], intbuf2[MAXLABEL];
+  /* char intbuf1[MAXLABEL], intbuf2[MAXLABEL]; *//***/
 #ifdef GRAPHICS_WRITE_SEND_EVENT
   XEvent send_event;
 #endif
@@ -114,10 +141,15 @@ int __ctalkX11PanePutStrBasic (int drawable_id, unsigned long int gc_ptr,
     return ERROR;
 
   strcatx (d_buf,
+	     ascii[x], ":",
+	     ascii[y], ":",
+#if 0 /***/
 	   ctitoa (x, intbuf1), ":",
 	   ctitoa (y, intbuf2), ":",
+#endif	   
 	   s, NULL);
-  make_req (shm_mem, PANE_PUT_STR_REQUEST,
+
+  make_req (shm_mem, d, PANE_PUT_STR_REQUEST,
 	    drawable_id, gc_ptr, d_buf);
 
 #ifdef GRAPHICS_WRITE_SEND_EVENT
@@ -143,7 +175,7 @@ int __ctalkX11PanePutStr (OBJECT *self, int x, int y, char *s) {
 #ifdef HAVE_XFT_H
 
 int __ctalkGUIPanePutStr (OBJECT *self, int x, int y, char *s) {
-  OBJECT *self_object, *win_id_value, *gc_value;
+  OBJECT *self_object, *win_id_value, *gc_value, *displayptr_var;
   int panebuffer_xid, panebackingstore_xid;
   char d_buf[MAXMSG], f_buf[MAXLABEL], *fname_p, *pat;
   char intbuf1[MAXLABEL], intbuf2[MAXLABEL];
@@ -153,6 +185,8 @@ int __ctalkGUIPanePutStr (OBJECT *self, int x, int y, char *s) {
   self_object = (IS_VALUE_INSTANCE_VAR (self) ? self->__o_p_obj : self);
   win_id_value = __x11_pane_win_id_value_object (self_object);
   gc_value = __x11_pane_win_gc_value_object (self_object);
+  displayptr_var = __ctalkGetInstanceVariable (self_object, "displayPtr",
+					       TRUE);
   if (__ctalkXftInitialized ()) {
 
     if ((pat = __xft_selected_pattern_internal ()) == NULL)
@@ -168,10 +202,17 @@ int __ctalkGUIPanePutStr (OBJECT *self, int x, int y, char *s) {
     __get_pane_buffers (self_object, &panebuffer_xid, 
 			&panebackingstore_xid);
     if (panebuffer_xid) {
-      make_req (shm_mem, PANE_PUT_STR_REQUEST_FT, panebuffer_xid,
+
+      make_req (shm_mem,
+		SYMVAL(displayptr_var -> instancevars -> __o_value),
+		PANE_PUT_STR_REQUEST_FT, panebuffer_xid,
 		SYMVAL(gc_value -> __o_value), d_buf);
+
     } else {
-      make_req (shm_mem, PANE_PUT_STR_REQUEST_FT,
+
+      make_req (shm_mem,
+		SYMVAL(displayptr_var -> instancevars -> __o_value),
+		PANE_PUT_STR_REQUEST_FT,
 		INTVAL(win_id_value -> __o_value),
 		SYMVAL(gc_value -> __o_value), d_buf);
     }
@@ -189,11 +230,17 @@ int __ctalkGUIPanePutStr (OBJECT *self, int x, int y, char *s) {
     __get_pane_buffers (self_object, &panebuffer_xid, 
 			&panebackingstore_xid);
     if (panebuffer_xid) {
-      make_req (shm_mem, PANE_PUT_STR_REQUEST,
+
+      make_req (shm_mem,
+		SYMVAL(displayptr_var -> instancevars -> __o_value),
+		PANE_PUT_STR_REQUEST,
 		panebuffer_xid,
 		*(uintptr_t *)gc_value -> __o_value, d_buf);
+
     } else {
-      make_req (shm_mem, PANE_PUT_STR_REQUEST,
+      make_req (shm_mem,
+		SYMVAL(displayptr_var -> instancevars -> __o_value),
+		PANE_PUT_STR_REQUEST,
 		*(int *)win_id_value -> __o_value,
 		*(uintptr_t *)gc_value -> __o_value, d_buf);
     }
@@ -219,16 +266,18 @@ int __ctalkGUIPanePutStr (OBJECT *self, int x, int y, char *s) {
 #else /* #ifdef HAVE_XFT_H */
 
 int __ctalkGUIPanePutStr (OBJECT *self, int x, int y, char *s) {
-  OBJECT *self_object, *win_id_value, *gc_value;
+  OBJECT *self_object, *win_id_value, *gc_value, *displayptr_var;
   int panebuffer_xid, panebackingstore_xid;
   char d_buf[MAXLABEL], f_buf[MAXLABEL], fname_buf[MAXLABEL];
-  char w_buf[MAXLABEL];
+  /* char w_buf[MAXLABEL]; *//***/
 #ifdef GRAPHICS_WRITE_SEND_EVENT
   XEvent send_event;
 #endif
   self_object = (IS_VALUE_INSTANCE_VAR (self) ? self->__o_p_obj : self);
   win_id_value = __x11_pane_win_id_value_object (self_object);
   gc_value = __x11_pane_win_gc_value_object (self_object);
+  displayptr_var = __ctalkGetInstanceVariable (self_object, "displayPtr",
+					       TRUE);
 
   strcatx (d_buf, ascii[x], ":", ascii[y], ":", s, NULL);
 	   
@@ -238,11 +287,15 @@ int __ctalkGUIPanePutStr (OBJECT *self, int x, int y, char *s) {
   __get_pane_buffers (self_object, &panebuffer_xid, 
 		      &panebackingstore_xid);
   if (panebuffer_xid) {
-    __ctalkDecimalIntegerToASCII (panebuffer_xid, w_buf);
-    make_req (shm_mem, PANE_PUT_STR_REQUEST, panebuffer_xid,
+    /* __ctalkDecimalIntegerToASCII (panebuffer_xid, w_buf);*//***/
+    make_req (shm_mem,
+	      SYMVAL(displayptr_var -> instancevars -> __o_value),
+	      PANE_PUT_STR_REQUEST, panebuffer_xid,
 	      SYMVAL(gc_value -> __o_value), d_buf);
   } else {
-    make_req (shm_mem, PANE_PUT_STR_REQUEST,
+    make_req (shm_mem,
+	      SYMVAL(displayptr_var -> instancevars -> __o_value),
+	      PANE_PUT_STR_REQUEST,
 	      INTVAL(win_id_value -> __o_value),
 	      SYMVAL(gc_value -> __o_value), d_buf);
   }
@@ -273,7 +326,7 @@ int __ctalkX11PanePutStr (OBJECT *self_object, int x, int y, char *s) {
 int __ctalkGUIPanePutStr (OBJECT *self_object, int x, int y, char *s) {
   x_support_error (); return ERROR;
 }
-int __ctalkX11PanePutStrBasic (int visual_id, unsigned long int gc_ptr,
+int __ctalkX11PanePutStrBasic (void *d, int visual_id, unsigned long int gc_ptr,
 			       int x, int y, char *s) {
   x_support_error (); return ERROR;
 }

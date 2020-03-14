@@ -1,4 +1,4 @@
-/* $Id: AssociativeArray,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-c-*-*/
+/* $Id: AssociativeArray,v 1.2 2020/02/14 04:04:50 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -105,71 +105,6 @@ AssociativeArray instanceMethod map (OBJECT *(*methodfn)()) {
     }
 #else
     have_break = __ctalkInlineMethod (list_elem, arg_method, 0);
-#endif
-  }
-  __ctalkArgBlkSetCallerReturn (have_break);
-
-#ifdef DJGPP
-  if (result_object) __ctalkDeleteObject (result_object);
-#endif
-
-  return NULL;
-}
-
-AssociativeArray instanceMethod mapKeys (OBJECT *(*methodfn)()) {
-  "Execute the argument, a method or code block, with each
-  key/value pair of the receiver AssociativeArray. 
-  When <methodName> is executed, each receiver of
-  <methodName> is a Key object with the parent object
-  class of AssociativeArray."
-    OBJECT *rcvr_obj, *rcvr_value_obj, *(*fn)(), *t, *have_break;
-  int arg_n;
-#ifdef DJGPP
-  OBJECT *result_object;
-#endif
-  METHOD *self_method, *arg_method;
-  Integer new i;
-
-  fn = (OBJECT *(*)())__ctalkRtGetMethodFn ();
-  rcvr_obj = __ctalkRtReceiverObject ();
-
-  if ((rcvr_value_obj = 
-       __ctalkGetInstanceVariable (rcvr_obj, "value", 0)) == NULL) 
-    rcvr_value_obj = rcvr_obj;
-
-  if (((self_method = __ctalkFindInstanceMethodByFn (&rcvr_value_obj, fn, 0))
-      == NULL) &&
-      ((self_method = __ctalkFindClassMethodByFn (&rcvr_value_obj, fn, 0))
-       == NULL)) {
-    __ctalkCriticalExceptionInternal (NULL, undefined_method_x, 
-				      "from map (Class AssociativeArray)");
-    return NULL;
-  }
-
-  for (arg_n = 0, have_break = NULL; self_method -> args[arg_n+1]; arg_n++)
-    ;
-  if (((arg_method = __ctalkFindInstanceMethodByName 
-	(&rcvr_value_obj, ARG_NAME(self_method->args[arg_n]), 0, -1))
-      == NULL) &&
-      ((arg_method = __ctalkFindClassMethodByName 
-	(&rcvr_value_obj, ARG_NAME(self_method->args[arg_n]), 0, -1))
-       == NULL)) {
-    __ctalkCriticalExceptionInternal (NULL, undefined_method_x, 
-				      "from map (Class AssociativeArray)");
-    return NULL;
-  }
-
-  for (t = __LIST_HEAD(rcvr_obj); t; t = t -> next) {
-#ifdef DJGPP
-    if ((result_object = __ctalkInlineMethod (t, arg_method, 0)) != NULL) {
-      if (atoll (result_object -> __o_value) != 0)
-	break;
-      if (result_object) __ctalkDeleteObject (result_object);
-      result_object = NULL;
-    }
-#else
-    if ((have_break = __ctalkInlineMethod (t, arg_method, 0)) != NULL)
-      break;
 #endif
   }
   __ctalkArgBlkSetCallerReturn (have_break);

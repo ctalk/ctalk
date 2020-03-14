@@ -1,4 +1,4 @@
-/* $Id: objtoc.c,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ */
+/* $Id: objtoc.c,v 1.3 2020/03/08 17:53:54 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -529,6 +529,9 @@ long int __ctalkToCLongInteger (OBJECT *o, int keep) {
   if (o_value -> attrs & OBJECT_VALUE_IS_BIN_SYMBOL) {
     i = *(long int *)o_value -> __o_value;
     return i;
+  } else if (o_value -> attrs & OBJECT_VALUE_IS_BIN_INT) {
+    i = INTVAL(o_value -> __o_value);
+    return i;
   }
 
   /* Anything that has instance variables that ends up here
@@ -970,6 +973,9 @@ void *__ctalk_to_c_ptr (OBJECT *o) {
     } else {
       return (void *) SYMVAL(o_value -> __o_value);
     }
+  } else if (o -> attrs & OBJECT_IS_NULL_RESULT_OBJECT) {
+    /***/
+    return NULL;
   }
 
   radix = radix_of (o_value -> __o_value);
@@ -982,6 +988,8 @@ void *__ctalk_to_c_ptr (OBJECT *o) {
       return (void *)(*(uintptr_t *)o_value -> __o_value);
     } else if (str_eq (o_value -> __o_value, NULLSTR)) {
       return NULL;
+    } else if (o -> scope & LOCAL_VAR) { /***/
+      return o;
     } else {
       _error ("ctalk: Unrecognized numeric value in radix_of: %s.\n",
 	      o_value -> __o_value);

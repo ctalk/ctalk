@@ -5,7 +5,7 @@ START-INFO-DIR-ENTRY
 * ctalk: (ctalk).	The Ctalk language reference manual.
 END-INFO-DIR-ENTRY
 
-This file documents Ctalk version 0.0.65.
+This file documents Ctalk version 0.0.66.
 
 Copyright (C) 2007-2015 Robert Kiesling
 
@@ -22,7 +22,7 @@ File: ctalk.info,  Node: Top,  Prev: (dir),  Up: (dir)
 Ctalk Language Reference
 ************************
 
-This document describes the Ctalk programming language, version 0.0.65.
+This document describes the Ctalk programming language, version 0.0.66.
 
 * Menu:
 
@@ -284,7 +284,9 @@ program is built.
 *    GLXCanvasPane::
 *    X11PaneDispatcher::
 *     X11CanvasPane::
-*     X11ScrollBarPane::
+*      X11ButtonPane::
+*      X11LabelPane::
+*      X11ScrollBarPane::
 *     X11TextPane::
 *      X11TextEditorPane::
 *  Symbol::
@@ -1288,16 +1290,33 @@ Instance Variables
 
 'depth'
      An 'Integer' that contains the depth of the bitmap.
+
+'displayPtr'
+     A 'Symbol' that contains the address of the connection to the X
+     server that was returned by a call to 'XOpenDisplay'.  This is
+     generally the address of the main window pane's 'displayPtr'
+     instance variable, and in this class, it is expressly set in the
+     'create' method.
+
 'height'
      An 'Integer' that contains the height of the bitmap.
+
+'modal'
+     A 'Boolean' that helps determine how Ctalk draws graphics on the
+     X11Bitmap.  True for X11Bitmap objects that are displayed in popup
+     windows, false otherwise.
+
 'parentDrawable'
      An 'Integer' that contains the window ID of the bitmap's parent
      drawable.  Normally this is set by the 'create' method, below.
+
 'width'
      An 'Integer' that contains the width of the bitmap.
+
 'xGC'
      A 'Symbol' object that contains the address of the X11 graphics
      context.
+
 'xID'
      The X resource ID of the Pixmap associated with this object.
 
@@ -1315,7 +1334,12 @@ Instance Methods
 'clearRectangle (Integer X, Integer Y, Integer WIDTH, Integer HEIGHT)'
      Clear the specified area to the background color.
 
-'initialize (int PARENTWINDOW, int WIDTH, int HEIGHT, int DEPTH)'
+     Copies the contents of SRCBITMAP to the receiver's drawing surface.
+     The source dimensions are determined by SRCX, SRCY, SRCWIDTH, and
+     SRCHEIGHT.  The method draws the source bitmap's contents with the
+     source's upper left-hand corner at DESTX, DESTY.
+
+'initialize (void *displayPtr, int PARENTWINDOW, int WIDTH, int HEIGHT, int DEPTH)'
      Create a X11Bitmap object and its graphics data.
 
 'delete (void)'
@@ -1388,21 +1412,22 @@ Instance Methods
             "Resize the receiver pane.  This is the resize event
             handler called by the parent window's pane
             dispatcher."
-            if (__subPane container containerMode == "full") {
-              (X11Bitmap *)self paneBuffer resize self xWindowID, __event xEventData3,
-                __event xEventData4;
-              (X11Bitmap *)self paneBackingStore resize self xWindowID, __event xEventData3,
-                __event xEventData4;
 
+            if (__ctalkX11ResizeWindow (__subPane, __event xEventData3,
+          			      __event xEventData4,
+          			      __subPane depth) > 0) {
+              /* refreshReframe uses viewWidth and viewHeight, refresh uses size x
+                 and size y */
               __subPane viewWidth = __event xEventData3;
               __subPane viewHeight = __event xEventData4;
               __subPane size x = __event xEventData3;
               __subPane size y = __event xEventData4;
-              __subPane refresh;
-            } else {
-              fprintf (stderr,
-               "Error: subPaneResize (class X11CanvasPane): unknown container mode!\n");
+              (X11Bitmap *)self paneBuffer resize self xWindowID,
+                __event xEventData3, __event xEventData4;
+              (X11Bitmap *)self paneBackingStore resize self xWindowID,
+                __event xEventData3, __event xEventData4;
             }
+
             return NULL;
           }
 
@@ -1565,6 +1590,12 @@ Instance Methods
 'keyExists (String KEYNAME)'
      Return an 'Integer' value of True if the key given as the argument
      is present in the receiver collection, False otherwise.
+
+'map (OBJECT *(*METHOD)())'
+     Execute METHOD, an instance method of class 'AssociativeArray,' for
+     each key/value pair of the receiver array.  The receiver of METHOD
+     is a 'Key' object with the parent class of 'AssociativeArray'.  The
+     return value of 'mapKeys' is NULL.
 
 'removeAt (String KEY_NAME)'
      Remove the object stored at KEY_NAME from the receiver collection
@@ -1921,12 +1952,6 @@ Instance Methods
      each member of the receiver array.  Each time METHOD is executed,
      'self' refers to the object stored in the associativeArray.  This
      method returns NULL.
-
-'map (OBJECT *(*METHOD)())'
-     Execute METHOD, an instance method of class 'AssociativeArray,' for
-     each key/value pair of the receiver array.  The receiver of METHOD
-     is a 'Key' object with the parent class of 'AssociativeArray'.  The
-     return value of 'mapKeys' is NULL.
 
 'setValue (void)'
      A wrapper method for 'getValue' in class 'Key.' If received by an
@@ -4768,8 +4793,14 @@ Instance Variables
           KBDCHAR        # ASCII Characters
           KBDCUR         # Cursor Keys.
 'eventData'
-     An 'Integer' that contains the data specific to an input event; for
-     example, the ASCII value of a keypress.
+     An 'Integer' that contains the data specific to an input event.
+
+     For example, when used with subclasses of 'ANSITerminalPane,'
+     'eventData' holds the ASCII value of a keypress.
+
+     When used with subclasses of X11Pane (actually, any subclass or
+     program that uses X11TerminalStream : queueInput), 'eventData'
+     generally holds the ID of the window that received the event.
 
 'xEventData1'
 'xEventData2'

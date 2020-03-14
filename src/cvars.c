@@ -1,4 +1,4 @@
-/* $Id: cvars.c,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ */
+/* $Id: cvars.c,v 1.2 2019/12/11 10:53:54 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -467,8 +467,12 @@ int add_variable_from_cvar (CVAR *c) {
   }
 
   if (((global_frame = is_global_frame ()) == FALSE) && /* Local frame */
+      (interpreter_pass != var_pass)) { /* lib and scope isn't global.*/
+#if 0 /***/
+    if (((global_frame = is_global_frame ()) == FALSE) && /* Local frame */
       ((interpreter_pass != var_pass) &&      /* If recursing into class */
        (interpreter_pass != library_pass))) { /* lib and scope isn't global.*/
+#endif      
     /*
      *  Add the variable to the parser's variable list.
      */

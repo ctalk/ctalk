@@ -1,4 +1,4 @@
-/* $Id: rtnewobj.c,v 1.1.1.1 2019/10/26 23:40:50 rkiesling Exp $ -*-c-*-*/
+/* $Id: rtnewobj.c,v 1.3 2020/03/08 00:06:56 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -600,6 +600,10 @@ OBJECT *__create_object_internal (char *name, char *class, char *superclass,
     o -> __o_value = __xalloc (INTBUFSIZE);
     if (value != NULL)
       memcpy ((void *)o -> __o_value, (void *)value, sizeof (int));
+  } else if (attrs & OBJECT_VALUE_IS_BIN_BOOL) {
+    o -> __o_value = __xalloc (BOOLBUFSIZE);
+    if (value != NULL)
+      memcpy ((void *)o -> __o_value, (void *)value, BOOLBUFSIZE);
   } else if (o -> __o_class -> attrs & INT_BUF_SIZE_INIT) {
     o -> __o_value = __xalloc (INTBUFSIZE);
     if (value != NULL) 
@@ -926,6 +930,13 @@ int __ctalkSetObjectValueClass (OBJECT *__o, OBJECT *value_class_obj) {
     __xfree (MEMADDR(value_var -> __o_value));
     value_var -> __o_value = __xalloc (INTBUFSIZE);
     value_var -> attrs |= OBJECT_VALUE_IS_BIN_INT;
+  } else if (value_class_obj -> attrs & BOOL_BUF_SIZE_INIT) { /***/
+    __o -> attrs |= OBJECT_VALUE_IS_BIN_BOOL;
+    __o -> instancevars -> attrs |= OBJECT_VALUE_IS_BIN_BOOL;
+    __xfree (MEMADDR(__o -> __o_value));
+    __xfree (MEMADDR(__o -> instancevars -> __o_value));
+    __o -> __o_value = __xalloc (INTBUFSIZE);
+    __o -> instancevars -> __o_value = __xalloc (INTBUFSIZE);
   }
   return SUCCESS;
 }

@@ -1,4 +1,4 @@
-/* $Id: guisetbackground.c,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-c-*-*/
+/* $Id: guisetbackground.c,v 1.10 2020/03/08 11:33:15 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -40,6 +40,7 @@
 extern Display *display;   /* Defined in x11lib.c. */
 extern char *shm_mem;
 extern int mem_id;
+unsigned long lookup_pixel_d (Display *, char *);
 
 #if X11LIB_FRAME
 int __ctalkX11SetBackground (OBJECT *self_object) {
@@ -48,80 +49,84 @@ int __ctalkX11SetBackground (OBJECT *self_object) {
 int __ctalkGUISetBackground (OBJECT *self_object) {
   return SUCCESS;
 }
-int __ctalkX11SetBackgroundBasic (int drawable_id,
+int __ctalkX11SetBackgroundBasic (void *d, int drawable_id,
 				  unsigned long int gc_ptr, 
 				  char *color) {
   return SUCCESS;
 }
 #else /* X11LIB_FRAME */
+
+extern Display *d_p;
+int __xlib_change_gc (Display *, Drawable, GC, char *);
+
 int __ctalkX11SetBackground (OBJECT *self, char *color) {
   return __ctalkGUISetBackground (self, color);
 }
 
-int __ctalkX11SetBackgroundBasic (int drawable_id, 
+int __ctalkX11SetBackgroundBasic (void *d, int drawable_id, 
 				  unsigned long int gc_ptr, 
 				  char *color) {
   char d_buf[MAXLABEL];
+  Display *l_d;
+  XGCValues v;
+  GC gc;
+  int r;
 #ifdef GRAPHICS_WRITE_SEND_EVENT
   XEvent send_event;
 #endif
-  if (!shm_mem)
-    return ERROR;
+  
+  if (drawable_id == 0)
+    _error ("ctalk: __ctalkX11SetBackgroundBasic: Bad window ID. "
+	    "(Did you attach the Pane object first?)\n");
 
-  sprintf (d_buf, ":%ld:%s", GCBackground, color);
-  make_req (shm_mem, PANE_CHANGE_GC_REQUEST,
-	    drawable_id, gc_ptr, d_buf);
+  if (__client_pid () < 0) {
+    gc = (GC)gc_ptr;
+    if (display == NULL) {
+      if ((l_d = XOpenDisplay (getenv ("DISPLAY"))) == NULL) {
+	_error ("ctalk: This program requires the X Window System. Exiting.\n");
+      }
+      v.background = lookup_pixel_d (l_d, color);
+      r = XChangeGC (l_d, gc, GCBackground, &v);
+      XCloseDisplay (l_d);
+    } else {
+      v.background = lookup_pixel_d (display, color);
+      r = XChangeGC (display, gc, GCBackground, &v);
+    }
+  } else {
+
+    if (!shm_mem)
+      return ERROR;
+
+    sprintf (d_buf, ":%ld:%s", GCBackground, color);
+    if (DIALOG(d)) {
+      __xlib_change_gc (d, drawable_id, (GC)gc_ptr, d_buf);
+    } else {
+      make_req (shm_mem, d, PANE_CHANGE_GC_REQUEST,
+		drawable_id, gc_ptr, d_buf);
 #ifdef GRAPHICS_WRITE_SEND_EVENT
-  send_event.xgraphicsexpose.type = GraphicsExpose;
-  send_event.xgraphicsexpose.send_event = True;
-  send_event.xgraphicsexpose.display = display;
-  send_event.xgraphicsexpose.drawable = drawable_id;
-  XSendEvent (display, drawable_id, False, 0L, &send_event);
+      send_event.xgraphicsexpose.type = GraphicsExpose;
+      send_event.xgraphicsexpose.send_event = True;
+      send_event.xgraphicsexpose.display = display;
+      send_event.xgraphicsexpose.drawable = drawable_id;
+      XSendEvent (display, drawable_id, False, 0L, &send_event);
 #endif
-  wait_req (shm_mem);
-  return SUCCESS;
+      wait_req (shm_mem);
+    }
+    return SUCCESS;
+  }
 }
 
-/*
- *  This function is now only for panes that have an actual
- *  window, e.g., X11Pane objects.  For other drawables, use
- *  __ctalkX11SetBackgroundBasic.
- */
 int __ctalkGUISetBackground (OBJECT *self, char *color) {
-  GC gc;
-  char d_buf[MAXLABEL], gc_buf[MAXLABEL];
-  OBJECT *win_id_value, *gc_value;
-  Window win_id;
-
-#ifdef GRAPHICS_WRITE_SEND_EVENT
-  XEvent send_event;
-#endif
+  OBJECT *win_id_value, *gc_value, *displayptr_var;
 
   win_id_value = __x11_pane_win_id_value_object (self);
-  win_id = (Window) INTVAL(win_id_value -> __o_value);
-  if (!win_id) {
-    fprintf (stderr, "__ctalkX11SetBackground: Bad window ID. (Did you attach the Pane object first?)\n");
-    return ERROR;
-  }
   gc_value = __x11_pane_win_gc_value_object (self);
-  /*
-   *  Make sure that the GC pointer is in hexadecimal format.
-   *  (0x00000000....)
-   */
-  
-  strcatx (d_buf, ":", color, NULL);
-  make_req (shm_mem, PANE_SET_WINDOW_BACKGROUND_REQUEST, win_id,
-	    SYMVAL(gc_value -> __o_value), d_buf);
-#ifdef GRAPHICS_WRITE_SEND_EVENT
-  send_event.xgraphicsexpose.type = GraphicsExpose;
-  send_event.xgraphicsexpose.send_event = True;
-  send_event.xgraphicsexpose.display = display;
-  send_event.xgraphicsexpose.drawable = atoi(win_id_value->__o_value);
-  XSendEvent (display, atoi(win_id_value->__o_value),
- 	      False, 0L, &send_event);
-#endif
-  wait_req (shm_mem);
-  return SUCCESS;
+  displayptr_var = __ctalkGetInstanceVariable (self, "displayPtr", TRUE);
+
+  return __ctalkX11SetBackgroundBasic
+    ((void *)SYMVAL(displayptr_var -> instancevars -> __o_value),
+     INTVAL(win_id_value -> __o_value), SYMVAL(gc_value -> __o_value),
+     color);
 }
 
 #endif /* X11LIB_FRAME */
@@ -134,7 +139,7 @@ int __ctalkGUISetBackground (OBJECT *self_object, char *color) {
   x_support_error ();
   return 0; /* notreached */
 }
-int __ctalkX11SetBackgroundBasic (int drawable_id,
+int __ctalkX11SetBackgroundBasic (void *d, int drawable_id,
 				  unsigned long int gc_ptr,
 				  char *color) {
   x_support_error ();

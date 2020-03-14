@@ -1,4 +1,4 @@
-/* $Id: e,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-c-*-**/
+/* $Id: e,v 1.2 2019/12/08 02:43:05 rkiesling Exp $ -*-c-*-**/
 
 /*
   This file is part of Ctalk.
@@ -30,7 +30,7 @@
 #define erf \n\
 cErf (double d) {\n\
   char buf[MAXLABEL]; \n\
-  sprintf (buf, "%f", erf (__ctalk_to_c_double (ARG(0)))); \n\
+  __ctalkDoubleToASCII (erf (__ctalk_to_c_double(ARG(0))), buf); \n\
   return __ctalkCreateObjectInit ("result", "Float", \n\
      "Magnitude", LOCAL_VAR, buf); \n\
 }
@@ -38,7 +38,7 @@ cErf (double d) {\n\
 #define erfc \n\
 cErfc (double d) {\n\
   char buf[MAXLABEL]; \n\
-  sprintf (buf, "%f", erfc (__ctalk_to_c_double (ARG(0)))); \n\
+  __ctalkDoubleToASCII (erfc (__ctalk_to_c_double(ARG(0))), buf); \n\
   return __ctalkCreateObjectInit ("result", "Float", \n\
      "Magnitude", LOCAL_VAR, buf); \n\
 }
@@ -46,7 +46,7 @@ cErfc (double d) {\n\
 #define exp \n\
 cExp (double d) {\n\
   char buf[MAXLABEL]; \n\
-  sprintf (buf, "%f", exp (__ctalk_to_c_double (ARG(0)))); \n\
+  __ctalkDoubleToASCII (exp (__ctalk_to_c_double(ARG(0))), buf); \n\
   return __ctalkCreateObjectInit ("result", "Float", \n\
      "Magnitude", LOCAL_VAR, buf); \n\
 }
@@ -54,7 +54,7 @@ cExp (double d) {\n\
 #define expm1 \n\
 cExpm1 (double d) {\n\
   char buf[MAXLABEL]; \n\
-  sprintf (buf, "%f", expm1 (__ctalk_to_c_double (ARG(0)))); \n\
+  __ctalkDoubleToASCII (expm1 (__ctalk_to_c_double(ARG(0))), buf); \n\
   return __ctalkCreateObjectInit ("result", "Float", \n\
      "Magnitude", LOCAL_VAR, buf); \n\
 }

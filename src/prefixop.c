@@ -1,4 +1,4 @@
-/* $Id: prefixop.c,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ */
+/* $Id: prefixop.c,v 1.3 2020/01/25 23:05:15 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -94,8 +94,12 @@ int unary_op_attributes (MESSAGE_STACK messages, int op_idx,
   stack_start_idx = stack_start (messages);
   stack_top_idx = get_stack_top (messages);
   
-  if (messages[op_idx] -> attrs & TOK_IS_PREFIX_OPERATOR)
+  if (messages[op_idx] -> attrs & TOK_IS_PREFIX_OPERATOR) {
+    /***/
+    *prefix_start_idx = op_idx;
+    *op_tokentype = M_TOK(messages[op_idx]);
     return SUCCESS;
+  }
 
   if (op_idx == stack_start_idx) {
     set_unary_op_attributes (messages, op_idx, stack_top_idx);

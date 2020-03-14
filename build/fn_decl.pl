@@ -1,8 +1,8 @@
 #
-#  Find function definitions in MacOS include files.  So far,
-#  all the definitions have the opening brace as the first
+#  Find function definitions in MacOS include files.  Some
+#  of the definitions have the opening brace as the first
 #  character of the line after the fn declararator and param
-#  list.
+#  list, which is why we have the $need_brackets.
 #
 #!/usr/bin/perl -w
 
@@ -18,12 +18,6 @@ loop: while (<>) {
     if ($need_bracket) {
 	$need_bracket = 0;
 	if ($_ =~ /\{/) {
-#	    foreach my $m (@keywords) {
-#		if ($fn_name eq $m) {
-#		    goto loop;
-#		}
-#	    }
-	    
 	    foreach my $m (@keywords) {
 		if ($fn_name eq $m) {
 		    goto loop;
@@ -41,6 +35,16 @@ loop: while (<>) {
     if ($_ =~ /^(\w+)\s*\(.*\)\R/) {
 	$fn_name = $1;
 	$need_bracket = 1;
+    } else {
+	if ($_ =~ /(\w+)\s*\(.*\)\s*\{/) {
+	    $fn_name = $1;
+	    foreach my $m (@keywords) {
+		if ($fn_name eq $m) {
+		    goto loop;
+		}
+	    }
+	    print "\"$fn_name\",\n";
+	}
     }
 }
 

@@ -1,5 +1,5 @@
-# $Id: configure.ac,v 1.22 2019/11/05 20:15:15 rkiesling Exp $
-AC_INIT(ctalk, 0.0.65, rk3314042@gmail.com, "")
+# $Id: configure.ac,v 1.33 2020/03/13 03:35:18 rkiesling Exp $
+AC_INIT(ctalk, 0.0.66, rk3314042@gmail.com, "")
 
 # Contained in acinclude.m4 and generated aclocal.m4
 AC_CONFIG_MACRO_DIR([m4])
@@ -63,7 +63,7 @@ AC_SUBST(PACKAGE)
 AC_SUBST(VERSION)
 AC_SUBST(PPVERSION)
 PACKAGE=ctalk
-VERSION=0.0.65
+VERSION=0.0.66
 
 AC_SUBST(LIB_AM_LDFLAGS)
 AC_SUBST(AM_CFLAGS)
@@ -71,7 +71,7 @@ AC_SUBST(LIB_MAJOR_VERSION)
 AC_SUBST(LIB_MINOR_VERSION)
 
 LIB_MAJOR_VERSION=0
-LIB_MINOR_VERSION=65
+LIB_MINOR_VERSION=66
 
 AC_PROG_CC
 AC_PROG_YACC
@@ -192,6 +192,7 @@ accret=$?
 if test $accret = "0"; then
 AS_ECHO "yes"
 def_cflags=$def_cflags" -Wno-pointer-to-int-cast "
+touch build/.cttest_no_pointer_to_int_cast
 else
 AS_ECHO "no"
 fi
@@ -215,6 +216,7 @@ accret=$?
 if test $accret = "0"; then
 AS_ECHO "yes"
 no_stringop_overflow_warning="-Wno-stringop-overflow "
+touch build/.cttest_no_stringop_overflow
 else
 AS_ECHO "no"
 no_stringop_overflow_warning=" "
@@ -240,6 +242,7 @@ accret=$?
 if test $accret = "0"; then
 AS_ECHO "yes"
 address_of_packed_member_warning="-Wno-address-of-packed-member "
+touch build/.cttest_no_address_of_packed_member
 else
 AS_ECHO "no"
 address_of_packed_member_warning=" "
@@ -519,6 +522,7 @@ if test -f build/.gccdonthavenoformatoverflowopt; then
 elif test -f build/.gcchavenoformatoverflowopt; then
    AS_ECHO yes;
    def_cflags=$def_cflags" -Wno-format-overflow"
+   touch build/.cttest_no_format_overflow
 fi
 
 if test "$user_long_double"+yes != "yes";  then
@@ -658,6 +662,7 @@ AC_ARG_WITH(gnu-readline,
 )
 
 have_xft="no"
+no_xft_user_opt="no"
 
 LIB_FREETYPE_INCLUDE_ARG=""
 if test "x$no_x" = "x"; then
@@ -666,14 +671,18 @@ AC_ARG_WITH(libxft-includes,
                           The directory where X11/Xft/Xft.h is located
 			  when building Ctalk with Xft support. ],
         [
-	if test -f "$withval/X11/Xft/Xft.h"; then
-	  LIB_FREETYPE_INCLUDE_ARG="$withval";
-          if test "x$withval" != "xno" || test "x$withval" != "xNO"; then
-            have_xft="yes"
+        if test "x$withval" != "xno" && test "x$withval" != "xNO"; then
+	  if test -f "$withval/X11/Xft/Xft.h"; then
+	    LIB_FREETYPE_INCLUDE_ARG="$withval";
+            if test "x$withval" != "xno" || test "x$withval" != "xNO"; then
+              have_xft="yes"
+	    fi
+	  else
+ 	    AC_MSG_ERROR(--with-xft-includes=$withval:
+$withval/X11/Xft/Xft.h: file not found., [1]);
 	  fi
 	else
- 	  AC_MSG_ERROR(--with-xft-includes=$withval:
-$withval/X11/Xft/Xft.h: file not found., [1]);
+	no_xft_user_opt="yes"
 	fi
         ]
 )
@@ -687,7 +696,14 @@ AC_ARG_WITH(libxft-libs,
                           in DIR. If DIR = 'no', then don't include
 			  '-L<DIR> -lXft' in the compilation flags],
         [
+	case "$withval" in
+	no|NO)
+	no_xft_user_opt="yes"
+	;;
+	*)
 	LIB_FREETYPE_LIB_ARG="$withval"
+	;;
+	esac
         ]
 )
 fi # if test "x$no_x" = "x"; then
@@ -710,7 +726,7 @@ AC_ARG_WITH(xrender-includes,
 			  and should be considered experimental.],
         [
 	XRENDER_INC_ARG="$withval"
-        if test "x$withval" != "xno" || test "x$withval" != "xNO"; then
+        if test "x$withval" != "xno" && test "x$withval" != "xNO"; then
 	  if test -f $withval/X11/extensions/Xrender.h; then
 	    have_xrender="yes";
 	    lib_freetype_cflags="-I $withval -DHAVE_XRENDER_H";
@@ -812,17 +828,18 @@ AC_ARG_WITH(x11_warnings,
 )
 
 AC_SUBST(without_signed_hex_octal_constant_warnings_def)
+without_signed_hex_octal_constant_warnings_def="-DWITHOUT_SIGNED_HEX_OCTAL_CONSTANT_WARNINGS"
 
 AC_ARG_WITH(signed-hex-octal-constant-warnings,
   [  --without-signed-hex-octal-constant-warnings
                           Don't print warning messages when encountering
-                          a signed hexadecimal or octal constant.],
+                          a signed hexadecimal or octal constant.[[yes]]],
     [  case "$withval" in
        no)
-          without_signed_hex_octal_constant_warnings_def="-DWITHOUT_SIGNED_HEX_OCTAL_CONSTANT_WARNINGS"
+          without_signed_hex_octal_constant_warnings_def=""
           ;;
         *)
-          without_signed_hex_octal_constant_warnings_def=""
+          without_signed_hex_octal_constant_warnings_def="-DWITHOUT_SIGNED_HEX_OCTAL_CONSTANT_WARNINGS"
           ;;
        esac
     ]
@@ -1246,6 +1263,7 @@ fi
 
 LIB_AM_LDFLAGS="$AM_LDFLAGS $gnu_readline_ld_opts"
 
+if test "x$no_xft_user_opt" != "xyes"; then
 AS_ECHO_N "checking for FreeType includes... "
 if test -z $LIB_FREETYPE_INCLUDE_ARG >/dev/null 2>&1; then
    if test -f /usr/local/include/X11/Xft/Xft.h >/dev/null 2>&1; then
@@ -1297,6 +1315,7 @@ else
    fi
 fi
 AC_SUBST(HAVE_XFT_H)
+fi # if test "x$no_xft_user_opt" != "xyes"; then
 
 if test "x$LIB_FREETYPE_LIB_ARG" != "xno" || test "x$LIB_FREETYPE_LIB_ARG" != "xNO"; then
   AC_CHECK_LIB(Xft, XftDrawCreate, lib_freetype_ld_opts="-lXft -lfontconfig",
@@ -1542,6 +1561,8 @@ cat <<EOF
 Configuring default compile and link options in ctcc\(1\) and ctdb\(1\).
 EOF
 ./build/lcflags.sh "\"$def_ctalkflags\"" "\"$def_cflags\"" "\"$def_optflags\"" "\"$ctdb_ctcc_ldflags\"" "\"$ct_x_cflags\"" "\"$x_ldflags $lib_freetype_ld_opts $glut_ldflags $glew_ldflags\""
+
+./build/confcttest.sh
 
 if test -z $makeinfo_path; then
 AC_MSG_WARN(Makeinfo Missing)

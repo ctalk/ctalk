@@ -1,8 +1,8 @@
-/* $Id: guidrawline.c,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-c-*-*/
+/* $Id: guidrawline.c,v 1.6 2020/02/29 10:21:15 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
-  Copyright © 2005-2012, 2017-2019
+  Copyright © 2005-2012, 2017-2020
     Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
@@ -51,7 +51,7 @@ int __ctalkX11PaneDrawLine (OBJECT *self, OBJECT *line, OBJECT *pen) {
 int __ctalkGUIPaneDrawLine (OBJECT *self, OBJECT *line, OBJECT *pen) {
   return SUCCESS;
 }
-int __ctalkX11PaneDrawLineBasic (int drawable_id,
+int __ctalkX11PaneDrawLineBasic (void *d, int drawable_id,
 				 unsigned long int gc_ptr,
 				 int x_start, int y_start,
 				 int x_end, int y_end,
@@ -62,18 +62,18 @@ int __ctalkX11PaneDrawLineBasic (int drawable_id,
 }
 #else /* X11LIB_FRAME */
 
-int __ctalkGUIPaneDrawLineBasic (int drawable_id,
+int __ctalkGUIPaneDrawLineBasic (void *d, int drawable_id,
 				 unsigned long int gc_ptr,
 				 int x_start, int y_start,
 				 int x_end, int y_end,
 				 int pen_width,
 				 int alpha,
 				 char *pen_color) {
-  return __ctalkX11PaneDrawLineBasic (drawable_id, gc_ptr,
+  return __ctalkX11PaneDrawLineBasic (d, drawable_id, gc_ptr,
 				      x_start, y_start, x_end, y_end,
 				      pen_width, alpha, pen_color);
 }
-int __ctalkX11PaneDrawLineBasic (int drawable_id,
+int __ctalkX11PaneDrawLineBasic (void *d, int drawable_id,
 				 unsigned long int gc_ptr,
 				 int x_start, int y_start,
 				 int x_end, int y_end,
@@ -99,7 +99,7 @@ int __ctalkX11PaneDrawLineBasic (int drawable_id,
 	   ":", pen_color,
 	   NULL);
   
-  make_req (shm_mem, PANE_DRAW_LINE_REQUEST,
+  make_req (shm_mem, d, PANE_DRAW_LINE_REQUEST,
    	    drawable_id, gc_ptr, d_buf);
 #ifdef GRAPHICS_WRITE_SEND_EVENT
   send_event.xgraphicsexpose.type = GraphicsExpose;
@@ -123,7 +123,7 @@ int __ctalkGUIPaneDrawLine (OBJECT *self, OBJECT *line, OBJECT *pen) {
   OBJECT *line_end_var, *line_end_x_var, *line_end_y_var;
   OBJECT *pen_width_object, *pen_color_object, *pen_alpha_object; 
   OBJECT *win_id_value, *gc_value;
-  OBJECT *line_object;
+  OBJECT *line_object, *displayPtr_var;
   int start_x, start_y, end_x, end_y;
   char d_buf[MAXMSG];
   int panebuffer_xid, panebackingstore_xid;
@@ -156,6 +156,8 @@ int __ctalkGUIPaneDrawLine (OBJECT *self, OBJECT *line, OBJECT *pen) {
     __ctalkGetInstanceVariable (line_end_var, "y", TRUE);
   __get_pane_buffers (self_object, &panebuffer_xid,
 		      &panebackingstore_xid);
+  displayPtr_var = __ctalkGetInstanceVariable (self_object, "displayPtr",
+					       TRUE);
 
   start_x = *(int *)line_start_x_var->instancevars -> __o_value;
   start_y = *(int *)line_start_y_var->instancevars -> __o_value;
@@ -175,9 +177,12 @@ int __ctalkGUIPaneDrawLine (OBJECT *self, OBJECT *line, OBJECT *pen) {
 	   pen_color_object->instancevars->__o_value,
 	   NULL);
 
-  make_req (shm_mem, PANE_DRAW_LINE_REQUEST,
+  make_req (shm_mem,
+	    SYMVAL(displayPtr_var -> instancevars -> __o_value),
+	    PANE_DRAW_LINE_REQUEST,
 	    INTVAL(win_id_value -> __o_value),
 	    SYMVAL(gc_value -> __o_value), d_buf);
+
 #ifdef GRAPHICS_WRITE_SEND_EVENT
   send_event.xgraphicsexpose.type = GraphicsExpose;
   send_event.xgraphicsexpose.send_event = True;
@@ -202,7 +207,7 @@ int __ctalkX11PaneDrawLine (OBJECT *self, OBJECT *line, OBJECT *pen) {
 int __ctalkGUIPaneDrawLine (OBJECT *self, OBJECT *line, OBJECT *pen) {
   x_support_error (); return ERROR;
 }
-int __ctalkX11PaneDrawLineBasic (int drawable_id,
+int __ctalkX11PaneDrawLineBasic (void *d, int drawable_id,
 				 unsigned long int gc_ptr,
 				 int x_start, int y_start,
 				 int x_end, int y_end,

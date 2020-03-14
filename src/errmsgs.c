@@ -1,8 +1,8 @@
-/* $Id: errmsgs.c,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ */
+/* $Id: errmsgs.c,v 1.6 2020/02/14 17:54:36 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
-  Copyright © 2014-2019 Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2014-2020 Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
 
@@ -50,6 +50,8 @@ extern CTRLBLK *ctrlblks[MAXARGS + 1];  /* Declared in control.c. */
 extern int ctrlblk_ptr;
 
 bool argblk;                            /* Declared in argblk.c. */
+
+extern HASHTAB defined_instancevars;    /* Declared in primitives.c. */
 
 void method_args_wrong_number_of_arguments_1 (MESSAGE_STACK messages,
 					      int err_idx,
@@ -907,3 +909,160 @@ void unknown_format_conversion_warning_ms (MSINFO *ms) {
   return unknown_format_conversion_warning (ms -> messages, ms -> tok);
 }
 
+/* also checks for a method label as the final label before a '=' */
+void self_instvar_expr_unknown_label (MESSAGE_STACK messages,
+				      int self_idx, int unknown_tok_idx) {
+  char *s, errbuf[MAXMSG];
+  int next_idx;
+
+  if (is_instance_method (messages, unknown_tok_idx) ||
+      is_proto_selector (M_NAME(messages[unknown_tok_idx]))) {
+    if ((next_idx = nextlangmsg (messages, unknown_tok_idx)) != ERROR) {
+      if (IS_C_ASSIGNMENT_OP(M_TOK(messages[next_idx]))) {
+	s = collect_tokens (messages, self_idx, next_idx);
+	strcpy (errbuf, s);
+	__xfree (MEMADDR(s));
+	error (messages[unknown_tok_idx], "Lvalue required:\n\n\t%s\n\n",
+	       errbuf);
+      } else {
+	return;
+      }
+    } else {
+      return;
+    }
+  }
+
+  s = collect_tokens (messages, self_idx, unknown_tok_idx);
+  strcpy (errbuf, s);
+  __xfree (MEMADDR(s));
+
+  error (messages[unknown_tok_idx], "Undefined label, \"%s,\" in "
+	   "expression.\n\n\t%s\n\n", M_NAME(messages[unknown_tok_idx]),
+	   errbuf);
+}
+
+/***/
+/* This is still preliminary. */
+void instancevar_wo_rcvr_warning (MESSAGE_STACK messages, int tok_idx,
+				  bool first_label, int main_stack_idx) {
+
+  MESSAGE *m_tok;
+  int prev_tok;
+
+  m_tok = messages[tok_idx];
+
+  if (M_TOK(m_tok) == LABEL &&
+      interpreter_pass != expr_check) {
+    if (!first_label) {
+      if ((prev_tok = prevlangmsg (messages, tok_idx)) != -1) {
+	if ((M_TOK(messages[prev_tok]) != LABEL) &&
+	    (M_TOK(messages[prev_tok]) != CLOSEPAREN) &&
+	    (M_TOK(messages[prev_tok]) != ARRAYCLOSE) &&
+	    !IS_CONSTANT_TOK(M_TOK(messages[prev_tok]))) {
+	  /* a closing paren as the previous token
+	     can be the end of a receiver constant,
+	     subscripted constant, or expression;
+	     i.e., the label is a method, so don't 
+	     check if the label is defined here */
+	  if (!(m_tok -> attrs & TOK_SELF) &&
+	      !(m_tok -> attrs & TOK_SUPER) &&
+	      !IS_DEFINED_LABEL(M_NAME(m_tok))) {
+	    if (_hash_get (defined_instancevars, M_NAME(m_tok)))
+	      warning (message_stack_at (main_stack_idx),
+		       "Instance variable, \"%s,\" used without a receiver.",
+		       M_NAME(m_tok));
+	    else
+	      warning (message_stack_at (main_stack_idx),
+		       "Undefined label, \"%s.\"",
+		       M_NAME(m_tok));
+	  }
+	}
+      }
+    }
+  }
+}
+
+char *collect_errmsg_expr (MESSAGE_STACK messages, int tok_idx) {
+  int last_sep_semicolon, last_sep_closeblock;
+  int next_sep;
+  char *expr = NULL;
+  last_sep_semicolon = scanback (message_stack (), tok_idx,
+				  stack_start (message_stack ()), SEMICOLON);
+  last_sep_closeblock = scanback (message_stack (), tok_idx,
+				  stack_start (message_stack ()), CLOSEBLOCK);
+  next_sep = scanforward (message_stack (), tok_idx,
+			  get_stack_top (message_stack ()), SEMICOLON);
+  
+  if (last_sep_closeblock < last_sep_semicolon) {
+    for (;last_sep_closeblock > next_sep; last_sep_closeblock--) {
+      if ((M_TOK(messages[last_sep_closeblock]) != CLOSEBLOCK) &&
+	  !M_ISSPACE(messages[last_sep_closeblock])) {
+	expr = collect_tokens (messages, last_sep_closeblock,
+			       next_sep);
+	break;
+      }
+    }
+  } else {
+    for (;last_sep_semicolon > next_sep; last_sep_semicolon--) {
+      if ((M_TOK(messages[last_sep_semicolon]) != SEMICOLON) &&
+	  !M_ISSPACE(messages[last_sep_semicolon])) {
+	expr = collect_tokens (messages, last_sep_semicolon,
+			       next_sep);
+	break;
+      }
+    }
+    expr = collect_tokens (messages, last_sep_semicolon, next_sep);
+  }
+  return expr;
+}
+
+void undefined_blk_method_warning (MESSAGE *m_orig,
+				   MESSAGE *m_rcvr,
+				   MESSAGE *m_method) {
+  if (IS_OBJECT (m_rcvr->obj)) {
+    if (IS_OBJECT (m_rcvr -> obj -> instancevars)) {
+      warning (m_orig, "Undefined method, \"%s.\" Receiver, \"%s.\""
+	       " (class %s).\n",
+	       M_NAME(m_method), M_NAME(m_rcvr),
+	       m_rcvr -> obj -> instancevars -> __o_class -> __o_name);
+    } else {
+      warning (m_orig, "Undefined method, \"%s.\" Receiver, \"%s.\""
+	       " (class %s).\n,",
+	       M_NAME(m_method), M_NAME(m_rcvr),
+	       m_rcvr -> obj -> __o_class -> __o_name);
+    }
+  } else {
+    warning (m_orig, "Undefined method, \"%s.\" Receiver, \"%s.\"",
+	     M_NAME(m_method), M_NAME(m_rcvr));
+  }
+}
+
+OBJECT *resolve_rcvr_is_undefined (MESSAGE *m_rcvr, MESSAGE *m_method) {
+  /* And we need to check for secure osx lib replacements,
+     and we'll skip them in parser pass. */
+#if defined __APPLE__ && defined _x86_64
+  if (!strstr (m_method -> name, "__builtin_")) {
+    return NULL;
+  } else if (str_eq (M_NAME(m_method), "instanceVariable") ||
+	     str_eq (M_NAME(m_method), "classVariable")) {
+    if (m_method -> receiver_obj == NULL) {
+      error (m_method, "Method \"%s:\" Undefined receiver, \"%s.\"",
+	     M_NAME(m_method), M_NAME(m_rcvr));
+    }
+  } else {
+    return NULL;
+  }
+#else	  
+  if (str_eq (M_NAME(m_method), "instanceVariable") ||
+      str_eq (M_NAME(m_method), "classVariable")) {
+    /* we have to look for bad receiver names here ... */
+    if (m_method -> receiver_obj == NULL) {
+      error (m_method, "Method \"%s:\" Undefined receiver, \"%s.\"",
+	     M_NAME(m_method), M_NAME(m_rcvr));
+    }
+  } else {
+    return M_VALUE_OBJ (m_rcvr);
+  }
+#endif	
+  return NULL;
+}

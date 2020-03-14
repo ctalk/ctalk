@@ -1,4 +1,4 @@
-/* $Id: parser.c,v 1.2 2019/10/27 17:29:46 rkiesling Exp $ */
+/* $Id: parser.c,v 1.6 2020/02/16 20:47:51 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -526,8 +526,10 @@ int parser_pass (int this_frame_ptr, PARSER *p) {
  	    j = k;
 	    if (FRAME_SCOPE != PROTOTYPE_VAR) {
 	      ++p -> block_level;
-	      /* messages[k] points to opening bracket */
-	      chk_C_return_alone (messages, k);
+	      if (!library_input) {
+		/* messages[k] points to opening bracket */
+		chk_C_return_alone (messages, k);
+	      }
 	    }
 	  }
 	} /* if (m -> attrs & TOK_IS_FN_START) { */
@@ -815,6 +817,25 @@ int parser_pass (int this_frame_ptr, PARSER *p) {
 
     if ((ex = __ctalkTrapExceptionInternal (m)) != NULL) {
       if (ex -> _exception != method_used_before_define_x) {
+	char *buf;
+	if (frames[this_frame_ptr-1]) {
+	  buf = collect_tokens
+	    (messages,
+	     frames[this_frame_ptr] -> message_frame_top,
+	     frames[this_frame_ptr-1] -> message_frame_top);
+	} else {
+	  buf = collect_tokens
+	    (messages,
+	     frames[this_frame_ptr] -> message_frame_top,
+	     messageptr + 1);
+	}
+	/* have to think of something better here when
+	   we have an example .. vsprintf can choke on 
+	   some text that contains a '%' with no argument
+	   list */
+	if (!strchr (buf, '%'))
+	  warning (m, buf);
+	__xfree (MEMADDR(buf));
 	__ctalkExceptionNotifyInternal (ex);
 	exit (EXIT_FAILURE);
       } else {
@@ -918,7 +939,6 @@ char *parse (char *inbuf, long long bufsize) {
   int scope;
   int n_block_levels = 0;
   int n_parens = 0;
-  int linemarker_line;
   int n_dots;
   int docstr_cx_idx, docstr_cx_idx_2;
   MESSAGE *m;
@@ -1182,7 +1202,7 @@ char *parse (char *inbuf, long long bufsize) {
 	break;
       case INTEGER:
 	if (need_line_no) {
-	  error_line = linemarker_line = atoi (M_NAME(m));
+	  error_line = atoi (M_NAME(m));
 	  need_line_no = FALSE;
 	}
 	break;

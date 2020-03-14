@@ -1,4 +1,4 @@
-/* $Id: xcopypixmap.c,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-c-*-*/
+/* $Id: xcopypixmap.c,v 1.5 2020/02/29 10:21:16 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -39,7 +39,7 @@ extern char *shm_mem;
 extern int mem_id;
 
 #if X11LIB_FRAME
-int __ctalkX11CopyPixmapBasic (int dest_drawable_id,
+int __ctalkX11CopyPixmapBasic (void *d, int dest_drawable_id,
 			       unsigned long int dest_gc_ptr,
 			       int src_drawable_id, 
 			       int src_x_org, int src_y_org,
@@ -49,7 +49,7 @@ int __ctalkX11CopyPixmapBasic (int dest_drawable_id,
 }
 #else /* X11LIB_FRAME */
 
-int __ctalkX11CopyPixmapBasic (int dest_drawable_id,
+int __ctalkX11CopyPixmapBasic (void *d, int dest_drawable_id,
 			       unsigned long int dest_gc_ptr,
 			       int src_drawable_id, 
 			       int src_x_org, int src_y_org,
@@ -77,8 +77,9 @@ int __ctalkX11CopyPixmapBasic (int dest_drawable_id,
 	   ":", ctitoa ((unsigned int)dest_y_org, intbuf7), 
 	   ":", NULL);
 
-  make_req (shm_mem, PANE_COPY_PIXMAP_REQUEST,
+  make_req (shm_mem, d, PANE_COPY_PIXMAP_REQUEST,
    	    dest_drawable_id, dest_gc_ptr, d_buf);
+
 #ifdef GRAPHICS_WRITE_SEND_EVENT
   send_event.xgraphicsexpose.type = GraphicsExpose;
   send_event.xgraphicsexpose.send_event = True;
@@ -95,7 +96,7 @@ int __ctalkX11CopyPixmapBasic (int dest_drawable_id,
 static void __gui_support_error (void) {
   _error ("__ctalkGUI ... () functions require Graphical User Interface support.\n");
 }
-int __ctalkX11CopyPixmapBasic (int dest_drawable_id,
+int __ctalkX11CopyPixmapBasic (void * d, int dest_drawable_id,
 			       unsigned long int dest_gc_ptr,
 			       int src_drawable_id, 
 			       int src_x_org, int src_y_org,

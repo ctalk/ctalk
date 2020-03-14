@@ -14,7 +14,7 @@
 
 @SET_MAKE@
 
-# $Id: Makefile.in,v 1.11 2019/11/20 20:50:43 rkiesling Exp $
+# $Id: Makefile.in,v 1.26 2020/03/13 03:35:18 rkiesling Exp $
 
 VPATH = @srcdir@
 am__is_gnu_make = { \
@@ -387,10 +387,10 @@ pkginclude_HEADERS = ANSIButtonPane ANSILabelPane ANSIListBoxPane \
 	TCPIPV6NetworkStreamReader TCPIPV6NetworkStreamWriter TerminalStream \
 	TreeNode UNIXNetworkStream \
 	UNIXNetworkStreamReader UNIXNetworkStreamWriter Vector \
-	Win32TerminalStream WriteFileStream X11Bitmap \
-	X11CanvasPane X11Cursor X11Font X11FreeTypeFont X11Pane X11Pixmap \
-	X11ScrollBarPane X11TerminalStream X11TextPane X11TextEditorPane \
-	X11PaneDispatcher \
+	Win32TerminalStream WriteFileStream X11Bitmap X11ButtonPane \
+	X11CanvasPane X11Cursor X11Font X11FreeTypeFont X11LabelPane \
+	X11MessageBoxPane X11Pane X11Pixmap X11ScrollBarPane X11TerminalStream \
+	X11TextPane X11TextEditorPane X11PaneDispatcher \
 	ctalklib ctldjgpp ctalkdefs.h ctalkGLUTdefs.h
 
 EXTRA_DIST = $(top_builddir)/classes/Makefile.djgpp \

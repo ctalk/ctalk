@@ -46,6 +46,8 @@ extern char *ascii[8193];             /* from intascii.h */
 
 static int tmp_fn_block_id = 0;
 
+extern HASHTAB defined_instancevars; /* declared in primitives.c. */
+
 /* This function does not return on an error. */
 static void check_extra_fn_expr_tokens (MESSAGE_STACK messages, 
 					int fn_label_idx) {
@@ -208,6 +210,11 @@ int is_self_expr_as_fn_lvalue (MESSAGE *m_sender,
 	next_message -> receiver_msg = sender_rcvr_msg;
 
 	prev_object_l = next_instance_var;
+      } else if (_hash_get (defined_instancevars,
+			    M_NAME(next_message))) {
+	next_message -> attrs |= OBJ_IS_INSTANCE_VAR;
+	next_message -> receiver_obj = prev_object_l;
+	next_message -> receiver_msg = sender_rcvr_msg;
 
       } else {
 
@@ -225,6 +232,8 @@ int is_self_expr_as_fn_lvalue (MESSAGE *m_sender,
 	  next_message -> receiver_msg = sender_rcvr_msg;
 	  
 	  prev_object_l = next_instance_var;
+	} else if (str_eq (M_NAME(messages[next_idx]), "super")) { /***/
+	  return FALSE;
 	} else {
 	  
 	  if (M_TOK(messages[next_idx]) == EQ) {
@@ -265,11 +274,18 @@ int is_self_expr_as_fn_lvalue (MESSAGE *m_sender,
 		  }
 		  return FALSE;
 		}
+	      } else {
+		return FALSE;
 	      }
 	    } else {
 	      return FALSE;
 	    }
 	  } else {
+	    if (M_TOK(messages[next_idx]) == LABEL) {
+	      self_instvar_expr_unknown_label (message_stack (),
+					       self_idx, next_idx);
+	      /* doesn't return if error */
+	    }
 	    return FALSE;
 	  }
 
@@ -900,6 +916,10 @@ static int fn_return_tab_entry (MESSAGE *m_orig, CFUNC *c_fn) {
 	    } else if (*c_fn -> qualifier_type) {
 	      strcatx (type_buf, c_fn -> qualifier_type, " ",
 		       c_fn -> return_type, NULL);
+	    } else if (str_eq (c_fn -> return_type, "OBJECT") &&
+		       (c_fn -> return_derefs == 1)) { /***/
+	      strcatx (type_buf, c_fn -> return_type, NULL);
+	      return TMP_LVAL_OBJECT_PTR;
 	    } else {
 	      strcatx (type_buf, c_fn -> return_type, NULL);
 	    }

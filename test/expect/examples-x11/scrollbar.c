@@ -1,4 +1,4 @@
-/* $Id: scrollbar.c,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ */
+/* $Id: scrollbar.c,v 1.9 2020/01/20 10:03:44 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -47,29 +47,24 @@ int main (int argv, char **argc) {
   yWindowSize = 400;
 
   fgColor = "white";
-  bgColor = "white";
+  bgColor = "skyblue";
 
   parse_args (argc, argv);
 
   xPane initialize xWindowSize, yWindowSize;
   xPane inputStream eventMask = WINDELETE|EXPOSE|BUTTONPRESS|BUTTONRELEASE|MOTIONNOTIFY;
   xTopLevelPane attachTo xPane;
-  xScrollBarPane attachTo xTopLevelPane;
+  xScrollBarPane attachTo xTopLevelPane, "20x100%+0+0";
 
   xPane map;
   xPane raiseWindow;
-
-  /*
-   *  When animating, the old position of the scroll thumb
-   *  normally is set to the scrollbar's background color.
-   */
-  xScrollBarPane thumbErasePen colorName = bgColor;
 
   xPane openEventStream;
 
   xScrollBarPane background bgColor;
   xScrollBarPane foreground fgColor;
   xScrollBarPane clear;
+  xScrollBarPane refresh;
 
   while (TRUE) {
 
@@ -92,6 +87,7 @@ int main (int argv, char **argc) {
  	  exit (0);
  	  break;
   	default:
+	  printf ("%f\n", xScrollBarPane percent);
   	  break;
  	}
     }

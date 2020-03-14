@@ -14,7 +14,7 @@
 
 @SET_MAKE@
 
-# $Id: Makefile.in,v 1.11 2019/11/20 20:50:43 rkiesling Exp $
+# $Id: Makefile.in,v 1.26 2020/03/13 03:35:17 rkiesling Exp $
 
 VPATH = @srcdir@
 am__is_gnu_make = { \
@@ -397,6 +397,8 @@ EXTRA_DIST = $(top_builddir)/build/gccincdir.sh \
 	$(top_builddir)/build/conftest.c \
 	$(top_builddir)/build/glh.sh \
 	$(top_builddir)/build/have_llvm.sh \
+	$(top_builddir)/build/fn_decl.pl \
+	$(top_builddir)/build/confcttest.sh \
 	$(top_builddir)/m4/* \
 	$(top_builddir)/ChangeLog \
 	$(top_builddir)/tools/langtools \
@@ -940,6 +942,10 @@ distclean-local:
 	  $(top_builddir)/build/.pthread_gcc_option \
           $(top_builddir)/build/.gccdonthavenoformatoverflowopt \
           $(top_builddir)/build/.gcchavenoformatoverflowopt \
+	  $(top_builddir)/build/.cttest_no_pointer_to_int_cast \
+	  $(top_builddir)/build/.cttest_no_stringop_overflow \
+	  $(top_builddir)/build/.cttest_no_address_of_packed_member \
+	  $(top_builldir)/build/.cttest_no_format_overflow \
 	  $(top_builddir)/build/.no_gl_h \
 	  $(top_builddir)/build/.no_glx_h \
           $(top_builddir)/build/.no_glew_h \

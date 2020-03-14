@@ -1,4 +1,4 @@
-/* $Id: pval.h,v 1.1.1.1 2019/10/26 23:40:50 rkiesling Exp $ */
+/* $Id: pval.h,v 1.3 2019/12/05 21:30:20 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -52,7 +52,7 @@ struct _val{
     int __i;
     bool __b;
     double __d;          /* Double and float. */
-#ifndef __APPLE__
+#if !(defined(__APPLE__) && defined(__ppc__))
     long double __ld;
 #endif
     long __l;

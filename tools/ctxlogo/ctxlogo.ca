@@ -1,4 +1,4 @@
-/* $Id: ctxlogo.ca,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ */
+/* $Id: ctxlogo.ca,v 1.8 2020/02/29 12:31:00 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -184,7 +184,11 @@ int main (int argc, char **argv) {
 
 
   logoAirPix = xWindowSize / 20;
+#if 1 /***/
+  xCanvasPane background bgColor;
+#endif  
 
+  xPane backgroundColor = bgColor;
   xPane initialize xWindowOrg, yWindowOrg, xWindowSize, yWindowSize,
     ctxlogo geomFlags;
   xPane inputStream eventMask =
@@ -192,13 +196,15 @@ int main (int argc, char **argv) {
   xTopLevelPane attachTo xPane;
   xCanvasPane attachTo xTopLevelPane;
 
+
   xPane map;
   xPane raiseWindow;
 
   xPane openEventStream;
 
+#if 0 /***/
   xCanvasPane background bgColor;
-  xCanvasPane clear;
+#endif  
 
   xPane setWMTitle "Ctalk Logo";
 
@@ -250,6 +256,9 @@ int main (int argc, char **argv) {
 	  xCanvasPane refresh;
 	  break;
 	case EXPOSE:
+	  xWindowSize = xPane size x;
+	  yWindowSize = xPane size y;
+	  logoAirPix = xWindowSize / 20;
 	  xCanvasPane clear;
 	  xCanvasPane drawXLogo xWindowSize, yWindowSize;
 	  xCanvasPane pixmapFromData (xWindowSize / 2) - (LOGO_WIDTH / 2), 

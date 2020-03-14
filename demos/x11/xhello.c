@@ -1,4 +1,4 @@
-/* $Id: xhello.c,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ */
+/* $Id: xhello.c,v 1.4 2020/03/10 23:02:55 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -70,7 +70,6 @@ int main (int argv, char **argc) {
   xPane initialize 200, 100;
   xPane map;
   xPane raiseWindow;
-
 
   xPane openEventStream;
 

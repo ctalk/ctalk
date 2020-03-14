@@ -1,4 +1,4 @@
-/* $Id: rexpr.c,v 1.2 2019/11/18 21:26:00 rkiesling Exp $ */
+/* $Id: rexpr.c,v 1.4 2020/01/28 05:22:08 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -1948,13 +1948,6 @@ int fn_output_context (MESSAGE_STACK messages, int method_msg_ptr,
   }
 
   return SUCCESS;
-}
-
-int is_expr_obj (MESSAGE *m) {
-  if (m && m -> obj && !strcmp (M_VALUE_OBJ(m) -> __o_classname, EXPR_CLASSNAME))
-    return TRUE;
-  else
-    return FALSE;
 }
 
 int expr_has_objects (MESSAGE_STACK messages, int start_idx, int end_idx) {

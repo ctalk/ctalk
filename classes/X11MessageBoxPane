@@ -1,0 +1,179 @@
+/* $Id: X11MessageBoxPane,v 1.26 2020/03/08 21:44:58 rkiesling Exp $ -*-C-*-*/
+
+/*
+  This file is part of Ctalk.
+  Copyright © 2020  Robert Kiesling, rk3314042@gmail.com.
+  Permission is granted to copy this software provided that this copyright
+  notice is included in all source code modules.
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+*/
+
+/* DON'T USE THIS AT THE MOMENT */
+
+X11PaneDispatcher class X11MessageBoxPane;
+
+X11MessageBoxPane instanceVariable popup Boolean true;
+
+X11MessageBoxPane instanceMethod new (String paneName) {
+  Method new exposeMethod;
+
+  X11MessageBoxPane super new paneName;
+  
+  exposeMethod definedInstanceMethod "X11MessageBoxPane", "subPaneExpose";
+  paneName setMethodHandler "expose", exposeMethod;
+  return paneName;
+}
+
+X11MessageBoxPane instanceMethod subPaneExpose (Object __subPane,
+					  InputEvent __event) {
+  "Handle an Expose event by redrawing the pane's contents
+  on the parent window."
+    __subPane draw;
+    __subPane refresh;
+}
+
+X11MessageBoxPane instanceMethod attachTo (Object parentPane,
+					   String geomspec) {
+  "Register the receiver pane as a subpane of the X11Pane
+  given as the argument.  Generally parent pane should
+  be a X11PaneDispatcher object."
+  X11Bitmap new xPaneBuffer;
+  X11Bitmap new xPaneBackingStore;
+  int x, y, width, height;
+  
+  self displayPtr = self mainWindow displayPtr;
+
+  /* self super attachTo parentPane; *//***/
+  /*
+   ***  NOTE THIS IS NOT ADDED TO THE DISPATCHER's CHILDREN LIST
+        IMMEDIATELY.
+   */
+  self container = parentPane;
+  self paneBuffer become xPaneBuffer;
+  self paneBackingStore become xPaneBackingStore;
+
+  __ctalkX11SubWindowGeometry (parentPane, geomspec,
+			       &x, &y, &width, &height);
+
+  self size x = width;
+  self size y = height;
+  self origin x = x;
+  self origin y = y;
+
+  self backgroundColor = "blue";
+
+  return NULL;
+}
+
+unsigned long lookup_pixel_d (void *, char *);
+extern Display *d;
+
+X11MessageBoxPane instanceMethod draw (void) {
+
+  self clearWindow;
+
+  self paneBuffer background "black";
+  self paneBuffer foreground "blue";
+  
+  self paneBuffer putStr 20, 20, "Hello";
+
+}
+
+X11MessageBoxPane instanceMethod refresh (void) {
+  __ctalkGUIPaneRefresh (self, 0, 0,
+   			 self size x,
+   			 self size y,
+   			 0, 0);
+}
+
+X11MessageBoxPane instanceMethod withdraw (void) {
+  self deleteAndClose;
+}
+
+extern Atom wm_delete_dialog;
+
+X11MessageBoxPane instanceMethod deleteAndClose (void) {
+  "Call the delete handlers for each of the subpanes,
+  then delete the buffer and window associated with 
+  the receiver pane.
+  TODO - 
+  Make sure we can delete the backing store here, too."
+#if 0
+    self children map {
+    eval self deleteAndClose;
+  }
+#endif
+  __ctalkDeleteWinBuffer (self paneBuffer);
+  XUnmapWindow (self displayPtr, self xWindowID);
+  XUnmapSubwindows (self displayPtr, self xWindowID);
+  __ctalkCloseX11DialogPane (self);
+  self displayPtr = NULL;
+  return NULL;
+}
+
+X11MessageBoxPane instanceMethod show (void) {
+  Display *display;
+  Window win_id;
+  XEvent xev;
+  X11PaneDispatcher new dispatcher;
+  X11Pane new mainWin;
+  InputEvent new e;
+
+  dispatcher = *self container;
+  mainWin = dispatcher mainWindow;
+  
+  win_id = __ctalkX11CreateDialogWindow (self);
+  self xWindowID = win_id;
+  dispatcher modalWin = win_id;
+  dispatcher modalPane = self;
+
+  display = self displayPtr;
+  (X11Bitmap *)self paneBuffer create self displayPtr, self xWindowID, 
+     self size x, self size y, self depth;
+  (X11Bitmap *)self paneBuffer background (self backgroundColor);
+  (X11Bitmap *)self paneBackingStore create self displayPtr, self xWindowID,
+    self size x, self size y, self depth;
+
+
+  self ftFontVar initFontLib;
+  self ftFont "URW Gothic L", 0, 0, 0, 12.0;
+
+  XMapWindow (display, win_id);
+  XRaiseWindow (display, win_id);
+
+  while (1) {
+    if (XPending (display)) {
+      XNextEvent (display, &xev);
+      switch (xev.type)
+	{
+	case Expose:
+	  self methodObjectMessage self handleExpose, self, e;
+	  break;
+	case ClientMessage:
+	  if(xev.xclient.data.l[0] == wm_delete_dialog) {
+	    self deleteAndClose;
+	    dispatcher modalWin = 0;
+	    dispatcher modalPane = NULL;
+	    return self;
+	  }
+	  break;
+	}
+    }
+	
+  }
+
+  return self;
+}

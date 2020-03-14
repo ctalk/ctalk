@@ -1,4 +1,4 @@
-/* $Id: ctalkdefs.h,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-C-*-*/
+/* $Id: ctalkdefs.h,v 1.2 2020/01/11 03:27:30 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -315,6 +315,11 @@ int memcmp(const void *s1, const void *s2, size_t n);
 #ifndef DEFAULT_TCPIP_PORT
 #define DEFAULT_TCPIP_PORT 9998
 #endif
+
+/* Text justification in X11LabelPane */
+#define LABEL_LEFT   1
+#define LABEL_CENTER 2
+#define LABEL_RIGHT  3
 
 #define _CTALKDEFS_H_
 #endif /* #ifdef _CTALKDEFS_H_ */

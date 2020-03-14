@@ -1,4 +1,4 @@
-/* $Id: xfthello.c,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ */
+/* $Id: xfthello.c,v 1.2 2020/02/29 12:42:55 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -53,6 +53,7 @@ int main (int argc, char **argv) {
   Boolean new verbose;
   String new defaultFont;
 
+  xPane backgroundColor = "white";
   xPane initialize 200, 100;
   xPane inputStream eventMask = WINDELETE|EXPOSE|MOVENOTIFY|RESIZENOTIFY;
   xPane map;
