@@ -1,4 +1,4 @@
-/* $Id: rt_obj.c,v 1.1.1.1 2019/10/26 23:40:50 rkiesling Exp $ */
+/* $Id: rt_obj.c,v 1.2 2020/03/15 18:46:13 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -1787,7 +1787,8 @@ int __ctalkRegisterUserObject (OBJECT *o) {
       return SUCCESS;
   }
 
-  if ((m = __call_stack[__call_stack_ptr + 1] -> method) != NULL) {
+  if ((__call_stack_ptr < MAXARGS) &&
+      (m = __call_stack[__call_stack_ptr + 1] -> method) != NULL) {
     if (!is_arg (o))
       __objRefCntSet (OBJREF(o), 1);
     __ctalkSetObjectScope (o, o -> scope | METHOD_USER_OBJECT);

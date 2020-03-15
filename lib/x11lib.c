@@ -1,4 +1,4 @@
-/* $Id: x11lib.c,v 1.124 2020/03/10 23:02:55 rkiesling Exp $ -*-c-*-*/
+/* $Id: x11lib.c,v 1.125 2020/03/15 19:01:43 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -1782,6 +1782,8 @@ Font get_user_font (OBJECT *self) {
   Font user_font;
   int n_user_fonts;
   char **user_font_set;
+  Display *l_d;
+  OBJECT *displayPtr_instvar;
   self_object = IS_VALUE_INSTANCE_VAR(self) ? self -> __o_p_obj :
     self;
   if ((fontDesc_var = 
@@ -1792,18 +1794,28 @@ Font get_user_font (OBJECT *self) {
     return 0;
   if (!strcmp (fontDesc_value_var -> __o_value, NULLSTR))
     return 0;
-  user_font_set = XListFonts (display, fontDesc_value_var->__o_value, 10,
+
+  if ((displayPtr_instvar = __ctalkGetInstanceVariable (self_object,
+							"displayPtr",
+							TRUE)) == NULL)
+    return ERROR;
+
+  l_d = (Display *)SYMVAL(displayPtr_instvar -> instancevars -> __o_value);
+  /* user_font_set = XListFonts (display, fontDesc_value_var->__o_value, 10,
+     &n_user_fonts); *//***/
+  user_font_set = XListFonts (l_d, fontDesc_value_var->__o_value, 10,
 			      &n_user_fonts);
-    if (n_user_fonts) {
-      user_font = XLoadFont (display, user_font_set[0]);
-      XFreeFontNames (user_font_set);
-      return user_font;
+
+  if (n_user_fonts) {
+    user_font = XLoadFont (l_d, user_font_set[0]);
+    XFreeFontNames (user_font_set);
+    return user_font;
     } else {
 #ifndef WITHOUT_X11_WARNINGS
-      _warning ("__x11_open_display: Couldn't find font %s.\n",
-		fontDesc_value_var->__o_value);
-      _warning ("__x11_open_display: (To disable these messages, build Ctalk with\n");
-      _warning ("__x11_open_display: the --without-x11-warnings option.)\n");
+    _warning ("__x11_open_display: Couldn't find font %s.\n",
+	      fontDesc_value_var->__o_value);
+    _warning ("__x11_open_display: (To disable these messages, build Ctalk with\n");
+    _warning ("__x11_open_display: the --without-x11-warnings option.)\n");
 #endif
     }
   return 0;
@@ -3982,6 +3994,7 @@ int __ctalkX11IOErrorHandler (Display *d) {
       XSync (d, TRUE);
     XCloseDisplay (d);
   }
+  (*default_io_handler)(d);
   __ctalkErrorExit ();
 #if X11LIB_PRINT_COPIOUS_DEBUG_INFO
   fprintf (stderr, "Display = %p. Pending = %d\n", d, pending);
