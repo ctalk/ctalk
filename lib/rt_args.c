@@ -1,4 +1,4 @@
-/* $Id: rt_args.c,v 1.15 2020/02/05 19:32:10 rkiesling Exp $ */
+/* $Id: rt_args.c,v 1.17 2020/03/16 14:04:55 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -2074,8 +2074,22 @@ static int __rt_arglist_limit (METHOD *method,
 static inline OBJECT *arg_object_if_label (MESSAGE *m_tok) {
   OBJECT *o;
   if (M_TOK(m_tok) == LABEL) {
-    if ((o = __ctalk_get_arg_tok (M_NAME(m_tok))) != NULL)
-      return o;
+#if 0 /***/
+    if (str_eq (M_NAME(m_tok), "CFunction")) {
+#endif      
+      if (IS_OBJECT(m_tok -> obj) && IS_CLASS_OBJECT (m_tok -> obj)) {
+      /* 
+	 In case we have a construct like: 
+	 
+	   self = CFunction cTime ...
+
+	 This might need to be worked out more.
+      */
+      return M_VALUE_OBJ(m_tok);
+    } else {
+      if ((o = __ctalk_get_arg_tok (M_NAME(m_tok))) != NULL)
+	return o;
+    }
   }
   return NULL;
 }

@@ -429,3 +429,6 @@
 	get_user_font (x11lib.c).
 	- Added the class pathname as an argument to save_class_init_info
 	(preclass.c).
+	- In arg_object_if_label, check for an expression like,
+	"CFunction cTime", and get the value object, not just the
+	declaration of the label (rt_args.c).
