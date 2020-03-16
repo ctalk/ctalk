@@ -419,3 +419,13 @@
 	options to test/expect/cttest when running ./configure.
 2020-03-14
 	- Release 0.0.66 2020-03-14
+2020-03-15
+	- Set X11MessageBoxPane colors to "white" and "black", and
+	added the X11MessageBoxPane : fill method, which fills the
+	pane with the background color.
+	- Added a __call_stack_ptr range check in
+	__ctalkRegisterUserObject (rt_obj.c).
+	- Use the pane object's displayPtr instance variable in
+	get_user_font (x11lib.c).
+	- Added the class pathname as an argument to save_class_init_info
+	(preclass.c).

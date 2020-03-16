@@ -1,4 +1,4 @@
-/* $Id: preclass.c,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ */
+/* $Id: preclass.c,v 1.2 2020/03/16 02:49:54 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -61,7 +61,8 @@ char *class_cache_path_name (char *classname) {
   return path;
 }
 
-void save_class_init_info (char *classname, char *superclassname) {
+void save_class_init_info (char *classname, char *superclassname,
+			   char *library_pathname) {
 
   FILE *fp;
   int length, bytes_written, r;
@@ -87,9 +88,9 @@ void save_class_init_info (char *classname, char *superclassname) {
       _error ("save_class_init_info (fwrite (c:)): %s: %s.\n",
 	      cache_path, strerror (errno));
 
-    if ((r = fclose (fp)) != 0)
-      _error ("save_class_init_info (fclose): %s: %s.\n",
-	      cache_path, strerror (errno));
+  if ((r = fclose (fp)) != 0)
+    _error ("save_class_init_info (fclose): %s: %s.\n",
+	    cache_path, strerror (errno));
 
 }
 

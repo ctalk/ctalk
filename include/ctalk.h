@@ -1,4 +1,4 @@
-/* $Id: ctalk.h,v 1.89 2020/03/08 14:35:00 rkiesling Exp $ -*-Fundamental-*- */
+/* $Id: ctalk.h,v 1.90 2020/03/16 02:49:54 rkiesling Exp $ -*-Fundamental-*- */
 
 /*
   This file is part of Ctalk.
@@ -3122,7 +3122,7 @@ int sizeof_arg_needs_rt_eval (MESSAGE_STACK, int);
 int unary_op_attributes (MESSAGE_STACK, int, int *, int *);
 
 /* preclass.c */
-void save_class_init_info (char *, char *);
+void save_class_init_info (char *, char *, char *);
 void save_instance_var_init_info (char *, char *, char *, char *);
 void save_class_var_init_info (char *, char *, char *, char *);
 void load_cached_class (char *);

@@ -1,4 +1,4 @@
-/* $Id: primitives.c,v 1.3 2020/02/14 17:54:36 rkiesling Exp $ */
+/* $Id: primitives.c,v 1.4 2020/03/16 02:49:54 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -242,7 +242,8 @@ OBJECT *define_class (int method_msg_ptr) {
     generate_primitive_class_definition_call (m_receiver -> obj, method);
 
     save_class_init_info (arg_object -> __o_name, 
-			  arg_object -> __o_superclassname);
+			  arg_object -> __o_superclassname,
+			  library_pathname ());
   } /* if (file_exists (cache_fn)) */
 
   next_frame_top_ptr = message_frame_top_n (parser_frame_ptr () - 1);
