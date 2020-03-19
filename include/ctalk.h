@@ -1,4 +1,4 @@
-/* $Id: ctalk.h,v 1.90 2020/03/16 02:49:54 rkiesling Exp $ -*-Fundamental-*- */
+/* $Id: ctalk.h,v 1.91 2020/03/19 02:52:56 rkiesling Exp $ -*-Fundamental-*- */
 
 /*
   This file is part of Ctalk.
@@ -1015,8 +1015,6 @@ int goto_stmt (MESSAGE_STACK, int);
 char *handle_rt_prefix_rexpr (MESSAGE_STACK, int, int, int, char *);
 
 /* cparse.c */
-MESSAGE *c_message_at (int);
-int c_message_push (MESSAGE *);
 MESSAGE_STACK c_message_stack (void);
 int escaped_line_end (MESSAGE **, int, int);
 int eval_constant_expr (MESSAGE_STACK, int, int *, VAL *);
@@ -1033,7 +1031,6 @@ int fn_has_gnu_attribute (MESSAGE_STACK, int);
 int fn_is_declaration (MESSAGE_STACK, int);
 int fn_param_cvars (MESSAGE_STACK, int, int);
 int fn_params (MESSAGE_STACK, int, int);
-int get_c_message_ptr (void);
 int get_cvar_attrs (void);
 PARAMCVAR get_param_n (int );
 int get_param_ptr (void);

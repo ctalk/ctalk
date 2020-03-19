@@ -437,3 +437,5 @@
 	to the *.class files in the cache, and to read them back when using
 	preloaded methods, using the MLI and CLSLI types in preclass.c to
 	store the line number info.
+	- Moved the c_messages stack to ctoobj.c, where it is still used,
+	and the supporting functions that stack support needs.

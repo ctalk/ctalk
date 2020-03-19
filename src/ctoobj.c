@@ -1,4 +1,4 @@
-/* $Id: ctoobj.c,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ */
+/* $Id: ctoobj.c,v 1.4 2020/03/19 02:52:57 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -37,8 +37,21 @@
  *  a C function call.
  */
 
-extern MESSAGE *c_messages[N_MESSAGES + 1];  /* Declared in cparse.c.  */
-extern int c_message_ptr;                   
+MESSAGE *c_messages[N_MESSAGES + 1];  /* Declared in cparse.c.  */
+int c_message_ptr;                   
+
+MESSAGE_STACK c_message_stack (void) {
+  return c_messages;
+}
+
+static int c_message_push (MESSAGE *m) {
+  if (c_message_ptr == 0) {
+    warning (m, "c_message_push: stack overflow.");
+    return ERROR;
+  }
+  c_messages[c_message_ptr--] = m;
+  return c_message_ptr;
+}
 
 extern CFUNC *functions;                     /* Declared in rt_cvar.c. */
 
