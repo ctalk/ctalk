@@ -1,4 +1,4 @@
-/* $Id: guisetbackground.c,v 1.10 2020/03/08 11:33:15 rkiesling Exp $ -*-c-*-*/
+/* $Id: guisetbackground.c,v 1.11 2020/03/19 16:10:16 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -75,6 +75,9 @@ int __ctalkX11SetBackgroundBasic (void *d, int drawable_id,
   XEvent send_event;
 #endif
   
+  if (!shm_mem)
+    return ERROR;
+
   if (drawable_id == 0)
     _error ("ctalk: __ctalkX11SetBackgroundBasic: Bad window ID. "
 	    "(Did you attach the Pane object first?)\n");

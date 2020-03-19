@@ -439,3 +439,13 @@
 	store the line number info.
 	- Moved the c_messages stack to ctoobj.c, where it is still used,
 	and the supporting functions that stack support needs.
+2029-03-18
+	- In X11MessageBox : attachTo, check whether we've set the
+	messagebox's foreground and background colors before using
+	the parent X11Pane's background and foreground colors.
+	- Added a check in __ctalkX11SetBackgroundBasic for initialized
+	shared memory (guisetbackground.c).
+	- Added a check in X11MessageBoxPane : attachTo that checks whether
+	the messagebox's foreground or background colors have been set
+	before assigning them the main window's foreground and background
+	colors.

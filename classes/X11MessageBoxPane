@@ -1,4 +1,4 @@
-/* $Id: X11MessageBoxPane,v 1.26 2020/03/08 21:44:58 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11MessageBoxPane,v 1.31 2020/03/19 16:10:16 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -26,6 +26,7 @@
 X11PaneDispatcher class X11MessageBoxPane;
 
 X11MessageBoxPane instanceVariable popup Boolean true;
+X11MessageBoxPane instanceVariable button X11ButtonPane NULL;
 
 X11MessageBoxPane instanceMethod new (String paneName) {
   Method new exposeMethod;
@@ -34,6 +35,10 @@ X11MessageBoxPane instanceMethod new (String paneName) {
   
   exposeMethod definedInstanceMethod "X11MessageBoxPane", "subPaneExpose";
   paneName setMethodHandler "expose", exposeMethod;
+
+  paneName backgroundColor = "white";
+  paneName foregroundColor = "black";
+
   return paneName;
 }
 
@@ -49,12 +54,16 @@ X11MessageBoxPane instanceMethod attachTo (Object parentPane,
 					   String geomspec) {
   "Register the receiver pane as a subpane of the X11Pane
   given as the argument.  Generally parent pane should
-  be a X11PaneDispatcher object."
+  be a X11PaneDispatcher object.  If the main window of the
+  program has set foreground and background colors, the 
+  X11MessageBoxPane window inherites the colors."
+  X11Pane new mainWin;
   X11Bitmap new xPaneBuffer;
   X11Bitmap new xPaneBackingStore;
   int x, y, width, height;
   
   self displayPtr = self mainWindow displayPtr;
+  mainWin become parentPane mainWindow;
 
   /* self super attachTo parentPane; *//***/
   /*
@@ -73,7 +82,22 @@ X11MessageBoxPane instanceMethod attachTo (Object parentPane,
   self origin x = x;
   self origin y = y;
 
-  self backgroundColor = "blue";
+  if (!self foregroundColor) {
+    if (mainWin foregroundColor)
+      self foregroundColor = mainWin foregroundColor;
+  }
+  if (!self backgroundColor) {
+    if (mainWin backgroundColor)
+      self backgroundColor = mainWin backgroundColor;
+  }
+
+  if (mainWin ftFontVar libIsInitialized) {
+    self ftFontVar become mainWin ftFontVar;
+  } else if (mainWin fontVar fontId != 0) {
+    self fontVar become mainWin fontVar;
+  } else {
+    self font "fixed";
+  }
 
   return NULL;
 }
@@ -81,14 +105,26 @@ X11MessageBoxPane instanceMethod attachTo (Object parentPane,
 unsigned long lookup_pixel_d (void *, char *);
 extern Display *d;
 
+X11MessageBoxPane instanceMethod fill (String colorName) {
+  "Sets the message box's background color to the argument and 
+   fills the messagebox's area with that color.  Temporarily
+   sets the pane's foreground to the background color so the 
+   color change is visible without drawing anything else."
+    String new saveFgColor;
+  String new saveFgColor;
+
+
+  saveFgColor = self foregroundColor;
+  self paneBuffer background colorName;
+  self paneBuffer foreground colorName;
+  XFillRectangle (self displayPtr, self paneBuffer xID, self paneBuffer xGC,
+		  0, 0, self size x, self size y);
+  self paneBuffer foreground saveFgColor;
+}
+
 X11MessageBoxPane instanceMethod draw (void) {
 
-  self clearWindow;
-
-  self paneBuffer background "black";
-  self paneBuffer foreground "blue";
-  
-  self paneBuffer putStr 20, 20, "Hello";
+  self fill self backgroundColor;
 
 }
 
@@ -97,6 +133,7 @@ X11MessageBoxPane instanceMethod refresh (void) {
    			 self size x,
    			 self size y,
    			 0, 0);
+  /* self button refresh; *//***/
 }
 
 X11MessageBoxPane instanceMethod withdraw (void) {
@@ -144,15 +181,22 @@ X11MessageBoxPane instanceMethod show (void) {
   (X11Bitmap *)self paneBuffer create self displayPtr, self xWindowID, 
      self size x, self size y, self depth;
   (X11Bitmap *)self paneBuffer background (self backgroundColor);
+  (X11Bitmap *)self paneBuffer foreground (self foregroundColor);
   (X11Bitmap *)self paneBackingStore create self displayPtr, self xWindowID,
     self size x, self size y, self depth;
 
 
+#if 0 
   self ftFontVar initFontLib;
-  self ftFont "URW Gothic L", 0, 0, 0, 12.0;
+  self ftFont "URW Gothic L", 0, 0, 0, 8.0;
+
+  /* self button attachTo self, "100x50+20+20"; *//***/
+#endif  
 
   XMapWindow (display, win_id);
   XRaiseWindow (display, win_id);
+
+  self clearWindow;
 
   while (1) {
     if (XPending (display)) {
