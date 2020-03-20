@@ -1,9 +1,17 @@
-/* $Id: ctedit.ca,v 1.12 2020/01/29 14:38:38 rkiesling Exp $  -*-c-*- */
+/* $Id: ctedit.ca,v 1.15 2020/03/20 00:28:55 rkiesling Exp $  -*-c-*- */
 
 /*
   This file is part of Ctalk.
-  Copyright © 2005-2018 Robert Kiesling, rk3314042@gmail.com.
-  Permission is granted to copy this software prohis program is distributed in the hope that it will be useful,
+  Copyright © 2019-2020 Robert Kiesling, rk3314042@gmail.com.
+  Permission is granted to copy this software provided that this copyright
+  notice is includaed in all source code modules.
+
+  This program is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
   GNU General Public License for more details.
@@ -270,9 +278,6 @@ int main (int argc, char **argv) {
     createFile = false;
   }
 
-  xEditorPane background bgColor;
-  xEditorPane foreground fgColor;
-
   xPane initialize ctEdit winXOrg, ctEdit winYOrg,
     ctEdit winWidth, ctEdit winHeight, ctEdit geomFlags, winTitle;
 
@@ -289,6 +294,9 @@ int main (int argc, char **argv) {
   /* Setting to zero indicates that the program should set
      the maximum line width to the width of the window. */
   xEditorPane lineWidth = 0;
+
+  xEditorPane background bgColor;
+  xEditorPane foreground fgColor;
 
   if (!useFtFonts || useXFont)
     xEditorPane font xFontName;
