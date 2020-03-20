@@ -449,3 +449,9 @@
 	the messagebox's foreground or background colors have been set
 	before assigning them the main window's foreground and background
 	colors.
+	- In __ctalkDefineInstanceVariable, if the constructor class is
+	different than the var's native class, set the var's class to
+	the native class and call __ctalkInstanceVarsFromClassObject so
+	we add the variables defined in the native class.  Then set the
+	variable's parent object class to the class it is a member of
+	(rtobjvar.c).

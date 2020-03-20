@@ -1,4 +1,4 @@
-/* $Id: rtobjvar.c,v 1.3 2020/03/08 00:06:56 rkiesling Exp $ -*-c-*-*/
+/* $Id: rtobjvar.c,v 1.5 2020/03/20 00:20:17 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -673,6 +673,17 @@ OBJECT *__ctalkDefineInstanceVariable (char *classname, char *varname,
     var = __var_constructor (varname, constructor_method, class_object,
 			     constructor_class_object, init_expr);
     __ctalkSetObjectValueClass (var, var_class_object);
+    if (constructor_class_object != class_object) { /***/
+      /* Make sure we get the class' instance variables defined.
+	 First we set the class of the var to its actual class
+	 so we can use __ctalkInstanceVarsFromClassObject ... */
+      var -> __o_class = var_class_object;
+      var -> __o_superclass = var_class_object -> __o_superclass;
+      __ctalkInstanceVarsFromClassObject (var);
+      /* ... then we set it to the member class before finishing. */
+      var -> __o_class = class_object;
+      var -> __o_superclass = class_object -> __o_superclass;
+    }
   }
 
   __objRefCntSet (OBJREF(var), class_object -> nrefs);
