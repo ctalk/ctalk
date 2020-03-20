@@ -455,3 +455,7 @@
 	we add the variables defined in the native class.  Then set the
 	variable's parent object class to the class it is a member of
 	(rtobjvar.c).
+	- Removed a call to XGetWindowAttributes from
+	__ctalkCreateX11SubWindow becauase the parent's backing_store attribute
+	is Always, and we can set it directly for the child window also
+	(x11lib.c).

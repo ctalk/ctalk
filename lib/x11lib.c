@@ -1,4 +1,4 @@
-/* $Id: x11lib.c,v 1.125 2020/03/15 19:01:43 rkiesling Exp $ -*-c-*-*/
+/* $Id: x11lib.c,v 1.126 2020/03/20 01:10:44 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -3575,7 +3575,6 @@ int __ctalkCreateX11SubWindow (OBJECT *parent, OBJECT *self) {
   OBJECT *bgcolor_obj, *fgcolor_obj;
   OBJECT *self_displayPtr_value, *parent_displayPtr_value;
   Window parent_id, self_id;
-  XWindowAttributes parent_attributes;
   XSetWindowAttributes self_attributes;
   XGCValues gcv;
   GC gc;
@@ -3623,8 +3622,7 @@ int __ctalkCreateX11SubWindow (OBJECT *parent, OBJECT *self) {
     _warning ("__ctalkX11CreateSubWindow: Invalid parent window.\n");
     return ERROR;
   }
-  XGetWindowAttributes (p_display, parent_id, &parent_attributes);
-  self_attributes.backing_store = parent_attributes.backing_store;
+  self_attributes.backing_store = Always;
   self_id = XCreateWindow (p_display, parent_id, 
 			   INTVAL(self_origin_x_var -> __o_value),
 			   INTVAL(self_origin_y_var -> __o_value),
