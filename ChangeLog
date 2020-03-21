@@ -439,7 +439,7 @@
 	store the line number info.
 	- Moved the c_messages stack to ctoobj.c, where it is still used,
 	and the supporting functions that stack support needs.
-2029-03-18
+2020-03-18
 	- In X11MessageBox : attachTo, check whether we've set the
 	messagebox's foreground and background colors before using
 	the parent X11Pane's background and foreground colors.
@@ -459,3 +459,8 @@
 	__ctalkCreateX11SubWindow becauase the parent's backing_store attribute
 	is Always, and we can set it directly for the child window also
 	(x11lib.c).
+2020-03-21
+	- Removed the expressions that set the subwindow's display pointer
+	in X11CanvasPane : attachTo and X11ButtonPane : attachTo - setting
+	the display connection's address is now handled by
+	__ctalkCreateX11SubWindow (x11lib.c).

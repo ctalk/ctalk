@@ -1,4 +1,4 @@
-/* $Id: X11ButtonPane,v 1.28 2020/02/28 16:08:25 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11ButtonPane,v 1.29 2020/03/21 11:18:09 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -85,7 +85,6 @@ X11ButtonPane instanceMethod attachTo (Object parentPane,
   "Register the receiver pane as a subpane of the X11Pane
   given as the argument.  Generally parent pane should
   be a X11PaneDispatcher object."
-  X11Pane new mainWin;
   X11Bitmap new xPaneBuffer;
   X11Bitmap new xPaneBackingStore;
   X11LabelPane new l_local;
@@ -96,9 +95,6 @@ X11ButtonPane instanceMethod attachTo (Object parentPane,
   self super attachTo (parentPane, geomspec);
   self paneBuffer become xPaneBuffer;
   self paneBackingStore become xPaneBackingStore;
-
-  mainWin = self mainWindow;
-  self displayPtr = mainWin displayPtr;
 
   __ctalkX11SubWindowGeometry (parentPane, geomspec,
 				 &x, &y, &width, &height);
