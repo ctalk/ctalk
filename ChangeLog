@@ -461,9 +461,9 @@
 	(x11lib.c).
 2020-03-21
 	- Removed the expressions that set the subwindow's display pointer
-	in X11CanvasPane : attachTo and X11ButtonPane : attachTo - setting
-	the display connection's address is now handled by
-	__ctalkCreateX11SubWindow (x11lib.c).
+	in X11CanvasPane : attachTo, X11ButtonPane : attachTo and
+	X11PaneDispatcher : attachTo - setting the display connection's
+	address is now handled by __ctalkCreateX11SubWindow (x11lib.c).
 	- Removed the buttons' hightlight text color setting in
 	demos/x11/buttons.ca.
 	2020-03-21
