@@ -471,3 +471,5 @@
 	(xrender.c).
 	- Updated xr_make_surface to use the Display * that's passed to
 	it's calling function, and also declared as static.
+	- Updated X11PaneDispatcher : attachTo (2 params) so that it only
+	sets a full window subwindow when the receiver is a X11PaneDispatcher.
