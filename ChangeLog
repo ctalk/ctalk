@@ -466,3 +466,8 @@
 	__ctalkCreateX11SubWindow (x11lib.c).
 	- Removed the buttons' hightlight text color setting in
 	demos/x11/buttons.ca.
+	2020-03-21
+	- In __xlib_draw_rectangle, updated lookup_pixel to lookup_pixel_d
+	(xrender.c).
+	- Updated xr_make_surface to use the Display * that's passed to
+	it's calling function, and also declared as static.

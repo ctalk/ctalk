@@ -1,4 +1,4 @@
-/* $Id: xrender.c,v 1.14 2020/03/11 03:02:40 rkiesling Exp $ -*-c-*-*/
+/* $Id: xrender.c,v 1.16 2020/03/21 18:01:28 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -48,6 +48,8 @@
 
 extern Display *display;   /* Defined in x11lib.c. */
 extern int display_width, display_height;
+
+extern unsigned long lookup_pixel_d (Display *, char *);
 
 #define RECTANGLE_GCV_MASK (GCFunction|GCForeground|GCFillStyle|GCLineWidth) 
 
@@ -103,14 +105,14 @@ int xrender_event_base = -1, xrender_error_base = -1;
 
 XRENDERDRAWREC surface = {0, NULL, 0, 0, NULL, NULL, NULL};
 
-void xr_make_surface (Drawable d) {
-  surface.draw = XftDrawCreate (display, d,
-				DefaultVisual (display,
-					       DefaultScreen (display)),
-				DefaultColormap (display,
-						 (DefaultScreen (display))));
+static void xr_make_surface (Display *dpy, Drawable d) {
+  surface.draw = XftDrawCreate (dpy, d,
+				DefaultVisual (dpy,
+					       DefaultScreen (dpy)),
+				DefaultColormap (dpy,
+						 (DefaultScreen (dpy))));
   surface.picture = XftDrawPicture (surface.draw);
-  surface.mask_format = XRenderFindStandardFormat (display, PictStandardA8);
+  surface.mask_format = XRenderFindStandardFormat (dpy, PictStandardA8);
   surface.drawable = d;
 }
 
@@ -409,7 +411,7 @@ int __xlib_draw_rectangle (Display *d, Drawable drawable_arg, GC gc, char *data)
   if (have_useful_xrender) {
 
     if (actual_drawable != surface.drawable)
-      xr_make_surface (actual_drawable);
+      xr_make_surface (d, actual_drawable);
 
     if (!get_color (rect.color_name, &rcolor)) {
       if (XftColorAllocName (d, 
@@ -1173,7 +1175,7 @@ int __xlib_draw_line (Display *d, Drawable drawable_arg, GC gc, char *data) {
   if (have_useful_xrender) {
 
     if (actual_drawable != surface.drawable)
-      xr_make_surface (actual_drawable);
+      xr_make_surface (d, actual_drawable);
     if (!get_color (colorname, &rcolor)) {
       if (XftColorAllocName (d, 
 			     DefaultVisual (d, DefaultScreen (d)),
@@ -1233,7 +1235,8 @@ int __xlib_draw_line (Display *d, Drawable drawable_arg, GC gc, char *data) {
   } else { /* if (have_useful_xrender) */
 
     line_gcv.function = GXcopy;
-    line_gcv.foreground = lookup_pixel (colorname);
+    /* line_gcv.foreground = lookup_pixel (colorname); *//***/
+    line_gcv.foreground = lookup_pixel_d (d, colorname);
     line_gcv.fill_style = FillSolid;
     line_gcv.line_width = pen_width;
     XGetGCValues (d, gc, DEFAULT_GCV_MASK, &old_gcv);
@@ -1297,7 +1300,7 @@ int __xlib_draw_circle (Display *d, Drawable w, GC gc, char *data) {
   if (have_useful_xrender) {
 
     if (w != surface.drawable)
-      xr_make_surface (w);
+      xr_make_surface (d, w);
 
     if (!get_color (colorname, &rcolor)) {
       if (XftColorAllocName (d, 
@@ -1479,7 +1482,7 @@ int __xlib_draw_point (Display *d, Drawable drawable_arg, GC gc, char *data) {
   if (have_useful_xrender && panebuffer_id) {
 
     if (actual_drawable != surface.drawable) 
-      xr_make_surface (actual_drawable);
+      xr_make_surface (d, actual_drawable);
 
     if (!get_color (colorname, &rcolor)) {
       if (XftColorAllocName (d, 
@@ -1830,7 +1833,7 @@ int __xlib_draw_line (Display *d, Drawable drawable_arg, GC gc, char *data) {
   }
 
   line_gcv.function = GXcopy;
-  line_gcv.foreground = lookup_pixel (colorname);
+  line_gcv.foreground = lookup_pixel_d (d, colorname); /***/
   line_gcv.fill_style = FillSolid;
   line_gcv.line_width = pen_width;
   XGetGCValues (d, gc, DEFAULT_GCV_MASK, &old_gcv);

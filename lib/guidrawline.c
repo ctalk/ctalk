@@ -1,4 +1,4 @@
-/* $Id: guidrawline.c,v 1.6 2020/02/29 10:21:15 rkiesling Exp $ -*-c-*-*/
+/* $Id: guidrawline.c,v 1.7 2020/03/21 17:43:25 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -41,9 +41,14 @@
 char intbuf[MAXARGS][MAXLABEL] = {'\0',};
 
 extern Display *display;   /* Defined in x11lib.c. */
+extern Display *d_p;       /* Defined in xdialog.c */
 extern char *shm_mem;
 extern int mem_id;
 extern char *ascii[8193];
+
+
+extern int __xlib_draw_line (Display *, Drawable, GC, char *);
+
 #if X11LIB_FRAME
 int __ctalkX11PaneDrawLine (OBJECT *self, OBJECT *line, OBJECT *pen) {
   return SUCCESS;
@@ -99,16 +104,21 @@ int __ctalkX11PaneDrawLineBasic (void *d, int drawable_id,
 	   ":", pen_color,
 	   NULL);
   
-  make_req (shm_mem, d, PANE_DRAW_LINE_REQUEST,
-   	    drawable_id, gc_ptr, d_buf);
+  if (DIALOG(d)) {
+    __xlib_draw_line (d, drawable_id, (GC)gc_ptr, d_buf);
+  } else {
+
+    make_req (shm_mem, d, PANE_DRAW_LINE_REQUEST,
+	      drawable_id, gc_ptr, d_buf);
 #ifdef GRAPHICS_WRITE_SEND_EVENT
-  send_event.xgraphicsexpose.type = GraphicsExpose;
-  send_event.xgraphicsexpose.send_event = True;
-  send_event.xgraphicsexpose.display = display;
-  send_event.xgraphicsexpose.drawable = drawable_id;
-  XSendEvent (display, drawable_id, False, 0L, &send_event);
+    send_event.xgraphicsexpose.type = GraphicsExpose;
+    send_event.xgraphicsexpose.send_event = True;
+    send_event.xgraphicsexpose.display = display;
+    send_event.xgraphicsexpose.drawable = drawable_id;
+    XSendEvent (display, drawable_id, False, 0L, &send_event);
 #endif
-  wait_req (shm_mem);
+    wait_req (shm_mem);
+  }
 
   return SUCCESS;
 }
@@ -127,6 +137,8 @@ int __ctalkGUIPaneDrawLine (OBJECT *self, OBJECT *line, OBJECT *pen) {
   int start_x, start_y, end_x, end_y;
   char d_buf[MAXMSG];
   int panebuffer_xid, panebackingstore_xid;
+  Display *l_d;
+
 #ifdef GRAPHICS_WRITE_SEND_EVENT
   XEvent send_event;
 #endif
@@ -158,6 +170,7 @@ int __ctalkGUIPaneDrawLine (OBJECT *self, OBJECT *line, OBJECT *pen) {
 		      &panebackingstore_xid);
   displayPtr_var = __ctalkGetInstanceVariable (self_object, "displayPtr",
 					       TRUE);
+  l_d = (Display *)SYMVAL(displayPtr_var -> instancevars -> __o_value);
 
   start_x = *(int *)line_start_x_var->instancevars -> __o_value;
   start_y = *(int *)line_start_y_var->instancevars -> __o_value;
@@ -177,22 +190,29 @@ int __ctalkGUIPaneDrawLine (OBJECT *self, OBJECT *line, OBJECT *pen) {
 	   pen_color_object->instancevars->__o_value,
 	   NULL);
 
-  make_req (shm_mem,
-	    SYMVAL(displayPtr_var -> instancevars -> __o_value),
-	    PANE_DRAW_LINE_REQUEST,
-	    INTVAL(win_id_value -> __o_value),
-	    SYMVAL(gc_value -> __o_value), d_buf);
+  if (DIALOG(l_d)) {
+    __xlib_draw_line (l_d, INTVAL(win_id_value -> __o_value),
+		      (GC)SYMVAL(gc_value -> __o_value),
+		      d_buf);
+  } else {
+
+    make_req (shm_mem,
+	      SYMVAL(displayPtr_var -> instancevars -> __o_value),
+	      PANE_DRAW_LINE_REQUEST,
+	      INTVAL(win_id_value -> __o_value),
+	      SYMVAL(gc_value -> __o_value), d_buf);
 
 #ifdef GRAPHICS_WRITE_SEND_EVENT
-  send_event.xgraphicsexpose.type = GraphicsExpose;
-  send_event.xgraphicsexpose.send_event = True;
-  send_event.xgraphicsexpose.display = display;
-  send_event.xgraphicsexpose.drawable = *(int *)win_id_value->__o_value;
-  XSendEvent (display,
-	      *(int *)win_id_value -> __o_value,
- 	      False, 0L, &send_event);
+    send_event.xgraphicsexpose.type = GraphicsExpose;
+    send_event.xgraphicsexpose.send_event = True;
+    send_event.xgraphicsexpose.display = display;
+    send_event.xgraphicsexpose.drawable = *(int *)win_id_value->__o_value;
+    XSendEvent (display,
+		*(int *)win_id_value -> __o_value,
+		False, 0L, &send_event);
 #endif
-  wait_req (shm_mem);
+    wait_req (shm_mem);
+  }
   return SUCCESS;
 }
 
