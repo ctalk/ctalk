@@ -1,4 +1,4 @@
-/* $Id: guiclearrectangle.c,v 1.6 2020/03/11 03:02:40 rkiesling Exp $ -*-c-*-*/
+/* $Id: guiclearrectangle.c,v 1.7 2020/03/22 19:26:57 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -38,8 +38,11 @@
 #include "x11defs.h"
 
 extern Display *display;   /* Defined in x11lib.c. */
+extern Display *d_p;       /* Defined in xdialog.c. */
 extern char *shm_mem;
 extern int mem_id;
+
+int __xlib_clear_rectangle (Display *, Drawable, GC, char *);
 
 extern char *ascii[8193];             /* from intascii.h */
 
@@ -110,17 +113,22 @@ int __ctalkX11ClearRectangleBasic (void *d, int drawable_id,
 	     ctitoa (drawable_id, cr_intbuf1), ":",
 	     ctitoa (drawable_id, cr_intbuf2), ":",
 	     NULL);
-    make_req (shm_mem, (uintptr_t)d, PANE_CLEAR_RECTANGLE_REQUEST,
-	      drawable_id, gc_ptr, d_buf);
+
+    if (DIALOG(d)) {
+      __xlib_clear_rectangle (d, drawable_id, (GC)gc_ptr, d_buf);
+    } else {
+      make_req (shm_mem, (uintptr_t)d, PANE_CLEAR_RECTANGLE_REQUEST,
+		drawable_id, gc_ptr, d_buf);
 
 #ifdef GRAPHICS_WRITE_SEND_EVENT
-    send_event.xgraphicsexpose.type = GraphicsExpose;
-    send_event.xgraphicsexpose.send_event = True;
-    send_event.xgraphicsexpose.display = display;
-    send_event.xgraphicsexpose.drawable = drawable_id;
-    XSendEvent (display, drawable_id, False, 0L, &send_event);
+      send_event.xgraphicsexpose.type = GraphicsExpose;
+      send_event.xgraphicsexpose.send_event = True;
+      send_event.xgraphicsexpose.display = display;
+      send_event.xgraphicsexpose.drawable = drawable_id;
+      XSendEvent (display, drawable_id, False, 0L, &send_event);
 #endif
-    wait_req (shm_mem);
+      wait_req (shm_mem);
+    }
     return SUCCESS;
   }
 }
@@ -136,44 +144,55 @@ int __ctalkGUIPaneClearRectangle (OBJECT *self, int x, int y,
   OBJECT *self_object, *win_id_value, *gc_value, *displayPtr_var;
   int panebuffer_xid, panebackingstore_xid;
   char d_buf[MAXLABEL];
-  char cr_intbuf1[MAXLABEL], cr_intbuf2[MAXLABEL], cr_intbuf3[MAXLABEL],
-    cr_intbuf4[MAXLABEL], cr_intbuf5[MAXLABEL], cr_intbuf6[MAXLABEL];
+  char cr_intbuf5[MAXLABEL], cr_intbuf6[MAXLABEL];
+  Display *l_d;
 
   self_object = (IS_VALUE_INSTANCE_VAR (self) ? self->__o_p_obj : self);
   win_id_value = __x11_pane_win_id_value_object (self_object);
   gc_value = __x11_pane_win_gc_value_object (self_object);
-  /***/
   displayPtr_var = __ctalkGetInstanceVariable (self_object, "displayPtr",
 					       TRUE);
+  l_d = (Display *)SYMVAL(displayPtr_var -> instancevars -> __o_value);
   __get_pane_buffers (self_object, &panebuffer_xid,
 		      &panebackingstore_xid);
   if (panebuffer_xid && panebackingstore_xid) {
 
     strcatx (d_buf,
-	     ctitoa (x, cr_intbuf1), ":",
-	     ctitoa (y, cr_intbuf2), ":",
-	     ctitoa (width, cr_intbuf3), ":",
-	     ctitoa (height, cr_intbuf4), ":",
+	     ascii[x], ":",
+	     ascii[y], ":",
+	     ascii[width], ":",
+	     ascii[height], ":",
 	     ctitoa (panebuffer_xid, cr_intbuf5), ":",
 	     ctitoa (panebackingstore_xid, cr_intbuf6), ":",
 	     NULL);
-    make_req (shm_mem, SYMVAL(displayPtr_var -> instancevars -> __o_value),
-	      PANE_CLEAR_RECTANGLE_REQUEST,
-	      panebuffer_xid,
-	      SYMVAL(gc_value -> __o_value), d_buf);
+    if (DIALOG(l_d)) {
+      __xlib_clear_rectangle (l_d, panebuffer_xid,
+			      (GC)SYMVAL(gc_value -> __o_value), d_buf);
+			      
+    } else {
+      make_req (shm_mem, l_d, PANE_CLEAR_RECTANGLE_REQUEST,
+		panebuffer_xid,
+		SYMVAL(gc_value -> __o_value), d_buf);
+      wait_req (shm_mem);
+    }
   } else {
     strcatx (d_buf,
-	     ctitoa (x, cr_intbuf1), ":",
-	     ctitoa (y, cr_intbuf2), ":",
-	     ctitoa (width, cr_intbuf3), ":",
-	     ctitoa (height, cr_intbuf4), ":0:0:",
+	     ascii[x], ":",
+	     ascii[y], ":",
+	     ascii[width], ":",
+	     ascii[height], ":", ":0:0:",
 	     NULL);
-    make_req (shm_mem, SYMVAL(displayPtr_var -> instancevars -> __o_value),
-	      PANE_CLEAR_RECTANGLE_REQUEST,
-	      INTVAL(win_id_value -> __o_value),
-	      SYMVAL(gc_value -> __o_value), d_buf);
+    if (DIALOG(l_d)) {
+      __xlib_clear_rectangle (l_d, panebuffer_xid,
+			      (GC)SYMVAL(gc_value -> __o_value), d_buf);
+			      
+    } else {
+      make_req (shm_mem, l_d, PANE_CLEAR_RECTANGLE_REQUEST,
+		INTVAL(win_id_value -> __o_value),
+		SYMVAL(gc_value -> __o_value), d_buf);
+      wait_req (shm_mem);
+    }
   }
-  wait_req (shm_mem);
   return SUCCESS;
 }
 
