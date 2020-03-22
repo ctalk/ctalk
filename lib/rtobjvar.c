@@ -1,4 +1,4 @@
-/* $Id: rtobjvar.c,v 1.5 2020/03/20 00:20:17 rkiesling Exp $ -*-c-*-*/
+/* $Id: rtobjvar.c,v 1.6 2020/03/22 18:15:17 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -591,7 +591,7 @@ OBJECT *__ctalkDefineInstanceVariable (char *classname, char *varname,
   if (!IS_OBJECT(var_class_object -> __o_superclass)) {
     constructor_class_object = var_class_object;
   } else {
-    for (o_t = var_class_object -> __o_superclass;
+    for (o_t = var_class_object;
 	 o_t && !constructor_method; o_t = o_t -> __o_superclass) {
       method_hash_key (o_t -> __o_name, "new", hash_key);
       if (_hash_get (instancemethodhash, hash_key)) {

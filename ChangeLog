@@ -476,3 +476,7 @@
 2020-03-22
 	- Updated the functions in guidrawrectangle.c to check for a dialog
 	window and draw to that window separately .
+	- Updated __ctalkDefineInstanceVariable to start looking for the
+	variable's constructor method the variable's class, not its
+	superclass (rtobjvar.c).
+
