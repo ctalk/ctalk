@@ -1,4 +1,4 @@
-/* $Id: xrender.c,v 1.16 2020/03/21 18:01:28 rkiesling Exp $ -*-c-*-*/
+/* $Id: xrender.c,v 1.17 2020/03/22 15:19:52 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -49,7 +49,6 @@
 extern Display *display;   /* Defined in x11lib.c. */
 extern int display_width, display_height;
 
-extern unsigned long lookup_pixel_d (Display *, char *);
 
 #define RECTANGLE_GCV_MASK (GCFunction|GCForeground|GCFillStyle|GCLineWidth) 
 
@@ -90,7 +89,8 @@ int __xlib_draw_rectangle (d, Drawable drawable_arg, GC gc, char *data) {
 #else /* X11LIB_FRAME */
 
 /* These are in x11lib.c. */
-extern int lookup_pixel (char *);
+/* extern int lookup_pixel (char *); */ /***/
+extern unsigned long lookup_pixel_d (Display *, char *);
 extern int lookup_rgb (char *, unsigned short int *,
 		       unsigned short int *, unsigned short int *);
 
@@ -433,7 +433,7 @@ int __xlib_draw_rectangle (Display *d, Drawable drawable_arg, GC gc, char *data)
     }
 
     rectangle_gcv.function = GXcopy;
-    rectangle_gcv.foreground = lookup_pixel (rect.color_name);
+    rectangle_gcv.foreground = lookup_pixel_d (d, rect.color_name);
     rectangle_gcv.fill_style = FillSolid;
     rectangle_gcv.line_width = rect.pen_width;
     XGetGCValues (d, gc, DEFAULT_GCV_MASK, &old_gcv);
@@ -654,7 +654,7 @@ int __xlib_draw_rectangle (Display *d, Drawable drawable_arg, GC gc, char *data)
   } else { /* if (have_useful_xrender) ... */
 
     rectangle_gcv.function = GXcopy;
-    rectangle_gcv.foreground = lookup_pixel (rect.color_name);
+    rectangle_gcv.foreground = lookup_pixel_d (d, rect.color_name);
     rectangle_gcv.fill_style = FillSolid;
     rectangle_gcv.line_width = rect.pen_width;
     XGetGCValues (d, gc, DEFAULT_GCV_MASK, &old_gcv);
@@ -1100,8 +1100,6 @@ static void __xlib_draw_point_scan (char *data,
   *color_name = ++q;
 }
 
-extern int lookup_pixel (char *color);
-
 #if defined (HAVE_XRENDER_H) && defined (HAVE_XFT_H)
 
 bool xrender_version_check (void) {
@@ -1407,7 +1405,7 @@ int __xlib_draw_circle (Display *d, Drawable w, GC gc, char *data) {
   } else { /* if (have_useful_xrender) */
     if (fill) {
       XGetGCValues (d, gc, CIRCLE_GCV, &old_gcv);
-      gcv.foreground = lookup_pixel (colorname);
+      gcv.foreground = lookup_pixel_d (d, colorname);
       XChangeGC (d, gc, CIRCLE_GCV, &gcv);
       path_idx = 0;
       for (i = 0; i <= 360.0; i += 0.5 ){
@@ -1422,7 +1420,7 @@ int __xlib_draw_circle (Display *d, Drawable w, GC gc, char *data) {
       XChangeGC (d, gc, CIRCLE_GCV, &old_gcv);
     } else {
       XGetGCValues (d, gc, CIRCLE_GCV, &old_gcv);
-      gcv.foreground = lookup_pixel (colorname);
+      gcv.foreground = lookup_pixel_d (d, colorname);
       XChangeGC (d, gc, CIRCLE_GCV, &gcv);
       /* This turns out to be more efficient that drawing the points
 	 in one call (or pen_width * calls) using XDrawPoints. */
@@ -1536,7 +1534,7 @@ int __xlib_draw_point (Display *d, Drawable drawable_arg, GC gc, char *data) {
 
     XGetGCValues (d, gc, DEFAULT_GCV_MASK, &old_gcv);
     point_gcv.function = GXcopy;
-    point_gcv.foreground = lookup_pixel (colorname);
+    point_gcv.foreground = lookup_pixel_d (d, colorname);
     point_gcv.fill_style = FillSolid;
     XChangeGC (d, gc, POINT_GCV_MASK, &point_gcv);
     if (pen_width < 2) {
@@ -1697,7 +1695,7 @@ int __xlib_draw_rectangle (Display *d, Drawable drawable_arg, GC gc, char *data)
     actual_drawable = rect.panebuffer_id;
   }
   rectangle_gcv.function = GXcopy;
-  rectangle_gcv.foreground = lookup_pixel (rect.color_name);
+  rectangle_gcv.foreground = lookup_pixel_d (d, rect.color_name);
   rectangle_gcv.fill_style = FillSolid;
   rectangle_gcv.line_width = rect.pen_width;
   XGetGCValues (d, gc, DEFAULT_GCV_MASK, &old_gcv);
@@ -1894,7 +1892,7 @@ int __xlib_draw_circle (Display *d, Drawable w, GC gc, char *data) {
   }
   if (fill) {
     XGetGCValues (display, gc, CIRCLE_GCV, &old_gcv);
-    gcv.foreground = lookup_pixel (colorname);
+    gcv.foreground = lookup_pixel_d (d, colorname);
     XChangeGC (d, gc, CIRCLE_GCV, &gcv);
     path_idx = 0;
     for (i = 0; i <= 360.0; i += 0.5 ){
@@ -1909,7 +1907,7 @@ int __xlib_draw_circle (Display *d, Drawable w, GC gc, char *data) {
     XChangeGC (d, gc, CIRCLE_GCV, &old_gcv);
   } else {
     XGetGCValues (d, gc, CIRCLE_GCV, &old_gcv);
-    gcv.foreground = lookup_pixel (colorname);
+    gcv.foreground = lookup_pixel_d (d, colorname);
     XChangeGC (d, gc, CIRCLE_GCV, &gcv);
     /* This turns out to be more efficient that drawing the points
        in one call (or pen_width * calls) using XDrawPoints. */
@@ -1962,7 +1960,7 @@ int __xlib_draw_point (Display *d, Drawable drawable_arg, GC gc, char *data) {
 
   XGetGCValues (d, gc, DEFAULT_GCV_MASK, &old_gcv);
   point_gcv.function = GXcopy;
-  point_gcv.foreground = lookup_pixel (colorname);
+  point_gcv.foreground = lookup_pixel_d (d, colorname);
   point_gcv.fill_style = FillSolid;
   XChangeGC (d, gc, POINT_GCV_MASK, &point_gcv);
   if (pen_width < 2) {
