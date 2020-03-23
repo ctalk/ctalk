@@ -1,4 +1,4 @@
-/* $Id: x11lib.c,v 1.126 2020/03/20 01:10:44 rkiesling Exp $ -*-c-*-*/
+/* $Id: x11lib.c,v 1.128 2020/03/23 09:43:23 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -403,6 +403,9 @@ int __xlib_put_str (Display *d, Drawable w, GC gc, char *s) {
 #endif
 #endif
 
+#if 0
+  /* Due to changes in the X libraries, clearing the region behind the
+     string may no longer be needed...  will try with more examples */
   if (xlibfont.selectedfont && xlibfont.selected_xfs) {
     width = XTextWidth (xlibfont.selected_xfs, c_term,
 			strlen (c_term));
@@ -433,6 +436,7 @@ int __xlib_put_str (Display *d, Drawable w, GC gc, char *s) {
 				  gc);
     XFreeFont (d, fontinfo);
   }
+#endif    
     
     /*
      *  VT100 erase line - has the effect of clearing the 
@@ -525,6 +529,7 @@ int __xlib_put_str_ft (Display *d, Drawable w, GC gc, char *s) {
   if (ft_str.draw == NULL || w != ft_str.drawable) {
     if (ft_str.draw != NULL)
       XftDrawDestroy (ft_str.draw);
+    
     ft_str.drawable = w;
     ft_str.draw = XftDrawCreate (d, w,
 				 DEFAULT_VISUAL,

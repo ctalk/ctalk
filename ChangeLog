@@ -483,4 +483,8 @@
 	connection to the server when drawing if needed (xcopypixmap.c),
 	and also __ctalkX11PaneClearRectangle and __ctalkX11ClearRectangleBasic
 	(guiclearrectangle.c).
+2020-03-23
+	- Updated routines in guiputstr.c to draw on dialog windows.
+	- Updated __xlib_put_str to not clear the region behind text,
+	which may no longer be needed (x11lib.c).
 
