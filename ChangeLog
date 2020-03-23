@@ -487,4 +487,9 @@
 	- Updated routines in guiputstr.c to draw on dialog windows.
 	- Updated __xlib_put_str to not clear the region behind text,
 	which may no longer be needed (x11lib.c).
+	- Added the display member to the XFTFONT type (xftfont.h),
+	added the macro DISPLAY to determine whether we're using the
+	xdialog.c connection to the display, and added the g_dpy global
+	in xftlib.c, and checked in new_font_spec whether the font was
+	selected on the same display connection (xftlib.c).
 

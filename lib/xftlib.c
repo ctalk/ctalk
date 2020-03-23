@@ -1,4 +1,4 @@
-/* $Id: xftlib.c,v 1.4 2019/11/04 12:33:53 rkiesling Exp $ -*-c-*-*/
+/* $Id: xftlib.c,v 1.5 2020/03/23 10:10:13 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -68,7 +68,10 @@ static void xft_support_error (void) {
 extern int is_dir (char *path);
 char *__ctalkXftSelectedFontPath (void);
 
-extern Display *display;
+extern Display *display;  /* Defined in x11lib.c.  */
+extern Display *d_p;      /* Defined in xdialog.c. */
+
+#define DISPLAY ((d_p == NULL) ? display : d_p)
 
 extern void sync_ft_font (bool);
 
@@ -1102,6 +1105,7 @@ static int g_weight = -1;
 static int g_slant = -1;
 static int g_dpi = -1;
 static double g_pt_size = 0.0;
+Display *g_dpy = NULL; /***/
 
 /*  The color allocation is done in x11lib.c, because it
     needs the drawable and colormap information and we
@@ -1130,7 +1134,8 @@ static bool new_font_spec (char *p_family, int p_weight, int p_slant,
   if ((p_weight != g_weight) ||
       (p_slant != g_slant) ||
       (p_dpi != g_dpi) ||
-      (p_pt_size != g_pt_size))
+      (p_pt_size != g_pt_size) ||
+      (DISPLAY != g_dpy)) /***/
     return true;
   else
     return false;
@@ -1143,6 +1148,7 @@ static void save_new_font_spec (char *p_family, int p_weight, int p_slant,
   g_slant = p_slant;
   g_dpi = p_dpi;
   g_pt_size = p_pt_size;
+  g_dpy = DISPLAY; /***/
 }
 
 XFTFONT ft_font;
@@ -1153,7 +1159,7 @@ int load_ft_font_faces_internal (char *family, double pt_size,
 				 unsigned short int dpi) {
   if (new_font_spec (family, weight, slant, dpi, pt_size))  {
     if ((ft_font.normal =
-	 XftFontOpen (display, DefaultScreen (display),
+	 XftFontOpen (DISPLAY, DefaultScreen (display),
 		      XFT_FAMILY, XftTypeString, family,
 		      XFT_SIZE, XftTypeDouble, pt_size,
 		      XFT_SLANT, XftTypeInteger, slant,
