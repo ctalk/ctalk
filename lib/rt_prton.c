@@ -1,4 +1,4 @@
-/* $Id: rt_prton.c,v 1.5 2019/12/06 21:58:10 rkiesling Exp $ */
+/* $Id: rt_prton.c,v 1.6 2020/03/23 10:59:47 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -87,11 +87,16 @@ int __call_printon_fn_w_args (OBJECT *arg0_obj, char *fmt, METHOD *method,
       strncat (tmparg0buf, fmt_tokens[i], 1);
     } else {
       if (strchr (fmt_tokens[i], '%')) {
-	strcatx2 (tmparg0buf, 
-		__scalar_fmt_conv (fmt_tokens[i], 
-				   ptr_args[j++],
-				   method -> args[k++] -> obj), NULL);
-	++retval;
+	if (IS_ARG(method -> args[k])) {
+	  strcatx2 (tmparg0buf, 
+		    __scalar_fmt_conv (fmt_tokens[i], 
+				       ptr_args[j++],
+				       method -> args[k++] -> obj), NULL);
+	  ++retval;
+	} else {
+	  _warning ("ctalk: Missing format argument for \"%s\".\n",
+		    fmt);
+	}
       } else {
 	strcatx2 (tmparg0buf, fmt_tokens[i], NULL);
       }
