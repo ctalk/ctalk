@@ -499,5 +499,9 @@
 	so the fn can look back to find an escaped '%' ('%%') (pattern.c).
 	Also updated the "%%" handling in __call_printon_fn_w_args
 	(rt_prton.c).
+2020-03-24
+	- Added a check in eval_arg for undefined labels that don't
+	follow a constructor method message or are a method message
+	themselves, or an AssociativeArray key (eval_arg.c).
 
 

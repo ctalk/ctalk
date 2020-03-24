@@ -1,4 +1,4 @@
-/* $Id: eval_arg.c,v 1.11 2020/02/02 04:02:52 rkiesling Exp $ */
+/* $Id: eval_arg.c,v 1.12 2020/03/24 19:18:38 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -1009,6 +1009,25 @@ OBJECT *eval_arg (METHOD *method, OBJECT *rcvr_class, ARGSTR *argbuf,
 	      arg_obj = create_arg_CFUNCTION_object (argbuf -> arg);
 	      arg_obj -> attrs |= OBJECT_IS_FN_ARG_OBJECT;
 	      goto arg_evaled;
+	    }
+	    if (!IS_DEFINED_LABEL(M_NAME(m_arg))) {
+	      if ((prev_tok_idx = prevlangmsg (message_stack (),
+					       main_stack_idx))
+		  != ERROR) {
+		MESSAGE *m_main_prev = message_stack_at (prev_tok_idx);
+		MESSAGE *m_main = message_stack_at (main_stack_idx);
+		if (!IS_CONSTRUCTOR_LABEL(M_NAME(m_main_prev)) &&
+		    !IS_CONSTRUCTOR_LABEL(M_NAME(m_main)) &&
+		    /* AssociativeArray keys can be constructed objects. */
+		    !str_eq (rcvr_class -> __o_name,
+			     "AssociativeArray") &&
+		    !get_instance_method (m_main, rcvr_class,
+					  M_NAME(m_arg), ANY_ARGS, FALSE)) {
+		  warning (m_main,
+			   "Identifier, \"%s\" not resolved.", M_NAME(m_arg));
+		  
+		}
+	      }
 	    }
 	    /*
 	     * Undefined object and not a C variable.  If the method
