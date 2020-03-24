@@ -1,4 +1,4 @@
- /* $Id: pattypes.c,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ */
+ /* $Id: pattypes.c,v 1.2 2020/03/23 18:07:34 rkiesling Exp $ */
 
  /*
    This file is part of Ctalk.
@@ -112,7 +112,7 @@ bool is_fmt_arg (MESSAGE_STACK messages, int expr_start_idx,
 	 break;
        case LITERAL:
 	 if (state == ptr_fmt_arg_separator) {
-	   if ((fmt_str_length = is_printf_fmt (M_NAME(m))) != 0) {
+	   if ((fmt_str_length = is_printf_fmt (M_NAME(m), M_NAME(m))) != 0) {
 	     return TRUE;
 	   }
 	 } else {
@@ -209,7 +209,7 @@ bool is_fmt_arg_2 (MSINFO *ms) {
 	 break;
        case LITERAL:
 	 if (state == ptr_fmt_arg_separator) {
-	   if ((fmt_str_length = is_printf_fmt (M_NAME(m))) != 0) {
+	   if ((fmt_str_length = is_printf_fmt (M_NAME(m), M_NAME(m))) != 0) {
 	     return TRUE;
 	   }
 	 } else {
@@ -264,7 +264,8 @@ bool is_fmt_arg_2 (MSINFO *ms) {
 
 int is_printf_fmt_msg (MESSAGE_STACK messages, int fmt_tok_idx,
 		       int stack_start_idx, int stack_end_idx) {
-  return is_printf_fmt (M_NAME(messages[fmt_tok_idx]));
+  return is_printf_fmt (M_NAME(messages[fmt_tok_idx]),
+			M_NAME(messages[fmt_tok_idx]));
 }
 
 int is_function_call (MESSAGE_STACK messages, int fn_label_idx,
@@ -560,7 +561,7 @@ int obj_expr_is_arg (MESSAGE_STACK messages, int expr_start_idx,
 	return ERROR;
 	break;
       case LITERAL:
-	if (is_printf_fmt (M_NAME(messages[i])))
+	if (is_printf_fmt (M_NAME(messages[i]), M_NAME(messages[i])))
 	  return ERROR;
 	break;
       }
@@ -665,7 +666,7 @@ int obj_expr_is_arg_ms (MSINFO *ms, int *fn_label_idx) {
 	return ERROR;
 	break;
       case LITERAL:
-	if (is_printf_fmt (M_NAME(ms -> messages[i])))
+	if (is_printf_fmt (M_NAME(ms -> messages[i]), M_NAME(ms -> messages[i])))
 	  return ERROR;
 	break;
       }

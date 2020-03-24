@@ -1,8 +1,8 @@
-/* $Id: pattern.c,v 1.1.1.1 2019/10/26 23:40:50 rkiesling Exp $ */
+/* $Id: pattern.c,v 1.3 2020/03/23 20:44:44 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
-  Copyright © 2005-2012, 2018  Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2005-2012, 2018, 2020  Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
 
@@ -31,8 +31,11 @@
 
 /*
  *  Returns the length of the format string after the '%', or FALSE.
+ *
+ *  We use the start of the string to determine if we can look back
+ *  for an escaped '%' character ('%%').
  */
-int is_printf_fmt (char *s) {
+int is_printf_fmt (char *s_start, char *s) {
 
   char *t, *t0;
   enum {
@@ -65,7 +68,15 @@ int is_printf_fmt (char *s) {
       {
       case '%':
 	if (printf_fmt_state == printf_fmt_null) {
-	  printf_fmt_state = printf_fmt_percent;
+	  /* Look for '%%' escapes here too, if *t points to
+	     either '%' in the '%%' sequence. */
+	  if (*(t + 1) == '%') {
+	    return FALSE;
+	  } else if ((t - s_start > 0) && (*(t - 1) == '%')) {
+	    return FALSE;
+	  } else {
+	    printf_fmt_state = printf_fmt_percent;
+	  }
 	} else {
 	  if (printf_fmt_state == printf_fmt_percent)
 	    /* A "%%" string. */

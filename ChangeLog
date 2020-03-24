@@ -495,5 +495,9 @@
 	- Fixed a bug in __ctalkX11SubWindowGeometry (xgeometry.c).
 	- Added a check for a missing format argument in
 	__call_printon_fn_w_args (rt_prton.c).
+	- Added the start of a string as an argument to is_printf_fmt,
+	so the fn can look back to find an escaped '%' ('%%') (pattern.c).
+	Also updated the "%%" handling in __call_printon_fn_w_args
+	(rt_prton.c).
 
 

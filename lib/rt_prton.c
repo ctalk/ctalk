@@ -1,4 +1,4 @@
-/* $Id: rt_prton.c,v 1.6 2020/03/23 10:59:47 rkiesling Exp $ */
+/* $Id: rt_prton.c,v 1.7 2020/03/24 01:56:22 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -84,7 +84,8 @@ int __call_printon_fn_w_args (OBJECT *arg0_obj, char *fmt, METHOD *method,
 
     if (strstr (fmt_tokens[i], "%%")) {
       /* For lack of anything better.... */
-      strncat (tmparg0buf, fmt_tokens[i], 1);
+      /* strncat (tmparg0buf, fmt_tokens[i], 1); *//***/
+      strcat (tmparg0buf, &fmt_tokens[i][1]);
     } else {
       if (strchr (fmt_tokens[i], '%')) {
 	if (IS_ARG(method -> args[k])) {

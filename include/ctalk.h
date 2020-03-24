@@ -1,4 +1,4 @@
-/* $Id: ctalk.h,v 1.91 2020/03/19 02:52:56 rkiesling Exp $ -*-Fundamental-*- */
+/* $Id: ctalk.h,v 1.92 2020/03/23 18:07:34 rkiesling Exp $ -*-Fundamental-*- */
 
 /*
   This file is part of Ctalk.
@@ -1903,7 +1903,7 @@ PARAM *new_param (void);
 TAGPARAM *new_tagparam (void);
 
 /* lib/pattern.c */
-int is_printf_fmt (char *);
+int is_printf_fmt (char *, char *);
 
 /* lib/pattypes.c */
 int is_first_ctrlblk_pred_tok (MESSAGE_STACK, int, int);

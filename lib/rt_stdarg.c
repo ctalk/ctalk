@@ -1,4 +1,4 @@
-/* $Id: rt_stdarg.c,v 1.2 2019/12/02 01:49:42 rkiesling Exp $ */
+/* $Id: rt_stdarg.c,v 1.3 2020/03/23 18:07:34 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -328,7 +328,7 @@ int tokenize_fmt (char *fmt) {
       switch (fmt[src_idx])
 	{
 	case '%':
-	  if ((fmt_length = is_printf_fmt (&fmt[src_idx])) != 0) {
+	  if ((fmt_length = is_printf_fmt (fmt, &fmt[src_idx])) != 0) {
 	    substrcpy (fmt_tokens[fmt_tok_idx++], fmt, src_idx, fmt_length);
 	    src_idx += fmt_length;
 	  } else {

@@ -1,4 +1,4 @@
-/* $Id: rt_expr.c,v 1.5 2019/12/22 17:20:09 rkiesling Exp $ */
+/* $Id: rt_expr.c,v 1.6 2020/03/23 18:07:34 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -2392,7 +2392,8 @@ int eval_keyword_expr (MESSAGE_STACK messages, int keyword_ptr) {
 	    fileout (buf, 0, keyword_ptr);
 	    return SUCCESS;
 	  }
-	  if (is_printf_fmt (M_NAME(messages[prev_tok_idx]))) {
+	  if (is_printf_fmt (M_NAME(messages[prev_tok_idx]),
+			     M_NAME(messages[prev_tok_idx]))) {
 	    fileout (fmt_printf_fmt_arg (messages, next_tok_idx,
 					 stack_start (messages),
 					 buf, expr_out),
@@ -2530,7 +2531,8 @@ int rval_expr_1 (MSINFO *ms) {
 	  fileout (buf, 0, ms -> tok);
 	  return SUCCESS;
 	}
-	if (is_printf_fmt (M_NAME(ms -> messages[prev_tok_idx]))) {
+	if (is_printf_fmt (M_NAME(ms -> messages[prev_tok_idx]),
+			   M_NAME(ms -> messages[prev_tok_idx]))) {
 	  fmt_printf_fmt_arg_ms (ms, buf, buf2);
 	  fileout (buf2, 0, ms -> tok);
 	  return SUCCESS;
