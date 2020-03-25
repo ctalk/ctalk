@@ -512,5 +512,11 @@
 	- Updated mcct_check_token to set OBJ_IS_INSTANCE_VAR
 	attributes and the receiver_msg and receiver_obj members
 	of the tokens' messages on instance variable tokens (mcct.c).
+	- Added the DIALOG_C type in x11defs.h, and updated the DIALOG
+	macro to use it to determine if a dialog window is mapped.
+	Also added the __enable_dialog function (xdialog.c) to set
+	the DIALOG_C entry that the dialog is mapped on successive views
+	(xdialog.c).
+
 
 

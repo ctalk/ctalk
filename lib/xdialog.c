@@ -217,5 +217,8 @@ int __ctalkCloseX11DialogPane (OBJECT *self) {
   x_support_error ();
   return 0;  /* notreached */
 }
+void __enable_dialog (void) {
+  x_support_error ();
+}
 
 #endif /* ! defined (DJGPP) && ! defined (WITHOUT_X11) */
