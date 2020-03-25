@@ -1,4 +1,4 @@
-/* $Id: x11defs.h,v 1.16 2020/03/08 11:33:15 rkiesling Exp $ -*-c-*-*/
+/* $Id: x11defs.h,v 1.17 2020/03/25 19:50:59 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -252,6 +252,13 @@
    X11 server glue still uses the SIGSEGV handler.) */
 #define GC_RANGE_CHECK
 
-#define DIALOG(d) (d == d_p)
+typedef struct _dc {
+  Display *d_p;
+  int d_p_screen, d_p_screen_depth;
+  Window d_p_root;
+  bool mapped;
+} DIALOG_C;
+
+#define DIALOG(d) (dpyrec.mapped ? (d) : dpyrec.d_p)
 
 #endif /* _X11DEFS_H */

@@ -1,4 +1,4 @@
-/* $Id: guirefresh.c,v 1.5 2020/03/08 21:44:58 rkiesling Exp $ -*-c-*-*/
+/* $Id: guirefresh.c,v 1.6 2020/03/25 19:51:00 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -52,7 +52,12 @@ int __ctalkGUIPaneRefresh (OBJECT *self) {
 }
 #else /* X11LIB_FRAME */
 
+#if 0
 extern Display *d_p;
+#else
+extern DIALOG_C dpyrec;
+#endif
+
 int __xlib_refresh_window (Display *, Drawable, GC, char *);
 
 int __ctalkX11PaneRefresh (OBJECT *self, 

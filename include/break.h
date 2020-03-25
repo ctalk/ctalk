@@ -1,8 +1,8 @@
-/* $Id: break.h,v 1.5 2019/11/11 17:49:47 rkiesling Exp $ */
+/* $Id: break.h,v 1.12 2020/03/25 19:50:59 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
-  Copyright © 2005-2012, 2015, 2018 Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2019 Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
 
@@ -35,7 +35,7 @@
  *  Uncomment this line and change METHOD_FN_HERE to the
  *  C name of your method to break on (in quotes).
  */
-/* #define METHOD_BREAK BREAK_METHOD_NAME */
+/* #define METHOD_BREAK METHOD_FN_HERE */
 
 /*
  *  Uncomment to cause the compiler to break when it starts 

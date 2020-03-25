@@ -1,4 +1,4 @@
-/* $Id: xcopypixmap.c,v 1.6 2020/03/22 18:38:22 rkiesling Exp $ -*-c-*-*/
+/* $Id: xcopypixmap.c,v 1.7 2020/03/25 19:51:00 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -35,7 +35,13 @@
 #include <X11/Xutil.h>
 
 extern Display *display;   /* Defined in x11lib.c. */
+
+#if 0 /***/
 extern Display *d_p;       /* Defined in xdialog.c. */
+#else
+extern DIALOG_C dpyrec;
+#endif
+
 extern char *shm_mem;
 extern int mem_id;
 

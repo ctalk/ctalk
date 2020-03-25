@@ -1,4 +1,4 @@
-/* $Id: X11MessageBoxPane,v 1.31 2020/03/19 16:10:16 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11MessageBoxPane,v 1.55 2020/03/25 20:24:37 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -21,23 +21,47 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
 */
 
+/* 
+   X11MessageBoxPane Class
+
+   This class uses the following resources:
+
+   backgroundColor      String    gray
+   pad                  Integer   10
+   messageText          String    Your\Message\nHere
+   buttonText           String    Ok
+
+*/
+
 /* DON'T USE THIS AT THE MOMENT */
 
 X11PaneDispatcher class X11MessageBoxPane;
 
 X11MessageBoxPane instanceVariable popup Boolean true;
 X11MessageBoxPane instanceVariable button X11ButtonPane NULL;
+X11MessageBoxPane instanceVariable label  X11LabelPane NULL;
+X11MessageBoxPane instanceVariable initialized Boolean false;
+
 
 X11MessageBoxPane instanceMethod new (String paneName) {
-  Method new exposeMethod;
+  Method new exposeMethod, buttonPressMethod;
 
   X11MessageBoxPane super new paneName;
   
   exposeMethod definedInstanceMethod "X11MessageBoxPane", "subPaneExpose";
   paneName setMethodHandler "expose", exposeMethod;
 
+  buttonPressMethod definedInstanceMethod "X11MessageBoxPane",
+    "subPaneButton";
+  paneName setMethodHandler "pointerinput", buttonPressMethod;
+  
   paneName backgroundColor = "white";
   paneName foregroundColor = "black";
+
+  paneName resources atPut "backgroundColor", "gray";
+  paneName resources atPut "pad", 10;
+  paneName resources atPut "messageText", "Your\nMessage\nHere";
+  paneName resources atPut "buttonText", "Ok";
 
   return paneName;
 }
@@ -48,6 +72,23 @@ X11MessageBoxPane instanceMethod subPaneExpose (Object __subPane,
   on the parent window."
     __subPane draw;
     __subPane refresh;
+}
+
+X11MessageBoxPane instanceMethod subPaneButton (Object __subPane,
+					  InputEvent __event) {
+  switch (__event eventClass)
+    {
+    case BUTTONPRESS:
+      self button clicked = true;
+      if (!self button clickSet)
+	self button clickSet = true;
+      break;
+    case BUTTONRELEASE:
+      self button clicked = false;
+      break;
+    }
+  self button draw;
+  self button refresh;
 }
 
 X11MessageBoxPane instanceMethod attachTo (Object parentPane,
@@ -123,9 +164,11 @@ X11MessageBoxPane instanceMethod fill (String colorName) {
 }
 
 X11MessageBoxPane instanceMethod draw (void) {
+  
+  self fill self resources at "backgroundColor";
 
-  self fill self backgroundColor;
-
+  self label draw;
+  self button draw;
 }
 
 X11MessageBoxPane instanceMethod refresh (void) {
@@ -133,11 +176,17 @@ X11MessageBoxPane instanceMethod refresh (void) {
    			 self size x,
    			 self size y,
    			 0, 0);
-  /* self button refresh; *//***/
+  self label refresh;
+  self button refresh;
 }
 
 X11MessageBoxPane instanceMethod withdraw (void) {
-  self deleteAndClose;
+  __ctalkCloseX11DialogPane (self);
+  XUnmapSubwindows (self displayPtr, self xWindowID);
+  XUnmapWindow (self displayPtr, self xWindowID);
+  XFlush (self displayPtr);
+  /*  XCloseDisplay (self displayPtr);
+      self displayPtr = NULL; */
 }
 
 extern Atom wm_delete_dialog;
@@ -145,15 +194,19 @@ extern Atom wm_delete_dialog;
 X11MessageBoxPane instanceMethod deleteAndClose (void) {
   "Call the delete handlers for each of the subpanes,
   then delete the buffer and window associated with 
-  the receiver pane.
+  the receiver pane.  NOTE: It is critical that the
+  program call this method when closing the dialog
+  window.  Otherwise, the program might still to draw
+  to a non-existent window. 
   TODO - 
   Make sure we can delete the backing store here, too."
-#if 0
+#if 1
     self children map {
     eval self deleteAndClose;
   }
 #endif
   __ctalkDeleteWinBuffer (self paneBuffer);
+  __ctalkDeleteWinBuffer (self paneBackingStore);
   XUnmapWindow (self displayPtr, self xWindowID);
   XUnmapSubwindows (self displayPtr, self xWindowID);
   __ctalkCloseX11DialogPane (self);
@@ -161,9 +214,65 @@ X11MessageBoxPane instanceMethod deleteAndClose (void) {
   return NULL;
 }
 
+X11MessageBoxPane instanceMethod initWidgets (void) {
+  "Initialize the message box's button and label widgets.  The
+   message box defers constructing the new widgets until just
+   before it is displayed, so any modifications to the defaults
+   (colors, dimensions, etc.) can be done here, mainly by
+   subclassing the X11MessageBox class (for the present, at 
+   least, until Ctalk includes some sort of resource manager).
+   However, waiting until now to construct the widgets also
+   has the advantage that all of the other objects and methods
+   in a program have been defined."
+
+  X11ButtonPane new l_button;
+  X11LabelPane new l_label;
+
+  if (self initialized)
+    return NULL;
+
+  Integer new usable_height, usable_width, padInt, label_width_px,
+    label_height_px, label_x_px, label_y_px, button_y_px;
+  String new geomspec;
+
+  padInt = self resources at "pad";
+
+  usable_height = self size y - (padInt * 2);
+  usable_width = self size x - (padInt * 2);
+  label_width_px = usable_width;
+  label_height_px = usable_height * .8 - (padInt / 2);
+  label_x_px = padInt;
+  label_y_px = padInt;
+
+  geomspec printOn "%dx%d+%d+%d", label_width_px, label_height_px,
+    label_x_px, label_y_px;
+
+  l_label background self resources at "backgroundColor";
+  l_label multiLine self resources at "messageText";
+  l_label border = false;
+
+  self label become l_label;
+
+  self label attachTo self, geomspec;
+
+  self button become l_button;
+
+  button_y_px = label_height_px + (padInt * 2);
+
+  geomspec printOn "20%%x30+40%%+%d", button_y_px;
+  self button attachTo self, geomspec;
+
+  self button label text (self resources at "buttonText");
+
+  self initialized = true;
+
+}
+
+extern void __enable_dialog (void);
+
 X11MessageBoxPane instanceMethod show (void) {
   Display *display;
-  Window win_id;
+  Window win_id, button_win_id;
   XEvent xev;
   X11PaneDispatcher new dispatcher;
   X11Pane new mainWin;
@@ -172,43 +281,70 @@ X11MessageBoxPane instanceMethod show (void) {
   dispatcher = *self container;
   mainWin = dispatcher mainWindow;
   
-  win_id = __ctalkX11CreateDialogWindow (self);
-  self xWindowID = win_id;
-  dispatcher modalWin = win_id;
-  dispatcher modalPane = self;
+  if (!self initialized) {
 
-  display = self displayPtr;
-  (X11Bitmap *)self paneBuffer create self displayPtr, self xWindowID, 
-     self size x, self size y, self depth;
-  (X11Bitmap *)self paneBuffer background (self backgroundColor);
-  (X11Bitmap *)self paneBuffer foreground (self foregroundColor);
-  (X11Bitmap *)self paneBackingStore create self displayPtr, self xWindowID,
-    self size x, self size y, self depth;
+    win_id = __ctalkX11CreateDialogWindow (self);
+    self xWindowID = win_id;
+    dispatcher modalWin = win_id;
+    dispatcher modalPane = self;
 
+    display = self displayPtr;
+  
+    (X11Bitmap *)self paneBuffer create self displayPtr, self xWindowID, 
+      self size x, self size y, self depth;
+    (X11Bitmap *)self paneBuffer background (self backgroundColor);
+    (X11Bitmap *)self paneBuffer foreground (self foregroundColor);
+    (X11Bitmap *)self paneBackingStore create self displayPtr, self xWindowID,
+      self size x, self size y, self depth;
 
-#if 0 
-  self ftFontVar initFontLib;
-  self ftFont "URW Gothic L", 0, 0, 0, 8.0;
+    self initWidgets;
+  } else {
 
-  /* self button attachTo self, "100x50+20+20"; *//***/
-#endif  
+    __enable_dialog ();
+
+    win_id = self xWindowID;
+    display = self displayPtr;
+
+  }
 
   XMapWindow (display, win_id);
+  XMapSubwindows (display, win_id);
   XRaiseWindow (display, win_id);
 
   self clearWindow;
+
+  button_win_id = self button xWindowID;
 
   while (1) {
     if (XPending (display)) {
       XNextEvent (display, &xev);
       switch (xev.type)
 	{
+	case ButtonPress:
+	  if (xev.xbutton.window == self button xWindowID) {
+	    e eventClass = BUTTONPRESS;
+	    self methodObjectMessage self handlePointerInput, self, e;
+	  }
+	  break;
+	case ButtonRelease:
+	  /* self deleteAndClose; */ /***/
+	  self withdraw;
+	  dispatcher modalWin = 0;
+	  dispatcher modalPane = NULL;
+	  if (xev.xbutton.window == button_win_id) {
+	    e eventClass = BUTTONRELEASE;
+	    self methodObjectMessage self handlePointerInput, self, e;
+	  }
+	  return self;
+	  break;
 	case Expose:
 	  self methodObjectMessage self handleExpose, self, e;
 	  break;
 	case ClientMessage:
 	  if(xev.xclient.data.l[0] == wm_delete_dialog) {
-	    self deleteAndClose;
+
+	    /* self deleteAndClose; *//***/
+	    self withdraw;
 	    dispatcher modalWin = 0;
 	    dispatcher modalPane = NULL;
 	    return self;

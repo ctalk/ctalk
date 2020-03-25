@@ -1,4 +1,4 @@
-/* $Id: X11Pane,v 1.19 2020/03/10 23:02:55 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11Pane,v 1.21 2020/03/25 19:50:59 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -60,6 +60,10 @@ Generally, programs should not need to change this.";
 X11Pane instanceVariable modal Boolean false
 "Helps determine how Ctalk draws on the pane.  True for popup windows,
 false for everything else.";
+X11Pane instanceVariable resources AssociativeArray NULL
+"Holds the key-value pairs of variables that control Pane classes'
+appearance.  Refer to the X11Pane section of the Ctalk language
+reference and the individual Pane classes for more information.";
 
 X11Pane classVariable xDisplay Symbol 0
 "This variable is deprecated, use the displayPtr instance variable instead.";
@@ -289,6 +293,7 @@ X11Pane instanceMethod deleteAndClose (void) {
     eval self deleteAndClose;
   }
   __ctalkDeleteWinBuffer (self paneBuffer);
+  __ctalkDeleteWinBuffer (self paneBackingStore);
   __ctalkCloseX11Pane (self);
   if (self is X11Pane)
     __ctalkX11CloseParentPane (self);

@@ -1,4 +1,4 @@
-/* $Id: xdialog.c,v 1.18 2020/03/11 03:02:40 rkiesling Exp $ -*-c-*-*/
+
 
 /*
   This file is part of Ctalk.
@@ -38,6 +38,8 @@
 #include "x11defs.h"
 #include <X11/Xutil.h>
 
+DIALOG_C dpyrec;
+
 Display *d_p = NULL;
 static Window d_p_root = 0;
 static int d_p_screen = 0, d_p_screen_depth = 0;
@@ -68,6 +70,8 @@ int __ctalkCloseX11DialogPane (OBJECT *self) {
 
 #else /* X11LIB_FRAME */
 
+#if 0
+
 static int open_dialog_display_connection (void) {
   if (d_p == NULL) {
     if ((d_p = XOpenDisplay (getenv ("DISPLAY"))) == NULL) {
@@ -79,6 +83,22 @@ static int open_dialog_display_connection (void) {
   }
   return SUCCESS;
 }
+
+#else
+
+static int open_dialog_display_connection (void) {
+  if (dpyrec.d_p == NULL) {
+    if ((dpyrec.d_p = XOpenDisplay (getenv ("DISPLAY"))) == NULL) {
+      return ERROR;
+    }
+    dpyrec.d_p_screen = DefaultScreen (dpyrec.d_p);
+    dpyrec.d_p_root = RootWindow (dpyrec.d_p, dpyrec.d_p_screen);
+    dpyrec.d_p_screen_depth = DefaultDepth (dpyrec.d_p, dpyrec.d_p_screen);
+  }
+  return SUCCESS;
+}
+
+#endif
 
 extern GC create_pane_win_gc (Display *d, Window w, OBJECT *pane);
 
@@ -103,7 +123,7 @@ int __ctalkX11CreateDialogWindow (OBJECT *self_object) {
   } else {
     displayPtr = __ctalkGetInstanceVariable (self_object,
 					     "displayPtr", TRUE);
-    SYMVAL(displayPtr -> instancevars -> __o_value) = (uintptr_t)d_p;
+    SYMVAL(displayPtr -> instancevars -> __o_value) = (uintptr_t)dpyrec.d_p;
   }
   
   border_width = __x11_pane_border_width (self_object);
@@ -114,9 +134,9 @@ int __ctalkX11CreateDialogWindow (OBJECT *self_object) {
   x_size = __pane_x_size (self_object);
   y_size = __pane_y_size (self_object);
 
-  win_id = XCreateWindow (d_p, d_p_root, 
+  win_id = XCreateWindow (dpyrec.d_p, dpyrec.d_p_root, 
 			  x_org, y_org, x_size, y_size,
-			  border_width, d_p_screen_depth,
+			  border_width, dpyrec.d_p_screen_depth,
 			  CopyFromParent, CopyFromParent, 
 			  CWBackingStore|CWSaveUnder,
 			  &set_attributes);
@@ -124,26 +144,35 @@ int __ctalkX11CreateDialogWindow (OBJECT *self_object) {
   wm_hints.flags = (InputHint|StateHint);
   wm_hints.input = TRUE;
   wm_hints.initial_state = NormalState;
-  XSetWMHints (d_p, win_id, &wm_hints);
+  XSetWMHints (dpyrec.d_p, win_id, &wm_hints);
   
-  wm_delete_dialog = XInternAtom (d_p, "WM_DELETE_WINDOW", False);
-  XSetWMProtocols (d_p, win_id, &wm_delete_dialog, 1);
+  wm_delete_dialog = XInternAtom (dpyrec.d_p, "WM_DELETE_WINDOW", False);
+  XSetWMProtocols (dpyrec.d_p, win_id, &wm_delete_dialog, 1);
 
-  XSetWindowBorder (d_p, win_id, BlackPixel(d_p, d_p_screen));
-  XSelectInput(d_p, win_id, wm_event_mask);
+  XSetWindowBorder (dpyrec.d_p, win_id, BlackPixel(dpyrec.d_p, dpyrec.d_p_screen));
+  XSelectInput(dpyrec.d_p, win_id, wm_event_mask);
 
-  gc = create_pane_win_gc (d_p, win_id, self_object);
+  gc = create_pane_win_gc (dpyrec.d_p, win_id, self_object);
 
   __xlib_set_wm_name_prop 
-    (d_p, win_id, gc, 
+    (dpyrec.d_p, win_id, gc, 
      basename_w_extent(__argvFileName ()));
 
   __save_pane_to_vars (self_object, gc, win_id,
-		       DefaultDepth (d_p, DefaultScreen (d_p)));
+		       DefaultDepth (dpyrec.d_p, DefaultScreen (dpyrec.d_p)));
+  dpyrec.mapped = true;
   return win_id;
 }
 
+void __enable_dialog (void) {
+  dpyrec.mapped = true;
+}
+
 int __ctalkCloseX11DialogPane (OBJECT *self) {
+
+  dpyrec.mapped = false;
+
+#if 0 /***/
   OBJECT *gc_value_var;
   GC gc;
   OBJECT *win_id_value_var;
@@ -152,22 +181,25 @@ int __ctalkCloseX11DialogPane (OBJECT *self) {
   gc_value_var = __x11_pane_win_gc_value_object (self);
 
   if ((gc = (GC)generic_ptr_str (gc_value_var->__o_value)) != NULL) {
-    XFreeGC (d_p, gc);
+    XFreeGC (dpyrec.d_p, gc);
     gc_value_var->__o_value[0] = '\0'; 
   }
 
   win_id_value_var = __x11_pane_win_id_value_object (self);
   if ((w = *(int *)win_id_value_var -> __o_value) != (Window)0)
-    XDestroyWindow (d_p, w);
+    XDestroyWindow (dpyrec.d_p, w);
 
   if (__have_bitmap_buffers (self)) {
     __ctalkX11FreePaneBuffer (self);
   }  
 
-  XCloseDisplay (d_p);
-  d_p = NULL;
-  d_p_root = d_p_screen = d_p_screen_depth = 0;
+  XFlush (dpyrec.d_p);
+
+  XCloseDisplay (dpyrec.d_p);
+  dpyrec.d_p = NULL;
+  dpyrec.d_p_root = dpyrec.d_p_screen = dpyrec.d_p_screen_depth = 0;
   wm_delete_dialog = (Atom)0;
+#endif  
   return SUCCESS;
 }
 

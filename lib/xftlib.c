@@ -1,4 +1,4 @@
-/* $Id: xftlib.c,v 1.5 2020/03/23 10:10:13 rkiesling Exp $ -*-c-*-*/
+/* $Id: xftlib.c,v 1.6 2020/03/25 19:51:00 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -54,6 +54,7 @@ static void xft_support_error (void) {
 #include <X11/Xft/Xft.h>
 #include <X11/Xresource.h>
 #include FT_FREETYPE_H
+#include "x11defs.h"
 #include "xftfont.h"
 #include <object.h>
 #include <message.h>
@@ -69,9 +70,14 @@ extern int is_dir (char *path);
 char *__ctalkXftSelectedFontPath (void);
 
 extern Display *display;  /* Defined in x11lib.c.  */
-extern Display *d_p;      /* Defined in xdialog.c. */
 
-#define DISPLAY ((d_p == NULL) ? display : d_p)
+#if 0 /***/
+extern Display *d_p;      /* Defined in xdialog.c. */
+#else
+extern DIALOG_C dpyrec;
+#endif
+
+#define DISPLAY ((dpyrec.mapped == 0) ? display : dpyrec.d_p)
 
 extern void sync_ft_font (bool);
 

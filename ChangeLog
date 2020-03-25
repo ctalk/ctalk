@@ -508,5 +508,9 @@
 	combination of "%" and "%%" sequences in the format string
 	in __check_printon_args (rt_prton.c), and __compress_escs
 	to unescape %%' sequences.
+2020-03-25
+	- Updated mcct_check_token to set OBJ_IS_INSTANCE_VAR
+	attributes and the receiver_msg and receiver_obj members
+	of the tokens' messages on instance variable tokens (mcct.c).
 
 

@@ -1,4 +1,4 @@
-/* $Id: mcct.c,v 1.5 2020/02/23 23:41:07 rkiesling Exp $ */
+/* $Id: mcct.c,v 1.7 2020/03/25 17:05:50 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -261,6 +261,7 @@ MCCT_RESULT mcct_check_token (MESSAGE_STACK messages, int i,
       if (!tok -> obj) {
 	tok -> obj = instantiate_self_object ();
 	if ((lookahead_2 = nextlangmsg (messages, i)) != ERROR) {
+	mcct_instvar_lookahead:
 	  if (M_TOK(messages[lookahead_2]) == LABEL) {
 	    if (is_instance_variable_message (messages, lookahead_2)) {
 	      if ((var = get_instance_variable_series
@@ -269,6 +270,17 @@ MCCT_RESULT mcct_check_token (MESSAGE_STACK messages, int i,
 		    lookahead_2,
 		    get_stack_top (messages))) != NULL) {
 		messages[lookahead_2] -> obj = var;
+		/***/
+		messages[lookahead_2] -> receiver_obj = tok -> obj;
+		messages[lookahead_2] -> receiver_msg = tok;
+		messages[lookahead_2] -> attrs |= OBJ_IS_INSTANCE_VAR;
+		if ((lookahead_2 = nextlangmsg (messages, lookahead_2))
+		    != ERROR) {
+		  if ((lookahead_2 >= pred_end_idx) &&
+		      (M_TOK(messages[lookahead_2]) == LABEL)) {
+		    goto mcct_instvar_lookahead;
+		  }
+		}
 	      }
 	    }
 	  }

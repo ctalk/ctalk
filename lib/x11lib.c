@@ -1,4 +1,4 @@
-/* $Id: x11lib.c,v 1.128 2020/03/23 09:43:23 rkiesling Exp $ -*-c-*-*/
+/* $Id: x11lib.c,v 1.129 2020/03/25 19:51:00 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -97,7 +97,11 @@ int display_width, display_height;
 static Window root;
 static bool wm_xfce, wm_kwin, wm_xquartz;
 
+#if 0 /***/
 extern Display *d_p;
+#else
+extern DIALOG_C dpyrec;
+#endif
 
 extern char **fixed_font_set;
 Font fixed_font = 0;

@@ -1,4 +1,4 @@
-/* $Id: guisetforeground.c,v 1.6 2020/03/08 11:33:15 rkiesling Exp $ -*-c-*-*/
+/* $Id: guisetforeground.c,v 1.7 2020/03/25 19:51:00 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -50,7 +50,12 @@ int __ctalkX11SetForegroundBasic (void *d, int drawable_id,
 }
 #else /* X11LIB_FRAME */
 
+#if 0 /***/
 extern Display *d_p;
+#else
+extern DIALOG_C dpyrec;
+#endif
+
 int __xlib_change_gc (Display *, Drawable, GC, char *);
 
 int __ctalkX11SetForegroundBasic (void *d, int drawable_id, 
