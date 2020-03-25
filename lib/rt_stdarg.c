@@ -1,4 +1,4 @@
-/* $Id: rt_stdarg.c,v 1.3 2020/03/23 18:07:34 rkiesling Exp $ */
+/* $Id: rt_stdarg.c,v 1.4 2020/03/24 22:37:26 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -328,7 +328,10 @@ int tokenize_fmt (char *fmt) {
       switch (fmt[src_idx])
 	{
 	case '%':
-	  if ((fmt_length = is_printf_fmt (fmt, &fmt[src_idx])) != 0) {
+	  if ((src_idx > 0) && (fmt[src_idx - 1] == '%')) {
+	    fmt_tokens[fmt_tok_idx][dst_idx++] = fmt[src_idx++]; 
+	    fmt_tokens[fmt_tok_idx][dst_idx] = 0;
+	  } else if ((fmt_length = is_printf_fmt (fmt, &fmt[src_idx])) != 0) {
 	    substrcpy (fmt_tokens[fmt_tok_idx++], fmt, src_idx, fmt_length);
 	    src_idx += fmt_length;
 	  } else {
@@ -339,7 +342,9 @@ int tokenize_fmt (char *fmt) {
 	default:
 	  fmt_tokens[fmt_tok_idx][dst_idx++] = fmt[src_idx++]; 
 	  fmt_tokens[fmt_tok_idx][dst_idx] = 0;
-	  if (fmt[src_idx] == '%') {  /* lookahead */
+	  if ((fmt[src_idx] == '%') &&
+	      ((fmt[src_idx+1] != '%') && (fmt[src_idx-1] != '%'))) { 
+	    /* lookahead */
 	    ++fmt_tok_idx;
 	    dst_idx = 0;
 	  }

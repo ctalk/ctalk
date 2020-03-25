@@ -1,4 +1,4 @@
-/* $Id: rt_prton.c,v 1.7 2020/03/24 01:56:22 rkiesling Exp $ */
+/* $Id: rt_prton.c,v 1.9 2020/03/25 09:25:16 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -49,10 +49,18 @@ extern int __ctalk_arg_ptr;
 static char tmparg0buf[0xFFFF];
 
 static int __check_printon_args (METHOD *method) {
-  int n, n_th_conv_arg;
+  int i, n, n_th_conv_arg;
+  char *r;
   for (n = 0, n_th_conv_arg = 0; n < fmt_tok_idx; n++) {
-    if (strchr (fmt_tokens[n], '%'))
-      ++n_th_conv_arg;
+    for (i = 0; fmt_tokens[n][i]; ++i) {
+      if (fmt_tokens[n][i] == '%') {
+	if (fmt_tokens[n][i+1] == '%') {
+	  i += 2;
+	} else {
+	  ++n_th_conv_arg;
+	}
+      }
+    }
   }
   if (n_th_conv_arg != ptr_arg_idx)
     return ERROR;
@@ -62,13 +70,25 @@ static int __check_printon_args (METHOD *method) {
 #define ARG_VAL_OBJ(__o) ((__o)->instancevars ? \
   (__o)->instancevars : (__o))
 
+/***/
+char *__compress_escs (char *sin, char *sout) {
+  int i, j;
+  for (i = 0, j = 0; sin[i]; i++, j++) {
+    if (sin[i] == '%' && sin[i + 1] == '%')
+      ++i;
+    sout[j] = sin[i];
+  }
+  return sout;
+}
+
 int __call_printon_fn_w_args (OBJECT *arg0_obj, char *fmt, METHOD *method, 
 			      STDARG_CALL_INFO *stdarg_call_info) {
 
   int i, j, k, retval;
   int fmtsize;
   int bufsize = MAXMSG;
-  char *arg0_buf;
+  char *arg0_buf, buf[MAXMSG];
+
 
   retval = 0;
 
@@ -83,9 +103,12 @@ int __call_printon_fn_w_args (OBJECT *arg0_obj, char *fmt, METHOD *method,
       memset (tmparg0buf, 0, 0xffff);
 
     if (strstr (fmt_tokens[i], "%%")) {
-      /* For lack of anything better.... */
-      /* strncat (tmparg0buf, fmt_tokens[i], 1); *//***/
-      strcat (tmparg0buf, &fmt_tokens[i][1]);
+      /*
+       *  It _should_ not occur that there will be both a '%%'
+       *  string and a '%' beginning a format sequence in the
+       *  same token, due to the way that tokenize_fmt works...
+       */
+      __compress_escs (fmt_tokens[i], tmparg0buf);
     } else {
       if (strchr (fmt_tokens[i], '%')) {
 	if (IS_ARG(method -> args[k])) {
@@ -102,13 +125,13 @@ int __call_printon_fn_w_args (OBJECT *arg0_obj, char *fmt, METHOD *method,
 	strcatx2 (tmparg0buf, fmt_tokens[i], NULL);
       }
     }
-      fmtsize += strlen (tmparg0buf);
-      if (fmtsize >= bufsize) {
-	while (fmtsize > bufsize)
-	  bufsize *= 2;
-	arg0_buf = realloc (arg0_buf, bufsize);
-      }
-      strcatx2 (arg0_buf, tmparg0buf, NULL);
+    fmtsize += strlen (tmparg0buf);
+    if (fmtsize >= bufsize) {
+      while (fmtsize > bufsize)
+	bufsize *= 2;
+      arg0_buf = realloc (arg0_buf, bufsize);
+    }
+    strcatx2 (arg0_buf, tmparg0buf, NULL);
     }
     __ctalkSetObjectValueVar(arg0_obj, arg0_buf);
     __xfree (MEMADDR(arg0_buf));

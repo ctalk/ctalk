@@ -503,5 +503,10 @@
 	- Added a check in eval_arg for undefined labels that don't
 	follow a constructor method message or are a method message
 	themselves, or an AssociativeArray key (eval_arg.c).
+	- Updated fmt_tokens with more checks for escaped percent
+	characters ("%%") (rt_stdarg.c). Also added a check for any
+	combination of "%" and "%%" sequences in the format string
+	in __check_printon_args (rt_prton.c), and __compress_escs
+	to unescape %%' sequences.
 
 
