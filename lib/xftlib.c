@@ -1,4 +1,4 @@
-/* $Id: xftlib.c,v 1.6 2020/03/25 19:51:00 rkiesling Exp $ -*-c-*-*/
+/* $Id: xftlib.c,v 1.8 2020/03/26 04:04:01 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -71,13 +71,9 @@ char *__ctalkXftSelectedFontPath (void);
 
 extern Display *display;  /* Defined in x11lib.c.  */
 
-#if 0 /***/
-extern Display *d_p;      /* Defined in xdialog.c. */
-#else
-extern DIALOG_C dpyrec;
-#endif
-
-#define DISPLAY ((dpyrec.mapped == 0) ? display : dpyrec.d_p)
+extern DIALOG_C *dpyrec;
+#define DISPLAY (((dpyrec == NULL) || (dpyrec -> mapped == false)) ?	\
+		 display : dpyrec -> d_p)
 
 extern void sync_ft_font (bool);
 
@@ -237,6 +233,7 @@ static int default_screen_dpi (Display *d) {
   } else {
      selected_dpi = dpi_x;
   }
+   return selected_dpi;
 }
 
 extern char *__argvFileName (void);

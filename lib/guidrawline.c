@@ -1,4 +1,4 @@
-/* $Id: guidrawline.c,v 1.8 2020/03/25 19:51:00 rkiesling Exp $ -*-c-*-*/
+/* $Id: guidrawline.c,v 1.9 2020/03/26 02:58:39 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -41,11 +41,8 @@
 char intbuf[MAXARGS][MAXLABEL] = {'\0',};
 
 extern Display *display;   /* Defined in x11lib.c. */
-#if 0
-extern Display *d_p;       /* Defined in xdialog.c */
-#else
-extern DIALOG_C dpyrec;
-#endif
+extern DIALOG_C *dpyrec;   /* Defined in xdialog.c */
+
 extern char *shm_mem;
 extern int mem_id;
 extern char *ascii[8193];

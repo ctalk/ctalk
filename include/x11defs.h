@@ -1,4 +1,4 @@
-/* $Id: x11defs.h,v 1.18 2020/03/25 22:37:05 rkiesling Exp $ -*-c-*-*/
+/* $Id: x11defs.h,v 1.19 2020/03/26 02:58:39 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -23,6 +23,8 @@
 */
 
 #ifndef _X11DEFS_H
+
+#include <X11/Xlib.h>
 
 #if defined(__sparc__) && defined(__svr4__)
 #define GRAPHICS_WRITE_SEND_EVENT 1 
@@ -259,6 +261,6 @@ typedef struct _dc {
   bool mapped;
 } DIALOG_C;
 
-#define DIALOG(d) (dpyrec.mapped ? true : false)
+#define DIALOG(d) (dpyrec && dpyrec -> mapped ? true : false)
 
 #endif /* _X11DEFS_H */

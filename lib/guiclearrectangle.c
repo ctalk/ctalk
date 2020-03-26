@@ -1,4 +1,4 @@
-/* $Id: guiclearrectangle.c,v 1.8 2020/03/25 19:50:59 rkiesling Exp $ -*-c-*-*/
+/* $Id: guiclearrectangle.c,v 1.9 2020/03/26 02:58:39 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -38,11 +38,9 @@
 #include "x11defs.h"
 
 extern Display *display;   /* Defined in x11lib.c. */
-#if 0
-extern Display *d_p;       /* Defined in xdialog.c. */
-#else
-extern DIALOG_C dpyrec;
-#endif
+
+extern DIALOG_C *dpyrec;
+
 extern char *shm_mem;
 extern int mem_id;
 

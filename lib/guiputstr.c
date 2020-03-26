@@ -1,4 +1,4 @@
-/* $Id: guiputstr.c,v 1.10 2020/03/25 19:51:00 rkiesling Exp $ -*-c-*-*/
+/* $Id: guiputstr.c,v 1.12 2020/03/26 03:38:54 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -39,6 +39,8 @@
 #include "x11defs.h"
 
 extern Display *display;   /* Defined in x11lib.c. */
+extern DIALOG_C *dpyrec;   /* Defined in xdialog.c. */
+
 extern char *shm_mem;
 extern int mem_id;
 extern Font fixed_font;
@@ -61,26 +63,19 @@ int __ctalkX11PanePutStrBasic (void *d, int visual_id, unsigned long int gc_ptr,
 
 #ifdef HAVE_XFT_H
 
-#if 0 /***/
-extern Display *d_p;
-#else
-extern DIALOG_C dpyrec;
-#endif
-
 int __xlib_put_str (Display *, Drawable, GC, char *);
 int __xlib_put_str_ft (Display *, Drawable, GC, char *);
 
 int __ctalkX11PanePutStrBasic (void *d, int drawable_id, unsigned long int gc_ptr,
 			       int x, int y, char *s) {
   char d_buf[MAXLABEL];
-  char *pat;
 #ifdef GRAPHICS_WRITE_SEND_EVENT
   XEvent send_event;
 #endif
   if (!shm_mem)
     return ERROR;
   if (__ctalkXftInitialized ()) {
-
+    
     strcatx (d_buf, ":", ascii[x], ":", ascii[y], ":", s, NULL);
 
     if (DIALOG(d)) {
@@ -118,12 +113,6 @@ int __ctalkX11PanePutStrBasic (void *d, int drawable_id, unsigned long int gc_pt
 }
 
 #else /* #ifdef HAVE_XFT_H */
-
-#if 0 /***/
-extern Display *d_p;
-#else
-extern DIALOG_C dpyrec;
-#endif
 
 int __xlib_change_gc (Display *, Drawable, GC, char *);
 int __xlib_put_str_ft (Display *, Drawable, GC, char *);
@@ -168,7 +157,7 @@ int __ctalkX11PanePutStr (OBJECT *self, int x, int y, char *s) {
 int __ctalkGUIPanePutStr (OBJECT *self, int x, int y, char *s) {
   OBJECT *self_object, *win_id_value, *gc_value, *displayptr_var;
   int panebuffer_xid, panebackingstore_xid;
-  char d_buf[MAXMSG], f_buf[MAXLABEL], *fname_p, *pat;
+  char d_buf[MAXMSG], *pat;
   char intbuf1[MAXLABEL], intbuf2[MAXLABEL];
 #ifdef GRAPHICS_WRITE_SEND_EVENT
   XEvent send_event;
@@ -259,8 +248,7 @@ int __ctalkGUIPanePutStr (OBJECT *self, int x, int y, char *s) {
 int __ctalkGUIPanePutStr (OBJECT *self, int x, int y, char *s) {
   OBJECT *self_object, *win_id_value, *gc_value, *displayptr_var;
   int panebuffer_xid, panebackingstore_xid;
-  char d_buf[MAXLABEL], f_buf[MAXLABEL], fname_buf[MAXLABEL];
-  /* char w_buf[MAXLABEL]; *//***/
+  char d_buf[MAXLABEL];
 #ifdef GRAPHICS_WRITE_SEND_EVENT
   XEvent send_event;
 #endif
@@ -278,7 +266,6 @@ int __ctalkGUIPanePutStr (OBJECT *self, int x, int y, char *s) {
   __get_pane_buffers (self_object, &panebuffer_xid, 
 		      &panebackingstore_xid);
   if (panebuffer_xid) {
-    /* __ctalkDecimalIntegerToASCII (panebuffer_xid, w_buf);*//***/
     make_req (shm_mem,
 	      SYMVAL(displayptr_var -> instancevars -> __o_value),
 	      PANE_PUT_STR_REQUEST, panebuffer_xid,

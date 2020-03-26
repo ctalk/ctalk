@@ -1,4 +1,4 @@
-/* $Id: guisetbackground.c,v 1.13 2020/03/25 20:24:38 rkiesling Exp $ -*-c-*-*/
+/* $Id: guisetbackground.c,v 1.14 2020/03/26 02:58:39 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -38,7 +38,7 @@
 #include "x11defs.h"
 
 extern Display *display;   /* Defined in x11lib.c. */
-extern DIALOG_C dpyrec;
+extern DIALOG_C *dpyrec;   /* Declared in xdialog.c. */
 extern char *shm_mem;
 extern int mem_id;
 unsigned long lookup_pixel_d (Display *, char *);
@@ -56,12 +56,6 @@ int __ctalkX11SetBackgroundBasic (void *d, int drawable_id,
   return SUCCESS;
 }
 #else /* X11LIB_FRAME */
-
-#if 0 /***/
-extern Display *d_p;
-#else
-extern DIALOG_C dpyrec;
-#endif
 
 int __xlib_change_gc (Display *, Drawable, GC, char *);
 

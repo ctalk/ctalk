@@ -1,4 +1,4 @@
-/* $Id: x11lib.c,v 1.129 2020/03/25 19:51:00 rkiesling Exp $ -*-c-*-*/
+/* $Id: x11lib.c,v 1.131 2020/03/26 04:04:01 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -97,11 +97,7 @@ int display_width, display_height;
 static Window root;
 static bool wm_xfce, wm_kwin, wm_xquartz;
 
-#if 0 /***/
-extern Display *d_p;
-#else
-extern DIALOG_C dpyrec;
-#endif
+extern DIALOG_C *dpyrec;
 
 extern char **fixed_font_set;
 Font fixed_font = 0;
@@ -475,7 +471,6 @@ XRENDERDRAWREC ft_str = {0, NULL, 0, 0, NULL, NULL, NULL};
 
 int __xlib_put_str_ft (Display *d, Drawable w, GC gc, char *s) {
   int n;
-  int font_ascent = 0, font_descent = 0;  /* Avoid warnings. */
 
   XftDraw *ftDraw = NULL;
   Colormap ftColorMap;
