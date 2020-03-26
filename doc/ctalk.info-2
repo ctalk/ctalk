@@ -456,6 +456,32 @@ Instance Variables
      A 'X11TerminalStream' object that provides 'InputEvent' objects to
      the application.  *Note X11TerminalStream::.
 
+'resources'
+     This is an 'AssociativeArray' that an object can use to store any
+     data that determine its run-time appearance, like colors,
+     dimensions, or options.  Generally a 'Pane' class sets default
+     resources in its 'new' method, which application programs can then
+     update with its own resources after the 'Pane' object has been
+     constructed.
+
+     As a brief example, here's a sample initialization from the
+     'X11MessageBoxPane' : 'new' method.
+
+
+          paneName resources atPut "backgroundColor", "gray";
+          paneName resources atPut "pad", 10;
+          paneName resources atPut "messageText", "Your\nMessage\nHere";
+          paneName resources atPut "buttonText", "Ok";
+
+
+     Then, when an application program constructs the widgets when it is
+     run, it can use a line like this.
+
+
+          l_label background self resources at "backgroundColor";
+          l_label multiLine self resources at "messageText";
+
+
 'xGC'
      A 'Symbol' that contains the address of the window's graphics
      context.  The 'X11Pane' class does not, at this time, provide
@@ -472,11 +498,6 @@ Class Variables
 'xColormap'
      An 'Integer' that contains the resource ID of the default color
      map.
-'xDisplay'
-     An 'Integer' object that contains the address of the X display
-     pointer.  It's use is deprecated; programs should use the
-     displayPtr instance variable instead, which is set when each main
-     window is created in multi-window programs.
 
 Instance Methods
 ................
@@ -2775,7 +2796,7 @@ Instance Methods
      with a space character (' ') between them.
 
 
-File: ctalk.info,  Node: X11LabelPane,  Next: X11ScrollBarPane,  Prev: X11ButtonPane,  Up: Classes
+File: ctalk.info,  Node: X11LabelPane,  Next: X11MessageBoxPane,  Prev: X11ButtonPane,  Up: Classes
 
 'X11LabelPane' Class
 --------------------
@@ -3080,7 +3101,207 @@ Instance Variables
      'true'.
 
 
-File: ctalk.info,  Node: X11ScrollBarPane,  Next: X11TextPane,  Prev: X11LabelPane,  Up: Classes
+File: ctalk.info,  Node: X11MessageBoxPane,  Next: X11ScrollBarPane,  Prev: X11LabelPane,  Up: Classes
+
+'X11MessageBoxPane' Class
+-------------------------
+
+A 'X11MessageBoxPane' object displays a popup window that contains a
+text message and a button that closes the window.
+
+The button's text is displayed by a 'X11LabelPane' object, and the
+button is a 'X11ButtonObject'.  Generally, 'X11MessageBoxPane' objects
+override any input to the program that opened them, so they contain
+their own event loop, in the 'show' method.
+
+Here is an example of a program that creates its own 'X11MessageBoxPane'
+object, and then opens it when the user clicks on the main window's
+button.
+
+
+     #include <ctalk/ctalkdefs.h>
+
+     /* See the X11FreeTypeFont section of the the Ctalk reference. */
+     #define FTFONT_BOLD   200
+     #define FTFONT_MEDIUM 100
+
+     int main (void) {
+       X11Pane new mainWindow;
+       X11PaneDispatcher new dispatcher;
+       X11ButtonPane new button;
+       X11LabelPane new label;
+       X11MessageBoxPane new messageBox;
+       InputEvent new e;
+
+       mainWindow backgroundColor = "blue";
+       button backgroundColor = "blue";
+       label backgroundColor = "blue";
+       label textColor = "white";
+       label canFocus = false;
+       label borderWidth = 0;
+
+       mainWindow initialize 255, 200;
+       mainWindow inputStream eventMask =
+         EXPOSE|ENTERWINDOWNOTIFY|LEAVEWINDOWNOTIFY|BUTTONPRESS|BUTTONRELEASE|KEYPRESS|KEYRELEASE;
+
+         messageBox foreground "red";
+        messageBox background "red";
+        /* messageBox backgroundColor = "red"; */
+
+       dispatcher attachTo mainWindow;
+       button attachTo dispatcher, "110x50+73+100";
+       label attachTo dispatcher, "177x80+34+15";
+       messageBox attachTo dispatcher, "300x200+30+30";
+
+       mainWindow map;
+       mainWindow raiseWindow;
+
+       mainWindow openEventStream;
+
+       mainWindow setWMTitle "X11MessageBoxPane Demo";
+
+       label ftFontVar initFontLib;
+       label ftFont "DejaVu Sans", 0, FTFONT_BOLD, 0, 12.0;
+       label ftFontVar saveSelectedFont;
+       button ftFont "DejaVu Sans", 0, FTFONT_MEDIUM, 0, 10.0;
+       button ftFontVar saveSelectedFont;
+
+       label multiLine "X11MessageBoxPane\nDemo";
+
+       button label multiLine "Open\nMessageBox";
+
+       button label highlightBackgroundColor = "gray90";
+
+       button draw;
+       button refresh;
+       label draw;
+       label refresh;
+
+       while (TRUE) {
+         mainWindow inputStream queueInput;
+         if (mainWindow inputStream eventPending) {
+           e become mainWindow inputStream inputQueue unshift;
+
+           mainWindow subPaneNotify e;
+
+           switch (e eventClass value)
+     	{
+     	case EXPOSE:
+     	  button subPaneExpose (button, e);
+     	  label subPaneExpose (label, e);
+     	  break;
+     	case BUTTONPRESS:
+     	  if (button haveClick) {
+     	    button clearClick;
+     	    button draw;
+     	    button refresh;
+     	    messageBox show;
+     	  }
+     	  break;
+     	}
+         } else {
+           usleep (1000);
+         }
+       }
+
+     }
+
+
+Instance Variables
+..................
+
+'button'
+     A 'X11ButtonPane' object that closes the window when clicked.  The
+     button's default text is, 'Ok'.  Programs can change the text with
+     a statement like the following, which changes the button's text to,
+     'Close'.
+
+
+          myMessageBox resources atPut "buttonText", "Close";
+
+
+'initialized'
+     A 'Boolean' that is 'true' if the pane has already been
+     initialized.  When a message box is closed, it is not deleted - it
+     is simply unmapped from the window.  This variable is set to true
+     sot that the message box is initialized only once.
+
+'label'
+     A 'X11LabelPane' that displays the message box's text.  As
+     configured, the label is the same color as the main message box
+     window, and uses no borders.  The label's text is controlled by the
+     resource, 'messageText'.  To set the message text, use a statement
+     like the following.
+
+
+          myMessageBox resources atPut "messageText", "Today Is\nJanuary 3rd";
+
+
+     The class draws the label using multiline formatting, so if you
+     want the text to appear on multiple lines, include the sequence
+     '\n' in the text (that's a backslash and the character, 'n', not a
+     literal newline).
+
+Instance Methods
+................
+
+'attachTo (Object PARENTPANE, String GEOMETRY)'
+     Sets the message box's dimensions and creates the object's buffers
+     and main window.  Unlike other 'X11Pane' subclasses, this method
+     does not immediately attach the message box's object to its parent
+     pane, so the message box isn't displayed until the program invokes
+     the 'show' method.
+
+'draw (void)'
+     Draws the label and button subpanes in the message box's buffers
+     and the buffers of the button and label subpanes.  After calling
+     this method, the 'refresh' method makes the changes visible.
+
+'fill (String COLORNAME)'
+     A convenience method that fills the pane window with the color
+     given as the argument.
+
+'initWidgets (void)'
+     Initializes the message box's button and label subpanes when the
+     pane's window is first opened.  When constructed this method sets
+     the 'initialized' instance variable to 'true', so when the message
+     box appears again, this method is a no-op.
+
+'new (String NEWPANENAME)'
+     The X11MessageBoxPane constructor.
+
+'refresh (void)'
+     After the method DRAW renders the main window and the label and the
+     button subwindow's contents on the pane objects' buffers, this
+     method updates the visible window with the contents of the buffers.
+
+'show (void)'
+     This method displays the message box, waits for events from the
+     display system, and closes the message box when its button is
+     clicked, then returns to the calling program.
+
+'subPaneButton (Object SUBPANE, InputEvent EVENT)'
+     This is the event handler for button press and button release
+     events from the display hardware.  When a button is clicked on, the
+     message box draws the button in its clicked state.  When the button
+     is released, the pane draws the button unclicked, then unmaps the
+     message box window from the display, and returns to the main
+     program.
+
+'subPaneExpose (Object SUBPANE, InputEvent EVENT)'
+     Handles drawing the message box when the program receives an Expose
+     event from the display.  This method calls the message box's 'draw'
+     and 'refresh' methods.
+
+'withdraw (void)'
+     Unmaps the message box's window from the display after the pane
+     object receives a button release event while processing the 'show'
+     method.  When the 'show' method receives the button release event,
+     this method is called to remove the pane's window from the display,
+     and the 'show' method returns to the main program.
+
+
+File: ctalk.info,  Node: X11ScrollBarPane,  Next: X11TextPane,  Prev: X11MessageBoxPane,  Up: Classes
 
 'X11ScrollBarPane' Class
 ------------------------

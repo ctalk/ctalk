@@ -6752,6 +6752,65 @@ with a space character (' ') between them.
 
 
 
+>>>X11MessageBoxPane::attachTo (Object parentPane, String geometry)
+Sets the message box's dimensions and creates the object's buffers and
+main window.  Unlike other X11Pane subclasses, this method does
+not immediately attach the message box's object to its parent pane, so
+the message box isn't displayed until the program invokes the show
+method.
+
+>>>X11MessageBoxPane::draw (void)
+Draws the label and button subpanes in the message box's buffers
+and the buffers of the button and label subpanes.  After calling
+this method, the refresh method makes the changes visible.
+
+
+>>>X11MessageBoxPane::fill (String colorName)
+A convenience method that fills the pane window with the color
+given as the argument.
+
+>>>X11MessageBoxPane::initWidgets (void)
+Initializes the message box's button and label subpanes when the pane's
+window is first opened.  When constructed this method sets the
+initialized instance variable to 'true', so when the
+message box appears again, this method is a no-op.
+
+>>>X11MessageBoxPane::new (String newPaneName)
+The X11MessageBoxPane constructor.
+
+>>>X11MessageBoxPane::refresh (void)
+After the method draw renders the main window and the label and
+the button subwindow's contents on the pane objects' buffers, this
+method updates the visible window with the contents of the buffers.
+
+>>>X11MessageBoxPane::show (void)
+This method displays the message box, waits for events from the
+display system, and closes the message box when its button is
+clicked, then returns to the calling program.
+
+>>>X11MessageBoxPane::subPaneButton (Object subPane, InputEvent event)
+This is the event handler for button press and button release events from
+the display hardware.  When a button is clicked on, the message box
+draws the button in its clicked state.  When the button is released,
+the pane draws the button unclicked, then unmaps the message box window
+from the display, and returns to the main program.
+
+>>>X11MessageBoxPane::subPaneExpose (Object subPane, InputEvent event)
+Handles drawing the message box when the program receives an Expose
+event from the display.  This method calls the message box's draw
+and refresh methods.
+
+>>>X11MessageBoxPane::withdraw (void)
+Unmaps the message box's window from the display after the pane object
+receives a button release event while processing the show method.
+When the show method receives the button release event, this
+method is called to remove the pane's window from the display, and the
+show method returns to the main program.
+
+
+
+
+
 >>>X11ScrollBarPane::attachTo (Object parentPane)
 Attaches the X11ScrollBarPane object to its parent pane,
 which is usually a X11PaneDispatcher object.  Also sizes the

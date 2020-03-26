@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.120 2020/03/13 03:35:19 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.121 2020/03/26 17:55:02 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -450,6 +450,7 @@ Object
     X11CanvasPane
      X11ButtonPane
      X11LabelPane
+     X11MessageBoxPane
      X11ScrollBarPane
     X11TextPane
      X11TextEditorPane
@@ -539,6 +540,7 @@ Object
 *     X11CanvasPane::
 *      X11ButtonPane::
 *      X11LabelPane::
+*      X11MessageBoxPane::
 *      X11ScrollBarPane::
 *     X11TextPane::
 *      X11TextEditorPane::
@@ -11764,6 +11766,37 @@ if (myPane ftFontVar version >= 10) @{
 A @code{X11TerminalStream} object that provides @code{InputEvent}
 objects to the application. @xref{X11TerminalStream}.
 
+@cindex @code{resources} instance variable @idxclscite{X11Pane}
+@item resources
+This is an @code{AssociativeArray} that an object can use
+to store any data that determine its run-time appearance, like
+colors, dimensions, or options.  Generally a @code{Pane} class
+sets default resources in its @code{new} method, which application
+programs can then update with its own resources after the @code{Pane}
+object has been constructed.
+
+As a brief example, here's a sample initialization from the
+@code{X11MessageBoxPane} : @code{new} method.
+
+@example
+
+paneName resources atPut "backgroundColor", "gray";
+paneName resources atPut "pad", 10;
+paneName resources atPut "messageText", "Your\nMessage\nHere";
+paneName resources atPut "buttonText", "Ok";
+
+@end example
+
+Then, when an application program constructs the widgets when
+it is run, it can use a line like this.
+
+@example
+
+l_label background self resources at "backgroundColor";
+l_label multiLine self resources at "messageText";
+
+@end example
+
 @cindex @code{xGC} instance variable @idxclscite{X11Pane}
 @item xGC
 A @code{Symbol} that contains the address of the window's graphics
@@ -11784,12 +11817,6 @@ with X library functions.
 @item xColormap
 An @code{Integer} that contains the resource ID of the 
 default color map.
-@cindex @code{xDisplay} class variable @idxclscite{X11Pane}
-@item xDisplay
-An @code{Integer} object that contains the address of the 
-X display pointer.  It's use is deprecated; programs should
-use the displayPtr instance variable instead, which is set
-when each main window is created in multi-window programs.
 @end table
 
 @subsubheading Instance Methods
@@ -14420,7 +14447,7 @@ with a space character (@samp{ }) between them.
 @end table
 
 
-@node X11LabelPane, X11ScrollBarPane, X11ButtonPane, Classes
+@node X11LabelPane, X11MessageBoxPane, X11ButtonPane, Classes
 @iftex
 @section @code{X11LabelPane} Class
 @end iftex
@@ -14775,8 +14802,238 @@ to @code{true}.
 
 @end table
 
+@node X11MessageBoxPane, X11ScrollBarPane, X11LabelPane, Classes
+@iftex
+@section @code{X11MessageBoxPane} Class
+@end iftex
+@ifnottex
+@subheading @code{X11MessageBoxPane} Class
+@end ifnottex
+@cindex @code{X11MessageBoxPane} class
 
-@node X11ScrollBarPane, X11TextPane, X11LabelPane, Classes
+A @code{X11MessageBoxPane} object displays a popup window that
+contains a text message and a button that closes the window.
+
+The button's text is displayed by a @code{X11LabelPane} object,
+and the button is a @code{X11ButtonObject}.  Generally,
+@code{X11MessageBoxPane} objects override any input to the
+program that opened them, so they contain their own event
+loop, in the @code{show} method.
+
+Here is an example of a program that creates its own
+@code{X11MessageBoxPane} object, and then opens it when
+the user clicks on the main window's button.
+
+@c demos/x11/messagebox.ca
+@example
+
+#include <ctalk/ctalkdefs.h>
+
+/* See the X11FreeTypeFont section of the the Ctalk reference. */
+#define FTFONT_BOLD   200
+#define FTFONT_MEDIUM 100
+
+int main (void) @{
+  X11Pane new mainWindow;
+  X11PaneDispatcher new dispatcher;
+  X11ButtonPane new button;
+  X11LabelPane new label;
+  X11MessageBoxPane new messageBox;
+  InputEvent new e;
+
+  mainWindow backgroundColor = "blue";
+  button backgroundColor = "blue";
+  label backgroundColor = "blue";
+  label textColor = "white";
+  label canFocus = false;
+  label borderWidth = 0;
+
+  mainWindow initialize 255, 200;
+  mainWindow inputStream eventMask = 
+    EXPOSE|ENTERWINDOWNOTIFY|LEAVEWINDOWNOTIFY|BUTTONPRESS|BUTTONRELEASE|KEYPRESS|KEYRELEASE;
+
+    messageBox foreground "red";
+   messageBox background "red";
+   /* messageBox backgroundColor = "red"; */
+    
+  dispatcher attachTo mainWindow;
+  button attachTo dispatcher, "110x50+73+100";
+  label attachTo dispatcher, "177x80+34+15";
+  messageBox attachTo dispatcher, "300x200+30+30";
+
+  mainWindow map;
+  mainWindow raiseWindow;
+
+  mainWindow openEventStream;
+
+  mainWindow setWMTitle "X11MessageBoxPane Demo";
+
+  label ftFontVar initFontLib;
+  label ftFont "DejaVu Sans", 0, FTFONT_BOLD, 0, 12.0;
+  label ftFontVar saveSelectedFont;
+  button ftFont "DejaVu Sans", 0, FTFONT_MEDIUM, 0, 10.0;
+  button ftFontVar saveSelectedFont;
+
+  label multiLine "X11MessageBoxPane\nDemo";
+
+  button label multiLine "Open\nMessageBox";
+
+  button label highlightBackgroundColor = "gray90";
+
+  button draw;
+  button refresh;
+  label draw;
+  label refresh;
+
+  while (TRUE) @{
+    mainWindow inputStream queueInput;
+    if (mainWindow inputStream eventPending) @{
+      e become mainWindow inputStream inputQueue unshift;
+
+      mainWindow subPaneNotify e;
+
+      switch (e eventClass value)
+	@{
+	case EXPOSE:
+	  button subPaneExpose (button, e);
+	  label subPaneExpose (label, e);
+	  break;
+	case BUTTONPRESS:
+	  if (button haveClick) @{
+	    button clearClick;
+	    button draw;
+	    button refresh;
+	    messageBox show;
+	  @}
+	  break;
+	@}
+    @} else @{
+      usleep (1000);
+    @}
+  @}
+
+@}
+
+@end example
+
+@subsubheading Instance Variables
+
+@table @code
+
+@cindex @code{button} instance variable @idxclscite{X11MessageBoxPane}
+@item button
+A @code{X11ButtonPane} object that closes the window when clicked.
+The button's default text is, @samp{Ok}.  Programs can change
+the text with a statement like the following, which changes the
+button's text to, @samp{Close}.
+
+@example
+
+myMessageBox resources atPut "buttonText", "Close";
+
+@end example
+
+@cindex @code{initialized} instance variable @idxclscite{X11MessageBoxPane}
+@item initialized
+A @code{Boolean} that is @code{true} if the pane has already been initialized.
+When a message box is closed, it is not deleted - it is simply unmapped
+from the window.  This variable is set to true sot that the message box is
+initialized only once.
+
+@cindex @code{label} instance variable @idxclscite{X11MessageBoxPane}
+@item label
+A @code{X11LabelPane} that displays the message box's text.  As
+configured, the label is the same color as the main message box window,
+and uses no borders.  The label's text is controlled by the resource,
+@samp{messageText}.  To set the message text, use a statement like the
+following.
+
+@example
+
+myMessageBox resources atPut "messageText", "Today Is\nJanuary 3rd";
+
+@end example
+
+The class draws the label using multiline formatting, so if you want
+the text to appear on multiple lines, include the sequence @samp{\n}
+in the text (that's a backslash and the character, @samp{n}, not a
+literal newline).
+
+@end table
+
+@subsubheading Instance Methods
+
+@table @code
+
+@cindex @code{attachTo} instance method @idxclscite{X11MessageBoxPane}
+@item attachTo (@code{Object} @var{parentPane}, @code{String} @var{geometry})
+Sets the message box's dimensions and creates the object's buffers and
+main window.  Unlike other @code{X11Pane} subclasses, this method does
+not immediately attach the message box's object to its parent pane, so
+the message box isn't displayed until the program invokes the @code{show}
+method.
+
+@cindex @code{draw} instance method @idxclscite{X11MessageBoxPane}
+@item draw (@code{void})
+Draws the label and button subpanes in the message box's buffers
+and the buffers of the button and label subpanes.  After calling
+this method, the @code{refresh} method makes the changes visible.
+
+
+@cindex @code{fill} instance method @idxclscite{X11MessageBoxPane}
+@item fill (@code{String} @var{colorName})
+A convenience method that fills the pane window with the color
+given as the argument.
+
+@cindex @code{initWidgets} instance method @idxclscite{X11MessageBoxPane}
+@item initWidgets (@code{void})
+Initializes the message box's button and label subpanes when the pane's
+window is first opened.  When constructed this method sets the
+@code{initialized} instance variable to @samp{true}, so when the
+message box appears again, this method is a no-op.
+
+@cindex @code{new} instance method @idxclscite{X11MessageBoxPane}
+@item new (@code{String} @var{newPaneName})
+The X11MessageBoxPane constructor.
+
+@cindex @code{refresh} instance method @idxclscite{X11MessageBoxPane}
+@item refresh (@code{void})
+After the method @var{draw} renders the main window and the label and
+the button subwindow's contents on the pane objects' buffers, this
+method updates the visible window with the contents of the buffers.
+
+@cindex @code{show} instance method @idxclscite{X11MessageBoxPane}
+@item show (@code{void})
+This method displays the message box, waits for events from the
+display system, and closes the message box when its button is
+clicked, then returns to the calling program.
+
+@cindex @code{subPaneButton} instance method @idxclscite{X11MessageBoxPane}
+@item subPaneButton (@code{Object} @var{subPane}, @code{InputEvent} @var{event})
+This is the event handler for button press and button release events from
+the display hardware.  When a button is clicked on, the message box
+draws the button in its clicked state.  When the button is released,
+the pane draws the button unclicked, then unmaps the message box window
+from the display, and returns to the main program.
+
+@cindex @code{subPaneExpose} instance method @idxclscite{X11MessageBoxPane}
+@item subPaneExpose (@code{Object} @var{subPane}, @code{InputEvent} @var{event})
+Handles drawing the message box when the program receives an Expose
+event from the display.  This method calls the message box's @code{draw}
+and @code{refresh} methods.
+
+@cindex @code{withdraw} instance method @idxclscite{X11MessageBoxPane}
+@item withdraw (@code{void})
+Unmaps the message box's window from the display after the pane object
+receives a button release event while processing the @code{show} method.
+When the @code{show} method receives the button release event, this
+method is called to remove the pane's window from the display, and the
+@code{show} method returns to the main program.
+
+@end table
+
+
+@node X11ScrollBarPane, X11TextPane, X11MessageBoxPane, Classes
 @iftex
 @section @code{X11ScrollBarPane} Class
 @end iftex
