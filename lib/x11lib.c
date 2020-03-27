@@ -1,4 +1,4 @@
-/* $Id: x11lib.c,v 1.131 2020/03/26 04:04:01 rkiesling Exp $ -*-c-*-*/
+/* $Id: x11lib.c,v 1.132 2020/03/27 19:30:15 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -323,6 +323,10 @@ unsigned long lookup_pixel (char *color) {
    still initializing. */
 unsigned long lookup_pixel_d (Display *d, char *color) {
   XColor c;
+
+  if (d == NULL)
+    return BlackPixel (display, screen);
+
   if (!lookup_color (d, &c, color)) {
     return c.pixel;
   } else {
@@ -844,6 +848,12 @@ int __xlib_change_gc (Display *d, Drawable drawable, GC gc, char *data) {
     return ERROR;
 
 #endif
+
+  if (d == NULL) {
+    _warning ("ctalk: __xlib_change_gc: Display connection is NULL.\n");
+    __warning_trace ();
+    return ERROR;
+  }
 
   if ((r = sscanf (data, ":%ld:%s", &valuemask, value)) != 2) {
 #ifndef WITHOUT_X11_WARNINGS

@@ -1,4 +1,4 @@
-/* $Id: X11MessageBoxPane,v 1.57 2020/03/26 17:55:01 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11MessageBoxPane,v 1.59 2020/03/27 20:18:14 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -277,6 +277,7 @@ X11MessageBoxPane instanceMethod show (void) {
 
   self clearWindow;
 
+  while (1) {
     if (XPending (display)) {
       XNextEvent (display, &xev);
       switch (xev.type)
@@ -312,8 +313,7 @@ X11MessageBoxPane instanceMethod show (void) {
     } else {
       usleep (5000);
     }
-	
   }
 
-  return self;
 }
+
