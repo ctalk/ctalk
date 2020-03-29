@@ -1,4 +1,4 @@
-/* $Id: X11MessageBoxPane,v 1.59 2020/03/27 20:18:14 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11MessageBoxPane,v 1.64 2020/03/29 00:50:36 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -30,6 +30,9 @@
    pad                  Integer   10
    messageText          String    Your\Message\nHere
    buttonText           String    Ok
+   geometry             String    <w>x<h>+<x>+<y>
+   mainWindowID         Integer   0
+   mainWindowGeometry   String    <w>x<h>+<x>+<y>
 
 */
 
@@ -59,6 +62,7 @@ X11MessageBoxPane instanceMethod new (String paneName) {
   paneName resources atPut "pad", 10;
   paneName resources atPut "messageText", "Your\nMessage\nHere";
   paneName resources atPut "buttonText", "Ok";
+  /* The mainWindowID and mainWindowGeometry resources are added in attachTo */
 
   return paneName;
 }
@@ -88,17 +92,20 @@ X11MessageBoxPane instanceMethod subPaneButton (Object __subPane,
   self button refresh;
 }
 
-X11MessageBoxPane instanceMethod attachTo (Object parentPane,
+X11MessageBoxPane instanceMethod attachTo (X11Pane parentPane,
 					   String geomspec) {
   "Register the receiver pane as a subpane of the X11Pane
   given as the argument.  Generally parent pane should
-  be a X11PaneDispatcher object.  If the main window of the
-  program has set foreground and background colors, the 
-  X11MessageBoxPane window inherites the colors."
+  be a X11PaneDispatcher object.  At this time, a geometry
+  specification like, '300x200', i.e., without the x and
+  y origins, is okay - the Ctalk libraries center the
+  message box above the parent window."
   X11Pane new mainWin;
   X11Bitmap new xPaneBuffer;
   X11Bitmap new xPaneBackingStore;
+  String new parentGeometry;
   int x, y, width, height;
+  unsigned int mainWinID;
   
   self displayPtr = self mainWindow displayPtr;
   mainWin become parentPane mainWindow;
@@ -115,6 +122,15 @@ X11MessageBoxPane instanceMethod attachTo (Object parentPane,
   self origin x = x;
   self origin y = y;
 
+  self resources atPut "geometry", geomspec;
+
+  self resources atPut "mainWindowID", mainWin xWindowID;
+
+  parentGeometry printOn "%dx%d+%d+%d",
+    mainWin size x, mainWin size y, mainWin origin x, mainWin origin y;
+  self resources atPut "mainWindowGeometry", parentGeometry;
+
+  
   if (!self foregroundColor) {
     if (mainWin foregroundColor)
       self foregroundColor = mainWin foregroundColor;

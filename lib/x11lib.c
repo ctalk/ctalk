@@ -1,4 +1,4 @@
-/* $Id: x11lib.c,v 1.132 2020/03/27 19:30:15 rkiesling Exp $ -*-c-*-*/
+/* $Id: x11lib.c,v 1.133 2020/03/29 00:06:48 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -3373,6 +3373,31 @@ int __x11_pane_border_width (OBJECT *paneobject) {
   return *(int *)pane_borderwidth_value_object -> __o_value;
 }
 
+void __save_window_geometry (OBJECT *pane_object, XSizeHints *size_hints) {
+  OBJECT *origin_instvar, *size_instvar, *origin_x_instvar, *origin_y_instvar,
+    *size_x_instvar, *size_y_instvar;
+  origin_instvar = __ctalkGetInstanceVariable
+    (pane_object, "origin", TRUE);
+  origin_x_instvar = __ctalkGetInstanceVariable
+    (origin_instvar, "x", TRUE);
+  origin_y_instvar = __ctalkGetInstanceVariable
+    (origin_instvar, "y", TRUE);
+  size_instvar = __ctalkGetInstanceVariable
+    (pane_object, "size", TRUE);
+  size_x_instvar = __ctalkGetInstanceVariable
+    (size_instvar, "x", TRUE);
+  size_y_instvar = __ctalkGetInstanceVariable
+    (size_instvar, "y", TRUE);
+  *(int *)origin_x_instvar -> __o_value =
+  *(int *)origin_x_instvar -> instancevars -> __o_value = size_hints -> x;
+  *(int *)origin_y_instvar -> __o_value =
+    *(int *)origin_y_instvar -> instancevars -> __o_value = size_hints -> y;
+  *(int *)size_x_instvar -> __o_value =
+    *(int *)size_x_instvar -> instancevars -> __o_value = size_hints -> width;
+  *(int *)size_y_instvar -> __o_value =
+    *(int *)size_y_instvar -> instancevars -> __o_value = size_hints -> height;
+}
+
 void __save_pane_to_vars (OBJECT *pane_object, GC gc,
 			  int win_id, int screen_depth) {
   OBJECT *win_gc_value_obj, *win_id_value_obj,
@@ -3494,6 +3519,7 @@ int __ctalkCreateX11MainWindow (OBJECT *self_object) {
     size_hints -> y = y_return;
     size_hints -> base_width = width_return;
     size_hints -> base_height = height_return;
+    __save_window_geometry (self_object, size_hints);
   }
 
   XSetWindowBorder (display, win_id, BlackPixel(display, screen));

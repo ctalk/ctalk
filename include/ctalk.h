@@ -1,4 +1,4 @@
-/* $Id: ctalk.h,v 1.92 2020/03/23 18:07:34 rkiesling Exp $ -*-Fundamental-*- */
+/* $Id: ctalk.h,v 1.93 2020/03/28 16:14:07 rkiesling Exp $ -*-Fundamental-*- */
 
 /*
   This file is part of Ctalk.
@@ -2646,6 +2646,7 @@ bool __ctalkX11UsingXRender (void);
 
 /* lib/xresource.c */
 int __ctalkX11SetResource (void *, int, char *, char *);
+OBJECT *__ctalkPaneResource (OBJECT *, char *, bool);
 
 /* lib/xftlib.c */
 int __ctalkXftInitLib (void);

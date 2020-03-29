@@ -482,6 +482,15 @@ Instance Variables
           l_label multiLine self resources at "messageText";
 
 
+     Remember that the 'Collection : atPut' method does not check for an
+     existing key, so be sure to remove the old value first.  This is
+     most easily done with the 'Collection : removeAt' method.
+
+
+          l_label resources removeAt "backgroundColor";
+          l_label resources atPut "backgroundColor", "blue";
+
+
 'xGC'
      A 'Symbol' that contains the address of the window's graphics
      context.  The 'X11Pane' class does not, at this time, provide

@@ -1,4 +1,4 @@
-/* $Id: x11defs.h,v 1.19 2020/03/26 02:58:39 rkiesling Exp $ -*-c-*-*/
+/* $Id: x11defs.h,v 1.20 2020/03/28 17:38:56 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -253,6 +253,14 @@
 /* Comment out if you don't want to use the GC range check. (The
    X11 server glue still uses the SIGSEGV handler.) */
 #define GC_RANGE_CHECK
+
+
+/* This should just be something negative and larger than 
+   the display's width (or height in portrait orientation) :
+   abs (DIM_UNDEF) > display_width
+*/
+#define DIM_UNDEF -5000
+
 
 typedef struct _dc {
   Display *d_p;

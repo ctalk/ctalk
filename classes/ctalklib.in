@@ -1,4 +1,4 @@
-/* $Id: ctalklib.in,v 1.77 2020/03/08 14:35:00 rkiesling Exp $ -*-c-*-*/
+/* $Id: ctalklib.in,v 1.78 2020/03/28 16:14:07 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -1366,6 +1366,7 @@ extern int __ctalkGLXWinXOrg (void);
 extern int __ctalkGLXWinYOrg (void);
 extern int __ctalkGLXWinXSize (void);
 extern int __ctalkGLXWinYSize (void);
+extern OBJECT *__ctalkPaneResource (OBJECT *, char *, bool);
 extern void __ctalkXPMToGLTexture (char **, unsigned short int, int *, int *,
 				   void **);
 extern int __ctalkGlobFiles (char *, OBJECT *);

@@ -1,4 +1,4 @@
-/* $Id: xresource.c,v 1.5 2020/02/29 10:21:16 rkiesling Exp $ -*-c-*-*/
+/* $Id: xresource.c,v 1.7 2020/03/28 17:38:56 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -44,6 +44,12 @@ int __ctalkX11SetResource (void *d, int drawable_id,
 			   char *resource_class) {
   return SUCCESS;
 }
+
+OBJECT *__ctalkPaneResource (OBJECT *pane_object, char *resource_name,
+			 bool warn) {
+  return SUCCESS;
+}
+
 #else /* X11LIB_FRAME */
 
 int __ctalkX11SetResource (void *d, int drawable_id, 
@@ -90,6 +96,26 @@ int __ctalkX11SetResource (void *d, int drawable_id,
 
   return SUCCESS;
 }
+
+OBJECT *__ctalkPaneResource (OBJECT *pane_object, char *resource_name,
+			 bool warn) {
+  OBJECT *resource_var;
+  OBJECT *key;
+
+  if ((resource_var = __ctalkGetInstanceVariable (pane_object,
+						  "resources", false))
+      == NULL)
+    return NULL;
+
+  for (key = resource_var -> instancevars; key; key = key -> next) {
+    if (str_eq (key -> __o_name, resource_name))
+      return (OBJECT *)SYMVAL(key -> instancevars -> __o_value);
+  }
+
+  return NULL;
+}
+
+
 #endif /* X11LIB_FRAME */
 #else /* ! defined (DJGPP) && ! defined (WITHOUT_X11) */
 int __ctalkX11SetResource (void *d, int drawable_id, 
@@ -97,4 +123,10 @@ int __ctalkX11SetResource (void *d, int drawable_id,
 			   char *resource_class) {
   x_support_error (); return ERROR;
 }
+
+OBJECT *__ctalkPaneResource (OBJECT *pane_object, char *resource_name,
+			 bool warn) {
+  x_support_error (); return ERROR;
+}
+
 #endif /* ! defined (DJGPP) && ! defined (WITHOUT_X11) */

@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.121 2020/03/26 17:55:02 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.122 2020/03/28 21:24:59 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -11794,6 +11794,17 @@ it is run, it can use a line like this.
 
 l_label background self resources at "backgroundColor";
 l_label multiLine self resources at "messageText";
+
+@end example
+
+Remember that the @code{Collection : atPut} method does not check for
+an existing key, so be sure to remove the old value first.  This is
+most easily done with the @code{Collection : removeAt} method.
+
+@example
+
+l_label resources removeAt "backgroundColor";
+l_label resources atPut "backgroundColor", "blue";
 
 @end example
 

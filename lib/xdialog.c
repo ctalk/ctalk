@@ -69,6 +69,32 @@ static int open_dialog_display_connection (void) {
   return SUCCESS;
 }
 
+void dialog_xy_from_parent (OBJECT *self, char *parent_geom,
+			      int *x_org, int *y_org) {
+  OBJECT *origin_var, *size_var, *origin_x_var, *origin_y_var,
+    *size_x_var, *size_y_var;
+  int self_width, self_height;
+  int p_x_org, p_y_org, p_x_size, p_y_size;
+  /* hefe, "self" is just a dummy argument,  the geometry string
+     is already the parent's geometry in absolute pixels */
+  __ctalkX11SubWindowGeometry (self, parent_geom, &p_x_org, &p_y_org,
+			       &p_x_size, &p_y_size);
+
+  origin_var = __ctalkGetInstanceVariable (self, "origin", true);
+  size_var = __ctalkGetInstanceVariable (self, "size", true);
+  size_x_var = __ctalkGetInstanceVariable (size_var, "x", true);
+  size_y_var = __ctalkGetInstanceVariable (size_var, "y", true);
+  self_width = INTVAL(size_x_var -> __o_value);
+  self_height = INTVAL(size_y_var -> __o_value);
+
+  *x_org = (p_x_size / 2) - (self_width / 2) + p_x_org;
+  *y_org = (p_y_size / 2) - (self_height/ 2) + p_y_org;
+  /* don't position the origin above the top of the display or left
+     of the left edge */
+  if (*x_org < 0) *x_org = 0;
+  if (*y_org < 0) *y_org = 0;
+}
+
 extern GC create_pane_win_gc (Display *d, Window w, OBJECT *pane);
 
 int __ctalkX11CreateDialogWindow (OBJECT *self_object) {
@@ -76,8 +102,9 @@ int __ctalkX11CreateDialogWindow (OBJECT *self_object) {
   XSetWindowAttributes set_attributes;
   XGCValues gcv;
   GC gc;
-  OBJECT *displayPtr;
+  OBJECT *displayPtr, *mainWinID, *mainWinGeom;
   XWMHints wm_hints;
+  XSizeHints *size_hints;
   char buf[MAXLABEL];
   static int wm_event_mask;
   int geom_ret, x_return, y_return;
@@ -94,12 +121,15 @@ int __ctalkX11CreateDialogWindow (OBJECT *self_object) {
 					     "displayPtr", TRUE);
     SYMVAL(displayPtr -> instancevars -> __o_value) = (uintptr_t)dpyrec -> d_p;
   }
+  mainWinID = __ctalkPaneResource (self_object, "mainWindowID", true);
+  mainWinGeom = __ctalkPaneResource (self_object, "mainWindowGeometry", true);
   
   border_width = __x11_pane_border_width (self_object);
   set_attributes.backing_store = Always;
   set_attributes.save_under = true;
-  x_org = __pane_x_org (self_object);
-  y_org = __pane_y_org (self_object);
+
+  dialog_xy_from_parent (self_object, mainWinGeom -> __o_value,
+			   &x_org, &y_org);
   x_size = __pane_x_size (self_object);
   y_size = __pane_y_size (self_object);
 
@@ -115,6 +145,15 @@ int __ctalkX11CreateDialogWindow (OBJECT *self_object) {
   wm_hints.initial_state = NormalState;
   XSetWMHints (dpyrec -> d_p, win_id, &wm_hints);
   
+  size_hints = XAllocSizeHints ();
+  size_hints -> x = x_org;
+  size_hints -> y = y_org;
+  size_hints -> base_width = x_size;
+  size_hints -> base_height = y_size;
+  size_hints -> flags = PWinGravity|USSize|USPosition;
+  XSetWMNormalHints (dpyrec -> d_p, win_id, size_hints);
+  XFree (size_hints);
+
   wm_delete_dialog = XInternAtom (dpyrec -> d_p, "WM_DELETE_WINDOW", False);
   XSetWMProtocols (dpyrec -> d_p, win_id, &wm_delete_dialog, 1);
 
@@ -130,6 +169,8 @@ int __ctalkX11CreateDialogWindow (OBJECT *self_object) {
   __save_pane_to_vars (self_object, gc, win_id,
 		       DefaultDepth (dpyrec -> d_p, DefaultScreen (dpyrec -> d_p)));
   dpyrec -> mapped = true;
+  XMoveResizeWindow (dpyrec -> d_p, win_id, x_org, y_org, x_size, y_size);
+
   return win_id;
 }
 
