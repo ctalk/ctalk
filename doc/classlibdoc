@@ -1003,7 +1003,17 @@ mapKeys is NULL.
 
 >>>Collection::removeAt (String key_name)
 Remove the object stored at key_name from the receiver
-collection and return it.
+collection and return it.  Returns NULL if the entry isn't
+present in the receiver collection.  In that case, the method
+does not create a new entry, so programs should then call the
+atPut method.
+
+>>>Collection::replaceAt (String key_name, Object new_value)
+Replace the value at key_name in the receiver collection.
+Returns the old value object, or NULL if the key doesn't exist.  In
+that case, the method does not create a new entry, so in that case
+it's necessary to add the key/value entry to the receiver collection
+using atPut.
 
 >>>Collection::size (void)
 Return an Integer with the number of items in the receiver

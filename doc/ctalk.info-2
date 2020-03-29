@@ -484,12 +484,24 @@ Instance Variables
 
      Remember that the 'Collection : atPut' method does not check for an
      existing key, so be sure to remove the old value first.  This is
-     most easily done with the 'Collection : removeAt' method.
+     done with the 'Collection : removeAt' method, or simply with the
+     'Collection : replaceAt' method.
 
 
-          l_label resources removeAt "backgroundColor";
+          if (l_label resources keyExists "backgroundColor")
+            l_label resources removeAt "backgroundColor";
           l_label resources atPut "backgroundColor", "blue";
 
+
+     or,
+
+
+          if (!l_label resources replaceAt "backgroundColor", "blue")
+            l_label resources atPut "backgroundColor", "blue";
+
+
+     Refer to the 'Collection' class section for more information about
+     the methods it defines.  *Note Collection::.
 
 'xGC'
      A 'Symbol' that contains the address of the window's graphics
@@ -3185,6 +3197,11 @@ button.
        button refresh;
        label draw;
        label refresh;
+
+       /* The program uses the "replaceAt" method because the key/value
+          entry for "backgroundColor" the X11MessageBoxPane : new method
+          has alread created an entry for backgroundColor. */
+          messageBox resources replaceAt "backgroundColor", "blue";
 
        while (TRUE) {
          mainWindow inputStream queueInput;

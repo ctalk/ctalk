@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.123 2020/03/29 14:05:09 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.124 2020/03/29 16:57:42 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -2141,7 +2141,18 @@ the parent class of @code{AssociativeArray}.  The return value of
 @cindex @mnm{removeAt} instance method @idxclscite{Collection}
 @item @mnm{removeAt} (@code{String} @var{key_name})
 Remove the object stored at @var{key_name} from the receiver
-collection and return it.
+collection and return it.  Returns NULL if the entry isn't
+present in the receiver collection.  In that case, the method
+does not create a new entry, so programs should then call the
+@mnm{atPut} method.
+
+@cindex @mnm{replaceAt} instance method @idxclscite{Collection}
+@item @mnm{replaceAt} (@code{String} @var{key_name}, @code{Object} @var{new_value})
+Replace the value at @var{key_name} in the receiver collection.
+Returns the old value object, or NULL if the key doesn't exist.  In
+that case, the method does not create a new entry, so in that case
+it's necessary to add the key/value entry to the receiver collection
+using @mnm{atPut}.
 
 @cindex @mnm{size} instance method @idxclscite{Collection}
 @item @mnm{size} (@code{void})
@@ -11799,14 +11810,28 @@ l_label multiLine self resources at "messageText";
 
 Remember that the @code{Collection : atPut} method does not check for
 an existing key, so be sure to remove the old value first.  This is
-most easily done with the @code{Collection : removeAt} method.
+done with the @code{Collection : removeAt} method, or simply with
+the @code{Collection : replaceAt} method.
 
 @example
 
-l_label resources removeAt "backgroundColor";
+if (l_label resources keyExists "backgroundColor")
+  l_label resources removeAt "backgroundColor";
 l_label resources atPut "backgroundColor", "blue";
 
 @end example
+
+or,
+
+@example
+
+if (!l_label resources replaceAt "backgroundColor", "blue")
+  l_label resources atPut "backgroundColor", "blue";
+
+@end example
+
+Refer to the @code{Collection} class section for more information
+about the methods it defines.  @xref{Collection}.
 
 @cindex @code{xGC} instance variable @idxclscite{X11Pane}
 @item xGC
@@ -14895,6 +14920,11 @@ int main (void) @{
   button refresh;
   label draw;
   label refresh;
+
+  /* The program uses the "replaceAt" method because the key/value
+     entry for "backgroundColor" the X11MessageBoxPane : new method
+     has alread created an entry for backgroundColor. */
+     messageBox resources replaceAt "backgroundColor", "blue";
 
   while (TRUE) @{
     mainWindow inputStream queueInput;

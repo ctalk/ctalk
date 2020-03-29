@@ -59,6 +59,11 @@ int main (void) {
   label draw;
   label refresh;
 
+  /* The program uses the "replaceAt" method because the key/value
+     entry for "backgroundColor" the X11MessageBoxPane : new method
+     has alread created an entry for backgroundColor. */
+     messageBox resources replaceAt "backgroundColor", "blue";
+
   while (TRUE) {
     mainWindow inputStream queueInput;
     if (mainWindow inputStream eventPending) {
