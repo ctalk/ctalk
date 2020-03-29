@@ -1,4 +1,4 @@
-/* $Id: xresource.c,v 1.7 2020/03/28 17:38:56 rkiesling Exp $ -*-c-*-*/
+/* $Id: xresource.c,v 1.8 2020/03/29 14:05:10 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -103,13 +103,18 @@ OBJECT *__ctalkPaneResource (OBJECT *pane_object, char *resource_name,
   OBJECT *key;
 
   if ((resource_var = __ctalkGetInstanceVariable (pane_object,
-						  "resources", false))
+						  "resources", warn))
       == NULL)
     return NULL;
 
   for (key = resource_var -> instancevars; key; key = key -> next) {
     if (str_eq (key -> __o_name, resource_name))
       return (OBJECT *)SYMVAL(key -> instancevars -> __o_value);
+  }
+
+  if (warn) {
+    printf ("ctalk: Resource, \"%s,\" not found.\n", resource_name);
+    __warning_trace ();
   }
 
   return NULL;

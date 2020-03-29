@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.122 2020/03/28 21:24:59 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.123 2020/03/29 14:05:09 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -20590,6 +20590,13 @@ executed a @code{return} statement.
 @anchor{ctalkObjValPtr}
 @item __ctalkObjValPtr (@code{OBJECT *}@var{o}, @code{void *}@var{ptr})
 Set the value of the object @var{o} to @var{ptr}.
+
+@idxlibfn{__ctalkPandResource}
+@item __ctalkPaneResource (@code{OBJECT *}@var{paneObject}, @code{char *}@var{resourceName}, @code{bool} @var{warn})
+Returns an @code{OBJECT *} with the value corresponding to
+@var{resourceName} from @var{paneObject's} @code{resource} instance
+variable.  If @var{warn} is true, displays a warning if the resource
+isn't found.
 
 @idxlibfn{__ctalkPeekExceptionTrace}
 @item __ctalkPeekExceptionTrace (@code{void})

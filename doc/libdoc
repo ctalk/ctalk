@@ -1322,6 +1322,12 @@ executed a return statement.
 >>>__ctalkObjValPtr (OBJECT *o, void *ptr)
 Set the value of the object o to ptr.
 
+>>>__ctalkPaneResource (OBJECT *paneObject, char *resourceName, bool warn)
+Returns an OBJECT * with the value corresponding to
+resourceName from paneObject's resource instance
+variable.  If warn is true, displays a warning if the resource
+isn't found.
+
 >>>__ctalkPeekExceptionTrace (void)
 Returns a char * with the text of the most recent exception and
 its stack trace.

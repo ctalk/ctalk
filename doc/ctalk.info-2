@@ -7884,6 +7884,11 @@ functions.
 '__ctalkObjValPtr (OBJECT *O, void *PTR)'
      Set the value of the object O to PTR.
 
+'__ctalkPaneResource (OBJECT *PANEOBJECT, char *RESOURCENAME, bool WARN)'
+     Returns an 'OBJECT *' with the value corresponding to RESOURCENAME
+     from PANEOBJECT'S 'resource' instance variable.  If WARN is true,
+     displays a warning if the resource isn't found.
+
 '__ctalkPeekExceptionTrace (void)'
      Returns a 'char *' with the text of the most recent exception and
      its stack trace.
