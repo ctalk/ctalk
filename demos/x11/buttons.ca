@@ -34,7 +34,7 @@ int main (void) {
 
   mainWindow initialize 255, 200;
   mainWindow inputStream eventMask = 
-    EXPOSE|ENTERWINDOWNOTIFY|LEAVEWINDOWNOTIFY|BUTTONPRESS|BUTTONRELEASE|KEYPRESS|KEYRELEASE;
+    EXPOSE|ENTERWINDOWNOTIFY|LEAVEWINDOWNOTIFY|BUTTONPRESS|BUTTONRELEASE|KEYPRESS|KEYRELEASE|WINDELETE;
   dispatcher attachTo mainWindow;
   lbutton attachTo dispatcher, "90x50+25+100";
   rbutton attachTo dispatcher, "90x50+135+100";
@@ -104,6 +104,10 @@ int main (void) {
 	  lbutton subPaneExpose (lbutton, e);
 	  rbutton subPaneExpose (rbutton, e);
 	  label subPaneExpose (label, e);
+	  break;
+	case WINDELETE:
+ 	  mainWindow deleteAndClose;
+	  exit (0);
 	  break;
 	default:
 	  if (lbutton haveClick) {

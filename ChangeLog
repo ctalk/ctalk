@@ -530,7 +530,9 @@
 	xdialog.c to center a dialog window above its parent window.
 2020-03-29
 	- Added the Collection : replaceAt method.
-2020-03-21
+2020-03-31
 	- Added fmt_method_call_term, called by generate_method_call
 	(output.c).  Also updated method_call to omit a semicolon
 	if the method call is a function argument (method.c).
+	- Updated X11Pane : mainWindow so that if the receiver is
+	class X11Pane, the method simply returns the reciever.
