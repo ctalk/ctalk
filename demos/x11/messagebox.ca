@@ -23,11 +23,13 @@ int main (void) {
 
   mainWindow initialize 255, 200;
   mainWindow inputStream eventMask = 
-    EXPOSE|ENTERWINDOWNOTIFY|LEAVEWINDOWNOTIFY|BUTTONPRESS|BUTTONRELEASE|KEYPRESS|KEYRELEASE;
+    EXPOSE|ENTERWINDOWNOTIFY|LEAVEWINDOWNOTIFY|BUTTONPRESS|BUTTONRELEASE|KEYPRESS|KEYRELEASE|WINDELETE;
 
-    messageBox foreground "red";
+#if 0
+  messageBox foreground "red";
    messageBox background "red";
    /* messageBox backgroundColor = "red"; */
+#endif   
     
   dispatcher attachTo mainWindow;
   button attachTo dispatcher, "110x50+73+100";
@@ -77,13 +79,19 @@ int main (void) {
 	  button subPaneExpose (button, e);
 	  label subPaneExpose (label, e);
 	  break;
-	case BUTTONPRESS:
+	case BUTTONRELEASE:
 	  if (button haveClick) {
 	    button clearClick;
-	    button draw;
-	    button refresh;
-	    messageBox show;
 	  }
+	  button highlight = false;
+	  button clicked = false;
+	  button draw;
+	  button refresh;
+	  messageBox show;
+	  break;
+	case WINDELETE:
+ 	  mainWindow deleteAndClose;
+	  exit (0);
 	  break;
 	}
     } else {

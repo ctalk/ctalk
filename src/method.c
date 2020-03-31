@@ -1,4 +1,4 @@
-/* $Id: method.c,v 1.5 2020/01/26 15:47:00 rkiesling Exp $ */
+/* $Id: method.c,v 1.6 2020/03/31 23:08:31 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -2410,7 +2410,8 @@ int method_call (int method_message_ptr) {
     rcvr_ptr = 0,             /* Avoid a warning */
     stmt_end_ptr,
     m_super_idx,
-    expr_end_idx = -1;
+    expr_end_idx = -1,
+    lookahead;
   int i_2, _expr_end;
   int n_args_declared;
   char *_expr_class_buf, _expr_buf[MAXMSG];
@@ -3436,9 +3437,30 @@ int method_call (int method_message_ptr) {
 			 method_message_ptr)) 
 		      rcvr_cvar_registration = true;
 		  }
-		  generate_method_call (receiver, method -> selector,
-					method -> name,
-					  method_message_ptr);
+		  if ((lookahead = nextlangmsg (message_stack (),
+						method_message_ptr)) != ERROR) {
+		    if ((M_TOK(message_stack_at (lookahead)) == CLOSEPAREN) ||
+			(M_TOK(message_stack_at (lookahead)) == ARGSEPARATOR)) {
+		      /* This is like generate_method_call, but we don't
+			 add the semicolonr if the method call is a
+			 function argument or otherwise enclosed in
+			 parens */ /***/
+		      char _buf[MAXMSG];
+		      if (is_global_frame ())
+			fn_init (fmt_method_call (receiver,
+						  method -> selector,
+						  method -> name, _buf), FALSE);
+		      else
+			fileout (fmt_method_call (receiver,
+						  method -> selector,
+						  method -> name, _buf),
+				 0, method_message_ptr);
+		    } else {
+		      generate_method_call (receiver, method -> selector,
+					    method -> name,
+					    method_message_ptr);
+		    }
+		  }
 		  if (rcvr_cvar_registration) {
 		    if (method -> n_params == 0) {
 		      output_delete_cvars_call
