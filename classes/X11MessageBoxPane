@@ -1,4 +1,4 @@
-/* $Id: X11MessageBoxPane,v 1.64 2020/03/29 00:50:36 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11MessageBoxPane,v 1.67 2020/04/02 20:07:21 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -31,8 +31,6 @@
    messageText          String    Your\Message\nHere
    buttonText           String    Ok
    geometry             String    <w>x<h>+<x>+<y>
-   mainWindowID         Integer   0
-   mainWindowGeometry   String    <w>x<h>+<x>+<y>
 
 */
 
@@ -41,6 +39,7 @@ X11PaneDispatcher class X11MessageBoxPane;
 X11MessageBoxPane instanceVariable button X11ButtonPane NULL;
 X11MessageBoxPane instanceVariable label  X11LabelPane NULL;
 X11MessageBoxPane instanceVariable initialized Boolean false;
+X11MessageBoxPane instanceVariable mainWindowPtr Symbol NULL;
 
 
 X11MessageBoxPane instanceMethod new (String paneName) {
@@ -124,13 +123,8 @@ X11MessageBoxPane instanceMethod attachTo (X11Pane parentPane,
 
   self resources atPut "geometry", geomspec;
 
-  self resources atPut "mainWindowID", mainWin xWindowID;
+  self mainWindowPtr = parentPane mainWindow;
 
-  parentGeometry printOn "%dx%d+%d+%d",
-    mainWin size x, mainWin size y, mainWin origin x, mainWin origin y;
-  self resources atPut "mainWindowGeometry", parentGeometry;
-
-  
   if (!self foregroundColor) {
     if (mainWin foregroundColor)
       self foregroundColor = mainWin foregroundColor;
@@ -248,7 +242,7 @@ X11MessageBoxPane instanceMethod initWidgets (void) {
 
 }
 
-extern void __enable_dialog (void);
+extern void __enable_dialog (OBJECT *);
 
 X11MessageBoxPane instanceMethod show (void) {
   Display *display;
@@ -280,7 +274,7 @@ X11MessageBoxPane instanceMethod show (void) {
     self initWidgets;
   } else {
 
-    __enable_dialog ();
+    __enable_dialog (self);
 
     win_id = self xWindowID;
     display = self displayPtr;

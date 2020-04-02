@@ -69,26 +69,38 @@ static int open_dialog_display_connection (void) {
   return SUCCESS;
 }
 
-void dialog_xy_from_parent (OBJECT *self, char *parent_geom,
-			      int *x_org, int *y_org) {
-  OBJECT *origin_var, *size_var, *origin_x_var, *origin_y_var,
-    *size_x_var, *size_y_var;
+static void dialog_xy_from_parent (OBJECT *self, OBJECT *mainWin,
+				   int *x_org, int *y_org) {
+  OBJECT *size_var, *size_x_var, *size_y_var;
+  OBJECT *mw_origin_var, *mw_origin_x_var, *mw_origin_y_var,
+    *mw_size_var, *mw_size_x_var, *mw_size_y_var;
   int self_width, self_height;
   int p_x_org, p_y_org, p_x_size, p_y_size;
   /* hefe, "self" is just a dummy argument,  the geometry string
      is already the parent's geometry in absolute pixels */
-  __ctalkX11SubWindowGeometry (self, parent_geom, &p_x_org, &p_y_org,
-			       &p_x_size, &p_y_size);
 
-  origin_var = __ctalkGetInstanceVariable (self, "origin", true);
-  size_var = __ctalkGetInstanceVariable (self, "size", true);
-  size_x_var = __ctalkGetInstanceVariable (size_var, "x", true);
-  size_y_var = __ctalkGetInstanceVariable (size_var, "y", true);
-  self_width = INTVAL(size_x_var -> __o_value);
-  self_height = INTVAL(size_y_var -> __o_value);
+  size_var = __ctalkGetInstanceVariable (self, "size", TRUE);
+  size_x_var = __ctalkGetInstanceVariable (size_var, "x", TRUE);
+  size_y_var = __ctalkGetInstanceVariable (size_var, "y", TRUE);
+  self_width = INTVAL(size_x_var -> instancevars -> __o_value);
+  self_height = INTVAL(size_y_var -> instancevars -> __o_value);
+
+  mw_origin_var = __ctalkGetInstanceVariable (mainWin, "origin", TRUE);
+  mw_origin_x_var = __ctalkGetInstanceVariable (mw_origin_var, "x", TRUE);
+  mw_origin_y_var = __ctalkGetInstanceVariable (mw_origin_var, "y", TRUE);
+  mw_size_var = __ctalkGetInstanceVariable (mainWin, "size", TRUE);
+  mw_size_x_var = __ctalkGetInstanceVariable (mw_size_var, "x", TRUE);
+  mw_size_y_var = __ctalkGetInstanceVariable (mw_size_var, "y", TRUE);
+  p_x_org = INTVAL(mw_origin_x_var -> instancevars -> __o_value);
+  p_y_org = INTVAL(mw_origin_y_var -> instancevars -> __o_value);
+  p_x_size = INTVAL(mw_size_x_var -> instancevars -> __o_value);
+  p_y_size = INTVAL(mw_size_y_var -> instancevars -> __o_value);
 
   *x_org = (p_x_size / 2) - (self_width / 2) + p_x_org;
-  *y_org = (p_y_size / 2) - (self_height/ 2) + p_y_org;
+  /* vertical alignment is slightly above the window's 
+     center */
+  *y_org = (p_y_size / 2) - (self_height/ 2) + p_y_org -
+    (p_y_size * .1);
   /* don't position the origin above the top of the display or left
      of the left edge */
   if (*x_org < 0) *x_org = 0;
@@ -102,7 +114,8 @@ int __ctalkX11CreateDialogWindow (OBJECT *self_object) {
   XSetWindowAttributes set_attributes;
   XGCValues gcv;
   GC gc;
-  OBJECT *displayPtr, *mainWinID, *mainWinGeom;
+  OBJECT *displayPtr, *mainWinID, *mainWinGeom, *mainWinPtr,
+    *mainWin;
   XWMHints wm_hints;
   XSizeHints *size_hints;
   char buf[MAXLABEL];
@@ -123,13 +136,15 @@ int __ctalkX11CreateDialogWindow (OBJECT *self_object) {
   }
   mainWinID = __ctalkPaneResource (self_object, "mainWindowID", true);
   mainWinGeom = __ctalkPaneResource (self_object, "mainWindowGeometry", true);
+  mainWinPtr = __ctalkGetInstanceVariable (self_object,
+					   "mainWindowPtr", TRUE);
+  mainWin = *(OBJECT **)mainWinPtr -> instancevars -> __o_value;
   
   border_width = __x11_pane_border_width (self_object);
   set_attributes.backing_store = Always;
   set_attributes.save_under = true;
 
-  dialog_xy_from_parent (self_object, mainWinGeom -> __o_value,
-			   &x_org, &y_org);
+  dialog_xy_from_parent (self_object, mainWin, &x_org, &y_org);
   x_size = __pane_x_size (self_object);
   y_size = __pane_y_size (self_object);
 
@@ -174,8 +189,31 @@ int __ctalkX11CreateDialogWindow (OBJECT *self_object) {
   return win_id;
 }
 
-void __enable_dialog (void) {
+void __enable_dialog (OBJECT *self) {
+  OBJECT *mainWinPtr, *mainWin, *self_xID;
+  OBJECT *origin_var, *origin_x_var, *origin_y_var;
+  Window self_win;
+  int x_org, y_org;
+
+  origin_var = __ctalkGetInstanceVariable (self, "origin", TRUE);
+  origin_x_var = __ctalkGetInstanceVariable (origin_var, "x", TRUE);
+  origin_y_var = __ctalkGetInstanceVariable (origin_var, "y", TRUE);
+  self_xID = __ctalkGetInstanceVariable (self, "xWindowID", TRUE);
+  self_win = INTVAL(self_xID -> instancevars -> __o_value);
+  mainWinPtr = __ctalkGetInstanceVariable (self, "mainWindowPtr", TRUE);
+  mainWin = *(OBJECT **)mainWinPtr -> instancevars -> __o_value;
+
+  dialog_xy_from_parent (self, mainWin, &x_org, &y_org);
+
+  INTVAL(origin_x_var -> instancevars -> __o_value) =
+    INTVAL(origin_x_var -> __o_value) = x_org;
+  INTVAL(origin_y_var -> instancevars -> __o_value) =
+    INTVAL(origin_y_var -> __o_value) = y_org;
+
   dpyrec -> mapped = true;
+
+  XMoveWindow (dpyrec -> d_p, self_win, x_org, y_org);
+
 }
 
 int __ctalkCloseX11DialogPane (OBJECT *self) {
@@ -196,7 +234,7 @@ int __ctalkCloseX11DialogPane (OBJECT *self) {
   return 0;  /* notreached */
 }
 
-void __enable_dialog (void) {
+void __enable_dialog (OBJECT *self) {
   x_support_error ();
 }
 

@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.124 2020/03/29 16:57:42 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.125 2020/04/02 20:07:21 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -14999,6 +14999,10 @@ The class draws the label using multiline formatting, so if you want
 the text to appear on multiple lines, include the sequence @samp{\n}
 in the text (that's a backslash and the character, @samp{n}, not a
 literal newline).
+
+@cindex @code{mainWindowPtr} instance variable @idxclscite{X11MessageBoxPane}
+@item mainWindowPtr
+A @code{Symbol} that contains a pointer to the main window.
 
 @end table
 

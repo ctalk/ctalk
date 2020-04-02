@@ -1,4 +1,4 @@
-/* $Id: X11PaneDispatcher,v 1.54 2020/04/02 11:50:07 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11PaneDispatcher,v 1.55 2020/04/02 17:40:09 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -231,37 +231,17 @@ receiver pane."
 
 X11PaneDispatcher instanceMethod subPaneMove (Object __subPane, 
 					      InputEvent __event) {
-  "Dispatch a move event to the subpanes of the receiver
-   pane."
+  "Save the new X,Y origin in the receiver's main window."
     X11Pane new mw;
-
-  printf ("subPaneMove!\n");
 
   mw = self mainWindow;
   
-  self origin x += __event xEventData1;
-  self origin y += __event xEventData2;
+  mw origin x = __event xEventData1;
+  mw origin y = __event xEventData2;
 
-  self mainWindow origin x = __event xEventData1;
-  self mainWindow origin y = __event xEventData2;
+  XMoveWindow (mw displayPtr, mw xWindowID,
+	       mw origin x, mw origin y);
 
-  XMoveWindow (self mainWindow displayPtr, self mainWindow xWindowID,
-	       self mainWindow origin x, self mainWindow origin y);
-#if 0 /***/
-  (X11Pane *)(*self container) origin x = self origin x;
-  (X11Pane *)(*self container) origin y = self origin y;
-
-  XMoveWindow ((X11Pane *)(*self container) displayPtr,
-	       (X11Pane *)(*self container) xWindowID,
-		 self origin x, self origin y);
-
-  if (__subPane isInstanceMethod "subPaneMove") {
-    fprintf (stderr, "subPaneMove subPane handler!\n");
-  } else {
-    __subPane origin x = 0;
-    __subPane origin y = 0;
-  }
-#endif  
   return NULL;
 }
 
