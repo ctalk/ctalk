@@ -1,4 +1,4 @@
-/* $Id: ctalk.h,v 1.93 2020/03/28 16:14:07 rkiesling Exp $ -*-Fundamental-*- */
+/* $Id: ctalk.h,v 1.95 2020/04/02 02:38:14 rkiesling Exp $ -*-Fundamental-*- */
 
 /*
   This file is part of Ctalk.
@@ -1370,8 +1370,6 @@ void __ctalkX11DeletePixmap (int id);
 void __ctalkX11FreeGC (unsigned long int ptr);
 int __ctalkX11FreePaneBuffer (OBJECT *);
 int __ctalkX11ResizePaneBuffer (OBJECT *, int, int);
-/***/
-/* int __ctalkX11ClearBufferRectangle (OBJECT *, int, int, int, int); */
 int __get_pane_buffers (OBJECT *, int *, int *);
 
 /* lib/bnamecmp.c */
@@ -2144,6 +2142,7 @@ void output_arg_rt_expr (MESSAGE_STACK, int, int, METHOD *);
 int __ctalkMatchParenRev (MESSAGE_STACK, int, int);
 void reset_last_eval_result (void);
 int expr_n_occurrences (METHOD *);
+bool rte_output_fn_arg (MESSAGE_STACK, int, int, char *);
 
 /* lib/rt_error.c */
 #ifdef __GNUC__

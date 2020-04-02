@@ -1,8 +1,8 @@
-/* $Id: rt_expr.c,v 1.6 2020/03/23 18:07:34 rkiesling Exp $ */
+/* $Id: rt_expr.c,v 1.11 2020/04/02 02:38:14 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
-  Copyright © 2005-2019 Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2005-2020 Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
 
@@ -208,6 +208,26 @@ int is_method_param_name (char *s) {
     }
   }
   return FALSE;
+}
+
+/* TODO - See if we can adapt the clauses that output 
+   obj_expr_is_arg in other modules to use this. */
+static bool rte_output_fn_arg (MESSAGE_STACK messages, int start_idx,
+			       int stack_start_idx, char *expr) {
+  int arg_idx, fn_idx;
+  CFUNC *cfn;
+
+  if ((arg_idx = obj_expr_is_arg (messages, start_idx,
+				  stack_start_idx, &fn_idx))
+      != ERROR) {
+    if ((cfn = get_function (M_NAME(messages[fn_idx]))) != NULL) {
+      fileout  (fn_param_return_trans
+		(messages[fn_idx], cfn, expr, arg_idx),
+		0, start_idx);
+      return true;
+    }
+  }
+  return false;
 }
 
 char *rt_expr (MESSAGE_STACK messages, int start_idx, int *end_idx,
@@ -426,7 +446,10 @@ char *rt_expr (MESSAGE_STACK messages, int start_idx, int *end_idx,
       }
     }
   }
-  fileout (expr_out, 0, start_idx);
+
+  if (!rte_output_fn_arg (messages, start_idx, stack_start_idx, expr_out)) {
+    fileout (expr_out, 0, start_idx);
+  }
   if (have_cvar_registration) {
     output_delete_cvars_call (messages, *end_idx, stack_top_idx);
   }
@@ -1087,7 +1110,6 @@ void rt_obj_arg (MESSAGE_STACK messages,
  *  of a C function.  Called by resolve.
  */
 void param_to_fn_arg (MESSAGE_STACK messages, int arg_start_idx) {
-  int arg_idx, fn_idx;
   METHOD *method;
   int n_th_param, match_param, max_param;
   char expr_buf[MAXMSG];
@@ -1133,21 +1155,10 @@ void param_to_fn_arg (MESSAGE_STACK messages, int arg_start_idx) {
     fmt_eval_expr_str (M_NAME(messages[arg_start_idx]), expr_buf);
   }
 
-  if ((arg_idx =
-         obj_expr_is_arg (messages, arg_start_idx,
-  			stack_start (messages),
-  			&fn_idx)) != ERROR) {
-    CFUNC *cfn;
-    if (param_is_c_param) {
-      fileout (expr_buf, 0, arg_start_idx);
-    } else {
-      if ((cfn = get_function (M_NAME(messages[fn_idx]))) != NULL) {
-	fileout  (fn_param_return_trans
-		  (messages[fn_idx], cfn, expr_buf, arg_idx),
-		  0, arg_start_idx);
-      }
-    }
-  } else {
+  if (param_is_c_param) {
+    fileout (expr_buf, 0, arg_start_idx);
+  } else if (!rte_output_fn_arg (messages, arg_start_idx,
+				 stack_start (messages), expr_buf)) {
     _warning ("Can't find self argument context in rt_self_arg.\n");
     fileout (expr_buf, 0, arg_start_idx);
   }
@@ -1649,6 +1660,8 @@ char *rt_self_expr (MESSAGE_STACK messages, int start_idx, int *end_idx,
     }
   }
  self_alone_trans:
+  /* TODO - Figure out if we can get rte_output_fn_arg to work
+     with this clause. */
   if ((arg_idx = 
        obj_expr_is_arg (messages, _RTSE_1ST_TOK, 
 			stack_start_idx,
@@ -3397,24 +3410,16 @@ int prefix_method_expr_a (MESSAGE_STACK messages, int prefix_idx,
 	  fmt_eval_expr_str (expr_buf, result_buf);
 	  __xfree (MEMADDR(expr_buf));
 
-	  if ((arg_idx =
-	       obj_expr_is_arg (messages, prefix_idx,
-				stack_start_idx,
-				&fn_idx)) != ERROR) {
-	    if ((cfn = get_function (M_NAME(messages[fn_idx]))) != NULL) {
-	      fileout (fn_param_return_trans (messages[fn_idx], 
-					      cfn, result_buf, arg_idx),
-		       0, obj_idx);
-	    } else {
-	      /* Works as a catch-all here, too in case there's
-		 an expression type not covered elsewhere. */
-	      fileout
-		(obj_2_c_wrapper_trans 
-		 (messages, prefix_idx, messages[prefix_idx],
-		  messages[obj_idx]->obj, prefix_method, 
-		  result_buf, TRUE),
-		 0, obj_idx);
-	    }
+	  if (!rte_output_fn_arg (messages, prefix_idx,
+				  stack_start_idx, result_buf)) {
+	    /* Works as a catch-all here, too in case there's
+	       an expression type not covered elsewhere. */
+	    fileout
+	      (obj_2_c_wrapper_trans 
+	       (messages, prefix_idx, messages[prefix_idx],
+		messages[obj_idx]->obj, prefix_method, 
+		result_buf, TRUE),
+	       0, obj_idx);
 	  } else {
 	    fileout
 	      (obj_2_c_wrapper_trans 

@@ -536,3 +536,8 @@
 	if the method call is a function argument (method.c).
 	- Updated X11Pane : mainWindow so that if the receiver is
 	class X11Pane, the method simply returns the reciever.
+2020-04-01
+	- In rt_expr, add a check for an expression that is a
+	function argument, and format an object-to-C translation.
+	Also placed similar clauses into rte_fn_output_arg
+	(rt_expr.c).
