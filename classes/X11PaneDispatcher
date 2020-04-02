@@ -1,4 +1,4 @@
-/* $Id: X11PaneDispatcher,v 1.53 2020/04/02 10:59:08 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11PaneDispatcher,v 1.54 2020/04/02 11:50:07 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -235,17 +235,18 @@ X11PaneDispatcher instanceMethod subPaneMove (Object __subPane,
    pane."
     X11Pane new mw;
 
-  mw = self mainWin;
+  printf ("subPaneMove!\n");
+
+  mw = self mainWindow;
   
   self origin x += __event xEventData1;
   self origin y += __event xEventData2;
 
-  mw origin x += __event xEventData1;
-  mw mainWin origin y += __event xEventData1;
+  self mainWindow origin x = __event xEventData1;
+  self mainWindow origin y = __event xEventData2;
 
-
-  XMoveWindow (mw displayPtr, mw xWindowID,
-	       mw origin x, mw origin y);
+  XMoveWindow (self mainWindow displayPtr, self mainWindow xWindowID,
+	       self mainWindow origin x, self mainWindow origin y);
 #if 0 /***/
   (X11Pane *)(*self container) origin x = self origin x;
   (X11Pane *)(*self container) origin y = self origin y;
@@ -487,6 +488,9 @@ X11PaneDispatcher instanceMethod handleSubPaneEvent (InputEvent __e) {
       }
       break;
     case MOVENOTIFY:
+      /****/
+      /* Needs better error description */
+      /* self handleMove self, __e; */
       self children map {
 	if (self handleMove value) {
 	  self methodObjectMessage self handleMove, self, __e;

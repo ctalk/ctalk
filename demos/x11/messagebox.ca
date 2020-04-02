@@ -23,14 +23,8 @@ int main (void) {
 
   mainWindow initialize 255, 200;
   mainWindow inputStream eventMask = 
-    EXPOSE|ENTERWINDOWNOTIFY|LEAVEWINDOWNOTIFY|BUTTONPRESS|BUTTONRELEASE|KEYPRESS|KEYRELEASE|WINDELETE;
+    EXPOSE|ENTERWINDOWNOTIFY|LEAVEWINDOWNOTIFY|BUTTONPRESS|BUTTONRELEASE|KEYPRESS|KEYRELEASE|WINDELETE|MOVENOTIFY;
 
-#if 0
-  messageBox foreground "red";
-   messageBox background "red";
-   /* messageBox backgroundColor = "red"; */
-#endif   
-    
   dispatcher attachTo mainWindow;
   button attachTo dispatcher, "110x50+73+100";
   label attachTo dispatcher, "177x80+34+15";
