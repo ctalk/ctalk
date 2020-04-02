@@ -1,4 +1,4 @@
-/* $Id: X11PaneDispatcher,v 1.51 2020/03/21 21:46:51 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11PaneDispatcher,v 1.53 2020/04/02 10:59:08 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -233,9 +233,20 @@ X11PaneDispatcher instanceMethod subPaneMove (Object __subPane,
 					      InputEvent __event) {
   "Dispatch a move event to the subpanes of the receiver
    pane."
+    X11Pane new mw;
+
+  mw = self mainWin;
+  
   self origin x += __event xEventData1;
   self origin y += __event xEventData2;
 
+  mw origin x += __event xEventData1;
+  mw mainWin origin y += __event xEventData1;
+
+
+  XMoveWindow (mw displayPtr, mw xWindowID,
+	       mw origin x, mw origin y);
+#if 0 /***/
   (X11Pane *)(*self container) origin x = self origin x;
   (X11Pane *)(*self container) origin y = self origin y;
 
@@ -249,6 +260,7 @@ X11PaneDispatcher instanceMethod subPaneMove (Object __subPane,
     __subPane origin x = 0;
     __subPane origin y = 0;
   }
+#endif  
   return NULL;
 }
 
