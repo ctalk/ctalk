@@ -14,7 +14,7 @@
 
 @SET_MAKE@
 
-# $Id: Makefile.in,v 1.26 2020/03/13 03:35:17 rkiesling Exp $
+# $Id: Makefile.in,v 1.28 2020/04/03 10:31:10 rkiesling Exp $
 
 VPATH = @srcdir@
 am__is_gnu_make = { \
@@ -370,7 +370,7 @@ HOST_CPU = @host_cpu@
 ACLOCAL_AMFLAGS = -I m4
 BINDIR = @bindir@
 SU = @su_path@
-noinst_HEADERS = $(top_builddir)/include/*.h
+noinst_HEADERS = $(top_builddir)/include/*.h $(top_builddir)/include/xpms/*.xpm
 EXTRA_DIST = $(top_builddir)/build/gccincdir.sh \
 	$(top_builddir)/test/* \
 	$(top_builddir)/test/expect/* $(top_builddir)/demos/* \
@@ -419,6 +419,7 @@ EXTRA_DIST = $(top_builddir)/build/gccincdir.sh \
 	$(top_builddir)/tools/template/Makefile \
 	$(top_builddir)/tools/searchlib/searchlib.ca \
 	$(top_builddir)/tools/searchlib/Makefile \
+	$(top_builddir)/include/xpms/*.xpm \
 	$(top_builddir)/doc/libdoc \
 	$(top_builddir)/doc/classlibdoc \
 	$(top_builddir)/doc/doctools/*

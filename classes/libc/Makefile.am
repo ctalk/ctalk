@@ -2,8 +2,8 @@
 
 SUBDIRS=
 
-pkgincludedir = $(includedir)/ctalk/libc
+pkgincludedir = $(includedir)/ctalk/libctalk
 
-pkginclude_HEADERS=a c d e f g l m p r s t x
+pkginclude_HEADERS=
 
 

@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.10 2020/03/10 23:35:32 rkiesling Exp $
+# $Id: Makefile.am,v 1.12 2020/04/03 10:31:10 rkiesling Exp $
 
 SUBDIRS=classes doc libctpp ctpp lib src 
 HOST_OS=@host_os@
@@ -7,7 +7,7 @@ ACLOCAL_AMFLAGS=-I m4
 BINDIR=@bindir@
 SU=@su_path@
 
-noinst_HEADERS=$(top_builddir)/include/*.h
+noinst_HEADERS=$(top_builddir)/include/*.h $(top_builddir)/include/xpms/*.xpm
 
 EXTRA_DIST=$(top_builddir)/build/gccincdir.sh \
 	$(top_builddir)/test/* \
@@ -57,6 +57,7 @@ EXTRA_DIST=$(top_builddir)/build/gccincdir.sh \
 	$(top_builddir)/tools/template/Makefile \
 	$(top_builddir)/tools/searchlib/searchlib.ca \
 	$(top_builddir)/tools/searchlib/Makefile \
+	$(top_builddir)/include/xpms/*.xpm \
 	$(top_builddir)/doc/libdoc \
 	$(top_builddir)/doc/classlibdoc \
 	$(top_builddir)/doc/doctools/*
