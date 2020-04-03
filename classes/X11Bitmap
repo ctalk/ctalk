@@ -1,4 +1,4 @@
-/* $Id: X11Bitmap,v 1.17 2020/03/06 02:13:14 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11Bitmap,v 1.18 2020/04/03 20:47:04 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -202,6 +202,49 @@ X11Bitmap instanceMethod putStr (Integer x, Integer y,
   __ctalkX11SetForegroundBasic (self displayPtr, self xID, self xGC, colorName);
   __ctalkX11UseFontBasic (self displayPtr, self xID, self xGC, font_desc);
   __ctalkX11PanePutStrBasic (self displayPtr, self xID, self xGC, x, y, s);
+}
+
+/* If changing these, also change in x11defs.h. */
+#define ICON_NONE      0
+#define ICON_STOP      1
+#define ICON_CAUTION   2
+#define ICON_INFO      3
+
+X11Bitmap instanceMethod icon (Integer iconID) {
+  "Draws an icon on the receiver with the ID given as the
+   argument.  Ctalk defines the following icon IDs:
+    ICON_NONE
+    ICON_STOP
+    ICON_CAUTION
+    ICON_INFO"
+    
+  __ctalkX11XPMFromData (self displayPtr, self xID, self xGC, 0, 0, 
+    __ctalkIconXPM (iconID));
+  return NULL;
+}
+
+X11Bitmap instanceMethod iconStop (void) {
+  "Draws a stop sign icon on the receiver."
+    
+  __ctalkX11XPMFromData (self displayPtr, self xID, self xGC, 0, 0, 
+    __ctalkIconXPM (ICON_STOP));
+  return NULL;
+}
+
+X11Bitmap instanceMethod iconCaution (void) {
+  "Draws a caution sign icon on the receiver."
+    
+  __ctalkX11XPMFromData (self displayPtr, self xID, self xGC, 0, 0, 
+    __ctalkIconXPM (ICON_CAUTION));
+  return NULL;
+}
+
+X11Bitmap instanceMethod iconInfo (void) {
+  "Draws an information icon on the receiver."
+    
+  __ctalkX11XPMFromData (self displayPtr, self xID, self xGC, 0, 0, 
+    __ctalkIconXPM (ICON_INFO));
+  return NULL;
 }
 
 X11Bitmap instanceMethod pixmapFromData (char **xpm_data) {

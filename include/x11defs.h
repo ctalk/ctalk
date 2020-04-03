@@ -1,4 +1,4 @@
-/* $Id: x11defs.h,v 1.20 2020/03/28 17:38:56 rkiesling Exp $ -*-c-*-*/
+/* $Id: x11defs.h,v 1.22 2020/04/03 20:47:05 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -270,5 +270,11 @@ typedef struct _dc {
 } DIALOG_C;
 
 #define DIALOG(d) (dpyrec && dpyrec -> mapped ? true : false)
+
+/* If changing these, also change in X11Bitmap class. */
+#define ICON_NONE      0
+#define ICON_STOP      1
+#define ICON_CAUTION   2
+#define ICON_INFO      3
 
 #endif /* _X11DEFS_H */

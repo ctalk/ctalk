@@ -830,6 +830,26 @@ make sure that an application has is receiving and
 processing events, using the openEventStream method in
 class X11Pane.
 
+>>>X11Bitmap::icon (int iconID)
+>>>X11Bitmap::iconStop (void)
+>>>X11Bitmap::iconCaution (void)
+>>>X11Bitmap::iconInfo (void)
+These methods draw a 64x64 dialog icon on the receiver's drawing
+surface.  In the case of the icon method, the iconID
+argument can be one of the following.
+
+---------------------------------------------------------
+  
+  ICON_NONE
+  ICON_STOP
+  ICON_CAUTION
+  ICON_INFO
+  
+---------------------------------------------------------
+
+All of these methods use the __ctalkX11XPMFromData library
+function to create the drawing.
+
 >>>X11Bitmap::putStr (Integer x, Integer y, String text)
 >>>X11Bitmap::putStr (Integer x, Integer y, String text, String font_desc)
 >>>X11Bitmap::putStr (Integer x, Integer y, String text, String font_desc, String colorName)

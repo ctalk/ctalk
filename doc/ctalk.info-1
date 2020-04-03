@@ -1378,6 +1378,24 @@ Instance Methods
      is receiving and processing events, using the 'openEventStream'
      method in class 'X11Pane'.
 
+'icon (int ICONID)'
+'iconStop (void)'
+'iconCaution (void)'
+'iconInfo (void)'
+     These methods draw a 64x64 dialog icon on the receiver's drawing
+     surface.  In the case of the 'icon' method, the ICONID argument can
+     be one of the following.
+
+
+          ICON_NONE
+          ICON_STOP
+          ICON_CAUTION
+          ICON_INFO
+
+
+     All of these methods use the '__ctalkX11XPMFromData' library
+     function to create the drawing.
+
 'putStr (Integer X, Integer Y, String TEXT)'
 'putStr (Integer X, Integer Y, String TEXT, String FONT_DESC)'
 'putStr (Integer X, Integer Y, String TEXT, String FONT_DESC, String COLORNAME)'

@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.129 2020/04/03 20:22:09 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.130 2020/04/03 20:47:05 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -1870,6 +1870,33 @@ Set the foreground color of the receiver.
 make sure that an application has is receiving and
 processing events, using the @mnm{openEventStream} method in
 class @code{X11Pane}.
+
+@cindex Icon, dialog
+@cindex Dialog icon
+@idxlibfn{__ctalkX11XPMFromData}
+@cindex @mnm{icon} instance method @idxclscite{X11Bitmap}
+@cindex @mnm{iconStop} instance method @idxclscite{X11Bitmap}
+@cindex @mnm{iconCaution} instance method @idxclscite{X11Bitmap}
+@cindex @mnm{iconInfo} instance method @idxclscite{X11Bitmap}
+@item @mnm{icon} (@code{int} @var{iconID})
+@item @mnm{iconStop} (@code{void})
+@item @mnm{iconCaution} (@code{void})
+@item @mnm{iconInfo} (@code{void})
+These methods draw a 64x64 dialog icon on the receiver's drawing
+surface.  In the case of the @mnm{icon} method, the @var{iconID}
+argument can be one of the following.
+
+@example
+
+ICON_NONE
+ICON_STOP
+ICON_CAUTION
+ICON_INFO
+
+@end example
+
+All of these methods use the @cite{__ctalkX11XPMFromData} library
+function to create the drawing.
 
 @cindex @mnm{putStr} instance method @idxclscite{X11Bitmap}
 @item @mnm{putStr} (@code{Integer} @var{x}, @code{Integer} @var{y}, @code{String} @var{text})
@@ -20314,6 +20341,8 @@ char *__ctalkHexIntegerToASCII (unsigned long long int ptr, char *buf)
 
 @end example
 
+@cindex Icon, dialog
+@cindex Dialog icon
 @idxlibfn{__ctalkIconXPM}
 @item __ctalkIconXPM (@code{int} @var{iconID})
 Returns a @code{char **} with the XPM data for the dialog icon given
