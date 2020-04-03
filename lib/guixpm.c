@@ -1,4 +1,4 @@
-/* $Id: guixpm.c,v 1.5 2020/02/29 10:21:16 rkiesling Exp $ -*-c-*-*/
+/* $Id: guixpm.c,v 1.6 2020/04/03 21:59:49 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -35,6 +35,7 @@
 #define SHM_BLKSIZE 10240  /* If changing, also change in x11lib.c, etc... */
 
 extern Display *display;   /* Defined in x11lib.c. */
+extern DIALOG_C *dpyrec;   /* Declared in xdialog.c. */
 extern char *shm_mem;
 extern int mem_id;
 
@@ -96,6 +97,8 @@ static char *__write_xpm_data (char **data) {
   return handle_path;
 }
 
+int __xlib_xpm_from_data (Display *, Drawable, GC, char *);
+
 int __ctalkX11XPMFromData (void *d, int drawable_id, 
 			   unsigned long int gc_ptr, 
 			   int x_org, int y_org,
@@ -118,8 +121,12 @@ int __ctalkX11XPMFromData (void *d, int drawable_id,
 	   ":", ctitoa (x_org, intbuf1),
 	   ":", ctitoa (y_org, intbuf2),
 	   ":", h, NULL);
-  make_req (shm_mem, d, PANE_XPM_FROM_DATA_REQUEST,
-   	    drawable_id, gc_ptr, d_buf);
+    if (DIALOG(d)) {
+      __xlib_xpm_from_data (d, drawable_id, (GC)gc_ptr, d_buf);
+    } else {
+      make_req (shm_mem, d, PANE_XPM_FROM_DATA_REQUEST,
+		drawable_id, gc_ptr, d_buf);
+    }
 
 #ifdef GRAPHICS_WRITE_SEND_EVENT
   send_event.xgraphicsexpose.type = GraphicsExpose;

@@ -47,8 +47,8 @@ int main () {
   xTopLevelPane attachTo xPane;
   xCanvasPane attachTo xTopLevelPane;
 
-  srcBitmap create xCanvasPane xWindowID, XPM_WIDTH, XPM_HEIGHT, 
-    xCanvasPane depth;
+  srcBitmap create xCanvasPane displayPtr, xCanvasPane xWindowID,
+    XPM_WIDTH, XPM_HEIGHT, xCanvasPane depth;
 
   xPane map;
   xPane raiseWindow;
@@ -61,10 +61,12 @@ int main () {
 #ifdef TEST_INSTANCEVAR_EXPRS
   /* These are still here in case we want to test instancevar
      expressions as function arguments. */
-  __ctalkX11CopyPixmapBasic (xCanvasPane xWindowID, xCanvasPane xGC,
+  __ctalkX11CopyPixmapBasic (xCanvasPane displayPtr,
+			     xCanvasPane xWindowID, xCanvasPane xGC,
 			     srcBitmap xID, 0, 0, 
 			     XPM_WIDTH, XPM_HEIGHT, 0, 0);
-  __ctalkX11CopyPixmapBasic (xCanvasPane xWindowID, xCanvasPane xGC,
+  __ctalkX11CopyPixmapBasic (xCanvasPane displayPtr,
+			     xCanvasPane xWindowID, xCanvasPane xGC,
 			     srcBitmap xID, 0, 0, 
 			     XPM_WIDTH, XPM_HEIGHT, 25, 25);
 #else
@@ -87,10 +89,12 @@ int main () {
         case RESIZENOTIFY:
 #ifdef TEST_INSTANCEVAR_EXPRS
 	  /* ditto */
-	  __ctalkX11CopyPixmapBasic (xCanvasPane xWindowID, xCanvasPane xGC,
+	  __ctalkX11CopyPixmapBasic (xCanvasPane displayPtr,
+				     xCanvasPane xWindowID, xCanvasPane xGC,
 				     srcBitmap xID, 0, 0, 
 				     XPM_WIDTH, XPM_HEIGHT, 0, 0);
-	  __ctalkX11CopyPixmapBasic (xCanvasPane xWindowID, xCanvasPane xGC,
+	  __ctalkX11CopyPixmapBasic (xCanvasPane displayPtr,
+				     xCanasPane xWindowID, xCanvasPane xGC,
 				     srcBitmap xID, 0, 0, X
 				     PM_WIDTH, XPM_HEIGHT, 25, 25);
 #else
