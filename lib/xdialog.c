@@ -114,8 +114,7 @@ int __ctalkX11CreateDialogWindow (OBJECT *self_object) {
   XSetWindowAttributes set_attributes;
   XGCValues gcv;
   GC gc;
-  OBJECT *displayPtr, *mainWinID, *mainWinGeom, *mainWinPtr,
-    *mainWin;
+  OBJECT *displayPtr, *mainWinPtr, *mainWin;
   XWMHints wm_hints;
   XSizeHints *size_hints;
   char buf[MAXLABEL];
@@ -134,8 +133,6 @@ int __ctalkX11CreateDialogWindow (OBJECT *self_object) {
 					     "displayPtr", TRUE);
     SYMVAL(displayPtr -> instancevars -> __o_value) = (uintptr_t)dpyrec -> d_p;
   }
-  mainWinID = __ctalkPaneResource (self_object, "mainWindowID", true);
-  mainWinGeom = __ctalkPaneResource (self_object, "mainWindowGeometry", true);
   mainWinPtr = __ctalkGetInstanceVariable (self_object,
 					   "mainWindowPtr", TRUE);
   mainWin = *(OBJECT **)mainWinPtr -> instancevars -> __o_value;
@@ -144,7 +141,10 @@ int __ctalkX11CreateDialogWindow (OBJECT *self_object) {
   set_attributes.backing_store = Always;
   set_attributes.save_under = true;
 
-  dialog_xy_from_parent (self_object, mainWin, &x_org, &y_org);
+  x_org = __pane_x_org (self_object);
+  y_org = __pane_y_org (self_object);
+  if (x_org == DIM_UNDEF || y_org == DIM_UNDEF) 
+    dialog_xy_from_parent (self_object, mainWin, &x_org, &y_org);
   x_size = __pane_x_size (self_object);
   y_size = __pane_y_size (self_object);
 

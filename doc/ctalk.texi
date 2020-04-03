@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.125 2020/04/02 20:07:21 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.127 2020/04/03 09:35:20 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -13238,6 +13238,8 @@ system's display, control posititioning and rendering of
 subpanes within the main pane, and help communicate events
 between the main window's pane and the subwindows' panes.
 
+@cindex Window geometry
+@cindex Geometry, windows
 The positioning of subwindows within the parent window is controlled
 by the arguments to the @mnm{attachTo} methods; in particular, these
 methods accept a geometry specification, as an argument, which has
@@ -13245,13 +13247,17 @@ the following format.
 
 @example
 
-width[%]xheight[%]+x[%]+y[%]
+width[%]xheight[%][+x[%]+y[%]]
 
 @end example
 
 If a dimension does not contain a percent (@samp{%}) sign, the dimensions
 are in pixels.  With a percent sign, the dimensions are a fractional
 percentage of the parent pane's width or height.
+
+Also, for some @code{Pane} classes, like dialog windows, if the geometry
+does not include the @emph{x} and @emph{y} dimensions, then the class
+positions the window centered over its parent window.
 
 The @code{X11PaneDispatcher} method @mnm{new} creates a X
 window, although the window of the @code{X11PaneDispatcher}
@@ -20241,6 +20247,8 @@ other visual types, like pixmaps, use
 __ctalkX11SetBackgroundBasic.
 
 @idxlibfn{__ctalkX11SubWindowGeometry}
+@cindex Window geometry
+@cindex Geometry, windows
 @item __ctalkX11SubWindowGeometry (@code{OBJECT *} @var{parentpane}, @code{char *} @var{geomstr}, @code{int *}@var{x_out}, @code{int *}@var{y_out}, @code{int *}@code{width_out}, @code{int *}@var{height_out})
 Parses a string that contains the geometry specification of a
 subwindow, and returns the width and height of the subwindow and its
@@ -20250,7 +20258,7 @@ A geometry specification has the form:
 
 @example
 
-width[%]xheight[%]+x_org[%]+y_org[%]
+width[%]xheight[%][+x_org[%]+y_org[%]]
 
 @end example
 
@@ -20259,6 +20267,10 @@ actual origin and size of the subwindow, unless a parameter is
 followed by a percent sign (@samp{%}).  In that case, the dimension is
 interpreted as a fraction of the parent window's corresponding
 vertical or horizontal dimension.
+
+For some @code{Pane} classes, like dialog windows, if @emph{x_org} and
+@emph{y_org} are missing, then the class positions the dialog window
+centered over the parent window.
 
 @idxlibfn{__ctalkX11TextFromData}
 @item __ctalkX11TextFromData (@code{void *}@var{display}, @code{int} @var{drawable_id}, @code{int} @var{GD_ptr}, @code{char *}@var{text})

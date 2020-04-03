@@ -1,4 +1,4 @@
-/* $Id: X11MessageBoxPane,v 1.67 2020/04/02 20:07:21 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11MessageBoxPane,v 1.68 2020/04/03 09:13:20 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -61,7 +61,6 @@ X11MessageBoxPane instanceMethod new (String paneName) {
   paneName resources atPut "pad", 10;
   paneName resources atPut "messageText", "Your\nMessage\nHere";
   paneName resources atPut "buttonText", "Ok";
-  /* The mainWindowID and mainWindowGeometry resources are added in attachTo */
 
   return paneName;
 }
@@ -99,7 +98,6 @@ X11MessageBoxPane instanceMethod attachTo (X11Pane parentPane,
   specification like, '300x200', i.e., without the x and
   y origins, is okay - the Ctalk libraries center the
   message box above the parent window."
-  X11Pane new mainWin;
   X11Bitmap new xPaneBuffer;
   X11Bitmap new xPaneBackingStore;
   String new parentGeometry;
@@ -107,7 +105,6 @@ X11MessageBoxPane instanceMethod attachTo (X11Pane parentPane,
   unsigned int mainWinID;
   
   self displayPtr = self mainWindow displayPtr;
-  mainWin become parentPane mainWindow;
 
   self container = parentPane;
   self paneBuffer become xPaneBuffer;
@@ -126,18 +123,18 @@ X11MessageBoxPane instanceMethod attachTo (X11Pane parentPane,
   self mainWindowPtr = parentPane mainWindow;
 
   if (!self foregroundColor) {
-    if (mainWin foregroundColor)
-      self foregroundColor = mainWin foregroundColor;
+    if (parentPane mainWindow foregroundColor)
+      self foregroundColor = parentPane mainWindow foregroundColor;
   }
   if (!self backgroundColor) {
-    if (mainWin backgroundColor)
-      self backgroundColor = mainWin backgroundColor;
+    if (parentPane mainWindow backgroundColor)
+      self backgroundColor = parentPane mainWindow backgroundColor;
   }
 
-  if (mainWin ftFontVar libIsInitialized) {
-    self ftFontVar become mainWin ftFontVar;
-  } else if (mainWin fontVar fontId != 0) {
-    self fontVar become mainWin fontVar;
+  if (parentPane mainWindow ftFontVar libIsInitialized) {
+    self ftFontVar become parentPane mainWindow ftFontVar;
+  } else if (parentPane mainWindow fontVar fontId != 0) {
+    self fontVar become parentPane mainWindow fontVar;
   } else {
     self font "fixed";
   }

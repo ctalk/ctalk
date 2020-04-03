@@ -1727,12 +1727,16 @@ accept a geometry specification, as an argument, which has the following
 format.
 
 
-     width[%]xheight[%]+x[%]+y[%]
+     width[%]xheight[%][+x[%]+y[%]]
 
 
 If a dimension does not contain a percent ('%') sign, the dimensions are
 in pixels.  With a percent sign, the dimensions are a fractional
 percentage of the parent pane's width or height.
+
+Also, for some 'Pane' classes, like dialog windows, if the geometry does
+not include the _x_ and _y_ dimensions, then the class positions the
+window centered over its parent window.
 
 The 'X11PaneDispatcher' method 'new' creates a X window, although the
 window of the 'X11PaneDispatcher' itself is not normally visible, the
@@ -7596,7 +7600,7 @@ functions.
      A geometry specification has the form:
 
 
-          width[%]xheight[%]+x_org[%]+y_org[%]
+          width[%]xheight[%][+x_org[%]+y_org[%]]
 
 
      The _x, y, width, and height_ parameters are interpreted as the
@@ -7604,6 +7608,10 @@ functions.
      followed by a percent sign ('%').  In that case, the dimension is
      interpreted as a fraction of the parent window's corresponding
      vertical or horizontal dimension.
+
+     For some 'Pane' classes, like dialog windows, if _x_org_ and
+     _y_org_ are missing, then the class positions the dialog window
+     centered over the parent window.
 
 '__ctalkX11TextFromData (void *DISPLAY, int DRAWABLE_ID, int GD_PTR, char *TEXT)'
      Displays TEXT on DRAWABLE_ID.
