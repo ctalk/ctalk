@@ -1,4 +1,4 @@
-/* $Id: ctalklib.in,v 1.78 2020/03/28 16:14:07 rkiesling Exp $ -*-c-*-*/
+/* $Id: ctalklib.in,v 1.79 2020/04/03 20:10:02 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -870,6 +870,7 @@ extern OBJECT *__ctalkCallerPrintOnSelf (OBJECT *);
 extern OBJECT *__ctalkCCharPtrToObj (char *);
 extern char   *__ctalkClassLibraryPath (void);
 extern void __ctalkConsoleReadLine (OBJECT *, char *);
+extern char **__ctalkIconXPM (int);
 extern char   *__ctalkInstallPrefix (void);
 extern char   *__ctalkClassSearchPath (void);
 extern ARG *__ctalkCreateArgEntry (void);

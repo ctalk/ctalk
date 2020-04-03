@@ -33,6 +33,9 @@
 #include "object.h"
 #include "message.h"
 #include "ctalk.h"
+#include "xpms/info64x64.xpm"
+#include "xpms/stop64x64.xpm"
+#include "xpms/warning64x64.xpm"
 
 #if ! defined (DJGPP) && ! defined (WITHOUT_X11)
 #include "x11defs.h"
@@ -223,6 +226,28 @@ int __ctalkCloseX11DialogPane (OBJECT *self) {
   return SUCCESS;
 }
 
+char **__ctalkIconXPM (int icon_id) {
+  switch (icon_id) {
+  case ICON_NONE:
+    return (char **)NULL;
+    break;
+  case ICON_STOP:
+    return stop64x64_xpm;
+    break;
+  case ICON_CAUTION:
+    return warning64x64_xpm;
+    break;
+  case ICON_INFO:
+    return info64x64_xpm;
+    break;
+  default:
+    _warning ("ctalk: Unknown dialog icon ID: %d.\n", icon_id);
+    return (char **)NULL;
+    break;
+  } 
+  return (char **)NULL;
+}
+
 #else /* ! defined (DJGPP) && ! defined (WITHOUT_X11) */
 
 int __ctalkX11CreateDialogWindow (OBJECT *self_object) {
@@ -235,6 +260,10 @@ int __ctalkCloseX11DialogPane (OBJECT *self) {
 }
 
 void __enable_dialog (OBJECT *self) {
+  x_support_error ();
+}
+
+char **__ctalkIconXPM (int icon_id) {
   x_support_error ();
 }
 

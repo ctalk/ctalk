@@ -7649,6 +7649,17 @@ functions.
           char *__ctalkHexIntegerToASCII (unsigned long long int ptr, char *buf)
 
 
+'__ctalkIconXPM (int ICONID)'
+     Returns a 'char **' pointing to the XPM data for the dialog icon
+     given by ICONID.  The library defines the following icon IDs.
+
+
+          ICON_NONE
+          ICON_STOP
+          ICON_CAUTION
+          ICON_INFO
+
+
 '__ctalkIgnoreSignal (int SIGNO)'
      Set the handler for SIGNO to ignore the signal.
 
