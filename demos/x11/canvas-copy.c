@@ -15,7 +15,7 @@ X11CanvasPane instanceMethod drawXPMs (X11Bitmap xpmBitmap) {
   Integer new i;
   for (i = 0; i < 5; i++) {
 #ifdef TEST_INSTANCEVAR_EXPRS
-    __ctalkX11CopyPixmapBasic (self xWindowID, self xGC,
+    __ctalkX11CopyPixmapBasic (self displayPtr, self xWindowID, self xGC,
 			       xpmBitmap xID, 0, 0, XPM_WIDTH, XPM_HEIGHT, 
 			       (i *40), (i * 40));
 #else
