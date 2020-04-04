@@ -1,4 +1,4 @@
-/* $Id: xcircle.c,v 1.5 2020/02/29 10:21:16 rkiesling Exp $ -*-c-*-*/
+/* $Id: xcircle.c,v 1.6 2020/04/04 16:13:43 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -35,6 +35,7 @@
 #include <X11/Xutil.h>
 
 extern Display *display;   /* Defined in x11lib.c. */
+extern DIALOG_C *dpyrec;   /* Declared in xdialog.c. */
 extern char *shm_mem;
 extern int mem_id;
 
@@ -66,6 +67,8 @@ int __ctalkGUIPaneDrawCircleBasic (void *d, int drawable_id,
 }
 #else /* X11LIB_FRAME */
 
+int __xlib_draw_circle (Display *d, Drawable, GC, char *);
+
 int __ctalkX11PaneDrawCircleBasic (void *d, int drawable_id,
 				   unsigned long int gc_ptr,
 				   int x_center, int y_center,
@@ -92,8 +95,12 @@ int __ctalkX11PaneDrawCircleBasic (void *d, int drawable_id,
 	   ":", ctitoa ((unsigned int)alpha, alphabuf),
 	   ":", pen_color, ":", bg_color, NULL);
 
-  make_req (shm_mem, d, PANE_DRAW_CIRCLE_REQUEST,
-   	    drawable_id, gc_ptr, d_buf);
+  if (DIALOG(d)) {
+    __xlib_draw_circle (d, drawable_id, (GC)gc_ptr, d_buf);
+  } else {
+    make_req (shm_mem, d, PANE_DRAW_CIRCLE_REQUEST,
+	      drawable_id, gc_ptr, d_buf);
+  }
 
 #ifdef GRAPHICS_WRITE_SEND_EVENT
   send_event.xgraphicsexpose.type = GraphicsExpose;

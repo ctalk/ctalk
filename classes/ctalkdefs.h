@@ -1,4 +1,4 @@
-/* $Id: ctalkdefs.h,v 1.2 2020/01/11 03:27:30 rkiesling Exp $ -*-C-*-*/
+/* $Id: ctalkdefs.h,v 1.3 2020/04/04 13:32:59 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -320,6 +320,16 @@ int memcmp(const void *s1, const void *s2, size_t n);
 #define LABEL_LEFT   1
 #define LABEL_CENTER 2
 #define LABEL_RIGHT  3
+
+/* If changing these, also change in x11defs.h, and any classes
+   that contain #defines for them. */
+#define ICON_NONE      0
+#define ICON_STOP      1
+#define ICON_CAUTION   2
+#define ICON_INFO      3
+
+#define ICON_WIDTH_PX  64
+#define ICON_HEIGHT_PX  64
 
 #define _CTALKDEFS_H_
 #endif /* #ifdef _CTALKDEFS_H_ */
