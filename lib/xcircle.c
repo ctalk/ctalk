@@ -1,8 +1,8 @@
-/* $Id: xcircle.c,v 1.6 2020/04/04 16:13:43 rkiesling Exp $ -*-c-*-*/
+/* $Id: xcircle.c,v 1.7 2020/04/04 16:49:43 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
-  Copyright © 2014-2016, 2018-2019  Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2014-2016, 2018-2020  Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
 
