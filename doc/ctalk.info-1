@@ -1346,6 +1346,13 @@ Instance Methods
 'delete (void)'
      Delete a pixmap and its graphics data.
 
+'drawCircle (Circle ACIRCLE, Integer FILLED, String BGCOLOR)'
+'drawCircle (Circle ACIRCLE, Pen APEN, Integer FILLED, String BGCOLOR)'
+     Draw the circle defined by ACIRCLE in the receiver's paneBuffer.
+     If FILLED is true, draws a filled circle.  If the APEN argument is
+     given, draws the circle with the color and the line width defined
+     by the 'aPen', and fills the interior of the circle with BGCOLOR.
+
 'drawLine (Integer XSTART, Integer YSTART, Integer XEND, Integer YEND, Pen APEN)'
 'drawLine (Line ALINE, Pen APEN)'
      Draw a point on the receiver's drawing surface between the points

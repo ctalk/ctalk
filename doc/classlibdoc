@@ -797,6 +797,14 @@ Create a X11Bitmap object and its graphics data.
 >>>X11Bitmap::delete (void)
 Delete a pixmap and its graphics data.
 
+>>>X11Bitmap::drawCircle (Circle aCircle, Integer filled, String bgColor)
+>>>X11Bitmap::drawCircle (Circle aCircle, Pen aPen, Integer filled, String bgColor)
+Draw the circle defined by aCircle in the receiver's paneBuffer.
+If filled is true, draws a filled circle.  If the aPen
+argument is given, draws the circle with the color and the line width
+defined by the aPen, and fills the interior of the circle with
+bgColor.
+
 >>>X11Bitmap::drawLine (Integer xStart, Integer yStart, Integer xEnd, Integer yEnd, Pen aPen)
 >>>X11Bitmap::drawLine (Line aLine, Pen aPen)
 Draw a point on the receiver's drawing surface between the points

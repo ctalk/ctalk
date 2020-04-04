@@ -1,4 +1,4 @@
-/* $Id: X11Bitmap,v 1.18 2020/04/03 20:47:04 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11Bitmap,v 1.19 2020/04/04 16:38:34 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -369,3 +369,20 @@ X11Bitmap instanceMethod drawLine (Line aLine, Pen aPen) {
   return NULL;
 }
 
+X11Bitmap instanceMethod drawCircle (Circle aCircle, Pen aPen,
+				     Integer filled,
+				     String fillColor) {
+  "Draw the circle specified by aCircle, with the color and line
+   width defined in aPen.  If filled is true, draws the circle
+   filled. If filled is false, the method fills the interior of
+   the circle with fillColor."
+  
+  __ctalkX11PaneDrawCircleBasic (self displayPtr, self xID, self xGC,
+				 aCircle center x, aCircle center y,
+				 aCircle radius, filled,
+				 aPen width,
+				 aPen alpha,
+				 aPen colorName,
+				 fillColor);
+}
+					 

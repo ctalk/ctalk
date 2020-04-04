@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.130 2020/04/03 20:47:05 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.131 2020/04/04 16:38:34 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -1829,6 +1829,15 @@ Create a X11Bitmap object and its graphics data.
 @cindex @mnm{delete} instance method @idxclscite{X11Bitmap}
 @item @mnm{delete} (@code{void})
 Delete a pixmap and its graphics data.
+
+@cindex @mnm{drawCircle} instance method @idxclscite{X11Bitmap}
+@item @mnm{drawCircle} (@code{Circle} @var{aCircle}, @code{Integer} @var{filled}, @code{String} @var{bgColor})
+@item @mnm{drawCircle} (@code{Circle} @var{aCircle}, @code{Pen} @var{aPen}, @code{Integer} @var{filled}, @code{String} @var{bgColor})
+Draw the circle defined by @var{aCircle} in the receiver's paneBuffer.
+If @var{filled} is true, draws a filled circle.  If the @var{aPen}
+argument is given, draws the circle with the color and the line width
+defined by the @code{aPen}, and fills the interior of the circle with
+@var{bgColor}.
 
 @cindex @mnm{drawLine} instance method @idxclscite{X11Bitmap}
 @item @mnm{drawLine} (@code{Integer} @var{xStart}, @code{Integer} @var{yStart}, @code{Integer} @var{xEnd}, @code{Integer} @var{yEnd}, @code{Pen} @var{aPen})
