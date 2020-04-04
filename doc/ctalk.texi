@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.131 2020/04/04 16:38:34 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.132 2020/04/04 17:38:04 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -14905,6 +14905,8 @@ the user clicks on the main window's button.
 @c demos/x11/messagebox.ca
 @example
 
+/* messagebox.ca - X11ButtonPane Demonstration */
+
 #include <ctalk/ctalkdefs.h>
 
 /* See the X11FreeTypeFont section of the the Ctalk reference. */
@@ -14928,16 +14930,12 @@ int main (void) @{
 
   mainWindow initialize 255, 200;
   mainWindow inputStream eventMask = 
-    EXPOSE|ENTERWINDOWNOTIFY|LEAVEWINDOWNOTIFY|BUTTONPRESS|BUTTONRELEASE|KEYPRESS|KEYRELEASE;
+    EXPOSE|ENTERWINDOWNOTIFY|LEAVEWINDOWNOTIFY|BUTTONPRESS|BUTTONRELEASE|KEYPRESS|KEYRELEASE|WINDELETE|MOVENOTIFY;
 
-    messageBox foreground "red";
-   messageBox background "red";
-   /* messageBox backgroundColor = "red"; */
-    
   dispatcher attachTo mainWindow;
   button attachTo dispatcher, "110x50+73+100";
   label attachTo dispatcher, "177x80+34+15";
-  messageBox attachTo dispatcher, "300x200+30+30";
+  messageBox attachTo dispatcher, "300x200";
 
   mainWindow map;
   mainWindow raiseWindow;
@@ -14957,6 +14955,9 @@ int main (void) @{
   button label multiLine "Open\nMessageBox";
 
   button label highlightBackgroundColor = "gray90";
+
+  /* Icon IDs, like ICON_INFO, are defined in ctalkdefs.h. */
+  messageBox resources replaceAt "iconID", ICON_INFO;
 
   button draw;
   button refresh;
@@ -14981,13 +14982,19 @@ int main (void) @{
 	  button subPaneExpose (button, e);
 	  label subPaneExpose (label, e);
 	  break;
-	case BUTTONPRESS:
+	case BUTTONRELEASE:
 	  if (button haveClick) @{
 	    button clearClick;
-	    button draw;
-	    button refresh;
-	    messageBox show;
 	  @}
+	  button highlight = false;
+	  button clicked = false;
+	  button draw;
+	  button refresh;
+	  messageBox show;
+	  break;
+	case WINDELETE:
+ 	  mainWindow deleteAndClose;
+	  exit (0);
 	  break;
 	@}
     @} else @{

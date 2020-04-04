@@ -1,4 +1,4 @@
-/* $Id: X11MessageBoxPane,v 1.68 2020/04/03 09:13:20 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11MessageBoxPane,v 1.81 2020/04/04 17:38:04 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -28,19 +28,22 @@
 
    backgroundColor      String    gray
    pad                  Integer   10
-   messageText          String    Your\Message\nHere
+   messageText          String    "Sample message text."
    buttonText           String    Ok
    geometry             String    <w>x<h>+<x>+<y>
-
+   iconID               Integer   0
+   
 */
 
 X11PaneDispatcher class X11MessageBoxPane;
 
 X11MessageBoxPane instanceVariable button X11ButtonPane NULL;
 X11MessageBoxPane instanceVariable label  X11LabelPane NULL;
+X11MessageBoxPane instanceVariable icon X11Bitmap NULL;
 X11MessageBoxPane instanceVariable initialized Boolean false;
 X11MessageBoxPane instanceVariable mainWindowPtr Symbol NULL;
 
+#include <ctalk/ctalkdefs.h>
 
 X11MessageBoxPane instanceMethod new (String paneName) {
   Method new exposeMethod, buttonPressMethod;
@@ -59,8 +62,10 @@ X11MessageBoxPane instanceMethod new (String paneName) {
 
   paneName resources atPut "backgroundColor", "gray";
   paneName resources atPut "pad", 10;
-  paneName resources atPut "messageText", "Your\nMessage\nHere";
+  paneName resources atPut "messageText", "Hello, messageBox!\nSample message text.";
+
   paneName resources atPut "buttonText", "Ok";
+  paneName resources atPut "iconID", 0;
 
   return paneName;
 }
@@ -165,6 +170,13 @@ X11MessageBoxPane instanceMethod draw (void) {
 
   self label draw;
   self button draw;
+
+  if (self resources at "iconID" > 0) {
+    self paneBuffer copy self icon, 0, 0, ICON_WIDTH_PX, ICON_HEIGHT_PX,
+      self resources at "pad",
+      ((self resources at "pad") + (self label size y / 2) -
+       (ICON_HEIGHT_PX / 2));
+  }
 }
 
 X11MessageBoxPane instanceMethod refresh (void) {
@@ -183,7 +195,53 @@ X11MessageBoxPane instanceMethod withdraw (void) {
   XFlush (self displayPtr);
 }
 
-extern Atom wm_delete_dialog;
+X11MessageBoxPane instanceMethod drawIcon (void) {
+  Circle new aCircle;
+  Pen new aPen;
+  self icon foreground "red";
+  self icon background self resources at "backgroundColor";
+  self icon clearRectangle 0, 0, ICON_WIDTH_PX, ICON_HEIGHT_PX;
+
+  aCircle center x = ICON_WIDTH_PX / 2;
+  aCircle center y = ICON_HEIGHT_PX / 2;
+  aCircle radius = (ICON_WIDTH_PX / 2) - 2;
+  aPen width = 3;
+  aPen alpha = 0xffff;
+
+  switch (self resources at "iconID")
+    {
+    case ICON_STOP:
+      aPen width = 4;
+      aPen colorName = "red";
+      self icon drawCircle aCircle, aPen, FALSE, "white";
+      aPen width = 7;
+      self icon drawLine ICON_WIDTH_PX - 10, 10,
+	10, ICON_HEIGHT_PX - 10, aPen;
+      break;
+    case ICON_CAUTION:
+      aPen width = 4;
+      aPen colorName = "black";
+      self icon drawCircle aCircle, aPen, FALSE, "yellow";
+      aPen width = 7;
+      self icon drawLine ICON_WIDTH_PX - 10, 10,
+	10, ICON_HEIGHT_PX - 10, aPen;
+      break;
+    case ICON_INFO:
+      aPen colorName = "white";
+      self icon drawCircle aCircle, aPen, FALSE,
+	self resources at "backgroundColor";
+      /* Draw an "i" */
+      aPen width = 7;
+      self icon drawLine ICON_WIDTH_PX / 2,
+	ICON_HEIGHT_PX / 2 - 10, ICON_WIDTH_PX / 2,
+	ICON_HEIGHT_PX - 10, aPen;
+      aPen width = 10;
+      self icon drawPoint ICON_WIDTH_PX / 2,
+	(ICON_HEIGHT_PX / 2) - 18,
+	aPen;
+      break;
+    }
+}
 
 X11MessageBoxPane instanceMethod initWidgets (void) {
   "Initialize the message box's button and label widgets.  The
@@ -198,13 +256,13 @@ X11MessageBoxPane instanceMethod initWidgets (void) {
 
   X11ButtonPane new l_button;
   X11LabelPane new l_label;
-
-  if (self initialized)
-    return NULL;
-
+  X11Bitmap new l_icon;
   Integer new usable_height, usable_width, padInt, label_width_px,
     label_height_px, label_x_px, label_y_px, button_y_px;
   String new geomspec;
+
+  if (self initialized)
+    return NULL;
 
   padInt = self resources at "pad";
 
@@ -214,6 +272,11 @@ X11MessageBoxPane instanceMethod initWidgets (void) {
   label_height_px = usable_height * .8 - (padInt / 2);
   label_x_px = padInt;
   label_y_px = padInt;
+
+  if (self resources at "iconID" > 0) {
+    label_x_px += ICON_WIDTH_PX + (padInt * 2);
+    label_width_px -= (ICON_WIDTH_PX + (padInt * 2));
+  }
 
   geomspec printOn "%dx%d+%d+%d", label_width_px, label_height_px,
     label_x_px, label_y_px;
@@ -235,10 +298,18 @@ X11MessageBoxPane instanceMethod initWidgets (void) {
 
   self button label text (self resources at "buttonText");
 
+  if (self resources at "iconID" > 0) {
+    l_icon create self displayPtr, self paneBuffer xID,
+      ICON_WIDTH_PX, ICON_HEIGHT_PX, self paneBuffer depth;
+    self icon become l_icon;
+    self drawIcon;
+  }
+
   self initialized = true;
 
 }
 
+extern Atom wm_delete_dialog;
 extern void __enable_dialog (OBJECT *);
 
 X11MessageBoxPane instanceMethod show (void) {
