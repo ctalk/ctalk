@@ -1,4 +1,4 @@
-/* $Id: guidrawpoint.c,v 1.5 2020/02/29 10:21:16 rkiesling Exp $ -*-c-*-*/
+/* $Id: guidrawpoint.c,v 1.6 2020/04/04 16:49:43 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -39,6 +39,7 @@
 #include "x11defs.h"
 
 extern Display *display;   /* Defined in x11lib.c. */
+extern DIALOG_C *dpyrec;   /* Declared in xdialog.c. */
 extern char *shm_mem;
 extern int mem_id;
 
@@ -60,6 +61,9 @@ int __ctalkX11PaneDrawPointBasic (void *, dint drawable_id,
   return SUCCESS;
 }
 #else /* X11LIB_FRAME */
+
+int __xlib_draw_point (Display *, Drawable, GC, char *);
+
 int __ctalkX11PaneDrawPointBasic (void *d, int drawable_id,
 				  unsigned long int gc_ptr,
 				  int x_center, int y_center,
@@ -85,8 +89,12 @@ int __ctalkX11PaneDrawPointBasic (void *d, int drawable_id,
 	   ":", pen_color,
 	   NULL);
   
-  make_req (shm_mem, d, PANE_DRAW_POINT_REQUEST,
-   	    drawable_id, gc_ptr, d_buf);
+  if (DIALOG(d)) {
+    __xlib_draw_point (d, drawable_id, (GC)gc_ptr, d_buf);
+  } else {
+    make_req (shm_mem, d, PANE_DRAW_POINT_REQUEST,
+	      drawable_id, gc_ptr, d_buf);
+  }
 #ifdef GRAPHICS_WRITE_SEND_EVENT
   send_event.xgraphicsexpose.type = GraphicsExpose;
   send_event.xgraphicsexpose.send_event = True;
