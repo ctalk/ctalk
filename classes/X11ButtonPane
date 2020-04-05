@@ -1,4 +1,4 @@
-/* $Id: X11ButtonPane,v 1.29 2020/03/21 11:18:09 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11ButtonPane,v 1.30 2020/04/05 15:24:17 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -301,6 +301,8 @@ X11ButtonPane instanceMethod subPaneLeave (Object __subPane,
 					  InputEvent __event) {
   if (__subPane canFocus) {
     __subPane label highlight = false;
+    if (self clicked)
+      self clicked = false;
     __subPane draw;
     __subPane refresh;
   }
