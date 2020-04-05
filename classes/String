@@ -1,4 +1,4 @@
-/* $Id: String,v 1.16 2020/01/01 01:44:00 rkiesling Exp $ -*-c-*- */
+/* $Id: String,v 1.18 2020/04/05 15:13:01 rkiesling Exp $ -*-c-*- */
 
 /*
   This file is part of Ctalk.
@@ -415,6 +415,8 @@ String instanceMethod split (char delimiter, char **resultArray) {
     }
 
     if (start < rcvr_length) {
+      /* This also takes care of the case where the receiver
+	 doesn't contain the delimiter. */
       substrcpy (elem_buf, buf, start, idx - start);
       resultArray atPut nItems, elem_buf;
       ++nItems;
@@ -432,7 +434,11 @@ String instanceMethod split (char delimiter, char **resultArray) {
     (void)__ctalkMatchText (delimiter value, self value, matches);
 
     matchlength = __ctalkLastMatchLength ();
-    if (matches[0] != 0) {
+    if (matches[0] == -1) {
+      /* The String receiver doesn't contain the delimeter. */
+      resultArray atPut 0, self;
+      nItems = 1;
+    } else if (matches[0] != 0) {
       substrcpy (buf, self_object -> __o_value, 0, matches[0]);
       resultArray atPut 0, buf;
       nItems = 1;

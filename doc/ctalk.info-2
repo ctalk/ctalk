@@ -3144,6 +3144,8 @@ object, and then opens it when the user clicks on the main window's
 button.
 
 
+     /* messagebox.ca - X11ButtonPane Demonstration */
+
      #include <ctalk/ctalkdefs.h>
 
      /* See the X11FreeTypeFont section of the the Ctalk reference. */
@@ -3167,16 +3169,12 @@ button.
 
        mainWindow initialize 255, 200;
        mainWindow inputStream eventMask =
-         EXPOSE|ENTERWINDOWNOTIFY|LEAVEWINDOWNOTIFY|BUTTONPRESS|BUTTONRELEASE|KEYPRESS|KEYRELEASE;
-
-         messageBox foreground "red";
-        messageBox background "red";
-        /* messageBox backgroundColor = "red"; */
+         EXPOSE|ENTERWINDOWNOTIFY|LEAVEWINDOWNOTIFY|BUTTONPRESS|BUTTONRELEASE|KEYPRESS|KEYRELEASE|WINDELETE|MOVENOTIFY;
 
        dispatcher attachTo mainWindow;
        button attachTo dispatcher, "110x50+73+100";
        label attachTo dispatcher, "177x80+34+15";
-       messageBox attachTo dispatcher, "300x200+30+30";
+       messageBox attachTo dispatcher, "300x200";
 
        mainWindow map;
        mainWindow raiseWindow;
@@ -3196,6 +3194,9 @@ button.
        button label multiLine "Open\nMessageBox";
 
        button label highlightBackgroundColor = "gray90";
+
+       /* Icon IDs, like ICON_INFO, are defined in ctalkdefs.h. */
+       messageBox resources replaceAt "iconID", ICON_INFO;
 
        button draw;
        button refresh;
@@ -3220,13 +3221,19 @@ button.
      	  button subPaneExpose (button, e);
      	  label subPaneExpose (label, e);
      	  break;
-     	case BUTTONPRESS:
+     	case BUTTONRELEASE:
      	  if (button haveClick) {
      	    button clearClick;
-     	    button draw;
-     	    button refresh;
-     	    messageBox show;
      	  }
+     	  button highlight = false;
+     	  button clicked = false;
+     	  button draw;
+     	  button refresh;
+     	  messageBox show;
+     	  break;
+     	case WINDELETE:
+      	  mainWindow deleteAndClose;
+     	  exit (0);
      	  break;
      	}
          } else {
