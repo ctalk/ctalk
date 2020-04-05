@@ -1,4 +1,4 @@
-/* $Id: X11Bitmap,v 1.19 2020/04/04 16:38:34 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11Bitmap,v 1.20 2020/04/05 19:59:02 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -44,6 +44,7 @@ X11Bitmap instanceVariable width Integer 0;
 X11Bitmap instanceVariable height Integer 0;
 X11Bitmap instanceVariable depth Integer 0;
 X11Bitmap instanceVariable modal Boolean false;
+/* X11Bitmap instanceVariable backgroundColor String "black"; *//***/
 
 X11Bitmap instanceMethod create (Symbol displayPtr,
 				 Integer parentDrawable,
@@ -136,6 +137,9 @@ X11Bitmap instanceMethod background (String color) {
   "Set the background color of the receiver to the argument,
   a String."
     __ctalkX11SetBackgroundBasic (self  displayPtr, self xID, self xGC, color);
+#if 0 /***/
+  self backgroundColor = color;
+#endif  
   self clear;
 }
 
@@ -204,11 +208,6 @@ X11Bitmap instanceMethod putStr (Integer x, Integer y,
   __ctalkX11PanePutStrBasic (self displayPtr, self xID, self xGC, x, y, s);
 }
 
-/* If changing these, also change in x11defs.h. */
-#define ICON_NONE      0
-#define ICON_STOP      1
-#define ICON_CAUTION   2
-#define ICON_INFO      3
 
 X11Bitmap instanceMethod icon (Integer iconID) {
   "Draws an icon on the receiver with the ID given as the
@@ -218,33 +217,69 @@ X11Bitmap instanceMethod icon (Integer iconID) {
     ICON_CAUTION
     ICON_INFO"
     
-  __ctalkX11XPMFromData (self displayPtr, self xID, self xGC, 0, 0, 
+#if 0 /***/
+    __ctalkX11XPMFromData (self displayPtr, self xID, self xGC, 0, 0, 
     __ctalkIconXPM (iconID));
+#endif  
   return NULL;
 }
 
 X11Bitmap instanceMethod iconStop (void) {
-  "Draws a stop sign icon on the receiver."
+  "Draws a stop icon on the receiver's drawing surface."
+  Circle new aCircle;
+  Pen new aPen;
     
-  __ctalkX11XPMFromData (self displayPtr, self xID, self xGC, 0, 0, 
-    __ctalkIconXPM (ICON_STOP));
+  aCircle center x = ICON_WIDTH_PX / 2;
+  aCircle center y = ICON_HEIGHT_PX / 2;
+  aCircle radius = (ICON_WIDTH_PX / 2) - ICON_BORDER_PX;
+  aPen width = 4;
+  aPen alpha = 0xffff;
+  aPen colorName = "red";
+  self icon drawCircle aCircle, aPen, FALSE, "white";
+  aPen width = 7;
+  self icon drawLine ICON_WIDTH_PX - 10, 10,
+    10, ICON_HEIGHT_PX - 10, aPen;
   return NULL;
 }
 
 X11Bitmap instanceMethod iconCaution (void) {
-  "Draws a caution sign icon on the receiver."
+  "Draws a caution icon on the receiver."
+  Circle new aCircle;
+  Pen new aPen;
+
+  aCircle center x = ICON_WIDTH_PX / 2;
+  aCircle center y = ICON_HEIGHT_PX / 2;
+  aCircle radius = (ICON_WIDTH_PX / 2) - ICON_BORDER_PX;
+  aPen width = 4;
+  aPen alpha = 0xffff;
+  aPen colorName = "black";
     
-  __ctalkX11XPMFromData (self displayPtr, self xID, self xGC, 0, 0, 
-    __ctalkIconXPM (ICON_CAUTION));
+  self icon drawCircle aCircle, aPen, FALSE, "yellow";
+  aPen width = 7;
+  self icon drawLine ICON_WIDTH_PX - 10, 10,
+    10, ICON_HEIGHT_PX - 10, aPen;
   return NULL;
 }
 
 X11Bitmap instanceMethod iconInfo (void) {
   "Draws an information icon on the receiver."
-    
-  __ctalkX11XPMFromData (self displayPtr, self xID, self xGC, 0, 0, 
-    __ctalkIconXPM (ICON_INFO));
-  return NULL;
+  Circle new aCircle;
+  Pen new aPen;
+
+  aPen colorName = "white";
+  self icon drawCircle aCircle, aPen, FALSE,
+    self backgroundColor;
+    /* self resources at "backgroundColor"; */
+  /* Draw an "i" */
+  aPen width = 7;
+  self icon drawLine ICON_WIDTH_PX / 2,
+    ICON_HEIGHT_PX / 2 - 10, ICON_WIDTH_PX / 2,
+    ICON_HEIGHT_PX - 10, aPen;
+  aPen width = 10;
+  self icon drawPoint ICON_WIDTH_PX / 2,
+    (ICON_HEIGHT_PX / 2) - 18,
+    aPen;
+    return NULL;
 }
 
 X11Bitmap instanceMethod pixmapFromData (char **xpm_data) {

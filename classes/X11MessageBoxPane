@@ -1,4 +1,4 @@
-/* $Id: X11MessageBoxPane,v 1.81 2020/04/04 17:38:04 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11MessageBoxPane,v 1.82 2020/04/05 19:59:02 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -227,6 +227,8 @@ X11MessageBoxPane instanceMethod drawIcon (void) {
 	10, ICON_HEIGHT_PX - 10, aPen;
       break;
     case ICON_INFO:
+      self icon iconInfo;
+#if 0
       aPen colorName = "white";
       self icon drawCircle aCircle, aPen, FALSE,
 	self resources at "backgroundColor";
@@ -239,6 +241,7 @@ X11MessageBoxPane instanceMethod drawIcon (void) {
       self icon drawPoint ICON_WIDTH_PX / 2,
 	(ICON_HEIGHT_PX / 2) - 18,
 	aPen;
+#endif      
       break;
     }
 }

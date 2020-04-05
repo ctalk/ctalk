@@ -1,4 +1,4 @@
-/* $Id: ctalkdefs.h,v 1.3 2020/04/04 13:32:59 rkiesling Exp $ -*-C-*-*/
+/* $Id: ctalkdefs.h,v 1.4 2020/04/05 19:59:02 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -330,6 +330,9 @@ int memcmp(const void *s1, const void *s2, size_t n);
 
 #define ICON_WIDTH_PX  64
 #define ICON_HEIGHT_PX  64
+/* The distance between the edges of the bitmap and the icon's
+   drawing area. */
+#define ICON_BORDER_PX 2
 
 #define _CTALKDEFS_H_
 #endif /* #ifdef _CTALKDEFS_H_ */

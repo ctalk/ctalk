@@ -1,4 +1,4 @@
-/* $Id: primitives.c,v 1.4 2020/03/16 02:49:54 rkiesling Exp $ */
+/* $Id: primitives.c,v 1.5 2020/04/05 19:59:02 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -527,12 +527,16 @@ OBJECT *new_object (int method_msg_ptr) {
     switch (M_TOK(m))
       {
       case LABEL:
-	if (nth_arg > 0) {
-	  copy_arg_class (method -> args[0] -> obj,
-			  method -> args[nth_arg] -> obj);
+	/***/
+	if (IS_ARG(method -> args[nth_arg]) &&
+	    IS_OBJECT(method -> args[nth_arg] -> obj)) {
+	  if (nth_arg > 0) {
+	    copy_arg_class (method -> args[0] -> obj,
+			    method -> args[nth_arg] -> obj);
+	  }
+	  __new_object_internal (method_msg_ptr, i, nth_arg);
+	  ++nth_arg;
 	}
-	__new_object_internal (method_msg_ptr, i, nth_arg);
-	++nth_arg;
 	break;
       case  SEMICOLON:
 	goto new_object_done;
