@@ -566,5 +566,9 @@
 	(primitives.c).
 	- Added the X11Bitmap : backgroundColor instance variable,
 	set in X11Bitmap : background.
+	- Added a better warning message in eval_expr if we have a
+	method mismatch (rt_expr.c).
+	- Moved the actual icon drawing from X11MessageBoxPane : drawIcon
+	to the corresponding methods in X11Bitmap.
 
 

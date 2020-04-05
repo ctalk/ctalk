@@ -1,4 +1,4 @@
-/* $Id: X11Bitmap,v 1.20 2020/04/05 19:59:02 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11Bitmap,v 1.21 2020/04/05 20:44:07 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -44,7 +44,7 @@ X11Bitmap instanceVariable width Integer 0;
 X11Bitmap instanceVariable height Integer 0;
 X11Bitmap instanceVariable depth Integer 0;
 X11Bitmap instanceVariable modal Boolean false;
-/* X11Bitmap instanceVariable backgroundColor String "black"; *//***/
+X11Bitmap instanceVariable backgroundColor String "black";
 
 X11Bitmap instanceMethod create (Symbol displayPtr,
 				 Integer parentDrawable,
@@ -137,9 +137,7 @@ X11Bitmap instanceMethod background (String color) {
   "Set the background color of the receiver to the argument,
   a String."
     __ctalkX11SetBackgroundBasic (self  displayPtr, self xID, self xGC, color);
-#if 0 /***/
   self backgroundColor = color;
-#endif  
   self clear;
 }
 
@@ -217,10 +215,18 @@ X11Bitmap instanceMethod icon (Integer iconID) {
     ICON_CAUTION
     ICON_INFO"
     
-#if 0 /***/
-    __ctalkX11XPMFromData (self displayPtr, self xID, self xGC, 0, 0, 
-    __ctalkIconXPM (iconID));
-#endif  
+    switch (iconID)
+      {
+      case ICON_STOP:
+	self iconStop;
+	break;
+      case ICON_CAUTION:
+	self iconCaution;
+	break;
+      case ICON_INFO:
+	self iconInfo;
+	break;
+      }
   return NULL;
 }
 
@@ -235,9 +241,9 @@ X11Bitmap instanceMethod iconStop (void) {
   aPen width = 4;
   aPen alpha = 0xffff;
   aPen colorName = "red";
-  self icon drawCircle aCircle, aPen, FALSE, "white";
+  self drawCircle aCircle, aPen, FALSE, "white";
   aPen width = 7;
-  self icon drawLine ICON_WIDTH_PX - 10, 10,
+  self drawLine ICON_WIDTH_PX - 10, 10,
     10, ICON_HEIGHT_PX - 10, aPen;
   return NULL;
 }
@@ -254,9 +260,9 @@ X11Bitmap instanceMethod iconCaution (void) {
   aPen alpha = 0xffff;
   aPen colorName = "black";
     
-  self icon drawCircle aCircle, aPen, FALSE, "yellow";
+  self drawCircle aCircle, aPen, FALSE, "yellow";
   aPen width = 7;
-  self icon drawLine ICON_WIDTH_PX - 10, 10,
+  self drawLine ICON_WIDTH_PX - 10, 10,
     10, ICON_HEIGHT_PX - 10, aPen;
   return NULL;
 }
@@ -266,17 +272,21 @@ X11Bitmap instanceMethod iconInfo (void) {
   Circle new aCircle;
   Pen new aPen;
 
+  aCircle center x = ICON_WIDTH_PX / 2;
+  aCircle center y = ICON_HEIGHT_PX / 2;
+  aCircle radius = (ICON_WIDTH_PX / 2) - ICON_BORDER_PX;
+  aPen width = 5;
+  aPen alpha = 0xffff;
   aPen colorName = "white";
-  self icon drawCircle aCircle, aPen, FALSE,
+  self drawCircle aCircle, aPen, FALSE,
     self backgroundColor;
-    /* self resources at "backgroundColor"; */
   /* Draw an "i" */
   aPen width = 7;
-  self icon drawLine ICON_WIDTH_PX / 2,
+  self drawLine ICON_WIDTH_PX / 2,
     ICON_HEIGHT_PX / 2 - 10, ICON_WIDTH_PX / 2,
     ICON_HEIGHT_PX - 10, aPen;
   aPen width = 10;
-  self icon drawPoint ICON_WIDTH_PX / 2,
+  self drawPoint ICON_WIDTH_PX / 2,
     (ICON_HEIGHT_PX / 2) - 18,
     aPen;
     return NULL;

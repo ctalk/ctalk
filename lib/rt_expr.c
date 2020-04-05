@@ -1,4 +1,4 @@
-/* $Id: rt_expr.c,v 1.11 2020/02/17 22:40:47 rkiesling Exp $ */
+/* $Id: rt_expr.c,v 1.12 2020/04/05 20:44:07 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -2468,7 +2468,10 @@ OBJECT *eval_expr (char *s, OBJECT *recv_class, METHOD *method,
 			  }
 			have_method_fit:
 			  if (!(m -> attrs & RT_DATA_IS_CACHED_METHOD)) {
-			    _error ("method mismatch: %s\n", M_NAME(m));
+			    __warning_trace ();
+			    _error ("method mismatch: Method \"%s\":\n\n\t%s\n\n",
+				    M_NAME(m),
+				    expr_parsers[expr_parser_ptr] -> expr_str);
 			  }
 			}
 		      } else {

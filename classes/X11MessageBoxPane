@@ -1,4 +1,4 @@
-/* $Id: X11MessageBoxPane,v 1.82 2020/04/05 19:59:02 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11MessageBoxPane,v 1.83 2020/04/05 20:44:07 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -173,7 +173,7 @@ X11MessageBoxPane instanceMethod draw (void) {
 
   if (self resources at "iconID" > 0) {
     self paneBuffer copy self icon, 0, 0, ICON_WIDTH_PX, ICON_HEIGHT_PX,
-      self resources at "pad",
+      ((self resources at "pad") * 2),
       ((self resources at "pad") + (self label size y / 2) -
        (ICON_HEIGHT_PX / 2));
   }
@@ -196,6 +196,7 @@ X11MessageBoxPane instanceMethod withdraw (void) {
 }
 
 X11MessageBoxPane instanceMethod drawIcon (void) {
+#if 0
   Circle new aCircle;
   Pen new aPen;
   self icon foreground "red";
@@ -207,41 +208,34 @@ X11MessageBoxPane instanceMethod drawIcon (void) {
   aCircle radius = (ICON_WIDTH_PX / 2) - 2;
   aPen width = 3;
   aPen alpha = 0xffff;
+#endif  
 
   switch (self resources at "iconID")
     {
     case ICON_STOP:
+      self icon iconStop;
+#if 0
       aPen width = 4;
       aPen colorName = "red";
       self icon drawCircle aCircle, aPen, FALSE, "white";
       aPen width = 7;
       self icon drawLine ICON_WIDTH_PX - 10, 10,
 	10, ICON_HEIGHT_PX - 10, aPen;
+#endif      
       break;
     case ICON_CAUTION:
+      self icon iconCaution;
+#if 0
       aPen width = 4;
       aPen colorName = "black";
       self icon drawCircle aCircle, aPen, FALSE, "yellow";
       aPen width = 7;
       self icon drawLine ICON_WIDTH_PX - 10, 10,
 	10, ICON_HEIGHT_PX - 10, aPen;
+#endif      
       break;
     case ICON_INFO:
       self icon iconInfo;
-#if 0
-      aPen colorName = "white";
-      self icon drawCircle aCircle, aPen, FALSE,
-	self resources at "backgroundColor";
-      /* Draw an "i" */
-      aPen width = 7;
-      self icon drawLine ICON_WIDTH_PX / 2,
-	ICON_HEIGHT_PX / 2 - 10, ICON_WIDTH_PX / 2,
-	ICON_HEIGHT_PX - 10, aPen;
-      aPen width = 10;
-      self icon drawPoint ICON_WIDTH_PX / 2,
-	(ICON_HEIGHT_PX / 2) - 18,
-	aPen;
-#endif      
       break;
     }
 }
@@ -287,6 +281,7 @@ X11MessageBoxPane instanceMethod initWidgets (void) {
   l_label background self resources at "backgroundColor";
   l_label multiLine self resources at "messageText";
   l_label border = false;
+  l_label justify = LABEL_LEFT;
 
   self label become l_label;
 
@@ -304,6 +299,7 @@ X11MessageBoxPane instanceMethod initWidgets (void) {
   if (self resources at "iconID" > 0) {
     l_icon create self displayPtr, self paneBuffer xID,
       ICON_WIDTH_PX, ICON_HEIGHT_PX, self paneBuffer depth;
+    l_icon background self resources at "backgroundColor";
     self icon become l_icon;
     self drawIcon;
   }
