@@ -117,7 +117,7 @@ int __ctalkX11CreateDialogWindow (OBJECT *self_object) {
   XSetWindowAttributes set_attributes;
   XGCValues gcv;
   GC gc;
-  OBJECT *displayPtr, *mainWinPtr, *mainWin;
+  OBJECT *displayPtr, *mainWinPtr, *mainWin, *titleStr;
   XWMHints wm_hints;
   XSizeHints *size_hints;
   char buf[MAXLABEL];
@@ -140,6 +140,8 @@ int __ctalkX11CreateDialogWindow (OBJECT *self_object) {
 					   "mainWindowPtr", TRUE);
   mainWin = *(OBJECT **)mainWinPtr -> instancevars -> __o_value;
   
+  titleStr = __ctalkPaneResource (self_object, "titleText", TRUE);
+
   border_width = __x11_pane_border_width (self_object);
   set_attributes.backing_store = Always;
   set_attributes.save_under = true;
@@ -182,7 +184,10 @@ int __ctalkX11CreateDialogWindow (OBJECT *self_object) {
 
   __xlib_set_wm_name_prop 
     (dpyrec -> d_p, win_id, gc, 
+     titleStr -> instancevars -> __o_value);
+#if 0
      basename_w_extent(__argvFileName ()));
+#endif  
 
   __save_pane_to_vars (self_object, gc, win_id,
 		       DefaultDepth (dpyrec -> d_p, DefaultScreen (dpyrec -> d_p)));

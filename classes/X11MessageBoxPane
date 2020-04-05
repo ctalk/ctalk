@@ -1,4 +1,4 @@
-/* $Id: X11MessageBoxPane,v 1.83 2020/04/05 20:44:07 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11MessageBoxPane,v 1.84 2020/04/05 22:30:50 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -32,6 +32,7 @@
    buttonText           String    Ok
    geometry             String    <w>x<h>+<x>+<y>
    iconID               Integer   0
+   titleText            String    "Message"
    
 */
 
@@ -66,6 +67,7 @@ X11MessageBoxPane instanceMethod new (String paneName) {
 
   paneName resources atPut "buttonText", "Ok";
   paneName resources atPut "iconID", 0;
+  paneName resources atPut "titleText", "Message";
 
   return paneName;
 }
