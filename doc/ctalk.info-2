@@ -17,6 +17,113 @@ Texts.  A copy of the license is included in the section entitled, "GNU
 Free Documentation License."
 
 
+File: ctalk.info,  Node: ANSIScrollPane,  Next: ANSITextBoxPane,  Prev: ANSIScrollingListBoxPane,  Up: Classes
+
+'ANSIScrollPane' Class
+----------------------
+
+An 'ANSIScrollPane' object draws a vertical scroll box on a text-mode
+terminal or X terminal.  Applications can use the pane's instance
+variables to set the position and height of the scroll thumb, and the
+border and shadow decorations.
+
+The class provides a 'handleInput' method that allows users to move the
+scroll thumb independently if the pane is used by itself.
+
+This app draws a scroll pane independently.
+
+
+     int main () {
+       ANSIScrollPane new scrollBox;
+
+       scrollBox shadow = 0;
+       scrollBox border = 1;
+
+       scrollBox thumbHeight = 3;    // Sets the position and height
+       scrollBox thumbStartLine = 1; // of the scroll thumb.
+
+       scrollBox show 2, 2;          // The Up and Down arrow keys
+                                     // move the scroll thumb while
+                                     // the pane is displayed.
+
+       scrollBox cleanup;
+     }
+
+
+
+When used to indicate the position of other panes, applications should
+set and read the scroll thumb's using the 'thumbHeight' and
+'thumbStartLine' instance variables.  If the application wants to use
+the 'ANSIScrollPane' object to set another pane's position, it needs to
+handle the Up and Down cursor motion keys in the app's 'handleInput'
+method,
+
+In that case, the app should use the classes' 'display' method instead
+of 'show' to display the 'ANSIScrollPane' object, because 'display'
+doesn't wait for user input on its own.
+
+There's no terminal independent way, however, to indicate that the
+'ANSIScrollPane' object has the input focus.  An app might do this by
+either setting or omitting the pane's shadow, but that can occupy an
+extra line of terminal space.
+
+The class is simplified by keeping the width of the scroll thumb at one
+column.  Apps can draw a wider scroll pane, but that does not affect the
+scroll thumb's width.
+
+Instance Variables
+..................
+
+'viewHeight'
+     An 'Integer' that specifies the height of the scroll channel in
+     character rows.
+
+'viewWidth'
+     An 'Integer' that specifies the width of the scroll channel in
+     character columns.
+
+'thumbHeight'
+     An 'Integer' that specifies the height of the scroll thumb in
+     character rows.
+
+'thumbStartLine'
+     An 'Integer' that specifies the row of the top of the scroll thumb.
+     This should be less than the 'viewHeight' instance variable for the
+     thumb to be visible.
+
+Instance Methods
+................
+
+'cleanup (void)'
+     Delete the buffers associated with the pane object.
+
+'dimension (Integer WIDTH, Integer HEIGHT)'
+     Set the width and height of the receiver pane.  Also adjusts the
+     width of the 'viewWidth' and 'viewHeight' instance variables.
+
+'display (Integer X, Integer Y)'
+     Draw the pane on the terminal at row and column X,Y, and return
+     immediately.
+
+'handleInput (void)'
+     Waits for user input from the pane's 'ANSITerminalStream' object.
+     Pressing Enter or Escape withdraws the pane from the display and
+     returns.  Pressing the Up or Down arrow keys moves the scroll
+     thumb.
+
+'new (String PANENAME)'
+     Create a new 'ANSIScrollPane' object, with the name PANENAME.  If
+     more than one name is given in the argument list, create new
+     'ANSIScrollPane' objects with the arguments' names.
+
+'refresh (void)'
+     Draw the pane on the terminal.
+
+'show (Integer X, Integer Y)'
+     Draw the pane on the terminal at row and column X,Y, and wait for
+     the user's input.
+
+
 File: ctalk.info,  Node: ANSITextBoxPane,  Next: ANSITextEntryPane,  Prev: ANSIScrollPane,  Up: Classes
 
 'ANSITextBoxPane' Class

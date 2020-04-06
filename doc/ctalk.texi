@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.133 2020/04/05 22:30:51 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.134 2020/04/06 00:36:55 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -1755,6 +1755,13 @@ graphics operations.
 
 @subsubheading Instance Variables
 @table @code
+@cindex backgroundColor instance variable @idxclscite{X11Bitmap}
+@item backgroundColor
+A @code{String} that contains the name of a X color.  Setting
+this variable does not affect the color of a displayed bitmap -
+programs should call the @code{X11Bitmap : background} method,
+which also sets this variable.
+
 @cindex depth instance variable @idxclscite{X11Bitmap}
 @item depth
 An @code{Integer} that contains the depth of the bitmap.
@@ -1882,7 +1889,6 @@ class @code{X11Pane}.
 
 @cindex Icon, dialog
 @cindex Dialog icon
-@idxlibfn{__ctalkX11XPMFromData}
 @cindex @mnm{icon} instance method @idxclscite{X11Bitmap}
 @cindex @mnm{iconStop} instance method @idxclscite{X11Bitmap}
 @cindex @mnm{iconCaution} instance method @idxclscite{X11Bitmap}
@@ -1904,8 +1910,39 @@ ICON_INFO
 
 @end example
 
-All of these methods use the @cite{__ctalkX11XPMFromData} library
-function to create the drawing.
+Before calling any of these methods, a program must have created
+the pane's drawing surface with the @code{create} method.  It is
+also generally necessary to set the pane's background color to
+that of the surrounding window.  Here is an example.
+
+@example
+
+myIcon create aPane displayPtr, aPane paneBuffer xID,
+  ICON_WIDTH_PX, ICON_HEIGHT_PX, pPane paneBuffer depth;
+myIcon background "blue";
+
+@end example
+
+Because icons are generally rendered off-screen, the program should
+use the parent pane's display connection, @code{paneBuffer xID,} and
+depth.  Then the program can use the @code{X11Bitmap : copy} method
+to draw the bitmap on the surround pane's buffer.  Here's another example.
+
+@example
+aPane paneBuffer copy myIcon, 0, 0, ICON_WIDTH_PX, ICON_HEIGHT_PX,
+      iconLeftOrigin, iconTopOrigin;
+
+@end example
+
+The constants @code{ICON_WIDTH_PX} and @code{ICON_HEIGHT_PX} are defined
+in @flnm{ctalkdefs.h}, so programs and classes that use icons should
+add this line near the top of the source module.
+
+@example
+
+#include <ctalk/ctalkdefs.h>
+
+@end example
 
 @cindex @mnm{putStr} instance method @idxclscite{X11Bitmap}
 @item @mnm{putStr} (@code{Integer} @var{x}, @code{Integer} @var{y}, @code{String} @var{text})

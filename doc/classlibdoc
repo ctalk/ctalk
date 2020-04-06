@@ -855,8 +855,39 @@ argument can be one of the following.
   
 ---------------------------------------------------------
 
-All of these methods use the __ctalkX11XPMFromData library
-function to create the drawing.
+Before calling any of these methods, a program must have created
+the pane's drawing surface with the create method.  It is
+also generally necessary to set the pane's background color to
+that of the surrounding window.  Here is an example.
+
+---------------------------------------------------------
+  
+  myIcon create aPane displayPtr, aPane paneBuffer xID,
+    ICON_WIDTH_PX, ICON_HEIGHT_PX, pPane paneBuffer depth;
+  myIcon background "blue";
+  
+---------------------------------------------------------
+
+Because icons are generally rendered off-screen, the program should
+use the parent pane's display connection, paneBuffer xID, and
+depth.  Then the program can use the X11Bitmap : copy method
+to draw the bitmap on the surround pane's buffer.  Here's another example.
+
+---------------------------------------------------------
+  aPane paneBuffer copy myIcon, 0, 0, ICON_WIDTH_PX, ICON_HEIGHT_PX,
+        iconLeftOrigin, iconTopOrigin;
+  
+---------------------------------------------------------
+
+The constants ICON_WIDTH_PX and ICON_HEIGHT_PX are defined
+in ctalkdefs.h, so programs and classes that use icons should
+add this line near the top of the source module.
+
+---------------------------------------------------------
+  
+  #include <ctalk/ctalkdefs.h>
+  
+---------------------------------------------------------
 
 >>>X11Bitmap::putStr (Integer x, Integer y, String text)
 >>>X11Bitmap::putStr (Integer x, Integer y, String text, String font_desc)
