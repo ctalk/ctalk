@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.136 2020/04/06 21:35:17 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.137 2020/04/06 22:02:13 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -15131,6 +15131,12 @@ ICON_CAUTION
 ICON_INFO
 
 @end example
+
+@item @code{messageColor} resource @idxclscite{X11MessageBoxPane}
+@item messageColor
+A @code{String} that contains the X color name used for the message
+text.  The default is @samp{black}.
+
 
 @item @code{messageText} resource @idxclscite{X11MessageBoxPane}
 @item messageText

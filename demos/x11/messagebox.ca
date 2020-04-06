@@ -28,7 +28,7 @@ int main (void) {
   dispatcher attachTo mainWindow;
   button attachTo dispatcher, "110x50+73+100";
   label attachTo dispatcher, "177x80+34+15";
-  messageBox attachTo dispatcher, "275x175";
+  messageBox attachTo dispatcher, "300x200";
 
   mainWindow map;
   mainWindow raiseWindow;
@@ -53,7 +53,8 @@ int main (void) {
   messageBox resources replaceAt "iconID", ICON_INFO;
 
   messageBox resources replaceAt "messageText",
-    "Hello, messageBox!\nYour message text here.";
+    	       "Hello, messageBox!\nYour message text here.";
+  messageBox resources replaceAt "messageColor", "lightgray";	       
 
   button draw;
   button refresh;
