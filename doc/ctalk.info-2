@@ -3396,6 +3396,54 @@ Instance Variables
 'mainWindowPtr'
      A 'Symbol' that contains a pointer to the main window.
 
+Resources
+.........
+
+'backgroundColor'
+     A 'String' with the X color name of the window's background.  The
+     default is 'gray'.
+
+'geometry resource (X11MessageBoxPane class)'
+'geometry'
+     A 'String' that defines the message box's size, and, optionally,
+     its location.  If only the window size is given, then the class
+     centers the message box above the window of the program that opened
+     it.  The 'X11PaneDispatcher' section describes the format of
+     geometry strings in more detail.  *Note X11PaneDispatcher::.
+
+'iconID resource (X11MessageBoxPane class)'
+'iconID'
+     An 'Integer' that identifies which, if any, icon the pane displays.
+     The definitions that 'X11MessageBoxPane' uses are the following.
+
+
+          ICON_NONE
+          ICON_STOP
+          ICON_CAUTION
+          ICON_INFO
+
+
+'messageText resource (X11MessageBoxPane class)'
+'messageText'
+     A 'String' that contains the text that the pane's button displays.
+
+'messageText resource (X11MessageBoxPane class)'
+'messageText'
+     A 'String' the contains the text that the pane displays.  Because
+     the pane uses a 'X11LabelPane' to display the text, it can use all
+     of the 'X11LabelPane' classes' formatting features.  *Note
+     X11LabelPane::.
+
+'pad resource (X11MessageBoxPane class)'
+'pad'
+     An 'Integer' that contains the distance in pixels between the text
+     label and button edges and the window's edges.  The default value
+     is 10.
+
+'titleText resource (X11MessageBoxPane class)'
+'titleText'
+     A 'String' that contains the title of the pane's window.
+
 Instance Methods
 ................
 

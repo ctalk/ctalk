@@ -1,4 +1,4 @@
-/* $Id: X11MessageBoxPane,v 1.87 2020/04/06 21:03:48 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11MessageBoxPane,v 1.88 2020/04/06 21:35:17 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -341,6 +341,10 @@ extern Atom wm_delete_dialog;
 extern void __enable_dialog (OBJECT *);
 
 X11MessageBoxPane instanceMethod show (void) {
+  "Displays the pane's window. Note that th method uses raw X
+   events. This is because the pane maintains its own connection
+   to the display, and the event handler can be contained in
+   this method."
   Display *display;
   Window win_id;
   XEvent xev;
