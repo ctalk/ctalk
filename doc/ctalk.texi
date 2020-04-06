@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.134 2020/04/06 00:36:55 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.135 2020/04/06 21:03:49 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -15085,6 +15085,14 @@ The class draws the label using multiline formatting, so if you want
 the text to appear on multiple lines, include the sequence @samp{\n}
 in the text (that's a backslash and the character, @samp{n}, not a
 literal newline).
+
+@cindex @code{keyState} instance variable @idxclscite{X11MessageBoxPane}
+@item keyState
+An @code{Integer} which records whether the @key{Tab} or @key{Enter}
+keyboard shortcuts have been pressed.  Pressing @key{Tab} highlights
+the pane's button, and pressing @key{Enter} withdraws the pane's
+window from the display, and the @mnm{show} method returns to the
+program that opened the message box.
 
 @cindex @code{mainWindowPtr} instance variable @idxclscite{X11MessageBoxPane}
 @item mainWindowPtr

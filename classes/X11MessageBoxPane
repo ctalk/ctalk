@@ -1,4 +1,4 @@
-/* $Id: X11MessageBoxPane,v 1.86 2020/04/06 06:03:55 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11MessageBoxPane,v 1.87 2020/04/06 21:03:48 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -43,11 +43,17 @@ X11MessageBoxPane instanceVariable label  X11LabelPane NULL;
 X11MessageBoxPane instanceVariable icon X11Bitmap NULL;
 X11MessageBoxPane instanceVariable initialized Boolean false;
 X11MessageBoxPane instanceVariable mainWindowPtr Symbol NULL;
+X11MessageBoxPane instanceVariable keyState Integer 0;
+
+/* We only need this to handle Tab and Enter keyboard 
+   equivalents. */
+#define KEY_TAB   1
+#define KEY_ENTER 2
 
 #include <ctalk/ctalkdefs.h>
 
 X11MessageBoxPane instanceMethod new (String paneName) {
-  Method new exposeMethod, buttonPressMethod;
+  Method new exposeMethod, buttonPressMethod, kbdInputMethod;
 
   X11MessageBoxPane super new paneName;
   
@@ -58,6 +64,10 @@ X11MessageBoxPane instanceMethod new (String paneName) {
     "subPaneButton";
   paneName setMethodHandler "pointerinput", buttonPressMethod;
   
+  kbdInputMethod definedInstanceMethod "X11MessageBoxPane",
+    "subPaneKbdInput";
+  paneName setMethodHandler "kbdinput", kbdInputMethod;
+
   paneName backgroundColor = "white";
   paneName foregroundColor = "black";
 
@@ -70,6 +80,39 @@ X11MessageBoxPane instanceMethod new (String paneName) {
   paneName resources atPut "titleText", "Message";
 
   return paneName;
+}
+
+/* These are from X11/keysymdef.h if your machine defines them
+   differently. */
+#ifndef XK_Tab
+#define XK_Tab  0xff09
+#endif
+#ifndef XK_Return
+#define XK_Return  0xff0d
+#endif
+
+X11MessageBoxPane instanceMethod subPaneKbdInput (Object __subPane,
+						  InputEvent __event) {
+  switch (__event xEventData4)
+    {
+    case XK_Tab:
+      self keyState = KEY_TAB;
+      if (self button label borderWidth > 0) {
+	self button label highlightBorderWidth =
+	  self button label borderWidth * 2;
+      } else {
+	self button label highlightBorderWidth = 2;
+      }
+      self button label highlight = true;
+      self draw;
+      self refresh;
+      break;
+    case XK_Return:
+      if (self keyState == KEY_TAB) {
+	self keyState = KEY_ENTER;
+      }
+      break;
+    }
 }
 
 X11MessageBoxPane instanceMethod subPaneExpose (Object __subPane,
@@ -352,11 +395,6 @@ X11MessageBoxPane instanceMethod show (void) {
 	  }
 	  break;
 	case ButtonRelease:
-#if 0 /***/
-	  self withdraw;
-	  dispatcher modalWin = 0;
-	  dispatcher modalPane = NULL;
-#endif	  
 	  if (xev.xbutton.window == self button xWindowID) {
 	    e eventClass = BUTTONRELEASE;
 	    self methodObjectMessage self handlePointerInput, self, e;
@@ -365,6 +403,20 @@ X11MessageBoxPane instanceMethod show (void) {
 	  dispatcher modalWin = 0;
 	  dispatcher modalPane = NULL;
 	  return self;
+	  break;
+	case KeyPress:
+	  e eventClass = KEYPRESS;
+	  /* For the Tab and Enter keys, we don't need to worry
+	     about the shift keys */
+	  e xEventData4 = __edittext_xk_keysym
+	    (xev.xkey.keycode, xev.xkey.state, 0);
+	  self methodObjectMessage self handleKbdInput, self, e;
+	  if (self keyState == KEY_ENTER) {
+	    self withdraw;
+	    dispatcher modalWin = 0;
+	    dispatcher modalPane = NULL;
+	    return self;
+	  }
 	  break;
 	case Expose:
 	  self methodObjectMessage self handleExpose, self, e;

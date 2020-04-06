@@ -3386,6 +3386,13 @@ Instance Variables
      '\n' in the text (that's a backslash and the character, 'n', not a
      literal newline).
 
+'keyState'
+     An 'Integer' which records whether the <Tab> or <Enter> keyboard
+     shortcuts have been pressed.  Pressing <Tab> highlights the pane's
+     button, and pressing <Enter> withdraws the pane's window from the
+     display, and the 'show' method returns to the program that opened
+     the message box.
+
 'mainWindowPtr'
      A 'Symbol' that contains a pointer to the main window.
 
