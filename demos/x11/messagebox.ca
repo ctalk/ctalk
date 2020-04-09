@@ -38,10 +38,12 @@ int main (void) {
   mainWindow setWMTitle "X11MessageBoxPane Demo";
 
   label ftFontVar initFontLib;
-  label ftFont "DejaVu Sans", 0, FTFONT_BOLD, 0, 12.0;
+#if 1
+label ftFont "DejaVu Sans", 0, FTFONT_BOLD, 0, 12.0;
   label ftFontVar saveSelectedFont;
   button ftFont "DejaVu Sans", 0, FTFONT_MEDIUM, 0, 10.0;
   button ftFontVar saveSelectedFont;
+#endif  
 
   label multiLine "X11MessageBoxPane\nDemo";
 
@@ -52,6 +54,10 @@ int main (void) {
   /* Icon IDs, like ICON_INFO, are defined in ctalkdefs.h. */
   messageBox resources replaceAt "iconID", ICON_INFO;
 
+  /* The program uses the "replaceAt" method because the key/value
+     entry for "backgroundColor" the X11MessageBoxPane : new method
+     has alread created an entry for backgroundColor. */
+   messageBox resources replaceAt "backgroundColor", "blue";
   messageBox resources replaceAt "messageText",
     	       "Hello, messageBox!\nYour message text here.";
   messageBox resources replaceAt "messageColor", "lightgray";	       
@@ -61,10 +67,6 @@ int main (void) {
   label draw;
   label refresh;
 
-  /* The program uses the "replaceAt" method because the key/value
-     entry for "backgroundColor" the X11MessageBoxPane : new method
-     has alread created an entry for backgroundColor. */
-     messageBox resources replaceAt "backgroundColor", "blue";
 
   while (TRUE) {
     mainWindow inputStream queueInput;

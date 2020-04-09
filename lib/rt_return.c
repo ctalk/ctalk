@@ -1,4 +1,4 @@
-/* $Id: rt_return.c,v 1.1.1.1 2019/10/26 23:40:50 rkiesling Exp $ */
+/* $Id: rt_return.c,v 1.2 2020/04/09 20:57:54 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -341,7 +341,7 @@ OBJECT *__ctalkSaveCVARResource (char *name) {
 	if (obj -> nrefs == 0) {
 	  __ctalkSetObjectScope (obj, obj -> scope & ~METHOD_USER_OBJECT);
 	}
-	if (!instancevar_is_receiver (obj))
+	if (!instancevar_is_receiver (obj) && !is_receiver (obj))
 	  __ctalkRegisterUserObject (obj);
 	/*
 	 *  This call requires that the __ctalkSaveCVARResource
