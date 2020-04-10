@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.138 2020/04/10 00:20:24 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.139 2020/04/10 03:25:29 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -1524,6 +1524,38 @@ line similar to this one.
 myMainWindow ftFontVar initFontLib;
 
 @end example
+
+@subsubheading Fontconfig Font Descritions
+
+Fontconfig has its own syntax for selecting fonts.  Here are a few
+examples.
+
+@example
+
+DejaVu Sans Mono
+Nimbus Sans L-12
+FreeMono-10:slant=italic:weight=bold
+
+@end example
+
+These font descriptors work with the @mnm{selectFontFromFontConfig}
+method.  The receiver, of course, must be a @code{X11FreetypeFont}
+object, or the pane object's @code{ftFontVar} instance variable.
+Here is an example
+
+@example
+
+myWindow ftFontVar selectFontFromFontConfig "DejaVu Sans Mono-12"
+
+@end example
+
+A full description of the Fontconfig's descriptor syntax is available
+in the Fontconfig user guide, which is included with Fontconfig
+documentation packages, and also available on the web at
+@url{http://freedesktop.org/fontconfig}.
+
+
+@subsubheading Further Information Qbout Fontconfig and libXft
 
 For further information about the the Fontconfig libraries, refer to:
 @url{https://freedesktop.org/fontconfig}.  Information about Xft is available at
