@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.139 2020/04/10 03:25:29 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.137 2020/04/06 22:02:13 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -1478,95 +1478,70 @@ Creates a cursor that displays a small watch.
 @cindex @code{X11FreeTypeFont} class
 
 This class contains the methods that handle FreeType fonts using the
-Xft and Fontconfig libraries.  In classes and methods that use fonts,
-FreeType fonts take priority if they are available and the program has
-initialized the library with the @mnm{initFontLib} method, which is
-described in further detail below.  Otherwise, applications use the X
-Window System's builtin bitmap fonts.
+Xft library specifically.  In classes and methods that use fonts,
+FreeType fonts take priority if available and the program has
+initialized the library with the @mnm{initFontLib} method.  Otherwise,
+applications use the fonts provided by the window system's normal
+libraries.
 
 @cindex FreeType configuration
 @cindex Xft configuration
 @cindex XftConfig file
-@cindex @flnm{fonts.conf}
-@cindex Font configuration
-Internally Ctalk uses the Fontconfig library to locate the system's
-@flnm{fonts.conf} file.  The @flnm{fonts.conf} file's default location
-is configured when the library is built.  Generally, the
-@flnm{font.conf} file's path is @flnm{/etc/fonts/fonts.conf} or
-@flnm{/usr/local/etc/fonts/fonts.conf.}
+When looking for the machine's font configuration, Ctalk
+checks for the following files.
 
-However, an alternate @flnm{fonts.conf} pathname may be set in the
-environment with the @samp{FONTCONFIG_FILE} environment variable.  If
-its value begins with a @samp{~}, the path is relative to the user's
-@samp{HOME} directory.  If the name doesn't start with a @samp{/},
-then the pathname is relative to the fontconfig libraries' default
-installation directory.  This directory can be changed by setting
-the @samp{FONTCONFIG_PATH} environment variable to an alternate
-directory.
+@table @b
+@item 1.
+The file path named by the @samp{$XFT_CONFIG} environment variable.
+@item 2.
+@samp{$HOME/.fonts.conf}
+@item 3.
+@samp{$XDG_CONFIG_HOME/fontconfig/fonts.conf}
+@item 4.
+@flnm{/etc/fonts/fonts.conf}
+@item 5.
+The file @flnm{/usr/X11R6/lib/X11/XftConfig}
 
-@cindex @code{fontVar} instance variable @idxclscite{X11Pane}
-@cindex @code{ftFontVar} instance variable @idxclscite{X11Pane}
-Classes that use X Window System graphics (that is, @code{X11Pane} and
-its subclasses) can use either the X libraries' built-in bitmap fonts
-(via the pane's @code{fontVar} instance variable), or the scalable
-Freetype fonts (via the pane's @code{ftFontVar} instance variable).
+@end table
 
-The default is to use X's built in bitmap fonts.  These fonts are
-initialized when the program connects to the display
-server.
-
-However, to enable drawing with scalable fonts, programs need to call
-the @mnm{initFontLib} method during program initialization, with a
-line similar to this one.
+If you want to write your own font config file, the
+@code{X11FreeTypeFont} class is mainly concerned with the directories
+where TrueType and Type 1 fonts reside.  The directories need to be
+listed in the @samp{XftConfig} file with the @samp{dir} directive.
+For example:
 
 @example
 
-myMainWindow ftFontVar initFontLib;
+<fontconfig>
+<dir>/usr/share/fonts/truetype/dejavu</dir>
+<dir>/usr/share/fonts/truetype/freefont</dir>
+<dir>/usr/share/fonts/type1/gsfonts</dir>
+</fontconfig>
 
 @end example
 
-@subsubheading Fontconfig Font Descritions
+There is a more complete @samp{XftConfig} sample file in the Ctalk
+source distribution, @flnm{doc/XftConfig.sample}.  The
+@cite{fonts.conf (5)} manual page and the Xft user and developer
+documentation provide even more information.
 
-Fontconfig has its own syntax for selecting fonts.  Here are a few
-examples.
+@cindex @code{X11TextPane} class
+Classes like @code{X11TextPane} can use the FreeType fonts
+transparently instead of the normal Xlib application programming
+interface, as long as the Xft library is available and initialized.
+Unlike the Xlib font resources, which need their Pane objects
+initialized before the font resources, the Xft library works best when
+the application initializes it as early as possible.  The example
+program for the @code{X11TextPane} class shows how this can be
+accomplished. @xref{X11TextPane}.
 
-@example
-
-DejaVu Sans Mono
-Nimbus Sans L-12
-FreeMono-10:slant=italic:weight=bold
-
-@end example
-
-These font descriptors work with the @mnm{selectFontFromFontConfig}
-method.  The receiver, of course, must be a @code{X11FreetypeFont}
-object, or the pane object's @code{ftFontVar} instance variable.
-Here is an example
-
-@example
-
-myWindow ftFontVar selectFontFromFontConfig "DejaVu Sans Mono-12"
-
-@end example
-
-A full description of the Fontconfig's descriptor syntax is available
-in the Fontconfig user guide, which is included with Fontconfig
-documentation packages, and also available on the web at
-@url{http://freedesktop.org/fontconfig}.
-
-
-@subsubheading Further Information Qbout Fontconfig and libXft
-
-For further information about the the Fontconfig libraries, refer to:
-@url{https://freedesktop.org/fontconfig}.  Information about Xft is available at
-@url{http://freedesktop.org/wiki/Software/Xft}.
 
 @subsubheading Instance Variables
 @table @code
 @cindex @mnm{family} instance variable @idxclscite{X11FreeTypeFont}
 @item family
-A @code{String} that contains the family of the currently selected
-font.  @xref{String}.
+A @code{String} that contains the family of the currently selected font.
+@xref{String}.
 @cindex @mnm{fgRed} instance variable @idxclscite{X11FreeTypeFont}
 @cindex @mnm{fgGreen} instance variable @idxclscite{X11FreeTypeFont}
 @cindex @mnm{fgBlue} instance variable @idxclscite{X11FreeTypeFont}
