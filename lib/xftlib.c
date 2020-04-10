@@ -1,8 +1,8 @@
-/* $Id: xftlib.c,v 1.14 2020/04/08 07:51:27 rkiesling Exp $ -*-c-*-*/
+/* $Id: xftlib.c,v 1.15 2020/04/10 00:20:24 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
-  Copyright © 2017-2019 Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2017-2020 Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
 

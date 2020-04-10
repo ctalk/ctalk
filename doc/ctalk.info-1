@@ -1066,50 +1066,44 @@ File: ctalk.info,  Node: X11FreeTypeFont,  Next: X11Bitmap,  Prev: X11Cursor,  U
 -----------------------
 
 This class contains the methods that handle FreeType fonts using the Xft
-library specifically.  In classes and methods that use fonts, FreeType
-fonts take priority if available and the program has initialized the
-library with the 'initFontLib' method.  Otherwise, applications use the
-fonts provided by the window system's normal libraries.
+and Fontconfig libraries.  In classes and methods that use fonts,
+FreeType fonts take priority if they are available and the program has
+initialized the library with the 'initFontLib' method, which is
+described in further detail below.  Otherwise, applications use the X
+Window System's builtin bitmap fonts.
 
-When looking for the machine's font configuration, Ctalk checks for the
-following files.
+Internally Ctalk uses the Fontconfig library to locate the system's
+'fonts.conf' file.  The 'fonts.conf' file's default location is
+configured when the library is built.  Generally, the 'font.conf' file's
+path is '/etc/fonts/fonts.conf' or '/usr/local/etc/fonts/fonts.conf.'
 
-1.
-     The file path named by the '$XFT_CONFIG' environment variable.
-2.
-     '$HOME/.fonts.conf'
-3.
-     '$XDG_CONFIG_HOME/fontconfig/fonts.conf'
-4.
-     '/etc/fonts/fonts.conf'
-5.
-     The file '/usr/X11R6/lib/X11/XftConfig'
+However, an alternate 'fonts.conf' pathname may be set in the
+environment with the 'FONTCONFIG_FILE' environment variable.  If its
+value begins with a '~', the path is relative to the user's 'HOME'
+directory.  If the name doesn't start with a '/', then the pathname is
+relative to the fontconfig libraries' default installation directory.
+This directory can be changed by setting the 'FONTCONFIG_PATH'
+environment variable to an alternate directory.
 
-If you want to write your own font config file, the 'X11FreeTypeFont'
-class is mainly concerned with the directories where TrueType and Type 1
-fonts reside.  The directories need to be listed in the 'XftConfig' file
-with the 'dir' directive.  For example:
+Classes that use X Window System graphics (that is, 'X11Pane' and its
+subclasses) can use either the X libraries' built-in bitmap fonts (via
+the pane's 'fontVar' instance variable), or the scalable Freetype fonts
+(via the pane's 'ftFontVar' instance variable).
 
+The default is to use X's built in bitmap fonts.  These fonts are
+initialized when the program connects to the display server.
 
-     <fontconfig>
-     <dir>/usr/share/fonts/truetype/dejavu</dir>
-     <dir>/usr/share/fonts/truetype/freefont</dir>
-     <dir>/usr/share/fonts/type1/gsfonts</dir>
-     </fontconfig>
+However, to enable drawing with scalable fonts, programs need to call
+the 'initFontLib' method during program initialization, with a line
+similar to this one.
 
 
-There is a more complete 'XftConfig' sample file in the Ctalk source
-distribution, 'doc/XftConfig.sample'.  The 'fonts.conf (5)' manual page
-and the Xft user and developer documentation provide even more
-information.
+     myMainWindow ftFontVar initFontLib;
 
-Classes like 'X11TextPane' can use the FreeType fonts transparently
-instead of the normal Xlib application programming interface, as long as
-the Xft library is available and initialized.  Unlike the Xlib font
-resources, which need their Pane objects initialized before the font
-resources, the Xft library works best when the application initializes
-it as early as possible.  The example program for the 'X11TextPane'
-class shows how this can be accomplished.  *Note X11TextPane::.
+
+For further information about the the Fontconfig libraries, refer to:
+<https://freedesktop.org/fontconfig>.  Information about Xft is
+available at <http://freedesktop.org/wiki/Software/Xft>.
 
 Instance Variables
 ..................

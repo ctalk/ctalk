@@ -3894,7 +3894,7 @@ Index
 * alpha instance method (GLXCanvasPane class): GLXCanvasPane.
                                                              (line  336)
 * alpha instance method (X11FreeTypeFont class): X11FreeTypeFont.
-                                                             (line   95)
+                                                             (line   89)
 * alpha instance variable (Pen class):   Pen.                (line   17)
 * animationHandler instance variable (GLXCanvasPane class): GLXCanvasPane.
                                                              (line  166)
@@ -3940,7 +3940,7 @@ Index
 * asAddrString instance method (Symbol class): Symbol.       (line   66)
 * ascent instance variable (X11Font class): X11Font.         (line   21)
 * ascent instance variable (X11FreeTypeFont class): X11FreeTypeFont.
-                                                             (line   77)
+                                                             (line   71)
 * asCharacter instance method (Magnitude class): Magnitude.  (line   26)
 * asCharacter instance method (Magnitude class) <1>: String. (line  201)
 * asctime(3) C function:                 CFunction.          (line   28)
@@ -4050,7 +4050,7 @@ Index
 * blinkOnOff instance method (ANSITerminalPane class): ANSITerminalPane.
                                                              (line  112)
 * blue instance method (X11FreeTypeFont class): X11FreeTypeFont.
-                                                             (line  100)
+                                                             (line   94)
 * boldOnOff instance method (ANSITerminalPane class): ANSITerminalPane.
                                                              (line  117)
 * Boolean class:                         Boolean.            (line    6)
@@ -4422,7 +4422,7 @@ Index
 * deref instance method (Symbol class) <1>: Prefixes.        (line   44)
 * descent instance variable (X11Font class): X11Font.        (line   21)
 * descent instance variable (X11FreeTypeFont class): X11FreeTypeFont.
-                                                             (line   80)
+                                                             (line   74)
 * detach instance method (Key class):    Key.                (line  150)
 * Dialog icon:                           X11Bitmap.          (line  115)
 * Dialog icon <1>:                       Ctalk library.      (line 1100)
@@ -4478,7 +4478,7 @@ Index
 * dow instance variable (CalendarTime class): CalendarTime.  (line   38)
 * doy instance variable (CalendarTime class): CalendarTime.  (line   38)
 * dpi instance variable (X11FreeTypeFont class): X11FreeTypeFont.
-                                                             (line   68)
+                                                             (line   62)
 * dragging instance variable (X11ScrollBarPane class): X11ScrollBarPane.
                                                              (line  119)
 * dragStart instance variable (X11CanvasPane class): X11CanvasPane.
@@ -4601,7 +4601,7 @@ Index
                                                              (line  170)
 * FALSE_ASSERTION_X exception:           Exception.          (line  118)
 * family instance variable (X11FreeTypeFont class): X11FreeTypeFont.
-                                                             (line   55)
+                                                             (line   49)
 * fclose(3) C function:                  fclose.             (line    6)
 * fegetround(3) C function:              fegetround.         (line    6)
 * feholdexcept(3) C function:            feholdexcept.       (line    6)
@@ -4611,16 +4611,16 @@ Index
 * fetestexcepts(3) C function:           fetestexcept.       (line    6)
 * fflush(3) C function:                  fflush.             (line    6)
 * fgAlpha instance variable (X11FreeTypeFont class): X11FreeTypeFont.
-                                                             (line   57)
+                                                             (line   51)
 * fgBlue instance variable (X11FreeTypeFont class): X11FreeTypeFont.
-                                                             (line   57)
+                                                             (line   51)
 * fgetc(3) C function:                   fgetc.              (line    6)
 * fgetpos(3) C function:                 fgetpos.            (line    6)
 * fgets(3) C function:                   fgets.              (line    6)
 * fgGreen instance variable (X11FreeTypeFont class): X11FreeTypeFont.
-                                                             (line   57)
+                                                             (line   51)
 * fgRed instance variable (X11FreeTypeFont class): X11FreeTypeFont.
-                                                             (line   57)
+                                                             (line   51)
 * FILEEOF macro:                         C Macros.           (line   52)
 * FileStream class:                      FileStream.         (line    6)
 * FILE_ALREADY_OPEN_X exception:         Exception.          (line  118)
@@ -4636,6 +4636,7 @@ Index
 * FMT_0XHEX macro:                       C Macros.           (line   55)
 * focusHighlightOnOff instance method (void): ANSIButtonPane.
                                                              (line   32)
+* Font configuration:                    X11FreeTypeFont.    (line   13)
 * font instance method (X11Bitmap class): X11Bitmap.         (line  106)
 * font instance method (X11LabelPane class): X11LabelPane.   (line  286)
 * font instance method (X11Pane class):  X11Pane.            (line   93)
@@ -4646,8 +4647,11 @@ Index
 * fontDescStr instance variable (X11Pane class): X11Pane.    (line   80)
 * fontId instance variable (X11Font class): X11Font.         (line   32)
 * Fonts, selecting:                      X11TextEditorPane.  (line   80)
-* fontVar instance variable (X11Pane class): X11Pane.        (line   76)
-* fontVar instance variable (X11Pane class) <1>: X11TextEditorPane.
+* fonts.conf:                            X11FreeTypeFont.    (line   13)
+* fontVar instance variable (X11Pane class): X11FreeTypeFont.
+                                                             (line   26)
+* fontVar instance variable (X11Pane class) <1>: X11Pane.    (line   76)
+* fontVar instance variable (X11Pane class) <2>: X11TextEditorPane.
                                                              (line   80)
 * fontVar instancevariable (X11TextEditorPane class): X11TextEditorPane.
                                                              (line   86)
@@ -4690,7 +4694,7 @@ Index
 * free(3) C function:                    free.               (line    6)
 * freeFTFont instance method (GLXCanvasPane class): GLXCanvasPane.
                                                              (line  424)
-* FreeType configuration:                X11FreeTypeFont.    (line   12)
+* FreeType configuration:                X11FreeTypeFont.    (line   13)
 * freeXFont instance method (GLXCanvasPane class): GLXCanvasPane.
                                                              (line  427)
 * freopen(3) C function:                 freopen.            (line    6)
@@ -4702,7 +4706,9 @@ Index
 * fstat(3) C function:                   fstat.              (line    6)
 * ftell(3) C function:                   ftell.              (line    6)
 * ftFont instance method (X11Pane class): X11Pane.           (line  247)
-* ftFontVar instance variable (X11Pane class): X11TextEditorPane.
+* ftFontVar instance variable (X11Pane class): X11FreeTypeFont.
+                                                             (line   26)
+* ftFontVar instance variable (X11Pane class) <1>: X11TextEditorPane.
                                                              (line   80)
 * ftFontVar instancevariable (X11TextEditorPane class): X11Pane.
                                                              (line   89)
@@ -4793,7 +4799,7 @@ Index
 * grayedColor instance variable (X11LabelPane class): X11LabelPane.
                                                              (line  157)
 * green instance method (X11FreeTypeFont class): X11FreeTypeFont.
-                                                             (line  105)
+                                                             (line   99)
 * handle instance method (Exception class): Exception.       (line  157)
 * handle method (Exception class):       Errors.             (line   19)
 * handleDestroy instance variable (X11PaneDispatcher class): X11PaneDispatcher.
@@ -4871,7 +4877,7 @@ Index
 * height instance variable (X11Bitmap class): X11Bitmap.     (line   29)
 * height instance variable (X11Font class): X11Font.         (line   36)
 * height instance variable (X11FreeTypeFont class): X11FreeTypeFont.
-                                                             (line   83)
+                                                             (line   77)
 * highlight instance variable (X11PaneDispatcher class): X11PaneDispatcher.
                                                              (line  227)
 * highlightBorderColor instance variable (X11LabelPane class): X11LabelPane.
@@ -4915,7 +4921,7 @@ Index
 * init instance method (List class):     List.               (line   49)
 * init instance method (SortedList class): SortedList.       (line   46)
 * initFontLib instance method (X11FreeTypeFont class): X11FreeTypeFont.
-                                                             (line  110)
+                                                             (line  104)
 * initFontLib instance method (X11FreeTypeFont class) <1>: X11Pane.
                                                              (line  222)
 * initFontLib instance method (X11FreeTypeFont class) <2>: X11TextPane.
@@ -5093,7 +5099,7 @@ Index
 * levelMarginLength instance variable (TreeNode class): TreeNode.
                                                              (line   29)
 * libIsInitialized instance method (X11FreeTypeFont class): X11FreeTypeFont.
-                                                             (line  119)
+                                                             (line  113)
 * Library functions:                     Ctalk library.      (line    6)
 * libraryPath instance method (Object class): Object.        (line  440)
 * LibrarySearch class:                   LibrarySearch.      (line    6)
@@ -5104,7 +5110,7 @@ Index
                                                              (line  132)
 * List class:                            List.               (line    6)
 * listFonts instance method (X11FreeTypeFont class): X11FreeTypeFont.
-                                                             (line  123)
+                                                             (line  117)
 * llabs(3) C function:                   llabs.              (line    6)
 * llrint(3) C function:                  CFunction.          (line  121)
 * llrint(3) C function <1>:              llrint.             (line    6)
@@ -5182,7 +5188,7 @@ Index
 * matchRegex instance method (String class) <1>: String.     (line  380)
 * matchRegex instance method (String class) <2>: String.     (line  502)
 * maxAdvance instance variable (X11FreeTypeFont class): X11FreeTypeFont.
-                                                             (line   87)
+                                                             (line   81)
 * maxLBearing instance variable (X11Font class): X11Font.    (line   40)
 * maxRBearing instance variable (X11Font class): X11Font.    (line   44)
 * maxWidth instance variable (X11Font class): X11Font.       (line   49)
@@ -5269,7 +5275,7 @@ Index
 * namedColorFT instance method (GLXCanvasPane class): GLXCanvasPane.
                                                              (line  471)
 * namedX11Color instance method (X11FreeTypeFont class): X11FreeTypeFont.
-                                                             (line  128)
+                                                             (line  122)
 * nArgs instance variable (Method class): Method.            (line   71)
 * nearbyint(3) C function:               nearbyint.          (line    6)
 * NetworkStream class:                   NetworkStream.      (line    6)
@@ -5486,7 +5492,7 @@ Index
 * pointIsInThumb instance method (X11ScrollBarPane class): X11ScrollBarPane.
                                                              (line  222)
 * pointSize instance variable (X11FreeTypeFont class): X11FreeTypeFont.
-                                                             (line   75)
+                                                             (line   69)
 * pop instance method (List class):      List.               (line  136)
 * popItemRef instance method (List class): List.             (line  140)
 * Port, TCPIP:                           TCPIPV6NetworkStreamWriter.
@@ -5542,7 +5548,7 @@ Index
 * putTransformedStrXY instance method (X11Pane class): X11Pane.
                                                              (line  341)
 * qualifyName instance method (X11FreeTypeFont class): X11FreeTypeFont.
-                                                             (line  136)
+                                                             (line  130)
 * queued instance variable (Method class): Method.           (line   89)
 * queueEvent method (SignalEvent class): SignalEvent.        (line   77)
 * queueInput instance variable (ANSITerminalStream class): ANSITerminalStream.
@@ -5621,7 +5627,7 @@ Index
 * Record separator character <2>:        String.             (line 1010)
 * Rectangle class:                       Rectangle.          (line    6)
 * red instance method (X11FreeTypeFont class): X11FreeTypeFont.
-                                                             (line  140)
+                                                             (line  134)
 * refresh instance method (ANSILabelPane class): ANSILabelPane.
                                                              (line   84)
 * refresh instance method (ANSIListBoxPane class): ANSIListBoxPane.
@@ -5685,7 +5691,7 @@ Index
 * reverseOnOff instance method (ANSITerminalPane class): ANSITerminalPane.
                                                              (line  174)
 * RGBAColor instance method (X11FreeTypeFont class): X11FreeTypeFont.
-                                                             (line  154)
+                                                             (line  148)
 * right instance variable (Rectangle class): Rectangle.      (line   73)
 * rightMargin instance variable (X11TextEditorPane class): X11TextEditorPane.
                                                              (line  141)
@@ -5695,7 +5701,7 @@ Index
                                                              (line  115)
 * rmdir(3) C function:                   rmdir.              (line    6)
 * rotation instance variable (X11FreeTypeFont class): X11FreeTypeFont.
-                                                             (line   63)
+                                                             (line   57)
 * round(3) C function:                   round.              (line    6)
 * run instance method (GLUTApplication class): GLUTApplication.
                                                              (line  219)
@@ -5703,11 +5709,11 @@ Index
 * run instance method (GLXCanvasPane class) <1>: Ctalk library.
                                                              (line  808)
 * saveSelectedFont instance method (X11FreeTypeFont class): X11FreeTypeFont.
-                                                             (line  145)
+                                                             (line  139)
 * scaleX instance variable (X11FreeTypeFont class): X11FreeTypeFont.
-                                                             (line   63)
+                                                             (line   57)
 * scaleY instance variable (X11FreeTypeFont class): X11FreeTypeFont.
-                                                             (line   63)
+                                                             (line   57)
 * scanf(3) C function:                   Variable arguments. (line    6)
 * scanf(3) C function <1>:               scanf.              (line    6)
 * scanf(3) C function <2>:               vfscanf.            (line    6)
@@ -5743,7 +5749,7 @@ Index
 * selectedContent instance variable (ANSIScrollingListBoxPane class): ANSIScrollingListBoxPane.
                                                              (line   91)
 * selectedFont instance method (X11FreeTypeFont class): X11FreeTypeFont.
-                                                             (line  149)
+                                                             (line  143)
 * selectedLine instance variable (ANSIListBoxPane class): ANSIListBoxPane.
                                                              (line   60)
 * selectedLine instance variable (ANSIScrollingListBoxPane class): ANSIScrollingListBoxPane.
@@ -5753,11 +5759,11 @@ Index
 * selectedText instance method (ANSIScrollingListBoxPane class): ANSIScrollingListBoxPane.
                                                              (line  191)
 * selectFont instance method (X11FreeTypeFont class): X11FreeTypeFont.
-                                                             (line  162)
+                                                             (line  156)
 * selectFontFromFontConfig instance method (X11FreeTypeFont class): X11FreeTypeFont.
-                                                             (line  203)
+                                                             (line  197)
 * selectFontFromXLFD instance method (X11FreeTypeFont class): X11FreeTypeFont.
-                                                             (line  193)
+                                                             (line  187)
 * selecting instance variable (X11TextEditorPane class): X11TextEditorPane.
                                                              (line  153)
 * Selecting text:                        X11TextEditorPane.  (line   45)
@@ -5906,7 +5912,7 @@ Index
 * sizePane instance method (ANSILabelPane class): ANSILabelPane.
                                                              (line   92)
 * slant instance variable (X11FreeTypeFont class): X11FreeTypeFont.
-                                                             (line   68)
+                                                             (line   62)
 * snprintf(3) C function:                snprintf.           (line    6)
 * sock instance variable (TCPIPNetworkStream class): TCPIPNetworkStream.
                                                              (line   72)
@@ -6154,7 +6160,7 @@ Index
 * textColor instance variable (X11LabelPane class): X11LabelPane.
                                                              (line  229)
 * textHeight instance method (X11FreeTypeFont class): X11FreeTypeFont.
-                                                             (line  207)
+                                                             (line  201)
 * textLength instance variable (X11TextEditorPane class): X11TextEditorPane.
                                                              (line  165)
 * textLine instance variable (X11LabelPane class): X11LabelPane.
@@ -6169,7 +6175,7 @@ Index
                                                              (line  706)
 * textWidth instance method (X11Font class): X11Font.        (line   69)
 * textWidth instance method (X11FreeTypeFont class): X11FreeTypeFont.
-                                                             (line  212)
+                                                             (line  206)
 * textWidthFT instance method (GLXCanvasPane class): GLXCanvasPane.
                                                              (line  711)
 * thumb instance variable (X11ScrollBarPane class): X11ScrollBarPane.
@@ -6384,7 +6390,7 @@ Index
 * Warnings:                              Errors.             (line    6)
 * watch instance method (X11Cursor class): X11Cursor.        (line   48)
 * weight instance variable (X11FreeTypeFont class): X11FreeTypeFont.
-                                                             (line   68)
+                                                             (line   62)
 * while statements:                      Control structures. (line    6)
 * width instance variable (Pen class):   Pen.                (line   29)
 * width instance variable (X11Bitmap class): X11Bitmap.      (line   41)
@@ -6474,8 +6480,7 @@ Index
 * X11PaneDispatcher class:               X11PaneDispatcher.  (line    6)
 * X11ScrollBarPane class:                X11ScrollBarPane.   (line    6)
 * X11TextEditorPane class:               X11TextEditorPane.  (line    6)
-* X11TextPane class:                     X11FreeTypeFont.    (line   44)
-* X11TextPane class <1>:                 X11TextPane.        (line    6)
+* X11TextPane class:                     X11TextPane.        (line    6)
 * xColormap class variable (X11Pane class): X11Pane.         (line  179)
 * xEventData1 instanceVariable (InputEvent class): InputEvent.
                                                              (line   24)
@@ -6490,8 +6495,8 @@ Index
 * xfopen () function:                    Ctalk library.      (line 2783)
 * xfprintf () function:                  Ctalk library.      (line 2783)
 * xfscanf () function:                   Ctalk library.      (line 2783)
-* Xft configuration:                     X11FreeTypeFont.    (line   12)
-* XftConfig file:                        X11FreeTypeFont.    (line   12)
+* Xft configuration:                     X11FreeTypeFont.    (line   13)
+* XftConfig file:                        X11FreeTypeFont.    (line   13)
 * xGC instance variable (X11Bitmap class): X11Bitmap.        (line   44)
 * xGC instance variable (X11Pane class): X11Pane.            (line  166)
 * xID instance variable (X11Bitmap class): X11Bitmap.        (line   48)
