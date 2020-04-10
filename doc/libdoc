@@ -2244,9 +2244,6 @@ the first path of all the fonts that are available to the library.
 Return a string containing the path of the next font file that matches
 the pattern given to __ctalkXftFontPathFirst (), above.
 
->>>__ctalkXftSelectedFontDescriptor (void)
-Return the font descriptor of the selected font as a char *.
-
 >>>__ctalkXftGetStringDimensions (char *str, int *x, int *y, int *width, int *height)
 Return the x and y origin, and width and height of str in the
 currently selected FreeType font.  Because the dimensions are
@@ -2298,6 +2295,25 @@ Return the qualified font name string for pattern.
 
 >>>__ctalkXftRevision (void)
 Returns an int with the Xft library's revision number.
+
+>>>__ctalkXftShowFontLoad (int warningLevel)
+Enables or disables the display on standard output of fonts that the
+library is loading.  The Ctalk library defines the following
+constants.
+
+---------------------------------------------------------
+
+XFT_NOTIFY_NONE
+XFT_NOTIFY_ERRORS
+XFT_NOTIFY_LOAD
+
+---------------------------------------------------------
+
+Note that programs should call this function before launching any
+processes.  Generally, this is before the program calls the
+X11Pane : openEventStream method.  Otherwise, the program
+will only display message for the process that this function was
+called from.
 
 >>>__ctalkXftSelectedFamily (void)
 Returns a char * string that contains family of the selected
@@ -2357,6 +2373,9 @@ values are ints and have a range of 0-0xffff.
 >>>__ctalkXftSetForegroundFromNamedColor (String colorName)
 Sets the selected outline font's red, green, and blue values from
 the named X11 color given as the argument.
+
+>>>__ctalkXftSelectedFontDescriptor (void)
+Return the font descriptor of the selected font as a char *.
 
 >>>__ctalkXftVersion (void)
 Returns an int with the Xft library's version number,

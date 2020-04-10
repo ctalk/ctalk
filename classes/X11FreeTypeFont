@@ -1,4 +1,4 @@
-/* $Id: X11FreeTypeFont,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11FreeTypeFont,v 1.2 2020/04/10 16:34:49 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -251,4 +251,26 @@ X11FreeTypeFont instanceMethod libIsInitialized (void) {
    is initialized and a font is selected."
   returnObjectClass Integer;
   return __ctalkXftInitialized ();
+}
+
+#ifndef XFT_NOTIFY_NONE
+#define XFT_NOTIFY_NONE 0
+#endif
+#ifndef XFT_NOTIFY_ERRORS
+#define XFT_NOTIFY_ERRORS 1
+#endif
+#ifndef XFT_NOTIFY_LOAD
+#define XFT_NOTIFY_LOAD 2
+#endif
+
+X11FreeTypeFont instanceMethod notifyLevel (Integer lvl) {
+  __ctalkXftShowFontLoad (lvl);
+}
+
+X11FreeTypeFont instanceMethod verbose (void) {
+  __ctalkXftShowFontLoad (XFT_NOTIFY_LOAD);
+}
+
+X11FreeTypeFont instanceMethod errors (void) {
+  __ctalkXftShowFontLoad (XFT_NOTIFY_ERRORS);
 }

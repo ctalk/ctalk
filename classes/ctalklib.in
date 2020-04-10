@@ -1,4 +1,4 @@
-/* $Id: ctalklib.in,v 1.79 2020/04/03 20:10:02 rkiesling Exp $ -*-c-*-*/
+/* $Id: ctalklib.in,v 1.81 2020/04/10 12:24:34 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -1268,6 +1268,7 @@ extern char *__ctalkXftListFontsNext (void);
 extern void __ctalkXftListFontsEnd (void);
 extern int __ctalkXftMajorVersion (void);
 extern int __ctalkXftMinorVersion (void);
+extern void __ctalkXftShowFontLoad (int);
 extern int __ctalkXftVersion (void);
 extern int __ctalkXftRevision (void);
 extern int __ctalkXftInitLib (void);

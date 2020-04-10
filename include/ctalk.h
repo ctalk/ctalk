@@ -1,4 +1,4 @@
-/* $Id: ctalk.h,v 1.95 2020/04/02 02:38:14 rkiesling Exp $ -*-Fundamental-*- */
+/* $Id: ctalk.h,v 1.99 2020/04/10 16:34:50 rkiesling Exp $ -*-Fundamental-*- */
 
 /*
   This file is part of Ctalk.
@@ -2142,7 +2142,6 @@ void output_arg_rt_expr (MESSAGE_STACK, int, int, METHOD *);
 int __ctalkMatchParenRev (MESSAGE_STACK, int, int);
 void reset_last_eval_result (void);
 int expr_n_occurrences (METHOD *);
-bool rte_output_fn_arg (MESSAGE_STACK, int, int, char *);
 
 /* lib/rt_error.c */
 #ifdef __GNUC__
@@ -2690,6 +2689,8 @@ int load_ft_font_faces_internal (char *, double,
                                  unsigned short int,
 				 unsigned short int,
                                  unsigned short int);
+void __ctalkXftShowFontLoad (int lvl);
+
 
 /* lib/x11ksym.c */
 int ascii_shift_keysym (unsigned long int);
@@ -2752,6 +2753,8 @@ int read_event (int *, unsigned int *, unsigned int [], int);
 /* lib/xdialog.c */
 int __ctalkX11CreateDialogWindow (OBJECT *);
 int __ctalkCloseX11DialogPane (OBJECT *);
+extern char **__ctalkIconXPM (int);
+extern void __enable_dialog (OBJECT *);
 
 /* libdeps.c */
 int cache_ctpp_output_file (char *);

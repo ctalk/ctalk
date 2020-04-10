@@ -1066,50 +1066,78 @@ File: ctalk.info,  Node: X11FreeTypeFont,  Next: X11Bitmap,  Prev: X11Cursor,  U
 -----------------------
 
 This class contains the methods that handle FreeType fonts using the Xft
-library specifically.  In classes and methods that use fonts, FreeType
-fonts take priority if available and the program has initialized the
-library with the 'initFontLib' method.  Otherwise, applications use the
-fonts provided by the window system's normal libraries.
+and Fontconfig libraries.  In classes and methods that use fonts,
+FreeType fonts take priority if they are available and the program has
+initialized the library with the 'initFontLib' method, which is
+described in further detail below.  Otherwise, applications use the X
+Window System's builtin bitmap fonts.
 
-When looking for the machine's font configuration, Ctalk checks for the
-following files.
+Internally Ctalk uses the Fontconfig library to locate the system's
+'fonts.conf' file.  The 'fonts.conf' file's default location is
+configured when the library is built.  Generally, the 'font.conf' file's
+path is '/etc/fonts/fonts.conf' or '/usr/local/etc/fonts/fonts.conf.'
 
-1.
-     The file path named by the '$XFT_CONFIG' environment variable.
-2.
-     '$HOME/.fonts.conf'
-3.
-     '$XDG_CONFIG_HOME/fontconfig/fonts.conf'
-4.
-     '/etc/fonts/fonts.conf'
-5.
-     The file '/usr/X11R6/lib/X11/XftConfig'
+However, an alternate 'fonts.conf' pathname may be set in the
+environment with the 'FONTCONFIG_FILE' environment variable.  If its
+value begins with a '~', the path is relative to the user's 'HOME'
+directory.  If the name doesn't start with a '/', then the pathname is
+relative to the fontconfig libraries' default installation directory.
+This directory can be changed by setting the 'FONTCONFIG_PATH'
+environment variable to an alternate directory.
 
-If you want to write your own font config file, the 'X11FreeTypeFont'
-class is mainly concerned with the directories where TrueType and Type 1
-fonts reside.  The directories need to be listed in the 'XftConfig' file
-with the 'dir' directive.  For example:
+Classes that use X Window System graphics (that is, 'X11Pane' and its
+subclasses) can use either the X libraries' built-in bitmap fonts (via
+the pane's 'fontVar' instance variable), or the scalable Freetype fonts
+(via the pane's 'ftFontVar' instance variable).
 
+The default is to use X's built in bitmap fonts.  These fonts are
+initialized when the program connects to the display server.
 
-     <fontconfig>
-     <dir>/usr/share/fonts/truetype/dejavu</dir>
-     <dir>/usr/share/fonts/truetype/freefont</dir>
-     <dir>/usr/share/fonts/type1/gsfonts</dir>
-     </fontconfig>
+However, to enable drawing with scalable fonts, programs need to call
+the 'initFontLib' method during program initialization, with a line
+similar to this one.
 
 
-There is a more complete 'XftConfig' sample file in the Ctalk source
-distribution, 'doc/XftConfig.sample'.  The 'fonts.conf (5)' manual page
-and the Xft user and developer documentation provide even more
-information.
+     myMainWindow ftFontVar initFontLib;
 
-Classes like 'X11TextPane' can use the FreeType fonts transparently
-instead of the normal Xlib application programming interface, as long as
-the Xft library is available and initialized.  Unlike the Xlib font
-resources, which need their Pane objects initialized before the font
-resources, the Xft library works best when the application initializes
-it as early as possible.  The example program for the 'X11TextPane'
-class shows how this can be accomplished.  *Note X11TextPane::.
+
+Fontconfig Font Selection
+.........................
+
+Fontconfig font descriptions have their own syntax.  A Fontconfig
+pattern has the following elements.
+
+
+     <fontfamily>[-<fontsize>][:[[<name>=]<value>] ...]
+
+
+Here are a few examples.
+
+
+     DejaVu Sans Mono
+     Nimbus Sans L-12
+     Ubuntu Mono-10.0:italic
+     FreeMono-10:slant=italic:weight=bold
+
+
+These font descriptors work with the 'selectFontFromFontConfig' method.
+The receiver, of course, must be a 'X11FreetypeFont' object, or the pane
+object's 'ftFontVar' instance variable.  Here is an example
+
+
+     myWindow ftFontVar selectFontFromFontConfig "DejaVu Sans Mono-12"
+
+
+The Fontconfig user guide describes the library's font selection syntax.
+The documentation is available from many software package archives and
+also on the web at <http://freedesktop.org/fontconfig>.
+
+Further Information Qbout Fontconfig and libXft
+...............................................
+
+For further information about the the Fontconfig libraries, refer to:
+<https://freedesktop.org/fontconfig>.  Information about Xft is
+available at <http://freedesktop.org/wiki/Software/Xft>.
 
 Instance Variables
 ..................
@@ -1164,6 +1192,16 @@ Instance Methods
      VALUE must be an unsigned short int; i.e., in the range 0 - 65535
      (0xffff hex).
 
+'errors (void)'
+     This is a shortcut for
+
+
+          myFont notifyLevel XFT_NOTIFY_ERRORS
+
+
+     Refer the the 'X11FreeTypeFont : notifyLevel' method for more
+     information.
+
 'green (Integer VALUE)'
      Set the current Xft font's foreground green channel.  The argument
      VALUE must be an unsigned short int; i.e., in the range 0 - 65535
@@ -1194,6 +1232,21 @@ Instance Methods
      _Note:_ For a list of the colors that the X Window System
      recognizes, consult the file 'rgb.txt', which is often stored with
      the server's configuration files when the GUI is installed.
+
+'notifyLevel (Integer LEVEL)'
+     Set the Xft libraries' notification level to LEVEL.  Ctalk defines
+     the following constants in '/ctalk/ctalkdefs.h'.
+
+
+          XFT_NOTIFY_NONE
+          XFT_NOTIFY_ERRORS
+          XFT_NOTIFY_LOAD
+
+
+     Note: programs should call this method before launching any
+     processes.  Generally this is before the 'X11Pane :
+     openInputStream' method.  Otherwise, the program only displays font
+     loads for the process it was called from.
 
 'qualifyName (String XFTPATTERN)'
      Returns a fully qualified 'String' containing a fully qualified Xft
@@ -1275,6 +1328,16 @@ Instance Methods
      Return an 'Integer' with the width in pixels of TEXT in the
      currently selected FreeType font.  If the Xft library is not
      available or not initialized, the method returns 0.
+
+'verbos (void)'
+     This is a shortcut for
+
+
+          myFont notifyLevel XFT_NOTIFY_LOAD
+
+
+     Refer the the 'X11FreeTypeFont : notifyLevel' method for more
+     information.
 
 
 File: ctalk.info,  Node: X11Bitmap,  Next: Boolean,  Prev: X11FreeTypeFont,  Up: Classes

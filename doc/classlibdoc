@@ -659,6 +659,18 @@ Set the current Xft font's foreground blue channel.  The argument
 value must be an unsigned short int; i.e., in the
 range 0 - 65535 (0xffff hex).
 
+>>>X11FreeTypeFont::errors (void)
+This is a shortcut for
+
+---------------------------------------------------------
+  
+  myFont notifyLevel XFT_NOTIFY_ERRORS
+  
+---------------------------------------------------------
+
+Refer the the X11FreeTypeFont : notifyLevel method for
+more information.
+
 >>>X11FreeTypeFont::green (Integer value)
 Set the current Xft font's foreground green channel.  The argument
 value must be an unsigned short int; i.e., in the
@@ -689,6 +701,23 @@ X11 color name given as the argument.
 Note: For a list of the colors that the X Window System
 recognizes, consult the file rgb.txt, which is often stored
 with the server's configuration files when the GUI is installed.
+
+>>>X11FreeTypeFont::notifyLevel (Integer level)
+Set the Xft libraries' notification level to level.  Ctalk
+defines the following constants in /ctalk/ctalkdefs.h.
+
+---------------------------------------------------------
+  
+  XFT_NOTIFY_NONE
+  XFT_NOTIFY_ERRORS
+  XFT_NOTIFY_LOAD
+  
+---------------------------------------------------------
+
+Note: programs should call this method before launching any processes.
+Generally this is before the X11Pane : openInputStream method.
+Otherwise, the program only displays font loads for the process it was
+called from.
 
 >>>X11FreeTypeFont::qualifyName (String xftpattern)
 Returns a fully qualified String containing a fully qualified
@@ -771,6 +800,18 @@ or not initialized, the method returns 0.
 Return an Integer with the width in pixels of text in the
 currently selected FreeType font.  If the Xft library is not available
 or not initialized, the method returns 0.
+
+>>>X11FreeTypeFont::verbos (void)
+This is a shortcut for
+
+---------------------------------------------------------
+  
+  myFont notifyLevel XFT_NOTIFY_LOAD
+  
+---------------------------------------------------------
+
+Refer the the X11FreeTypeFont : notifyLevel method for
+more information.
 
 
 >>>X11Bitmap::background (String color)

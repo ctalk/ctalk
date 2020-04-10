@@ -1,4 +1,4 @@
-/* $Id: x11defs.h,v 1.24 2020/04/04 12:56:16 rkiesling Exp $ -*-c-*-*/
+/* $Id: x11defs.h,v 1.26 2020/04/10 16:34:50 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -280,5 +280,15 @@ typedef struct _dc {
 /* If changing, also change in X11MessageBoxPane class, etc. */
 #define ICON_WIDTH_PX  64
 #define ICON_HEIGHT_PX  64
+
+#ifndef XFT_NOTIFY_NONE
+#define XFT_NOTIFY_NONE 0
+#endif
+#ifndef XFT_NOTIFY_ERRORS
+#define XFT_NOTIFY_ERRORS 1
+#endif  
+#ifndef XFT_NOTIFY_LOAD
+#define XFT_NOTIFY_LOAD 2
+#endif
 
 #endif /* _X11DEFS_H */
