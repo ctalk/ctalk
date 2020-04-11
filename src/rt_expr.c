@@ -1,4 +1,4 @@
-/* $Id: rt_expr.c,v 1.11 2020/04/02 02:38:14 rkiesling Exp $ */
+/* $Id: rt_expr.c,v 1.13 2020/04/11 01:42:02 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -51,6 +51,40 @@ extern bool cpre_have_cvar_reg;        /* Declared in ifexpr.c.  */
 #define _MPUTCHAR(__m,__c) (__m)->name[0] = (__c); (__m)->name[1] = '\0';
 
 extern DEFAULTCLASSCACHE *ct_defclasses; 
+
+/* If the previous label was considered
+   as an instance variable messages, but it's actually a method
+   message of its previous  label, return true. */
+static bool prev_instvar_is_actually_method (MESSAGE_STACK messages,
+					     int idx) {
+  int prev_idx;
+  MESSAGE *prev_message;
+  METHOD *method;
+
+  if ((prev_idx = prevlangmsg (messages, idx)) != ERROR) {
+    prev_message = messages[prev_idx];
+    if (M_TOK(prev_message) != LABEL)
+      return false;
+
+    if (IS_OBJECT(prev_message -> receiver_obj)) {
+      if (((method = get_instance_method (prev_message,
+					  prev_message -> receiver_obj ->
+					  instancevars,
+					  M_NAME(prev_message),
+					  ANY_ARGS,
+					  FALSE)) != NULL) ||
+	  ((method = get_class_method (prev_message,
+				       prev_message -> receiver_obj ->
+				       instancevars,
+				       M_NAME(prev_message),
+				       ANY_ARGS,
+				       FALSE)) != NULL)) {
+	return true;
+      }
+    }
+  }
+  return false;
+}
 
 char *fmt_eval_expr_str (char *expr, char *expr_out) {
   /* strange, but it avoids buffer overflow warnings */
@@ -395,8 +429,17 @@ char *rt_expr (MESSAGE_STACK messages, int start_idx, int *end_idx,
 	} else {
 	  /* Set by register_argblk_c_vars_1 () when we construct a 
 	     cvartab name for an argument block. */
-	  if (!(messages[i] -> attrs & TOK_IS_RT_EXPR))
+	  if (!(messages[i] -> attrs & TOK_IS_RT_EXPR)) {
 	    undefined_label_check (messages, i);
+	  } else if (prev_instvar_is_actually_method (messages, i)) { /***/
+	    if (!IS_DEFINED_LABEL(M_NAME(messages[i])) &&
+		!get_local_object (M_NAME(messages[i]), NULL) &&
+		!get_global_object (M_NAME(messages[i]), NULL)) {
+	      __ctalkExceptionInternal (messages[i], 
+					undefined_label_x, 
+					M_NAME(messages[i]), 0);
+	    }
+	  }
 	}
       }
     } else {
