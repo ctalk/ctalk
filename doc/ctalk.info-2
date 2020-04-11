@@ -2967,18 +2967,17 @@ Here is a simple example program that displays a X11LabelPane widget.
        xPane inputStream eventMask =
          WINDELETE|EXPOSE|ENTERWINDOWNOTIFY|LEAVEWINDOWNOTIFY;
        xTopLevelPane attachTo xPane;
-       xLabelPane attachTo xTopLevelPane, "100x100+25+50";
+       xLabelPane attachTo xTopLevelPane, "150x150+25+50";
        xPane map;
        xPane raiseWindow;
 
        xPane openEventStream;
 
-     #ifdef FTFONTS
-       xLabelPane ftFont "DejaVu Sans", 0, 0, 72, 11.0;
-     #else
-       xLabelPane font "-*-helvetica-medium-r-*-*-*-80-*-*-*-*-*-*";
+     #ifndef FTFONTS
+       xLabelPane font "-*-helvetica-medium-r-*-*-*-120-*-*-*-*-*-*";
      #endif
-       xLabelPane textColor = "navyblue";
+
+       xLabelPane resources replaceAt "textColor", "NavyBlue";
 
      #ifdef MULTILINE
        xLabelPane multiLine "Labels\ncan occupy\nmultiple\nlines.";
@@ -3012,7 +3011,6 @@ Here is a simple example program that displays a X11LabelPane widget.
          }
        }
      }
-
 
 
 Multiple Line Labels
@@ -3062,6 +3060,24 @@ The highlighted border width is included regardless of whether the
 border actually is drawn or the label is hightlighted, so text alignment
 remains constant if a program draws and then obscures the border, or
 when the pointer passes over the label.
+
+Resources
+.........
+
+'ftFont'
+     A 'String' that contains the text font's Fontconfig font
+     descriptor.  The default is 'sans serif-12'.
+
+     For more information about Fontconfig descriptors, refer to the
+     'X11FreeTypeFont' class.  *Note X11FreeTypeFont::.
+
+'textColor'
+'borderColor'
+'highlightTextColor'
+'highlightBackgroundColor'
+     These are 'String' objects that contain the name of the X11 color
+     that is used to draw each element.  See 'showrgb(1)' for a list of
+     these color names.
 
 Instance Variables
 ..................

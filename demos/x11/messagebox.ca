@@ -21,6 +21,8 @@ int main (void) {
   label canFocus = false;
   label borderWidth = 0;
 
+  label ftFontVar notifyLevel XFT_NOTIFY_ERRORS;
+
   mainWindow initialize 255, 200;
   mainWindow inputStream eventMask = 
     EXPOSE|ENTERWINDOWNOTIFY|LEAVEWINDOWNOTIFY|BUTTONPRESS|BUTTONRELEASE|KEYPRESS|KEYRELEASE|WINDELETE|MOVENOTIFY;
@@ -38,14 +40,9 @@ int main (void) {
   mainWindow setWMTitle "X11MessageBoxPane Demo";
 
   label ftFontVar initFontLib;
-#if 1
-label ftFont "DejaVu Sans", 0, FTFONT_BOLD, 0, 12.0;
-  label ftFontVar saveSelectedFont;
-  button ftFont "DejaVu Sans", 0, FTFONT_MEDIUM, 0, 10.0;
-  button ftFontVar saveSelectedFont;
-#endif  
 
   label multiLine "X11MessageBoxPane\nDemo";
+  label resources replaceAt "textColor", "lightgray";
 
   button label multiLine "Open\nMessageBox";
 
@@ -57,10 +54,9 @@ label ftFont "DejaVu Sans", 0, FTFONT_BOLD, 0, 12.0;
   /* The program uses the "replaceAt" method because the key/value
      entry for "backgroundColor" the X11MessageBoxPane : new method
      has alread created an entry for backgroundColor. */
-   messageBox resources replaceAt "backgroundColor", "blue";
+  messageBox resources replaceAt "backgroundColor", "blue";
   messageBox resources replaceAt "messageText",
     	       "Hello, messageBox!\nYour message text here.";
-  messageBox resources replaceAt "messageColor", "lightgray";	       
 
   button draw;
   button refresh;

@@ -21,18 +21,17 @@ int main (int argv, char **argc) {
   xPane inputStream eventMask =
     WINDELETE|EXPOSE|ENTERWINDOWNOTIFY|LEAVEWINDOWNOTIFY;
   xTopLevelPane attachTo xPane;
-  xLabelPane attachTo xTopLevelPane, "100x100+25+50";
+  xLabelPane attachTo xTopLevelPane, "150x150+25+50";
   xPane map;
   xPane raiseWindow;
 
   xPane openEventStream;
 
-#ifdef FTFONTS
-  xLabelPane ftFont "DejaVu Sans", 0, 0, 72, 11.0;
-#else
-  xLabelPane font "-*-helvetica-medium-r-*-*-*-80-*-*-*-*-*-*";
-#endif       
-  xLabelPane textColor = "navyblue";
+#ifndef FTFONTS
+  xLabelPane font "-*-helvetica-medium-r-*-*-*-120-*-*-*-*-*-*";
+#endif
+
+  xLabelPane resources replaceAt "textColor", "NavyBlue";
 
 #ifdef MULTILINE
   xLabelPane multiLine "Labels\ncan occupy\nmultiple\nlines.";

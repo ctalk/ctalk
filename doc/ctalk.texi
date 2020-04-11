@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.146 2020/04/11 12:40:42 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.147 2020/04/11 17:30:14 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -14697,7 +14697,7 @@ the text's justification, is described in the subsections below.
 
 Here is a simple example program that displays a X11LabelPane widget.
 
-@c test/expect/examples-x11/x11labelpane.ca
+@c demos/x11/labelpane.ca
 @example
 
 #include <ctalk/ctalkdefs.h>
@@ -14723,18 +14723,17 @@ int main (int argv, char **argc) @{
   xPane inputStream eventMask =
     WINDELETE|EXPOSE|ENTERWINDOWNOTIFY|LEAVEWINDOWNOTIFY;
   xTopLevelPane attachTo xPane;
-  xLabelPane attachTo xTopLevelPane, "100x100+25+50";
+  xLabelPane attachTo xTopLevelPane, "150x150+25+50";
   xPane map;
   xPane raiseWindow;
 
   xPane openEventStream;
 
-#ifdef FTFONTS
-  xLabelPane ftFont "DejaVu Sans", 0, 0, 72, 11.0;
-#else
-  xLabelPane font "-*-helvetica-medium-r-*-*-*-80-*-*-*-*-*-*";
-#endif       
-  xLabelPane textColor = "navyblue";
+#ifndef FTFONTS
+  xLabelPane font "-*-helvetica-medium-r-*-*-*-120-*-*-*-*-*-*";
+#endif
+
+  xLabelPane resources replaceAt "textColor", "NavyBlue";
 
 #ifdef MULTILINE
   xLabelPane multiLine "Labels\ncan occupy\nmultiple\nlines.";
@@ -14768,7 +14767,6 @@ int main (int argv, char **argc) @{
     @}
   @}
 @}
-
 
 @end example
 
@@ -14823,6 +14821,32 @@ The highlighted border width is included regardless of whether the
 border actually is drawn or the label is hightlighted, so text
 alignment remains constant if a program draws and then obscures the
 border, or when the pointer passes over the label.
+
+
+@subsubheading Resources
+
+@table @code
+@cindex @code{ftFont} resource @idxclscite{X11LabelPane}
+@item ftFont
+A @code{String} that contains the text font's Fontconfig font
+descriptor.  The default is @samp{sans serif-12}.
+
+For more information about Fontconfig descriptors, refer to the
+@code{X11FreeTypeFont} class. @xref{X11FreeTypeFont}.
+
+@cindex @code{textColor} resource @idxclscite{X11LabelPane}
+@cindex @code{borderColor} resource @idxclscite{X11LabelPane}
+@cindex @code{highlightTextColor} resource @idxclscite{X11LabelPane}
+@cindex @code{highlightBackgroundColor} resource @idxclscite{X11LabelPane}
+@item textColor
+@item borderColor
+@item highlightTextColor
+@item highlightBackgroundColor
+These are @code{String} objects that contain the name of the X11 color
+that is used to draw each element.  See @cite{showrgb(1)} for a list of
+these colors.
+
+@end table
 
 
 @subsubheading Instance Variables
