@@ -579,25 +579,5 @@
 2020-04-07
 	- Updatd __ctalkXftInitLib to use FcFontInitLoadConFigAndFonts
 	(xftlib.c).
-2020-04-09
-	- Updated __ctalkSaveCVARResource to check for a receiver object
-	(rt_return.c).
-	2020-04-10
-	- Added the __ctalkXftShowFontLoad library function.
-2020-04-10
-	- Added the __ctalkXftShowFontLoad library function,
-	and the X11FreeTypeFont methods notifyLevel, verbose, and errors,
-	and added optional font load and load error messages to xftlib.c.
-	- Added prev_instvar_is_actually_method in src/rt_expr.c, called
-	by rt_expr.
-2020-04-11
-	- Updated xftlib.c to make Fontconfig pattern sets experimental,
-	and add the XFTCONFIG environment variable fonts.conf file
-	location, and to add the files given in an old-style fonts.conf
-	to the libraries' internal fonts database.
-	- Moved test/expect/examples-x11/x11labelpane.ca to
-	demos/x11/labelpane.ca.
-	- Added resources for the font and element colors used for
-	drawing in X11LabelPane.
 
 

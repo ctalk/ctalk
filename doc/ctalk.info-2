@@ -2967,17 +2967,18 @@ Here is a simple example program that displays a X11LabelPane widget.
        xPane inputStream eventMask =
          WINDELETE|EXPOSE|ENTERWINDOWNOTIFY|LEAVEWINDOWNOTIFY;
        xTopLevelPane attachTo xPane;
-       xLabelPane attachTo xTopLevelPane, "150x150+25+50";
+       xLabelPane attachTo xTopLevelPane, "100x100+25+50";
        xPane map;
        xPane raiseWindow;
 
        xPane openEventStream;
 
-     #ifndef FTFONTS
-       xLabelPane font "-*-helvetica-medium-r-*-*-*-120-*-*-*-*-*-*";
+     #ifdef FTFONTS
+       xLabelPane ftFont "DejaVu Sans", 0, 0, 72, 11.0;
+     #else
+       xLabelPane font "-*-helvetica-medium-r-*-*-*-80-*-*-*-*-*-*";
      #endif
-
-       xLabelPane resources replaceAt "textColor", "NavyBlue";
+       xLabelPane textColor = "navyblue";
 
      #ifdef MULTILINE
        xLabelPane multiLine "Labels\ncan occupy\nmultiple\nlines.";
@@ -3011,6 +3012,7 @@ Here is a simple example program that displays a X11LabelPane widget.
          }
        }
      }
+
 
 
 Multiple Line Labels
@@ -3060,24 +3062,6 @@ The highlighted border width is included regardless of whether the
 border actually is drawn or the label is hightlighted, so text alignment
 remains constant if a program draws and then obscures the border, or
 when the pointer passes over the label.
-
-Resources
-.........
-
-'ftFont'
-     A 'String' that contains the text font's Fontconfig font
-     descriptor.  The default is 'sans serif-12'.
-
-     For more information about Fontconfig descriptors, refer to the
-     'X11FreeTypeFont' class.  *Note X11FreeTypeFont::.
-
-'textColor'
-'borderColor'
-'highlightTextColor'
-'highlightBackgroundColor'
-     These are 'String' objects that contain the name of the X11 color
-     that is used to draw each element.  See 'showrgb(1)' for a list of
-     these color names.
 
 Instance Variables
 ..................
@@ -8987,6 +8971,9 @@ functions.
      Return a string containing the path of the next font file that
      matches the pattern given to '__ctalkXftFontPathFirst ()', above.
 
+'__ctalkXftSelectedFontDescriptor (void)'
+     Return the font descriptor of the selected font as a 'char *'.
+
 '__ctalkXftGetStringDimensions (char *STR, int *X, int *Y, int *WIDTH, int *HEIGHT)'
      Return the x and y origin, and width and height of STR in the
      currently selected FreeType font.  Because the dimensions are
@@ -9037,23 +9024,6 @@ functions.
 
 '__ctalkXftRevision (void)'
      Returns an 'int' with the Xft library's revision number.
-
-'__ctalkXftShowFontLoad (int WARNINGLEVEL)'
-     Enables or disables the display on standard output of fonts that
-     the library is loading.  The Ctalk library defines the following
-     constants.
-
-
-          XFT_NOTIFY_NONE
-          XFT_NOTIFY_ERRORS
-          XFT_NOTIFY_LOAD
-
-
-     Note that programs should call this function before launching any
-     processes.  Generally, this is before the program calls the
-     'X11Pane : openEventStream' method.  Otherwise, the program will
-     only display message for the process that this function was called
-     from.
 
 '__ctalkXftSelectedFamily (void)'
      Returns a 'char *' string that contains family of the selected
@@ -9109,9 +9079,6 @@ functions.
 '__ctalkXftSetForegroundFromNamedColor (String COLORNAME)'
      Sets the selected outline font's red, green, and blue values from
      the named X11 color given as the argument.
-
-'__ctalkXftSelectedFontDescriptor (void)'
-     Return the font descriptor of the selected font as a 'char *'.
 
 '__ctalkXftVersion (void)'
      Returns an 'int' with the Xft library's version number, which is
