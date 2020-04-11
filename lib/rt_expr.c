@@ -1,4 +1,4 @@
-/* $Id: rt_expr.c,v 1.12 2020/04/05 20:44:07 rkiesling Exp $ */
+/* $Id: rt_expr.c,v 1.13 2020/04/11 23:35:07 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -4293,8 +4293,13 @@ OBJECT *eval_expr (char *s, OBJECT *recv_class, METHOD *method,
 	       */
 	      if ((matching_paren_ptr = 
 		   expr_match_paren (p, i)) == ERROR) {
-		__ctalkExceptionInternal (m, mismatched_paren_x, "",0);
-		goto cleanup;
+		sprintf (namebuf, "\n\n\t%s\n\n",
+			 expr_parsers[expr_parser_ptr] -> expr_str);
+		__ctalkExceptionInternal (m, mismatched_paren_x, namebuf,0);
+		__ctalkHandleRunTimeExceptionInternal ();
+		printf ("%s", namebuf);
+		exit (1);
+		/* goto cleanup; *//***/
 	      }
 	      fn_tok_ptr = prev_msg (e_messages, i);
 	      if (__rt_is_typecast_expr (p, i)) {

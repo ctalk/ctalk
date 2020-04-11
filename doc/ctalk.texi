@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.147 2020/04/11 17:30:14 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.148 2020/04/11 23:35:07 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -15182,6 +15182,77 @@ int main (void) @{
 @}
 
 @end example
+
+@subsubheading Resources
+
+@table @code
+
+@cindex @code{backgroundColor} resource @idxclscite{X11MessageBoxPane}
+@item backgroundColor
+The window's background color. The value is a @code{String} that
+contains a X11 named color.  The default is @samp{gray}.
+
+@cindex @code{buttonText} resource @idxclscite{X11MessageBoxPane}
+@item buttonText
+A @code{String} that contains the text that appears in the button.
+The default is @samp{Ok}.
+
+@cindex @code{messageColor} resource @idxclscite{X11MessageBoxPane}
+@item messageColor
+A @code{String} that contains the color of the message text.  The default
+is @samp{black}.  The message box sets the label's @code{textColor}
+resource to this value.
+
+@cindex @code{geometry} resource @idxclscite{X11MessageBoxPane}
+@item geometry
+A @code{String} that contains the message window's size, and,
+optionally, its position.  The value is set to the dimensions that
+are given as arguments to the @mnm{attachTo} method.
+
+@cindex @code{iconID} resource @idxclscite{X11MessageBoxPane}
+@item iconID
+An @code{Integer} that contains the identifier to the icon
+to be displayed.  Ctalk defines the following constants for
+icons in @code{ctalkdefs.h} and in the graphics libraries.
+
+@example
+
+ICON_NONE
+ICON_STOP
+ICON_CAUTION
+ICON_INFO
+
+@end example
+
+The default is @samp{ICON_NONE}, which causes no icon to be displayed.
+Any other constant causes an icon to be displayed to the left of the
+message text.  The widget adjusts the size and position of the
+text automatically to provide space for the icon.
+
+@cindex @code{messageFont} resource @idxclscite{X11MessageBoxPane}
+@item messageFont
+A @code{String} that contains the Fontconfig font descriptor.  The
+default is @samp{sans serif-12}.  The pane uses this value to
+set the label's @samp{fcFont} resource.
+
+@cindex @code{messageText} resource @idxclscite{X11MessageBoxPane}
+@item messageText
+A @code{String} that contains the text of the message to be displayed.
+The default is @samp{Sample message text.}.
+
+@cindex @code{pad} resource @idxclscite{X11MessageBoxPane}
+@item pad
+An @code{Integer} that contains the space in pixels betwween the
+button and label widgets, and between each widget and the edge
+of the window.  The default is 10 pixels.
+
+@cindex @code{titleText} resource @idxclscite{X11MessageBoxPane}
+@item titleText
+A @code{String} that contains the message window's title text.
+The default is @samp{Message}.
+
+@end table
+
 
 @subsubheading Instance Variables
 
