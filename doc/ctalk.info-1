@@ -1132,6 +1132,41 @@ The Fontconfig user guide describes the library's font selection syntax.
 The documentation is available from many software package archives and
 also on the web at <http://freedesktop.org/fontconfig>.
 
+Basic 'fonts.conf' Files
+........................
+
+Ctalk also uses a subset of the 'fonts.conf' tag syntax and the older
+style of finding a system's or users' 'fonts.conf' file:
+
+1.
+     The file path named by the '$XFT_CONFIG' environment variable.
+2.
+     '$HOME/.fonts.conf'
+3.
+     '$XDG_CONFIG_HOME/fontconfig/fonts.conf'
+4.
+     '/etc/fonts/fonts.conf'
+5.
+     The file '/usr/X11R6/lib/X11/XftConfig'
+
+If you want to write your own font config file, the Ctalk libraries can
+use a subset of the 'fonts.conf' markup.
+
+In this case, the entries simply cause the libraries to add the fonts in
+the directories to the internal font database.
+
+
+     <fontconfig>
+     <dir>/usr/share/fonts/truetype/dejavu</dir>
+     <dir>/usr/share/fonts/truetype/freefont</dir>
+     <dir>/usr/share/fonts/type1/gsfonts</dir>
+     </fontconfig>
+
+
+There is a sample 'XftConfig' file in the Ctalk source distribution,
+'doc/XftConfig.sample'.  The 'fonts.conf (5)' manual page and the Xft
+user and developer documentation provide even more information.
+
 Further Information Qbout Fontconfig and libXft
 ...............................................
 
