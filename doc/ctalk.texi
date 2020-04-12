@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.148 2020/04/11 23:35:07 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.150 2020/04/12 17:37:30 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -14512,6 +14512,60 @@ method, above.
 Returns a @code{String} with the button's text.  If the text is
 displayed on several lines, the method concatenates the lines with
 a space character @samp{' '} between them.
+
+@end table
+
+@subsubheading Resources
+
+This class uses mainly @code{Pen} objects for drawing.  So the
+resources with their default values are created when the
+@code{X11ButtonPane} object is created, and the @code{Pens} are
+initialized in the @code{attachTo} method.  That means in
+order to change the value of a resource, programs should do this
+before attaching the pane to its parent pane.
+
+@table @code
+
+@cindex @code{highlightHPenColor} resource @idxclscite{X11ButtonPane}
+@item highlightHPenColor
+A @code{String} that contains the name of the color used to draw the
+hightlighted horizontal edge of the button when displaying bevelled
+edges.  The default value is @samp{gray94}.
+
+@cindex @code{highlightHPenWidth} resource @idxclscite{X11ButtonPane}
+@item highlightHPenWidth
+An @code{Integer} that contains the line width in pixels of the pen
+that is used to draw the highlighted horizontal edge of the button
+when drawing bevelled edges.  The default value is 1 pixel.
+
+@cindex @code{highlightVPenColor} resource @idxclscite{X11ButtonPane}
+@item highlightHPenColor
+A @code{String} that contains the name of the color used to draw the
+hightlighted vertical edge of the button when displaying bevelled
+edges.  The default value is @samp{gray91}.
+
+@cindex @code{highlightVPenWidth} resource @idxclscite{X11ButtonPane}
+@item highlightHPenWidth
+An @code{Integer} that contains the line width in pixels of the pen
+that is used to draw the highlighted vertical edge of the button
+when drawing bevelled edges.  The default value is 1 pixel.
+
+@cindex @code{labelBackground} resource @idxclscite{X11ButtonPane}
+@item labelBackground
+A @code{String} that contains the name of the label's background
+color.  The default is @samp{lightgray}.
+
+@cindex @code{shadowPenColor} resource @idxclscite{X11ButtonPane}
+@item shadowPenColor
+A @code{String} that contains the name of the color used to draw
+shadows if the button uses bevelled edges.  The default value is
+@samp{gray55}.
+
+@cindex @code{shadowPenWidth} resource @idxclscite{X11ButtonPane}
+@item shadowPenWidth
+An @code{Integer} that contains the line width in pixels of the pen
+that is used to draw shadows when displaying a bevelled button.  The
+default value is 1 pixel.
 
 @end table
 

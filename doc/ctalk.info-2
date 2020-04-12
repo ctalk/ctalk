@@ -2801,6 +2801,48 @@ of a button object.
      displayed on several lines, the method concatenates the lines with
      a space character '' '' between them.
 
+Resources
+.........
+
+This class uses mainly 'Pen' objects for drawing.  So the resources with
+their default values are created when the 'X11ButtonPane' object is
+created, and the 'Pens' are initialized in the 'attachTo' method.  That
+means in order to change the value of a resource, programs should do
+this before attaching the pane to its parent pane.
+
+'highlightHPenColor'
+     A 'String' that contains the name of the color used to draw the
+     hightlighted horizontal edge of the button when displaying bevelled
+     edges.  The default value is 'gray94'.
+
+'highlightHPenWidth'
+     An 'Integer' that contains the line width in pixels of the pen that
+     is used to draw the highlighted horizontal edge of the button when
+     drawing bevelled edges.  The default value is 1 pixel.
+
+'highlightHPenColor'
+     A 'String' that contains the name of the color used to draw the
+     hightlighted vertical edge of the button when displaying bevelled
+     edges.  The default value is 'gray91'.
+
+'highlightHPenWidth'
+     An 'Integer' that contains the line width in pixels of the pen that
+     is used to draw the highlighted vertical edge of the button when
+     drawing bevelled edges.  The default value is 1 pixel.
+
+'labelBackground'
+     A 'String' that contains the name of the label's background color.
+     The default is 'lightgray'.
+
+'shadowPenColor'
+     A 'String' that contains the name of the color used to draw shadows
+     if the button uses bevelled edges.  The default value is 'gray55'.
+
+'shadowPenWidth'
+     An 'Integer' that contains the line width in pixels of the pen that
+     is used to draw shadows when displaying a bevelled button.  The
+     default value is 1 pixel.
+
 Instance Variables
 ..................
 
