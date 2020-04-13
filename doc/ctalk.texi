@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.157 2020/04/13 20:01:16 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.158 2020/04/13 23:25:06 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -14801,8 +14801,6 @@ int main (int argv, char **argc) @{
   xLabelPane font "-*-helvetica-medium-r-*-*-*-120-*-*-*-*-*-*";
 #endif
 
-  xLabelPane resources replaceAt "textColor", "NavyBlue";
-
 #ifdef MULTILINE
   xLabelPane multiLine "Labels\ncan occupy\nmultiple\nlines.";
 #else
@@ -14835,7 +14833,6 @@ int main (int argv, char **argc) @{
     @}
   @}
 @}
-
 
 @end example
 

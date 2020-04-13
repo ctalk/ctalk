@@ -1,4 +1,4 @@
-/* $Id: X11LabelPane,v 1.32 2020/04/13 20:01:15 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11LabelPane,v 1.33 2020/04/13 23:25:06 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -109,15 +109,12 @@ X11LabelPane instanceMethod new (String __paneName) {
   leaveMethod definedInstanceMethod "X11LabelPane", "subPaneLeave";
   __paneName setMethodHandler "leavenotify", leaveMethod;
 
-  __paneName foregroundColor = "black";
-  __paneName textColor = "black";
-
   __paneName resources atPut "backgroundColor", "white";
   __paneName resources atPut "fcFont", "sans serif-12";
   __paneName resources atPut "textColor", "black";
   __paneName resources atPut "borderColor", "black";
   __paneName resources atPut "highlightTextColor", "black";
-  __paneName resources atPut "highlightBackgroundColor", "skyblue";
+  __paneName resources atPut "highlightBackgroundColor", "orange";
 
   return __paneName;
 }
