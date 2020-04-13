@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.153 2020/04/13 03:30:49 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.154 2020/04/13 03:35:22 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -14772,10 +14772,8 @@ Here is a simple example program that displays a X11LabelPane widget.
 int main (int argv, char **argc) @{
   X11Pane new xPane;
   X11PaneDispatcher new xTopLevelPane;
-  X11CanvasPane new xCanvasPane;
   X11LabelPane new xLabelPane;
   InputEvent new e;
-  Integer new verbose;
   Exception new ex;
 
 #ifdef FTFONTS 
