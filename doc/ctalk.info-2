@@ -2682,10 +2682,11 @@ Here is a brief example program.
        mainWindow backgroundColor = "blue";
        lbutton backgroundColor = "blue";
        rbutton backgroundColor = "blue";
-       label backgroundColor = "blue";
        label textColor = "white";
        label canFocus = false;
        label borderWidth = 0;
+
+       label resources replaceAt "backgroundColor", "blue";
 
        mainWindow initialize 255, 200;
        mainWindow inputStream eventMask =
@@ -3066,6 +3067,7 @@ Here is a simple example program that displays a X11LabelPane widget.
      }
 
 
+
 Multiple Line Labels
 ....................
 
@@ -3337,12 +3339,15 @@ button.
        X11MessageBoxPane new messageBox;
        InputEvent new e;
 
-       mainWindow backgroundColor = "blue";
-       button backgroundColor = "blue";
-       label backgroundColor = "blue";
        label textColor = "white";
        label canFocus = false;
        label borderWidth = 0;
+
+       label ftFontVar notifyLevel XFT_NOTIFY_ERRORS;
+
+       mainWindow backgroundColor = "blue";
+       label resources replaceAt "backgroundColor", "blue";
+       messageBox resources replaceAt "background", "blue";
 
        mainWindow initialize 255, 200;
        mainWindow inputStream eventMask =
@@ -3361,12 +3366,9 @@ button.
        mainWindow setWMTitle "X11MessageBoxPane Demo";
 
        label ftFontVar initFontLib;
-       label ftFont "DejaVu Sans", 0, FTFONT_BOLD, 0, 12.0;
-       label ftFontVar saveSelectedFont;
-       button ftFont "DejaVu Sans", 0, FTFONT_MEDIUM, 0, 10.0;
-       button ftFontVar saveSelectedFont;
 
        label multiLine "X11MessageBoxPane\nDemo";
+       label resources replaceAt "textColor", "lightgray";
 
        button label multiLine "Open\nMessageBox";
 
@@ -3375,15 +3377,18 @@ button.
        /* Icon IDs, like ICON_INFO, are defined in ctalkdefs.h. */
        messageBox resources replaceAt "iconID", ICON_INFO;
 
+       /* The program uses the "replaceAt" method because the key/value
+          entry for "backgroundColor" the X11MessageBoxPane : new method
+          has alread created an entry for backgroundColor. */
+       messageBox resources replaceAt "backgroundColor", "blue";
+       messageBox resources replaceAt "messageText",
+         	       "Hello, messageBox!\nYour message text here.";
+
        button draw;
        button refresh;
        label draw;
        label refresh;
 
-       /* The program uses the "replaceAt" method because the key/value
-          entry for "backgroundColor" the X11MessageBoxPane : new method
-          has alread created an entry for backgroundColor. */
-          messageBox resources replaceAt "backgroundColor", "blue";
 
        while (TRUE) {
          mainWindow inputStream queueInput;

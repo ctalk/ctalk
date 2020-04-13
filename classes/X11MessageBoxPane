@@ -1,4 +1,4 @@
-/* $Id: X11MessageBoxPane,v 1.95 2020/04/13 15:58:21 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11MessageBoxPane,v 1.96 2020/04/13 20:01:15 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -308,7 +308,9 @@ X11MessageBoxPane instanceMethod initWidgets (void) {
   geomspec printOn "%dx%d+%d+%d", label_width_px, label_height_px,
     label_x_px, label_y_px;
 
-  l_label background self resources at "background";
+  l_label backgroundColor =  self resources at "background";
+  /* l_label resources replaceAt "backgroundColor",
+     (self resources at "background"); */
   l_label multiLine self resources at "messageText";
   l_label border = false;
   l_label resources replaceAt "textColor",
@@ -316,11 +318,6 @@ X11MessageBoxPane instanceMethod initWidgets (void) {
   l_label resources replaceAt "fcFont",
     (self resources at "messageFont");
   l_label justify = LABEL_LEFT;
-#if 1
-  l_label ftFontVar selectFontFromFontConfig
-     "URW Gothic L-12:slant=oblique";
-  l_label ftFontVar saveSelectedFont;
-#endif  
 
   self label become l_label;
 

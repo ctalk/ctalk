@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.156 2020/04/13 15:58:22 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.157 2020/04/13 20:01:16 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -15153,6 +15153,8 @@ the user clicks on the main window's button.
 @c demos/x11/messagebox.ca
 @example
 
+/* messagebox.ca - X11ButtonPane Demonstration */
+
 #include <ctalk/ctalkdefs.h>
 
 /* See the X11FreeTypeFont section of the the Ctalk reference. */
@@ -15167,15 +15169,16 @@ int main (void) @{
   X11MessageBoxPane new messageBox;
   InputEvent new e;
 
-  mainWindow backgroundColor = "blue";
-  button backgroundColor = "blue";
   label textColor = "white";
   label canFocus = false;
   label borderWidth = 0;
 
   label ftFontVar notifyLevel XFT_NOTIFY_ERRORS;
-  label resources replaceAt "backgroundColor", "blue";
 
+  mainWindow backgroundColor = "blue";
+  label resources replaceAt "backgroundColor", "blue";
+  messageBox resources replaceAt "background", "blue";
+  
   mainWindow initialize 255, 200;
   mainWindow inputStream eventMask = 
     EXPOSE|ENTERWINDOWNOTIFY|LEAVEWINDOWNOTIFY|BUTTONPRESS|BUTTONRELEASE|KEYPRESS|KEYRELEASE|WINDELETE|MOVENOTIFY;
@@ -15207,8 +15210,7 @@ int main (void) @{
   /* The program uses the "replaceAt" method because the key/value
      entry for "backgroundColor" the X11MessageBoxPane : new method
      has alread created an entry for backgroundColor. */
-  /* messageBox resources replaceAt "backgroundColor", "blue"; */
-  messageBox resources replaceAt "background", "blue";
+  messageBox resources replaceAt "backgroundColor", "blue";
   messageBox resources replaceAt "messageText",
     	       "Hello, messageBox!\nYour message text here.";
 
