@@ -1,4 +1,4 @@
-/* $Id: x11lib.c,v 1.133 2020/03/29 00:06:48 rkiesling Exp $ -*-c-*-*/
+/* $Id: x11lib.c,v 1.134 2020/04/13 12:34:01 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -3436,20 +3436,25 @@ GC create_pane_win_gc (Display *d, Window w, OBJECT *pane) {
   int l_screen;
   static GC gc;
   XGCValues gcv;
-  OBJECT *bgColor, *fgColor;
+  OBJECT *bgColorVar, *fgColor, *resources, *bgResource;
   XColor bg_color, fg_color;
 
   l_screen = DefaultScreen (d);
-  bgColor = __ctalkGetInstanceVariable (pane, "backgroundColor", TRUE);
+  bgColorVar = __ctalkGetInstanceVariable (pane, "backgroundColor", TRUE);
   fgColor = __ctalkGetInstanceVariable (pane, "foregroundColor", TRUE);
-  if (*bgColor -> __o_value && !str_eq (bgColor -> __o_value, NULLSTR)) {
-    lookup_color (d, &bg_color, bgColor -> __o_value);
+  
+  if ((bgResource = __ctalkPaneResource (pane, "backgroundColor", FALSE)) != NULL) {
+    lookup_color (d, &bg_color, bgResource -> __o_value);
     gcv.background = bg_color.pixel;
-    XSetWindowBackground (d, w, bg_color.pixel);
+  } else if (*bgColorVar -> __o_value &&
+	     !str_eq (bgColorVar -> __o_value, NULLSTR)) {
+    lookup_color (d, &bg_color, bgColorVar -> __o_value);
+    gcv.background = bg_color.pixel;
   } else {
     gcv.background = WhitePixel (d, l_screen);
-    XSetWindowBackground (d, w, WhitePixel (display, l_screen));
   }
+  XSetWindowBackground (d, w, WhitePixel (display, l_screen));
+
   if (*fgColor -> __o_value && !str_eq (fgColor -> __o_value, NULLSTR)) {
     lookup_color (d, &fg_color, fgColor -> __o_value);
     gcv.foreground = fg_color.pixel;

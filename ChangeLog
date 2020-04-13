@@ -612,3 +612,7 @@
 	- Updated X11LabelPane and X11ButtonPane to use resources
 	for the highlight background color.
 	- Added the X11LabelPane : backgroundColor resource.
+2020-04-13
+	- Updated create_pane_win_gc to use a "backgroundColor" resource
+	to set the window's background if one is set, otherwise to
+	use the "backgroundColor" instance variable (x11lib.c).

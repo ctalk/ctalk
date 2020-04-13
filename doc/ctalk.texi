@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.154 2020/04/13 03:35:22 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.155 2020/04/13 12:34:01 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -11869,6 +11869,12 @@ background color.  The value is the background color
 of the window, independent of the background color of any
 buffers used by subpanes.  Normally this value is set by the
 @mnm{background} method, described below.
+
+Note that if a subclass of @code{X11Pane} has set a
+@samp{backgroundColor} resource, then that color overrides this
+variable's value when a program creates subpane windows.  The window
+creation generally happens when attaching a pane object to its parent
+pane, with an @mnm{attachTo} method.
 
 If unset, the default background color is black.
 

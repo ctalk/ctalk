@@ -482,6 +482,12 @@ Instance Variables
      subpanes.  Normally this value is set by the 'background' method,
      described below.
 
+     Note that if a subclass of 'X11Pane' has set a 'backgroundColor'
+     resource, then that color overrides this variable's value when a
+     program creates subpane windows.  The window creation generally
+     happens when attaching a pane object to its parent pane, with an
+     'attachTo' method.
+
      If unset, the default background color is black.
 
 'borderWidth'
