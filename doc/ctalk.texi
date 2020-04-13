@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.150 2020/04/12 17:37:30 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.153 2020/04/13 03:30:49 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -14392,7 +14392,7 @@ int main (void) @{
 
   mainWindow initialize 255, 200;
   mainWindow inputStream eventMask = 
-    EXPOSE|ENTERWINDOWNOTIFY|LEAVEWINDOWNOTIFY|BUTTONPRESS|BUTTONRELEASE|KEYPRESS|KEYRELEASE;
+    EXPOSE|ENTERWINDOWNOTIFY|LEAVEWINDOWNOTIFY|BUTTONPRESS|BUTTONRELEASE|KEYPRESS|KEYRELEASE|WINDELETE;
   dispatcher attachTo mainWindow;
   lbutton attachTo dispatcher, "90x50+25+100";
   rbutton attachTo dispatcher, "90x50+135+100";
@@ -14439,11 +14439,10 @@ int main (void) @{
   rbutton label radius = CORNER_RADIUS;
 #endif  
 
-  lbutton label highlightBackgroundColor = "gray90";
+#if 0 /***/
+    lbutton label highlightBackgroundColor = "gray90";
   rbutton label highlightBackgroundColor = "gray90";
-
-  lbutton label highlightTextColor = "gray";
-  rbutton label highlightTextColor = "gray";
+#endif  
 
   lbutton draw;
   lbutton refresh;
@@ -14465,6 +14464,10 @@ int main (void) @{
 	  lbutton subPaneExpose (lbutton, e);
 	  rbutton subPaneExpose (rbutton, e);
 	  label subPaneExpose (label, e);
+	  break;
+	case WINDELETE:
+ 	  mainWindow deleteAndClose;
+	  exit (0);
 	  break;
 	default:
 	  if (lbutton haveClick) @{
@@ -14550,10 +14553,16 @@ An @code{Integer} that contains the line width in pixels of the pen
 that is used to draw the highlighted vertical edge of the button
 when drawing bevelled edges.  The default value is 1 pixel.
 
-@cindex @code{labelBackground} resource @idxclscite{X11ButtonPane}
-@item labelBackground
-A @code{String} that contains the name of the label's background
+@cindex @code{background} resource @idxclscite{X11ButtonPane}
+@item background
+A @code{String} that contains the name of the button's background
 color.  The default is @samp{lightgray}.
+
+@cindex @code{highlightBackground} resource @idxclscite{X11ButtonPane}
+@item highlightBackground
+A @code{String} that contains the name of the button's background
+color when the button is drawn highlighted.  The default is
+@samp{gray90}.
 
 @cindex @code{shadowPenColor} resource @idxclscite{X11ButtonPane}
 @item shadowPenColor
@@ -14888,14 +14897,16 @@ descriptor.  The default is @samp{sans serif-12}.
 For more information about Fontconfig descriptors, refer to the
 @code{X11FreeTypeFont} class. @xref{X11FreeTypeFont}.
 
+@cindex @code{backgroundColor} resource @idxclscite{X11LabelPane}
 @cindex @code{textColor} resource @idxclscite{X11LabelPane}
 @cindex @code{borderColor} resource @idxclscite{X11LabelPane}
 @cindex @code{highlightTextColor} resource @idxclscite{X11LabelPane}
 @cindex @code{highlightBackgroundColor} resource @idxclscite{X11LabelPane}
-@item textColor
+@item backgroundColor
 @item borderColor
 @item highlightTextColor
 @item highlightBackgroundColor
+@item textColor
 These are @code{String} objects that contain the name of the X11 color
 that is used to draw each element.  See @cite{showrgb(1)} for a list of
 these colors.
