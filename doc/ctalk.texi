@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.155 2020/04/13 12:34:01 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.156 2020/04/13 15:58:22 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -14391,10 +14391,11 @@ int main (void) @{
   mainWindow backgroundColor = "blue";
   lbutton backgroundColor = "blue";
   rbutton backgroundColor = "blue";
-  label backgroundColor = "blue";
   label textColor = "white";
   label canFocus = false;
   label borderWidth = 0;
+
+  label resources replaceAt "backgroundColor", "blue";
 
   mainWindow initialize 255, 200;
   mainWindow inputStream eventMask = 
@@ -14835,6 +14836,7 @@ int main (int argv, char **argc) @{
   @}
 @}
 
+
 @end example
 
 @subsubheading Multiple Line Labels
@@ -15151,8 +15153,6 @@ the user clicks on the main window's button.
 @c demos/x11/messagebox.ca
 @example
 
-/* messagebox.ca - X11ButtonPane Demonstration */
-
 #include <ctalk/ctalkdefs.h>
 
 /* See the X11FreeTypeFont section of the the Ctalk reference. */
@@ -15169,10 +15169,12 @@ int main (void) @{
 
   mainWindow backgroundColor = "blue";
   button backgroundColor = "blue";
-  label backgroundColor = "blue";
   label textColor = "white";
   label canFocus = false;
   label borderWidth = 0;
+
+  label ftFontVar notifyLevel XFT_NOTIFY_ERRORS;
+  label resources replaceAt "backgroundColor", "blue";
 
   mainWindow initialize 255, 200;
   mainWindow inputStream eventMask = 
@@ -15191,12 +15193,9 @@ int main (void) @{
   mainWindow setWMTitle "X11MessageBoxPane Demo";
 
   label ftFontVar initFontLib;
-  label ftFont "DejaVu Sans", 0, FTFONT_BOLD, 0, 12.0;
-  label ftFontVar saveSelectedFont;
-  button ftFont "DejaVu Sans", 0, FTFONT_MEDIUM, 0, 10.0;
-  button ftFontVar saveSelectedFont;
 
   label multiLine "X11MessageBoxPane\nDemo";
+  label resources replaceAt "textColor", "lightgray";
 
   button label multiLine "Open\nMessageBox";
 
@@ -15205,15 +15204,19 @@ int main (void) @{
   /* Icon IDs, like ICON_INFO, are defined in ctalkdefs.h. */
   messageBox resources replaceAt "iconID", ICON_INFO;
 
+  /* The program uses the "replaceAt" method because the key/value
+     entry for "backgroundColor" the X11MessageBoxPane : new method
+     has alread created an entry for backgroundColor. */
+  /* messageBox resources replaceAt "backgroundColor", "blue"; */
+  messageBox resources replaceAt "background", "blue";
+  messageBox resources replaceAt "messageText",
+    	       "Hello, messageBox!\nYour message text here.";
+
   button draw;
   button refresh;
   label draw;
   label refresh;
 
-  /* The program uses the "replaceAt" method because the key/value
-     entry for "backgroundColor" the X11MessageBoxPane : new method
-     has alread created an entry for backgroundColor. */
-     messageBox resources replaceAt "backgroundColor", "blue";
 
   while (TRUE) @{
     mainWindow inputStream queueInput;
@@ -15256,10 +15259,12 @@ int main (void) @{
 
 @table @code
 
-@cindex @code{backgroundColor} resource @idxclscite{X11MessageBoxPane}
-@item backgroundColor
-The window's background color. The value is a @code{String} that
-contains a X11 named color.  The default is @samp{gray}.
+@cindex @code{background} resource @idxclscite{X11MessageBoxPane}
+@item background
+The window's background color, and the background color of the message
+label and the close button. The value is a @code{String} that contains
+a X11 named color.  The default is @samp{gray}.  For a list of X11
+color names, see @cite{showrgb(1)}.
 
 @cindex @code{buttonText} resource @idxclscite{X11MessageBoxPane}
 @item buttonText

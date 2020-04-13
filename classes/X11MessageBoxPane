@@ -1,4 +1,4 @@
-/* $Id: X11MessageBoxPane,v 1.94 2020/04/11 23:35:06 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11MessageBoxPane,v 1.95 2020/04/13 15:58:21 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -26,7 +26,7 @@
 
    This class uses the following resources:
 
-   backgroundColor      String    gray
+   background           String    gray
    pad                  Integer   10
    messageColor         String    "black"
    messageFont          String    "sans serif-12"
@@ -70,10 +70,7 @@ X11MessageBoxPane instanceMethod new (String paneName) {
     "subPaneKbdInput";
   paneName setMethodHandler "kbdinput", kbdInputMethod;
 
-  paneName backgroundColor = "white";
-  paneName foregroundColor = "black";
-
-  paneName resources atPut "backgroundColor", "gray";
+  paneName resources atPut "background", "gray";
   paneName resources atPut "pad", 10;
   paneName resources atPut "messageText", "Hello, messageBox!\nSample message text.";
 
@@ -215,7 +212,7 @@ X11MessageBoxPane instanceMethod fill (String colorName) {
 
 X11MessageBoxPane instanceMethod draw (void) {
   
-  self fill self resources at "backgroundColor";
+  self fill self resources at "background";
 
   self label draw;
   self button draw;
@@ -249,7 +246,7 @@ X11MessageBoxPane instanceMethod drawIcon (void) {
   Circle new aCircle;
   Pen new aPen;
   self icon foreground "red";
-  self icon background self resources at "backgroundColor";
+  self icon background self resources at "background";
   self icon clearRectangle 0, 0, ICON_WIDTH_PX, ICON_HEIGHT_PX;
 
   aCircle center x = ICON_WIDTH_PX / 2;
@@ -311,7 +308,7 @@ X11MessageBoxPane instanceMethod initWidgets (void) {
   geomspec printOn "%dx%d+%d+%d", label_width_px, label_height_px,
     label_x_px, label_y_px;
 
-  l_label background self resources at "backgroundColor";
+  l_label background self resources at "background";
   l_label multiLine self resources at "messageText";
   l_label border = false;
   l_label resources replaceAt "textColor",
@@ -341,7 +338,7 @@ X11MessageBoxPane instanceMethod initWidgets (void) {
   if (self resources at "iconID" > 0) {
     l_icon create self displayPtr, self paneBuffer xID,
       ICON_WIDTH_PX, ICON_HEIGHT_PX, self paneBuffer depth;
-    l_icon background self resources at "backgroundColor";
+    l_icon background self resources at "background";
     self icon become l_icon;
     self drawIcon;
   }
