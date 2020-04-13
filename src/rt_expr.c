@@ -1,4 +1,4 @@
-/* $Id: rt_expr.c,v 1.13 2020/04/11 01:42:02 rkiesling Exp $ */
+/* $Id: rt_expr.c,v 1.14 2020/04/13 02:58:58 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -51,6 +51,10 @@ extern bool cpre_have_cvar_reg;        /* Declared in ifexpr.c.  */
 #define _MPUTCHAR(__m,__c) (__m)->name[0] = (__c); (__m)->name[1] = '\0';
 
 extern DEFAULTCLASSCACHE *ct_defclasses; 
+
+extern HASHTAB defined_instancevars;
+extern HASHTAB declared_method_names;
+
 
 /* If the previous label was considered
    as an instance variable messages, but it's actually a method
@@ -307,10 +311,28 @@ char *rt_expr (MESSAGE_STACK messages, int start_idx, int *end_idx,
 	       although it's sort of a misnomer until we create
 	       the object below. */
 	    get_global_var_not_shadowed (M_NAME(messages[i]))
-	    || get_local_var (M_NAME(messages[i]))) 
+	    || get_local_var (M_NAME(messages[i])))  {
 	  message_of_rcvr = FALSE;
-	else
+	} else {
+	  /* It's probably an instance variable message if the
+	     previous token is a method parameter label */
+	  if (!is_method_parameter (messages, i)) {
+	    if (!_hash_get (defined_instancevars, M_NAME(messages[i])) &&
+		!_hash_get (declared_method_names, M_NAME(messages[i])) &&
+		!get_local_object (M_NAME(messages[i]), NULL) &&
+		!get_global_object (M_NAME(messages[i]), NULL) &&
+		!is_method_proto_name (M_NAME(messages[i])) &&
+		!get_class_object (M_NAME(messages[i])) &&
+		!(messages[i] -> attrs & TOK_SELF)) {
+	      char *err_expr = collect_tokens (messages, start_idx, *end_idx);;
+	      warning (messages[i],
+		       "Could not resolve label, \"%s\":\n\n\t%s\n\n",
+		       M_NAME(messages[i]), err_expr);
+	      __xfree (MEMADDR(err_expr));
+	    }
+	  }
 	  continue;
+	}
       }
       /*
        *   Not receiver, instance or class variable message.

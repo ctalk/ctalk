@@ -1,4 +1,4 @@
-/* $Id: X11ButtonPane,v 1.30 2020/04/05 15:24:17 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11ButtonPane,v 1.34 2020/04/13 02:58:58 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -23,6 +23,21 @@
 
 /*
  *    X11ButtonPane class.
+ */
+/*
+ *    Resources
+ *
+ *    background                "lightgray"
+ *    highlightBackground       "gray90"
+ *    highlightHPenColor        "gray94"
+ *    highlightHPenWidth        1
+ *    highlightVPenColor        "gray91"
+ *    highlightVPenWidth        1
+ *    shadowPenColor            "gray55"
+ *    shadowPenWidth            1
+ *
+ *    Note that the corresponding instance variables will go away
+ *    in the future, so programs should use these resources instead.
  */
 
 X11CanvasPane class X11ButtonPane;
@@ -69,13 +84,15 @@ X11ButtonPane instanceMethod new (String __paneName) {
   __paneName setMethodHandler "focusout", focusOutMethod;
 
   if (__paneName bevelEdges) {
-    __paneName shadowPen colorName = "gray55";
-    __paneName shadowPen width = 1;
-    __paneName highlightHPen colorName = "gray94";
-    __paneName highlightHPen width = 1;
-    __paneName highlightVPen colorName = "gray91";
-    __paneName highlightVPen width = 1;
+    __paneName resources atPut "shadowPenColor", "gray55";
+    __paneName resources atPut "shadowPenWidt", 1;
+    __paneName resources atPut "highlightHPenColor", "gray94";
+    __paneName resources atPut "highlihtHPenWidth", 1;
+    __paneName resources atPut "highlightVPenColor", "gray91";
+    __paneName resources atPut "highlihtVPenWidth", 1;
   }
+  __paneName resources atPut "background", "lightgray";
+  __paneName resources atPut "highlightBackground", "gray90";
   
   return __paneName;
 }
@@ -123,8 +140,9 @@ X11ButtonPane instanceMethod attachTo (Object parentPane,
     inset, inset;
 
   l_local subPaneGeometry = labelGeom;
-  l_local backgroundColor = "lightgray";
-  l_local highlightBackgroundColor = l_local backgroundColor;
+  l_local backgroundColor = self resources at "background";
+  l_local resources replaceAt "highlightBackgroundColor",
+    (self resources at "highlightBackground");
   l_local margin = 3;
   l_local highlightBorderWidth = 1;
   l_local attachTo self, labelGeom;
@@ -133,6 +151,13 @@ X11ButtonPane instanceMethod attachTo (Object parentPane,
   self pen colorName = self label backgroundColor;
   self pen width = 1;
 
+  self shadowPen colorName = self resources at "shadowPenColor";
+  self shadowPen width = self resources at "shadowPenWidth";
+  self highlightHPen colorName = self resources at "highlightHPenColor";
+  self highlightHPen width = self resources at "highlightHPenWidth";
+  self highlightVPen colorName = self resources at "highlightVPenColor";
+  self highlightVPen width = self resources at "highlightVPenWidth";
+  
   return NULL;
 }
 

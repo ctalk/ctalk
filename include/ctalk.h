@@ -1,4 +1,4 @@
-/* $Id: ctalk.h,v 1.99 2020/04/10 16:34:50 rkiesling Exp $ -*-Fundamental-*- */
+/* $Id: ctalk.h,v 1.100 2020/04/13 02:58:58 rkiesling Exp $ -*-Fundamental-*- */
 
 /*
   This file is part of Ctalk.
@@ -2920,6 +2920,7 @@ void add_user_prototype (MESSAGE_STACK, int, int, int, int);
 void cleanup_user_prototypes (void);
 void init_method_proto (void);
 bool is_proto_selector (char *);
+bool is_method_proto_name (char *);
 
 /* objderef.c */
 bool objderef_check_expr (MESSAGE_STACK, int, int *, int);

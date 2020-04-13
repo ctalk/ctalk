@@ -81,8 +81,10 @@ int main (void) {
   rbutton label radius = CORNER_RADIUS;
 #endif  
 
-  lbutton label highlightBackgroundColor = "gray90";
+#if 0 /***/
+    lbutton label highlightBackgroundColor = "gray90";
   rbutton label highlightBackgroundColor = "gray90";
+#endif  
 
   lbutton draw;
   lbutton refresh;
