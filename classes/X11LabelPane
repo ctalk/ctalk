@@ -1,4 +1,4 @@
-/* $Id: X11LabelPane,v 1.30 2020/04/13 03:30:48 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11LabelPane,v 1.31 2020/04/13 13:07:57 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -108,11 +108,6 @@ X11LabelPane instanceMethod new (String __paneName) {
   __paneName setMethodHandler "enternotify", enterMethod;
   leaveMethod definedInstanceMethod "X11LabelPane", "subPaneLeave";
   __paneName setMethodHandler "leavenotify", leaveMethod;
-
-  /* This needs to stay here for a while, because __ctalkX11CreateSubWindow
-     uses this instance variable to set the subwindow's background color
-     also. */
-  __paneName backgroundColor = "white";
 
   __paneName foregroundColor = "black";
   __paneName textColor = "black";

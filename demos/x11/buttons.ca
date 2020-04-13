@@ -27,10 +27,11 @@ int main (void) {
   mainWindow backgroundColor = "blue";
   lbutton backgroundColor = "blue";
   rbutton backgroundColor = "blue";
-  label backgroundColor = "blue";
   label textColor = "white";
   label canFocus = false;
   label borderWidth = 0;
+
+  label resources replaceAt "backgroundColor", "blue";
 
   mainWindow initialize 255, 200;
   mainWindow inputStream eventMask = 

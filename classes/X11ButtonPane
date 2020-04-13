@@ -1,4 +1,4 @@
-/* $Id: X11ButtonPane,v 1.34 2020/04/13 02:58:58 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11ButtonPane,v 1.35 2020/04/13 13:07:57 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -37,7 +37,8 @@
  *    shadowPenWidth            1
  *
  *    Note that the corresponding instance variables will go away
- *    in the future, so programs should use these resources instead.
+ *    in the future, so programs should try to use these resources
+ *    instead.
  */
 
 X11CanvasPane class X11ButtonPane;
@@ -140,7 +141,8 @@ X11ButtonPane instanceMethod attachTo (Object parentPane,
     inset, inset;
 
   l_local subPaneGeometry = labelGeom;
-  l_local backgroundColor = self resources at "background";
+  l_local resources replaceAt "backgroundColor",
+    (self resources at "background");
   l_local resources replaceAt "highlightBackgroundColor",
     (self resources at "highlightBackground");
   l_local margin = 3;
