@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.158 2020/04/13 23:25:06 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.159 2020/04/14 00:10:15 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -14446,11 +14446,6 @@ int main (void) @{
   rbutton label radius = CORNER_RADIUS;
 #endif  
 
-#if 0 /***/
-    lbutton label highlightBackgroundColor = "gray90";
-  rbutton label highlightBackgroundColor = "gray90";
-#endif  
-
   lbutton draw;
   lbutton refresh;
   rbutton draw;
@@ -14536,6 +14531,27 @@ before attaching the pane to its parent pane.
 
 @table @code
 
+@cindex @code{background} resource @idxclscite{X11ButtonPane}
+@item background
+A @code{String} that contains the name of the background
+color.  The default is @samp{lightgray}.
+
+@cindex @code{foreground} resource @idxclscite{X11ButtonPane}
+@item foreground
+A @code{String} that contains the name of the button's text
+color.  The default is @samp{black}.
+
+@cindex @code{highlightBackground} resource @idxclscite{X11ButtonPane}
+@item highlightBackground
+A @code{String} that contains the name of the button's background
+color when the button is drawn highlighted.  The default is
+@samp{gray90}.
+
+@cindex @code{highlightForeground} resource @idxclscite{X11ButtonPane}
+@item highlightForeground
+A @code{String} that contains the color used to draw text when the
+button is drawn highlighted.  The default is @samp{black}.
+
 @cindex @code{highlightHPenColor} resource @idxclscite{X11ButtonPane}
 @item highlightHPenColor
 A @code{String} that contains the name of the color used to draw the
@@ -14559,17 +14575,6 @@ edges.  The default value is @samp{gray91}.
 An @code{Integer} that contains the line width in pixels of the pen
 that is used to draw the highlighted vertical edge of the button
 when drawing bevelled edges.  The default value is 1 pixel.
-
-@cindex @code{background} resource @idxclscite{X11ButtonPane}
-@item background
-A @code{String} that contains the name of the button's background
-color.  The default is @samp{lightgray}.
-
-@cindex @code{highlightBackground} resource @idxclscite{X11ButtonPane}
-@item highlightBackground
-A @code{String} that contains the name of the button's background
-color when the button is drawn highlighted.  The default is
-@samp{gray90}.
 
 @cindex @code{shadowPenColor} resource @idxclscite{X11ButtonPane}
 @item shadowPenColor

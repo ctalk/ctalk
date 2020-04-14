@@ -2737,11 +2737,6 @@ Here is a brief example program.
        rbutton label radius = CORNER_RADIUS;
      #endif
 
-     #if 0 /***/
-         lbutton label highlightBackgroundColor = "gray90";
-       rbutton label highlightBackgroundColor = "gray90";
-     #endif
-
        lbutton draw;
        lbutton refresh;
        rbutton draw;
@@ -2820,6 +2815,22 @@ created, and the 'Pens' are initialized in the 'attachTo' method.  That
 means in order to change the value of a resource, programs should do
 this before attaching the pane to its parent pane.
 
+'background'
+     A 'String' that contains the name of the background color.  The
+     default is 'lightgray'.
+
+'foreground'
+     A 'String' that contains the name of the button's text color.  The
+     default is 'black'.
+
+'highlightBackground'
+     A 'String' that contains the name of the button's background color
+     when the button is drawn highlighted.  The default is 'gray90'.
+
+'highlightForeground'
+     A 'String' that contains the color used to draw text when the
+     button is drawn highlighted.  The default is 'black'.
+
 'highlightHPenColor'
      A 'String' that contains the name of the color used to draw the
      hightlighted horizontal edge of the button when displaying bevelled
@@ -2839,14 +2850,6 @@ this before attaching the pane to its parent pane.
      An 'Integer' that contains the line width in pixels of the pen that
      is used to draw the highlighted vertical edge of the button when
      drawing bevelled edges.  The default value is 1 pixel.
-
-'background'
-     A 'String' that contains the name of the button's background color.
-     The default is 'lightgray'.
-
-'highlightBackground'
-     A 'String' that contains the name of the button's background color
-     when the button is drawn highlighted.  The default is 'gray90'.
 
 'shadowPenColor'
      A 'String' that contains the name of the color used to draw shadows

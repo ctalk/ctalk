@@ -1,4 +1,4 @@
-/* $Id: X11ButtonPane,v 1.35 2020/04/13 13:07:57 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11ButtonPane,v 1.36 2020/04/14 00:10:14 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -28,7 +28,9 @@
  *    Resources
  *
  *    background                "lightgray"
+ *    foreground                "black"
  *    highlightBackground       "gray90"
+ *    highlightForeground       "black"
  *    highlightHPenColor        "gray94"
  *    highlightHPenWidth        1
  *    highlightVPenColor        "gray91"
@@ -92,6 +94,8 @@ X11ButtonPane instanceMethod new (String __paneName) {
     __paneName resources atPut "highlightVPenColor", "gray91";
     __paneName resources atPut "highlihtVPenWidth", 1;
   }
+  __paneName resources atPut "foreground", "black";
+  __paneName resources atPut "highlightForeground", "black";
   __paneName resources atPut "background", "lightgray";
   __paneName resources atPut "highlightBackground", "gray90";
   
@@ -143,6 +147,10 @@ X11ButtonPane instanceMethod attachTo (Object parentPane,
   l_local subPaneGeometry = labelGeom;
   l_local resources replaceAt "backgroundColor",
     (self resources at "background");
+  l_local resources replaceAt "textColor",
+    (self resources at "foreground");
+  l_local resources replaceAt "highlightTextColor",
+    (self resources at "highlightForeground");
   l_local resources replaceAt "highlightBackgroundColor",
     (self resources at "highlightBackground");
   l_local margin = 3;

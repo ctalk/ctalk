@@ -1,4 +1,4 @@
-/* $Id: X11LabelPane,v 1.33 2020/04/13 23:25:06 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11LabelPane,v 1.34 2020/04/14 00:10:14 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -174,8 +174,14 @@ X11LabelPane instanceMethod __drawJustified (String textArg,
 					     Integer textWidth,
 					     Integer lineStartY) {
 
-  self ftFontVar selectFontFromFontConfig self resources at "fcFont";
-  self ftFontVar namedX11Color self resources at "textColor";
+  if (self fontVar fontId == 0) {
+    self ftFontVar selectFontFromFontConfig self resources at "fcFont";
+  }
+  if (self highlight) {
+    self ftFontVar namedX11Color self resources at "highlightTextColor";
+  } else {
+    self ftFontVar namedX11Color self resources at "textColor";
+  }
 
   switch (self justify)
     {
@@ -244,11 +250,8 @@ X11LabelPane instanceMethod draw (void) {
  	} else {
 	  self faceRegular;
 	}
-           self ftFontVar namedX11Color self resources at
-                  "highlightTextColor";
       } else {
 	self faceRegular;
-        self ftFontVar namedX11Color self resources at "textColor";
       }
     }
     if (self haveMultiLine) {
@@ -326,7 +329,6 @@ X11LabelPane instanceMethod drawButtonLayout (void) {
       } else {
 	self pen width = self borderWidth;
 	self pen colorName = self borderColor;
-	/* self background self backgroundColor; */
 	self background self resources at "backgroundColor";
       }
     }
