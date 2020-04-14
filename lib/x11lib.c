@@ -1,4 +1,4 @@
-/* $Id: x11lib.c,v 1.135 2020/04/13 12:47:59 rkiesling Exp $ -*-c-*-*/
+/* $Id: x11lib.c,v 1.136 2020/04/14 05:04:35 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -3443,7 +3443,10 @@ GC create_pane_win_gc (Display *d, Window w, OBJECT *pane) {
   bgColorVar = __ctalkGetInstanceVariable (pane, "backgroundColor", TRUE);
   fgColor = __ctalkGetInstanceVariable (pane, "foregroundColor", TRUE);
   
-  if ((bgResource = __ctalkPaneResource (pane, "backgroundColor", FALSE)) != NULL) {
+  if (((bgResource = __ctalkPaneResource (pane, "backgroundColor", FALSE))
+      != NULL) ||
+      ((bgResource = __ctalkPaneResource (pane, "background", FALSE))
+       !=  NULL)) {
     lookup_color (d, &bg_color, bgResource -> __o_value);
     gcv.background = bg_color.pixel;
     XSetWindowBackground (d, w, bg_color.pixel);

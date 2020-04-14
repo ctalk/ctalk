@@ -32,6 +32,8 @@ int main (void) {
   label borderWidth = 0;
 
   label resources replaceAt "backgroundColor", "blue";
+  lbutton resources replaceAt "background", "blue";
+  rbutton resources replaceAt "background", "blue";
 
   mainWindow initialize 255, 200;
   mainWindow inputStream eventMask = 

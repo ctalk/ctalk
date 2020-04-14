@@ -14,15 +14,18 @@ int main (void) {
   X11MessageBoxPane new messageBox;
   InputEvent new e;
 
-  mainWindow backgroundColor = "blue";
-  button backgroundColor = "blue";
-  label backgroundColor = "blue";
   label textColor = "white";
   label canFocus = false;
   label borderWidth = 0;
 
   label ftFontVar notifyLevel XFT_NOTIFY_ERRORS;
 
+  mainWindow backgroundColor = "blue";
+  label resources replaceAt "backgroundColor", "blue";
+  button resources replaceAt "background", "blue";
+  /* button backgroundColor = "blue"; */
+  messageBox resources replaceAt "background", "blue";
+  
   mainWindow initialize 255, 200;
   mainWindow inputStream eventMask = 
     EXPOSE|ENTERWINDOWNOTIFY|LEAVEWINDOWNOTIFY|BUTTONPRESS|BUTTONRELEASE|KEYPRESS|KEYRELEASE|WINDELETE|MOVENOTIFY;

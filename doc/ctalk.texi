@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.159 2020/04/14 00:10:15 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.160 2020/04/14 05:04:34 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -14361,7 +14361,6 @@ Here is a brief example program.
 
 @c demos/x11/buttons.ca
 @example
-
 /* buttons.ca - X11ButtonPane Demonstration */
 
 #include <ctalk/ctalkdefs.h>
@@ -14396,6 +14395,8 @@ int main (void) @{
   label borderWidth = 0;
 
   label resources replaceAt "backgroundColor", "blue";
+  lbutton resources replaceAt "background", "blue";
+  rbutton resources replaceAt "background", "blue";
 
   mainWindow initialize 255, 200;
   mainWindow inputStream eventMask = 
@@ -14534,7 +14535,17 @@ before attaching the pane to its parent pane.
 @cindex @code{background} resource @idxclscite{X11ButtonPane}
 @item background
 A @code{String} that contains the name of the background
-color.  The default is @samp{lightgray}.
+color.  The default is @samp{lightgray}.  Note that this
+color only affects the window behind the button.  To
+change the background of the button's face, use
+@samp{faceBackground}.
+
+@cindex @code{faceBackground} resource @idxclscite{X11ButtonPane}
+@item faceBackground
+A @code{String} that contains the background color of the button's
+face.  This resource is separate because programs often want a
+button's face to have a different background color than the
+surrounding window.  The default is @samp{lightgray}.
 
 @cindex @code{foreground} resource @idxclscite{X11ButtonPane}
 @item foreground

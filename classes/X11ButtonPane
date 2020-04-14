@@ -1,4 +1,4 @@
-/* $Id: X11ButtonPane,v 1.36 2020/04/14 00:10:14 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11ButtonPane,v 1.37 2020/04/14 05:04:34 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -29,6 +29,7 @@
  *
  *    background                "lightgray"
  *    foreground                "black"
+ *    faceBackground            "lightgray"
  *    highlightBackground       "gray90"
  *    highlightForeground       "black"
  *    highlightHPenColor        "gray94"
@@ -98,6 +99,7 @@ X11ButtonPane instanceMethod new (String __paneName) {
   __paneName resources atPut "highlightForeground", "black";
   __paneName resources atPut "background", "lightgray";
   __paneName resources atPut "highlightBackground", "gray90";
+  __paneName resources atPut "faceBackground", "lightgray";
   
   return __paneName;
 }
@@ -145,8 +147,13 @@ X11ButtonPane instanceMethod attachTo (Object parentPane,
     inset, inset;
 
   l_local subPaneGeometry = labelGeom;
+  /* DO NOT set l_local's backgroundColor to the buttons's 
+     background - for a button, its background only affects
+     the window behind it - we want the label that displays
+     the button text to have a different background. Instead,
+     we use faceBackground. */
   l_local resources replaceAt "backgroundColor",
-    (self resources at "background");
+    (self resources at "faceBackground");
   l_local resources replaceAt "textColor",
     (self resources at "foreground");
   l_local resources replaceAt "highlightTextColor",

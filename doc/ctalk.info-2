@@ -2652,7 +2652,6 @@ appreance of a button's text.
 
 Here is a brief example program.
 
-
      /* buttons.ca - X11ButtonPane Demonstration */
 
      #include <ctalk/ctalkdefs.h>
@@ -2687,6 +2686,8 @@ Here is a brief example program.
        label borderWidth = 0;
 
        label resources replaceAt "backgroundColor", "blue";
+       lbutton resources replaceAt "background", "blue";
+       rbutton resources replaceAt "background", "blue";
 
        mainWindow initialize 255, 200;
        mainWindow inputStream eventMask =
@@ -2817,7 +2818,15 @@ this before attaching the pane to its parent pane.
 
 'background'
      A 'String' that contains the name of the background color.  The
-     default is 'lightgray'.
+     default is 'lightgray'.  Note that this color only affects the
+     window behind the button.  To change the background of the button's
+     face, use 'faceBackground'.
+
+'faceBackground'
+     A 'String' that contains the background color of the button's face.
+     This resource is separate because programs often want a button's
+     face to have a different background color than the surrounding
+     window.  The default is 'lightgray'.
 
 'foreground'
      A 'String' that contains the name of the button's text color.  The
