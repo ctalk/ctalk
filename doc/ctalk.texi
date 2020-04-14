@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.160 2020/04/14 05:04:34 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.161 2020/04/14 05:55:34 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -14361,6 +14361,7 @@ Here is a brief example program.
 
 @c demos/x11/buttons.ca
 @example
+
 /* buttons.ca - X11ButtonPane Demonstration */
 
 #include <ctalk/ctalkdefs.h>
@@ -15190,6 +15191,8 @@ int main (void) @{
 
   mainWindow backgroundColor = "blue";
   label resources replaceAt "backgroundColor", "blue";
+  button resources replaceAt "background", "blue";
+  /* button backgroundColor = "blue"; */
   messageBox resources replaceAt "background", "blue";
   
   mainWindow initialize 255, 200;

@@ -2652,6 +2652,7 @@ appreance of a button's text.
 
 Here is a brief example program.
 
+
      /* buttons.ca - X11ButtonPane Demonstration */
 
      #include <ctalk/ctalkdefs.h>
@@ -3356,6 +3357,8 @@ button.
 
        mainWindow backgroundColor = "blue";
        label resources replaceAt "backgroundColor", "blue";
+       button resources replaceAt "background", "blue";
+       /* button backgroundColor = "blue"; */
        messageBox resources replaceAt "background", "blue";
 
        mainWindow initialize 255, 200;
