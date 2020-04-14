@@ -319,7 +319,6 @@ Called by the initialize methods (class X11Pane) to
 create a X window.  Returns the window system's ID for the window, an
 int.
 
-
 If a program doesn't specify a window size, then default size is
 250x250 pixels.  If the program doesn't specify a location for the
 window, then this function sets the window's X,Y origin to 0,
@@ -329,6 +328,11 @@ manager.
 Application programs can provide a window geometry specification which
 is used to set the window's size and placement
 
+
+If x11pane_object contains a background or
+backgroundColor instance variable or resource, the function
+sets the window's background color to the X11 color named in that
+value.
 
 If a program doesn't specify a foreground and background color,
 the window's background is set to white and the foreground is set to
@@ -350,14 +354,14 @@ variables.  Creates a new graphics context for the window and saves
 its address in the subpane_object's xGC instance
 variable.
 
-If the subpane_object's backgroundColor instance variable
-is set; for example, with a statement like this:
+If x11pane_object contains a background or
+backgroundColor instance variable or resource, the function
+sets the window's background color to the X11 color named in that
+value.
 
----------------------------------------------------------
-
-myCanvasPane backgroundColor = "blue";
-
----------------------------------------------------------
+If a program doesn't specify a foreground and background color,
+the window's background is set to white and the foreground is set to
+black.
 
 Then the function initiazes and clears the window to the value of
 the backgroundColor instance variable.  Otherwise, the function

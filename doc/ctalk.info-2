@@ -7208,6 +7208,10 @@ functions.
      which is used to set the window's size and placement *Note
      parseX11Geometry::.
 
+     If X11PANE_OBJECT contains a 'background' or 'backgroundColor'
+     instance variable or resource, the function sets the window's
+     background color to the X11 color named in that value.
+
      If a program doesn't specify a foreground and background color, the
      window's background is set to white and the foreground is set to
      black.
@@ -7227,12 +7231,13 @@ functions.
      new graphics context for the window and saves its address in the
      SUBPANE_OBJECT'S 'xGC' instance variable.
 
-     If the SUBPANE_OBJECT's 'backgroundColor' instance variable is set;
-     for example, with a statement like this:
+     If X11PANE_OBJECT contains a 'background' or 'backgroundColor'
+     instance variable or resource, the function sets the window's
+     background color to the X11 color named in that value.
 
-
-          myCanvasPane backgroundColor = "blue";
-
+     If a program doesn't specify a foreground and background color, the
+     window's background is set to white and the foreground is set to
+     black.
 
      Then the function initiazes and clears the window to the value of
      the 'backgroundColor' instance variable.  Otherwise, the function

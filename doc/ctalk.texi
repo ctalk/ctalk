@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.161 2020/04/14 05:55:34 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.162 2020/04/14 15:31:47 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -19848,7 +19848,6 @@ Called by the @mnm{initialize} methods (class @code{X11Pane}) to
 create a X window.  Returns the window system's ID for the window, an
 @code{int}.
 
-
 If a program doesn't specify a window size, then default size is
 250x250 pixels.  If the program doesn't specify a location for the
 window, then this function sets the window's @emph{X,Y} origin to 0,
@@ -19858,6 +19857,11 @@ manager.  @xref{ctalkX11SetSizeHints}.
 Application programs can provide a window geometry specification which
 is used to set the window's size and placement
 @xref{parseX11Geometry}.
+
+If @var{x11pane_object} contains a @code{background} or
+@code{backgroundColor} instance variable or resource, the function
+sets the window's background color to the X11 color named in that
+value.
 
 If a program doesn't specify a foreground and background color,
 the window's background is set to white and the foreground is set to
@@ -19883,14 +19887,14 @@ variables.  Creates a new graphics context for the window and saves
 its address in the @var{subpane_object's} @code{xGC} instance
 variable.
 
-If the @var{subpane_object}'s @code{backgroundColor} instance variable
-is set; for example, with a statement like this:
+If @var{x11pane_object} contains a @code{background} or
+@code{backgroundColor} instance variable or resource, the function
+sets the window's background color to the X11 color named in that
+value.
 
-@example
-
-myCanvasPane backgroundColor = "blue";
-
-@end example
+If a program doesn't specify a foreground and background color,
+the window's background is set to white and the foreground is set to
+black.
 
 Then the function initiazes and clears the window to the value of
 the @code{backgroundColor} instance variable.  Otherwise, the function
