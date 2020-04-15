@@ -1,4 +1,4 @@
-/* $Id: x11lib.c,v 1.137 2020/04/14 15:31:47 rkiesling Exp $ -*-c-*-*/
+/* $Id: x11lib.c,v 1.139 2020/04/15 17:51:46 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -214,7 +214,6 @@ void x11_sig_handler (int sig, siginfo_t *sip, void *ucp) {
 #if X11LIB_PRINT_COPIOUS_DEBUG_INFO  
   fprintf (stderr, "x11_sig_handler: Caught signal %d\n", sig);
 #endif
-  // /*   XSync (display, TRUE); */ /***/
   kill (0, sig);
 }
 
@@ -1403,12 +1402,20 @@ int __xlib_change_face_request (Display *d, Drawable w, GC gc, char *data) {
 extern void sync_ft_font (bool);
 
 #ifdef HAVE_XFT_H
-int __xlib_change_face_request_ft (Display *d, Drawable w, GC gc, char *data) {
+
+extern XftFont *selected_font;
+extern XftFont *__select_font_for_family (int p_slant,
+					  int p_weight, int p_dpi,
+					  double p_size);
+
+
+int __xlib_change_font_request_ft (Display *d, Drawable w, GC gc, char *data) {
   int face_id, r, slant_def, weight_def;
   int dpi_def;
   double ptsize_def;
   XGCValues v;
   XFontStruct *xfs;
+  XftFont *f;
   char buf[0xff], slant_buf[0xff], weight_buf[0xff];
 
 #ifdef GC_RANGE_CHECK
@@ -1427,7 +1434,6 @@ int __xlib_change_face_request_ft (Display *d, Drawable w, GC gc, char *data) {
     }
   }
 
-
   errno = 0;
   face_id = strtol (data, NULL, 10);
   if (errno) {
@@ -1435,8 +1441,6 @@ int __xlib_change_face_request_ft (Display *d, Drawable w, GC gc, char *data) {
     return ERROR;
   }
   
-					    
-
   switch (face_id)
     {
     case X_FACE_REGULAR:
@@ -1452,19 +1456,24 @@ int __xlib_change_face_request_ft (Display *d, Drawable w, GC gc, char *data) {
       weight_def = XFT_WEIGHT_MEDIUM;
       break;
     case X_FACE_BOLD_ITALIC:
-      __ctalkXftSelectFont
-	("", XFT_SLANT_ITALIC, XFT_WEIGHT_BOLD, 0, 0.0);
-      slant_def = XFT_SLANT_ITALIC;
-      weight_def = XFT_WEIGHT_BOLD;
+      if ((f = __select_font_for_family (XFT_SLANT_ITALIC,
+					 XFT_WEIGHT_BOLD, 0, 0.0))
+	  != NULL) {
+	selected_font = f;
+	slant_def = XFT_SLANT_ITALIC;
+	weight_def = XFT_WEIGHT_BOLD;
+	sync_ft_font (false);
+      }
       break;
     }
 
   ptsize_def = strtod (&shm_mem[SHM_FONT_FT_PT_SIZE], NULL);
   dpi_def = (int)shm_mem[SHM_FONT_FT_DPI];
-  __ctalkXftSelectFont
-    (&shm_mem[SHM_FONT_FT_FAMILY], slant_def, weight_def,
-     dpi_def, ptsize_def);
-  sync_ft_font (false);
+  if ((f = __select_font_for_family (slant_def, weight_def,
+				     dpi_def, ptsize_def)) != NULL) {
+    selected_font = f;
+    sync_ft_font (false);
+  }
   
   return SUCCESS;
 }
@@ -1603,11 +1612,11 @@ int __xlib_handle_client_request (char *shm_mem_2) {
       __xlib_draw_circle (d, (Drawable)w, gc, &shm_mem_2[SHM_DATA]);
       break;
     case PANE_XLIB_FACE_REQUEST:
-      __xlib_change_face_request (d, (Drawable)w, gc, &shm_mem_2[SHM_DATA]);
+      __xlib_change_font_request_ft (d, (Drawable)w, gc, &shm_mem_2[SHM_DATA]);
       break;
 #ifdef HAVE_XFT_H
     case PANE_XLIB_FACE_REQUEST_FT:
-      __xlib_change_face_request_ft (d, (Drawable)w, gc, &shm_mem_2[SHM_DATA]);
+      __xlib_change_font_request_ft (d, (Drawable)w, gc, &shm_mem_2[SHM_DATA]);
       break;
 #endif
     case PANE_TEXT_FROM_DATA_REQUEST:
