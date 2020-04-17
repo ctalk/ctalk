@@ -650,5 +650,11 @@
 	class, and other updates.
 	- In super_argblk_rcvr_expr, check for a NULL rcvr_class_object
 	(complexmethd.c).
+	- In __new_instance_method, added a call to
+	set_rcvr_class_obj_new_method_2, which sets the new method's
+	rcvr_class_obj member (primitives.c).
+2020-04-17
+	- Added an error message and exit for an invalid rcvr_class_obj
+	in super_argblk_rcvr_expr (complexmethd.c).
 
 

@@ -1,4 +1,4 @@
-/* $Id: primitives.c,v 1.5 2020/04/05 19:59:02 rkiesling Exp $ */
+/* $Id: primitives.c,v 1.6 2020/04/17 11:52:19 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -590,6 +590,11 @@ void set_rcvr_class_obj (OBJECT *o) {
   rcvr_class_obj = o;
 }
 
+static void set_rcvr_class_obj_new_method_2 (OBJECT *o, METHOD *m) {
+  rcvr_class_obj = o;
+  m -> rcvr_class_obj = o;
+}
+
 /*
  *  Prevent a "sizeof," operator if overloaded, from being interpreted 
  *  as  an operator if it occurs in a method declaration - the parser
@@ -700,7 +705,13 @@ OBJECT *new_instance_method (int method_msg_ptr) {
       (m_rcvr -> obj != m_method -> receiver_obj))
     error (m_method, "new_instance_method: receiver mismatch error.");
 
-  set_rcvr_class_obj (m_rcvr -> obj);
+  /***/
+  /* Moved up here from below. */
+  if ((n_method = (METHOD *)__xalloc (sizeof (METHOD))) == NULL)
+    _error ("new_instance_method: %s.", strerror (errno));
+  n_method -> sig = METHOD_SIG;
+
+  set_rcvr_class_obj_new_method_2 (m_rcvr -> obj, n_method);
 
   if (!IS_CLASS_OBJECT(rcvr_class_obj))
     error (m_method, "new_instance_method: Receiver %s is not a class object.",
@@ -755,15 +766,20 @@ OBJECT *new_instance_method (int method_msg_ptr) {
   }
 
 
+#if 0 /* Moved up to before set_rcvr_class_obj. */
   if ((n_method = (METHOD *)__xalloc (sizeof (METHOD))) == NULL)
     _error ("new_instance_method: %s.", strerror (errno));
   n_method -> sig = METHOD_SIG;
-
+#endif
+  
   new_methods[new_method_ptr--] = create_newmethod_init (n_method);
   new_methods[new_method_ptr+1] -> n_param_newlines = 
     param_newline_count (param_start_ptr, param_end_ptr);
 
-  n_method -> rcvr_class_obj = rcvr_class_obj;
+  /* NOTE! - This line seems not to be executed sometimes with 
+     optimization .  Shows up in super_argblk_rcvr_expr. 
+     See set_rcvr_class_obj, above, for possible fix. */
+  /* n_method -> rcvr_class_obj = rcvr_class_obj; */
 
   if (method_contains_argblk (message_stack (), method_start_ptr,
 			      method_end_ptr)) {

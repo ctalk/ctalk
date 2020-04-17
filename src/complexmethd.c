@@ -1,4 +1,4 @@
-/* $Id: complexmethd.c,v 1.2 2020/04/17 04:21:00 rkiesling Exp $ */
+/* $Id: complexmethd.c,v 1.4 2020/04/17 22:55:13 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -535,8 +535,19 @@ void super_argblk_rcvr_expr (MESSAGE_STACK messages, int super_idx,
   METHOD *m;
   OBJECT *var_object = NULL;
 
-  if (!IS_OBJECT(rcvr_class_object)) /***/
-    return;
+  if (!IS_OBJECT(rcvr_class_object)) {
+    char *p, *q, class[MAXLABEL];
+    p = new_methods[new_method_ptr+1] -> method -> selector;
+    q = strchr (p, '_');
+    memset (class, 0, MAXLABEL);
+    strncpy (class, p, q - p);
+    _error ("\nctalk: Invalid rcvr_class_obj member of the method:\n\n%s : "
+	    "%s.\n\nPlease contact the authors at rk3314042@gmail.com if "
+	    "you see this error.\n\n",
+	    class, 
+	    new_methods[new_method_ptr+1] -> method -> name);
+    return; /* Notreached */
+  }
 
   if ((method_idx = nextlangmsg (messages, super_idx)) != ERROR) {
     method_message = messages[method_idx];
