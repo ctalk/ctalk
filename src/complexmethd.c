@@ -1,4 +1,4 @@
-/* $Id: complexmethd.c,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ */
+/* $Id: complexmethd.c,v 1.2 2020/04/17 04:21:00 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -534,6 +534,9 @@ void super_argblk_rcvr_expr (MESSAGE_STACK messages, int super_idx,
   static char expr_out[MAXMSG];
   METHOD *m;
   OBJECT *var_object = NULL;
+
+  if (!IS_OBJECT(rcvr_class_object)) /***/
+    return;
 
   if ((method_idx = nextlangmsg (messages, super_idx)) != ERROR) {
     method_message = messages[method_idx];
