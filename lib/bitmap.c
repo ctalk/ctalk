@@ -1,4 +1,4 @@
-/* $Id: bitmap.c,v 1.8 2020/03/05 00:42:56 rkiesling Exp $ -*-c-*-*/
+/* $Id: bitmap.c,v 1.9 2020/04/16 16:20:50 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -82,10 +82,12 @@ int __ctalkX11CreatePixmap (void *d,
   v.fill_style = FillSolid;
   v.background = v.foreground = 
     BlackPixel ((Display *)d, DefaultScreen (display));
+  v.graphics_exposures = false;
   gc = XCreateGC ((Display *)d, p, 
 		  GCForeground|\
 		  GCBackground|\
 		  GCFunction|\
+		  GCGraphicsExposures|\
 		  GCFillStyle, &v);
   XFillRectangle ((Display *)d, p, gc,
 		  0, 0, width, height);

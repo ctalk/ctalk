@@ -2150,7 +2150,10 @@ system.  *Note X11TerminalStream::.
                                    when the user presses the <Tab>
                                    key.
 
-     "destroy"      WINDELETE      Called when the user closes the
+     "map"         MAPNOTIFY       Received when the pane's window is
+                                   mapped onto the display.
+
+     "destroy"     WINDELETE      Called when the user closes the
                                    application window.
 
 Handler Methods
@@ -2222,6 +2225,10 @@ Instance Variables
 `handleKbdInput'
      A `Method' that provides the default handler for subpanes to
      handle keyboard input.
+
+`handleMap'
+     Called when the program recieves a MAPNOTIFY event for the pane's
+     window.
 
 `handleMove'
      A `Method' that provides the default handler for moving subpane
@@ -3126,6 +3133,11 @@ Instance Variables
 `shadowPen'
      `Pen' objects that defines the color of the edges' bevels when
      drawing a beveled widget.
+
+`hover'
+     A `Boolean' that is true if the pointer is over the button's
+     window, false otherwise.  Normally, this causes the button to draw
+     its face using highlighted colors, fonts, and borders.
 
 `label'
      A `X11LabelPane' object that contains a button's text and provides

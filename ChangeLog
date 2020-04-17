@@ -637,4 +637,16 @@
 	- Added __select_font_from_family (xftlib.c).  Also changed
 	__xlib_change_face_request_ft to __xlib_change_font_request_ft,
 	called directly by __xlib_change_font_request_ft (x11lib.c).
+	- Added the X11PaneDispatcher : handleMap instance variable
+	and the "map" event handler type.
+	- Added the X11ButtonPane : hover instance variable.
+2020-04-16
+	- In create_pane_win_gc, set gcv.graphics_exposures to
+	false (x11lib.c), and also in __ctalkX11CreatePixmap
+	(bitmap.c).
+	- Updated exception notice X11PaneDispatcher : setMethodHandler
+	for undefined handler type.
+	- Added Map and Pointer Motion event handlers in X11ButtonPane
+	class, and other updates.
+
 

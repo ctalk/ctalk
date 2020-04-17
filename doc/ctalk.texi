@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.162 2020/04/14 15:31:47 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.164 2020/04/15 22:55:29 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -13546,7 +13546,10 @@ Handler Class  Event Class    Description                     Default Handler Me
                               when the user presses the @key{Tab}
                               key.
 
-"destroy"      WINDELETE      Called when the user closes the
+"map"         MAPNOTIFY       Received when the pane's window is
+                              mapped onto the display.
+
+"destroy"     WINDELETE      Called when the user closes the
                               application window.
 
 @end smallexample
@@ -13627,6 +13630,11 @@ user presses the @key{Tab} key.
 @item handleKbdInput
 A @code{Method} that provides the default handler for
 subpanes to handle keyboard input.
+
+@cindex handleMap instance variable @idxclscite{X11PaneDispatcher}
+@item handleMap
+Called when the program recieves a MAPNOTIFY event for the pane's
+window.
 
 @cindex handleMove instance variable @idxclscite{X11PaneDispatcher}
 @item handleMove
@@ -14646,6 +14654,12 @@ pressed while over the widget, and false otherwise.
 @item shadowPen
 @code{Pen} objects that defines the color of the edges' bevels
 when drawing a beveled widget.
+
+@cindex @code{hover} instance variable @idxclscite{X11ButtonPane}
+@item hover
+A @code{Boolean} that is true if the pointer is over the button's
+window, false otherwise.  Normally, this causes the button to draw
+its face using highlighted colors, fonts, and borders.
 
 @cindex @code{label} instance variable @idxclscite{X11ButtonPane}
 @item label

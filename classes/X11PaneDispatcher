@@ -1,4 +1,4 @@
-/* $Id: X11PaneDispatcher,v 1.55 2020/04/02 17:40:09 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11PaneDispatcher,v 1.61 2020/04/16 23:42:37 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -85,6 +85,7 @@ X11PaneDispatcher instanceVariable handleFocusIn Method NULL;
 X11PaneDispatcher instanceVariable handleFocusOut Method NULL;
 X11PaneDispatcher instanceVariable handleEnterNotify Method NULL;
 X11PaneDispatcher instanceVariable handleLeaveNotify Method NULL;
+X11PaneDispatcher instanceVariable handleMap Method NULL;
 X11PaneDispatcher instanceVariable subPaneGeometry String "";
 X11PaneDispatcher instanceVariable highlight Boolean false;
 X11PaneDispatcher instanceVariable tabFocus Boolean true;
@@ -158,10 +159,16 @@ X11PaneDispatcher instanceMethod setMethodHandler (String __handlerType,
   } else if (__handlerType == "leavenotify") {
     __ctalkAddInstanceVariable (self, "handleLeaveNotify",
 				method_arg);
+  } else if (__handlerType == "map") {
+    __ctalkAddInstanceVariable (self, "handleMap",
+				method_arg);
   } else {
-    errorStr printOn "Undefined handler type, \"%s\"";
+    errorStr printOn "Undefined handler type, \"%s\"",
+      __handlerType;
     unknownHandlerTypeException raiseCriticalException
       INVALID_OPERAND_X, errorStr;
+    unknownHandlerTypeException handle;
+    exit (1);
   }
 }
 
@@ -453,6 +460,10 @@ X11PaneDispatcher instanceMethod shiftFocus (void) {
 #define XK_Tab  0xff09
 #endif
 
+/* Uncomment this if you want a program to print a lot of
+   event information on a xterm. */
+/* #define TRACK_EVENTS */
+
 X11PaneDispatcher instanceMethod handleSubPaneEvent (InputEvent __e) {
   "Handle a X Window System event provided by the
   reciever's parent pane, dispatching the event to each
@@ -463,11 +474,17 @@ X11PaneDispatcher instanceMethod handleSubPaneEvent (InputEvent __e) {
   switch (__e eventClass)
     {
     case RESIZENOTIFY:
+#ifdef TRACK_EVENTS
+      printf ("----- RESIZENOTIFY\n");
+#endif      
       self children map {
 	self methodObjectMessage self handleResize, self, __e;
       }
       break;
     case MOVENOTIFY:
+#ifdef TRACK_EVENTS
+      printf ("----- MOVENOTIFY\n");
+#endif      
       /****/
       /* Needs better error description */
       /* self handleMove self, __e; */
@@ -478,19 +495,40 @@ X11PaneDispatcher instanceMethod handleSubPaneEvent (InputEvent __e) {
       }
       break;
     case EXPOSE:
+#ifdef TRACK_EVENTS
+      printf ("----- EXPOSE\n");
+#endif      
       self children map {
-	self methodObjectMessage self handleExpose, self, __e;
+	if (__e eventData == self xWindowID) 
+	  self methodObjectMessage self handleExpose, self, __e;
       }
       break;
     case MAPNOTIFY:
+#ifdef TRACK_EVENTS
+      printf ("----- MAPNOTIFY\n");
+#endif      
+      self children map {
+	self methodObjectMessage self handleMap, self, __e;
+      }
       break;
     case CONFIGURENOTIFY:
+#ifdef TRACK_EVENTS
+      printf ("----- CONFIGURENOTIFY\n");
+#endif      
       self children map {
 	self methodObjectMessage self handleExpose, self, __e;
       }
       break;
     case KEYRELEASE:
+#ifdef TRACK_EVENTS
+      if (__e eventClass == KEYRELEASE) 
+	printf ("----- KEYRELEASE\n");
+#endif      
     case KEYPRESS:
+#ifdef TRACK_EVENTS
+      if (__e eventClass == KEYPRESS) 
+	printf ("----- KEYPRESS\n");
+#endif      
       if (self tabFocus && __e xEventData5 == XK_Tab &&
 	  __e eventClass == KEYPRESS) {
 	self clearHighlight;
@@ -503,18 +541,37 @@ X11PaneDispatcher instanceMethod handleSubPaneEvent (InputEvent __e) {
       }
       break;
     case BUTTONPRESS:
+#ifdef TRACK_EVENTS
+      if (__e eventClass == BUTTONPRESS) 
+	printf ("----- BUTTONPRESS\n");
+#endif      
+      self children map {
+	if (__e eventData == self xWindowID) 
+	  self methodObjectMessage self handlePointerInput, self, __e;
+      }
+      break;
     case BUTTONRELEASE:
+#ifdef TRACK_EVENTS
+      if (__e eventClass == BUTTONRELEASE) 
+	printf ("----- BUTTONRELEASE\n");
+#endif      
       self children map {
 	if (__e eventData == self xWindowID) 
 	  self methodObjectMessage self handlePointerInput, self, __e;
       }
       break;
     case MOTIONNOTIFY:
+#ifdef TRACK_EVENTS
+      printf ("----- MOTIONNOTIFY\n");
+#endif      
       self children map {
 	self methodObjectMessage self handlePointerMotion, self, __e;
       }
       break;
     case WINDELETE:
+#ifdef TRACK_EVENTS
+      printf ("----- WINDELETE\n");
+#endif      
       self children map {
 	self methodObjectMessage self handleDestroy, self, __e;
       }
@@ -530,20 +587,32 @@ X11PaneDispatcher instanceMethod handleSubPaneEvent (InputEvent __e) {
        */
       break;
     case SELECTIONREQUEST:
+#ifdef TRACK_EVENTS
+      printf ("----- SELECTIONREQUEST\n");
+#endif      
       /* This is all handled internally for now, and only in the
 	 edittext.c library. */
       break;
     case SELECTIONCLEAR:
+#ifdef TRACK_EVENTS
+      printf ("----- SELECTIONCLEAR\n");
+#endif      
       self children map {
 	self methodObjectMessage self handleSelectionClear, self, __e;
       }
       break;
     case WMFOCUSCHANGENOTIFY:
+#ifdef TRACK_EVENTS
+      printf ("----- WMFOCUSCHANGENOTIFY\n");
+#endif      
       self children map {
 	self methodObjectMessage self handleWMFocusChange, self, __e;
       }
       break;
     case ENTERWINDOWNOTIFY:
+#ifdef TRACK_EVENTS
+      printf ("----- ENTERWINDOWNOTIFY\n");
+#endif      
       self clearHighlight;
       self children map {
 	if (__e eventData == self xWindowID) {
@@ -553,6 +622,9 @@ X11PaneDispatcher instanceMethod handleSubPaneEvent (InputEvent __e) {
       }
       break;
     case LEAVEWINDOWNOTIFY:
+#ifdef TRACK_EVENTS
+      printf ("----- LEAVEWINDOWNOTIFY\n");
+#endif      
       self children map {
 	if (__e eventData == self xWindowID) {
 	  g_ptr_t = __e xEventData4;
@@ -561,6 +633,9 @@ X11PaneDispatcher instanceMethod handleSubPaneEvent (InputEvent __e) {
       }
       break;
     default:
+#ifdef TRACK_EVENTS
+      printf ("----- default: %d\n", __e eventClass);
+#endif      
       errorStr printOn "Undefined event class %d", __e eventClass value;
       undefinedEventClassException raiseCriticalException 
  	INVALID_OPERAND_X, errorStr;

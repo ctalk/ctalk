@@ -1,4 +1,4 @@
-/* $Id: x11lib.c,v 1.139 2020/04/15 17:51:46 rkiesling Exp $ -*-c-*-*/
+/* $Id: x11lib.c,v 1.144 2020/04/16 19:15:10 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -2124,6 +2124,7 @@ int __ctalkOpenX11InputClient (OBJECT *streamobject) {
       fprintf (stderr, "Process %d started.  Parent PID %d.\n",
 	       (int)getpid(), (int)getppid ());
 #endif
+      XFlush (display);
       __ctalkX11InputClient (streamobject, frame_pane_sock_fd, mem_id, 
 			     main_win_id);
 #if X11LIB_PRINT_COPIOUS_DEBUG_INFO  
@@ -2467,6 +2468,18 @@ static void event_to_client (int eventclass,
 
     INTVAL(&shm_mem[SHM_EVENT_READY]) = TRUE;
     return;
+  } else if (eventclass == BUTTONRELEASE) {
+    INTVAL(&shm_mem[SHM_EVENT_TYPE]) = eventclass;
+    UINTVAL(&shm_mem[SHM_EVENT_WIN]) = win_id;
+    INTVAL(&shm_mem[SHM_EVENT_DATA1]) = eventdata1;
+    INTVAL(&shm_mem[SHM_EVENT_DATA2]) = eventdata2;
+    INTVAL(&shm_mem[SHM_EVENT_DATA3]) = eventdata3;
+    INTVAL(&shm_mem[SHM_EVENT_DATA4]) = eventdata4;
+    INTVAL(&shm_mem[SHM_EVENT_DATA5]) = eventdata5;
+    INTVAL(&shm_mem[SHM_EVENT_DATA6]) = eventdata6;
+
+    INTVAL(&shm_mem[SHM_EVENT_READY]) = TRUE;
+    return;
   }
 
   if (INTVAL(&shm_mem[SHM_EVENT_MASK]) > 0) {
@@ -2794,6 +2807,11 @@ static int kwin_event_loop (int parent_fd, int mem_handle, int main_win_id) {
 }
 #endif
 
+
+/* Uncomment this if you want the library to print a lot of event
+   information on a xterm */
+/* #define TRACK_EVENTS */
+
 int __ctalkX11InputClient (OBJECT *streamobject, int parent_fd, int mem_handle, int main_win_id) {
   XEvent e, e_config, e_expose;
   XRectangle prev_d;
@@ -2845,6 +2863,9 @@ int __ctalkX11InputClient (OBJECT *streamobject, int parent_fd, int mem_handle, 
       switch (e.type)
 	{
 	case ButtonPress:
+#ifdef TRACK_EVENTS
+	  fprintf (stderr, ">>> ButtonPress\n");
+#endif	  
 	  buttonpressed = TRUE;
 	  event_to_client (BUTTONPRESS,
 			   e.xbutton.window,
@@ -2855,6 +2876,9 @@ int __ctalkX11InputClient (OBJECT *streamobject, int parent_fd, int mem_handle, 
 	  continue;
 	  break;
 	case ButtonRelease:
+#ifdef TRACK_EVENTS
+	  fprintf (stderr, ">>> ButtonRelease\n");
+#endif	  
 	  buttonpressed = FALSE;
 	  event_to_client (BUTTONRELEASE,
 			   e.xbutton.window,
@@ -2865,6 +2889,9 @@ int __ctalkX11InputClient (OBJECT *streamobject, int parent_fd, int mem_handle, 
 	  continue;
 	  break;
 	case KeyPress:
+#ifdef TRACK_EVENTS
+	  fprintf (stderr, ">>> KeyPress\n");
+#endif	  
 	  event_to_client (KEYPRESS, e.xkey.window,
 			   e.xkey.x, e.xkey.y, e.xkey.state,
 			   e.xkey.keycode,
@@ -2874,6 +2901,9 @@ int __ctalkX11InputClient (OBJECT *streamobject, int parent_fd, int mem_handle, 
 	  continue;
 	  break;
 	case KeyRelease:
+#ifdef TRACK_EVENTS
+	  fprintf (stderr, ">>> KeyRelease\n");
+#endif	  
 	  event_to_client (KEYRELEASE, e.xkey.window,
 			   e.xkey.x, e.xkey.y, e.xkey.state,
 			   e.xkey.keycode,
@@ -2883,6 +2913,9 @@ int __ctalkX11InputClient (OBJECT *streamobject, int parent_fd, int mem_handle, 
 	  continue;
 	  break;
 	case FocusIn:
+#ifdef TRACK_EVENTS
+	  fprintf (stderr, ">>> FocusIn\n");
+#endif	  
 	  if (e.xfocus.mode == NotifyUngrab) {
 	    grabbed = false;
 	    if (resizing) {
@@ -2914,6 +2947,9 @@ int __ctalkX11InputClient (OBJECT *streamobject, int parent_fd, int mem_handle, 
 	  continue;
 	  break;
 	case FocusOut:
+#ifdef TRACK_EVENTS
+	  fprintf (stderr, ">>> FocusOut\n");
+#endif	  
 	  if (e.xfocus.mode == NotifyGrab) {
 	    grabbed = true;
 	  }
@@ -2924,6 +2960,9 @@ int __ctalkX11InputClient (OBJECT *streamobject, int parent_fd, int mem_handle, 
 	  continue;
 	  break;
 	case EnterNotify:
+#ifdef TRACK_EVENTS
+	  fprintf (stderr, ">>> EnterNotify\n");
+#endif	  
 	  event_to_client (ENTERWINDOWNOTIFY,
 			   e.xcrossing.window, e.xcrossing.subwindow,
 			   e.xcrossing.mode, e.xcrossing.detail,
@@ -2932,6 +2971,9 @@ int __ctalkX11InputClient (OBJECT *streamobject, int parent_fd, int mem_handle, 
 	  continue;
 	  break;
 	case LeaveNotify:
+#ifdef TRACK_EVENTS
+	  fprintf (stderr, ">>> LeaveNotify\n");
+#endif	  
 	  event_to_client (LEAVEWINDOWNOTIFY,
 			   e.xcrossing.window, e.xcrossing.subwindow,
 			   e.xcrossing.mode, e.xcrossing.detail,
@@ -2940,6 +2982,9 @@ int __ctalkX11InputClient (OBJECT *streamobject, int parent_fd, int mem_handle, 
 	  continue;
 	  break;
 	case PropertyNotify:
+#ifdef TRACK_EVENTS
+	  fprintf (stderr, ">>> PropertyNotify\n");
+#endif	  
 	  if (compiz_resize_atom == None) {
 	    compiz_resize_atom =
 	      XInternAtom (display, "_COMPIZ_RESIZE_INFORMATION", True);
@@ -2962,6 +3007,9 @@ int __ctalkX11InputClient (OBJECT *streamobject, int parent_fd, int mem_handle, 
 	  }
 	  break;
   	case MotionNotify:
+#ifdef TRACK_EVENTS
+	  fprintf (stderr, ">>> MotionNotify\n");
+#endif	  
 	  while (XCheckTypedWindowEvent 
 		 (display, main_win_id, MotionNotify, &e))
 	    ;
@@ -2975,16 +3023,22 @@ int __ctalkX11InputClient (OBJECT *streamobject, int parent_fd, int mem_handle, 
 	  continue;
   	  break;
   	case MapNotify:
+#ifdef TRACK_EVENTS
+	  fprintf (stderr, ">>> MapNotify\n");
+#endif	  
 	  while (XCheckTypedWindowEvent 
 		 (display, main_win_id, MapNotify, &e))
 	    ;
-  	  eventclass = MAPNOTIFY;
-	  event_win = e.xmap.window;
-	  eventdata1 = e.xmap.event;
-	  eventdata2 = e.xmap.window;
-	  eventdata3 = eventdata4 = eventdata5 = 0;
+	  event_to_client (MAPNOTIFY,
+			   e.xmap.window,
+			   e.xmap.event,
+			   e.xmap.window,
+			   0, 0, 0, 0);
   	  break;
    	case Expose:
+#ifdef TRACK_EVENTS
+	  fprintf (stderr, "Expose\n");
+#endif	  
 
 	  if (resizing) {
 	    /* resizing is set for cinammon, and we just save the
@@ -3008,6 +3062,9 @@ int __ctalkX11InputClient (OBJECT *streamobject, int parent_fd, int mem_handle, 
 	  continue;
    	  break;
 	case ConfigureNotify:
+#ifdef TRACK_EVENTS
+	  fprintf (stderr, ">>> ConfigureNotify\n");
+#endif	  
 	  /* 
 	   * Here we have to separate the event into (possible) move 
 	   * and resize events.  If the event's x and y are 0, then it's 
@@ -3133,6 +3190,9 @@ int __ctalkX11InputClient (OBJECT *streamobject, int parent_fd, int mem_handle, 
 	  }
 	  break;
 	case ClientMessage:
+#ifdef TRACK_EVENTS
+	  fprintf (stderr, ">>> ClientMessage\n");
+#endif	  
 	  if(e.xclient.data.l[0] == wm_delete_window) {
 	    eventclass = WINDELETE;
 	    event_win = e.xclient.window;
@@ -3141,6 +3201,9 @@ int __ctalkX11InputClient (OBJECT *streamobject, int parent_fd, int mem_handle, 
 	  }
 	  break;
 	case SelectionClear:
+#ifdef TRACK_EVENTS
+	  fprintf (stderr, ">>> SelectionClear\n");
+#endif	  
 	  /* We can do the actual releasing of the X primary selection
 	     in the server thread, but we send an event back to the app's
 	     thread so the app can update its state if necessary. */
@@ -3151,18 +3214,41 @@ int __ctalkX11InputClient (OBJECT *streamobject, int parent_fd, int mem_handle, 
 	  continue;
 	  break;
 	case SelectionRequest:
+#ifdef TRACK_EVENTS
+	  fprintf (stderr, ">>> SelectionRequest\n");
+#endif	  
 	  /* we can do all of this in the server thread, too,
 	     completely */
 	  __xlib_send_selection (&e);
 	  continue;
 	  break;
 	case CirculateNotify:
+#ifdef TRACK_EVENTS
+	  fprintf (stderr, ">>> CirculateNotify\n");
+#endif	  
 	case CirculateRequest:
+#ifdef TRACK_EVENTS
+	  fprintf (stderr, ">>> CirculateRequest\n");
+#endif	  
 	case ResizeRequest:
+#ifdef TRACK_EVENTS
+	  fprintf (stderr, ">>> ResizeRequest\n");
+#endif	  
 	case VisibilityNotify:
+#ifdef TRACK_EVENTS
+	  fprintf (stderr, ">>> VisibilityNotify\n");
+#endif	  
 	  eventclass = 0;
 	  break;
+	case NoExpose:
+#ifdef TRACK_EVENTS
+	  fprintf (stderr, ">>> NoExpose\n");
+#endif	  
+	  break;
 	default:
+#ifdef TRACK_EVENTS
+	  fprintf (stderr, ">>> default event: %d\n", e.type);
+#endif	  
 	  eventclass = 0;
 	  break;
 	}
@@ -3486,7 +3572,8 @@ GC create_pane_win_gc (Display *d, Window w, OBJECT *pane) {
   }
   gcv.fill_style = FillSolid;
   gcv.function = GXcopy;
-  gc = XCreateGC (d, w, DEFAULT_GCV_MASK, &gcv);
+  gcv.graphics_exposures = false;
+  gc = XCreateGC (d, w, DEFAULT_GCV_MASK|GCGraphicsExposures, &gcv);
 
   return gc;
 }

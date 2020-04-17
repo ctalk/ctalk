@@ -1,4 +1,4 @@
-/* $Id: X11ButtonPane,v 1.37 2020/04/14 05:04:34 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11ButtonPane,v 1.48 2020/04/17 00:01:43 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -53,7 +53,7 @@ X11ButtonPane instanceVariable highlightHPen Pen NULL;
 X11ButtonPane instanceVariable highlightVPen Pen NULL;
 X11ButtonPane instanceVariable bevelEdges Boolean true;
 X11ButtonPane instanceVariable bevelWidth Integer 4;
-X11ButtonPane instanceVariable clicked Boolean false; /***/
+X11ButtonPane instanceVariable clicked Boolean false;
 X11ButtonPane instanceVariable label X11LabelPane NULL;
 X11ButtonPane instanceVariable borderWidth Integer 1;
 X11ButtonPane instanceVariable borderHighlightWidth Integer 2;
@@ -61,6 +61,15 @@ X11ButtonPane instanceVariable borderMargin Integer 2;
 X11ButtonPane instanceVariable borderColor String "black";
 X11ButtonPane instanceVariable radius Integer 0;
 X11ButtonPane instanceVariable clickSet Boolean false;
+X11ButtonPane instanceVariable lOrg Point NULL;
+X11ButtonPane instanceVariable lSize Point NULL;
+X11ButtonPane instanceVariable hover Boolean false;
+
+/* Print the names of the event handlers and drawing
+   methods as we enter them */
+/* #define TRACK_EVENTS */
+/* Uncomment to add processing when the window/subwindows are mapped */
+/* #define HANDLE_MAP */
 
 X11ButtonPane instanceMethod new (String __paneName) {
   "The X11ButtonPane constructor.  The argument, a String,
@@ -69,6 +78,10 @@ X11ButtonPane instanceMethod new (String __paneName) {
 
   Method new exposeMethod, buttonPressMethod, enterMethod,
     leaveMethod, focusInMethod, focusOutMethod;
+  Method new motionMethod;
+#ifdef HANDLE_MAP
+  Method mapMethod;
+#endif  
 
   X11ButtonPane super new __paneName;
 
@@ -80,16 +93,27 @@ X11ButtonPane instanceMethod new (String __paneName) {
   leaveMethod definedInstanceMethod "X11ButtonPane", "subPaneLeave";
   focusInMethod definedInstanceMethod "X11ButtonPane", "subPaneFocusIn";
   focusOutMethod definedInstanceMethod "X11ButtonPane", "subPaneFocusOut";
+  motionMethod definedInstanceMethod "X11ButtonPane", "subPaneMotion";
+
+#ifdef HANDLE_MAP
+  mapMethod definedInstanceMethod "X11ButtonPane", "subPaneMap";
+#endif  
+
   __paneName setMethodHandler "expose", exposeMethod;
   __paneName setMethodHandler "pointerinput", buttonPressMethod;
   __paneName setMethodHandler "enternotify", enterMethod;
   __paneName setMethodHandler "leavenotify", leaveMethod;
   __paneName setMethodHandler "focusin", focusInMethod;
   __paneName setMethodHandler "focusout", focusOutMethod;
+  __paneName setMethodHandler "pointermotion", motionMethod;
+
+#ifdef HANDLE_MAP
+  __paneName setMethodHandler "map", mapMethod;
+#endif  
 
   if (__paneName bevelEdges) {
     __paneName resources atPut "shadowPenColor", "gray55";
-    __paneName resources atPut "shadowPenWidt", 1;
+    __paneName resources atPut "shadowPenWidth", 1;
     __paneName resources atPut "highlightHPenColor", "gray94";
     __paneName resources atPut "highlihtHPenWidth", 1;
     __paneName resources atPut "highlightVPenColor", "gray91";
@@ -100,6 +124,7 @@ X11ButtonPane instanceMethod new (String __paneName) {
   __paneName resources atPut "background", "lightgray";
   __paneName resources atPut "highlightBackground", "gray90";
   __paneName resources atPut "faceBackground", "lightgray";
+  __paneName lOrg x = -1;
   
   return __paneName;
 }
@@ -136,7 +161,7 @@ X11ButtonPane instanceMethod attachTo (Object parentPane,
    */
   (X11Bitmap *)self paneBuffer create self displayPtr, self xWindowID,
     self size x, self size y, self depth;
-  (X11Bitmap *)self paneBuffer background (self backgroundColor);
+  (X11Bitmap *)self paneBuffer background (self resources at "faceBackground");
   (X11Bitmap *)self paneBackingStore create self displayPtr, self xWindowID,
     self size x, self size y, self depth;
 
@@ -178,7 +203,9 @@ X11ButtonPane instanceMethod attachTo (Object parentPane,
   return NULL;
 }
 
+#if 1 /***/
 static int label_x = -1, label_y, label_width, label_height;
+#endif
 
 X11ButtonPane instanceMethod draw (void) {
 
@@ -187,7 +214,10 @@ X11ButtonPane instanceMethod draw (void) {
   Integer new savePenWidth;
   Integer new lmargin;
 
-  
+#ifdef TRACK_EVENTS
+  printf ("draw\n");
+#endif  
+
   if (self ftFontVar family length > 0) {
     /* i.e., The app has stored this widget's font selection. */
     self ftFontVar selectFont;
@@ -263,11 +293,15 @@ X11ButtonPane instanceMethod draw (void) {
     }
   }
 
-  /* render the button's text and get its dimensions */
-  self label drawButtonLayout;
-  if (label_x == -1) 
+  if (self lOrg x == -1) {
     sscanf (self label subPaneGeometry, "%dx%d+%d+%d",
-	    &label_width, &label_height, &label_x, &label_y);
+	    &label_width, &label_height, &label_x, &label_y); 
+    self lOrg x = label_x;
+    self lOrg y = label_y;
+    self lSize x = label_width;
+    self lSize y = label_height;
+    self label drawButtonLayout;
+  }
 
   if (self radius > 0) {
     /* Clip the text at its margin so we don't overrun the
@@ -278,18 +312,21 @@ X11ButtonPane instanceMethod draw (void) {
     lmargin = self label margin;
     self paneBuffer copy self label paneBuffer,
       lmargin, lmargin,
-      label_width - (lmargin * 2),
-      label_height - (lmargin * 2),
-      label_x + lmargin, label_y + lmargin;
+      lSize x - (lmargin * 2),
+      lSize y - (lmargin * 2),
+      lOrg x + lmargin, lOrg y + lmargin;
   } else {
     self paneBuffer copy self label paneBuffer,
-      0, 0, label_width, label_height,
-      label_x, label_y;
+      0, 0, self lSize x, self lSize y,
+      self lOrg x, self lOrg y;
   }
   
 }
 
 X11ButtonPane instanceMethod subPaneFocusIn (void) {
+#ifdef TRACK_EVENTS
+  printf ("subPaneFocusIn\n");
+#endif  
   if (self canFocus) {
     self label highlight = true;
     self hasFocus = true;
@@ -299,6 +336,9 @@ X11ButtonPane instanceMethod subPaneFocusIn (void) {
 }
 
 X11ButtonPane instanceMethod subPaneFocusOut (void) {
+#ifdef TRACK_EVENTS
+  printf ("subPaneFocusOut\n");
+#endif  
   if (self canFocus) {
     self label highlight = false;
     self hasFocus = false;
@@ -309,44 +349,131 @@ X11ButtonPane instanceMethod subPaneFocusOut (void) {
 
 X11ButtonPane instanceMethod subPaneExpose (Object __subPane,
 					  InputEvent __event) {
+#ifdef TRACK_EVENTS
+  printf ("subPaneExpose\n");
+#endif  
   self draw;
   self refresh;
 }
+
+#ifdef HANDLE_MAP
+X11ButtonPane instanceMethod subPaneMap (Object __subPane,
+					  InputEvent __event) {
+  int label_width, label_height, label_x, label_y;
+#ifdef TRACK_EVENTS
+  printf ("subPaneMap\n");
+#endif  
+  sscanf (self label subPaneGeometry, "%dx%d+%d+%d",
+	  &label_width, &label_height, &label_x, &label_y);
+  __subPane lOrg x = label_x;
+  __subPane lOrg y = label_y;
+  __subPane lSize x = label_width;
+  __subPane lSize y = label_height;
+  __subPane label drawButtonLayout;
+}
+#endif /* HANDLE_MAP */
 
 X11ButtonPane instanceMethod subPaneButtonPress (Object __subPane,
 						 InputEvent __event) {
   switch (__event eventClass)
     {
     case BUTTONPRESS:
-      self clicked = true;
-      if (!self clickSet)
-	self clickSet = true;
+#ifdef TRACK_EVENTS
+      printf ("\n-------------------\n");
+      printf ("subPaneButtonPress\n");
+#endif      
+      if (!self clicked) {
+	self clicked = true;
+	if (!self clickSet)
+	  self clickSet = true;
+	self draw;
+	self refresh;
+      }
       break;
     case BUTTONRELEASE:
-      self clicked = false;
+#ifdef TRACK_EVENTS
+      printf ("subPaneButtonRelease\n");
+      printf ("-------------------\n\n");
+#endif      
+      if (self clicked) {
+	self clicked = false;
+	self draw;
+	self refresh;
+      }
       break;
     }
-  self draw;
-  self refresh;
 }
 
 X11ButtonPane instanceMethod subPaneEnter (Object __subPane,
 					  InputEvent __event) {
+  /* This has some extra checks in case we get extra events
+     after a BUTTONPRESS event - like with xquartz */
+  if (__event eventData == __subPane xWindowID) {
+#ifdef TRACK_EVENTS
+  printf ("subPaneEnter\n");
+#endif  
   if (__subPane canFocus) {
-    __subPane label highlight = true;
+    if (self clicked) {
+      self clicked = false;
+    }
+    if (!self hover) {
+      __subPane label highlight = true;
+      self hover = true;
+    }
+#if 1
+    self label drawButtonLayout;
     __subPane draw;
     __subPane refresh;
+#endif    
+  }
+  } else if (self clicked) {
+    self clicked = false;
+#if 1
+    self label drawButtonLayout;
+    __subPane draw;
+    __subPane refresh;
+#endif    
   }
 }
 
 X11ButtonPane instanceMethod subPaneLeave (Object __subPane,
 					  InputEvent __event) {
+  if (__event eventData == __subPane xWindowID) {
+#ifdef TRACK_EVENTS
+    printf ("subPaneLeave\n");
+#endif    
   if (__subPane canFocus) {
-    __subPane label highlight = false;
-    if (self clicked)
+    if (self hover) {
+      __subPane label highlight = false;
+      if (self clicked)
+	self clicked = false;
+      self label drawButtonLayout;
+      __subPane draw;
+      __subPane refresh;
+      self hover = false;
+    }
+  }
+  }
+}
+
+/* These definitions are from the machine's X.h file. */
+#ifndef Button1Mask
+#define Button1Mask		(1<<8)
+#endif
+#ifndef Button3Mask
+#define Button3Mask		(1<<10)
+#endif
+
+X11ButtonPane instanceMethod subPaneMotion (Object __subPane,
+					    InputEvent __event) {
+  if (self clicked) {
+    if (!(__event xEventData3 & Button1Mask) &&
+	!(__event xEventData3 & Button3Mask)) {
+      printf ("     buttonmask: %d\n", __event xEventData3);
       self clicked = false;
-    __subPane draw;
-    __subPane refresh;
+      self draw;
+      self refresh;
+    }
   }
 }
 
