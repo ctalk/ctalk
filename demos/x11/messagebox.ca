@@ -1,4 +1,4 @@
-/* messagebox.ca - X11ButtonPane Demonstration */
+/* messagebox.ca - X11ButtonPane Demonstration -*-c-*- */
 
 #include <ctalk/ctalkdefs.h>
 
@@ -22,9 +22,8 @@ int main (void) {
 
   mainWindow backgroundColor = "blue";
   label resources replaceAt "backgroundColor", "blue";
-  button resources replaceAt "background", "blue";
-  /* button backgroundColor = "blue"; */
-  messageBox resources replaceAt "background", "blue";
+  button resources replaceAt "backgroundColor", "blue";
+  messageBox resources replaceAt "backgroundColor", "blue";
   
   mainWindow initialize 255, 200;
   mainWindow inputStream eventMask = 
@@ -46,10 +45,12 @@ int main (void) {
 
   label multiLine "X11MessageBoxPane\nDemo";
   label resources replaceAt "textColor", "lightgray";
+  label resources replaceAt "foregroundColor", "blue";
+  label resources replaceAt "borderColor", "blue";
 
   button label multiLine "Open\nMessageBox";
 
-  button label highlightBackgroundColor = "gray90";
+  button label resources replaceAt "highlightForegroundColor", "gray90";
 
   /* Icon IDs, like ICON_INFO, are defined in ctalkdefs.h. */
   messageBox resources replaceAt "iconID", ICON_INFO;
@@ -58,6 +59,7 @@ int main (void) {
      entry for "backgroundColor" the X11MessageBoxPane : new method
      has alread created an entry for backgroundColor. */
   messageBox resources replaceAt "backgroundColor", "blue";
+  messageBox resources replaceAt "foregroundColor", "blue";
   messageBox resources replaceAt "messageText",
     	       "Hello, messageBox!\nYour message text here.";
 
@@ -86,6 +88,8 @@ int main (void) {
 	  }
 	  button highlight = false;
 	  button clicked = false;
+	  while (mainWindow inputStream eventPending)
+	    e become mainWindow inputStream inputQueue unshift;
 	  button draw;
 	  button refresh;
 	  messageBox show;

@@ -1,4 +1,4 @@
-/* $Id: xftlib.c,v 1.22 2020/04/15 18:33:52 rkiesling Exp $ -*-c-*-*/
+/* $Id: xftlib.c,v 1.23 2020/04/18 21:50:43 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -978,6 +978,9 @@ void __ctalkXftSelectFontFromFontConfig (char *font_config_str) {
   slant_def = -1;
   spacing_def = -1;
   width_def = -1;
+
+  if (!font_config_str || *font_config_str == 0)
+    return;
 
   stack_end = tokenize (fc_message_push, font_config_str);
 

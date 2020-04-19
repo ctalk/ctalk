@@ -848,7 +848,7 @@ Class Variables
      map.
 
 Instance Methods
-................
+----------------
 
 ``attachTo' (`Object' PARENTPANE)'
      Attach the receiver to PARENTPANE.  The value of PARENTPANE's
@@ -2867,18 +2867,23 @@ File: ctalk.info,  Node: X11ButtonPane,  Next: X11LabelPane,  Prev: X11CanvasPan
 
 The `X11ButtonPane' class defines instance variables and methods that
 draw buttons on X windows.  The buttons' appearance is defined by the
-values in the instance variables, and they may be used to define the
-format of customized buttons and labels.
+values in the resources and instance variables, and they may be used to
+define the format of customized buttons.
 
-The definitions of the `X11ButtonPane's' instance variables' define the
-parameters for basic buttons with beveled and non-beveled edges, and
-the buttons' text is contained in a `X11LabelPane' object, which
-defines the appreance of a button's text.
+`X11ButtonPane' objects also contain a `X11LabelPane' object, which is
+used to render the visual elements, like the text, border, and
+highlighting, on the button's face.
 
-Here is a brief example program.
+In many cases the button's `X11LabelPane' subpane inherits the
+definitions of the `X11ButtonPane's' instance variables and resources,
+generally when a program constructs the pane during a call to the
+`attachTo' method.
+
+Here are several example programs.  The first draws beveled buttons,
+the second draws rounded, non-beveled buttons.
 
 
-     /* buttons.ca - X11ButtonPane Demonstration */
+     /* buttons.ca - X11ButtonPane Demonstration -*-c-*- */
 
      #include <ctalk/ctalkdefs.h>
 
@@ -2888,9 +2893,9 @@ Here is a brief example program.
      /* Also, uncomment this to draw a multiline label. */
      /* #define MULTILINE */
 
-     /* Define CORNER_RADIUS > 0 for rounded corners (non-beveled, too).
-        The value is the radius of the corner arcs. */
-     #define CORNER_RADIUS 0
+     /* Uncomment if you want the buttons to be highlighted with wider
+        borders and a bold label (if the font supports it). */
+     /* #define BOLD_HILITE */
 
      /* See the X11FreeTypeFont section of the the Ctalk reference. */
      #define FTFONT_BOLD   200
@@ -2905,19 +2910,21 @@ Here is a brief example program.
        InputEvent new e;
 
        mainWindow backgroundColor = "blue";
-       lbutton backgroundColor = "blue";
-       rbutton backgroundColor = "blue";
-       label textColor = "white";
+
        label canFocus = false;
-       label borderWidth = 0;
+       label resources replaceAt "borderWidth", 0;
 
        label resources replaceAt "backgroundColor", "blue";
-       lbutton resources replaceAt "background", "blue";
-       rbutton resources replaceAt "background", "blue";
+       label resources replaceAt "foregroundColor", "blue";
+       label resources replaceAt "textColor", "white";
+       lbutton resources replaceAt "backgroundColor", "blue";
+       rbutton resources replaceAt "backgroundColor", "blue";
+       lbutton resources replaceAt "ftFont", "sans serif-10";
+       rbutton resources replaceAt "ftFont", "sans serif-10";
 
        mainWindow initialize 255, 200;
        mainWindow inputStream eventMask =
-         EXPOSE|ENTERWINDOWNOTIFY|LEAVEWINDOWNOTIFY|BUTTONPRESS|BUTTONRELEASE|KEYPRESS|KEYRELEASE|WINDELETE;
+         EXPOSE|ENTERWINDOWNOTIFY|LEAVEWINDOWNOTIFY|BUTTONPRESS|BUTTONRELEASE|KEYPRESS|KEYRELEASE|WINDELETE|MOTIONNOTIFY;
        dispatcher attachTo mainWindow;
        lbutton attachTo dispatcher, "90x50+25+100";
        rbutton attachTo dispatcher, "90x50+135+100";
@@ -2955,13 +2962,15 @@ Here is a brief example program.
        rbutton label multiLine "Click\nHere, Too";
      #endif
 
-     #if CORNER_RADIUS > 0
-       lbutton bevelEdges = false;
-       lbutton radius = CORNER_RADIUS;
-       lbutton label radius = CORNER_RADIUS;
-       rbutton bevelEdges = false;
-       rbutton radius = CORNER_RADIUS;
-       rbutton label radius = CORNER_RADIUS;
+     #ifdef BOLD_HILITE
+       lbutton label resources replaceAt "highlightForegroundColor",
+         (lbutton resources at "foregroundColor");
+       rbutton label resources replaceAt "highlightForegroundColor",
+         (rbutton resources at "foregroundColor");
+       lbutton label resources replaceAt "highlightBorderWidth", 2;
+       rbutton label resources replaceAt "highlightBorderWidth", 2;
+       lbutton label resources replaceAt "ftFont", "sans serif-10:bold";
+       rbutton label resources replaceAt "ftFont", "sans serif-10:bold";
      #endif
 
        lbutton draw;
@@ -3006,8 +3015,117 @@ Here is a brief example program.
 
      }
 
+
+     /* roundbuttons.ca - X11ButtonPane Rounded Buttons -*-c-*- */
+
+     #include <ctalk/ctalkdefs.h>
+
+     /* To avoid overlapping arcs, corner_radius < (button_minor_dimen / 2) */
+     #define CORNER_RADIUS 13
+
+     int main (void) {
+       X11Pane new mainWindow;
+       X11PaneDispatcher new dispatcher;
+       X11ButtonPane new lbutton;
+       X11ButtonPane new rbutton;
+       X11LabelPane new label;
+       InputEvent new e;
+
+       mainWindow backgroundColor = "blue";
+       label resources replaceAt "backgroundColor", "blue";
+       rbutton resources replaceAt "backgroundColor", "blue";
+       lbutton resources replaceAt "backgroundColor", "blue";
+       rbutton resources replaceAt "foregroundColor", "blue";
+       lbutton resources replaceAt "foregroundColor", "blue";
+
+
+       mainWindow initialize 225, 150;
+       mainWindow inputStream eventMask =
+         EXPOSE|ENTERWINDOWNOTIFY|LEAVEWINDOWNOTIFY|BUTTONPRESS|BUTTONRELEASE|KEYPRESS|KEYRELEASE|WINDELETE|MOTIONNOTIFY;
+       dispatcher attachTo mainWindow;
+       lbutton attachTo dispatcher, "80x30+22+100";
+       rbutton attachTo dispatcher, "80x30+124+100";
+       label attachTo dispatcher, "147x80+32+15";
+
+       mainWindow map;
+       mainWindow raiseWindow;
+
+       mainWindow openEventStream;
+
+       mainWindow setWMTitle "X11ButtonPane Demo";
+
+       label ftFontVar initFontLib;
+       label multiLine "X11ButtonPane\nRounded Button\nDemo";
+       label canFocus = false;
+       label borderWidth = 0;
+       label resources replaceAt "borderColor", "blue";
+       label resources replaceAt "ftFont", "sans-serif-14:bold";
+       label resources replaceAt "textColor", "white";
+       label resources replaceAt "backgroundColor", "blue";
+       label resources replaceAt "foregroundColor", "blue";
+
+       rbutton label ftFontVar selectFontFromFontConfig "sans serif-10";
+       rbutton label ftFontVar saveSelectedFont;
+       rbutton resources replaceAt "foregroundColor", "blue";
+       lbutton label ftFontVar selectFontFromFontConfig "sans serif-10";
+       lbutton label ftFontVar saveSelectedFont;
+       lbutton resources replaceAt "foregroundColor", "blue";
+       rbutton resources replaceAt "textColor", "white";
+       lbutton resources replaceAt "textColor", "white";
+
+
+       lbutton label text "Left";
+       rbutton label text "Right";
+
+       lbutton bevelEdges = false;
+       lbutton radius = CORNER_RADIUS;
+       rbutton bevelEdges = false;
+       rbutton radius = CORNER_RADIUS;
+
+       lbutton draw;
+       lbutton refresh;
+       rbutton draw;
+       rbutton refresh;
+       label draw;
+       label refresh;
+
+       while (TRUE) {
+         mainWindow inputStream queueInput;
+         if (mainWindow inputStream eventPending) {
+           e become mainWindow inputStream inputQueue unshift;
+
+           mainWindow subPaneNotify e;
+
+           switch (e eventClass value)
+     	{
+     	case EXPOSE:
+     	  lbutton subPaneExpose (lbutton, e);
+     	  rbutton subPaneExpose (rbutton, e);
+     	  label subPaneExpose (label, e);
+     	  break;
+     	case WINDELETE:
+      	  mainWindow deleteAndClose;
+     	  exit (0);
+     	  break;
+     	default:
+     	  if (lbutton haveClick) {
+     	    printf ("left button!\n");
+     	    lbutton clearClick;
+     	  } else if (rbutton haveClick) {
+     	    printf ("right button!\n");
+     	    rbutton clearClick;
+     	  }
+     	  break;
+     	}
+         } else {
+           usleep (1000);
+         }
+       }
+
+     }
+
 Retrieving Button States
-........................
+------------------------
 
 The `X11ButtonPane' class provides several methods to retrieve the
 state of a button object.
@@ -3034,71 +3152,111 @@ state of a button object.
 
 
 Resources
-.........
+---------
 
-This class uses mainly `Pen' objects for drawing.  So the resources
-with their default values are created when the `X11ButtonPane' object
-is created, and the `Pens' are initialized in the `attachTo' method.
-That means in order to change the value of a resource, programs should
-do this before attaching the pane to its parent pane.
+The resources that `X11ButtonPane : new' defines by default are stored
+in the `resources' instance variable, an `AssociativeArray' that is
+declared in `X11Pane' class.  For a description, see the `resources'
+instance variable documentation. *Note PaneResources::.
 
-`background'
-     A `String' that contains the name of the background color.  The
-     default is `lightgray'.  Note that this color only affects the
-     window behind the button.  To change the background of the
-     button's face, use `faceBackground'.
+``backgroundColor''
+     A `String' that contains the color used to draw the button's
+     background.  This includes the actual subwindow that receives the
+     button's events from the display server.  The resources' default
+     value is `gray'.
 
-`faceBackground'
-     A `String' that contains the background color of the button's
-     face.  This resource is separate because programs often want a
-     button's face to have a different background color than the
-     surrounding window.  The default is `lightgray'.
+     If you want the button's background to match its parent window,
+     add a statement like the following _before_ attaching the button
+     to its parent window with the `attachTo' method (assuming in this
+     example that the parent window's background is also `blue').
 
-`foreground'
-     A `String' that contains the name of the button's text color.  The
-     default is `black'.
 
-`highlightBackground'
-     A `String' that contains the name of the button's background color
-     when the button is drawn highlighted.  The default is `gray90'.
+          myButton resources replaceAt "backgroundColor", "blue";
 
-`highlightForeground'
-     A `String' that contains the color used to draw text when the
-     button is drawn highlighted.  The default is `black'.
+     When the program creates the actual X subwindow (again, by calling
+     the `attachTo' method), the Ctalk libraries then check for a
+     resource or instance variable named either, `background' or
+     `backgroundColor' and uses its value to set the X subwindow's
+     background color.
+
+``borderColor''
+     A `String' that contains the name of the color used to draw the
+     label's borders.  The default value is `black'.
+
+``borderWidth''
+     An `Integer' that contains the width of the visible border in
+     pixels.  Its default value is `1'.  To draw buttons without
+     borders, programs can set this resource to `0'.
+
+``foregroundColor''
+     A `String' that defines the color used for the button's drawable
+     face.  Its default color is `gray'.
+
+``ftFont''
+     A `String' that contains the Fontconfig descriptor of the button's
+     default font.  Its default value is `sans serif-12'.  The button's
+     label inherits the descriptor as its default font when attaching
+     the button (and its `X11LabelPane' label) to its parent window
+     with the `attachTo' method.
+
+     To change the label's font, include a statement like the one in the
+     example, _after_ the button has been fully initialized by the
+     `attachTo' method.
+
+
+          myButton label resources replaceAt "ftFont", "URW Gothic L-10";
+
+     The font, `URW Gothic L,' is a Type 1 font included in the
+     Ghostscript `gsfonts' package.
+
+``highlightForegroundColor''
+     A `String' that contains the color used to fill the button's face
+     when the pointer is over the button.  Its default value is
+     `gray90'.
+
+     If you want buttons to display a thicker border and bold font for
+     highlighting, you can include a set of statements like the
+     following in the program, _after_ the program attaches the button
+     to its parent pane.
+
+
+          myButton label resources replaceAt "highlightForegroundColor",
+            (myButton resources at "foregroundColor");
+          myButton label resources replaceAt "highlightBorderWidth", 2;
+
+     In this case, the label subpane doesn't automatically inherit
+     these values, so it's necessary to use the label's declaration,
+     `myButton label,' directly.
+
+``highlightBorderColor''
+     A `String' that defines the color to use when drawing a highlighted
+     border.  The default is `black'.
+
+``highlightBorderWidth''
+     An `Integer' that defines the border width in pixels when the
+     button is highlighted.  The default value is `1'. (That is, the
+     button doesn't use a heavier border for emphasis by default.)
+
+     The `label' subpane inherits this value when the `attachTo' method
+     constructs the button pane.
 
 `highlightHPenColor'
-     A `String' that contains the name of the color used to draw the
-     hightlighted horizontal edge of the button when displaying bevelled
-     edges.  The default value is `gray94'.
 
-`highlightHPenWidth'
-     An `Integer' that contains the line width in pixels of the pen
-     that is used to draw the highlighted horizontal edge of the button
-     when drawing bevelled edges.  The default value is 1 pixel.
-
-`highlightHPenColor'
-     A `String' that contains the name of the color used to draw the
-     hightlighted vertical edge of the button when displaying bevelled
-     edges.  The default value is `gray91'.
-
-`highlightHPenWidth'
-     An `Integer' that contains the line width in pixels of the pen
-     that is used to draw the highlighted vertical edge of the button
-     when drawing bevelled edges.  The default value is 1 pixel.
+`highlightVPenColor'
 
 `shadowPenColor'
-     A `String' that contains the name of the color used to draw
-     shadows if the button uses bevelled edges.  The default value is
-     `gray55'.
+     These are `String' objects that define the colors for the
+     highlighted and shadowed button edges when drawing a beveled
+     button.
 
-`shadowPenWidth'
-     An `Integer' that contains the line width in pixels of the pen
-     that is used to draw shadows when displaying a bevelled button.
-     The default value is 1 pixel.
+``textColor''
+     A `String' that contains the color used to draw the button's text.
+     This value is inherited by the button's label widget.  The
+     `textColor' resources' default value is `black'.
 
 
 Instance Variables
-..................
+------------------
 
 `bevelEdges'
      A `Boolean' that causes the widget to display beveled edges if
@@ -3150,7 +3308,7 @@ Instance Variables
 
 
 Instance Methods
-................
+----------------
 
 `attachTo (`Object' PARENTPANE, `String' GEOMETRY)'
      Attaches the receiver to the parentPane named by PARENTPANE, with
@@ -3269,6 +3427,8 @@ Here is a simple example program that displays a X11LabelPane widget.
        xPane ftFontVar initFontLib;
      #endif
 
+       xLabelPane resources replaceAt "backgroundColor", "white";
+
        xPane initialize 0, 0, 300, 300;
        xPane inputStream eventMask =
          WINDELETE|EXPOSE|ENTERWINDOWNOTIFY|LEAVEWINDOWNOTIFY;
@@ -3317,7 +3477,7 @@ Here is a simple example program that displays a X11LabelPane widget.
      }
 
 Multiple Line Labels
-....................
+--------------------
 
 If the label's text contains embedded newline `\n' characters, and the
 text is defined using the `multiLine' method, below, then the text is
@@ -3329,7 +3489,7 @@ For single line labels, use the `text' method with a `String' argument
 to fit on one line.
 
 Justification
-.............
+-------------
 
 The `X11LabelPane' widget contains a simple layout engine that can
 center label text, or justify it against the right or left margins.
@@ -3362,7 +3522,12 @@ alignment remains constant if a program draws and then obscures the
 border, or when the pointer passes over the label.
 
 Resources
-.........
+---------
+
+The resources that `X11LabelPane : new' defines by default are stored
+in the `resources' instance variable, an `AssociativeArray' that is
+declared in `X11Pane' class.  For a description, see the `resources'
+instance variable documentation. *Note PaneResources::.
 
 `ftFont'
      A `String' that contains the text font's Fontconfig font
@@ -3372,21 +3537,57 @@ Resources
      `X11FreeTypeFont' class. *Note X11FreeTypeFont::.
 
 `backgroundColor'
+     A `String' that contains the pane's background color.  This is the
+     color of the pane's X subwindow, so it is generally useful to set
+     this to the color of the surrounding window, if you want the label
+     to blend in with its surrounding drawing area.
 
 `borderColor'
+     A `String' that contains the name of the pane's border color.  The
+     default is `black'
+
+     An `Integer' that contains the line width the pane's border.  The
+     default is `1'.
+
+`foregroundColor'
+     A `String' that contains the name of the color that fills the
+     pane's visible area.  The default is `white'.
+
+`grayedColor'
+     The color of the text and border when the pane is grayed.  The
+     default is `gray'.
+
+`highlightBorderColor'
+     The color of the border when the pane is highlighted.  The default
+     is `black'.
+
+`highlightBorderWidth'
+     The width of the border when the pane is highlighted the default is
+     `2'.
+
+`highlightForegroundColor'
+     A `String' that contains the color name of the pane's visible area
+     when it the pane is in a highlighted state, which is generally
+     when the pointer is over the pane's window area.  The default is
+     `orange'.
 
 `highlightTextColor'
-
-`highlightBackgroundColor'
+     A `String' that contains the text color when the pane is in a
+     highlighted state, generally when the pointer is over the pane.
+     The default is `black'.
 
 `textColor'
-     These are `String' objects that contain the name of the X11 color
-     that is used to draw each element.  See `showrgb(1)' for a list of
-     these colors.
+     A `String' that contains the text color when the pane is not
+     highlighted.  The default is `black'.
+
+`xFont'
+     A `String' that contains the text fonts X Logical Font Descriptor.
+     Refer to `xfontsel(1)' and `xlsfonts(1)' for information about
+     XLFD's.  The default is `fixed'.
 
 
 Instance Variables
-..................
+------------------
 
 `border'
      A `Boolean' that controls whether the label displays a border.
@@ -3489,8 +3690,8 @@ Instance Variables
      the `multiLine' method.
 
 
-0.0.0.1 Instance Methods
-........................
+Instance Methods
+----------------
 
 `draw (`void')'
 
@@ -3574,7 +3775,7 @@ Here is an example of a program that creates its own
 the main window's button.
 
 
-     /* messagebox.ca - X11ButtonPane Demonstration */
+     /* messagebox.ca - X11ButtonPane Demonstration -*-c-*- */
 
      #include <ctalk/ctalkdefs.h>
 
@@ -3598,9 +3799,8 @@ the main window's button.
 
        mainWindow backgroundColor = "blue";
        label resources replaceAt "backgroundColor", "blue";
-       button resources replaceAt "background", "blue";
-       /* button backgroundColor = "blue"; */
-       messageBox resources replaceAt "background", "blue";
+       button resources replaceAt "backgroundColor", "blue";
+       messageBox resources replaceAt "backgroundColor", "blue";
 
        mainWindow initialize 255, 200;
        mainWindow inputStream eventMask =
@@ -3622,10 +3822,12 @@ the main window's button.
 
        label multiLine "X11MessageBoxPane\nDemo";
        label resources replaceAt "textColor", "lightgray";
+       label resources replaceAt "foregroundColor", "blue";
+       label resources replaceAt "borderColor", "blue";
 
        button label multiLine "Open\nMessageBox";
 
-       button label highlightBackgroundColor = "gray90";
+       button label resources replaceAt "highlightForegroundColor", "gray90";
 
        /* Icon IDs, like ICON_INFO, are defined in ctalkdefs.h. */
        messageBox resources replaceAt "iconID", ICON_INFO;
@@ -3634,6 +3836,7 @@ the main window's button.
           entry for "backgroundColor" the X11MessageBoxPane : new method
           has alread created an entry for backgroundColor. */
        messageBox resources replaceAt "backgroundColor", "blue";
+       messageBox resources replaceAt "foregroundColor", "blue";
        messageBox resources replaceAt "messageText",
          	       "Hello, messageBox!\nYour message text here.";
 
@@ -3662,6 +3865,8 @@ the main window's button.
      	  }
      	  button highlight = false;
      	  button clicked = false;
+     	  while (mainWindow inputStream eventPending)
+     	    e become mainWindow inputStream inputQueue unshift;
      	  button draw;
      	  button refresh;
      	  messageBox show;
@@ -3675,11 +3880,10 @@ the main window's button.
            usleep (1000);
          }
        }
-
      }
 
 Resources
-.........
+---------
 
 `background'
      The window's background color, and the background color of the
@@ -3737,7 +3941,7 @@ Resources
 
 
 Instance Variables
-..................
+------------------
 
 `button'
      A `X11ButtonPane' object that closes the window when clicked.  The
@@ -3781,11 +3985,15 @@ Instance Variables
 
 
 Resources
-.........
+---------
 
 `backgroundColor'
      A `String' with the X color name of the window's background.  The
      default is `gray'.
+
+`foregroundColor'
+     A `String' with the name of the color that the messagebox window
+     is filled with.  The default is `gray'.
 
 ``geometry' resource (`X11MessageBoxPane' class)'
 
@@ -3815,6 +4023,12 @@ Resources
      A `String' that contains the X color name used for the message
      text.  The default is `black'.
 
+``messageFont' resource (`X11MessageBoxPane' class)'
+
+`messageFont'
+     A `String' that contains the Fontconfig font descriptor of the font
+     used to display the message.  The default is `sans serif-12'.
+
 ``messageText' resource (`X11MessageBoxPane' class)'
 
 `messageText'
@@ -3842,7 +4056,7 @@ Resources
 
 
 Instance Methods
-................
+----------------
 
 `attachTo (`Object' PARENTPANE, `String' GEOMETRY)'
      Sets the message box's dimensions and creates the object's buffers

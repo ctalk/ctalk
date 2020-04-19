@@ -1,0 +1,107 @@
+/* roundbuttons.ca - X11ButtonPane Rounded Buttons -*-c-*- */
+
+#include <ctalk/ctalkdefs.h>
+
+/* To avoid overlapping arcs, corner_radius < (button_minor_dimen / 2) */
+#define CORNER_RADIUS 13
+
+int main (void) {
+  X11Pane new mainWindow;
+  X11PaneDispatcher new dispatcher;
+  X11ButtonPane new lbutton;
+  X11ButtonPane new rbutton;
+  X11LabelPane new label;
+  InputEvent new e;
+
+  mainWindow backgroundColor = "blue";
+  label resources replaceAt "backgroundColor", "blue";
+  rbutton resources replaceAt "backgroundColor", "blue";
+  lbutton resources replaceAt "backgroundColor", "blue";
+  rbutton resources replaceAt "foregroundColor", "blue";
+  lbutton resources replaceAt "foregroundColor", "blue";
+
+
+  mainWindow initialize 225, 150;
+  mainWindow inputStream eventMask = 
+    EXPOSE|ENTERWINDOWNOTIFY|LEAVEWINDOWNOTIFY|BUTTONPRESS|BUTTONRELEASE|KEYPRESS|KEYRELEASE|WINDELETE|MOTIONNOTIFY;
+  dispatcher attachTo mainWindow;
+  lbutton attachTo dispatcher, "80x30+22+100";
+  rbutton attachTo dispatcher, "80x30+124+100";
+  label attachTo dispatcher, "147x80+32+15";
+
+  mainWindow map;
+  mainWindow raiseWindow;
+
+  mainWindow openEventStream;
+
+  mainWindow setWMTitle "X11ButtonPane Demo";
+
+  label ftFontVar initFontLib;
+  label multiLine "X11ButtonPane\nRounded Button\nDemo";
+  label canFocus = false;
+  label borderWidth = 0;
+  label resources replaceAt "borderColor", "blue";
+  label resources replaceAt "ftFont", "sans-serif-14:bold";
+  label resources replaceAt "textColor", "white";
+  label resources replaceAt "backgroundColor", "blue";
+  label resources replaceAt "foregroundColor", "blue";
+
+  rbutton label ftFontVar selectFontFromFontConfig "sans serif-10";
+  rbutton label ftFontVar saveSelectedFont;
+  rbutton resources replaceAt "foregroundColor", "blue";
+  lbutton label ftFontVar selectFontFromFontConfig "sans serif-10";
+  lbutton label ftFontVar saveSelectedFont;
+  lbutton resources replaceAt "foregroundColor", "blue";
+  rbutton resources replaceAt "textColor", "white";
+  lbutton resources replaceAt "textColor", "white";
+
+
+  lbutton label text "Left";
+  rbutton label text "Right";
+
+  lbutton bevelEdges = false;
+  lbutton radius = CORNER_RADIUS;
+  rbutton bevelEdges = false;
+  rbutton radius = CORNER_RADIUS;
+
+  lbutton draw;
+  lbutton refresh;
+  rbutton draw;
+  rbutton refresh;
+  label draw;
+  label refresh;
+
+  while (TRUE) {
+    mainWindow inputStream queueInput;
+    if (mainWindow inputStream eventPending) {
+      e become mainWindow inputStream inputQueue unshift;
+
+      mainWindow subPaneNotify e;
+
+      switch (e eventClass value)
+	{
+	case EXPOSE:
+	  lbutton subPaneExpose (lbutton, e);
+	  rbutton subPaneExpose (rbutton, e);
+	  label subPaneExpose (label, e);
+	  break;
+	case WINDELETE:
+ 	  mainWindow deleteAndClose;
+	  exit (0);
+	  break;
+	default:
+	  if (lbutton haveClick) {
+	    printf ("left button!\n");
+	    lbutton clearClick;
+	  } else if (rbutton haveClick) {
+	    printf ("right button!\n");
+	    rbutton clearClick;
+	  }
+	  break;
+	}
+    } else {
+      usleep (1000);
+    }
+  }
+
+}

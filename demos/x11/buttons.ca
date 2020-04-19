@@ -1,4 +1,4 @@
-/* buttons.ca - X11ButtonPane Demonstration */
+/* buttons.ca - X11ButtonPane Demonstration -*-c-*- */
 
 #include <ctalk/ctalkdefs.h>
 
@@ -8,9 +8,9 @@
 /* Also, uncomment this to draw a multiline label. */
 /* #define MULTILINE */
 
-/* Define CORNER_RADIUS > 0 for rounded corners (non-beveled, too). 
-   The value is the radius of the corner arcs. */
-#define CORNER_RADIUS 0
+/* Uncomment if you want the buttons to be highlighted with wider
+   borders and a bold label (if the font supports it). */
+/* #define BOLD_HILITE */
 
 /* See the X11FreeTypeFont section of the the Ctalk reference. */
 #define FTFONT_BOLD   200
@@ -25,15 +25,17 @@ int main (void) {
   InputEvent new e;
 
   mainWindow backgroundColor = "blue";
-  lbutton backgroundColor = "blue";
-  rbutton backgroundColor = "blue";
-  label textColor = "white";
+
   label canFocus = false;
-  label borderWidth = 0;
+  label resources replaceAt "borderWidth", 0;
 
   label resources replaceAt "backgroundColor", "blue";
-  lbutton resources replaceAt "background", "blue";
-  rbutton resources replaceAt "background", "blue";
+  label resources replaceAt "foregroundColor", "blue";
+  label resources replaceAt "textColor", "white";
+  lbutton resources replaceAt "backgroundColor", "blue";
+  rbutton resources replaceAt "backgroundColor", "blue";
+  lbutton resources replaceAt "ftFont", "sans serif-10";
+  rbutton resources replaceAt "ftFont", "sans serif-10";
 
   mainWindow initialize 255, 200;
   mainWindow inputStream eventMask = 
@@ -75,13 +77,15 @@ int main (void) {
   rbutton label multiLine "Click\nHere, Too";
 #endif
 
-#if CORNER_RADIUS > 0
-  lbutton bevelEdges = false;
-  lbutton radius = CORNER_RADIUS;
-  lbutton label radius = CORNER_RADIUS;
-  rbutton bevelEdges = false;
-  rbutton radius = CORNER_RADIUS;
-  rbutton label radius = CORNER_RADIUS;
+#ifdef BOLD_HILITE
+  lbutton label resources replaceAt "highlightForegroundColor",
+    (lbutton resources at "foregroundColor");
+  rbutton label resources replaceAt "highlightForegroundColor",
+    (rbutton resources at "foregroundColor");
+  lbutton label resources replaceAt "highlightBorderWidth", 2;
+  rbutton label resources replaceAt "highlightBorderWidth", 2;
+  lbutton label resources replaceAt "ftFont", "sans serif-10:bold";
+  rbutton label resources replaceAt "ftFont", "sans serif-10:bold";
 #endif  
 
   lbutton draw;

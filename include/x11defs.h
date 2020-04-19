@@ -1,4 +1,4 @@
-/* $Id: x11defs.h,v 1.26 2020/04/10 16:34:50 rkiesling Exp $ -*-c-*-*/
+/* $Id: x11defs.h,v 1.27 2020/04/19 02:33:25 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -289,6 +289,11 @@ typedef struct _dc {
 #endif  
 #ifndef XFT_NOTIFY_LOAD
 #define XFT_NOTIFY_LOAD 2
+#endif
+
+/* Bevel resoulution, in pixels.  Also in ctalkdefs.h. */
+#ifndef B_RES_PX
+#define B_RES_PX 1
 #endif
 
 #endif /* _X11DEFS_H */

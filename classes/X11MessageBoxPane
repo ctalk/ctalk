@@ -1,4 +1,4 @@
-/* $Id: X11MessageBoxPane,v 1.96 2020/04/13 20:01:15 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11MessageBoxPane,v 1.99 2020/04/19 15:21:39 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -26,12 +26,13 @@
 
    This class uses the following resources:
 
-   background           String    gray
+   backgroundColor      String    "gray"
+   foregroundColor      String    "gray"
    pad                  Integer   10
    messageColor         String    "black"
    messageFont          String    "sans serif-12"
    messageText          String    "Sample message text."
-   buttonText           String    Ok
+   buttonText           String    "Ok"
    geometry             String    <w>x<h>+<x>+<y>
    iconID               Integer   0
    titleText            String    "Message"
@@ -55,7 +56,8 @@ X11MessageBoxPane instanceVariable keyState Integer 0;
 #include <ctalk/ctalkdefs.h>
 
 X11MessageBoxPane instanceMethod new (String paneName) {
-  Method new exposeMethod, buttonPressMethod, kbdInputMethod;
+  Method new exposeMethod, buttonPressMethod, kbdInputMethod,
+    enterMethod, leaveMethod;
 
   X11MessageBoxPane super new paneName;
   
@@ -70,7 +72,15 @@ X11MessageBoxPane instanceMethod new (String paneName) {
     "subPaneKbdInput";
   paneName setMethodHandler "kbdinput", kbdInputMethod;
 
-  paneName resources atPut "background", "gray";
+  enterMethod definedInstanceMethod "X11MessageBoxPane",
+    "subPaneEnter";
+  paneName setMethodHandler "enternotify", enterMethod;
+  leaveMethod definedInstanceMethod "X11MessageBoxPane",
+    "subPaneLeave";
+  paneName setMethodHandler "leavenotify", leaveMethod;
+
+  paneName resources atPut "backgroundColor", "gray";
+  paneName resources atPut "foregroundColor", "gray";
   paneName resources atPut "pad", 10;
   paneName resources atPut "messageText", "Hello, messageBox!\nSample message text.";
 
@@ -141,6 +151,48 @@ X11MessageBoxPane instanceMethod subPaneButton (Object __subPane,
   self button refresh;
 }
 
+X11MessageBoxPane instanceMethod subPaneEnter (Object subPane,
+					  InputEvent __event) {
+  if (__event eventData == subPane button xWindowID) {
+    if (subPane button canFocus) {
+      if (self button clicked) {
+	self button clicked = false;
+      }
+      if (!self button hover) {
+	subPane button label highlight = true;
+	self button hover = true;
+      }
+      if (!self button radius)
+	self button label drawButtonLayout;
+      subPane button draw;
+      subPane button refresh;
+    }
+  } else if (self button clicked) {
+    self button clicked = false;
+    if (!self button radius)
+      self button label drawButtonLayout;
+    subPane button draw;
+    subPane button refresh;
+  }
+}
+
+X11MessageBoxPane instanceMethod subPaneLeave (Object subPane,
+					  InputEvent __event) {
+  if (__event eventData == subPane button xWindowID) {
+    if (subPane button canFocus) {
+      if (self button hover) {
+	subPane button label highlight = false;
+	if (self button clicked)
+	  self button clicked = false;
+	self button label drawButtonLayout;
+	subPane button draw;
+	subPane button refresh;
+	self button hover = false;
+      }
+    }
+  }
+}
+
 X11MessageBoxPane instanceMethod attachTo (X11Pane parentPane,
 					   String geomspec) {
   "Register the receiver pane as a subpane of the X11Pane
@@ -173,6 +225,7 @@ X11MessageBoxPane instanceMethod attachTo (X11Pane parentPane,
 
   self mainWindowPtr = parentPane mainWindow;
 
+#if 0
   if (!self foregroundColor) {
     if (parentPane mainWindow foregroundColor)
       self foregroundColor = parentPane mainWindow foregroundColor;
@@ -189,6 +242,7 @@ X11MessageBoxPane instanceMethod attachTo (X11Pane parentPane,
   } else {
     self font "fixed";
   }
+#endif  
 
   return NULL;
 }
@@ -199,7 +253,6 @@ X11MessageBoxPane instanceMethod fill (String colorName) {
    sets the pane's foreground to the background color so the 
    color change is visible without drawing anything else."
     String new saveFgColor;
-  String new saveFgColor;
 
 
   saveFgColor = self foregroundColor;
@@ -212,7 +265,7 @@ X11MessageBoxPane instanceMethod fill (String colorName) {
 
 X11MessageBoxPane instanceMethod draw (void) {
   
-  self fill self resources at "background";
+  self fill self resources at "backgroundColor";
 
   self label draw;
   self button draw;
@@ -242,19 +295,6 @@ X11MessageBoxPane instanceMethod withdraw (void) {
 }
 
 X11MessageBoxPane instanceMethod drawIcon (void) {
-#if 0
-  Circle new aCircle;
-  Pen new aPen;
-  self icon foreground "red";
-  self icon background self resources at "background";
-  self icon clearRectangle 0, 0, ICON_WIDTH_PX, ICON_HEIGHT_PX;
-
-  aCircle center x = ICON_WIDTH_PX / 2;
-  aCircle center y = ICON_HEIGHT_PX / 2;
-  aCircle radius = (ICON_WIDTH_PX / 2) - 2;
-  aPen width = 3;
-  aPen alpha = 0xffff;
-#endif  
 
   switch (self resources at "iconID")
     {
@@ -308,14 +348,15 @@ X11MessageBoxPane instanceMethod initWidgets (void) {
   geomspec printOn "%dx%d+%d+%d", label_width_px, label_height_px,
     label_x_px, label_y_px;
 
-  l_label backgroundColor =  self resources at "background";
-  /* l_label resources replaceAt "backgroundColor",
-     (self resources at "background"); */
+  l_label resources replaceAt "backgroundColor",
+    (self resources at "backgroundColor");
+  l_label resources replaceAt "foregroundColor",
+    (self resources at "foregroundColor");
   l_label multiLine self resources at "messageText";
   l_label border = false;
   l_label resources replaceAt "textColor",
     (self resources at "messageColor");
-  l_label resources replaceAt "fcFont",
+  l_label resources replaceAt "ftFont",
     (self resources at "messageFont");
   l_label justify = LABEL_LEFT;
 
@@ -324,6 +365,7 @@ X11MessageBoxPane instanceMethod initWidgets (void) {
   self label attachTo self, geomspec;
 
   self button become l_button;
+  self children push l_button;
 
   button_y_px = label_height_px + (padInt * 2);
 
@@ -335,7 +377,7 @@ X11MessageBoxPane instanceMethod initWidgets (void) {
   if (self resources at "iconID" > 0) {
     l_icon create self displayPtr, self paneBuffer xID,
       ICON_WIDTH_PX, ICON_HEIGHT_PX, self paneBuffer depth;
-    l_icon background self resources at "background";
+    l_icon background self resources at "foregroundColor";
     self icon become l_icon;
     self drawIcon;
   }
@@ -373,8 +415,11 @@ X11MessageBoxPane instanceMethod show (void) {
   
     (X11Bitmap *)self paneBuffer create self displayPtr, self xWindowID, 
       self size x, self size y, self depth;
-    (X11Bitmap *)self paneBuffer background (self backgroundColor);
-    (X11Bitmap *)self paneBuffer foreground (self foregroundColor);
+    (X11Bitmap *)self paneBuffer background
+      (self resources at "backgroundColor");
+    self paneBuffer backgroundColor = self resources at "backgroundColor";
+    (X11Bitmap *)self paneBuffer foreground
+      (self resources at "foregroundColor");
     (X11Bitmap *)self paneBackingStore create self displayPtr, self xWindowID,
       self size x, self size y, self depth;
 
@@ -414,6 +459,21 @@ X11MessageBoxPane instanceMethod show (void) {
 	  dispatcher modalWin = 0;
 	  dispatcher modalPane = NULL;
 	  return self;
+	  break;
+	case EnterNotify:
+	  if (xev.xbutton.window == self button xWindowID) {
+	    e eventClass = ENTERWINDOWNOTIFY;
+	    e eventData = xev.xbutton.window;
+	    self methodObjectMessage self handleEnterNotify, self, e;
+	  }
+	  break;
+	case LeaveNotify:
+	  if (xev.xbutton.window == self button xWindowID) {
+	    e eventClass = LEAVEWINDOWNOTIFY;
+	    e eventData = xev.xbutton.window;
+	    self methodObjectMessage self handleLeaveNotify, self, e;
+	  }
+	  break;
 	  break;
 	case KeyPress:
 	  e eventClass = KEYPRESS;

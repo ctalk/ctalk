@@ -1,4 +1,4 @@
-/* $Id: X11Bitmap,v 1.21 2020/04/05 20:44:07 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11Bitmap,v 1.24 2020/04/19 14:52:38 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -283,12 +283,19 @@ X11Bitmap instanceMethod iconInfo (void) {
   /* Draw an "i" */
   aPen width = 7;
   self drawLine ICON_WIDTH_PX / 2,
-    ICON_HEIGHT_PX / 2 - 10, ICON_WIDTH_PX / 2,
-    ICON_HEIGHT_PX - 10, aPen;
+    ICON_HEIGHT_PX / 2 - 7, ICON_WIDTH_PX / 2,
+    ICON_HEIGHT_PX - 13, aPen;
+  aCircle center x = ICON_WIDTH_PX / 2;
+  aCircle center y = (ICON_HEIGHT_PX / 2) - 15;
+  aCircle radius = 3;
+  self drawCircle aCircle, aPen, FALSE,
+    aPen;
+#if 0
   aPen width = 10;
   self drawPoint ICON_WIDTH_PX / 2,
-    (ICON_HEIGHT_PX / 2) - 18,
+    (ICON_HEIGHT_PX / 2) - 15,
     aPen;
+#endif  
     return NULL;
 }
 
