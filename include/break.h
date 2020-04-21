@@ -1,4 +1,4 @@
-/* $Id: break.h,v 1.12 2020/03/25 19:50:59 rkiesling Exp $ */
+/* $Id: break.h,v 1.13 2020/04/20 14:24:44 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -33,7 +33,10 @@
 
 /*
  *  Uncomment this line and change METHOD_FN_HERE to the
- *  C name of your method to break on (in quotes).
+ *  C name of your method to break on (in quotes).  Refer
+ *  to the ctalkmethods(1) manual page for information
+ *  about how to construct a function name from a method's
+ *  class, selector, and parameter list.
  */
 /* #define METHOD_BREAK METHOD_FN_HERE */
 
