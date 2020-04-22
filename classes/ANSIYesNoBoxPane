@@ -1,4 +1,4 @@
-/* $Id: ANSIYesNoBoxPane,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-C-*-*/
+/* $Id: ANSIYesNoBoxPane,v 1.2 2020/04/22 09:05:18 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -59,7 +59,7 @@ ANSIYesNoBoxPane instanceMethod new (String __paneName) {
   __paneName size x = 10;
   __paneName size y = 9;
 
-  __paneName addbuffer 10, 9, 1;
+  __paneName addBuffer 10, 9, 1;
 
   __paneName button1 become __button1New;
   __paneName button2 become __button2New;

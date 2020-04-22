@@ -790,18 +790,23 @@ the repository to your machine use:
 
   git clone http://github.com/ctalk/ctalk
 
+If you don't have the git(1) program, you can retrieve the
+repository using HTTP.
+
+https://github.com/ctalk/ctalk.git
+
 The source of most recent Ctalk package is on the, "release," branch.
 To use it, type,
 
-  git checkout release
+  git pull origin release
 
 Proposed changes for the next release are on the, "proposed," branch.
 Type:
 
-  git checkout proposed
+  git pull origin proposed
 
-For any questions, comments or requests about either the Github
-repository or the source code, as usual, contact the authors.
+That means changes for new releases should be available within a few
+days of committing the changes on the development machines.
 
 
 11. Bug Reports, Feedback, and Support

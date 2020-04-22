@@ -1,4 +1,4 @@
-/* $Id: X11FreeTypeFont,v 1.2 2020/04/10 16:34:49 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11FreeTypeFont,v 1.3 2020/04/22 00:34:29 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -133,7 +133,7 @@ X11FreeTypeFont instanceMethod selectFont (String family, Integer slant,
     self saveSelectedFont;
     
     selectedDesc = self selectedFont;
-    if (selectedDesc contains family)
+    if (selectedDesc contains "family")
       return SUCCESS;
     else
       return ERROR;
