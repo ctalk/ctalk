@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.171 2020/04/23 17:43:14 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.172 2020/04/23 22:47:45 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -14742,14 +14742,17 @@ myButton label resources replaceAt "highlightBorderWidth", 2;
 
 @end example
 
-If you want the button's text to be emphasized when the
-button is highlighted, add a line like this one.
+To cause the button's text to be emphasized when the button is
+highlighted, add a line like this one.
 
 @example
 
-myButton label highlightTextBold = true;
+myButton label resources replaceAt "highlightTextBold", true;
 
 @end example
+
+This is only effective if the font library supports
+boldfacing (i.e., mainly Freetype and Type 1 fonts).
 
 In these cases, the label subpane doesn't automatically inherit
 these values, so it's necessary to use the label's declaration,
@@ -15158,6 +15161,12 @@ area when it the pane is in a highlighted state, which is generally
 when the pointer is over the pane's window area.  The default is
 @samp{orange}.
 
+@cindex @code{highlightTextBold} resource @idxclscite{X11LabelPane}
+@item highlightTextBold
+A @code{Boolean} that causes the label to display its text in a bold
+font when the label is highlighted, if the font library supports it.
+The default is @samp{false}.
+
 @cindex @code{highlightTextColor} resource @idxclscite{X11LabelPane}
 @item highlightTextColor
 A @code{String} that contains the text color when the pane is
@@ -15228,13 +15237,6 @@ color.  The default is @samp{black}.
 An @code{Integer} that determines the width in pixels of the label's
 border when the widget is highlighed.  The default is two pixels.
 
-@cindex @code{highlighTextBold} instance variable @idxclscite{X11LabelPane}
-@item highlightTextBold
-A @code{Boolean} that indicates whether the widget should draw a
-highlighted widget's text using a bold typeface.  The default is
-@code{false}.
-
-This variable has no effect when using X11 bitmap fonts.
 @cindex @code{highlightTextColor} instance variable @idxclscite{X11LabelPane}
 
 @item highlightTextColor

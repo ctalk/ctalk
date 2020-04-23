@@ -3224,11 +3224,14 @@ instance variable documentation. *Note PaneResources::.
             (myButton resources at "foregroundColor");
           myButton label resources replaceAt "highlightBorderWidth", 2;
 
-     If you want the button's text to be emphasized when the button is
+     To cause the button's text to be emphasized when the button is
      highlighted, add a line like this one.
 
 
-          myButton label highlightTextBold = true;
+          myButton label resources replaceAt "highlightTextBold", true;
+
+     This is only effective if the font library supports boldfacing
+     (i.e., mainly Freetype and Type 1 fonts).
 
      In these cases, the label subpane doesn't automatically inherit
      these values, so it's necessary to use the label's declaration,
@@ -3577,6 +3580,11 @@ instance variable documentation. *Note PaneResources::.
      when the pointer is over the pane's window area.  The default is
      `orange'.
 
+`highlightTextBold'
+     A `Boolean' that causes the label to display its text in a bold
+     font when the label is highlighted, if the font library supports
+     it.  The default is `false'.
+
 `highlightTextColor'
      A `String' that contains the text color when the pane is in a
      highlighted state, generally when the pointer is over the pane.
@@ -3633,13 +3641,6 @@ Instance Variables
 `highlightBorderWidth'
      An `Integer' that determines the width in pixels of the label's
      border when the widget is highlighed.  The default is two pixels.
-
-`highlightTextBold'
-     A `Boolean' that indicates whether the widget should draw a
-     highlighted widget's text using a bold typeface.  The default is
-     `false'.
-
-     This variable has no effect when using X11 bitmap fonts.  
 
 `highlightTextColor'
      A `String' that contains the name of the text color when the widget

@@ -84,8 +84,8 @@ int main (void) {
     (rbutton resources at "foregroundColor");
   lbutton label resources replaceAt "highlightBorderWidth", 2;
   rbutton label resources replaceAt "highlightBorderWidth", 2;
-  lbutton label resources replaceAt "ftFont", "sans serif-10:bold";
-  rbutton label resources replaceAt "ftFont", "sans serif-10:bold";
+  rbutton label resources replaceAt "highlightTextBold", true;
+  lbutton label resources replaceAt "highlightTextBold", true;
 #endif  
 
   lbutton draw;

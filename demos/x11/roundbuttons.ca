@@ -41,16 +41,11 @@ int main (void) {
   label canFocus = false;
   label borderWidth = 0;
   label resources replaceAt "borderColor", "blue";
-  label resources replaceAt "ftFont", "sans-serif-14:bold";
   label resources replaceAt "textColor", "white";
   label resources replaceAt "backgroundColor", "blue";
   label resources replaceAt "foregroundColor", "blue";
 
-  rbutton label ftFontVar selectFontFromFontConfig "sans serif-10";
-  rbutton label ftFontVar saveSelectedFont;
   rbutton resources replaceAt "foregroundColor", "blue";
-  lbutton label ftFontVar selectFontFromFontConfig "sans serif-10";
-  lbutton label ftFontVar saveSelectedFont;
   lbutton resources replaceAt "foregroundColor", "blue";
   rbutton resources replaceAt "textColor", "white";
   lbutton resources replaceAt "textColor", "white";

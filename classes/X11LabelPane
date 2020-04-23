@@ -1,4 +1,4 @@
-/* $Id: X11LabelPane,v 1.42 2020/04/19 02:33:24 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11LabelPane,v 1.43 2020/04/23 22:47:45 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -48,6 +48,7 @@
  *
  *  borderWidth                  1
  *  highlightBorderWidth         2
+ *  highlightTextBold            false
  *
  *  NOTE: The corresponding instance variables are still in the
  *  the class definition, but they will go away in the future.
@@ -96,9 +97,6 @@ glyphs.";
 X11LabelPane instanceVariable justify Integer LABEL_CENTER
 "Justify the text on the left or right side of the label, or center
 the text.";
-X11LabelPane instanceVariable highlightTextBold Boolean false
-"If true, display the label text in a bold typeface when the label is
-highlighted.  This is only effective (so far) when using Freetype fonts.";
 X11LabelPane instanceVariable radius Integer 0
 "If greater than 0, draw borders as rounded rectangles with the radius
 equal to this value";
@@ -129,6 +127,7 @@ X11LabelPane instanceMethod new (String __paneName) {
   __paneName resources atPut "highlightBorderWidth", 2;
   __paneName resources atPut "grayedColor", "gray";
   __paneName resources atPut "highlightBorderColor", "black";
+  __paneName resources atPut "highlightTextBold", false;
 
   return __paneName;
 }
@@ -280,7 +279,7 @@ X11LabelPane instanceMethod draw (void) {
     } else {
       if (self highlight) {
 	self ftFontVar namedX11Color self resources at "highlightTextColor";
-	if (self highlightTextBold) {
+	if (self resources at "highlightTextBold") {
 	  self faceBold;
  	} else {
 	  self faceRegular;
@@ -371,7 +370,7 @@ X11LabelPane instanceMethod drawButtonLayout (void) {
       self ftFontVar namedX11Color self grayedColor;
     } else {
       if (self highlight) {
-	if (self highlightTextBold) {
+	if (self resources at "highlightTextBold") {
 	  self faceBold;
  	} else {
 	  self faceRegular;
