@@ -83,16 +83,7 @@ int main (void) {
 	  label subPaneExpose (label, e);
 	  break;
 	case BUTTONRELEASE:
-	  if (button haveClick) {
-	    button clearClick;
-	  }
-	  button highlight = false;
-	  button clicked = false;
-	  while (mainWindow inputStream eventPending)
-	    e become mainWindow inputStream inputQueue unshift;
-	  button draw;
-	  button refresh;
-	  messageBox show;
+	  messageBox showManaged button;
 	  break;
 	case WINDELETE:
  	  mainWindow deleteAndClose;

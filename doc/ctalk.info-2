@@ -4100,6 +4100,17 @@ Instance Methods
      display system, and closes the message box when its button is
      clicked, then returns to the calling program.
 
+`show (`X11ButtonPane' BUTTONPANE)'
+     This method is similar to the `show' method, but it takes as its
+     argument the pane object from the main window that caused the
+     message window to open.
+
+     This method sets the main window's button to be unclicked and then
+     redrawn.
+
+     This method manages `X11ButtonPane' objects specifically, but it
+     can be subclassed to manage any pane class object.
+
 `subPaneButton (`Object' SUBPANE, `InputEvent' EVENT)'
      This is the event handler for button press and button release
      events from the display hardware.  When a button is clicked on,

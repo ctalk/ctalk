@@ -1,4 +1,4 @@
-/* $Id: X11ButtonPane,v 1.58 2020/04/19 06:32:41 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11ButtonPane,v 1.59 2020/04/23 23:44:17 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -197,7 +197,7 @@ X11ButtonPane instanceMethod attachTo (Object parentPane,
   l_local resources replaceAt "highlightBorderColor",
     (self resources at "highlightBorderColor");
   l_local margin = 3;
-  l_local highlightTextBold = false;
+  l_local resources atPut "highlightTextBold", false;
   l_local attachTo self, labelGeom;
 
   self label become l_local;
@@ -486,7 +486,6 @@ X11ButtonPane instanceMethod subPaneMotion (Object __subPane,
   if (self clicked) {
     if (!(__event xEventData3 & Button1Mask) &&
 	!(__event xEventData3 & Button3Mask)) {
-      printf ("     buttonmask: %d\n", __event xEventData3);
       self clicked = false;
       self draw;
       self refresh;

@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.172 2020/04/23 22:47:45 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.173 2020/04/23 23:44:18 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -15767,6 +15767,18 @@ method updates the visible window with the contents of the buffers.
 This method displays the message box, waits for events from the
 display system, and closes the message box when its button is
 clicked, then returns to the calling program.
+
+@cindex @code{showManaged} instance method @idxclscite{X11MessageBoxPane}
+@item show (@code{X11ButtonPane} @var{buttonPane})
+This method is similar to the @mnm{show} method, but it takes as its
+argument the pane object from the main window that caused the message
+window to open.
+
+This method sets the main window's button to be unclicked and
+then redrawn.
+
+This method manages @code{X11ButtonPane} objects specifically, but
+it can be subclassed to manage any pane class object.
 
 @cindex @code{subPaneButton} instance method @idxclscite{X11MessageBoxPane}
 @item subPaneButton (@code{Object} @var{subPane}, @code{InputEvent} @var{event})
