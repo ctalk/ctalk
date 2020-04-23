@@ -1,8 +1,8 @@
-/* $Id: eval_arg.c,v 1.12 2020/03/24 19:18:38 rkiesling Exp $ */
+/* $Id: eval_arg.c,v 1.19 2020/04/23 09:29:53 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
-  Copyright © 2005-2019 Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2005-2020
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
 
@@ -81,6 +81,23 @@ extern bool fn_tmpl_eval_arg;
 
 ARG_TERM arg_c_fn_terms[MAXARGS] = {{NULL, 0, 0},};
 int arg_c_fn_term_ptr = 0;
+
+/* For single-token args. Looks only for a method in the
+   return class at the moment. */
+static bool member_of_method_return_class (METHOD *method,
+					   MESSAGE *m_arg) {
+  OBJECT *returnclass_object;
+  METHOD *m;
+  if ((returnclass_object = get_class_object (method -> returnclass))
+      != NULL) {
+    for (m = returnclass_object -> instance_methods; m; m = m -> next) {
+      if (str_eq (m -> name, M_NAME(m_arg))) {
+	return true;
+      }
+    }
+  }
+  return false;
+}
 
 static bool c_first_operand (MESSAGE_STACK messages, int
 			     idx, int *end_idx_ret,
@@ -454,12 +471,49 @@ static OBJECT *eval_constant_arg (int arg_idx) {
     case LONG:
     case FLOAT:
     case LONGLONG:
+    case PATTERN:
       arg_obj = constant_token_object (m_arg);
       save_method_object (arg_obj);
       arg_class = arg_const_tok;
       return arg_obj;
       break;
     }
+  return NULL;
+}
+
+/***/
+/* This can save some calls to tokenize, once we can analyze the
+   argument with the preceding method. */
+static OBJECT *resolve_unary_minus_arg_0 (MESSAGE_STACK messages,
+					  int arg_start_idx,
+					  int arg_end_idx) {
+  int lookahead;
+  MESSAGE *m_sign, *m_n; /* ? */
+  char tokbuf[MAXLABEL];  /* needed because buffers would overlap. */
+  OBJECT *arg_obj;
+  if (messages[arg_start_idx] -> tokentype != MINUS)
+    return NULL;
+  if ((lookahead = nextlangmsg (message_stack (), arg_end_idx))
+      != ERROR) {
+    switch (M_TOK(messages[lookahead]))
+      {
+      case SEMICOLON:
+      case ARGSEPARATOR:
+	m_sign = messages[arg_start_idx];
+	m_n = messages[arg_end_idx];
+	strcatx (tokbuf, M_NAME(m_sign), M_NAME(m_n), NULL);
+	resize_message (m_sign, strlen (tokbuf));
+	strcpy (m_sign -> name, tokbuf);
+	m_sign -> tokentype = m_n -> tokentype;
+	m_n -> name[0] = ' '; m_n -> name[1] = '\0';
+	m_n -> tokentype = WHITESPACE;
+	arg_obj = constant_token_object (m_sign);
+	save_method_object (arg_obj);
+	arg_class = arg_const_tok;
+	return arg_obj;
+	break;
+      }
+  }
   return NULL;
 }
 
@@ -898,6 +952,15 @@ OBJECT *eval_arg (METHOD *method, OBJECT *rcvr_class, ARGSTR *argbuf,
     if ((arg_obj = eval_constant_arg (argbuf -> start_idx)) != NULL) {
       return arg_obj;
     }
+  } else if ((argbuf -> start_idx == argbuf -> end_idx + 1) &&
+	     (method -> n_params > 0)) {
+    /* The argument start is a unary minus, not a subtraction. */
+    if ((arg_obj = resolve_unary_minus_arg_0 (message_stack (),
+					      argbuf -> start_idx,
+					      argbuf -> end_idx))
+	!= NULL) {
+      return arg_obj;
+    }
   }
 
   arg_class = arg_null;
@@ -930,31 +993,10 @@ OBJECT *eval_arg (METHOD *method, OBJECT *rcvr_class, ARGSTR *argbuf,
 
     switch (m_arg -> tokentype)
       {
-	/* We still need these here in case the parser interprets a
-	   statement like, "myMethod -1" as having a binary '-'
-	   operator; i.e. two tokens, before we have determined that
-	   the label, "myMethod," is actually a method.  When the
-	   lexer interprets it now, as a method argument, it will
-	   interpret the '-' as a unary op; i.e., as a single token. */
-      case INTEGER:
-      case LONG:
-      case FLOAT:
-      case LONGLONG:
-      case LITERAL:
-      case LITERAL_CHAR:
-	arg_obj = constant_token_object (m_arg);
-	save_method_object (arg_obj);
-	arg_class = arg_const_tok;
-	return arg_obj;
-	break;
-	/* The same with patterns - the tokens will get interpreted
-	   as a single constant argument. */
-      case PATTERN:
-	arg_obj = constant_token_object (m_arg);
-	save_method_object (arg_obj);
-	arg_class = arg_const_tok;
-	return arg_obj;
       case LABEL:
+#if 0 /***/
+	printf ("<<<< resolve_single_token_arg call 1\n");
+#endif	
 	if ((arg_obj = resolve_single_token_arg
 	     (method, m_messages, start_stack, rcvr_class_obj,
 	      main_stack_idx, argbuf))
@@ -1021,6 +1063,8 @@ OBJECT *eval_arg (METHOD *method, OBJECT *rcvr_class, ARGSTR *argbuf,
 		    /* AssociativeArray keys can be constructed objects. */
 		    !str_eq (rcvr_class -> __o_name,
 			     "AssociativeArray") &&
+		    /***/
+		    !member_of_method_return_class (method, m_arg) &&
 		    !get_instance_method (m_main, rcvr_class,
 					  M_NAME(m_arg), ANY_ARGS, FALSE)) {
 		  warning (m_main,
@@ -1115,7 +1159,7 @@ OBJECT *eval_arg (METHOD *method, OBJECT *rcvr_class, ARGSTR *argbuf,
 		} /* if (strcmp (method -> returnclass, "Any")) ... */
 	      }
 	    }
-	  }
+	}
 	}
 	break;
       default:

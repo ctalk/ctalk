@@ -671,5 +671,13 @@
 	(eval_arg.c).
 2020-04-22
 	- Fixed a typo in ANSIYesNoBoxPane : new.
+	- Updated eval_constant_arg to handle PATTERN tokens
+	(eval_arg.c).
+	- Added a check for expr_check_ pass in method_args
+	(method.c).
+	- Added a check to prevent leading whitespace in
+	c_tmpl_fn_args (fn_tmpl.c).
+	- Removed constant token cases for single token
+	arguments from eval_arg (eval_arg.c).
 
 

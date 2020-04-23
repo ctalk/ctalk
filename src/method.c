@@ -1,4 +1,4 @@
-/* $Id: method.c,v 1.6 2020/03/31 23:08:31 rkiesling Exp $ */
+/* $Id: method.c,v 1.7 2020/04/23 00:00:09 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -1252,8 +1252,9 @@ int method_args (METHOD *method, int method_msg_ptr) {
 		    (message_stack (), method_msg_ptr,
 		     P_MESSAGES,
 		     get_stack_top (message_stack ()))) {
- 		  generate_store_arg_call (m_method -> receiver_obj,
- 					   method, arg_obj, FRAME_START_IDX);
+		  if (interpreter_pass != expr_check) /***/
+		    generate_store_arg_call (m_method -> receiver_obj,
+					     method, arg_obj, FRAME_START_IDX);
 		  if ((arg_obj -> scope & CVAR_VAR_ALIAS_COPY) ||
 		      (eval_arg_cvar_reg == true)) {
 		    /* set in eval_arg */

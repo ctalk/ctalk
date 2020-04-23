@@ -1,4 +1,4 @@
-/* $Id: fn_tmpl.c,v 1.7 2020/02/17 06:09:40 rkiesling Exp $ */
+/* $Id: fn_tmpl.c,v 1.8 2020/04/23 02:36:20 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -687,9 +687,12 @@ int c_tmpl_fn_args (MESSAGE_STACK messages, OBJECT *arg_object,
 	++tmpl_argstrptr;
 	break;
       default:
-	strcatx2 (arg_buf, m_tok -> name, NULL);
-	if (arg_start_ptr == -1)
-	  arg_start_ptr = i;
+	if (!(M_TOK(m_tok) == WHITESPACE && arg_start_ptr == -1)) {
+	  /* don't save leading whitespace */ /***/
+	  strcatx2 (arg_buf, m_tok -> name, NULL);
+	  if (arg_start_ptr == -1)
+	    arg_start_ptr = i;
+	}
       }
   }
 
