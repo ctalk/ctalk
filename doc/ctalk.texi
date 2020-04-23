@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.170 2020/04/19 15:21:40 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.171 2020/04/23 17:43:14 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -14742,7 +14742,16 @@ myButton label resources replaceAt "highlightBorderWidth", 2;
 
 @end example
 
-In this case, the label subpane doesn't automatically inherit
+If you want the button's text to be emphasized when the
+button is highlighted, add a line like this one.
+
+@example
+
+myButton label highlightTextBold = true;
+
+@end example
+
+In these cases, the label subpane doesn't automatically inherit
 these values, so it's necessary to use the label's declaration,
 @code{myButton label,} directly.
 
