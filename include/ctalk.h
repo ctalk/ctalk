@@ -1,4 +1,4 @@
-/* $Id: ctalk.h,v 1.100 2020/04/13 02:58:58 rkiesling Exp $ -*-Fundamental-*- */
+/* $Id: ctalk.h,v 1.102 2020/04/25 05:51:21 rkiesling Exp $ -*-Fundamental-*- */
 
 /*
   This file is part of Ctalk.

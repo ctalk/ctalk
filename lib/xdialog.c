@@ -43,13 +43,13 @@
 
 DIALOG_C *dpyrec = NULL;
 
-Display *d_p = NULL;
-static Window d_p_root = 0;
-static int d_p_screen = 0, d_p_screen_depth = 0;
 Atom wm_delete_dialog;
 extern Font fixed_font;
 extern char **fixed_font_set;
 extern int n_fixed_fonts;
+
+extern char *shm_mem;
+extern int mem_id;
 
 int lookup_color (Display *, XColor *, char *);
 Font get_user_font (OBJECT *);

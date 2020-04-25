@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.33 2020/03/13 03:35:18 rkiesling Exp $
+# $Id: configure.ac,v 1.34 2020/04/25 06:05:41 rkiesling Exp $
 AC_INIT(ctalk, 0.0.66, rk3314042@gmail.com, "")
 
 # Contained in acinclude.m4 and generated aclocal.m4
@@ -830,16 +830,26 @@ AC_ARG_WITH(x11_warnings,
 AC_SUBST(without_signed_hex_octal_constant_warnings_def)
 without_signed_hex_octal_constant_warnings_def="-DWITHOUT_SIGNED_HEX_OCTAL_CONSTANT_WARNINGS"
 
+#
+#  Note that since the option begins with "--without" the default is, "no."
+#
 AC_ARG_WITH(signed-hex-octal-constant-warnings,
   [  --without-signed-hex-octal-constant-warnings
                           Don't print warning messages when encountering
-                          a signed hexadecimal or octal constant.[[yes]]],
+                          a signed hexadecimal or octal constant.[[no]]
+			  Note that because the option begins with,
+			  "--without-," the default is [[no]].
+			  So to enable the warnings, use,
+			  "--with-signed-hex-octal-constant-warnings."],
     [  case "$withval" in
        no)
-          without_signed_hex_octal_constant_warnings_def=""
-          ;;
-        *)
           without_signed_hex_octal_constant_warnings_def="-DWITHOUT_SIGNED_HEX_OCTAL_CONSTANT_WARNINGS"
+          ;;
+       yes)
+       without_signed_hex_octal_constant_warnings_def=""
+       ;;
+       *)
+        without_signed_hex_octal_constant_warnings_def="-DWITHOUT_SIGNED_HEX_OCTAL_CONSTANT_WARNINGS"
           ;;
        esac
     ]

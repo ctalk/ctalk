@@ -199,6 +199,10 @@ Ctalk adds these options.
   --without-signed-hex-octal-constant-warnings
                         Don't print warnings when encountering 
                         a signed octal or hexadecimal constant.
+			Note that because the option begins with,
+			"--without-," the default is to disable
+			the warnings.  To enable them, use,
+			"--with-signed-hex-octal-constant-warnings."
 
   --without-preload-installation
                         Don't try to preload base classes and

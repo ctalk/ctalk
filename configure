@@ -1584,7 +1584,11 @@ Optional Packages:
                           for debugging.
   --without-signed-hex-octal-constant-warnings
                           Don't print warning messages when encountering
-                          a signed hexadecimal or octal constant.[yes]
+                          a signed hexadecimal or octal constant.[no]
+			  Note that because the option begins with,
+			  "--without-," the default is [no].
+			  So to enable the warnings, use,
+			  "--with-signed-hex-octal-constant-warnings."
   --with-builtins=yes/no/old
                             If no, build the preprocessor without built-in
                             macros.  If old, then use one of the predefined
@@ -13354,15 +13358,21 @@ fi
 
 without_signed_hex_octal_constant_warnings_def="-DWITHOUT_SIGNED_HEX_OCTAL_CONSTANT_WARNINGS"
 
+#
+#  Note that since the option begins with "--without" the default is, "no."
+#
 
 # Check whether --with-signed-hex-octal-constant-warnings was given.
 if test "${with_signed_hex_octal_constant_warnings+set}" = set; then :
   withval=$with_signed_hex_octal_constant_warnings;   case "$withval" in
        no)
-          without_signed_hex_octal_constant_warnings_def=""
-          ;;
-        *)
           without_signed_hex_octal_constant_warnings_def="-DWITHOUT_SIGNED_HEX_OCTAL_CONSTANT_WARNINGS"
+          ;;
+       yes)
+       without_signed_hex_octal_constant_warnings_def=""
+       ;;
+       *)
+        without_signed_hex_octal_constant_warnings_def="-DWITHOUT_SIGNED_HEX_OCTAL_CONSTANT_WARNINGS"
           ;;
        esac
 

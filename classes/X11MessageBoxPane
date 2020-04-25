@@ -1,4 +1,4 @@
-/* $Id: X11MessageBoxPane,v 1.100 2020/04/23 23:44:17 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11MessageBoxPane,v 1.104 2020/04/25 05:51:20 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -515,18 +515,14 @@ X11MessageBoxPane instanceMethod showManaged (X11ButtonPane buttonPane) {
    message window, this method unclicks and unhighlights
    the button that opened the message box.  This method can
    be subclassed to manage any X11Pane subclass."
-    InputEvent new e;
     
-  if (buttonPane is X11ButtonPane) {
-    while (buttonPane mainWindow inputStream eventPending) {
-      e become buttonPane mainWindow inputStream inputQueue unshift;
-      buttonPane clicked = false;
-      buttonPane highlight = false;
-      buttonPane clearClick;
-      buttonPane draw;
-    }
-    buttonPane refresh;
-  }
-  
+  XUnmapWindow (buttonPane displayPtr, buttonPane xWindowID);
+  buttonPane hover = false;
+  buttonPane highlight = false;
+  buttonPane clicked = false;
+  buttonPane draw;
+  buttonPane refresh;
   self show;
+  XMapWindow (buttonPane displayPtr, buttonPane xWindowID);
+  
 }

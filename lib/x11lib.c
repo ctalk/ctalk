@@ -1,4 +1,4 @@
-/* $Id: x11lib.c,v 1.144 2020/04/16 19:15:10 rkiesling Exp $ -*-c-*-*/
+/* $Id: x11lib.c,v 1.147 2020/04/25 05:51:21 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -2087,6 +2087,7 @@ int __ctalkOpenX11InputClient (OBJECT *streamobject) {
   }
   INTVAL(&shm_mem[SHM_EVENT_READY]) = 0;
   INTVAL(&shm_mem[SHM_EVENT_MASK]) = 0;
+  INTVAL(&shm_mem[SHM_LOCK_XID]) = 0;
   
 #if !X11LIB_FRAME
   x11_pane_stream_object = streamobject;
@@ -2860,6 +2861,7 @@ int __ctalkX11InputClient (OBJECT *streamobject, int parent_fd, int mem_handle, 
       }
       if (e.type == Expose && e.xexpose.count > 0)
 	continue;
+
       switch (e.type)
 	{
 	case ButtonPress:

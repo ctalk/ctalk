@@ -1,4 +1,4 @@
-/* $Id: x11defs.h,v 1.27 2020/04/19 02:33:25 rkiesling Exp $ -*-c-*-*/
+/* $Id: x11defs.h,v 1.29 2020/04/25 00:44:06 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -69,6 +69,8 @@
 #define SHM_EVENT_DATA6     0x1180
 
 #define SHM_EVENT_MASK      0x1190
+
+#define SHM_LOCK_XID        0x1200
 
 /* This will make it easier to add/remove a conversion from a GC object
    to the C pointer in the future. */
@@ -267,6 +269,7 @@ typedef struct _dc {
   int d_p_screen, d_p_screen_depth;
   Window d_p_root;
   bool mapped;
+  Window lock;
 } DIALOG_C;
 
 #define DIALOG(d) (dpyrec && dpyrec -> mapped ? true : false)

@@ -1,4 +1,4 @@
-/* $Id: X11ButtonPane,v 1.59 2020/04/23 23:44:17 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11ButtonPane,v 1.60 2020/04/24 20:33:24 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -214,7 +214,7 @@ X11ButtonPane instanceMethod attachTo (Object parentPane,
   return NULL;
 }
 
-#if 1 /***/
+#if 0 /***/
 static int label_x = -1, label_y, label_width, label_height;
 #endif
 
@@ -224,6 +224,7 @@ X11ButtonPane instanceMethod draw (void) {
   String new saveBGColor;
   Integer new savePenWidth;
   Integer new labelWidth, pxSize;
+  int label_x, label_y, label_width, label_height;
 
 #ifdef TRACK_EVENTS
   printf ("draw\n");
