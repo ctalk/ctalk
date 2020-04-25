@@ -1,4 +1,4 @@
-/* $Id: X11MessageBoxPane,v 1.104 2020/04/25 05:51:20 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11MessageBoxPane,v 1.106 2020/04/25 21:01:02 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -454,11 +454,11 @@ X11MessageBoxPane instanceMethod show (void) {
 	  if (xev.xbutton.window == self button xWindowID) {
 	    e eventClass = BUTTONRELEASE;
 	    self methodObjectMessage self handlePointerInput, self, e;
+	    self withdraw;
+	    dispatcher modalWin = 0;
+	    dispatcher modalPane = NULL;
+	    return self;
 	  }
-	  self withdraw;
-	  dispatcher modalWin = 0;
-	  dispatcher modalPane = NULL;
-	  return self;
 	  break;
 	case EnterNotify:
 	  if (xev.xbutton.window == self button xWindowID) {
@@ -473,7 +473,6 @@ X11MessageBoxPane instanceMethod show (void) {
 	    e eventData = xev.xbutton.window;
 	    self methodObjectMessage self handleLeaveNotify, self, e;
 	  }
-	  break;
 	  break;
 	case KeyPress:
 	  e eventClass = KEYPRESS;
