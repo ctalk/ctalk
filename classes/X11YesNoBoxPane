@@ -1,4 +1,4 @@
-/* $Id: X11YesNoBoxPane,v 1.2 2020/04/25 20:53:14 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11YesNoBoxPane,v 1.3 2020/04/26 04:03:50 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -292,6 +292,9 @@ X11YesNoBoxPane instanceMethod drawIcon (void) {
       break;
     case ICON_INFO:
       self icon iconInfo;
+      break;
+    case ICON_QUESTION:
+      self icon iconQuestion;
       break;
     }
 }

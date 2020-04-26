@@ -1,4 +1,4 @@
-/* $Id: X11Bitmap,v 1.24 2020/04/19 14:52:38 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11Bitmap,v 1.26 2020/04/26 09:01:47 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -211,9 +211,10 @@ X11Bitmap instanceMethod icon (Integer iconID) {
   "Draws an icon on the receiver with the ID given as the
    argument.  Ctalk defines the following icon IDs:
     ICON_NONE
-    ICON_STOP
     ICON_CAUTION
-    ICON_INFO"
+    ICON_INFO
+    ICON_QUESTION
+    ICON_STOP"
     
     switch (iconID)
       {
@@ -225,6 +226,9 @@ X11Bitmap instanceMethod icon (Integer iconID) {
 	break;
       case ICON_INFO:
 	self iconInfo;
+	break;
+      case ICON_QUESTION:
+	self iconQuestion;
 	break;
       }
   return NULL;
@@ -297,6 +301,31 @@ X11Bitmap instanceMethod iconInfo (void) {
     aPen;
 #endif  
     return NULL;
+}
+
+X11Bitmap instanceMethod iconQuestion (void) {
+  "Draws a question mark icon on the receiver."
+  Circle new aCircle;
+  Pen new aPen;
+  X11FreeTypeFont new font;
+  Integer new height;
+
+  aCircle center x = ICON_WIDTH_PX / 2;
+  aCircle center y = ICON_HEIGHT_PX / 2;
+  aCircle radius = (ICON_WIDTH_PX / 2) - ICON_BORDER_PX;
+  aPen width = 5;
+  aPen alpha = 0xffff;
+  aPen colorName = "white";
+  self drawCircle aCircle, aPen, FALSE,
+    self backgroundColor;
+  aPen colorName = "white";
+  font initFontLib;
+  font namedX11Color "white";
+  font selectFontFromFontConfig "monospace-42:bold";
+  height = font textHeight "?";
+  self putStr 16, 
+    (ICON_HEIGHT_PX / 2) + (height / 2), "?";
+  return NULL;
 }
 
 X11Bitmap instanceMethod pixmapFromData (char **xpm_data) {

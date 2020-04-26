@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.173 2020/04/23 23:44:18 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.175 2020/04/26 09:03:56 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -15537,6 +15537,11 @@ color names, see @cite{showrgb(1)}.
 A @code{String} that contains the text that appears in the button.
 The default is @samp{Ok}.
 
+@cindex @code{foregroundColor} resource @idxclscite{X11MessageBoxPane}
+@item foregroundColor
+A @code{String} with the name of the color that the messagebox window
+is filled with.  The default is @samp{gray}.
+
 @cindex @code{messageColor} resource @idxclscite{X11MessageBoxPane}
 @item messageColor
 A @code{String} that contains the color of the message text.  The default
@@ -15549,6 +15554,7 @@ A @code{String} that contains the message window's size, and,
 optionally, its position.  The value is set to the dimensions that
 are given as arguments to the @mnm{attachTo} method.
 
+@cindex Icon IDs
 @cindex @code{iconID} resource @idxclscite{X11MessageBoxPane}
 @item iconID
 An @code{Integer} that contains the identifier to the icon
@@ -15558,9 +15564,10 @@ icons in @code{ctalkdefs.h} and in the graphics libraries.
 @example
 
 ICON_NONE
-ICON_STOP
 ICON_CAUTION
 ICON_INFO
+ICON_QUESTION
+ICON_STOP
 
 @end example
 
@@ -15648,76 +15655,6 @@ program that opened the message box.
 @cindex @code{mainWindowPtr} instance variable @idxclscite{X11MessageBoxPane}
 @item mainWindowPtr
 A @code{Symbol} that contains a pointer to the main window.
-
-@end table
-
-@subheading Resources
-
-@table @code
-
-@cindex @code{backgroundColor} resource @idxclscite{X11MessageBoxPane}
-@item backgroundColor
-A @code{String} with the X color name of the window's background.  The
-default is @samp{gray}.
-
-@cindex @code{foregroundColor} resource @idxclscite{X11MessageBoxPane}
-@item foregroundColor
-A @code{String} with the name of the color that the messagebox window
-is filled with.  The default is @samp{gray}.
-
-@item @code{geometry} resource @idxclscite{X11MessageBoxPane}
-@item geometry
-A @code{String} that defines the message box's size, and, optionally,
-its location.  If only the window size is given, then the class centers
-the message box above the window of the program that opened it.
-The @code{X11PaneDispatcher} section describes the format of geometry
-strings in more detail. @xref{X11PaneDispatcher}.
-
-@item @code{iconID} resource @idxclscite{X11MessageBoxPane}
-@item iconID
-An @code{Integer} that identifies which, if any, icon the pane
-displays.   The definitions that @code{X11MessageBoxPane} uses are
-the following.
-
-@example
-
-ICON_NONE
-ICON_STOP
-ICON_CAUTION
-ICON_INFO
-
-@end example
-
-@item @code{messageColor} resource @idxclscite{X11MessageBoxPane}
-@item messageColor
-A @code{String} that contains the X color name used for the message
-text.  The default is @samp{black}.
-
-@item @code{messageFont} resource @idxclscite{X11MessageBoxPane}
-@item messageFont
-A @code{String} that contains the Fontconfig font descriptor of the font
-used to display the message.  The default is @samp{sans serif-12}.
-
-@item @code{messageText} resource @idxclscite{X11MessageBoxPane}
-@item messageText
-A @code{String} that contains the text that the pane's button displays.
-
-@item @code{messageText} resource @idxclscite{X11MessageBoxPane}
-@item messageText
-A @code{String} the contains the text that the pane displays.  Because
-the pane uses a @code{X11LabelPane} to display the text, it can use
-all of the @code{X11LabelPane} classes' formatting features.
-@xref{X11LabelPane}.
-
-@item @code{pad} resource @idxclscite{X11MessageBoxPane}
-@item pad
-An @code{Integer} that contains the distance in pixels between the
-text label and button edges and the window's edges.  The default
-value is 10.
-
-@item @code{titleText} resource @idxclscite{X11MessageBoxPane}
-@item titleText
-A @code{String} that contains the title of the pane's window.
 
 @end table
 

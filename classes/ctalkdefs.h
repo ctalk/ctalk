@@ -1,4 +1,4 @@
-/* $Id: ctalkdefs.h,v 1.6 2020/04/19 02:33:24 rkiesling Exp $ -*-C-*-*/
+/* $Id: ctalkdefs.h,v 1.7 2020/04/26 04:03:50 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -327,6 +327,7 @@ int memcmp(const void *s1, const void *s2, size_t n);
 #define ICON_STOP      1
 #define ICON_CAUTION   2
 #define ICON_INFO      3
+#define ICON_QUESTION  4
 
 #define ICON_WIDTH_PX  64
 #define ICON_HEIGHT_PX  64
