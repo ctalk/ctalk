@@ -1,4 +1,4 @@
-/* $Id: X11YesNoBoxPane,v 1.3 2020/04/26 04:03:50 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11YesNoBoxPane,v 1.6 2020/04/26 18:57:17 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -35,7 +35,7 @@
    leftButtonText       String    "Yes"
    rightButtonText      String    "No"
    geometry             String    <w>x<h>+<x>+<y>
-   iconID               Integer   0
+   iconID               Integer   1
    titleText            String    "Message"
    
 */
@@ -49,6 +49,14 @@ X11YesNoBoxPane instanceVariable icon X11Bitmap NULL;
 X11YesNoBoxPane instanceVariable initialized Boolean false;
 X11YesNoBoxPane instanceVariable mainWindowPtr Symbol NULL;
 X11YesNoBoxPane instanceVariable keyState Integer 0;
+X11YesNoBoxPane instanceVariable returnVal Integer 0
+"The show and showManaged methods return either YESNO_NONE, 
+YESNO_LBUTTON, or YESNO_RBUTTON, which are saved here.  The
+values are defined in ctalkdefs.h.";
+X11YesNoBoxPane instanceVariable returnText String ""
+"Contains the text of the button that the user pressed, or an
+empty string if the user or program closed the window some 
+other way.";
 
 /* We only need this to handle Tab and Enter keyboard 
    equivalents. */
@@ -70,9 +78,12 @@ X11YesNoBoxPane instanceMethod new (String paneName) {
     "subPaneButton";
   paneName setMethodHandler "pointerinput", buttonPressMethod;
   
+#if 0
+  /* Not yet implemented. */
   kbdInputMethod definedInstanceMethod "X11YesNoBoxPane",
     "subPaneKbdInput";
   paneName setMethodHandler "kbdinput", kbdInputMethod;
+#endif  
 
   enterMethod definedInstanceMethod "X11YesNoBoxPane",
     "subPaneEnter";
@@ -88,7 +99,8 @@ X11YesNoBoxPane instanceMethod new (String paneName) {
 
   paneName resources atPut "leftButtonText", "Yes";
   paneName resources atPut "rightButtonText", "No";
-  paneName resources atPut "iconID", 0;
+  /* ICON_QUESTION, in case ctalkdefs.h isn't available here. */
+  paneName resources atPut "iconID", 4;
   paneName resources atPut "titleText", "Message";
   paneName resources atPut "messageColor", "black";
   paneName resources atPut "messageFont", "sans serif-12";
@@ -105,6 +117,8 @@ X11YesNoBoxPane instanceMethod new (String paneName) {
 #define XK_Return  0xff0d
 #endif
 
+#if 0
+/* Not yet implemented. */
 X11YesNoBoxPane instanceMethod subPaneKbdInput (Object __subPane,
 						  InputEvent __event) {
   switch (__event xEventData4)
@@ -128,6 +142,7 @@ X11YesNoBoxPane instanceMethod subPaneKbdInput (Object __subPane,
       break;
     }
 }
+#endif
 
 X11YesNoBoxPane instanceMethod subPaneExpose (Object __subPane,
 					  InputEvent __event) {
@@ -137,21 +152,41 @@ X11YesNoBoxPane instanceMethod subPaneExpose (Object __subPane,
     __subPane refresh;
 }
 
-X11YesNoBoxPane instanceMethod subPaneButton (Object __subPane,
+X11YesNoBoxPane instanceMethod subPaneButton (Object subPane,
 					  InputEvent __event) {
   switch (__event eventClass)
     {
     case BUTTONPRESS:
-      self lbutton clicked = true;
-      if (!self lbutton clickSet)
-	self lbutton clickSet = true;
+      if (__event eventData == subPane lbutton xWindowID) {
+	self lbutton clicked = true;
+	if (!self lbutton clickSet)
+	  self lbutton clickSet = true;
+	self lbutton draw;
+	self lbutton refresh;
+      } else if (__event eventData == subPane rbutton xWindowID) {
+	self rbutton clicked = true;
+	if (!self rbutton clickSet)
+	  self rbutton clickSet = true;
+	self rbutton draw;
+	self rbutton refresh;
+      }
       break;
     case BUTTONRELEASE:
-      self lbutton clicked = false;
+      if (__event eventData == subPane lbutton xWindowID) {
+	self lbutton clicked = false;
+	self lbutton draw;
+	self lbutton refresh;
+	self returnVal = YESNO_LBUTTON;
+	self returnText = self resources at "leftButtonText";
+      } else if (__event eventData == subPane rbutton xWindowID) {
+	self rbutton clicked = false;
+	self rbutton draw;
+	self rbutton refresh;
+	self returnVal = YESNO_RBUTTON;
+	self returnText = self resources at "rightButtonText";
+      }
       break;
     }
-  self lbutton draw;
-  self lbutton refresh;
 }
 
 X11YesNoBoxPane instanceMethod subPaneEnter (Object subPane,
@@ -170,12 +205,32 @@ X11YesNoBoxPane instanceMethod subPaneEnter (Object subPane,
       subPane lbutton draw;
       subPane lbutton refresh;
     }
+  } else if (__event eventData == subPane rbutton xWindowID) {
+    if (subPane rbutton canFocus) {
+      if (self rbutton clicked) {
+	self rbutton clicked = false;
+      }
+      if (!self lbutton hover) {
+	subPane rbutton label highlight = true;
+	self rbutton hover = true;
+      }
+      if (!self lbutton radius)
+	self rbutton label drawButtonLayout;
+      subPane rbutton draw;
+      subPane rbutton refresh;
+    }
   } else if (self lbutton clicked) {
     self lbutton clicked = false;
     if (!self lbutton radius)
       self lbutton label drawButtonLayout;
     subPane lbutton draw;
     subPane lbutton refresh;
+  } else if (self rbutton clicked) {
+    self rbutton clicked = false;
+    if (!self rbutton radius)
+      self rbutton label drawButtonLayout;
+    subPane rbutton draw;
+    subPane rbutton refresh;
   }
 }
 
@@ -191,6 +246,18 @@ X11YesNoBoxPane instanceMethod subPaneLeave (Object subPane,
 	subPane lbutton draw;
 	subPane lbutton refresh;
 	self lbutton hover = false;
+      }
+    }
+  } else if (__event eventData == subPane rbutton xWindowID) {
+    if (subPane rbutton canFocus) {
+      if (self rbutton hover) {
+	subPane rbutton label highlight = false;
+	if (self rbutton clicked)
+	  self rbutton clicked = false;
+	self rbutton label drawButtonLayout;
+	subPane rbutton draw;
+	subPane rbutton refresh;
+	self rbutton hover = false;
       }
     }
   }
@@ -389,6 +456,7 @@ X11YesNoBoxPane instanceMethod show (void) {
    events. This is because the pane maintains its own connection
    to the display, and the event handler can be contained in
    this method."
+  returnObjectClass Integer;
   Display *display;
   Window win_id;
   XEvent xev;
@@ -433,6 +501,7 @@ X11YesNoBoxPane instanceMethod show (void) {
   XRaiseWindow (display, win_id);
 
   self clearWindow;
+  self returnVal = 0;
 
   while (1) {
     if (XPending (display)) {
@@ -440,35 +509,42 @@ X11YesNoBoxPane instanceMethod show (void) {
       switch (xev.type)
 	{
 	case ButtonPress:
-	  if (xev.xbutton.window == self lbutton xWindowID) {
+	  if ((xev.xbutton.window == self lbutton xWindowID) ||
+	      (xev.xbutton.window == self rbutton xWindowID)) {
 	    e eventClass = BUTTONPRESS;
 	    self methodObjectMessage self handlePointerInput, self, e;
 	  }
 	  break;
 	case ButtonRelease:
-	  if (xev.xbutton.window == self lbutton xWindowID) {
+	  if ((xev.xbutton.window == self lbutton xWindowID) ||
+	      (xev.xbutton.window == self rbutton xWindowID)) {
 	    e eventClass = BUTTONRELEASE;
 	    self methodObjectMessage self handlePointerInput, self, e;
+	    self withdraw;
+	    dispatcher modalWin = 0;
+	    dispatcher modalPane = NULL;
+	    /***/
+	    return self returnVal;
 	  }
-	  self withdraw;
-	  dispatcher modalWin = 0;
-	  dispatcher modalPane = NULL;
-	  return self;
 	  break;
 	case EnterNotify:
-	  if (xev.xbutton.window == self lbutton xWindowID) {
+	  if ((xev.xbutton.window == self lbutton xWindowID) ||
+	      (xev.xbutton.window == self rbutton xWindowID)) {
 	    e eventClass = ENTERWINDOWNOTIFY;
 	    e eventData = xev.xbutton.window;
 	    self methodObjectMessage self handleEnterNotify, self, e;
 	  }
 	  break;
 	case LeaveNotify:
-	  if (xev.xbutton.window == self lbutton xWindowID) {
+	  if ((xev.xbutton.window == self lbutton xWindowID) ||
+	      (xev.xbutton.window == self rbutton xWindowID)) {
 	    e eventClass = LEAVEWINDOWNOTIFY;
 	    e eventData = xev.xbutton.window;
 	    self methodObjectMessage self handleLeaveNotify, self, e;
 	  }
 	  break;
+#if 0
+	  /* Not yet implemented. */
 	case KeyPress:
 	  e eventClass = KEYPRESS;
 	  /* For the Tab and Enter keys, we don't need to worry
@@ -480,9 +556,10 @@ X11YesNoBoxPane instanceMethod show (void) {
 	    self withdraw;
 	    dispatcher modalWin = 0;
 	    dispatcher modalPane = NULL;
-	    return self;
+	    return self returnVal;
 	  }
 	  break;
+#endif	  
 	case Expose:
 	  self methodObjectMessage self handleExpose, self, e;
 	  break;
@@ -491,7 +568,9 @@ X11YesNoBoxPane instanceMethod show (void) {
 	    self withdraw;
 	    dispatcher modalWin = 0;
 	    dispatcher modalPane = NULL;
-	    return self;
+	    self returnVal = YESNO_NONE;
+	    self returnText = "";
+	    return self returnVal;
 	  }
 	  break;
 	}
@@ -509,14 +588,16 @@ X11YesNoBoxPane instanceMethod showManaged (X11ButtonPane buttonPane) {
    message window, this method unclicks and unhighlights
    the button that opened the message box.  This method can
    be subclassed to manage any X11Pane subclass."
-    
+  returnObjectClass Integer;
+  Integer new returnVal;
+
   XUnmapWindow (buttonPane displayPtr, buttonPane xWindowID);
   buttonPane hover = false;
   buttonPane highlight = false;
   buttonPane clicked = false;
   buttonPane draw;
   buttonPane refresh;
-  self show;
+  returnVal = self show;
   XMapWindow (buttonPane displayPtr, buttonPane xWindowID);
-  
+  return returnVal;
 }

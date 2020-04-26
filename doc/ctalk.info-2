@@ -3906,11 +3906,6 @@ Resources
      A `String' with the name of the color that the messagebox window
      is filled with.  The default is `gray'.
 
-`messageColor'
-     A `String' that contains the color of the message text.  The
-     default is `black'.  The message box sets the label's `textColor'
-     resource to this value.
-
 `geometry'
      A `String' that contains the message window's size, and,
      optionally, its position.  The value is set to the dimensions that
@@ -3932,6 +3927,11 @@ Resources
      Any other constant causes an icon to be displayed to the left of
      the message text.  The widget adjusts the size and position of the
      text automatically to provide space for the icon.
+
+`messageColor'
+     A `String' that contains the color of the message text.  The
+     default is `black'.  The message box sets the label's `textColor'
+     resource to this value.
 
 `messageFont'
      A `String' that contains the Fontconfig font descriptor.  The
@@ -3967,8 +3967,8 @@ Instance Variables
 `initialized'
      A `Boolean' that is `true' if the pane has already been
      initialized.  When a message box is closed, it is not deleted - it
-     is simply unmapped from the window.  This variable is set to true
-     sot that the message box is initialized only once.
+     is simply unmapped from the display.  This variable is set to true
+     so that the message box is initialized only once.
 
 `label'
      A `X11LabelPane' that displays the message box's text.  As
@@ -4004,7 +4004,7 @@ Instance Methods
      and main window.  Unlike other `X11Pane' subclasses, this method
      does not immediately attach the message box's object to its parent
      pane, so the message box isn't displayed until the program invokes
-     the `show' method.
+     the `show' or `showManaged' method.
 
 `draw (`void')'
      Draws the label and button subpanes in the message box's buffers
@@ -4061,13 +4061,14 @@ Instance Methods
 `withdraw (`void')'
      Unmaps the message box's window from the display after the pane
      object receives a button release event while processing the `show'
-     method.  When the `show' method receives the button release event,
-     this method is called to remove the pane's window from the
-     display, and the `show' method returns to the main program.
+     method.  When the `show' or `showManaged' method receives the
+     button release event, this method is called to remove the pane's
+     window from the display, and the `show' or `showManaged' method
+     returns to the main program.
 
 
 
-File: ctalk.info,  Node: X11ScrollBarPane,  Next: X11TextPane,  Prev: X11MessageBoxPane,  Up: Classes
+File: ctalk.info,  Node: X11ScrollBarPane,  Next: X11YesNoBoxPane,  Prev: X11MessageBoxPane,  Up: Classes
 
 `X11ScrollBarPane' Class
 ------------------------
@@ -4323,7 +4324,354 @@ Instance Methods
 
 
 
-File: ctalk.info,  Node: X11TextPane,  Next: X11TextEditorPane,  Prev: X11ScrollBarPane,  Up: Classes
+File: ctalk.info,  Node: X11YesNoBoxPane,  Next: X11TextPane,  Prev: X11ScrollBarPane,  Up: Classes
+
+`X11YesNoBoxPane' Class
+-----------------------
+
+A `X11YesNoBoxPane' object displays a window with a text message,
+optionally an icon, and two buttons, which are normally labelled `Yes'
+and `No'.
+
+Clicking on one of the buttons closes the window and returns an
+identifier of the selected button as an `Integer'.  The object also
+stores the text of the selected button's label.
+
+Here is an example program.
+
+
+     /* yesnobox.ca - X11YesNoBoxPane Demonstration -*-c-*- */
+
+     #include <ctalk/ctalkdefs.h>
+
+     int main (void) {
+       X11Pane new mainWindow;
+       X11PaneDispatcher new dispatcher;
+       X11ButtonPane new button;
+       X11LabelPane new label;
+       X11YesNoBoxPane new yesnoBox;
+       InputEvent new e;
+
+       label textColor = "white";
+       label canFocus = false;
+       label borderWidth = 0;
+
+       label ftFontVar notifyLevel XFT_NOTIFY_ERRORS;
+
+       mainWindow backgroundColor = "blue";
+       label resources replaceAt "backgroundColor", "blue";
+       button resources replaceAt "backgroundColor", "blue";
+       yesnoBox resources replaceAt "backgroundColor", "blue";
+
+       mainWindow initialize 255, 200;
+       mainWindow inputStream eventMask =
+         EXPOSE|ENTERWINDOWNOTIFY|LEAVEWINDOWNOTIFY|BUTTONPRESS|BUTTONRELEASE|KEYPRESS|KEYRELEASE|WINDELETE|MOVENOTIFY;
+
+       dispatcher attachTo mainWindow;
+       button attachTo dispatcher, "110x70+73+100";
+       label attachTo dispatcher, "177x80+34+15";
+       yesnoBox attachTo dispatcher, "300x200";
+
+       mainWindow map;
+       mainWindow raiseWindow;
+
+       mainWindow openEventStream;
+
+       mainWindow setWMTitle "X11YesNoBoxPane Demo";
+
+       label ftFontVar initFontLib;
+
+       label multiLine "X11YesNoBoxPane\nDemo";
+       label resources replaceAt "textColor", "lightgray";
+       label resources replaceAt "foregroundColor", "blue";
+       label resources replaceAt "borderColor", "blue";
+
+       button label multiLine "Open\nYes/No\nDialog";
+
+       button label resources replaceAt "highlightForegroundColor", "gray80";
+
+       /* Icon IDs, like ICON_QUESTION, are defined in ctalkdefs.h. */
+       yesnoBox resources replaceAt "iconID", ICON_QUESTION;
+
+       /* The program uses the "replaceAt" method because the key/value
+          entry for "backgroundColor" the X11MessageBoxPane : new method
+          has alread created an entry for backgroundColor. */
+       yesnoBox resources replaceAt "backgroundColor", "blue";
+       yesnoBox resources replaceAt "foregroundColor", "blue";
+       yesnoBox resources replaceAt "messageColor", "white";
+       yesnoBox resources replaceAt "messageText",
+         	       "Hello, yesnoBox!\nYour message text here.";
+
+       button draw;
+       button refresh;
+       label draw;
+       label refresh;
+
+       while (TRUE) {
+         mainWindow inputStream queueInput;
+         if (mainWindow inputStream eventPending) {
+           e become mainWindow inputStream inputQueue unshift;
+
+           mainWindow subPaneNotify e;
+
+           switch (e eventClass value)
+     	{
+     	case EXPOSE:
+     	  button subPaneExpose (button, e);
+     	  label subPaneExpose (label, e);
+     	  break;
+     	case BUTTONRELEASE:
+     	  yesnoBox showManaged button;
+     	  printf ("returnVal: %d: %s\n", yesnoBox returnVal,
+     		  yesnoBox returnText);
+     	  break;
+     	case WINDELETE:
+      	  mainWindow deleteAndClose;
+     	  exit (0);
+     	  break;
+     	}
+         } else {
+           usleep (1000);
+         }
+       }
+
+     }
+
+Return Values
+-------------
+
+Normally, after initializing the `X11YesNoBoxPane' object, a program
+calls either the `show' or `showManaged' method, which displays the
+object's window.  After clicking on one of the buttons, or after either
+the calling program or the user otherwise closes the window, the method
+withdraws the window, and returns an `Integer' value that contains one
+of the following definitions.
+
+
+     YESNO_NONE
+     YESNO_LBUTTON
+     YESNO_RBUTTON
+
+These constants are defined in `ctalkdefs.h', so the calling program
+should contain the following statement.
+
+
+     #include <ctalk/ctalkdefs.h>
+
+This value is also contained in the `X11YesNoBox' object's `returnVal'
+instance variable.  In addition, the text of the selected button is
+contained in the object's `returnText' label.
+
+In the example above, this is how the program displays the user's
+selection.
+
+
+     yesnoBox showManaged button;
+     printf ("returnVal: %d: %s\n", yesnoBox returnVal,
+             yesnoBox returnText);
+
+If the user or the calling program close the object's window by some
+other method, then the value of `returnText' is an empty string.
+
+Resources
+---------
+
+The resources that `X11YesNoBoxPane : new' defines by default are
+stored in the `resources' instance variable, an `AssociativeArray' that
+is declared in `X11Pane' class.  For a description, see the `resources'
+instance variable documentation. *Note PaneResources::.
+
+``backgroundColor''
+     A `String' that contains the color used to draw the window
+     background.  This includes the actual subwindow that receives the
+     button's events from the display server.  The resources' default
+     value is `gray'.
+
+`foregroundColor'
+     A `String' with the name of the color that the messagebox window
+     is filled with.  The default is `gray'.
+
+`geometry'
+     A `String' that contains the message window's size, and,
+     optionally, its position.  The value is set to the dimensions that
+     are given as arguments to the `attachTo' method.
+
+`iconID'
+     An `Integer' that contains the identifier to the icon to be
+     displayed.  Ctalk defines the following constants for icons in
+     `ctalkdefs.h' and in the graphics libraries.
+
+
+          ICON_NONE
+          ICON_CAUTION
+          ICON_INFO
+          ICON_QUESTION
+          ICON_STOP
+
+     The default is `ICON_QUESTION', which causes a question mark icon
+     to be displayed.  The widget adjusts the size and position of the
+     text automatically to provide space for the icon.
+
+`leftButtonText'
+
+`rightButtonText'
+     These are `Strings' that contain the text that appears in the left
+     and right-hand buttons.  The default is `Yes' and `No'.
+
+`messageColor'
+     A `String' that contains the color of the message text.  The
+     default is `black'.  The message box sets the label's `textColor'
+     resource to this value.
+
+`messageFont'
+     A `String' that contains the Fontconfig font descriptor.  The
+     default is `sans serif-12'.  The pane uses this value to set the
+     label's `fcFont' resource.
+
+`messageText'
+     A `String' that contains the text of the message to be displayed.
+     The default is `Sample message text.'.
+
+`pad'
+     An `Integer' that contains the space in pixels betwween the button
+     and label widgets, and between each widget and the edge of the
+     window.  The default is 10 pixels.
+
+`titleText'
+     A `String' that contains the message window's title text.  The
+     default is `Message'.
+
+
+Instance Variables
+------------------
+
+`lbutton'
+
+`rbutton'
+     The `X11ButtonPane' objects that close the window when either is
+     clicked.  The buttons' default text are, `Yes' and `No'.  Programs
+     can change the text with a statement like the following.
+
+
+          myYesNoBox resources atPut "leftButtonText", "All Right";
+          myYesNoBox resources atPut "rightButtonText", "No Way!";
+
+`initialized'
+     A `Boolean' that is `true' if the pane has already been
+     initialized.  When a message box is closed, it is not deleted - it
+     is simply unmapped from the display.  This variable is set to true
+     so that the message box is initialized only once.
+
+`label'
+     A `X11LabelPane' that displays the message box's text.  As
+     configured, the label is the same color as the main message box
+     window, and uses no borders.  The label's text is controlled by
+     the resource, `messageText'.  To set the message text, use a
+     statement like the following.
+
+
+          myYesNoBox resources atPut "messageText", "Today Is\nJanuary 3rd.\nOkay?";
+
+     The class draws the label using multiline formatting, so if you
+     want the text to appear on multiple lines, include the sequence
+     `\n' in the text (that's a backslash and the character, `n', not a
+     literal newline).
+
+`mainWindowPtr'
+     A `Symbol' that contains a pointer to the main window.
+
+`returnText'
+     A `String' that contains the text of the button that was clicked
+     to withdraw the window.  If the window was closed by some other
+     method, then `returnText' contains an empty string.
+
+`returnVal'
+     When the `X11YesNoBoxPane' obect's window is closed, either by
+     clicking on one of the buttons, or by otherwise closing the
+     window, this `Integer' that contains one of the following values.
+
+
+          YESNO_NONE
+          YESNO_LBUTTON
+          YESNO_RBUTTON
+
+     The value of `returnVal' is also used as the `show' and
+     `showManaged' methods' return value.
+
+
+Instance Methods
+----------------
+
+`attachTo (`Object' PARENTPANE, `String' GEOMETRY)'
+     Sets the yes/no box's dimensions and creates the object's buffers
+     and main window.  Unlike other `X11Pane' subclasses, this method
+     does not immediately attach the yes/no box's object to its parent
+     pane, so the yes/no box isn't displayed until the program invokes
+     the `show' or `showManaged' method.
+
+`draw (`void')'
+     Draws the label and button subpanes in the yes/no box's buffers
+     and the buffers of the button and label subpanes.  After calling
+     this method, the `refresh' method makes the changes visible.
+
+`fill (`String' COLORNAME)'
+     A convenience method that fills the pane window with the color
+     given as the argument.
+
+`initWidgets (`void')'
+     Initializes the yes/no box's button and label subpanes when the
+     pane's window is first opened.  When constructed this method sets
+     the `initialized' instance variable to `true', so when the yes/no
+     box appears again, this method is a no-op.
+
+`new (`String' NEWPANENAME)'
+     The X11YesNoBoxPane constructor.
+
+`refresh (`void')'
+     After the method DRAW renders the main window and the label and
+     the button subwindow's contents on the pane objects' buffers, this
+     method updates the visible window with the contents of the buffers.
+
+`show (`void')'
+     This method displays the yes/no box, waits for events from the
+     display system, and closes the yes/no box when its button is
+     clicked, then returns to the calling program.
+
+`show (`X11ButtonPane' BUTTONPANE)'
+     This method is similar to the `show' method, but it takes as its
+     argument the pane object from the main window that caused the
+     yes/no window to open.
+
+     This method sets the main window's button to be unclicked and then
+     redrawn.
+
+     This method manages `X11ButtonPane' objects specifically, but it
+     can be subclassed to manage any pane class object.
+
+`subPaneButton (`Object' SUBPANE, `InputEvent' EVENT)'
+     This is the event handler for button press and button release
+     events from the display hardware.  When a button is clicked on,
+     the yes/no box draws the button in its clicked state.  When the
+     button is released, the pane draws the button unclicked, then
+     unmaps the yes/no box window from the display, and returns to the
+     main program.
+
+`subPaneExpose (`Object' SUBPANE, `InputEvent' EVENT)'
+     Handles drawing the yes/no box when the program receives an Expose
+     event from the display.  This method calls the yes/no box's `draw'
+     and `refresh' methods.
+
+`withdraw (`void')'
+     Unmaps the yes/no box's window from the display after the pane
+     object receives a button release event while processing the `show'
+     method.  When the `show' or `showManaged' method receives the
+     button release event, this method is called to remove the pane's
+     window from the display, and the `show' or `showManaged' method
+     returns to the main program.
+
+
+
+File: ctalk.info,  Node: X11TextPane,  Next: X11TextEditorPane,  Prev: X11YesNoBoxPane,  Up: Classes
 
 `X11TextPane' Class
 -------------------
