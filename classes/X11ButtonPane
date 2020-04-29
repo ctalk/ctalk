@@ -1,4 +1,4 @@
-/* $Id: X11ButtonPane,v 1.60 2020/04/24 20:33:24 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11ButtonPane,v 1.61 2020/04/29 17:54:40 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -213,10 +213,6 @@ X11ButtonPane instanceMethod attachTo (Object parentPane,
   
   return NULL;
 }
-
-#if 0 /***/
-static int label_x = -1, label_y, label_width, label_height;
-#endif
 
 X11ButtonPane instanceMethod draw (void) {
 

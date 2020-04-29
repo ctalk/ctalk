@@ -1,4 +1,4 @@
-/* $Id: X11YesNoBoxPane,v 1.6 2020/04/26 18:57:17 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11YesNoBoxPane,v 1.9 2020/04/29 17:54:40 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -57,6 +57,7 @@ X11YesNoBoxPane instanceVariable returnText String ""
 "Contains the text of the button that the user pressed, or an
 empty string if the user or program closed the window some 
 other way.";
+X11YesNoBoxPane instanceVariable focusButton Integer 0;
 
 /* We only need this to handle Tab and Enter keyboard 
    equivalents. */
@@ -78,12 +79,9 @@ X11YesNoBoxPane instanceMethod new (String paneName) {
     "subPaneButton";
   paneName setMethodHandler "pointerinput", buttonPressMethod;
   
-#if 0
-  /* Not yet implemented. */
   kbdInputMethod definedInstanceMethod "X11YesNoBoxPane",
     "subPaneKbdInput";
   paneName setMethodHandler "kbdinput", kbdInputMethod;
-#endif  
 
   enterMethod definedInstanceMethod "X11YesNoBoxPane",
     "subPaneEnter";
@@ -99,7 +97,7 @@ X11YesNoBoxPane instanceMethod new (String paneName) {
 
   paneName resources atPut "leftButtonText", "Yes";
   paneName resources atPut "rightButtonText", "No";
-  /* ICON_QUESTION, in case ctalkdefs.h isn't available here. */
+  /* ICON_QUESTION, from ctalkdefs.h */
   paneName resources atPut "iconID", 4;
   paneName resources atPut "titleText", "Message";
   paneName resources atPut "messageColor", "black";
@@ -117,32 +115,126 @@ X11YesNoBoxPane instanceMethod new (String paneName) {
 #define XK_Return  0xff0d
 #endif
 
-#if 0
-/* Not yet implemented. */
-X11YesNoBoxPane instanceMethod subPaneKbdInput (Object __subPane,
-						  InputEvent __event) {
-  switch (__event xEventData4)
+/* from ctalkdefs.h */
+#ifndef YESNO_NONE
+#define YESNO_NONE 0
+#endif
+#ifndef YESNO_LBUTTON
+#define YESNO_LBUTTON 1
+#endif
+#ifndef YESNO_RBUTTON
+#define YESNO_RBUTTON 2
+#endif
+
+X11YesNoBoxPane instanceMethod subPaneKbdInput (Object subPane,
+						  InputEvent event) {
+  switch (event xEventData4)
     {
     case XK_Tab:
       self keyState = KEY_TAB;
-      if (self lbutton label borderWidth > 0) {
-	self lbutton label highlightBorderWidth =
-	  self lbutton label borderWidth * 2;
-      } else {
-	self lbutton label highlightBorderWidth = 2;
-      }
-      self lbutton label highlight = true;
-      self draw;
-      self refresh;
+      switch (self focusButton)
+	{
+	case YESNO_NONE:
+	  self focusButton = YESNO_LBUTTON;
+	  if (self lbutton label resources at "borderWidth" > 0) {
+	    self lbutton label resources replaceAt "highlightBorderWidth",
+	      (self lbutton label resources at "borderWidth") * 2;
+	  } else {
+	    self lbutton label resources replaceAt "highlightBorderWidth",
+	      2;
+	  }
+	  if (subPane lbutton canFocus) {
+	    if (self lbutton clicked) {
+	      self lbutton clicked = false;
+	    }
+	    if (!self lbutton hover) {
+	      subPane lbutton label highlight = true;
+	      self lbutton hover = true;
+	    }
+	    if (!self lbutton radius)
+	      self lbutton label drawButtonLayout;
+	    subPane lbutton draw;
+	    subPane lbutton refresh;
+	  }
+	  break;
+	case YESNO_LBUTTON:
+	  self focusButton = YESNO_RBUTTON;
+	  self lbutton label highlight = false;
+	  self lbutton hover = false;
+	  if (!self lbutton radius)
+	    self lbutton label drawButtonLayout;
+	  subPane lbutton draw;
+	  subPane lbutton refresh;
+	  if (self rbutton label resources at "borderWidth" > 0) {
+	    self rbutton label resources replaceAt"highlightBorderWidth",
+	      (self rbutton label resources at "borderWidth") * 2;
+	  } else {
+	    self rbutton label resources replaceAt "highlightBorderWidth",
+	      2;
+	  }
+	  if (subPane rbutton canFocus) {
+	    if (self rbutton clicked) {
+	      self rbutton clicked = false;
+	    }
+	    if (!self rbutton hover) {
+	      subPane rbutton label highlight = true;
+	      self rbutton hover = true;
+	    }
+	    if (!self rbutton radius)
+	      self rbutton label drawButtonLayout;
+	    subPane rbutton draw;
+	    subPane rbutton refresh;
+	  }
+	  break;
+	case YESNO_RBUTTON:
+	  self focusButton = YESNO_LBUTTON;
+	  self rbutton label highlight = false;
+	  self rbutton hover = false;
+	  if (!self rbutton radius)
+	    self rbutton label drawButtonLayout;
+	  subPane rbutton draw;
+	  subPane rbutton refresh;
+	  if (self lbutton label resources at "borderWidth" > 0) {
+	    self lbutton label resources replaceAt"highlightBorderWidth",
+	      (self lbutton label resources at "borderWidth") * 2;
+	  } else {
+	    self lbutton label resources replaceAt "highlightBorderWidth",
+	      2;
+	  }
+	  if (subPane lbutton canFocus) {
+	    if (self lbutton clicked) {
+	      self lbutton clicked = false;
+	    }
+	    if (!self lbutton hover) {
+	      subPane lbutton label highlight = true;
+	      self lbutton hover = true;
+	    }
+	    if (!self lbutton radius)
+	      self lbutton label drawButtonLayout;
+	    subPane lbutton draw;
+	    subPane lbutton refresh;
+	  }
+	  break;
+	}
       break;
     case XK_Return:
       if (self keyState == KEY_TAB) {
 	self keyState = KEY_ENTER;
+	switch (self focusButton)
+	  {
+	  case YESNO_LBUTTON:
+	    self returnVal = YESNO_LBUTTON;
+	    self returnText = self resources at "leftButtonText";
+	    break;
+	  case YESNO_RBUTTON:
+	    self returnVal = YESNO_RBUTTON;
+	    self returnText = self resources at "rightButtonText";
+	    break;
+	  }
       }
       break;
     }
 }
-#endif
 
 X11YesNoBoxPane instanceMethod subPaneExpose (Object __subPane,
 					  InputEvent __event) {
@@ -205,6 +297,7 @@ X11YesNoBoxPane instanceMethod subPaneEnter (Object subPane,
       subPane lbutton draw;
       subPane lbutton refresh;
     }
+    return NULL;
   } else if (__event eventData == subPane rbutton xWindowID) {
     if (subPane rbutton canFocus) {
       if (self rbutton clicked) {
@@ -219,14 +312,20 @@ X11YesNoBoxPane instanceMethod subPaneEnter (Object subPane,
       subPane rbutton draw;
       subPane rbutton refresh;
     }
-  } else if (self lbutton clicked) {
+    return NULL;
+  }
+  /* The event comes from any other window. */
+  if (self lbutton clicked) {
     self lbutton clicked = false;
+    self lbutton hover = false;
     if (!self lbutton radius)
       self lbutton label drawButtonLayout;
     subPane lbutton draw;
     subPane lbutton refresh;
-  } else if (self rbutton clicked) {
+  }
+  if (self rbutton clicked) {
     self rbutton clicked = false;
+    self rbutton hover = false;
     if (!self rbutton radius)
       self rbutton label drawButtonLayout;
     subPane rbutton draw;
@@ -425,12 +524,12 @@ X11YesNoBoxPane instanceMethod initWidgets (void) {
   self rbutton become r_button;
   self children push r_button;
 
-  button_y_px = label_height_px + (padInt * 2);
+  button_y_px = label_height_px + padInt;
 
-  geomspec printOn "20%%x30+20%%+%d", button_y_px;
+  geomspec printOn "20%%x36+20%%+%d", button_y_px;
   self lbutton attachTo self, geomspec;
 
-  geomspec printOn "20%%x30+60%%+%d", button_y_px;
+  geomspec printOn "20%%x36+60%%+%d", button_y_px;
   self rbutton attachTo self, geomspec;
 
   self lbutton label text (self resources at "leftButtonText");
@@ -523,7 +622,6 @@ X11YesNoBoxPane instanceMethod show (void) {
 	    self withdraw;
 	    dispatcher modalWin = 0;
 	    dispatcher modalPane = NULL;
-	    /***/
 	    return self returnVal;
 	  }
 	  break;
@@ -543,8 +641,6 @@ X11YesNoBoxPane instanceMethod show (void) {
 	    self methodObjectMessage self handleLeaveNotify, self, e;
 	  }
 	  break;
-#if 0
-	  /* Not yet implemented. */
 	case KeyPress:
 	  e eventClass = KEYPRESS;
 	  /* For the Tab and Enter keys, we don't need to worry
@@ -559,7 +655,6 @@ X11YesNoBoxPane instanceMethod show (void) {
 	    return self returnVal;
 	  }
 	  break;
-#endif	  
 	case Expose:
 	  self methodObjectMessage self handleExpose, self, e;
 	  break;

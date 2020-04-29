@@ -1,4 +1,4 @@
-/* $Id: X11LabelPane,v 1.43 2020/04/23 22:47:45 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11LabelPane,v 1.44 2020/04/29 11:43:03 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -174,17 +174,6 @@ X11LabelPane instanceMethod multiLine (String textArg) {
   }
   self haveMultiLine = true; 
 }
-
-#if 0 /***/
-X11LabelPane instanceMethod __highlightBackground (String color) {
-  "Highlight the background without affecting the original
-   background color containd in the receiver's backgroundColor
-   instance variable."
-  if (self paneBuffer xID > 0) {
-      self paneBuffer background color;
-    }
-}
-#endif
 
 X11LabelPane instanceMethod __drawJustified (String textArg,
 					     Integer textWidth,
