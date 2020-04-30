@@ -1,4 +1,4 @@
-/* $Id: x11defs.h,v 1.30 2020/04/26 04:03:50 rkiesling Exp $ -*-c-*-*/
+/* $Id: x11defs.h,v 1.31 2020/04/30 00:29:16 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -223,6 +223,7 @@
 #define CURSOR_SCROLL_ARROW 2
 #define CURSOR_WATCH 3
 #define CURSOR_ARROW 4
+#define CURSOR_XTERM 5
 
 #define PANEBUFFER_INSTANCE_VAR "paneBuffer"
 #define PANEBACKINGSTORE_INSTANCE_VAR "paneBackingStore"

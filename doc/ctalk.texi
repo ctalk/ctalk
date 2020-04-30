@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.177 2020/04/29 18:00:41 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.178 2020/04/30 00:29:15 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -1467,6 +1467,11 @@ Creates a scrollbar vertical double arrow cursor.
 @cindex @mnm{watch} instance method @idxclscite{X11Cursor}
 @item watch (@code{void})
 Creates a cursor that displays a small watch.
+
+@cindex @mnm{xterm} instance method @idxclscite{X11Cursor}
+@item xterm (@code{void})
+Creates a xterm cursor. That is, the vertical bar used for editing
+text.
 
 @end table
 

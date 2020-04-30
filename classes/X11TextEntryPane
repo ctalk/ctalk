@@ -1,4 +1,4 @@
-/* $Id: X11TextEntryPane,v 1.1 2020/04/29 20:03:05 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11TextEntryPane,v 1.2 2020/04/29 23:33:44 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -23,3 +23,49 @@
 
 X11PaneDispatcher class X11TextEntryPane;
 
+X11TextEntryPane instanceMethod new (String paneName) {
+  X11TextEntryPane super new paneName;
+
+  return paneName;
+}
+
+X11TextEntryPane instanceMethod attachTo (X11Pane parentPane,
+					   String geomspec) {
+  "Register the receiver pane as a subpane of the X11Pane
+  given as the argument.  Generally parent pane should
+  be a X11PaneDispatcher object.  At this time, a geometry
+  specification like, '300x200', i.e., without the x and
+  y origins, is okay - the Ctalk libraries center the
+  message box above the parent window."
+  X11Bitmap new xPaneBuffer;
+  X11Bitmap new xPaneBackingStore;
+  String new parentGeometry;
+  int x, y, width, height;
+  unsigned int mainWinID;
+  
+  self displayPtr = self mainWindow displayPtr;
+
+  self super attachTo (parentPane, geomspec);
+  self container = parentPane;
+  self paneBuffer become xPaneBuffer;
+  self paneBackingStore become xPaneBackingStore;
+
+  __ctalkX11SubWindowGeometry (parentPane, geomspec,
+			       &x, &y, &width, &height);
+
+  self size x = width;
+  self size y = height;
+  self origin x = x;
+  self origin y = y;
+
+  self resources atPut "geometry", geomspec;
+
+  return NULL;
+}
+
+X11TextEntryPane instanceMethod refresh (void) {
+  __ctalkGUIPaneRefresh (self, 0, 0,
+   			 self size x,
+   			 self size y,
+   			 0, 0);
+}

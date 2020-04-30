@@ -1,4 +1,4 @@
-/* $Id: x11lib.c,v 1.147 2020/04/25 05:51:21 rkiesling Exp $ -*-c-*-*/
+/* $Id: x11lib.c,v 1.148 2020/04/30 00:29:16 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -3954,14 +3954,21 @@ int __ctalkX11FontCursor (OBJECT *self, int cursor_id) {
     case CURSOR_ARROW:
       cursor = XCreateFontCursor (display, XC_arrow);
       break;
+    case CURSOR_XTERM:
+      cursor = XCreateFontCursor (display, XC_xterm);
+      break;
     default:
       fprintf (stderr, "__ctalkX11FontCursor: unknown cursor %d.\n",
 	       cursor_id);
       return ERROR;
       break;
     }
+  
+#if 0
   __ctalkDecimalIntegerToASCII ((int)cursor, buf);
   __ctalkSetObjectValueVar (self, buf);
+#endif
+  INTVAL(self -> instancevars -> __o_value) = cursor;
   return SUCCESS;
 }
 
@@ -3978,7 +3985,8 @@ int __ctalkX11UseCursor (OBJECT *pane_object, OBJECT *cursor_object) {
   displayvar_value = __ctalkGetInstanceVariable (pane_object, "displayPtr",
 						 TRUE);
   if (cursor_object) {
-    cursor = (Cursor) atoi (cursor_object -> instancevars -> __o_value);
+    /* cursor = (Cursor) atoi (cursor_object -> instancevars -> __o_value); *//***/
+    cursor = INTVAL(cursor_object -> instancevars -> __o_value);
   } else {
     cursor = None;
   }
