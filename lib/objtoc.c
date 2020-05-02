@@ -1,4 +1,4 @@
-/* $Id: objtoc.c,v 1.3 2020/03/08 17:53:54 rkiesling Exp $ */
+/* $Id: objtoc.c,v 1.4 2020/05/01 16:55:21 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -806,7 +806,7 @@ static void __delete_char_ptr_arg (OBJECT *__o, int keep) {
  
 char *__ctalkToCCharPtr (OBJECT *o, int keep) {
   OBJECT *o_value, *o_return;
-  char *v, *c;
+  char *v, *c, *i_obj;
   char ibuf[64];
 
   c = (char *)I_UNDEF;
@@ -856,7 +856,12 @@ char *__ctalkToCCharPtr (OBJECT *o, int keep) {
 	      if (o_value -> __o_value == NULL) {
 		buffer_return_string (NULLSTR);
 	      } else {
-		buffer_return_string (o_value -> __o_value);
+		/***/
+		if ((i_obj = (char *)active_i (o)) != (char *)I_UNDEF) {
+		  buffer_return_string (i_obj);
+		} else {
+		  buffer_return_string (o_value -> __o_value);
+		}
 	      }
 	      __delete_char_ptr_arg (o, keep);
 	      return &return_buf[return_buf_ptr];

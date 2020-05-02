@@ -1,0 +1,69 @@
+
+#include <ctalk/ctalkdefs.h>
+
+int main (int argv, char **argc) {
+  X11Pane new xPane;
+  X11PaneDispatcher new dispatcher;
+  X11TextEntryPane new entry;
+  X11LabelPane new label;
+  X11ButtonPane new button;
+  InputEvent new e;
+  Integer new nEvents;
+  Integer new verbose;
+  X11Cursor new cursor;
+
+  xPane resources atPut "backgroundColor", "blue";
+  label resources replaceAt "backgroundColor", "blue";
+  label resources replaceAt "foregroundColor", "blue";
+  label resources replaceAt "highlightForegroundColor", "blue";
+  label resources replaceAt "textColor", "white";
+  label resources replaceAt "highlightTextColor", "white";
+  label border = false;
+
+  xPane inputStream eventMask = EXPOSE|ENTERWINDOWNOTIFY|LEAVEWINDOWNOTIFY| \
+    KEYPRESS|KEYRELEASE|WINDELETE|BUTTONPRESS|BUTTONRELEASE;
+
+  xPane initialize 300, 200;
+  dispatcher attachTo xPane;
+  label attachTo dispatcher, "100x80+10+10";
+  button attachTo dispatcher, "60x45+120+100";
+  entry attachTo dispatcher, "140x32+120+32";
+
+  xPane map;
+  xPane raiseWindow;
+
+  xPane openEventStream;
+
+  xPane ftFontVar initFontLib;
+  xPane setWMTitle "X11TextEntryPane Demo";  
+  label multiLine "Enter your\ntext:";
+  button label text "Done";
+
+  while (TRUE) {
+    xPane inputStream queueInput;
+    if (xPane inputStream eventPending) {
+      e become xPane inputStream inputQueue unshift;
+
+      xPane subPaneNotify e;
+
+      switch (e eventClass value) 
+        {
+        case EXPOSE:
+	  entry refresh;
+          break;
+        case WINDELETE:
+          xPane deleteAndClose;
+          exit (0);
+          break;
+        default:
+	if (button haveClick) {
+	  button clearClick;
+	  xPane deleteAndClose;
+	  printf ("You entered: %s\n", entry entryText);
+          exit (0);
+	}
+	break;
+        }
+    }
+  }
+}

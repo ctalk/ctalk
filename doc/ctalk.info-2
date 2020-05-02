@@ -3845,7 +3845,7 @@ Instance Methods
      returns to the main program.
 
 
-File: ctalk.info,  Node: X11ScrollBarPane,  Next: X11YesNoBoxPane,  Prev: X11MessageBoxPane,  Up: Classes
+File: ctalk.info,  Node: X11ScrollBarPane,  Next: X11TextEntryPane,  Prev: X11MessageBoxPane,  Up: Classes
 
 'X11ScrollBarPane' Class
 ------------------------
@@ -4095,7 +4095,90 @@ Instance Methods
      example, X11Pane : openEventStream.
 
 
-File: ctalk.info,  Node: X11YesNoBoxPane,  Next: X11TextPane,  Prev: X11ScrollBarPane,  Up: Classes
+File: ctalk.info,  Node: X11TextEntryPane,  Next: X11YesNoBoxPane,  Prev: X11ScrollBarPane,  Up: Classes
+
+'X11TextEntryPane' Class
+------------------------
+
+A 'X11TextEntryPane' object displays a basic, single line text entry box
+in a X window.  Users can enter text when the pointer is over the entry
+box, and the application can retrieve the text that the user enters as
+the contents of the 'X11TextEntryPane : entryText' instance variable.
+
+Here is an example of an 'X11TextEntryPane' object's use.
+
+
+     #include <ctalk/ctalkdefs.h>
+
+     int main (int argv, char **argc) {
+       X11Pane new xPane;
+       X11PaneDispatcher new dispatcher;
+       X11TextEntryPane new entry;
+       X11LabelPane new label;
+       X11ButtonPane new button;
+       InputEvent new e;
+       Integer new nEvents;
+       Integer new verbose;
+       X11Cursor new cursor;
+
+       xPane resources atPut "backgroundColor", "blue";
+       label resources replaceAt "backgroundColor", "blue";
+       label resources replaceAt "foregroundColor", "blue";
+       label resources replaceAt "highlightForegroundColor", "blue";
+       label resources replaceAt "textColor", "white";
+       label resources replaceAt "highlightTextColor", "white";
+       label border = false;
+
+       xPane inputStream eventMask = EXPOSE|ENTERWINDOWNOTIFY|LEAVEWINDOWNOTIFY| \
+         KEYPRESS|KEYRELEASE|WINDELETE|BUTTONPRESS|BUTTONRELEASE;
+
+       xPane initialize 300, 200;
+       dispatcher attachTo xPane;
+       label attachTo dispatcher, "100x80+10+10";
+       button attachTo dispatcher, "60x45+120+100";
+       entry attachTo dispatcher, "140x32+120+32";
+
+       xPane map;
+       xPane raiseWindow;
+
+       xPane openEventStream;
+
+       xPane ftFontVar initFontLib;
+       xPane setWMTitle "X11TextEntryPane Demo";
+       label multiLine "Enter your\ntext:";
+       button label text "Done";
+
+       while (TRUE) {
+         xPane inputStream queueInput;
+         if (xPane inputStream eventPending) {
+           e become xPane inputStream inputQueue unshift;
+
+           xPane subPaneNotify e;
+
+           switch (e eventClass value)
+             {
+             case EXPOSE:
+               entry refresh;
+               break;
+             case WINDELETE:
+               xPane deleteAndClose;
+               exit (0);
+               break;
+             default:
+               if (button haveClick) {
+                 button clearClick;
+                 xPane deleteAndClose;
+                 printf ("You entered: %s\n", entry entryText);
+                 exit (0);
+               }
+             break;
+             }
+         }
+       }
+     }
+
+
+File: ctalk.info,  Node: X11YesNoBoxPane,  Next: X11TextPane,  Prev: X11TextEntryPane,  Up: Classes
 
 'X11YesNoBoxPane' Class
 -----------------------

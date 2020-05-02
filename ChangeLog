@@ -695,7 +695,10 @@
 	- Added Tab and Return keystroke handlers to X11YesNoBoxPane
 	class.
 	- Added the X11Cursor : xterm method.
-
-
-
-
+2020-05-01
+	- In __ctalkToCCharPtr, check for an active i before buffering
+	the C string (lib/objtoc.c).  Also added __result_obj_post_call
+	for to return instead of the i_post object (lib/rt_methd.c).
+2020-05-02
+	- Added X11TextEntryPane class, a basic text entry widget,
+	and the demos/x11/entrybox.ca demonstration program.

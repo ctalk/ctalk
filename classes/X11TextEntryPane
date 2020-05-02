@@ -1,4 +1,4 @@
-/* $Id: X11TextEntryPane,v 1.2 2020/04/29 23:33:44 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11TextEntryPane,v 1.14 2020/05/02 15:34:29 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -21,10 +21,52 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
 */
 
-X11PaneDispatcher class X11TextEntryPane;
+X11CanvasPane class X11TextEntryPane;
+
+/* 
+ *   X11TextEntryPane Class - Text Entry Widget
+ *
+ *
+ *   Resources:
+ *
+ *     backgroundColor     String   "white"
+ *     textColor           String   "black"
+ *     font                String   "sans serif-12"
+ *     borderWidth         Integer  2
+ *     borderColor         String   "gray"
+ *     vPad                Integer  4
+ *     hPad                Integer  4
+ *
+ */
+
+X11TextEntryPane instanceVariable cursor X11Cursor 0;
+X11TextEntryPane instanceVariable entryText String "";
+X11TextEntryPane instanceVariable shiftState Integer 0;
 
 X11TextEntryPane instanceMethod new (String paneName) {
+  Method new enterMethod, leaveMethod, kbdMethod, exposeMethod;
+
   X11TextEntryPane super new paneName;
+
+  enterMethod definedInstanceMethod "X11TextEntryPane", "subPaneEnter";
+  paneName setMethodHandler "enternotify", enterMethod;
+
+  leaveMethod definedInstanceMethod "X11TextEntryPane", "subPaneLeave";
+  paneName setMethodHandler "leavenotify", leaveMethod;
+
+  kbdMethod definedInstanceMethod "X11TextEntryPane", "subPaneKbd";
+  paneName setMethodHandler "kbdinput", kbdMethod;
+
+  exposeMethod definedInstanceMethod "X11TextEntryPane", "subPaneExpose";
+  paneName setMethodHandler "expose", exposeMethod;
+
+  paneName resources atPut "font", "sans serif-12";
+  paneName resources atPut "textColor", "black";
+  paneName resources atPut "backgroundColor", "white";
+  paneName resources atPut "borderWidth", 2;
+  paneName resources atPut "borderColor", "gray";
+  paneName resources atPut "vPad", 4;
+  paneName resources atPut "hPad", 4;
 
   return paneName;
 }
@@ -37,18 +79,24 @@ X11TextEntryPane instanceMethod attachTo (X11Pane parentPane,
   specification like, '300x200', i.e., without the x and
   y origins, is okay - the Ctalk libraries center the
   message box above the parent window."
-  X11Bitmap new xPaneBuffer;
-  X11Bitmap new xPaneBackingStore;
+    /* X11Bitmap new xPaneBuffer;
+       X11Bitmap new xPaneBackingStore; *//***/
   String new parentGeometry;
   int x, y, width, height;
   unsigned int mainWinID;
   
   self displayPtr = self mainWindow displayPtr;
-
+  self paneBuffer backgroundColor = self resources at "backgroundColor";
   self super attachTo (parentPane, geomspec);
+
   self container = parentPane;
-  self paneBuffer become xPaneBuffer;
-  self paneBackingStore become xPaneBackingStore;
+  (X11Bitmap *)self paneBuffer create self displayPtr, self xWindowID,
+    self size x, self size y, self depth;
+  (X11Bitmap *)self paneBackingStore create self displayPtr, self xWindowID,
+    self size x, self size y, self depth;
+
+  /* self paneBuffer become xPaneBuffer;
+     self paneBackingStore become xPaneBackingStore; *//***/
 
   __ctalkX11SubWindowGeometry (parentPane, geomspec,
 			       &x, &y, &width, &height);
@@ -60,12 +108,185 @@ X11TextEntryPane instanceMethod attachTo (X11Pane parentPane,
 
   self resources atPut "geometry", geomspec;
 
+  self cursor xterm;
+
   return NULL;
 }
 
 X11TextEntryPane instanceMethod refresh (void) {
-  __ctalkGUIPaneRefresh (self, 0, 0,
-   			 self size x,
-   			 self size y,
-   			 0, 0);
+  self super refresh;
 }
+
+X11TextEntryPane instanceMethod draw (void) {
+  Integer new baseLineY, pxSize;
+  Integer new vPad, hPad, borderWidth;
+  Integer new textWidthPx, clipStartIdx;
+  Integer new entryChars;
+  String new fittedText, fittedText2;
+  
+
+  self paneBuffer background (self resources at "backgroundColor");
+  self paneBuffer foreground (self resources at "backgroundColor");
+  self paneBuffer clear;
+
+  self pen colorName = self resources at "borderColor";
+  self pen width = self resources at "borderWidth";
+  self drawRectangle 0, 0, self size x, self size y;
+
+  self ftFontVar selectFontFromFontConfig (self resources at "font");
+  pxSize = (self ftFontVar pointSize *
+	    (self ftFontVar dpi / 72)) asInteger;
+  self ftFontVar namedX11Color self resources at "textColor";
+
+  vPad = self resources at "vPad";
+  hPad = self resources at "hPad";
+  borderWidth = self resources at "borderWidth";
+  
+  baseLineY = self size y - borderWidth - hPad - (self ftFontVar descent);
+
+  entryChars = self entryText length;
+  fittedText = self entryText;
+  for (clipStartIdx = 0; clipStartIdx < entryChars; ++clipStartIdx) {
+    textWidthPx = self ftFontVar textWidth fittedText;
+    /***/ /* This should just work, too. */
+    /* textWidthPx = self ftFontVar textWidth (self entryText + clipStartIdx);*/
+    if (textWidthPx < (self size x * .75))
+      break;
+    ++fittedText;
+  }
+  
+  self paneBuffer putStr vPad, baseLineY, fittedText;
+}
+
+X11TextEntryPane instanceMethod subPaneEnter (Object subPane,
+					      InputEvent event) {
+  if (event eventData == subPane xWindowID) {
+    subPane useCursor subPane cursor;
+  }
+}
+
+X11TextEntryPane instanceMethod subPaneLeave (Object subPane,
+					      InputEvent event) {
+  if (event eventData == subPane xWindowID) {
+    subPane defaultCursor;
+  }
+}
+
+X11TextEntryPane instanceMethod subPaneExpose (Object subPane,
+					       InputEvent event) {
+  self draw;
+  self super refresh;
+}
+
+/* Some of these are also defined in X11TextEditorPane class and edittext.c. */
+#define shiftStateShift     (1 << 0)
+#define shiftStateCtrl      (1 << 1)
+#define shiftStateCapsLock  (1 << 2)
+
+/* From X11/keysymdef.h, in case your machine defines these differently. */
+#ifndef XK_Control_L
+#define XK_Control_L  0xffe3
+#endif
+#ifndef XK_Control_R
+#define XK_Control_R  0xffe4
+#endif
+#ifndef XK_Shift_L
+#define XK_Shift_L 0xffe1
+#endif
+#ifndef XK_Shift_R
+#define XK_Shift_R 0xffe2
+#endif
+#ifndef XK_Caps_Lock
+#define XK_Caps_Lock 0xffe5
+#endif
+#ifndef XK_Backspace
+#define XK_Backspace 0xff08
+#endif
+
+X11TextEntryPane instanceMethod subPaneKbd (Object subPane,
+					    InputEvent event) {
+  char c;
+  if (event eventData == subPane xWindowID) {
+
+    if (event eventClass == KEYPRESS) {
+      switch (event xEventData5)
+	{
+	case XK_Shift_L:
+	case XK_Shift_R:
+	  subPane shiftState |= shiftStateShift;
+	  break;
+	case XK_Control_L:
+	case XK_Control_R:
+	  subPane shiftState |= shiftStateCtrl;
+	  break;
+	case XK_Caps_Lock:
+	  /* sticky key */
+	  if (subPane shiftState & shiftStateCapsLock) {
+	    subPane shiftState &= ~shiftStateCapsLock;
+	  } else {
+	    subPane shiftState |= shiftStateCapsLock;
+	  }
+	  break;
+	case XK_Backspace:
+	  /* at the moment, insertion is always at the end
+	     of the text */
+	  self entryText atPut (self entryText length - 1), '\0';
+	  self draw;
+	  self refresh;
+	  break;
+	default:
+	  c = __edittext_xk_keysym (event xEventData4, self shiftState,
+				    event xEventData5);
+	  if ((subPane shiftState & shiftStateShift) ||
+	      (subPane shiftState & shiftStateCapsLock)) {
+	    /* We're just gonna do the shifted keys here. */
+	    switch (c)
+	      {
+	      case '0':	c = ')'; break;
+	      case '1': c = '!'; break;
+	      case '2': c = '@'; break;
+	      case '3': c = '#'; break;
+	      case '4': c = '$'; break;
+	      case '5': c = '%'; break;
+	      case '6': c = '^'; break;
+	      case '7': c = '&'; break;
+	      case '8': c = '*'; break;
+	      case '9': c = '('; break;
+	      case '-': c = '_'; break;
+	      case '=':	c = '+'; break;
+	      case '\\':c = '|'; break;
+	      case '`':	c = '~'; break;
+	      case '[': c = '{'; break;
+	      case ']':	c = '}'; break;
+	      case ';':	c = ':'; break;
+	      case '\'':c = '\"';break;
+	      case ',': c = '<'; break;
+	      case '.':	c = '>'; break;
+	      case '/': c = '}'; break;
+	      default: c &= ~32; break;
+	      }
+	  }
+	  subPane entryText += c asString;
+	  self draw;
+	  self refresh;
+	  break;
+	}
+    } else if (event eventClass == KEYRELEASE) {
+      switch (event xEventData5)
+	{
+	case XK_Shift_L:
+	case XK_Shift_R:
+	  subPane shiftState &= ~shiftStateShift;
+	  break;
+	case XK_Control_L:
+	case XK_Control_R:
+	  subPane shiftState &= ~shiftStateCtrl;
+	  break;
+	default:
+	  break;
+	}
+    }
+  }
+}
+
+

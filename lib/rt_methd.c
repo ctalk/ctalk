@@ -1,4 +1,4 @@
-/* $Id: rt_methd.c,v 1.1.1.1 2019/10/26 23:40:50 rkiesling Exp $ */
+/* $Id: rt_methd.c,v 1.3 2020/05/02 02:09:36 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -249,7 +249,7 @@ OBJECT *__ctalk_method (char *__object_name, OBJECT *(*__cfunc)(),
 
   OBJECT *__receiver_obj, *__method_rcvr_obj_, *__receiver_obj_post_call;
   OBJECT *__class_obj_;
-  OBJECT *__result_obj_ = NULL;
+  OBJECT *__result_obj_ = NULL, *__result_obj_post_call = NULL;
   OBJECT *derived_rcvr, *const_rcvr_class = NULL;
   METHOD *method, *rcvr_class_method;
   CVAR *c_rcvr = NULL;
@@ -624,8 +624,22 @@ OBJECT *__ctalk_method (char *__object_name, OBJECT *(*__cfunc)(),
   if (need_rcvr_mod_catch ())
     clear_rcvr_mod_catch ();
 
-  if (need_postfix_fetch_update ()) {
+  if (need_postfix_fetch_update () && IS_OBJECT(__result_obj_)) {
     /* This is used for Key objects right now. */
+    __ctalkCopyObject (OBJREF(__result_obj_), 
+		       OBJREF(__result_obj_post_call));
+    /* __ctalkRegisterUserObject (__result_obj_post_call); *//***/
+    __ctalkSetObjectAttr (__result_obj_post_call,
+			   __result_obj_post_call -> attrs |
+			   OBJECT_IS_I_RESULT);
+    /* If the result is a method user object already, make sure
+       we can register this one separately, or just delete it. */
+    if (__result_obj_post_call -> scope & METHOD_USER_OBJECT) {
+      __ctalkSetObjectScope (__result_obj_post_call,
+			     __result_obj_post_call -> scope &
+			     ~METHOD_USER_OBJECT);
+    }
+    __ctalkRegisterUserObject (__result_obj_post_call);
     make_postfix_current (__result_obj_);
     clear_postfix_fetch_update ();
   }
@@ -642,7 +656,10 @@ OBJECT *__ctalk_method (char *__object_name, OBJECT *(*__cfunc)(),
     delete_method_arg_cvars ();
   }
 
-  return __result_obj_;
+  if (IS_OBJECT(__result_obj_post_call))
+    return __result_obj_post_call;
+  else
+    return __result_obj_;
 }
 
 #define ARG(m,obj) {if ((obj) -> nrefs == 0)  \

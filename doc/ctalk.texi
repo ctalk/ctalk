@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.178 2020/04/30 00:29:15 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.179 2020/05/02 18:32:16 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -452,6 +452,7 @@ Object
      X11LabelPane
      X11MessageBoxPane
      X11ScrollBarPane
+     X11TextEntryPane
      X11YesNoBoxPane
     X11TextPane
      X11TextEditorPane
@@ -543,6 +544,7 @@ Object
 *      X11LabelPane::
 *      X11MessageBoxPane::
 *      X11ScrollBarPane::
+*      X11TextEntryPane::
 *      X11YesNoBoxPane::
 *     X11TextPane::
 *      X11TextEditorPane::
@@ -15745,7 +15747,7 @@ the main program.
 
 @end table
 
-@node X11ScrollBarPane, X11YesNoBoxPane, X11MessageBoxPane, Classes
+@node X11ScrollBarPane, X11TextEntryPane, X11MessageBoxPane, Classes
 @iftex
 @section @code{X11ScrollBarPane} Class
 @end iftex
@@ -16042,7 +16044,98 @@ only be used after a call to, for example, X11Pane : openEventStream.
 
 @end table
 
-@node X11YesNoBoxPane, X11TextPane, X11ScrollBarPane, Classes
+@node X11TextEntryPane, X11YesNoBoxPane, X11ScrollBarPane, Classes
+@iftex
+@section @code{X11TextEntryPane} Class
+@end iftex
+@ifnottex
+@subheading @code{X11TextEntryPane} Class
+@end ifnottex
+@cindex @code{X11TextEntryPane} class
+
+A @code{X11TextEntryPane} object displays a basic, single line text
+entry box in a X window.  Users can enter text when the pointer is
+over the entry box, and the application can retrieve the text that the
+user enters as the contents of the @code{X11TextEntryPane :
+entryText} instance variable.
+
+Here is an example of an @code{X11TextEntryPane} object's use.
+
+@c demos/x11/entrybox.ca
+@example
+
+#include <ctalk/ctalkdefs.h>
+
+int main (int argv, char **argc) @{
+  X11Pane new xPane;
+  X11PaneDispatcher new dispatcher;
+  X11TextEntryPane new entry;
+  X11LabelPane new label;
+  X11ButtonPane new button;
+  InputEvent new e;
+  Integer new nEvents;
+  Integer new verbose;
+  X11Cursor new cursor;
+
+  xPane resources atPut "backgroundColor", "blue";
+  label resources replaceAt "backgroundColor", "blue";
+  label resources replaceAt "foregroundColor", "blue";
+  label resources replaceAt "highlightForegroundColor", "blue";
+  label resources replaceAt "textColor", "white";
+  label resources replaceAt "highlightTextColor", "white";
+  label border = false;
+
+  xPane inputStream eventMask = EXPOSE|ENTERWINDOWNOTIFY|LEAVEWINDOWNOTIFY| \
+    KEYPRESS|KEYRELEASE|WINDELETE|BUTTONPRESS|BUTTONRELEASE;
+
+  xPane initialize 300, 200;
+  dispatcher attachTo xPane;
+  label attachTo dispatcher, "100x80+10+10";
+  button attachTo dispatcher, "60x45+120+100";
+  entry attachTo dispatcher, "140x32+120+32";
+
+  xPane map;
+  xPane raiseWindow;
+
+  xPane openEventStream;
+
+  xPane ftFontVar initFontLib;
+  xPane setWMTitle "X11TextEntryPane Demo";  
+  label multiLine "Enter your\ntext:";
+  button label text "Done";
+
+  while (TRUE) @{
+    xPane inputStream queueInput;
+    if (xPane inputStream eventPending) @{
+      e become xPane inputStream inputQueue unshift;
+
+      xPane subPaneNotify e;
+
+      switch (e eventClass value) 
+        @{
+        case EXPOSE:
+          entry refresh;
+          break;
+        case WINDELETE:
+          xPane deleteAndClose;
+          exit (0);
+          break;
+        default:
+          if (button haveClick) @{
+            button clearClick;
+            xPane deleteAndClose;
+            printf ("You entered: %s\n", entry entryText);
+            exit (0);
+          @}
+        break;
+        @}
+    @}
+  @}
+@}
+@end example
+
+
+@node X11YesNoBoxPane, X11TextPane, X11TextEntryPane, Classes
 @iftex
 @section @code{X11YesNoBoxPane} Class
 @end iftex
