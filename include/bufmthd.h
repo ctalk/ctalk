@@ -1,8 +1,8 @@
-/* $Id: bufmthd.h,v 1.3 2020/05/04 02:00:30 rkiesling Exp $ */
+/* $Id: bufmthd.h,v 1.4 2020/05/04 22:09:08 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
-  Copyright © 2005-2012 Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2005-2012, 2020 Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
 
@@ -27,7 +27,7 @@
 struct _mb_list {
   int sig;
   struct _mb_list *next;
-  char data[MAXMSG - 12]; /* sizeof (int) + (sizeof (void *) * 2) */
+  char data[MAXMSG - 8]; /* sizeof (int) + sizeof (void *) */
 };
 
 typedef struct _mb_list MBLIST;
