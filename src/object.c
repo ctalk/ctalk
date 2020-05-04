@@ -1,4 +1,4 @@
-/* $Id: object.c,v 1.5 2020/02/13 22:14:21 rkiesling Exp $ */
+/* $Id: object.c,v 1.6 2020/05/03 21:12:19 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -1089,6 +1089,12 @@ OBJECT *constant_token_object (MESSAGE *m_tok) {
 			    m_tok -> name, m_tok -> name);
       break;
     case PATTERN:
+      arg_obj = 
+	create_object_init (OBJECT_CLASSNAME, 
+			    OBJECT_SUPERCLASSNAME,
+			    m_tok -> name, m_tok -> name);
+      break;
+    case LABEL:
       arg_obj = 
 	create_object_init (OBJECT_CLASSNAME, 
 			    OBJECT_SUPERCLASSNAME,

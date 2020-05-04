@@ -1,8 +1,8 @@
-/* $Id: methodbuf.c,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ */
+/* $Id: methodbuf.c,v 1.4 2020/05/04 02:00:30 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
-  Copyright © 2005-2012, 2015-2016 Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2005-2012, 2015-2016, 2020 Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
 
@@ -38,6 +38,8 @@
 #include "list.h"
 #include "bufmthd.h"
 
+extern NEWMETHOD *new_methods[MAXARGS+1];  /* Declared in lib/rtnwmthd.c. */
+
 extern int library_input;            /* Declared in class.c.              */
 extern I_PASS interpreter_pass;      /* Declared in main.c.               */
 
@@ -51,21 +53,64 @@ int buffer_method_output = FALSE;
 
 int format_method_output = FALSE;
 
+#define MB_LIST_CACHE_MAX 0xffff
+
+
+static MBLIST *mb_list_cache[MB_LIST_CACHE_MAX];
+static int mb_list_cache_ptr = 0;
+
+static MBLIST *create_mb_list (void) {
+  MBLIST *l;
+  l = (MBLIST *)__xalloc (MAXMSG);
+  l -> sig = LIST_SIG;
+  return l;
+}
+
+static MBLIST *new_mb_list () {
+  MBLIST *l;
+  if (mb_list_cache_ptr == 0) {
+    return create_mb_list ();
+  } else {
+    l = mb_list_cache[--mb_list_cache_ptr];
+    /* mb_list_cache[mb_list_cache_ptr - 1] = NULL; */
+    return l;
+  }
+  return NULL;
+}
+
+static void reuse_mb_list (MBLIST *l) {
+  if (mb_list_cache_ptr == MB_LIST_CACHE_MAX) {
+    __xfree (MEMADDR(l));
+  } else {
+    l -> data[0] = '\0';
+    l -> next = NULL;
+    mb_list_cache[mb_list_cache_ptr++] = l;
+  }
+}
+
+MBLIST *mb_list_unshift (MBLIST **l) {
+  MBLIST *t;
+
+  if (!*l) return (MBLIST *)NULL;
+  t = *l;
+  *l = t -> next;
+  return t;
+}
+
 void method_init_statement (char *buf) {
 
-  LIST *l;
+  MBLIST *l;
 
   if ((interpreter_pass == method_pass) && 
       (method_buffer_ptr >= 0)) {
 
-    l = new_list ();
-    l -> data = (void *)strdup (buf);
+    l = new_mb_list ();
+    strcpy (l -> data, buf);
 
     if (method_buffer[method_buffer_ptr].init == NULL) {
       method_buffer[method_buffer_ptr].init = l;
     } else {
       method_buffer[method_buffer_ptr].init_head -> next = l;
-      l -> prev = method_buffer[method_buffer_ptr].init_head;
     }
     method_buffer[method_buffer_ptr].init_head = l;
   }
@@ -73,19 +118,18 @@ void method_init_statement (char *buf) {
 
 void method_vartab_statement (char *buf) {
 
-  LIST *l;
+  MBLIST *l;
 
   if ((interpreter_pass == method_pass) && 
       (method_buffer_ptr >= 0)) {
 
-    l = new_list ();
-    l -> data = (void *)strdup (buf);
+    l = new_mb_list ();
+    strcpy (l -> data, buf);
 
     if (method_buffer[method_buffer_ptr].cvar_tab_members == NULL) {
       method_buffer[method_buffer_ptr].cvar_tab_members = l;
     } else {
       method_buffer[method_buffer_ptr].cvar_tab_members_head -> next = l;
-      l -> prev = method_buffer[method_buffer_ptr].cvar_tab_members_head;
     }
     method_buffer[method_buffer_ptr].cvar_tab_members_head = l;
   }
@@ -93,19 +137,18 @@ void method_vartab_statement (char *buf) {
 
 void method_vartab_init_statement (char *buf) {
 
-  LIST *l;
+  MBLIST *l;
 
   if ((interpreter_pass == method_pass) && 
       (method_buffer_ptr >= 0)) {
 
-    l = new_list ();
-    l -> data = (void *)strdup (buf);
+    l = new_mb_list ();
+    strcpy (l -> data, buf);
 
     if (method_buffer[method_buffer_ptr].cvar_tab_init == NULL) {
       method_buffer[method_buffer_ptr].cvar_tab_init = l;
     } else {
       method_buffer[method_buffer_ptr].cvar_tab_init_head -> next = l;
-      l -> prev = method_buffer[method_buffer_ptr].cvar_tab_init_head;
     }
     method_buffer[method_buffer_ptr].cvar_tab_init_head = l;
   }
@@ -132,19 +175,18 @@ void end_method_buffer (void) {
 
 void buffer_method_statement (char *s, int parser_idx) {
 
-  LIST *l;
+  MBLIST *l;
 
   if (ARGBLK_TOK(parser_idx)) {
     buffer_argblk_stmt (s);
   } else {
-    l = new_list ();
-    l -> data = (void *)strdup (s);
+    l = new_mb_list ();
+    strcpy (l -> data, s);
 
     if (method_buffer[method_buffer_ptr].src == NULL) {
       method_buffer[method_buffer_ptr].src = l;
     } else {
       method_buffer[method_buffer_ptr].src_head -> next = l;
-      l -> prev = method_buffer[method_buffer_ptr].src_head;
     }
     method_buffer[method_buffer_ptr].src_head = l;
   }
@@ -177,29 +219,25 @@ void unbuffer_method_statements (void) {
 
   int i,
     r;
-  LIST *l;
+  MBLIST *l;
 
   for (i = method_buffer_ptr + 1; method_buffer[i].src; i++) {
     if (method_buffer[i].src) {
 
       if ((r = format_method (method_buffer[i])) == SUCCESS) {
-	while ((l = list_unshift (&method_buffer[i].src)) != NULL) {
-	  __xfree (MEMADDR(l -> data));
-	  __xfree (MEMADDR(l));
+	while ((l = mb_list_unshift (&method_buffer[i].src)) != NULL) {
+	  reuse_mb_list (l);
 	}
-	while ((l = list_unshift (&method_buffer[i].init)) != NULL) {
-	  __xfree (MEMADDR(l -> data));
-	  __xfree (MEMADDR(l));
+	while ((l = mb_list_unshift (&method_buffer[i].init)) != NULL) {
+	  reuse_mb_list (l);
 	}
-	while ((l = list_unshift (&method_buffer[i].cvar_tab_members)) 
+	while ((l = mb_list_unshift (&method_buffer[i].cvar_tab_members)) 
 	       != NULL) {
-	  __xfree (MEMADDR(l -> data));
-	  __xfree (MEMADDR(l));
+	  reuse_mb_list (l);
 	}
-	while ((l = list_unshift (&method_buffer[i].cvar_tab_init)) 
+	while ((l = mb_list_unshift (&method_buffer[i].cvar_tab_init)) 
 	       != NULL) {
-	  __xfree (MEMADDR(l -> data));
-	  __xfree (MEMADDR(l));
+	  reuse_mb_list (l);
 	}
 	method_buffer[i].src = NULL;
 	method_buffer[i].method = NULL;
@@ -228,7 +266,7 @@ int format_method (BUFFERED_METHOD b) {
     fn_body,
     fn_null
   } fn_state;
-  LIST *t;
+  MBLIST *t;
   MESSAGE *m; 
   bool have_function_decl = false;
 
@@ -380,7 +418,7 @@ int format_method (BUFFERED_METHOD b) {
 void generate_method_init (BUFFERED_METHOD b) {
 
   char buf[MAXMSG];
-  LIST *l;
+  MBLIST *l;
 
   if (b.method -> no_init) return;
 
@@ -406,18 +444,33 @@ void generate_method_init (BUFFERED_METHOD b) {
 
 }
 
+static void generate_vartab_b (MBLIST *l_vartab);
+
+void generate_vartab_b (MBLIST *l_vartab) {
+
+  MBLIST *l;
+
+  __fileout ("\n");
+
+  for (l = l_vartab; l; l = l -> next) {
+    __fileout ((char *) l -> data);
+  }
+  __fileout ("\n");
+
+
+}
+
 /* 
    This will need a check if the vartab gets cached with the wrong method.
 */
 void unbuffer_method_vartab (void) {
-  LIST  *l;
-  generate_vartab (method_buffer[method_buffer_ptr].cvar_tab_members);
+  MBLIST  *l;
+  generate_vartab_b (method_buffer[method_buffer_ptr].cvar_tab_members);
 
-  while ((l = list_unshift 
+  while ((l = mb_list_unshift 
 	  (&method_buffer[method_buffer_ptr].cvar_tab_members)) 
 	 != NULL) {
-    __xfree (MEMADDR(l -> data));
-    __xfree (MEMADDR(l));
+    reuse_mb_list (l);
   }
   method_buffer[method_buffer_ptr].cvar_tab_members = NULL;
 }

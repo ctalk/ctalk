@@ -702,3 +702,10 @@
 2020-05-02
 	- Added X11TextEntryPane class, a basic text entry widget,
 	and the demos/x11/entrybox.ca demonstration program.
+2020-05-03
+	- Added new_mb_list and reuse_mb_list in methodbuf.c.  Also
+	created the MBLIST type, which use fewer mallocs/frees for
+	use with method buffering.
+	- Added the LABEL token type to constant_token_object, which
+	is not really a constant, but the object creation works in
+	that place (object.c).
