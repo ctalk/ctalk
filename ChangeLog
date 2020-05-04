@@ -709,3 +709,7 @@
 	- Added the LABEL token type to constant_token_object, which
 	is not really a constant, but the object creation works in
 	that place (object.c).
+2020-05-04
+	- Updated the GL blend function in render_text to GL_SRC_ALPHA,
+	GL_DST_ALPHA (ftlib.c).  Update the demos/x11/ftfont.ca example
+	program to set both the font and GL libraries' alpha channel.

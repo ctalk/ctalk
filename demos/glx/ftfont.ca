@@ -9,6 +9,14 @@
 #define DEFAULT_WIDTH 500
 #define DEFAULT_HEIGHT 500
 
+/* Set the alpha (transparency) channel here for both the font and
+   GL libraries.  The blend function is GL_SRC_ALPHA, GL_DST_ALPHA.
+   If you you want to change this, it's in the render_text function
+   in lib/ftlib.c. Here the alpha is set for both the font lib and
+   the GL libs - your results may vary depending on how you set
+   the channel for each library. */
+#define ALPHAFP  0.5
+
 float face1[3][3] = {{0.0f, 2.0f, 0.0f},
 		     {-2.0f, -2.0f, 2.0f},
 		     {2.0f, -2.0f, 2.0f}};
@@ -93,7 +101,7 @@ GLXCanvasPane instanceMethod draw (void) {
   glRotatef (angle, 0.0f, 1.0f, 0.0f);
 
   self pixelHeightFT 18;
-  glColor4f (textRed, textGreen, textBlue, 0.5);
+  glColor4f (textRed, textGreen, textBlue, ALPHAFP);
   self drawTextFT  -0.96, 0.0, "Text Drawn With Outline Fonts.";
   self pixelHeightFT 24;
   self drawTextFT -0.96, -0.1,
@@ -126,6 +134,7 @@ GLXCanvasPane instanceMethod initGL (void) {
   glLoadIdentity ();
 
   self namedColor "medium slate blue", textRed, textGreen, textBlue;
+  self alpha ALPHAFP;
 
     if (self useFTFont "URWGothicL.pfb" < 0)
      exit (1);

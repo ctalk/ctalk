@@ -1,4 +1,4 @@
-/* $Id: ftlib.c,v 1.24 2019/12/22 08:40:50 rkiesling Exp $ -*-c-*-*/
+/* $Id: ftlib.c,v 1.25 2020/05/04 23:28:37 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -318,7 +318,8 @@ static void render_text (const char *text, float x, float y,
 
   glActiveTexture(GL_TEXTURE0);
   glEnable(GL_BLEND);
-  glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  /* glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); */ /***/
+  glBlendFunc (GL_SRC_ALPHA, GL_DST_ALPHA);
   glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
   if (has_ARB) {
