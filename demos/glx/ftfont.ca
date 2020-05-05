@@ -16,6 +16,7 @@
    the GL libs - your results may vary depending on how you set
    the channel for each library. */
 #define ALPHAFP  0.5
+#define ALPHAFP_BOLD  0.8
 
 float face1[3][3] = {{0.0f, 2.0f, 0.0f},
 		     {-2.0f, -2.0f, 2.0f},
@@ -38,6 +39,8 @@ float base[4][3] = {{2.0f, -2.0f, 2.0f},
 float angle = 20.0;
 
 Float new textRed, textGreen, textBlue;
+
+String new message1, message2, message3;
 
 GLXCanvasPane instanceMethod draw (void) {
 
@@ -102,10 +105,25 @@ GLXCanvasPane instanceMethod draw (void) {
 
   self pixelHeightFT 18;
   glColor4f (textRed, textGreen, textBlue, ALPHAFP);
+  self alpha ALPHAFP;
+#if 0  
+  /* See the note below. */
   self drawTextFT  -0.96, 0.0, "Text Drawn With Outline Fonts.";
+#else
+  self drawTextFT  -0.96, 0.0, message1;
+#endif  
+#if 0
+    /* This causes some kind of hell with the method buffering and
+       glibc heap management - it's still necessary to be careful
+       when using String constants as arguments. */
   self pixelHeightFT 24;
   self drawTextFT -0.96, -0.1,
-         "Text Drawn Bigger With Outline Fonts.";
+    "Text Drawn Bigger With Outline Fonts.";
+#else    
+  self drawTextFT -0.96, -0.1, message2;
+  self alpha ALPHAFP_BOLD;
+  self drawTextFT -0.96, -0.2, message3;
+#endif	 
 
   self swapBuffers;
 }
@@ -136,9 +154,12 @@ GLXCanvasPane instanceMethod initGL (void) {
   self namedColor "medium slate blue", textRed, textGreen, textBlue;
   self alpha ALPHAFP;
 
-    if (self useFTFont "URWGothicL.pfb" < 0)
-     exit (1);
+  if (self useFTFont "URWGothicL.pfb" < 0)
+    exit (1);
 
+  message1 = "Text Drawn With Outline Fonts.";
+  message2 = "The blending parameters are:";
+  message3 = "GL_SRC_ALPHA, GL_DST_ALPHA.";
 }
 
 GLXCanvasPane instanceMethod myTimerTickHandler (void) {
