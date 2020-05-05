@@ -1,4 +1,4 @@
-/* $Id: X11Bitmap,v 1.26 2020/04/26 09:01:47 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11Bitmap,v 1.29 2020/05/05 22:23:16 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -466,4 +466,36 @@ X11Bitmap instanceMethod drawCircle (Circle aCircle, Pen aPen,
 				 aPen colorName,
 				 fillColor);
 }
-					 
+
+X11Bitmap instanceMethod drawRectangle (Rectangle aRect, Pen aPen) {
+  __ctalkX11PaneDrawRectangleBasic (self displayPtr, self xID, self xGC,
+				    aRect top start x, aRect top start y,
+				    aRect bottom end x, aRect bottom end y,
+				    FALSE, aPen width, aPen colorName, 0);
+}
+
+X11Bitmap instanceMethod drawFilledRectangle (Rectangle aRect, Pen aPen) {
+  __ctalkX11PaneDrawRectangleBasic (self displayPtr, self xID, self xGC,
+				    aRect top start x, aRect top start y,
+				    aRect bottom end x, aRect bottom end y,
+				    TRUE, aPen width, aPen colorName, 0);
+}
+
+X11Bitmap instanceMethod drawRectangle (Integer xOrg, Integer yOrg,
+					Integer xSize, Integer ySize,
+					Integer fill, Integer line_width,
+					String color,
+					Integer corner_radius) {
+  __ctalkX11PaneDrawRectangleBasic (self displayPtr, self xID, self xGC,
+				    xOrg, yOrg, xSize, ySize, fill,
+				    pen_width, pen_color, corner_radius);
+}
+
+X11Bitmap instanceMethod drawRectangle (Rectangle aRect, Pen aPen,
+					Integer fill, Integer corner_radius) {
+  __ctalkX11PaneDrawRectangleBasic (self displayPtr, self xID, self xGC,
+				    aRect top start x, aRect top start y,
+				    aRect bottom end x, aRect bottom end y,
+				    fill, aPen width, aPen colorName,
+				    corner_radius);
+}

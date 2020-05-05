@@ -1,4 +1,4 @@
-/* $Id: guidrawrectangle.c,v 1.13 2020/03/26 02:58:39 rkiesling Exp $ -*-c-*-*/
+/* $Id: guidrawrectangle.c,v 1.17 2020/05/05 21:54:13 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -78,6 +78,50 @@ int __ctalkX11PaneDrawRoundedRectangle (OBJECT *self, OBJECT *rectangle,
   return __ctalkGUIPaneDrawRoundedRectangle (self, rectangle, pen,
 					     fill, corner_radius);
 }
+
+int __ctalkGUIPaneDrawRectangleBasic (void *d, int drawable_id,
+				      unsigned long int gc_ptr,
+				      int xOrg, int yOrg,
+				      int xSize, int ySize,
+				      int fill,
+				      int pen_width,
+				      char *pen_color,
+				      int corner_radius) {
+  return __ctalkX11PaneDrawRectangleBasic (d, drawable_id, gc_ptr,
+					   xOrg, yOrg, xSize, ySize,
+					   fill, pen_width, pen_color,
+					   corner_radius);
+}
+int __ctalkX11PaneDrawRectangleBasic (void *d, int drawable_id,
+				      unsigned long int gc_ptr,
+				      int xOrg, int yOrg,
+				      int xSize, int ySize,
+				      int fill,
+				      int pen_width,
+				      char *pen_color,
+				      int corner_radius) {
+  char d_buf[MAXLABEL], intbuf[MAXLABEL];
+  strcatx (d_buf,
+	   ascii[xOrg], ":", ascii[yOrg], ":",
+	   ascii[xSize], ":", ascii[ySize], ":",
+	   ascii[pen_width], ":", ascii[fill], ":",
+	   ctitoa (drawable_id, intbuf), ":",
+	   ascii[corner_radius], ":",
+	   pen_color, NULL);
+	   
+  if (DIALOG(d)) {
+    __xlib_draw_rectangle (d, drawable_id, (GC)gc_ptr, d_buf);
+  } else {
+    make_req (shm_mem, d, 
+	      PANE_DRAW_RECTANGLE_REQUEST,
+	      drawable_id, gc_ptr, d_buf);
+
+    wait_req (shm_mem);
+  }
+
+  return SUCCESS;
+}
+				  
 
 int __ctalkGUIPaneDrawRectangle (OBJECT *self, OBJECT *rectangle, OBJECT *pen,
 				 int fill) {
@@ -310,6 +354,28 @@ int __ctalkGUIPaneDrawRectangle (OBJECT *self, OBJECT *pane, OBJECT *pen,
 
 int __ctalkGUIPaneDrawRoundedRectangle (OBJECT *self, OBJECT *pane, OBJECT *pen,
 					int fill, int corner_radius) {
+  x_support_error (); return ERROR;
+}
+
+int __ctalkGUIPaneDrawRectangleBasic (void *d, int drawable_id,
+				      unsigned long int gc_ptr,
+				      int xOrg, int yOrg,
+				      int xSize, int ySize,
+				      int fill,
+				      int pen_width,
+				      char *pen_color,
+				      int corner_radius) {
+  x_support_error (); return ERROR;
+}
+
+int __ctalkX11PaneDrawRectangleBasic (void *d, int drawable_id,
+				      unsigned long int gc_ptr,
+				      int xOrg, int yOrg,
+				      int xSize, int ySize,
+				      int fill,
+				      int pen_width,
+				      char *pen_color,
+				      int corner_radius) {
   x_support_error (); return ERROR;
 }
 

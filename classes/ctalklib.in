@@ -1,4 +1,4 @@
-/* $Id: ctalklib.in,v 1.83 2020/04/25 05:51:21 rkiesling Exp $ -*-c-*-*/
+/* $Id: ctalklib.in,v 1.85 2020/05/05 20:21:56 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -1046,6 +1046,12 @@ extern int __ctalkGUIPaneDrawRoundedRectangle (OBJECT *, OBJECT *, OBJECT *,
 extern int __ctalkGUIPanePutStr (OBJECT *, int, int, char *);
 extern int __ctalkGUIPanePutTransformedStr (OBJECT *, int, int, char *);
 extern int __ctalkX11PaneDrawCircleBasic (void *, int, unsigned long int, int, int, int, int, int, int, char *, char *);
+extern int __ctalkX11PaneDrawRectangleBasic (void *, int, unsigned long int,
+					     int, int, int, int, int, int, char *,
+					     int);
+extern int __ctalkGUIPaneDrawRectangleBasic (void *, int, unsigned long int,
+					     int, int, int, int, int, int, char *,
+					     int);
 extern int __ctalkX11PanePutStrBasic (void *, int, unsigned long int, int, int, char *);
 
 extern void __ctalkX11UseXRender (bool);

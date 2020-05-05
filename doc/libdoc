@@ -2024,6 +2024,16 @@ draws a filled circle; otherwise, the circle's edge has the width pen_width.
 
 This function is a synonym for __ctalkGUIPaneDrawCircleBasic.
 
+>>>__ctalkX11PaneDrawRectangleBasic (void *display, int drawable_id, unsigned long intgc_ptr, int xOrg, int yOrg, int xSize, int ySize, int fill, int pen_width, char *pen_color, int corner_radius)
+Draw a rectangle on the drawable with the ID drawable_id, with
+the dimensions givent in the arguments.  If fill is non-zero,
+draws a filled rectangle; otherwise uses the line width given by the
+pen_width argument.  If corner_radius is non-zero, draws a
+rectangle with rounded corners with the radius in pixels given by
+corner_radius.
+
+This function is a synonym for __ctalkGUIPaneDrawRectangleBasic.
+
 >>>__ctalkX11PanePutStr (OBJECT *pane_object, int x, int y, char *str)
 Displays str at window coordinates x,y on
 pane_object's drawable in the pane's current font.  If

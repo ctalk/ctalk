@@ -713,3 +713,8 @@
 	- Updated the GL blend function in render_text to GL_SRC_ALPHA,
 	GL_DST_ALPHA (ftlib.c).  Update the demos/x11/ftfont.ca example
 	program to set both the font and GL libraries' alpha channel.
+2020-05-05
+	- Added the X11Bitmap methods drawRectangle and drawFilledRectangle.
+	Also added the __ctalkX11PaneDrawRectangleBasic and
+	__ctalkGUIPaneDrawRectangleBasic library functions
+	(guidrawrectangle.c).

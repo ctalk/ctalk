@@ -1463,6 +1463,11 @@ Instance Methods
      given, draws the circle with the color and the line width defined
      by the 'aPen', and fills the interior of the circle with BGCOLOR.
 
+'drawFilledRectangle (Rectangle ARECT, Pen APEN)'
+     Draw a filled rectangle with the dimensions given in ARECT, using
+     the color given by APEN.  For other variations on this method refer
+     to 'drawRectangle'.
+
 'drawLine (Integer XSTART, Integer YSTART, Integer XEND, Integer YEND, Pen APEN)'
 'drawLine (Line ALINE, Pen APEN)'
      Draw a point on the receiver's drawing surface between the points
@@ -1476,6 +1481,17 @@ Instance Methods
      Draw a point on the receiver's drawing surface at X,Y using the
      color, width, and transparency defined by the argument APEN.  *Note
      Pen::.
+
+'drawFilledRectangle (Rectangle ARECT, Pen APEN)'
+'drawFilledRectangle (Rectangle ARECT, Pen APEN,'
+     'Integer' FILL, 'Integer' CORNER_RADIUS)
+'drawFilledRectangle (Integer XORG, Integer YORG, Integer XSIZE, Integer YSIZE, Ineter FILL,'
+     'Integer' LINE_WIDTH, 'String' COLOR, 'Integer' CORNER_RADIUS) Draw
+     a rectangle on the receiver bitmap.  The FILL argument, if given,
+     draws a filled rectangle if the argument is true.  If FILL is
+     false, use the PEN_WIDTH argument to determine the line width.  If
+     RADIUS is non-zero, draw the rectangle with rounded corners with
+     the radius in pixels given by the argument.
 
 'faceRegular (void)'
 'faceBold (void)'

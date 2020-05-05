@@ -850,6 +850,11 @@ argument is given, draws the circle with the color and the line width
 defined by the aPen, and fills the interior of the circle with
 bgColor.
 
+>>>X11Bitmap::drawFilledRectangle (Rectangle aRect, Pen aPen)
+Draw a filled rectangle with the dimensions given in aRect, using
+the color given by aPen.  For other variations on this method
+refer to drawRectangle.
+
 >>>X11Bitmap::drawLine (Integer xStart, Integer yStart, Integer xEnd, Integer yEnd, Pen aPen)
 >>>X11Bitmap::drawLine (Line aLine, Pen aPen)
 Draw a point on the receiver's drawing surface between the points
@@ -863,6 +868,18 @@ is a member of class Line.
 Draw a point on the receiver's drawing surface at x,y using
 the color, width, and transparency defined by the argument aPen.
 
+
+>>>X11Bitmap::drawFilledRectangle (Rectangle aRect, Pen aPen)
+>>>X11Bitmap::drawFilledRectangle
+Integer fill, Integer corner_radius)
+>>>X11Bitmap::drawFilledRectangle
+Integer line_width, String color,
+Integer corner_radius) Draw a rectangle on the receiver
+bitmap.  The fill argument, if given, draws a filled rectangle
+if the argument is true.  If fill is false, use the
+pen_width argument to determine the line width.  If radius
+is non-zero, draw the rectangle with rounded corners with the radius
+in pixels given by the argument.
 
 >>>X11Bitmap::faceRegular (void)
 >>>X11Bitmap::faceBold (void)

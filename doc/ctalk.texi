@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.179 2020/05/02 18:32:16 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.182 2020/05/05 22:23:17 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -1971,6 +1971,12 @@ argument is given, draws the circle with the color and the line width
 defined by the @code{aPen}, and fills the interior of the circle with
 @var{bgColor}.
 
+@cindex @mnm{drawFilledRectangle} instance method @idxclscite{X11Bitmap}
+@item drawFilledRectangle (@code{Rectangle} @var{aRect}, @code{Pen} @var{aPen})
+Draw a filled rectangle with the dimensions given in @var{aRect}, using
+the color given by @var{aPen}.  For other variations on this method
+refer to @mnm{drawRectangle}.
+
 @cindex @mnm{drawLine} instance method @idxclscite{X11Bitmap}
 @item @mnm{drawLine} (@code{Integer} @var{xStart}, @code{Integer} @var{yStart}, @code{Integer} @var{xEnd}, @code{Integer} @var{yEnd}, @code{Pen} @var{aPen})
 @item @mnm{drawLine} (@code{Line} @var{aLine}, @code{Pen} @var{aPen})
@@ -1986,6 +1992,19 @@ is a member of class @var{Line}.  @xref{Line}.
 Draw a point on the receiver's drawing surface at @var{x},@var{y} using
 the color, width, and transparency defined by the argument @var{aPen}.
 @xref{Pen}.
+
+@cindex @mnm{drawFilledRectangle} instance method @idxclscite{X11Bitmap}
+@item drawFilledRectangle (@code{Rectangle} @var{aRect}, @code{Pen} @var{aPen})
+@item drawFilledRectangle (@code{Rectangle} @var{aRect}, @code{Pen} @var{aPen},
+@code{Integer} @var{fill}, @code{Integer} @var{corner_radius})
+@item drawFilledRectangle (@code{Integer} @var{xOrg}, @code{Integer} @var{yOrg}, @code{Integer} @var{xSize}, @code{Integer} @var{ySize}, @code{Ineter} @var{fill},
+@code{Integer} @var{line_width}, @code{String} @var{color},
+@code{Integer} @var{corner_radius}) Draw a rectangle on the receiver
+bitmap.  The @var{fill} argument, if given, draws a filled rectangle
+if the argument is true.  If @var{fill} is false, use the
+@var{pen_width} argument to determine the line width.  If @var{radius}
+is non-zero, draw the rectangle with rounded corners with the radius
+in pixels given by the argument.
 
 @cindex @mnm{faceRegular} instance method @idxclscite{X11Bitmap}
 @cindex @mnm{faceBold} instance method @idxclscite{X11Bitmap}
@@ -22622,6 +22641,17 @@ Draws a circle centered at @var{center_x},@var{center_y} with radius @var{radius
 draws a filled circle; otherwise, the circle's edge has the width @var{pen_width}.
 
 This function is a synonym for @cite{__ctalkGUIPaneDrawCircleBasic}.
+
+@idxlibfn{__ctalkX11PaneDrawRectangleBasic}
+@item __ctalkX11PaneDrawRectangleBasic (@code{void *}@var{display}, @code{int} @var{drawable_id}, @code{unsigned long int}@var{gc_ptr}, @code{int} @var{xOrg}, @code{int} @var{yOrg}, @code{int} @var{xSize}, @code{int} @var{ySize}, @code{int} @var{fill}, @code{int} @var{pen_width}, @code{char *}@var{pen_color}, @code{int} @var{corner_radius})
+Draw a rectangle on the drawable with the ID @var{drawable_id}, with
+the dimensions givent in the arguments.  If @var{fill} is non-zero,
+draws a filled rectangle; otherwise uses the line width given by the
+@var{pen_width} argument.  If @var{corner_radius} is non-zero, draws a
+rectangle with rounded corners with the radius in pixels given by
+@var{corner_radius}.
+
+This function is a synonym for @cite{__ctalkGUIPaneDrawRectangleBasic}.
 
 @idxlibfn{__ctalkX11PanePutStr}
 @item __ctalkX11PanePutStr (@code{OBJECT *}@var{pane_object}, @code{int} @var{x}, @code{int} @var{y}, @code{char *}@var{str})

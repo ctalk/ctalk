@@ -1,4 +1,4 @@
-/* $Id: ctalk.h,v 1.102 2020/04/25 05:51:21 rkiesling Exp $ -*-Fundamental-*- */
+/* $Id: ctalk.h,v 1.104 2020/05/05 20:21:57 rkiesling Exp $ -*-Fundamental-*- */
 
 /*
   This file is part of Ctalk.
@@ -1690,6 +1690,10 @@ int __ctalkGUIPaneDrawRectangle (OBJECT *, OBJECT *, OBJECT *, int);
 int __ctalkX11PaneDrawRectangle (OBJECT *, OBJECT *, OBJECT *, int);
 int __ctalkGUIPaneDrawRoundedRectangle (OBJECT *, OBJECT *, OBJECT *, int, int);
 int __ctalkX11PaneDrawRoundedRectangle (OBJECT *, OBJECT *, OBJECT *, int, int);
+int __ctalkX11PaneDrawRectangleBasic (void *, int, unsigned long int,
+				  int, int, int, int, int, int, char *, int);
+int __ctalkGUIPaneDrawRectangleBasic (void *, int, unsigned long int,
+				  int, int, int, int, int, int, char *, int);
 
 /* lib/guiputstr.c */
 int __ctalkX11PanePutStr (OBJECT *, int, int, char *);

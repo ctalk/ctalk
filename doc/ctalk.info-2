@@ -9528,6 +9528,16 @@ functions.
 
      This function is a synonym for '__ctalkGUIPaneDrawCircleBasic'.
 
+'__ctalkX11PaneDrawRectangleBasic (void *DISPLAY, int DRAWABLE_ID, unsigned long intGC_PTR, int XORG, int YORG, int XSIZE, int YSIZE, int FILL, int PEN_WIDTH, char *PEN_COLOR, int CORNER_RADIUS)'
+     Draw a rectangle on the drawable with the ID DRAWABLE_ID, with the
+     dimensions givent in the arguments.  If FILL is non-zero, draws a
+     filled rectangle; otherwise uses the line width given by the
+     PEN_WIDTH argument.  If CORNER_RADIUS is non-zero, draws a
+     rectangle with rounded corners with the radius in pixels given by
+     CORNER_RADIUS.
+
+     This function is a synonym for '__ctalkGUIPaneDrawRectangleBasic'.
+
 '__ctalkX11PanePutStr (OBJECT *PANE_OBJECT, int X, int Y, char *STR)'
      Displays STR at window coordinates X,Y on PANE_OBJECT's drawable in
      the pane's current font.  If 'pane_object' is buffered, writes the
