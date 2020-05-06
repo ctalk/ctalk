@@ -1,4 +1,4 @@
-/* $Id: X11Bitmap,v 1.29 2020/05/05 22:23:16 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11Bitmap,v 1.30 2020/05/06 00:46:26 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -488,7 +488,7 @@ X11Bitmap instanceMethod drawRectangle (Integer xOrg, Integer yOrg,
 					Integer corner_radius) {
   __ctalkX11PaneDrawRectangleBasic (self displayPtr, self xID, self xGC,
 				    xOrg, yOrg, xSize, ySize, fill,
-				    pen_width, pen_color, corner_radius);
+				    line_width, color, corner_radius);
 }
 
 X11Bitmap instanceMethod drawRectangle (Rectangle aRect, Pen aPen,
