@@ -1,4 +1,4 @@
-/* $Id: X11TextEntryPane,v 1.14 2020/05/02 15:34:29 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11TextEntryPane,v 1.15 2020/05/07 21:18:59 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -262,7 +262,7 @@ X11TextEntryPane instanceMethod subPaneKbd (Object subPane,
 	      case '\'':c = '\"';break;
 	      case ',': c = '<'; break;
 	      case '.':	c = '>'; break;
-	      case '/': c = '}'; break;
+	      case '/': c = '?'; break;
 	      default: c &= ~32; break;
 	      }
 	  }

@@ -1,4 +1,4 @@
-/* $Id: x11ksym.c,v 1.2 2019/12/25 22:09:18 rkiesling Exp $ -*-c-*-*/
+/* $Id: x11ksym.c,v 1.3 2020/05/07 21:36:01 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -125,7 +125,7 @@ int ascii_shift_keysym (unsigned long int keysym) {
 	keysym_1 = '>';
 	break;
       case 47:   /* / */
-	keysym_1 = '}';
+	keysym_1 = '?';
 	break;
       }
   }
