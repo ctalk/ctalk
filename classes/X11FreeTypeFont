@@ -1,4 +1,4 @@
-/* $Id: X11FreeTypeFont,v 1.3 2020/04/22 00:34:29 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11FreeTypeFont,v 1.12 2020/05/07 15:42:49 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -116,6 +116,67 @@ currently selected font."
   return fontDesc;
 }
 
+#ifndef XFT_NOTIFY_NONE
+#define XFT_NOTIFY_NONE 0
+#endif
+#ifndef XFT_NOTIFY_ERRORS
+#define XFT_NOTIFY_ERRORS 1
+#endif
+#ifndef XFT_NOTIFY_LOAD
+#define XFT_NOTIFY_LOAD 2
+#endif
+#ifndef XFT_NOTIFY_VERBOSE
+#define XFT_NOTIFY_VERBOSe
+#endif
+
+X11FreeTypeFont instanceMethod currentDescParamStr (void) {
+  returnObjectClass String;
+  return __ctalkXftDescStr ();
+}
+
+
+X11FreeTypeFont instanceMethod __loadInfo (String requestedFamily,
+					   Integer requestedSlant,
+					   Integer requestedWeight,
+					   Integer requestedDPI,
+					   Float requestedPointSize) {
+  /* For the actual attributes of the loaded font, we use the
+     receiver's instance data, so these methods require that the
+     caller has called saveSelectedFont before this. */
+  switch (self verbosity)
+      {
+    case XFT_NOTIFY_NONE:
+      /* Don't print anything. */
+      break;
+    case XFT_NOTIFY_ERRORS:
+      if (((requestedFamily length > 0) &&
+	   (requestedFamily != self family)) ||
+	  ((requestedSlant != -1) &&
+	   (requestedSlant != self slant)) ||
+	  ((requestedWeight != -1) &&
+	   (requestedWeight != self weight)) ||
+	  ((requestedDPI != -1) &&
+	   (requestedDPI != self dpi)) ||
+	  ((requestedPointSize != -1) &&
+	   (requestedPointSize != self pointSize))) {
+	_warning ("ctalk: Requested font %s-%d, found\n\t%s\n",
+		  requestedFamily, requestedPointSize asInteger,
+		  self currentDescParamStr);
+      }
+      break;
+    case XFT_NOTIFY_LOAD:
+      _warning ("ctalk: Requested font %s-%d, found\n\t%s\n",
+		requestedFamily, requestedPointSize asInteger,
+		self currentDescParamStr);
+      break;
+    case XFT_NOTIFY_VERBOSE:
+      _warning ("ctalk: Requested font %s-%d, found:\n\t%s\n",
+		self family, requestedPointSize asInteger,
+		self selectedFont);
+      break;
+    }
+}
+
 X11FreeTypeFont instanceMethod selectFont (String family, Integer slant,
 					   Integer weight, Integer dpi,
 					   Float pointSize) {
@@ -132,12 +193,10 @@ X11FreeTypeFont instanceMethod selectFont (String family, Integer slant,
     __ctalkXftSelectFont (family, slant, weight, dpi, pointSize);
     self saveSelectedFont;
     
-    selectedDesc = self selectedFont;
-    if (selectedDesc contains "family")
-      return SUCCESS;
-    else
-      return ERROR;
+    self __loadInfo family, slant, weight, dpi, pointSize;
 
+    return SUCCESS;
+    
 }
 
 X11FreeTypeFont instanceMethod RGBAColor (Integer red, Integer green,
@@ -155,21 +214,41 @@ X11FreeTypeFont instanceMethod namedX11Color (String colorName) {
 
 X11FreeTypeFont instanceMethod selectFont (void) {
   "Select a font from the Xft library that matches the
-receiver's values."
+   values of the receiver's instance variables."
+  String new reqFamily;
+  Integer new reqSlant, reqWeight, reqDPI, reqPointSize;
+  reqFamily = self family;
+  reqSlant = self slant;
+  reqWeight = self weight;
+  reqDPI = self dpi;
+  reqPointSize = self pointSize;
   __ctalkXftSelectFont (self family, self slant, self weight,
 			self dpi, self pointSize);
+  self saveSelectedFont;
+  self __loadInfo reqFamily, reqSlant, reqWeight, reqDPI, reqPointSize;
+
 }
 
 X11FreeTypeFont instanceMethod selectFontFromXLFD (String xlfd) {
   "Select a font from the Xft library using the X Logical Font
    Descriptor given as the argument."
+    char reqFamily[MAXLABEL];
     __ctalkXftSelectFontFromXLFD (xlfd);
+  self saveSelectedFont;
+  /* __ctalkXftRequestedFamily can cause an extra warning - 
+     check it eventually */
+  xstrcpy (reqFamily, __ctalkXftRequestedFamily ());
+  self __loadInfo reqFamily,
+    __ctalkXftRequestedSlant (), __ctalkXftRequestedWeight (),
+    __ctalkXftRequestedDPI (), __ctalkXftRequestedPointSize ();;
 }
 
 X11FreeTypeFont instanceMethod selectFontFromFontConfig (String fcString) {
   "Select a font from the Xft library the fcString font descriptor
    given as the argument."
     __ctalkXftSelectFontFromFontConfig (fcString);
+  self saveSelectedFont;
+  self __loadInfo;
 }
 
 X11FreeTypeFont instanceMethod RGBAColor (void) {
@@ -253,24 +332,27 @@ X11FreeTypeFont instanceMethod libIsInitialized (void) {
   return __ctalkXftInitialized ();
 }
 
-#ifndef XFT_NOTIFY_NONE
-#define XFT_NOTIFY_NONE 0
-#endif
-#ifndef XFT_NOTIFY_ERRORS
-#define XFT_NOTIFY_ERRORS 1
-#endif
-#ifndef XFT_NOTIFY_LOAD
-#define XFT_NOTIFY_LOAD 2
-#endif
-
 X11FreeTypeFont instanceMethod notifyLevel (Integer lvl) {
   __ctalkXftShowFontLoad (lvl);
 }
 
-X11FreeTypeFont instanceMethod verbose (void) {
+X11FreeTypeFont instanceMethod loadNotify (void) {
   __ctalkXftShowFontLoad (XFT_NOTIFY_LOAD);
 }
 
 X11FreeTypeFont instanceMethod errors (void) {
   __ctalkXftShowFontLoad (XFT_NOTIFY_ERRORS);
+}
+
+X11FreeTypeFont instanceMethod quiet (void) {
+  __ctalkXftShowFontLoad (XFT_NOTIFY_NONE);
+}
+
+X11FreeTypeFont instanceMethod verbose (void) {
+  __ctalkXftShowFontLoad (XFT_NOTIFY_VERBOSE);
+}
+
+X11FreeTypeFont instanceMethod verbosity (void) {
+  returnObjectClass Integer;
+  return __ctalkXftVerbosity ();
 }

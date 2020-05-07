@@ -1,4 +1,4 @@
-/* $Id: ctalkdefs.h,v 1.8 2020/04/26 16:11:15 rkiesling Exp $ -*-C-*-*/
+/* $Id: ctalkdefs.h,v 1.9 2020/05/07 02:56:44 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -355,6 +355,9 @@ int memcmp(const void *s1, const void *s2, size_t n);
 #endif  
 #ifndef XFT_NOTIFY_LOAD
 #define XFT_NOTIFY_LOAD 2
+#endif
+#ifndef XFT_NOTIFY_VERBOSE
+#define XFT_NOTIFY_VERBOSE 3
 #endif
 
 /* Bevel resoulution, in pixels.  Also in x11defs.h. */

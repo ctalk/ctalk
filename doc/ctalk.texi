@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.182 2020/05/05 22:23:17 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.193 2020/05/07 15:53:19 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -1688,6 +1688,16 @@ Set the current Xft font's foreground blue channel.  The argument
 @var{value} must be an unsigned short int; i.e., in the
 range 0 - 65535 (0xffff hex).
 
+@cindex @mnm{currentDescParamStr} instance method @idxclscite{X11FreeTypeFont}
+@item @mnm{currentDescStr} (@code{void})
+Returns a @code{String} containing a font descriptor for the currently
+selected font.  The descriptor contains the attributes that the Ctalk
+libraries use to select fonts: family, point size, slant, and weight.
+
+For the complete descriptor that the Freetype library derives from the
+selected font's pattern, refer to the @code{X11FreeTypeFont :
+selectedFont} method.
+
 @cindex @mnm{errors} instance method @idxclscite{X11FreeTypeFont}
 @item @mnm{errors} (@code{void})
 This is a shortcut for
@@ -1728,6 +1738,27 @@ List the font descriptors in the FreeType library that contain @var{pattern}.
 If @var{pattern} is an empty string @samp{""} or a @samp{*}, match
 every font descriptor.
 
+@cindex @mnm{loadNotify} instance method @idxclscite{X11FreeTypeFont}
+@item @mnm{loadNotify} (@code{void})
+This is a shortcut for
+
+@example
+
+myFont notifyLevel XFT_NOTIFY_LOAD
+
+@end example
+
+This causes methods like @mnm{selectFont} to display the family
+and size given to them, and a brief font descriptor that contains
+the font parameters that Ctalk uses to select fonts: family, point
+size, slant, and weight.
+
+Refer to the @code{X11FreeTypeFont : notifyLevel} method for a
+description of information and error message levels.  To return a
+string containing the font descriptor that the Freetype libraries
+derive from the selected font's pattern, refer to the
+@code{X11FreeTypeFont : selectedFont} method.
+
 @cindex @mnm{namedX11Color} instance method @idxclscite{X11FreeTypeFont}
 @item @mnm{namedX11Color} (@code{String} @var{colorName})
 Sets the selected font's red, green, and blue values from the
@@ -1747,8 +1778,32 @@ defines the following constants in @flnm{/ctalk/ctalkdefs.h}.
 XFT_NOTIFY_NONE
 XFT_NOTIFY_ERRORS
 XFT_NOTIFY_LOAD
+XFT_NOTIFY_VERBOSE
 
 @end example
+
+These definitions produce the following information and warning
+messages.
+
+@table @code
+
+@item XFT_NOTIFY_NONE
+The font libraries produce no output when the program is run.
+@item XFT_NOTIFY_ERRORS
+The font libraries display a warning if the library's selected font
+does not match the user or appication defined font specification.
+@item XFT_NOTIFY_LOAD
+The font library displays a message containing information about
+the requested font, and a brief font descriptor that contains the
+attributes that the Ctalk libraries use to select fonts: family,
+point size, slant, and weight.
+@item XFT_NOTIFY_VERBOSE
+The font library displays a message that contains information
+about the requested font, and the complete font descriptor that
+the font libraries derive from the selected font's patterm.
+
+@end table
+
 
 Note: programs should call this method before launching any processes.
 Generally this is before the @code{X11Pane : openInputStream} method.
@@ -1759,6 +1814,12 @@ called from.
 @item @mnm{qualifyName} (@code{String} @var{xftpattern})
 Returns a fully qualified @code{String} containing a fully qualified
 Xft font descriptor that matches @var{xftpattern}.
+
+@cindex @mnm{quiet} instance method @idxclscite{X11FreeTypeFont}
+@item quiet (@code{void})
+Sets the font libraries' reporting level to XFT_NOTIFY_NONE.  For a
+description of the libraries' notification levels, refer to the
+@mnm{notifyLevel} method.
 
 @cindex @mnm{red} instance method @idxclscite{X11FreeTypeFont}
 @item @mnm{red} (@code{Integer} @var{value})
@@ -1819,6 +1880,12 @@ An easier way to describe a font may be to use the
 @mnm{selectFontFromFontConfig} method, which takes a FontConfig
 format font specification as its argument. @xref{selectFontFromFontConfig}.
 
+Refer to the @code{X11FreeTypeFont : notifyLevel} method for a
+description of information and error message levels.  To return a
+string containing the font descriptor that the Freetype libraries
+derive from the selected font's pattern, refer to the
+@code{X11FreeTypeFont : selectedFont} method.
+
 @cindex @mnm{selectFontFromXLFD} instance method @idxclscite{X11FreeTypeFont}
 @item @mnm{selectFontFromXLFD} (@code{String} @var{xlfd})
 Similar to @mnm{selectFont}, above, except that its argument is
@@ -1832,10 +1899,27 @@ like the following.
 
 @end example
 
+As with all of the @mnm{selectFont*} methods, refer to the
+@code{X11FreeTypeFont : notifyLevel} method for a description of
+information and error message levels.  To return a string containing
+the font descriptor that the Freetype libraries derive from the
+selected font's pattern, refer to the @code{X11FreeTypeFont :
+selectedFont} method.
+
 @anchor{selectFontFromFontConfig}
 @cindex @mnm{selectFontFromFontConfig} instance method @idxclscite{X11FreeTypeFont}
 @item @mnm{selectFontFromFontConfig} (@code{String} @var{font_config_string})
 Selects a font using the FontConfig specification given as its argument.
+
+Refer to the beginning of the @code{X11FreeTypeFont} section for a description
+of Fontconfig descriptors.
+
+Again, as with all of the @mnm{selectFont*} methods, refer to the
+@code{X11FreeTypeFont : notifyLevel} method for a description of
+information and error message levels.  To return a string containing
+the font descriptor that the Freetype libraries derive from the
+selected font's pattern, refer to the @code{X11FreeTypeFont :
+selectedFont} method.
 
 @cindex @mnm{textHeight} instance method @idxclscite{X11FreeTypeFont}
 @item @mnm{textHeight} (@code{String} @var{text})
@@ -1850,17 +1934,27 @@ currently selected FreeType font.  If the Xft library is not available
 or not initialized, the method returns 0.
 
 @cindex @mnm{verbose} instance method @idxclscite{X11FreeTypeFont}
-@item @mnm{verbos} (@code{void})
-This is a shortcut for
+@item verbose
+Causes the Ctalk libraries to output verbose information about font
+selection and loading, like the complete font descriptor that the
+Freetype libraries derive from the currently selected font's pattern.
+Refer to the @code{X11FreeTypeFont : notifyLevel} method for more
+information about this class' notification levels..
+
+@cindex @mnm{verbosity} instance method @idxclscite{X11FreeTypeFont}
+@item @mnm{verbosity} (@code{void})
+Returns an @code{Integer} with the Xft libraries' reporting level.
+The possible values, which are defined in @flnm{ctalk/ctalkders.h},
+are:
 
 @example
 
-myFont notifyLevel XFT_NOTIFY_LOAD
+XFT_NOTIFY_NONE
+XFT_NOTIFY_ERRORS
+XFT_NOTIFY_LOAD
+XFT_NOTIFY_VERBOSE
 
 @end example
-
-Refer the the @code{X11FreeTypeFont : notifyLevel} method for
-more information.
 
 @end table
 
@@ -22887,6 +22981,16 @@ machines.
 Returns an @code{int} with the currently selected font's height
 in pixels above the baseline.
 
+@idxlibfn{__ctalkXftDescStr}
+@item __ctalkXftDescStr (@code{void})
+Returns a string with the font descriptor of the currently selected
+font that containing the attributes that the Ctalk Xft library uses:
+family, point size, slant, and weight.
+
+For the complete descriptor string that the Freetype library derives
+from the selected font's pattern, refer to the
+@cite{__ctalkXftSelectedFontDescriptor} function.
+
 @idxlibfn{__ctalkXftDescent}
 @item __ctalkXftAscent (@code{void})
 Returns an @code{int} with the currently selected font's height
@@ -22986,6 +23090,20 @@ Returns an @code{int} with the Xft library's minor version number.
 @item __ctalkXftQualifyFontName (@code{char *}@var{pattern})
 Return the qualified font name string for @var{pattern}.
 
+@idxlibfn{__ctalkXftRequestedFamily}
+@idxlibfn{__ctalkXftRequestedPointSize}
+@idxlibfn{__ctalkXftRequestedSlant}
+@idxlibfn{__ctalkXftRequestedWeigth}
+@idxlibfn{__ctalkXftRequestedDPI}
+@item __ctalkXftRequestedFamily (@code{void})
+@item __ctalkXftRequestedPointSize (@code{void})
+@item __ctalkXftRequestedSlant (@code{void})
+@item __ctalkXftRequestedWeight (@code{void})
+@item __ctalkXftRequestedDPI (@code{void})
+Returns the font attributes requested after parsing a Fontconfig
+string by @cite{__ctalkXftSelectFontFromFontConfig} and
+@cite{__ctalkXftSelectFontFromXLFD}.
+
 @idxlibfn{__ctalkXftRevision}
 @item __ctalkXftRevision (@code{void})
 Returns an @code{int} with the Xft library's revision number.
@@ -23001,8 +23119,11 @@ constants.
 XFT_NOTIFY_NONE
 XFT_NOTIFY_ERRORS
 XFT_NOTIFY_LOAD
+XFT_NOTIFY_VERBOSE
 
 @end example
+
+See also @cite{__ctalkXftVerbosity}.
 
 Note that programs should call this function before launching any
 processes.  Generally, this is before the program calls the
@@ -23066,8 +23187,8 @@ font families - the font libraries pick the closest match to the font
 metrics given in the XLFD, regardless of type style.
 
 Also, the outline font libraries use a single dpi metric for both the
-vertical and horizontal resolution, so only the @samp{resx} field of
-the XLFD is actually used.
+vertical and horizontal dot pitch of the display, so only the
+@samp{resx} field of the XLFD is actually used.
 
 @idxlibfn{__ctalkXftSetForeground}
 @item __ctalkXftSetForegrounc (@code{int} @var{red}, @code{int} @var{green}, @code{int} @var{blue}, @code{int} @var{alpha})
@@ -23082,6 +23203,22 @@ the named X11 color given as the argument.
 @idxlibfn{__ctalkXftSelectedFontDescriptor}
 @item __ctalkXftSelectedFontDescriptor (@code{void})
 Return the font descriptor of the selected font as a @code{char *}.
+
+@idxlibfn{__ctalkXftVerbosity}
+@item __ctalkXftVerbosity (void)
+Returns the current Xft message reporting level.  The values that
+are defined in @flnm{ctalk/ctalkdefs.h} are:
+
+@example
+
+XFT_NOTIFY_NONE
+XFT_NOTIFY_ERRORS
+XFT_NOTIFY_LOAD
+XFT_NOTIFY_VERBOSE
+
+@end example
+
+See also @cite{__ctalkXftShowFontLoad.}
 
 @idxlibfn{__ctalkXftVersion}
 @item __ctalkXftVersion (@code{void})

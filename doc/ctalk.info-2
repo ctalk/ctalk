@@ -17,6 +17,215 @@ Texts.  A copy of the license is included in the section entitled, "GNU
 Free Documentation License."
 
 
+File: ctalk.info,  Node: ANSIScrollingListBoxPane,  Next: ANSIScrollPane,  Prev: ANSIProgressBarPane,  Up: Classes
+
+'ANSIScrollingListBoxPane' Class
+--------------------------------
+
+An 'ANSIScrollingListBoxPane' object is similar to an 'ANSIListBoxPane';
+it displays a list of items in a text mode terminal or 'xterm' and
+allows the user to use the terminal's 'Cursor-Up'/'Cursor-Down' keys,
+Emacs compatible 'C-n'/'C-p' keys, or vi compatible 'j'/'k' keys to
+select an item in the list.
+
+Pressing 'Enter' or 'Escape' closes the widget.  An application can
+retrieve the selected item's text with the 'selectedText' method, which
+is described below.
+
+In addition, an 'ANSIScrollingListBoxPane' object can scroll the list if
+the number of items is greater than the height of the widget's viewable
+area, in order to keep the selected item visible.  The widget also
+displays a read-only scroll bar that indicates which portion of the list
+is visible.
+
+
+     int main () {
+       ANSIScrollingListBoxPane new sListBox;
+
+       sListBox enableExceptionTrace;
+
+       sListBox withShadow;
+       sListBox noBorder;    /* Not all terminals support line
+                                drawing characters.            */
+
+       sListBox appendLine "Item 1";
+       sListBox appendLine "Item 2";
+       sListBox appendLine "Item 3";
+       sListBox appendLine "Item 4";
+       sListBox appendLine "Item 5";
+       sListBox appendLine "Item 6";
+       sListBox appendLine "Item 7";
+       sListBox appendLine "Item 8";
+       sListBox appendLine "Item 9";
+       sListBox appendLine "Item 10";
+       sListBox appendLine "Item 11";
+       sListBox appendLine "Item 12";
+       sListBox appendLine "Item 13";
+       sListBox appendLine "Item 14";
+       sListBox appendLine "Item 15";
+       sListBox appendLine "Item 16";
+       sListBox appendLine "Item 17";
+       sListBox appendLine "Item 18";
+       sListBox appendLine "Item 19";
+       sListBox appendLine "Item 20";
+       sListBox appendLine "Item 21";
+       sListBox appendLine "Item 22";
+       sListBox appendLine "Item 23";
+       sListBox appendLine "Item 24";
+       sListBox appendLine "Item 25";
+       sListBox appendLine "Item 26";
+       sListBox appendLine "Item 27";
+       sListBox appendLine "Item 28";
+       sListBox appendLine "Item 29";
+       sListBox appendLine "Item 30";
+       sListBox appendLine "Item 31";
+       sListBox appendLine "Item 32";
+
+       sListBox show 5, 6;
+
+       printf ("%s\n", sListBox selectedText);
+
+       sListBox cleanup;
+     }
+
+
+Instance Variables
+------------------
+
+'items'
+     A 'List' of the items that the receiver displays.  *Note List::.
+
+'oldSelectedContent'
+     An 'ANSILabelPane' object that contains previously selected item.
+     *Note ANSILabelPane::.
+
+'prevSelectedLine'
+     An 'Integer' that contains the index of the previously selected
+     item.  *Note Integer::.
+
+'selectedContent'
+     An 'ANSIScrollPane' object that draws the widget's scroll bar.
+     *Note ANSIScrollPane::.
+
+'selectedContent'
+     An 'ANSILabelPane' object that contains selected item.  *Note
+     ANSILabelPane::.
+
+'selectedLine'
+     An 'Integer' that contains the index of the selected item.  *Note
+     Integer::.
+
+'totalLines'
+     An 'Integer' that contains total number of list items.  *Note
+     Integer::.
+
+'viewStartLine'
+     An 'Integer' that specifies which item begins the list's viewable
+     portion.  *Note Integer::.
+
+'viewHeight'
+     An 'Integer' that contains the height in text lines of the widget's
+     visible area.  *Note Integer::.
+
+'viewWidth'
+     An 'Integer' that contains the height in character columns of the
+     widget's visible area.  *Note Integer::.
+
+Instance Methods
+................
+
+'appendLine (String ITEM_TEXT)'
+     Adds ITEM_TEXT to the list's contents.
+
+'cleanup (void)'
+     Deletes the display buffers associated with the list box and scroll
+     bar.
+
+'handleInput (void)'
+     Waits for the user's input.  Changes the selected item when the
+     user cursors through the list using the terminal's cursor keys,
+     Emacs compatible 'C-n'/'C-p', or vi compatible 'j'/'k'.  Restores
+     the terminal and returns when the user presses 'Enter' or 'Escape'.
+
+'noBorder (void)'
+'withBorder (void)'
+     Set or unset the border for the main scroll pane and the scroll
+     bar.  These methods are equivalent to the following expressions.
+
+
+            /* To display borders. */
+            listPane border = 1;
+            listPane scrollBar border = 1;
+
+            /* To hide the borders. */
+            listPane border = 0;
+            listPane scrollBar border = 0;
+
+
+     Note that not all terninals support line drawing characters.
+
+'noBorder (void)'
+'withBorder (void)'
+     Set or unset the shadow for the main scroll pane and the scroll
+     bar.  The methods are a shortcut for these statements.
+
+
+            /* To display shadows. */
+            listPane shadow = 1;
+            listPane scrollBar shadow = 1;
+
+            /* To hide the shadows. */
+            listPane shadow = 0;
+            listPane scrollBar shadow = 0;
+
+
+'new (String OBJECT_NAME)'
+     Constructs a new 'ANSIScrollingListBoxPane' for each label given in
+     the argument list.  Sets the dimensions for the viewable areas,
+     decorations, and creates the display buffers for the list box and
+     the scroll bar.
+
+'refresh (void)'
+     Redraws the list box.
+
+'refreshSelection (void)'
+     Un-highlights the previously selected item and highlights the
+     currently selected item.
+
+'refreshSelectionFirst (void)'
+     Highlights the currently selected item, which is normally the first
+     item in the list when first drawing the widget-i.e., when there is
+     no previously selected item.
+
+'scrollThumbSize (void)'
+     Sets the 'scrollBar' instance variable's 'thumbHeight' instance
+     variable based on which portion of the list is visible.  *Note
+     ANSIScrollPane::.
+
+'scrollThumbStart (void)'
+     Sets the 'scrollBar' instance variable's 'thumbStartLine' instance
+     variable based on which portion of the list is visible.  *Note
+     ANSIScrollPane::.
+
+'selectedText (void)'
+     Returns a 'String' containing the text of the selected item.  *Note
+     String::.
+
+'selectNext (void)'
+     Sets the next 'selectedLine' and 'selectedContent' instance
+     variables to the next item in the list.  If the selected item is
+     already the last item in the list, the method does nothing.
+
+'selectPrev (void)'
+     Sets the next 'selectedLine' and 'selectedContent' instance
+     variables to the previous item in the list.  If the selected item
+     is already the first item in the list, the method does nothing.
+
+'show (Integer X, Integer Y)'
+     Displays the widget an character row and column X,Y on the terminal
+     display, then calls the 'handleInput' method to process user input.
+
+
 File: ctalk.info,  Node: ANSIScrollPane,  Next: ANSITextBoxPane,  Prev: ANSIScrollingListBoxPane,  Up: Classes
 
 'ANSIScrollPane' Class
@@ -9733,6 +9942,15 @@ functions.
      Returns an 'int' with the currently selected font's height in
      pixels above the baseline.
 
+'__ctalkXftDescStr (void)'
+     Returns a string with the font descriptor of the currently selected
+     font that containing the attributes that the Ctalk Xft library
+     uses: family, point size, slant, and weight.
+
+     For the complete descriptor string that the Freetype library
+     derives from the selected font's pattern, refer to the
+     '__ctalkXftSelectedFontDescriptor' function.
+
 '__ctalkXftAscent (void)'
      Returns an 'int' with the currently selected font's height in
      pixels below the baseline.
@@ -9808,6 +10026,15 @@ functions.
 '__ctalkXftQualifyFontName (char *PATTERN)'
      Return the qualified font name string for PATTERN.
 
+'__ctalkXftRequestedFamily (void)'
+'__ctalkXftRequestedPointSize (void)'
+'__ctalkXftRequestedSlant (void)'
+'__ctalkXftRequestedWeight (void)'
+'__ctalkXftRequestedDPI (void)'
+     Returns the font attributes requested after parsing a Fontconfig
+     string by '__ctalkXftSelectFontFromFontConfig' and
+     '__ctalkXftSelectFontFromXLFD'.
+
 '__ctalkXftRevision (void)'
      Returns an 'int' with the Xft library's revision number.
 
@@ -9820,7 +10047,10 @@ functions.
           XFT_NOTIFY_NONE
           XFT_NOTIFY_ERRORS
           XFT_NOTIFY_LOAD
+          XFT_NOTIFY_VERBOSE
 
+
+     See also '__ctalkXftVerbosity'.
 
      Note that programs should call this function before launching any
      processes.  Generally, this is before the program calls the
@@ -9872,8 +10102,8 @@ functions.
      to the font metrics given in the XLFD, regardless of type style.
 
      Also, the outline font libraries use a single dpi metric for both
-     the vertical and horizontal resolution, so only the 'resx' field of
-     the XLFD is actually used.
+     the vertical and horizontal dot pitch of the display, so only the
+     'resx' field of the XLFD is actually used.
 
 '__ctalkXftSetForegrounc (int RED, int GREEN, int BLUE, int ALPHA)'
      Sets the red, green, blue, and alpha values for the selected font.
@@ -9885,6 +10115,19 @@ functions.
 
 '__ctalkXftSelectedFontDescriptor (void)'
      Return the font descriptor of the selected font as a 'char *'.
+
+'__ctalkXftVerbosity (void)'
+     Returns the current Xft message reporting level.  The values that
+     are defined in 'ctalk/ctalkdefs.h' are:
+
+
+          XFT_NOTIFY_NONE
+          XFT_NOTIFY_ERRORS
+          XFT_NOTIFY_LOAD
+          XFT_NOTIFY_VERBOSE
+
+
+     See also '__ctalkXftShowFontLoad.'
 
 '__ctalkXftVersion (void)'
      Returns an 'int' with the Xft library's version number, which is

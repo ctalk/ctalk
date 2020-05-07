@@ -1,4 +1,4 @@
-/* $Id: ctalklib.in,v 1.85 2020/05/05 20:21:56 rkiesling Exp $ -*-c-*-*/
+/* $Id: ctalklib.in,v 1.90 2020/05/07 15:53:18 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -1265,6 +1265,7 @@ extern void __warning_trace (void);
 extern void *__xalloc (int);
 extern void __xfree(void **);
 extern void *__xrealloc (void **, int);
+extern char *__ctalkXftDescStr (void);
 extern char *__ctalkXftQualifyFontName (char *);
 extern char *__ctalkXftListFontsFirst (char *);
 extern char *__ctalkXftListFontsNext (void);
@@ -1272,12 +1273,18 @@ extern void __ctalkXftListFontsEnd (void);
 extern int __ctalkXftMajorVersion (void);
 extern int __ctalkXftMinorVersion (void);
 extern void __ctalkXftShowFontLoad (int);
+extern int __ctalkXftVerbosity (void);
 extern int __ctalkXftVersion (void);
 extern int __ctalkXftRevision (void);
 extern int __ctalkXftInitLib (void);
 extern int __ctalkXftInitialized (void);
 extern char *__ctalkXftSelectedFontDescriptor (void);
 extern int __ctalkXftGetStringDimensions (char *, int *, int *, int *, int *);
+extern char *__ctalkXftRequestedFamily (void);
+extern int __ctalkXftRequestedPointSize (void);
+extern int __ctalkXftRequestedSlant (void);
+extern int __ctalkXftRequestedWeight (void);
+extern int __ctalkXftRequestedDPI (void);
 extern void __ctalkXftSelectFont (char *, int, int, int, double);
 extern void __ctalkXftSelectFontFromXLFD (char *);
 extern void __ctalkXftSelectFontFromFontConfig (char *);

@@ -720,3 +720,16 @@
 	(guidrawrectangle.c).
 	- Updated X11ScrollBarPane : refresh to use a fill color when
 	drawing	a beveled thumb.
+2020-05-06
+	- Added the XllFreeTypeFont methods, loadNotify, verbose, and quiet.
+	Also added the __ctalkXftVerbosity library function (xftlib.c).
+	- Added the X11FreeTypeFont : currentDescParamStr method, and also
+	the __ctalkXftDescStr library function, and the XFT_NOTIFY_VERBOSE
+	message level.
+2020-05-07
+	- Added __ctalkXftRequestedFamily, __ctalkXftRequestedPointSize,
+	__ctalkXftRequestedSlant, __ctalkXftRequestedWeight, __ctalkXftRequestedDPI
+	to xftlib.c, which return global variables that
+	__ctalkXftSelectFontFromFontConfig sets. Also added the X11FreeTypeFont :
+	__loadInfo method for internal use by the font loading methods.
+

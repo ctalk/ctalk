@@ -1,4 +1,4 @@
-/* $Id: ctalk.h,v 1.104 2020/05/05 20:21:57 rkiesling Exp $ -*-Fundamental-*- */
+/* $Id: ctalk.h,v 1.108 2020/05/07 15:53:19 rkiesling Exp $ -*-Fundamental-*- */
 
 /*
   This file is part of Ctalk.
@@ -2694,6 +2694,13 @@ int load_ft_font_faces_internal (char *, double,
 				 unsigned short int,
                                  unsigned short int);
 void __ctalkXftShowFontLoad (int lvl);
+int __ctalkXftVerbosity (void);
+char *__ctalkXftDescStr (void);
+char *__ctalkXftRequestedFamily (void);
+int __ctalkXftRequestedPointSize (void);
+int __ctalkXftRequestedSlant (void);
+int __ctalkXftRequestedWeight (void);
+int __ctalkXftRequestedDPI (void);
 
 
 /* lib/x11ksym.c */

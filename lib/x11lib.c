@@ -1,4 +1,4 @@
-/* $Id: x11lib.c,v 1.148 2020/04/30 00:29:16 rkiesling Exp $ -*-c-*-*/
+/* $Id: x11lib.c,v 1.150 2020/05/06 18:20:33 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -1756,6 +1756,7 @@ static Display *__x11_open_display (void) {
     wm_xfce = is_wm_xfce (display);
     wm_kwin = is_kwin_desktop (display);
     wm_xquartz = is_wm_xquartz ();
+
     return display;
   }
   return NULL;

@@ -2237,6 +2237,15 @@ machines.
 Returns an int with the currently selected font's height
 in pixels above the baseline.
 
+>>>__ctalkXftDescStr (void)
+Returns a string with the font descriptor of the currently selected
+font that containing the attributes that the Ctalk Xft library uses:
+family, point size, slant, and weight.
+
+For the complete descriptor string that the Freetype library derives
+from the selected font's pattern, refer to the
+__ctalkXftSelectedFontDescriptor function.
+
 >>>__ctalkXftAscent (void)
 Returns an int with the currently selected font's height
 in pixels below the baseline.
@@ -2307,6 +2316,11 @@ Returns an int with the Xft library's minor version number.
 >>>__ctalkXftQualifyFontName (char *pattern)
 Return the qualified font name string for pattern.
 
+>>>__ctalkXftRequestedFamily (void):__ctalkXftRequestedPointSize (void):__ctalkXftRequestedSlant (void):__ctalkXftRequestedWeight (void):__ctalkXftRequestedDPI (void)
+Returns the font attributes requested after parsing a Fontconfig
+string by __ctalkXftSelectFontFromFontConfig and
+__ctalkXftSelectFontFromXLFD.
+
 >>>__ctalkXftRevision (void)
 Returns an int with the Xft library's revision number.
 
@@ -2320,8 +2334,11 @@ constants.
 XFT_NOTIFY_NONE
 XFT_NOTIFY_ERRORS
 XFT_NOTIFY_LOAD
+XFT_NOTIFY_VERBOSE
 
 ---------------------------------------------------------
+
+See also __ctalkXftVerbosity.
 
 Note that programs should call this function before launching any
 processes.  Generally, this is before the program calls the
@@ -2377,8 +2394,8 @@ font families - the font libraries pick the closest match to the font
 metrics given in the XLFD, regardless of type style.
 
 Also, the outline font libraries use a single dpi metric for both the
-vertical and horizontal resolution, so only the resx field of
-the XLFD is actually used.
+vertical and horizontal dot pitch of the display, so only the
+resx field of the XLFD is actually used.
 
 >>>__ctalkXftSetForegrounc (int red, int green, int blue, int alpha)
 Sets the red, green, blue, and alpha values for the selected font.  The
@@ -2390,6 +2407,21 @@ the named X11 color given as the argument.
 
 >>>__ctalkXftSelectedFontDescriptor (void)
 Return the font descriptor of the selected font as a char *.
+
+>>>__ctalkXftVerbosity (void)
+Returns the current Xft message reporting level.  The values that
+are defined in ctalk/ctalkdefs.h are:
+
+---------------------------------------------------------
+
+XFT_NOTIFY_NONE
+XFT_NOTIFY_ERRORS
+XFT_NOTIFY_LOAD
+XFT_NOTIFY_VERBOSE
+
+---------------------------------------------------------
+
+See also __ctalkXftShowFontLoad.
 
 >>>__ctalkXftVersion (void)
 Returns an int with the Xft library's version number,

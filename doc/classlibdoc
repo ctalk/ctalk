@@ -663,6 +663,15 @@ Set the current Xft font's foreground blue channel.  The argument
 value must be an unsigned short int; i.e., in the
 range 0 - 65535 (0xffff hex).
 
+>>>X11FreeTypeFont::currentDescStr (void)
+Returns a String containing a font descriptor for the currently
+selected font.  The descriptor contains the attributes that the Ctalk
+libraries use to select fonts: family, point size, slant, and weight.
+
+For the complete descriptor that the Freetype library derives from the
+selected font's pattern, refer to the @code{X11FreeTypeFont :
+selectedFont} method.
+
 >>>X11FreeTypeFont::errors (void)
 This is a shortcut for
 
@@ -698,6 +707,26 @@ List the font descriptors in the FreeType library that contain pattern.
 If pattern is an empty string '""' or a '*', match
 every font descriptor.
 
+>>>X11FreeTypeFont::loadNotify (void)
+This is a shortcut for
+
+---------------------------------------------------------
+  
+  myFont notifyLevel XFT_NOTIFY_LOAD
+  
+---------------------------------------------------------
+
+This causes methods like selectFont to display the family
+and size given to them, and a brief font descriptor that contains
+the font parameters that Ctalk uses to select fonts: family, point
+size, slant, and weight.
+
+The X11FreeTypeFont : notifyLevel method for more information.
+about information and error message levels.  To return a string
+containing the font descriptor that the Freetype libraries derive from
+the selected font's pattern, refer to the @code{X11FreeTypeFont :
+selectedFont} method.
+
 >>>X11FreeTypeFont::namedX11Color (String colorName)
 Sets the selected font's red, green, and blue values from the
 X11 color name given as the argument.
@@ -715,8 +744,30 @@ defines the following constants in /ctalk/ctalkdefs.h.
   XFT_NOTIFY_NONE
   XFT_NOTIFY_ERRORS
   XFT_NOTIFY_LOAD
+  XFT_NOTIFY_VERBOSE
   
 ---------------------------------------------------------
+
+These definitions produce the following information and warning
+messages.
+
+  
+>>>X11FreeTypeFont::XFT_NOTIFY_NONE
+  The font libraries produce no output when the program is run.
+>>>X11FreeTypeFont::XFT_NOTIFY_ERRORS
+  The font libraries display a warning if the library's selected font
+  does not match the user or appication defined font specification.
+>>>X11FreeTypeFont::XFT_NOTIFY_LOAD
+  The font library displays a message containing information about
+  the requested font, and a brief font descriptor that contains the
+  attributes that the Ctalk libraries use to select fonts: family,
+  point size, slant, and weight.
+>>>X11FreeTypeFont::XFT_NOTIFY_VERBOSE
+  The font library displays a message that contains information
+  about the requested font, and the complete font descriptor that
+  the font libraries derive from the selected font's patterm.
+  
+
 
 Note: programs should call this method before launching any processes.
 Generally this is before the X11Pane : openInputStream method.
@@ -726,6 +777,11 @@ called from.
 >>>X11FreeTypeFont::qualifyName (String xftpattern)
 Returns a fully qualified String containing a fully qualified
 Xft font descriptor that matches xftpattern.
+
+>>>X11FreeTypeFont::quiet (void)
+Sets the font libraries' reporting level to XFT_NOTIFY_NONE.  For a
+description of the libraries' notification levels, refer to the
+notifyLevel method.
 
 >>>X11FreeTypeFont::red (Integer value)
 Set the current Xft font's foreground red channel.  The argument
@@ -805,17 +861,26 @@ Return an Integer with the width in pixels of text in the
 currently selected FreeType font.  If the Xft library is not available
 or not initialized, the method returns 0.
 
->>>X11FreeTypeFont::verbos (void)
-This is a shortcut for
+>>>X11FreeTypeFont::verbose
+Causes the Ctalk libraries to output verbose information about font
+selection and loading, like the complete font descriptor that the
+Freetype libraries derive from the currently selected font's pattern.
+Refer to the X11FreeTypeFont : notifyLevel method for more
+information about this class' notification levels..
+
+>>>X11FreeTypeFont::verbosity (void)
+Returns an Integer with the Xft libraries' reporting level.
+The possible values, which are defined in ctalk/ctalkders.h,
+are:
 
 ---------------------------------------------------------
   
-  myFont notifyLevel XFT_NOTIFY_LOAD
+  XFT_NOTIFY_NONE
+  XFT_NOTIFY_ERRORS
+  XFT_NOTIFY_LOAD
+  XFT_NOTIFY_VERBOSE
   
 ---------------------------------------------------------
-
-Refer the the X11FreeTypeFont : notifyLevel method for
-more information.
 
 
 >>>X11Bitmap::background (String color)

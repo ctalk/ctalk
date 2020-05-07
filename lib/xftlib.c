@@ -1,4 +1,4 @@
-/* $Id: xftlib.c,v 1.23 2020/04/18 21:50:43 rkiesling Exp $ -*-c-*-*/
+/* $Id: xftlib.c,v 1.31 2020/05/07 15:53:19 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -232,6 +232,32 @@ static char *fmt_fc_desc_str (FcPattern *pat) {
   }
   for (i = 0; fc_width[i].name[0]; ++i) {
     if (fc_width[i].value == actual_width) {
+      strcatx2 (s, ":width=", fc_width[i].name, NULL);
+      break;
+    }
+  }
+  return s;
+}
+
+char *__ctalkXftDescStr (void) {
+  int i;
+  static char s[MAXMSG];
+
+  sprintf (s, "%s-%d", selected_family, (int)selected_pt_size);
+  for (i = 0; fc_slant[i].name[0]; ++i) {
+    if (fc_slant[i].value == selected_slant) {
+      strcatx2 (s, ":slant=", fc_slant[i].name, NULL);
+      break;
+    }
+  }
+  for (i = 0; fc_weight[i].name[0]; ++i) {
+    if (fc_weight[i].value == selected_weight) {
+      strcatx2 (s, ":weight=", fc_weight[i].name, NULL);
+      break;
+    }
+  }
+  for (i = 0; fc_width[i].name[0]; ++i) {
+    if (fc_width[i].value == selected_width) {
       strcatx2 (s, ":width=", fc_width[i].name, NULL);
       break;
     }
@@ -507,6 +533,10 @@ void __ctalkXftShowFontLoad (int lvl) {
   xft_message_level = lvl;
 }
 
+int __ctalkXftVerbosity (void) {
+  return xft_message_level;
+}
+
 void XFT_CONFIG_init (void) {
   char *xftenv = NULL;
   char *homedir = NULL;
@@ -740,10 +770,19 @@ void __ctalkXftSelectFont (char *family, int slant, int weight, int dpi,
 int __ctalkMatchText (char *, char *, long long int*);
 char *__ctalkMatchAt (int);
 
+static char req_family[MAXLABEL] = "";
+static int req_pt_size = 0;
+static int req_slant = 0;
+static int req_weight = 0;
+static int req_dpi = 0;
+static int req_width = 0;
+
 void __ctalkXftSelectFontFromXLFD (char *xlfd) {
-  int n, ptsize, dpi_x, dpi_y, weight_def, slant_def;
+  /***/
+  int n, /* ptsize, dpi_x,*/ dpi_y; /* weight_def, slant_def; */
   long long int offsets[0xff];
-  char family[MAXLABEL], weight[MAXLABEL], slant,
+  /***/
+  char /* family[MAXLABEL],*/ weight[MAXLABEL], slant,
     ptsizestr[64], dpi_x_str[64], dpi_y_str[64],
     *r, *p, *q;
   /* we can't create a regex to match a XFLD (with optional *'s for
@@ -754,8 +793,10 @@ void __ctalkXftSelectFontFromXLFD (char *xlfd) {
     if ((r = strchr (r, '-')) != NULL) {
       ++r;
       if ((q = strchr (r, '-')) != NULL) {
-	memset (family, 0, MAXLABEL);
-	strncpy (family, r, q - r);
+	/* memset (family, 0, MAXLABEL);
+	   strncpy (family, r, q - r); *//***/
+	memset (req_family, 0, MAXLABEL);
+	strncpy (req_family, r, q - r);
 	r = q + 1;
 	if ((q = strchr (r, '-')) != NULL) {
 	  memset (weight, 0, MAXLABEL);
@@ -770,12 +811,14 @@ void __ctalkXftSelectFontFromXLFD (char *xlfd) {
 	      if ((q = strchr (r, '-')) != NULL) {
 		memset (ptsizestr, 0, 64);
 		strncpy (ptsizestr, r, q - r);
-		ptsize = atoi (ptsizestr);
+		/* ptsize = atoi (ptsizestr); *//***/
+		req_pt_size = atoi (ptsizestr);
 		r = q + 1;
 		if ((q = strchr (r, '-')) != NULL) {
 		  memset (dpi_x_str, 0, 64);
 		  strncpy (dpi_x_str, r, q - r);
-		  dpi_x = atoi (dpi_x_str);
+		  /* dpi_x = atoi (dpi_x_str); *//***/
+		  req_dpi = atoi (dpi_x_str);
 		  r = q + 1;
 		  if ((q = strchr (r, '-')) != NULL) {
 		    memset (dpi_y_str, 0, 64);
@@ -792,19 +835,21 @@ void __ctalkXftSelectFontFromXLFD (char *xlfd) {
   }
 
   if (!strcmp (weight, "bold")) {
-    weight_def = XFT_WEIGHT_BOLD;
+    req_weight = XFT_WEIGHT_BOLD;
   } else if (!strcmp (weight, "demibold")) {
-    weight_def = XFT_WEIGHT_DEMIBOLD;
+    req_weight = XFT_WEIGHT_DEMIBOLD;
   } else if (!strcmp (weight, "medium")) {
-    weight_def = XFT_WEIGHT_MEDIUM;
+    req_weight = XFT_WEIGHT_MEDIUM;
   }
   switch (slant)
     {
-    case 'r': slant_def = XFT_SLANT_ROMAN; break;
-    case 'i': slant_def = XFT_SLANT_ITALIC; break;
-    case 'o': slant_def = XFT_SLANT_OBLIQUE; break;
+    case 'r': req_slant = XFT_SLANT_ROMAN; break;
+    case 'i': req_slant = XFT_SLANT_ITALIC; break;
+    case 'o': req_slant = XFT_SLANT_OBLIQUE; break;
     }
-  __select_font (family, slant_def, weight_def, dpi_x, (double)ptsize);
+  /***/
+  /* __select_font (family, slant_def, weight_def, dpi_x, (double)ptsize); */
+  __select_font (req_family, req_slant, req_weight, req_dpi, (double)req_pt_size);
 }
 
 #include <object.h>
@@ -961,23 +1006,55 @@ static bool last_family_hyphen (MESSAGE_STACK messages, int idx,
   return true;
 }
 
+char *__ctalkXftRequestedFamily (void) {
+  return req_family;
+}
+
+int __ctalkXftRequestedPointSize (void) {
+  return req_pt_size;
+}
+
+int __ctalkXftRequestedSlant (void) {
+  return req_slant;
+}
+
+int __ctalkXftRequestedWeight (void) {
+  return req_weight;
+}
+
+int __ctalkXftRequestedDPI (void) {
+  return req_dpi;
+}
+
 
 void __ctalkXftSelectFontFromFontConfig (char *font_config_str) {
+#if 0 /***/
   int n, ptsize, dpi_x, dpi_y, weight_def, slant_def,
     stack_end, i, lookahead, lookahead2, lookahead3,
     spacing_def, j, width_def;
+#endif
+  int i, n, stack_end_i, lookahead, lookahead2, lookahead3,
+    spacing_def, j, stack_end;
   long long int offsets[0xff];
   char family[MAXLABEL], weight[MAXLABEL], slant,
     ptsizestr[64], dpi_x_str[64], dpi_y_str[64],
     *r, *p, *q;
   MESSAGE *m_prop;
 
+  *req_family = '\0';
+  req_pt_size = 0.0f;
+  req_slant = 0;
+  req_weight = 0;
+  req_dpi = 0;
+
+#if 0 /***/
   ptsize = -1.0;
   dpi_x = dpi_y = -1;
   weight_def = -1;
   slant_def = -1;
   spacing_def = -1;
   width_def = -1;
+#endif  
 
   if (!font_config_str || *font_config_str == 0)
     return;
@@ -998,11 +1075,13 @@ void __ctalkXftSelectFontFromFontConfig (char *font_config_str) {
   if (i > stack_end) {
     if (M_TOK(fc_messages[i]) == MINUS) {
       i = next_fc_message (fc_messages, i, stack_end);
-      ptsize = atoi (M_NAME(fc_messages[i]));
+      /* ptsize = atoi (M_NAME(fc_messages[i])); *//***/
+      req_pt_size = atoi (M_NAME(fc_messages[i]));
       i = next_fc_message (fc_messages, i, stack_end);
     }
   } else {
-    ptsize = 12;
+    /*  ptsize = 12; *//***/
+    req_pt_size = 12;
     goto fontconfig_parse_done;
   }
 
@@ -1012,8 +1091,8 @@ void __ctalkXftSelectFontFromFontConfig (char *font_config_str) {
     goto fontconfig_parse_done;
 
   if (i == stack_end) {
-    if (single_fc_value (fc_messages, i, &slant_def, &weight_def,
-			 &width_def, &spacing_def) < 0)
+    if (single_fc_value (fc_messages, i, &req_slant, &req_weight,
+			 &req_width, &spacing_def) < 0)
       printf ("ctalk: Badly formed fontconfig string: %s.\n",
 	      font_config_str);
     goto fontconfig_parse_done;
@@ -1037,7 +1116,8 @@ void __ctalkXftSelectFontFromFontConfig (char *font_config_str) {
 	    for (j = 0; *fc_slant[j].name; j++) {
 	      if (str_eq (M_NAME(fc_messages[lookahead2]),
 			  fc_slant[j].name)) {
-		slant_def = fc_slant[j].value;
+		/* slant_def = fc_slant[j].value; *//***/
+		req_slant = fc_slant[j].value;
 		goto fc_param_done;
 	      }
 	    }
@@ -1048,7 +1128,8 @@ void __ctalkXftSelectFontFromFontConfig (char *font_config_str) {
 	    for (j = 0; *fc_weight[j].name; j++) {
 	      if (str_eq (M_NAME(fc_messages[lookahead2]),
 			  fc_weight[j].name)) {
-		weight_def = fc_weight[j].value;
+		/* weight_def = fc_weight[j].value; *//***/
+		req_weight = fc_weight[j].value;
 		goto fc_param_done;
 	      }
 	    }
@@ -1059,7 +1140,8 @@ void __ctalkXftSelectFontFromFontConfig (char *font_config_str) {
 	    for (j = 0; *fc_width[j].name; j++) {
 	      if (str_eq (M_NAME(fc_messages[lookahead2]),
 			  fc_width[j].name)) {
-		width_def = fc_width[j].value;
+		/* width_def = fc_width[j].value; *//***/
+		req_width = fc_width[j].value;
 		goto fc_param_done;
 	      }
 	    }
@@ -1072,7 +1154,8 @@ void __ctalkXftSelectFontFromFontConfig (char *font_config_str) {
 	  } else if (str_eq (M_NAME(m_prop), "spacing")) {
 	    for (j = 0; *fc_spacing[j].name; j++) {
 	      if (str_eq (M_NAME(fc_messages[lookahead2]), fc_slant[j].name)) {
-		weight_def = fc_spacing[j].value;
+		/* weight_def = fc_spacing[j].value; *//***/
+		req_weight = fc_spacing[j].value;
 		goto fc_param_done;
 	      }
 	    }
@@ -1085,25 +1168,29 @@ void __ctalkXftSelectFontFromFontConfig (char *font_config_str) {
 	    */
 	    for (j = 0; *fc_slant[j].name; j++) {
 	      if (str_eq (M_NAME(m_prop), fc_slant[j].name)) {
-		slant_def = fc_slant[j].value;
+		/* slant_def = fc_slant[j].value; *//***/
+		req_slant = fc_slant[j].value;
 		goto fc_param_done;
 	      }
 	    }
 	    for (j = 0; *fc_weight[j].name; j++) {
 	      if (str_eq (M_NAME(m_prop), fc_weight[j].name)) {
-		weight_def = fc_weight[j].value;
+		/* weight_def = fc_weight[j].value; *//***/
+		req_weight = fc_weight[j].value;
 		goto fc_param_done;
 	      }
 	    }
 	    for (j = 0; *fc_width[j].name; j++) {
 	      if (str_eq (M_NAME(m_prop), fc_width[j].name)) {
-		width_def = fc_width[j].value;
+		/* width_def = fc_width[j].value; *//***/
+		req_width = fc_width[j].value;
 		goto fc_param_done;
 	      }
 	    }
 	    for (j = 0; *fc_spacing[j].name; j++) {
 	      if (str_eq (M_NAME(m_prop), fc_slant[j].name)) {
-		weight_def = fc_spacing[j].value;
+		/* weight_def = fc_spacing[j].value; *//***/
+		req_weight = fc_spacing[j].value;
 		goto fc_param_done;
 	      }
 	    }
@@ -1124,8 +1211,8 @@ void __ctalkXftSelectFontFromFontConfig (char *font_config_str) {
     }
 
     if (i == stack_end) {
-      if (single_fc_value (fc_messages, i, &slant_def, &weight_def,
-			   &width_def, &spacing_def) < 0)
+      if (single_fc_value (fc_messages, i, &req_slant, &req_weight,
+			   &req_width, &spacing_def) < 0)
 	printf ("ctalk: Badly formed fontconfig string: %s.\n",
 		font_config_str);
       goto fontconfig_parse_done;
@@ -1137,8 +1224,8 @@ void __ctalkXftSelectFontFromFontConfig (char *font_config_str) {
   for (i = stack_end; i <= P_MESSAGES; i++)
     delete_message (fc_message_pop ());
 
-  __select_font_fc (family, slant_def, weight_def, dpi_x, (double)ptsize,
-		    spacing_def, width_def);
+  __select_font_fc (family, req_slant, req_weight, req_dpi, (double)req_pt_size,
+		    spacing_def, req_width);
 }
 
 char *__ctalkXftSelectedFontDescriptor (void) {
@@ -1749,5 +1836,35 @@ int __ctalkXftHeight (void) {
 
 void __ctalkXftShowFontLoad (int lvl) {
   xft_support_error ();
+}
+int __ctalkXftVerbosity (void) {
+  xft_support_error ();
+  return 0;
+}
+char *__ctalkXftDescStr (void) {
+  xft_support_error ();
+  return NULL;
+}
+char *__ctalkXftRequestedFamily (void) {
+  xft_support_error ();
+  return NULL;
+}
+
+int __ctalkXftRequestedPointSize (void) {
+  xft_support_error ();
+  return 0;
+}
+
+int __ctalkXftRequestedSlant (void) {
+  xft_support_error ();
+  return 0;
+}
+int __ctalkXftRequestedWeight (void) {
+  xft_support_error ();
+  return 0;
+}
+int __ctalkXftRequestedDPI (void) {
+  xft_support_error ();
+  return 0;
 }
 #endif /* ! defined (DJGPP) && ! defined (WITHOUT_X11) */ 

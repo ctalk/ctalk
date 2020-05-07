@@ -1,4 +1,4 @@
-/* $Id: X11ScrollBarPane,v 1.49 2020/05/06 00:46:26 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11ScrollBarPane,v 1.50 2020/05/06 17:05:12 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -105,7 +105,8 @@ X11ScrollBarPane instanceMethod makeThumb (void) {
   if (self bevel) {
     self thumbPix create self displayPtr, self xWindowID,
       THUMBPIXMAPWIDTH, self displayHeight, self depth;
-    self thumbPix background self thumbBackgroundColor;
+    /* self thumbPix background self thumbBackgroundColor; *//***/
+    self thumbPix background "blue";
     self thumbPix clear;
   }
 
