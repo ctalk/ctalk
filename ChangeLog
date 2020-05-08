@@ -732,4 +732,10 @@
 	to xftlib.c, which return global variables that
 	__ctalkXftSelectFontFromFontConfig sets. Also added the X11FreeTypeFont :
 	__loadInfo method for internal use by the font loading methods.
+	- In fmt_c_to_obj_call, add a handler for a char * return type
+	(ctoobj.c). In method_args, added a handler for an arg_c_fn_expr
+	argument class (method.c).
+2020-05-07
+	- Updated X11FreeTypeFont : selectFontFromFontConfig to use the
+	5-argument form of __loadInfo.
 

@@ -1,4 +1,4 @@
-/* $Id: ctoobj.c,v 1.4 2020/03/19 02:52:57 rkiesling Exp $ */
+/* $Id: ctoobj.c,v 1.5 2020/05/07 22:48:56 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -218,6 +218,14 @@ char *fmt_c_to_obj_call (MESSAGE_STACK messages, int fn_ptr,
 	case 0:
 	  strcatx (buf_out, "__ctalkCIntToObj (",
 		   arg_object -> __o_name, ")", NULL);
+	  break;
+	case 1: /***/
+	  /* This should have a clause of its own above if
+	     it gets any more complicated. */
+	  if (fn_cfunc -> return_type_attrs & CVAR_TYPE_CHAR) {
+	    strcatx (buf_out, "__ctalkCCharPtrToObj (",
+		     arg_object -> __o_name, ")", NULL);
+	  }
 	  break;
 	default:
 	  /* nothing should be needed for pointers */

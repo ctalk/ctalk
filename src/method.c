@@ -1,4 +1,4 @@
-/* $Id: method.c,v 1.7 2020/04/23 00:00:09 rkiesling Exp $ */
+/* $Id: method.c,v 1.8 2020/05/07 22:48:56 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -1553,6 +1553,20 @@ int method_args (METHOD *method, int method_msg_ptr) {
 		 method, 
 		 r_expr_object,
 		 frame_at (CURRENT_PARSER -> frame) -> message_frame_top);
+	    } else if (arg_class == arg_c_fn_expr) { /***/
+	      char translatebuf[MAXMSG];
+	      fmt_c_to_obj_call (message_stack (),
+				 argstrs[i].start_idx,
+				 rcvr_class_obj, method,
+				 arg_obj, translatebuf,
+				 &argstrs[i]);
+	      __xfree (MEMADDR(argstrs[i].arg));
+	      argstrs[i].arg = strdup (translatebuf);
+	      generate_c_expr_store_arg_call
+		(m_method -> receiver_obj,
+		 method, arg_obj,
+		 M_NAME(message_stack_at (argstrs[i].start_idx)),
+		 FRAME_START_IDX, &argstrs[i]);
 	    } else {
 	      warning (message_stack_at(argstrs[i].start_idx),
 		       "Function %s used as method argument without template.",
