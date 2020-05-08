@@ -14181,7 +14181,7 @@ if test -z $LIB_FREETYPE_INCLUDE_ARG >/dev/null 2>&1; then
       if test "x$no_x" = "x"; then
         have_xft="yes"
         LIB_FREETYPE_INCLUDE_ARG="/usr/local"
-        lib_freetype_ld_opts="-lXft -lfontconfig"
+        lib_freetype_ld_opts="-lXft -lfreetype -lfontconfig"
       else
         LIB_FREETYPE_INCLUDE_ARG="no"
         lib_freetype_ld_opts=""
@@ -14190,7 +14190,7 @@ if test -z $LIB_FREETYPE_INCLUDE_ARG >/dev/null 2>&1; then
       if test "x$no_x" = "x"; then
         have_xft="yes"
         LIB_FREETYPE_INCLUDE_ARG="/usr"
-        lib_freetype_ld_opts="-lXft -lfontconfig"
+        lib_freetype_ld_opts="-lXft -lfreetype -lfontconfig"
       else
         LIB_FREETYPE_INCLUDE_ARG="no"
         lib_freetype_ld_opts=""
@@ -14270,7 +14270,7 @@ fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_Xft_XftDrawCreate" >&5
 $as_echo "$ac_cv_lib_Xft_XftDrawCreate" >&6; }
 if test "x$ac_cv_lib_Xft_XftDrawCreate" = xyes; then :
-  lib_freetype_ld_opts="-lXft -lfontconfig"
+  lib_freetype_ld_opts="-lXft -lfreetype -lfontconfig"
 else
   lib_freetype_ld_opts=
 fi
@@ -14284,7 +14284,7 @@ if test -z $LIB_FREETYPE_LIB_ARG >/dev/null 2>&1; then
      if test -z lib_freetype_ld_opts >/dev/null 2>&1; then
         $as_echo  "no"
      else
-        x_ldflags="$x_ldflags -lXft -lfontconfig"
+        x_ldflags="$x_ldflags -lXft -lfreetype -lfontconfig"
         $as_echo  "yes"
      fi
    else
@@ -14292,8 +14292,8 @@ if test -z $LIB_FREETYPE_LIB_ARG >/dev/null 2>&1; then
    fi
 else
    if test "x$LIB_FREETYPE_LIB_ARG" != "xno"; then
-      lib_freetype_ld_opts=" -L"$LIB_FREETYPE_LIB_ARG" -lXft -lfontconfig"
-      x_ldflags="$x_ldflags -L$LIB_FREETYPE_LIB_ARG -lXft -lfontconfig"
+      lib_freetype_ld_opts=" -L"$LIB_FREETYPE_LIB_ARG" -lXft -lfreetype -lfontconfig"
+      x_ldflags="$x_ldflags -L$LIB_FREETYPE_LIB_ARG -lXft -lfreetype -lfontconfig"
       $as_echo  $LIB_FREETYPE_LIB_ARG
    else
       $as_echo  "no"

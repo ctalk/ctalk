@@ -738,4 +738,11 @@
 2020-05-07
 	- Updated X11FreeTypeFont : selectFontFromFontConfig to use the
 	5-argument form of __loadInfo.
+2020-05-08
+	- Added selected_filename buffer and selected_fn function to
+	fill in the selected font's filename in case we need to use
+	it directly with the freetype libaries (xftlib.c).
+	- Added -lfreetype to the "-lXft -lfontconfig" linker flags
+	in configure.ac so the Freetype library is available to all
+	of the source modules.
 

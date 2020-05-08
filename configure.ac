@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.34 2020/04/25 06:05:41 rkiesling Exp $
+# $Id: configure.ac,v 1.35 2020/05/08 23:33:49 rkiesling Exp $
 AC_INIT(ctalk, 0.0.66, rk3314042@gmail.com, "")
 
 # Contained in acinclude.m4 and generated aclocal.m4
@@ -1280,7 +1280,7 @@ if test -z $LIB_FREETYPE_INCLUDE_ARG >/dev/null 2>&1; then
       if test "x$no_x" = "x"; then
         have_xft="yes"
         LIB_FREETYPE_INCLUDE_ARG="/usr/local"
-        lib_freetype_ld_opts="-lXft -lfontconfig"
+        lib_freetype_ld_opts="-lXft -lfreetype -lfontconfig"
       else
         LIB_FREETYPE_INCLUDE_ARG="no"
         lib_freetype_ld_opts=""
@@ -1289,7 +1289,7 @@ if test -z $LIB_FREETYPE_INCLUDE_ARG >/dev/null 2>&1; then
       if test "x$no_x" = "x"; then
         have_xft="yes"
         LIB_FREETYPE_INCLUDE_ARG="/usr"
-        lib_freetype_ld_opts="-lXft -lfontconfig"
+        lib_freetype_ld_opts="-lXft -lfreetype -lfontconfig"
       else
         LIB_FREETYPE_INCLUDE_ARG="no"
         lib_freetype_ld_opts=""
@@ -1328,7 +1328,7 @@ AC_SUBST(HAVE_XFT_H)
 fi # if test "x$no_xft_user_opt" != "xyes"; then
 
 if test "x$LIB_FREETYPE_LIB_ARG" != "xno" || test "x$LIB_FREETYPE_LIB_ARG" != "xNO"; then
-  AC_CHECK_LIB(Xft, XftDrawCreate, lib_freetype_ld_opts="-lXft -lfontconfig",
+  AC_CHECK_LIB(Xft, XftDrawCreate, lib_freetype_ld_opts="-lXft -lfreetype -lfontconfig",
   		  lib_freetype_ld_opts=)
 else 
   lib_freetype_ld_opts=
@@ -1339,7 +1339,7 @@ if test -z $LIB_FREETYPE_LIB_ARG >/dev/null 2>&1; then
      if test -z lib_freetype_ld_opts >/dev/null 2>&1; then
         AS_ECHO "no"
      else
-        x_ldflags="$x_ldflags -lXft -lfontconfig"
+        x_ldflags="$x_ldflags -lXft -lfreetype -lfontconfig"
         AS_ECHO "yes"
      fi
    else
@@ -1347,8 +1347,8 @@ if test -z $LIB_FREETYPE_LIB_ARG >/dev/null 2>&1; then
    fi
 else
    if test "x$LIB_FREETYPE_LIB_ARG" != "xno"; then
-      lib_freetype_ld_opts=" -L"$LIB_FREETYPE_LIB_ARG" -lXft -lfontconfig"
-      x_ldflags="$x_ldflags -L$LIB_FREETYPE_LIB_ARG -lXft -lfontconfig"
+      lib_freetype_ld_opts=" -L"$LIB_FREETYPE_LIB_ARG" -lXft -lfreetype -lfontconfig"
+      x_ldflags="$x_ldflags -L$LIB_FREETYPE_LIB_ARG -lXft -lfreetype -lfontconfig"
       AS_ECHO $LIB_FREETYPE_LIB_ARG
    else
       AS_ECHO "no"
