@@ -1,4 +1,4 @@
-/* $Id: xftlib.c,v 1.31 2020/05/07 15:53:19 rkiesling Exp $ -*-c-*-*/
+/* $Id: xftlib.c,v 1.39 2020/05/09 17:29:51 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -85,7 +85,7 @@ FT_Face ft2_selectedface = NULL;
 
 FcConfig *config = NULL;
 XftFont *selected_font = NULL;
-static char selected_font_path[FILENAME_MAX];
+/* static char selected_font_path[FILENAME_MAX];*//***/
 
 unsigned short fgred = 0, fggreen = 0, fgblue = 0, fgalpha = 0xffff;
 
@@ -125,6 +125,9 @@ int selected_spacing = 90; /* dual */
 int selected_width = 100;  /* normal */
 double selected_pt_size = 12.0f;
 bool monospace = true;
+
+/* fill in when we load a font. */
+static char selected_filename[FILENAME_MAX] = "";
 
 static void xft_config_error (void) {
   printf ("%s: Could not find Xft outline font configuration, "
@@ -298,6 +301,32 @@ static FcPattern *construct_pattern (char *p_family,
   return pat;
 }
 				     
+static void selected_fn (char *family) { /***/
+  FcPattern *pattern;
+  FcObjectSet *os = NULL;
+  FcFontSet *fs;
+  FcChar8 *s, *q;
+
+  pattern = FcNameParse ((FcChar8 *)family);
+  os = FcObjectSetBuild (FC_FILE, NULL);
+  fs = FcFontList (0, pattern, os);
+  if (fs -> nfont > 0) {
+    s = FcPatternFormat (fs -> fonts[0], "%{=fclist}");
+    if (s) {
+      strcpy (selected_filename, s);
+      if ((q = strchr (selected_filename, ':')) != NULL) {
+	*q = '\0';
+      }
+      FcStrFree (s);
+    }
+  }
+  if (os)
+    FcObjectSetDestroy (os);
+  if (pattern)
+    FcPatternDestroy (pattern);
+  if (fs)
+    FcFontSetDestroy (fs);
+}
 
 static XftFont *__select_font (char *p_family, int p_slant,
 			       int p_weight, int p_dpi, double p_size) {
@@ -347,6 +376,7 @@ static XftFont *__select_font (char *p_family, int p_slant,
     XftPatternGetInteger (selected_font -> pattern,
 			  FC_SPACING, 0, &spacing);
     monospace = (spacing == XFT_MONO ? true : false);
+    selected_fn (selected_family); /***/
     if (xft_message_level > XFT_NOTIFY_ERRORS) {
       _warning ("ctalk: Loaded font: %s\n", 
 		fmt_fc_desc_str (selected_font -> pattern));
@@ -414,6 +444,7 @@ XftFont *__select_font_for_family (int p_slant,
     XftPatternGetInteger (selected_font -> pattern,
 			  FC_SPACING, 0, &spacing);
     monospace = (spacing == XFT_MONO ? true : false);
+    selected_fn (selected_family);
     if (xft_message_level > XFT_NOTIFY_ERRORS) {
       _warning ("ctalk: Loaded font: %s\n", 
 		fmt_fc_desc_str (selected_font -> pattern));
@@ -495,6 +526,7 @@ static XftFont *__select_font_fc (char *p_family, int p_slant,
 	XFT_SPACING, XftTypeInteger, selected_spacing,
 	FC_WIDTH, XftTypeInteger, selected_width,
 	NULL)) != NULL) {
+    selected_fn (selected_family);
     if (xft_message_level > XFT_NOTIFY_ERRORS) {
       _warning ("ctalk: Loaded font: %s\n",
 		fmt_fc_desc_str (selected_font -> pattern));
@@ -706,33 +738,88 @@ int __ctalkXftInitLib (void) {
 
 #include <X11/extensions/Xrender.h>
 
+/* The point size we calibrated last at. */
+static float m_pt_size = 0.0f;
+static int units_per_point = 0;
+
 int __ctalkXftGetStringDimensions (char *str, int *x, int *y,
 				   int *width, int *height) {
   XGlyphInfo extents;
   Display *d_l;
   char *d_env = NULL;
+  char *p;
+  FcPattern *pattern;
+  FcObjectSet *os = NULL;
+  FcFontSet *fs;
+  FcChar8 *s;
+  FT_Library ft;
+  FT_Face face;
+  FT_GlyphSlot g;
+  int pxSize;
+  int strPxSize;
 
   if (selected_font == NULL) {
     *x = *y = *width = *height = 0;
     return 0;
   }
-  if ((d_env = getenv ("DISPLAY")) == NULL) {
-    printf ("This program requires the X Window System. Exiting.\n");
-    exit (1);
+  if (*selected_filename == '\0') {
+    /* We haven't actually selected a font yet - use Xft's 
+       algorightm. */
+    if ((d_env = getenv ("DISPLAY")) == NULL) {
+      printf ("This program requires the X Window System. Exiting.\n");
+      exit (1);
+    }
+
+    d_l = XOpenDisplay (d_env);
+
+    XftTextExtents8 (d_l, selected_font,
+		     (XftChar8 *)str, strlen (str),
+		     &extents);
+    XCloseDisplay (d_l);
+    *x = extents.x;
+    *y = extents.y;
+    *width = extents.width;
+    *height = extents.height;
+    return SUCCESS;
+    
+  } else {
+    if (FT_Init_FreeType (&ft)) {
+      printf ("ctalk: Could not init freetype library.\n");
+      return ERROR;
+    }
+
+    if (FT_New_Face (ft, selected_filename, 0, &face)) {
+      printf ("ctalk: Could not open font %s.\n", selected_filename);
+      return ERROR;
+    }
+
+    pxSize = selected_pt_size * (selected_dpi / 72);
+    FT_Set_Pixel_Sizes (face, 0, pxSize);
+
+    g = face -> glyph;
+
+    if (m_pt_size == 0.0 || m_pt_size != selected_pt_size) {
+      m_pt_size = selected_pt_size;
+      units_per_point = face -> ascender / m_pt_size;
+    }
+
+    for (strPxSize = 0, p = str; *p; ++p) {
+      FT_Load_Char (face, *p, FT_LOAD_NO_SCALE);
+      strPxSize += g -> advance.x / units_per_point;
+    }
+
+    /* Provide a rightward space "hint" past the final character that
+       is the distance between the horizontal advance and the glyph
+       width (this is the X font definition of right bearing, but not
+       Freetype's definition).  For the final character only. */
+    strPxSize += (g -> advance.x - g -> metrics.width) / units_per_point;
+
+    *x = *y = 0;
+    *height = pxSize;
+    *width = strPxSize;
+    
   }
 
-  d_l = XOpenDisplay (d_env);
-
-  XftTextExtents8 (d_l, selected_font,
-		  (XftChar8 *)str, strlen (str),
-		  &extents);
-
-  XCloseDisplay (d_l);
-  *x = extents.x;
-  *y = extents.y;
-  *width = extents.width;
-  *height = extents.height;
-  return SUCCESS;
 }
 
 #else /* #ifdef HAVE_XRENDER_H */

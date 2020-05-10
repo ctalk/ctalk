@@ -1,4 +1,4 @@
-/* $Id: objtoc.c,v 1.4 2020/05/01 16:55:21 rkiesling Exp $ */
+/* $Id: objtoc.c,v 1.5 2020/05/10 09:22:48 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -785,7 +785,8 @@ static void __delete_char_ptr_arg (OBJECT *__o, int keep) {
   }
 
   if (__o -> attrs == OBJECT_IS_I_RESULT) {
-    if (!(__o -> scope & METHOD_USER_OBJECT)) {
+    /***/
+    if (!(__o -> scope & METHOD_USER_OBJECT) && !is_arg (__o)) { 
       __ctalkDeleteObject (__o);
     }
   }

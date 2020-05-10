@@ -1,4 +1,4 @@
-/* $Id: rt_expr.c,v 1.13 2020/04/11 23:35:07 rkiesling Exp $ */
+/* $Id: rt_expr.c,v 1.14 2020/05/10 09:22:48 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -4644,6 +4644,11 @@ OBJECT *eval_expr (char *s, OBJECT *recv_class, METHOD *method,
 		      /* This is almost the same as after the call to
 			 __ctalkCallMethodFn (), above */
 		      if ((c_i = active_i (e_result)) != I_UNDEF) {
+#if 0 /***/ /* for testing - can delete by now */
+			if (str_eq (e_result -> __o_value,
+				    "abcdefghijklmnop"))
+			  printf ("hi!\n");
+#endif			
 			e_result = create_param_i (e_result, c_i);
 		      }
 		      

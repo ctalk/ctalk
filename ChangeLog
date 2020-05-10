@@ -745,4 +745,17 @@
 	- Added -lfreetype to the "-lXft -lfontconfig" linker flags
 	in configure.ac so the Freetype library is available to all
 	of the source modules.
+2020-05-09
+	- Added a check for a derived i object still on the argument
+	in delete_char_ptr_arg (lib/objtoc.c).
+	- Added selected_fn to retrieve and store a Freetype font's
+	file name when loading fonts (xftlib.c).
+	- Updated __ctalkXftGetStringDimensions to use the Freetype
+	glyph advance of each string character to calculate a string's
+	width (xftlib.c).
+	- Added X11TextEntryPane : drawCursor to draw a solid cursor
+	where text is to be inserted at the end of the entry text.
+	Also Added the hover instance variable to X11TextEntryPane
+	class and use it to only draw the cursor when the pointer is
+	over the text entry.
 
