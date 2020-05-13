@@ -1,4 +1,4 @@
-/* $Id: xftlib.c,v 1.39 2020/05/09 17:29:51 rkiesling Exp $ -*-c-*-*/
+/* $Id: xftlib.c,v 1.40 2020/05/10 09:53:50 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -752,15 +752,15 @@ int __ctalkXftGetStringDimensions (char *str, int *x, int *y,
   FcObjectSet *os = NULL;
   FcFontSet *fs;
   FcChar8 *s;
-  FT_Library ft;
-  FT_Face face;
+  FT_Library ft = NULL;
+  FT_Face face = NULL;
   FT_GlyphSlot g;
   int pxSize;
   int strPxSize;
 
   if (selected_font == NULL) {
     *x = *y = *width = *height = 0;
-    return 0;
+    return SUCCESS;
   }
   if (*selected_filename == '\0') {
     /* We haven't actually selected a font yet - use Xft's 
@@ -814,10 +814,18 @@ int __ctalkXftGetStringDimensions (char *str, int *x, int *y,
        Freetype's definition).  For the final character only. */
     strPxSize += (g -> advance.x - g -> metrics.width) / units_per_point;
 
+    
+
     *x = *y = 0;
     *height = pxSize;
     *width = strPxSize;
-    
+
+    if (face)
+      FT_Done_Face (face);
+    if (ft)
+      FT_Done_FreeType (ft);
+
+    return SUCCESS;
   }
 
 }
