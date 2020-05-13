@@ -1,4 +1,4 @@
-/* $Id: rt_args.c,v 1.18 2020/03/16 23:37:25 rkiesling Exp $ */
+/* $Id: rt_args.c,v 1.19 2020/05/13 00:13:54 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -1622,8 +1622,10 @@ int __rt_method_args(METHOD *method, MESSAGE_STACK messages,
 	  }
 	}
 
-	if (arg_val_obj) 
+	if (arg_val_obj) { /***/
 	  __add_arg_object_entry_frame (method, arg_val_obj);
+	}
+	  
 
       } else { /* ... 	    RT_TOK_OBJ_IS_CREATED_CVAR_ALIAS))  */
 

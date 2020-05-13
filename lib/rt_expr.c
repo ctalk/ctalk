@@ -1,8 +1,8 @@
-/* $Id: rt_expr.c,v 1.14 2020/05/10 09:22:48 rkiesling Exp $ */
+/* $Id: rt_expr.c,v 1.15 2020/05/10 09:53:50 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
-  Copyright © 2005-2019  Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2005-2020  Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
 
@@ -45,7 +45,6 @@ extern DEFAULTCLASSCACHE *rt_defclasses; /* Defined in rtclslib.c. */
  *  The expression parser stack.
  */
 
-/***/
 static OBJECT *null_result_obj_2 (METHOD *, OBJECT *, int);
 
 static int expr_parser_lvl = 0;
@@ -91,7 +90,6 @@ int expr_n_occurrences (METHOD *m) {
 
 static OBJECT *reffed_arg_obj (OBJECT *arg_object) {
   OBJECT *r;
-  /***/
   if (!IS_OBJECT(arg_object))
     return NULL;
   if (arg_object -> attrs == OBJECT_VALUE_IS_BIN_SYMBOL) {
@@ -1347,14 +1345,12 @@ static void fixup_forward_receiver_obj (EXPR_PARSER *p, int idx,
 	      p -> m_s[next_tok_idx] -> attrs &= ~RT_DATA_IS_NR_ARGS_DECLARED;
 	  }
 	}
-	/***/
       } else if (__ctalk_isMethod_2 (M_NAME(p -> m_s[next_tok_idx]),
 				     p -> m_s, next_tok_idx,
 				     p -> msg_frame_start)) {
 	OBJECT *rcvr_p;
 	METHOD *method_fixup;
 	int i_2;
-	/***/
 	/* probably should fix up the args too, if this method wasn't
 	   resolved in the first pass, then the labels following it
 	   weren't either... this isn't needed much yet, so for now,
@@ -1608,7 +1604,6 @@ static inline void set_receiver_msg_and_obj_fixup (int tok_idx,
     m -> receiver_msg = 
       ((m_prev_msg -> receiver_msg) ?
        m_prev_msg -> receiver_msg : m_prev_msg);
-    /***/
     if ((lookahead = next_msg (e_messages, tok_idx)) != ERROR) {
       if (IS_C_ASSIGNMENT_OP(M_TOK(e_messages[lookahead]))) {
 	p = expr_parsers[expr_parser_ptr];
@@ -2607,7 +2602,6 @@ OBJECT *eval_expr (char *s, OBJECT *recv_class, METHOD *method,
 		  /* Try to resolve an object that isn't already resolved
 		     if it appears later in a compound expression. */
 		} else if (!resolve_single_object (m, pname)) {
-		  /*} else { */ /***/
 		  if ((c = get_method_arg_cvars_not_evaled (pname,
 							    expr_parser_ptr))
 		      != NULL) {
@@ -4299,7 +4293,6 @@ OBJECT *eval_expr (char *s, OBJECT *recv_class, METHOD *method,
 		__ctalkHandleRunTimeExceptionInternal ();
 		printf ("%s", namebuf);
 		exit (1);
-		/* goto cleanup; *//***/
 	      }
 	      fn_tok_ptr = prev_msg (e_messages, i);
 	      if (__rt_is_typecast_expr (p, i)) {
@@ -4644,11 +4637,6 @@ OBJECT *eval_expr (char *s, OBJECT *recv_class, METHOD *method,
 		      /* This is almost the same as after the call to
 			 __ctalkCallMethodFn (), above */
 		      if ((c_i = active_i (e_result)) != I_UNDEF) {
-#if 0 /***/ /* for testing - can delete by now */
-			if (str_eq (e_result -> __o_value,
-				    "abcdefghijklmnop"))
-			  printf ("hi!\n");
-#endif			
 			e_result = create_param_i (e_result, c_i);
 		      }
 		      
@@ -5117,7 +5105,6 @@ OBJECT *_rt_math_op (MESSAGE_STACK messages, int op_ptr, int stack_start,
 
   if (!IS_OBJECT(messages[op1_ptr] -> obj)) {
     if (!IS_OBJECT(messages[op1_ptr] -> value_obj)) {
-      /***/
       if (M_TOK(messages[op1_ptr]) == CLOSEPAREN) {
 	int prev;
 	/* If an operand result is NULL, this may not be filled in,
@@ -5618,7 +5605,6 @@ OBJECT *null_result_obj (METHOD *m, int scope) {
 
 /* As above, but it takes the object's class from the receiver
    object. */
-/***/
 static OBJECT *null_result_obj_2 (METHOD *m, OBJECT *rcvr, int scope) {
 
   OBJECT *o, *return_class;
