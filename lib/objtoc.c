@@ -1,8 +1,8 @@
-/* $Id: objtoc.c,v 1.5 2020/05/10 09:22:48 rkiesling Exp $ */
+/* $Id: objtoc.c,v 1.6 2020/05/10 09:53:50 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
-  Copyright © 2005-2019 Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2005-2020 Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright 
   notice is included in all source code modules.
 
@@ -785,7 +785,6 @@ static void __delete_char_ptr_arg (OBJECT *__o, int keep) {
   }
 
   if (__o -> attrs == OBJECT_IS_I_RESULT) {
-    /***/
     if (!(__o -> scope & METHOD_USER_OBJECT) && !is_arg (__o)) { 
       __ctalkDeleteObject (__o);
     }
@@ -857,7 +856,6 @@ char *__ctalkToCCharPtr (OBJECT *o, int keep) {
 	      if (o_value -> __o_value == NULL) {
 		buffer_return_string (NULLSTR);
 	      } else {
-		/***/
 		if ((i_obj = (char *)active_i (o)) != (char *)I_UNDEF) {
 		  buffer_return_string (i_obj);
 		} else {
@@ -980,7 +978,6 @@ void *__ctalk_to_c_ptr (OBJECT *o) {
       return (void *) SYMVAL(o_value -> __o_value);
     }
   } else if (o -> attrs & OBJECT_IS_NULL_RESULT_OBJECT) {
-    /***/
     return NULL;
   }
 
@@ -994,7 +991,7 @@ void *__ctalk_to_c_ptr (OBJECT *o) {
       return (void *)(*(uintptr_t *)o_value -> __o_value);
     } else if (str_eq (o_value -> __o_value, NULLSTR)) {
       return NULL;
-    } else if (o -> scope & LOCAL_VAR) { /***/
+    } else if (o -> scope & LOCAL_VAR) {
       return o;
     } else {
       _error ("ctalk: Unrecognized numeric value in radix_of: %s.\n",
