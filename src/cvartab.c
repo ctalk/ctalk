@@ -1,4 +1,4 @@
-/* $Id: cvartab.c,v 1.3 2019/12/05 01:52:06 rkiesling Exp $ */
+/* $Id: cvartab.c,v 1.5 2020/05/13 14:03:57 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -1306,6 +1306,21 @@ OBJECT *handle_cvar_argblk_translation (MESSAGE_STACK messages,
       case ARRAYOPEN:
 	if (!subscripted_int_in_code_block_error (messages, message_ptr,
 						  cvar)) {
+	  if (cvar -> type_attrs & CVAR_TYPE_CHAR &&
+	      cvar -> n_derefs > 0) {
+	    int lookahead2;
+	    char *s, errexpr[64];
+	    lookahead2 = scanforward (messages, next_label_ptr,
+				      get_stack_top (messages),
+				      ARRAYCLOSE);
+	    s = collect_tokens (messages, message_ptr, lookahead2);
+	    strcpy (errexpr, s);
+	    __xfree (MEMADDR(s));
+	    error (messages[message_ptr],
+		   "Subscripted char array expressions like:\n\n\t%s\n\n"
+		   "are not allowed in argument blocks.  You should "
+		   "consider using a String object.", errexpr);
+	  }
 	  fmt_cvar_tab_ref (cvar, m -> name);
 #ifdef SYMBOL_SIZE_CHECK
 	  check_symbol_size (m -> name);
