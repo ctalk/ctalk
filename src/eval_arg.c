@@ -1,4 +1,4 @@
-/* $Id: eval_arg.c,v 1.19 2020/04/23 09:29:53 rkiesling Exp $ */
+/* $Id: eval_arg.c,v 1.20 2020/05/13 18:06:27 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -1065,6 +1065,8 @@ OBJECT *eval_arg (METHOD *method, OBJECT *rcvr_class, ARGSTR *argbuf,
 			     "AssociativeArray") &&
 		    /***/
 		    !member_of_method_return_class (method, m_arg) &&
+		    /***/
+		    !is_method_parameter (m_messages, start_stack) &&
 		    !get_instance_method (m_main, rcvr_class,
 					  M_NAME(m_arg), ANY_ARGS, FALSE)) {
 		  warning (m_main,
