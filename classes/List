@@ -1,4 +1,4 @@
-/* $Id: List,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-c-*- */
+/* $Id: List,v 1.6 2020/05/13 18:06:27 rkiesling Exp $ -*-c-*- */
 
 /*
   This file is part of Ctalk.
@@ -555,27 +555,19 @@ List instanceMethod asString (void) {
    value and concatenates the character to the result
    string.  Otherwise the method concatenates each of
    the receiver Array's values into the result string."
-  int i;
-  OBJECT *self_obj;
-  OBJECT *mbr;
-  char asStringResult[MAXMSG];
-  returnObjectClass String;
 
-  i = 0;
-  asStringResult[0] = 0;
-  self map {
-    mbr = self;
-    if (mbr -> __o_value[0] == '\'') {
-      /* A character constant. */
-      asStringResult[i] = mbr -> __o_value[1];
-    } else {
-      asStringResult[i] = mbr -> __o_value[0];
+    String new s;
+    returnObjectClass String;
+
+    self map {
+      if ((self at 0 == '\'') && (self is Character)) {
+	s += self at 1 asCharacter;
+      } else {
+	s += self value;
+      }
     }
-    ++i;
-    asStringResult [i] = 0;
-  }
-  
-  return asStringResult;
+    
+    return s;
 }
 
 List instanceMethod sortAscending (void) {
