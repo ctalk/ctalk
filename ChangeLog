@@ -466,7 +466,7 @@
 	address is now handled by __ctalkCreateX11SubWindow (x11lib.c).
 	- Removed the buttons' hightlight text color setting in
 	demos/x11/buttons.ca.
-	2020-03-21
+2020-03-21
 	- In __xlib_draw_rectangle, updated lookup_pixel to lookup_pixel_d
 	(xrender.c).
 	- Updated xr_make_surface to use the Display * that's passed to
@@ -747,7 +747,7 @@
 	of the source modules.
 2020-05-09
 	- Added a check for a derived i object still on the argument
-	in delete_char_ptr_arg (lib/objtoc.c).
+	stack in delete_char_ptr_arg (lib/objtoc.c).
 	- Added selected_fn to retrieve and store a Freetype font's
 	file name when loading fonts (xftlib.c).
 	- Updated __ctalkXftGetStringDimensions to use the Freetype
@@ -758,4 +758,18 @@
 	Also Added the hover instance variable to X11TextEntryPane
 	class and use it to only draw the cursor when the pointer is
 	over the text entry.
+2020-05-10
+	- Release 0.66 2020-05-10.
+2020-05-12
+	- Updated __ctalk_define_class to check whether a new class is
+	a subclass of Character class (rtclslib.c).
+	- Added a check for an instance that is in a subclass of
+	Character in Magnitude : asCharacter.
+2020-05-13
+	- Added an error in handle_cvar_argblk_translation (cvartab.c),
+	if we encounter a subscripted char array expression within an
+	argument block.
+	- Added a check for a method parameter label for a single-token
+	argument in eval_arg (eval_arg.c).
+
 
