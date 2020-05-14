@@ -1,4 +1,4 @@
-/* $Id: xftlib.c,v 1.40 2020/05/10 09:53:50 rkiesling Exp $ -*-c-*-*/
+/* $Id: xftlib.c,v 1.43 2020/05/14 13:23:57 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -741,9 +741,13 @@ int __ctalkXftInitLib (void) {
 /* The point size we calibrated last at. */
 static float m_pt_size = 0.0f;
 static int units_per_point = 0;
+static char m_filename[FILENAME_MAX] = "";
+static FT_Library glyph_ft = NULL;
+static FT_Face glyph_face = NULL;
 
 int __ctalkXftGetStringDimensions (char *str, int *x, int *y,
-				   int *width, int *height) {
+				   int *width, int *height,
+				   int *rbearing) {
   XGlyphInfo extents;
   Display *d_l;
   char *d_env = NULL;
@@ -752,8 +756,6 @@ int __ctalkXftGetStringDimensions (char *str, int *x, int *y,
   FcObjectSet *os = NULL;
   FcFontSet *fs;
   FcChar8 *s;
-  FT_Library ft = NULL;
-  FT_Face face = NULL;
   FT_GlyphSlot g;
   int pxSize;
   int strPxSize;
@@ -780,31 +782,47 @@ int __ctalkXftGetStringDimensions (char *str, int *x, int *y,
     *y = extents.y;
     *width = extents.width;
     *height = extents.height;
+    *rbearing = 0;
     return SUCCESS;
     
   } else {
-    if (FT_Init_FreeType (&ft)) {
-      printf ("ctalk: Could not init freetype library.\n");
-      return ERROR;
-    }
 
-    if (FT_New_Face (ft, selected_filename, 0, &face)) {
-      printf ("ctalk: Could not open font %s.\n", selected_filename);
-      return ERROR;
+    if (*m_filename == '\0' || !str_eq (m_filename, selected_filename)) {
+      strcpy (m_filename, selected_filename);
+      if (glyph_face) {
+	FT_Done_Face (glyph_face);
+	glyph_face = NULL;
+      }
+      if (glyph_ft) {
+	FT_Done_FreeType (glyph_ft);
+	glyph_ft = NULL;
+      }
     }
+    
+    if (!glyph_ft)
+      if (FT_Init_FreeType (&glyph_ft)) {
+	printf ("ctalk: Could not init freetype library.\n");
+	return ERROR;
+      }
+
+    if (!glyph_face)
+      if (FT_New_Face (glyph_ft, selected_filename, 0, &glyph_face)) {
+	printf ("ctalk: Could not open font %s.\n", selected_filename);
+	return ERROR;
+      }
 
     pxSize = selected_pt_size * (selected_dpi / 72);
-    FT_Set_Pixel_Sizes (face, 0, pxSize);
+    FT_Set_Pixel_Sizes (glyph_face, 0, pxSize);
 
-    g = face -> glyph;
+    g = glyph_face -> glyph;
 
     if (m_pt_size == 0.0 || m_pt_size != selected_pt_size) {
       m_pt_size = selected_pt_size;
-      units_per_point = face -> ascender / m_pt_size;
+      units_per_point = glyph_face -> ascender / m_pt_size;
     }
 
     for (strPxSize = 0, p = str; *p; ++p) {
-      FT_Load_Char (face, *p, FT_LOAD_NO_SCALE);
+      FT_Load_Char (glyph_face, *p, FT_LOAD_NO_SCALE);
       strPxSize += g -> advance.x / units_per_point;
     }
 
@@ -814,16 +832,13 @@ int __ctalkXftGetStringDimensions (char *str, int *x, int *y,
        Freetype's definition).  For the final character only. */
     strPxSize += (g -> advance.x - g -> metrics.width) / units_per_point;
 
-    
+    printf ("%s, %d %d\n", str, strPxSize,
+	    (g -> advance.x - g -> metrics.width) / units_per_point);
 
     *x = *y = 0;
     *height = pxSize;
     *width = strPxSize;
-
-    if (face)
-      FT_Done_Face (face);
-    if (ft)
-      FT_Done_FreeType (ft);
+    *rbearing = (g -> advance.x - g -> metrics.width) / units_per_point;
 
     return SUCCESS;
   }

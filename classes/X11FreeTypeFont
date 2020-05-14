@@ -1,4 +1,4 @@
-/* $Id: X11FreeTypeFont,v 1.14 2020/05/08 12:38:58 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11FreeTypeFont,v 1.16 2020/05/14 13:23:57 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -262,18 +262,19 @@ X11FreeTypeFont instanceMethod RGBAColor (void) {
 X11FreeTypeFont instanceMethod textWidth (String text) {
   "Return an Integer with the width of the String given as
 the argument in the currently selected font."
-  int x, y, width, height;
+  int x, y, width, height, rbearing;
   returnObjectClass Integer;
-  __ctalkXftGetStringDimensions (text, &x, &y, &width, &height);
+  __ctalkXftGetStringDimensions (text, &x, &y, &width, &height,
+				 &rbearing);
   return width;
 }
 
 X11FreeTypeFont instanceMethod textHeight (String text) {
   "Return an Integer with the height of the String given
 as the argument in the currently selected font."
-  int x, y, width, height;
+    int x, y, width, height, rbearing;
   returnObjectClass Integer;
-  __ctalkXftGetStringDimensions (text, &x, &y, &width, &height);
+  __ctalkXftGetStringDimensions (text, &x, &y, &width, &height, &rbearing);
   return height;
 }
 

@@ -1,4 +1,4 @@
-/* $Id: ctalklib.in,v 1.90 2020/05/07 15:53:18 rkiesling Exp $ -*-c-*-*/
+/* $Id: ctalklib.in,v 1.91 2020/05/14 13:03:46 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -1279,7 +1279,8 @@ extern int __ctalkXftRevision (void);
 extern int __ctalkXftInitLib (void);
 extern int __ctalkXftInitialized (void);
 extern char *__ctalkXftSelectedFontDescriptor (void);
-extern int __ctalkXftGetStringDimensions (char *, int *, int *, int *, int *);
+extern int __ctalkXftGetStringDimensions (char *, int *, int *, int *, int *,
+					  int *);
 extern char *__ctalkXftRequestedFamily (void);
 extern int __ctalkXftRequestedPointSize (void);
 extern int __ctalkXftRequestedSlant (void);

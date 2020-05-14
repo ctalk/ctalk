@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.193 2020/05/07 15:53:19 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.194 2020/05/14 13:03:46 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -23030,12 +23030,14 @@ Return a string containing the path of the next font file that matches
 the pattern given to @cite{__ctalkXftFontPathFirst ()}, above.
 
 @idxlibfn{__ctalkXftGetStringDimensions}
-@item __ctalkXftGetStringDimensions (@code{char *}@var{str}, @code{int *}@var{x}, @code{int *}@var{y}, @code{int *}@var{width}, @code{int *}@var{height})
+@item __ctalkXftGetStringDimensions (@code{char *}@var{str}, @code{int *}@var{x}, @code{int *}@var{y}, @code{int *}@var{width}, @code{int *}@var{height}, @code{int *} @var{rbearing})
 Return the x and y origin, and width and height of @var{str} in the
 currently selected FreeType font.  Because the dimensions are
 absolute, @var{x} and @var{y} are normally 0.  If the Xft library is
 not initialized or not available, the function returns 0 for all of
-the dimensions.
+the dimensions.  If the library is initialized but the application
+hasn't yet specified a font, then the value returned for @var{rbearing}
+is @samp{0}.
 
 @idxlibfn{__ctalkXftHeight}
 @item __ctalkXftHeight (@code{void})

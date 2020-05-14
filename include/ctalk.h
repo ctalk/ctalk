@@ -1,4 +1,4 @@
-/* $Id: ctalk.h,v 1.108 2020/05/07 15:53:19 rkiesling Exp $ -*-Fundamental-*- */
+/* $Id: ctalk.h,v 1.109 2020/05/14 13:03:47 rkiesling Exp $ -*-Fundamental-*- */
 
 /*
   This file is part of Ctalk.
@@ -2663,7 +2663,7 @@ int __ctalkXftRevision (void);
 int __ctalkXftInitialized (void);
 char *__ctalkXftSelectedFontDescriptor (void);
 char *__xft_selected_pattern_internal (void);
-int __ctalkXftGetStringDimensions (char *, int *, int *, int *, int *);
+int __ctalkXftGetStringDimensions (char *, int *, int *, int *, int *, int *);
 void __ctalkXftSelectFont (char *, int, int, int, double);
 void __ctalkXftSelectFontFromXLFD (char *);
 void __ctalkXftSelectFontFromFontConfig (char *font_config_str);

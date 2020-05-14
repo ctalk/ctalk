@@ -10226,12 +10226,14 @@ functions.
      Return a string containing the path of the next font file that
      matches the pattern given to `__ctalkXftFontPathFirst ()', above.
 
-`__ctalkXftGetStringDimensions (`char *'STR, `int *'X, `int *'Y, `int *'WIDTH, `int *'HEIGHT)'
+`__ctalkXftGetStringDimensions (`char *'STR, `int *'X, `int *'Y, `int *'WIDTH, `int *'HEIGHT, `int *' RBEARING)'
      Return the x and y origin, and width and height of STR in the
      currently selected FreeType font.  Because the dimensions are
      absolute, X and Y are normally 0.  If the Xft library is not
      initialized or not available, the function returns 0 for all of
-     the dimensions.
+     the dimensions.  If the library is initialized but the application
+     hasn't yet specified a font, then the value returned for RBEARING
+     is `0'.
 
 `__ctalkXftHeight (`void')'
      Returns an `int' with the font's height above and below the
