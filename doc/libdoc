@@ -2290,6 +2290,10 @@ function prints a message and exits the program.
 Returns TRUE if the FreeType font library is available and
 initialized, FALSE otherwise.
 
+>>>__ctalkXftIsMonospace (void)
+A read-only function that returns true if the program's
+selected font is monospace, false otherwise.
+
 >>>__ctalkXftListFontsFirst (char *xftpattern)
 Initializes the FreeType library to list fonts and returns a
 char * that contains the first font descriptor that contains

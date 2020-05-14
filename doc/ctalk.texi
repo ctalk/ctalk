@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.194 2020/05/14 13:03:46 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.197 2020/05/14 14:53:47 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -1727,6 +1727,11 @@ If the system is not configured to use outline fonts then the library
 prints a message and exits the program with a non-zero value.
 @xref{ctalkXftInitLib}.
 
+@cindex @mnm{isMonospace} instance method @idxclscite{X11FreeTypeFont}
+@item @mnm{isMonospace} (@code{void})
+Returns a read-only @code{Boolean} value of true if the application's
+selected font is monospace, false otherwise.
+
 @cindex @mnm{libIsInitialized} instance method @idxclscite{X11FreeTypeFont}
 @item @mnm{libIsInitialized} (@code{void})
 Returns a non-zero @code{Integer} value if the Xft libraries are
@@ -1926,6 +1931,14 @@ selectedFont} method.
 Return an @code{Integer} with the height in pixels of @var{text} in the
 currently selected FreeType font.  If the Xft library is not available
 or not initialized, the method returns 0.
+
+@cindex @mnm{textRBearing} instance method @idxclscite{X11FreeTypeFont}
+@item @mnm{textRBearing} (@code{String} @var{text})
+Return an @code{Integer} with the right bearing (the distance between
+the rightmost segment of a character glyph and the right edge of its
+character box) in pixels of @var{text} in the currently selected
+FreeType font.  If the Xft library is not available or not initialized,
+or the application has not selected a font, the method returns 0.
 
 @cindex @mnm{textWidth} instance method @idxclscite{X11FreeTypeFont}
 @item @mnm{textWidth} (@code{String} @var{text})
@@ -23056,6 +23069,11 @@ function prints a message and exits the program.
 @item __ctalkXftInitialized (@code{void})
 Returns TRUE if the FreeType font library is available and
 initialized, FALSE otherwise.
+
+@idxlibfn{__ctalkXftIsMonospace}
+@item __ctalkXftIsMonospace (@code{void})
+A read-only function that returns @samp{true} if the program's
+selected font is monospace, false otherwise.
 
 @idxlibfn{__ctalkXftListFontsFirst}
 @item __ctalkXftListFontsFirst (@code{char *}@var{xftpattern})

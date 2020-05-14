@@ -11,8 +11,7 @@ int main (int argv, char **argc) {
   Integer new nEvents;
   Integer new verbose;
   X11Cursor new cursor;
-
-  xPane resources atPut "backgroundColor", "blue";
+   xPane resources atPut "backgroundColor", "blue";
   label resources replaceAt "backgroundColor", "blue";
   label resources replaceAt "foregroundColor", "blue";
   label resources replaceAt "highlightForegroundColor", "blue";
@@ -20,22 +19,22 @@ int main (int argv, char **argc) {
   label resources replaceAt "highlightTextColor", "white";
   label border = false;
 
-  xPane inputStream eventMask = EXPOSE|ENTERWINDOWNOTIFY|LEAVEWINDOWNOTIFY| \
+   xPane inputStream eventMask = EXPOSE|ENTERWINDOWNOTIFY|LEAVEWINDOWNOTIFY| \
     KEYPRESS|KEYRELEASE|WINDELETE|BUTTONPRESS|BUTTONRELEASE;
-
-  xPane initialize 300, 200;
+   xPane initialize 300, 200;
   dispatcher attachTo xPane;
   label attachTo dispatcher, "100x80+10+10";
   button attachTo dispatcher, "60x45+120+100";
   entry attachTo dispatcher, "140x32+120+32";
-
   xPane map;
   xPane raiseWindow;
 
   xPane openEventStream;
 
   xPane ftFontVar initFontLib;
-  xPane setWMTitle "X11TextEntryPane Demo";  
+  entry ftFontVar selectFontFromFontConfig
+    (entry resources at "font");
+  xPane setWMTitle "X11TextEntryPane Demo";
   label multiLine "Enter your\ntext:";
   button label text "Done";
 
@@ -46,24 +45,25 @@ int main (int argv, char **argc) {
 
       xPane subPaneNotify e;
 
-      switch (e eventClass value) 
+      switch (e eventClass value)
         {
         case EXPOSE:
-	  entry refresh;
+          entry refresh;
           break;
         case WINDELETE:
           xPane deleteAndClose;
           exit (0);
           break;
         default:
-	if (button haveClick) {
-	  button clearClick;
-	  xPane deleteAndClose;
-	  printf ("You entered: %s\n", entry entryText);
-          exit (0);
-	}
-	break;
+          if (button haveClick) {
+            button clearClick;
+            xPane deleteAndClose;
+            printf ("You entered: %s\n", entry entryText);
+            exit (0);
+          }
+        break;
         }
     }
   }
 }
+

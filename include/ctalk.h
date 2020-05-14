@@ -1,4 +1,4 @@
-/* $Id: ctalk.h,v 1.109 2020/05/14 13:03:47 rkiesling Exp $ -*-Fundamental-*- */
+/* $Id: ctalk.h,v 1.110 2020/05/14 14:40:17 rkiesling Exp $ -*-Fundamental-*- */
 
 /*
   This file is part of Ctalk.
@@ -2701,6 +2701,7 @@ int __ctalkXftRequestedPointSize (void);
 int __ctalkXftRequestedSlant (void);
 int __ctalkXftRequestedWeight (void);
 int __ctalkXftRequestedDPI (void);
+bool __ctalkXftIsMonospace (void);
 
 
 /* lib/x11ksym.c */
