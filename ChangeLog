@@ -771,8 +771,13 @@
 	argument block.
 	- Added a check for a method parameter label for a single-token
 	argument in eval_arg (eval_arg.c).
-	2020-05-14
-	- Added a rbearing parameter to __ctalkXftGetStringDimensions
-	(xftlib.c).
+2020-05-14
+	- Added the X11FreeTypeFont : textRBearing method, and a rbearing
+	parameter to __ctalkXftGetStringDimensions (xftlib.c).
+	- Also added the X11FreeTypeFont : isMonospace method and the
+	__ctalkXftIsMonospace library function.
+	- Added check for monospace font to __select_font_fc (xftlib.c).
+	- Updated X11TextEntryPane to use a spacingHint resource when
+	displaying text with monospaced fonts.
 
 

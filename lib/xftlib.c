@@ -1,4 +1,4 @@
-/* $Id: xftlib.c,v 1.43 2020/05/14 13:23:57 rkiesling Exp $ -*-c-*-*/
+/* $Id: xftlib.c,v 1.46 2020/05/14 15:25:29 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -471,7 +471,7 @@ XftFont *__select_font_for_family (int p_slant,
 static XftFont *__select_font_fc (char *p_family, int p_slant,
 				  int p_weight, int p_dpi, double p_size,
 				  int p_spacing, int p_width) {
-  int i;
+  int i, spacing;
   XftFont *font;
 #ifdef FC_PATTERN_SET
   XftPattern *pat, *font_pat_p;
@@ -526,6 +526,9 @@ static XftFont *__select_font_fc (char *p_family, int p_slant,
 	XFT_SPACING, XftTypeInteger, selected_spacing,
 	FC_WIDTH, XftTypeInteger, selected_width,
 	NULL)) != NULL) {
+    XftPatternGetInteger (selected_font -> pattern,
+			  FC_SPACING, 0, &spacing);
+    monospace = (spacing == XFT_MONO ? true : false);
     selected_fn (selected_family);
     if (xft_message_level > XFT_NOTIFY_ERRORS) {
       _warning ("ctalk: Loaded font: %s\n",
@@ -831,9 +834,6 @@ int __ctalkXftGetStringDimensions (char *str, int *x, int *y,
        width (this is the X font definition of right bearing, but not
        Freetype's definition).  For the final character only. */
     strPxSize += (g -> advance.x - g -> metrics.width) / units_per_point;
-
-    printf ("%s, %d %d\n", str, strPxSize,
-	    (g -> advance.x - g -> metrics.width) / units_per_point);
 
     *x = *y = 0;
     *height = pxSize;
@@ -1688,6 +1688,10 @@ int load_ft_font_faces_internal (char *family, double pt_size,
   return SUCCESS;
 }
 
+bool __ctalkXftIsMonospace (void) {
+  return monospace;
+}
+
 #else /* HAVE_XFT_H */
 
 int __ctalkInitFTLib (void) {
@@ -1976,5 +1980,9 @@ int __ctalkXftRequestedWeight (void) {
 int __ctalkXftRequestedDPI (void) {
   xft_support_error ();
   return 0;
+}
+bool __ctalkXftIsMonospace (void) {
+  xft_support_error ();
+  return true;
 }
 #endif /* ! defined (DJGPP) && ! defined (WITHOUT_X11) */ 

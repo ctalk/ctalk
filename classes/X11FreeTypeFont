@@ -1,4 +1,4 @@
-/* $Id: X11FreeTypeFont,v 1.16 2020/05/14 13:23:57 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11FreeTypeFont,v 1.18 2020/05/14 14:53:46 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -278,6 +278,15 @@ as the argument in the currently selected font."
   return height;
 }
 
+X11FreeTypeFont instanceMethod textRBearing (String text) {
+  "Return an Integer with the height of the String given
+as the argument in the currently selected font."
+    int x, y, width, height, rbearing;
+  returnObjectClass Integer;
+  __ctalkXftGetStringDimensions (text, &x, &y, &width, &height, &rbearing);
+  return rbearing;
+}
+
 X11FreeTypeFont instanceMethod majorVersion (void) {
   "Return an Integer with the major version number of the
 Xft font library."
@@ -358,4 +367,9 @@ X11FreeTypeFont instanceMethod verbose (void) {
 X11FreeTypeFont instanceMethod verbosity (void) {
   returnObjectClass Integer;
   return __ctalkXftVerbosity ();
+}
+
+X11FreeTypeFont instanceMethod isMonospace (void) {
+  returnObjectClass Boolean;
+  return __ctalkXftIsMonospace ();
 }
