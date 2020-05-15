@@ -31,9 +31,6 @@ int main (int argv, char **argc) {
 
   xPane openEventStream;
 
-  xPane ftFontVar initFontLib;
-  entry ftFontVar selectFontFromFontConfig
-    (entry resources at "font");
   xPane setWMTitle "X11TextEntryPane Demo";
   label multiLine "Enter your\ntext:";
   button label text "Done";

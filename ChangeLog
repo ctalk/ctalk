@@ -779,5 +779,16 @@
 	- Added check for monospace font to __select_font_fc (xftlib.c).
 	- Updated X11TextEntryPane to use a spacingHint resource when
 	displaying text with monospaced fonts.
+2020-05-15
+	- Updated __ctalkXftInitLib to return SUCCESS if Ctalk was
+	build with libXft and Fontconfig support and the libraries
+	are successfully initialized.  The function returns ERROR
+	otherwise.  Also updated X11Pane : openEventStream to call
+	initFontLib and to set the X11Pane : haveXft instance variable
+	to true if te Xft and Fontconfig libraries are successfully
+	initialized.
+	- Added a check in __ctalkXftGetStringDimensions for proportional
+	vs. monospace fonts, and a subsection in the X11FreeTypeFont
+	documentation in the Ctalk Language Reference.
 
 

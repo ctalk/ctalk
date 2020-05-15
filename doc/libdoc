@@ -2282,9 +2282,18 @@ the baseline in pixels, and including any additional vertical
 spacing.
 
 >>>__ctalkXftInitLib (void)
-Initializes the Freetype outline font library.  If the system is not
+Initializes the Freetype outline font library.  If Ctalk isn't
+built with libXft or Fontconfig support, this function returns
+ERROR (-1.  This is the only Xft-related function
+to return silently; all other functions exit with an error message.
+However applications can check the X11Pane : haveXft instance
+variable to determine if the libraries were initialized. 
+
+If the system is not
 configured to use outline fonts  then the
-function prints a message and exits the program.
+function prints a message and exits the program.  If the library is
+already initialized, then this function returns SUCCESS
+0.
 
 >>>__ctalkXftInitialized (void)
 Returns TRUE if the FreeType font library is available and

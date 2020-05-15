@@ -1,4 +1,4 @@
-/* $Id: X11Pane,v 1.24 2020/04/25 05:51:20 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11Pane,v 1.25 2020/05/15 17:20:56 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -64,6 +64,10 @@ X11Pane instanceVariable resources AssociativeArray NULL
 "Holds the key-value pairs of variables that control Pane classes'
 appearance.  Refer to the X11Pane section of the Ctalk language
 reference and the individual Pane classes for more information.";
+X11Pane instanceVariable haveXft Boolean false
+"Set to true if Ctalk is built with Xft and Fontconfig library support,
+and the libraries have been initialized.  This variable is normally
+set by X11Pane : openEventStream."; 
 
 X11Pane classVariable xDisplay Symbol 0
 "This variable is deprecated, use the displayPtr instance variable instead.";
@@ -71,8 +75,16 @@ X11Pane classVariable classInit Integer 0;
 X11Pane classVariable xColormap Integer 0;
 
 X11Pane instanceMethod openEventStream (void) {
-  "Open the receiver pane's input stream."
+  "Open the receiver pane's input stream.  This method is
+   normally called during program initialization.  In general,
+   programs cannot call any X drawing routines until after this
+   method returns.  This method also calls the X11FreeTypeFont :
+   initFontLib method, and sets the X11Pane : haveXft instance
+   variable to true if the libraries have been successfully 
+   initialized."
   self inputStream openInputClient;
+  if (!self ftFontVar initFontLib)
+    self haveXft = true;
   return self;
 }
 
