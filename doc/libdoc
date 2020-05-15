@@ -2311,6 +2311,9 @@ Cleans up after a series of list fonts function calls.
 
 >>>__ctalkXftMajorVersion (void)
 Returns an int with the Xft library's major version number.
+Like all libXft library functions, __ctalkXftMajorVersion
+causes the program to exit with an error if Ctalk is built without
+libXft support.
 
 >>>__ctalkXftMaxAdvance (void)
 Returns an int with the maximum horizontal dimension in pixels
@@ -2318,6 +2321,10 @@ of any of the selected font's characters.
 
 >>>__ctalkXftMinorVersion (void)
 Returns an int with the Xft library's minor version number.
+Returns an int with the Xft library's major version number.
+Like all libXft library functions, __ctalkXftMinorVersion
+causes the program to exit with an error if Ctalk is built without
+libXft support.
 
 >>>__ctalkXftQualifyFontName (char *pattern)
 Return the qualified font name string for pattern.
@@ -2329,6 +2336,10 @@ __ctalkXftSelectFontFromXLFD.
 
 >>>__ctalkXftRevision (void)
 Returns an int with the Xft library's revision number.
+Returns an int with the Xft library's major version number.
+Like all libXft library functions, __ctalkXftRevision
+causes the program to exit with an error if Ctalk is built without
+libXft support.
 
 >>>__ctalkXftShowFontLoad (int warningLevel)
 Enables or disables the display on standard output of fonts that the

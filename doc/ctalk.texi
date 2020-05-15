@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.197 2020/05/14 14:53:47 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.199 2020/05/15 14:43:35 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -1725,7 +1725,8 @@ most of the other other methods in this class.
 
 If the system is not configured to use outline fonts then the library
 prints a message and exits the program with a non-zero value.
-@xref{ctalkXftInitLib}.
+@xref{ctalkXftInitLib}.  If the library is already initialized, then
+the method returns @code{0}.
 
 @cindex @mnm{isMonospace} instance method @idxclscite{X11FreeTypeFont}
 @item @mnm{isMonospace} (@code{void})
@@ -23063,7 +23064,8 @@ spacing.
 @item __ctalkXftInitLib (@code{void})
 Initializes the Freetype outline font library.  If the system is not
 configured to use outline fonts @xref{X11FreeTypeFont}, then the
-function prints a message and exits the program.
+function prints a message and exits the program.  If the library is
+already initialized, then this function returns @samp{0}.
 
 @idxlibfn{__ctalkXftInitialized}
 @item __ctalkXftInitialized (@code{void})
@@ -23096,6 +23098,9 @@ Cleans up after a series of list fonts function calls.
 @idxlibfn{__ctalkXftMajorVersion}
 @item __ctalkXftMajorVersion (@code{void})
 Returns an @code{int} with the Xft library's major version number.
+Like all libXft library functions, @cite{__ctalkXftMajorVersion}
+causes the program to exit with an error if Ctalk is built without
+libXft support.
 
 @idxlibfn{__ctalkXftMaxAdvance}
 @item __ctalkXftMaxAdvance (@code{void})
@@ -23105,6 +23110,10 @@ of any of the selected font's characters.
 @idxlibfn{__ctalkXftMinorVersion}
 @item __ctalkXftMinorVersion (@code{void})
 Returns an @code{int} with the Xft library's minor version number.
+Returns an @code{int} with the Xft library's major version number.
+Like all libXft library functions, @cite{__ctalkXftMinorVersion}
+causes the program to exit with an error if Ctalk is built without
+libXft support.
 
 @idxlibfn{__ctalkXftQualifyFontName}
 @item __ctalkXftQualifyFontName (@code{char *}@var{pattern})
@@ -23127,6 +23136,10 @@ string by @cite{__ctalkXftSelectFontFromFontConfig} and
 @idxlibfn{__ctalkXftRevision}
 @item __ctalkXftRevision (@code{void})
 Returns an @code{int} with the Xft library's revision number.
+Returns an @code{int} with the Xft library's major version number.
+Like all libXft library functions, @cite{__ctalkXftRevision}
+causes the program to exit with an error if Ctalk is built without
+libXft support.
 
 @idxlibfn{__ctalkXftShowFontLoad}
 @item __ctalkXftShowFontLoad (@code{int} @var{warningLevel})

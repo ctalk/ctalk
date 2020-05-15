@@ -1,4 +1,4 @@
-/* $Id: xftlib.c,v 1.46 2020/05/14 15:25:29 rkiesling Exp $ -*-c-*-*/
+/* $Id: xftlib.c,v 1.47 2020/05/15 14:43:36 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -678,6 +678,10 @@ int __ctalkXftInitLib (void) {
   FcFontSet* fonts;
   FcChar8  *name, *file, *config_path;
 
+  if (config != NULL && selected_font != NULL) {
+    return SUCCESS;
+  }
+
   default_screen_dpi (display);
 
   XftInit ("");
@@ -716,14 +720,6 @@ int __ctalkXftInitLib (void) {
 
   /* Add in our old-style .fonts.conf fonts. */
   XFT_CONFIG_init ();
-
-#if 0
-  if (!FcConfigSetCurrent(config)) {
-    _error ("FcConfigSetCurrent failed.\n");
-  }
-  XftInit ("");
-#endif  
-
 
   for (i = 0; default_families[i]; ++i)
     if ((selected_font = __select_font (default_families[i], -1, -1, -1, -1.0))
