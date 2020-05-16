@@ -1,4 +1,4 @@
-/* $Id: glutlib.c,v 1.2 2019/11/11 15:52:09 rkiesling Exp $ -*-c-*-*/
+/* $Id: glutlib.c,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.

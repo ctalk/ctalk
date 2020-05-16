@@ -1,4 +1,4 @@
-/* $Id: ufntmpl.c,v 1.2 2019/11/28 17:01:57 rkiesling Exp $ */
+/* $Id: ufntmpl.c,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.

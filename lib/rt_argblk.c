@@ -1,4 +1,4 @@
-/* $Id: rt_argblk.c,v 1.1.1.1 2019/10/26 23:40:50 rkiesling Exp $ */
+/* $Id: rt_argblk.c,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -66,7 +66,6 @@ int __ctalkEnterArgBlockScope (void) {
       C_RT_INFO->block_scope = True;
       C_RT_INFO->_block_frame_top = __call_stack_ptr + blk_frame_offset;
     }
-
   } else {
     _warning ("__ctalkEnterArgBlockScope: Not an inline method call.\n");
     _warning ("__ctalkEnterArgBlockScope: See the documentation for inline methods\n");

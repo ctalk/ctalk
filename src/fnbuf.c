@@ -1,4 +1,4 @@
-/* $Id: fnbuf.c,v 1.6 2019/11/20 21:08:03 rkiesling Exp $ */
+/* $Id: fnbuf.c,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.

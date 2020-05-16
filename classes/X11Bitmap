@@ -1,4 +1,4 @@
-/* $Id: X11Bitmap,v 1.31 2020/05/16 00:08:26 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11Bitmap,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -308,7 +308,7 @@ X11Bitmap instanceMethod iconQuestion (void) {
   Circle new aCircle;
   Pen new aPen;
   X11FreeTypeFont new font;
-  Integer new height, width;
+  Integer new height;
 
   aCircle center x = ICON_WIDTH_PX / 2;
   aCircle center y = ICON_HEIGHT_PX / 2;
@@ -318,15 +318,13 @@ X11Bitmap instanceMethod iconQuestion (void) {
   aPen colorName = "white";
   self drawCircle aCircle, aPen, FALSE,
     self backgroundColor;
-  if (font initFontLib)
-    return NULL;
+  aPen colorName = "white";
+  font initFontLib;
   font namedX11Color "white";
-  font selectFontFromFontConfig "sans serif-42:bold";
+  font selectFontFromFontConfig "monospace-42:bold";
   height = font textHeight "?";
-  width = font textWidth "?";
-  printf ("%d %d\n", width, height);
-  self putStr ((ICON_WIDTH_PX / 2) - (width / 2)), 
-    ((ICON_HEIGHT_PX / 2) + (height / 2)), "?";
+  self putStr 16, 
+    (ICON_HEIGHT_PX / 2) + (height / 2), "?";
   return NULL;
 }
 

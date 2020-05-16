@@ -1,4 +1,4 @@
-/* $Id: X11FreeTypeFont,v 1.20 2020/05/16 00:08:26 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11FreeTypeFont,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -159,15 +159,9 @@ X11FreeTypeFont instanceMethod __loadInfo (String requestedFamily,
 	   (requestedDPI != self dpi)) ||
 	  ((requestedPointSize != -1) &&
 	   (requestedPointSize != self pointSize))) {
-	if (requestedFamily length > 0) {
-	  _warning ("ctalk: Requested font %s-%d, found\n\t%s\n",
-		    requestedFamily, requestedPointSize asInteger,
-		    self currentDescParamStr);
-	} else {
-	  _warning ("ctalk: Requested font %s-%d, found\n\t%s\n",
-		    self family, requestedPointSize asInteger,
-		    self currentDescParamStr);
-	}
+	_warning ("ctalk: Requested font %s-%d, found\n\t%s\n",
+		  requestedFamily, requestedPointSize asInteger,
+		  self currentDescParamStr);
       }
       break;
     case XFT_NOTIFY_LOAD:

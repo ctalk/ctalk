@@ -1,4 +1,4 @@
-/* $Id: panelib.c,v 1.2 2020/03/08 22:33:14 rkiesling Exp $ -*-c-*-*/
+/* $Id: panelib.c,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.

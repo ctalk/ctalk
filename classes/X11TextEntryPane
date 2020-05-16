@@ -1,4 +1,4 @@
-/* $Id: X11TextEntryPane,v 1.39 2020/05/14 20:20:49 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11TextEntryPane,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -33,7 +33,7 @@ Character class CharCell;
  *
  *     backgroundColor     String   "white"
  *     textColor           String   "black"
- *     font                String   "mono-12:weight=medium:slant=regular"
+ *     font                String   "mono-12:weight=medium:slant=roman"
  *     borderWidth         Integer  2
  *     borderColor         String   "gray"
  *     vPad                Integer  4
@@ -41,6 +41,7 @@ Character class CharCell;
  *     font                String   "mono-12:weight=medium:slant=roman"
  *                                  Linux       MacOS
  *     spacingHint         Integer  -3          0
+ *     cursorAdvanceHint   Integer  2
  *
  */
 
@@ -55,6 +56,8 @@ we use the width of an 'e' as the width of each character; in case
 the font's widths aren't even.";
 
 CharCell instanceVariable width Integer 0;
+CharCell instanceVariable boxOrg Point NULL;
+CharCell instanceVariable boxSize Point NULL;
 
 X11TextEntryPane instanceMethod new (String paneName) {
   Method new enterMethod, leaveMethod, kbdMethod, exposeMethod;
@@ -86,6 +89,7 @@ X11TextEntryPane instanceMethod new (String paneName) {
   paneName resources atPut "borderColor", "gray";
   paneName resources atPut "vPad", 4;
   paneName resources atPut "hPad", 4;
+  paneName resources atPut "cursorAdvanceHint", 2;
 
   return paneName;
 }
@@ -126,6 +130,8 @@ X11TextEntryPane instanceMethod attachTo (X11Pane parentPane,
 
   self cursor xterm;
 
+  
+
   return NULL;
 }
 
@@ -134,12 +140,13 @@ X11TextEntryPane instanceMethod refresh (void) {
 }
 
 X11TextEntryPane instanceMethod drawCursor (void) {
-  Integer new hPad;
+  Integer new hPad, cursorAdvanceHint;
 
   hPad = self resources at "hPad";
+  cursorAdvanceHint = self resources at "cursorAdvanceHint";
 
-  self paneBuffer drawLine self cursorX, hPad,
-    self cursorX, self size y - hPad, self pen; 
+  self paneBuffer drawLine self cursorX + cursorAdvanceHint, hPad,
+    self cursorX + cursorAdvanceHint, self size y - hPad, self pen; 
 
 }
 
@@ -163,7 +170,7 @@ X11TextEntryPane instanceMethod inputWidth (List input, Integer startIdx) {
 }
 
 X11TextEntryPane instanceMethod draw (void) {
-  Integer new baseLineY, pxSize;
+  Integer new baseLineY;
   Integer new vPad, hPad, borderWidth;
   Integer new textWidthPx, clipStartIdx;
   Integer new entryChars;
@@ -184,9 +191,8 @@ X11TextEntryPane instanceMethod draw (void) {
   self drawRectangle 0, 0, self size x, self size y;
 
   self ftFontVar selectFontFromFontConfig (self resources at "font");
+  self ftFontVar saveSelectedFont;
 
-  pxSize = (self ftFontVar pointSize *
-	    (self ftFontVar dpi / 72)) asInteger;
   self ftFontVar namedX11Color self resources at "textColor";
 
   entryText = self chars asString;
@@ -213,7 +219,7 @@ X11TextEntryPane instanceMethod draw (void) {
       (Object *)cm = self;
       super paneBuffer putStr super cursorX, baseLineY, cm asString;
       if (super ftFontVar isMonospace) {
-	super cursorX += super eWidth + spacing;
+	super cursorX += (super eWidth + spacing);
       } else {
 	super cursorX += cm width;
       }
@@ -343,7 +349,6 @@ X11TextEntryPane instanceMethod subPaneKbd (Object subPane,
 	      default: c &= ~32; break;
 	      }
 	  }
-	  subPane entryText += c asString;
 	  cc become CharCell basicNew c asString, c;
 	  cc width = self ftFontVar textWidth cc asString;
 	  self chars push cc;

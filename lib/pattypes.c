@@ -1,4 +1,4 @@
- /* $Id: pattypes.c,v 1.2 2020/03/23 18:07:34 rkiesling Exp $ */
+ /* $Id: pattypes.c,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ */
 
  /*
    This file is part of Ctalk.

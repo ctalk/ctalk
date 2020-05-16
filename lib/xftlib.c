@@ -1,4 +1,4 @@
-/* $Id: xftlib.c,v 1.49 2020/05/15 19:13:59 rkiesling Exp $ -*-c-*-*/
+/* $Id: xftlib.c,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -771,7 +771,6 @@ int __ctalkXftGetStringDimensions (char *str, int *x, int *y,
       exit (1);
     }
 
-  whole_string:
     d_l = XOpenDisplay (d_env);
 
     XftTextExtents8 (d_l, selected_font,
@@ -787,9 +786,6 @@ int __ctalkXftGetStringDimensions (char *str, int *x, int *y,
     
   } else {
 
-    if (!monospace)
-      goto whole_string;
-    
     if (*m_filename == '\0' || !str_eq (m_filename, selected_filename)) {
       strcpy (m_filename, selected_filename);
       if (glyph_face) {
@@ -825,9 +821,8 @@ int __ctalkXftGetStringDimensions (char *str, int *x, int *y,
     }
 
     for (strPxSize = 0, p = str; *p; ++p) {
-      FT_Load_Char (glyph_face, *p, FT_LOAD_DEFAULT);
-      /* strPxSize += g -> advance.x / units_per_point; *//***/
-      strPxSize += g -> metrics.horiAdvance / units_per_point;
+      FT_Load_Char (glyph_face, *p, FT_LOAD_NO_SCALE);
+      strPxSize += g -> advance.x / units_per_point;
     }
 
     /* Provide a rightward space "hint" past the final character that

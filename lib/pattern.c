@@ -1,4 +1,4 @@
-/* $Id: pattern.c,v 1.3 2020/03/23 20:44:44 rkiesling Exp $ */
+/* $Id: pattern.c,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.

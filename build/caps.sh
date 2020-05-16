@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Id: caps.sh,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $
+# $Id: caps.sh,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $
 #
 # This is how we will get system capabilities into classes/ctalklib.
 # Instead of writing a library function for every capability (although

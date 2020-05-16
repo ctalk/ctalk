@@ -1,4 +1,4 @@
-/* $Id: ctalkdefs.h,v 1.9 2020/05/07 02:56:44 rkiesling Exp $ -*-C-*-*/
+/* $Id: ctalkdefs.h,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.

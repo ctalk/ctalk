@@ -1,4 +1,4 @@
-/* $Id: bufmthd.h,v 1.4 2020/05/04 22:09:08 rkiesling Exp $ */
+/* $Id: bufmthd.h,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.

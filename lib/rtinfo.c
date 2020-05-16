@@ -1,4 +1,4 @@
-/* $Id: rtinfo.c,v 1.10 2020/02/28 14:58:26 rkiesling Exp $ */
+/* $Id: rtinfo.c,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.

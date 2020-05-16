@@ -1,4 +1,4 @@
-/* $Id: preclass.c,v 1.8 2020/03/18 01:35:46 rkiesling Exp $ */
+/* $Id: preclass.c,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.

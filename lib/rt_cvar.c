@@ -1,4 +1,4 @@
-/* $Id: rt_cvar.c,v 1.5 2019/12/05 21:52:25 rkiesling Exp $ */
+/* $Id: rt_cvar.c,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -2293,6 +2293,8 @@ OBJECT *cvar_object (CVAR *c, int *obj_is_created) {
 			 an array start, treat it the same
 			 as a long int *. */
 		      i_2 = ((uintptr_t *)c -> val.__value.__ptr)[0];
+		      /* causes an intermittent leak - try to fix
+			 when not optimizing */
 		      o_ref = create_object_init_internal
 			(c -> name, rt_defclasses -> p_integer_class,
 			 d_scope|VAR_REF_OBJECT, "");

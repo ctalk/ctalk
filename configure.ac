@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.35 2020/05/08 23:33:49 rkiesling Exp $
+# $Id: configure.ac,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $
 AC_INIT(ctalk, 0.0.66, rk3314042@gmail.com, "")
 
 # Contained in acinclude.m4 and generated aclocal.m4

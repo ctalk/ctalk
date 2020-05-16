@@ -1,4 +1,4 @@
-/* $Id: ctedit.ca,v 1.16 2020/05/16 00:08:26 rkiesling Exp $  -*-c-*- */
+/* $Id: ctedit.ca,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $  -*-c-*- */
 
 /*
   This file is part of Ctalk.
@@ -219,12 +219,6 @@ Application instanceMethod winDimensions (void) {
 
 X11TextEditorPane instanceMethod findFTFonts (void) {
   if (useFtFonts && !useXFont) {
-    /* Even though the font libraries can be initialized when we start
-       receiving events from the X server (when the program calls
-       openEventStream), the program here calls initFontLib earlier so
-       it can select fonts from the program's options before it
-       finishes initializing the Pane objects.  Further calls to the
-       initFontLib method simply return SUCCESS (i.e., 0). */
     self ftFontVar initFontLib;
     self ftFontVar selectFont ftFontName, 0, 80, 0, ftFontSize;
     self ftFontVar namedX11Color fgColor;

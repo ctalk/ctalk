@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.203 2020/05/16 00:08:27 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -1534,7 +1534,7 @@ myMainWindow ftFontVar initFontLib;
 
 @end example
 
-@subheading Fontconfig Font Selection
+@subsubheading Fontconfig Font Selection
 
 Fontconfig font descriptions have their own syntax.  A Fontconfig
 pattern has the following elements.
@@ -1572,7 +1572,7 @@ syntax.  The documentation is available from many software package
 archives and also on the web at
 @url{http://freedesktop.org/fontconfig}.
 
-@subheading Basic @code{fonts.conf} Files
+@subsubheading Basic @code{fonts.conf} Files
 
 Ctalk also uses a subset of the @code{fonts.conf} tag syntax and the
 older style of finding a system's or users' @code{fonts.conf} file:
@@ -1611,49 +1611,13 @@ distribution, @flnm{doc/XftConfig.sample}.  The @cite{fonts.conf (5)}
 manual page and the Xft user and developer documentation provide even
 more information.
 
-@subheading Monospace vs. Proportional Type
-
-The Freetype libraries perform many adjustments when measuring string
-and character metrics.  The libraries make adjustments to the text
-metrics based on the font, typeface, the font file's format, and the
-display characteristics.  Also, the spacing between characters can vary
-depending on which portion of a string is being rendered.
-
-In these cases, the Ctalk libraries use the libXft function
-@cite{XftTextExtents8(1)}, which renders and measures entire chunks
-of text to be displayed.
-
-However, the Ctalk libraries do not duplicate the calculations of the
-Freetype libraries.  That means, in situations where text alignment
-between is critical, as in the @code{X11TextEditorPane} and
-@code{X11TextEntryPane} classes, it may very well be the case that
-font alignment may not be correct.
-
-But the factors mentioned above do not need to apply to monospace
-fonts.  When rendering text using monospace fonts, the Ctalk libraries
-can use a consistent character width and spacing.  In these cases, the
-Ctalk library can measure text character-by-character using the
-individual character glyphs that the Freetype library functions
-render.
-
-So when drawing editable text, programs should use monospace fonts.
-The method, @code{X11FreeTypeFont : isMonospace}, returns @samp{true}
-or @samp{false} to a program or a class depending on the currently
-selected font's characteristics.
-
-Again, these factors mainly apply to classes like
-@code{X11TextEditorPane} and @code{X11TextEntryPane}.  When drawing
-editable text, it is strongly recommended that programs and classes
-use monospace fonts, although it is not required.
-
-
-@subheading Further Information Qbout Fontconfig and libXft
+@subsubheading Further Information Qbout Fontconfig and libXft
 
 For further information about the the Fontconfig libraries, refer to:
 @url{https://freedesktop.org/fontconfig}.  Information about Xft is available at
 @url{http://freedesktop.org/wiki/Software/Xft}.
 
-@subheading Instance Variables
+@subsubheading Instance Variables
 @table @code
 @cindex @mnm{family} instance variable @idxclscite{X11FreeTypeFont}
 @item family
@@ -1709,7 +1673,7 @@ font's characters horizontal dimensions.
 @end table
 
 
-@subheading Instance Methods
+@subsubheading Instance Methods
 @table @code
 
 @cindex @mnm{alpha} instance method @idxclscite{X11FreeTypeFont}
@@ -12418,9 +12382,6 @@ the @code{X11Pane : haveXft} instance variable to @samp{true} if Ctalk
 is built with Xft and Fontconfig library support and the libraries have
 been initialized, false otherwise. @xref{haveXft}.
 
-Programs can also check whether the Xft and Fontconfig libraries are
-initialized with the @code{X11FreeTypeFont : libIsInitialized} method.
-
 @cindex @mnm{putStrXY} instance method @idxclscite{X11Pane}
 @item putStrXY (@code{Integer} @var{xOrg}, @code{Integer} @var{yOrg}, @code{String} @var{str})
 Draw the string on the receiver's drawable surface at @var{xOrg}, @var{yOrg},
@@ -14567,12 +14528,19 @@ the second draws rounded, non-beveled buttons.
 
 #include <ctalk/ctalkdefs.h>
 
-/* Uncomment this to draw buttons with multiline labels. */
+/* Uncomment this #define to use X bitmap fonts. */
+/* #define XFONTS */
+
+/* Also, uncomment this to draw a multiline label. */
 /* #define MULTILINE */
 
 /* Uncomment if you want the buttons to be highlighted with wider
    borders and a bold label (if the font supports it). */
 /* #define BOLD_HILITE */
+
+/* See the X11FreeTypeFont section of the the Ctalk reference. */
+#define FTFONT_BOLD   200
+#define FTFONT_MEDIUM 100
 
 int main (void) @{
   X11Pane new mainWindow;
@@ -14610,6 +14578,21 @@ int main (void) @{
 
   mainWindow setWMTitle "X11ButtonPane Demo";
 
+#ifndef XFONTS
+  /*
+   * This is the recommended way to set up fonts for each widget.
+   */
+  label ftFontVar initFontLib;
+  label ftFont "DejaVu Sans", 0, FTFONT_BOLD, 0, 12.0;
+  label ftFontVar saveSelectedFont;
+  lbutton ftFont "DejaVu Sans", 0, FTFONT_MEDIUM, 0, 10.0;
+  lbutton ftFontVar saveSelectedFont;
+  rbutton ftFont "DejaVu Sans", 0, FTFONT_MEDIUM, 0, 10.0;
+  rbutton ftFontVar saveSelectedFont;
+#else
+  lbutton label font "fixed";
+#endif  
+
   label multiLine "X11ButtonPane\nDemo";
 
 #ifndef MULTILINE
@@ -14627,8 +14610,8 @@ int main (void) @{
     (rbutton resources at "foregroundColor");
   lbutton label resources replaceAt "highlightBorderWidth", 2;
   rbutton label resources replaceAt "highlightBorderWidth", 2;
-  rbutton label resources replaceAt "highlightTextBold", true;
-  lbutton label resources replaceAt "highlightTextBold", true;
+  lbutton label resources replaceAt "ftFont", "sans serif-10:bold";
+  rbutton label resources replaceAt "ftFont", "sans serif-10:bold";
 #endif  
 
   lbutton draw;
@@ -14716,15 +14699,21 @@ int main (void) @{
 
   mainWindow setWMTitle "X11ButtonPane Demo";
 
+  label ftFontVar initFontLib;
   label multiLine "X11ButtonPane\nRounded Button\nDemo";
   label canFocus = false;
   label borderWidth = 0;
   label resources replaceAt "borderColor", "blue";
+  label resources replaceAt "ftFont", "sans-serif-14:bold";
   label resources replaceAt "textColor", "white";
   label resources replaceAt "backgroundColor", "blue";
   label resources replaceAt "foregroundColor", "blue";
 
+  rbutton label ftFontVar selectFontFromFontConfig "sans serif-10";
+  rbutton label ftFontVar saveSelectedFont;
   rbutton resources replaceAt "foregroundColor", "blue";
+  lbutton label ftFontVar selectFontFromFontConfig "sans serif-10";
+  lbutton label ftFontVar saveSelectedFont;
   lbutton resources replaceAt "foregroundColor", "blue";
   rbutton resources replaceAt "textColor", "white";
   lbutton resources replaceAt "textColor", "white";
@@ -15151,6 +15140,10 @@ int main (int argv, char **argc) @{
   X11LabelPane new xLabelPane;
   InputEvent new e;
   Exception new ex;
+
+#ifdef FTFONTS 
+  xPane ftFontVar initFontLib;
+#endif       
 
   xLabelPane resources replaceAt "backgroundColor", "white";
 
@@ -15587,7 +15580,7 @@ int main (void) @{
   label canFocus = false;
   label borderWidth = 0;
 
-  label ftFontVar notifyLevel XFT_NOTIFY_NONE;
+  label ftFontVar notifyLevel XFT_NOTIFY_ERRORS;
 
   mainWindow backgroundColor = "blue";
   label resources replaceAt "backgroundColor", "blue";
@@ -15610,6 +15603,8 @@ int main (void) @{
 
   mainWindow setWMTitle "X11MessageBoxPane Demo";
 
+  label ftFontVar initFontLib;
+
   label multiLine "X11MessageBoxPane\nDemo";
   label resources replaceAt "textColor", "lightgray";
   label resources replaceAt "foregroundColor", "blue";
@@ -15617,10 +15612,7 @@ int main (void) @{
 
   button label multiLine "Open\nMessageBox";
 
-  button label resources replaceAt "highlightForegroundColor", "gray80";
-
-  /* Icon IDs, like ICON_INFO, are defined in ctalkdefs.h. */
-  messageBox resources replaceAt "iconID", ICON_INFO;
+  button label resources replaceAt "highlightForegroundColor", "gray90";
 
   /* The program uses the "replaceAt" method because the key/value
      entry for "backgroundColor" the X11MessageBoxPane : new method
@@ -15634,7 +15626,6 @@ int main (void) @{
   button refresh;
   label draw;
   label refresh;
-
 
   while (TRUE) @{
     mainWindow inputStream queueInput;
@@ -15650,7 +15641,16 @@ int main (void) @{
 	  label subPaneExpose (label, e);
 	  break;
 	case BUTTONRELEASE:
-	  messageBox showManaged button;
+	  if (button haveClick) @{
+	    button clearClick;
+	  @}
+	  button highlight = false;
+	  button clicked = false;
+	  while (mainWindow inputStream eventPending)
+	    e become mainWindow inputStream inputQueue unshift;
+	  button draw;
+	  button refresh;
+	  messageBox show;
 	  break;
 	case WINDELETE:
  	  mainWindow deleteAndClose;
@@ -15661,7 +15661,6 @@ int main (void) @{
       usleep (1000);
     @}
   @}
-
 @}
 
 @end example
@@ -15938,10 +15937,11 @@ int main (int argv, char **argc) @{
   xWindowSize = 400;
   yWindowSize = 400;
 
+  xPane ftFontVar initFontLib;
   xPane ftFont "DejaVu Sans", 0, 0, 0, 48.0;
 
   xPane initialize xWindowSize, yWindowSize;
-  xPane inputStream eventMask = WINDELETE|EXPOSE|BUTTONPRESS|BUTTONRELEASE|MOTIONNOTIFY|RESIZENOTIFY|ENTERWINDOWNOTIFY|LEAVEWINDOWNOTIFY;
+  xPane inputStream eventMask = WINDELETE|EXPOSE|BUTTONPRESS|BUTTONRELEASE|MOTIONNOTIFY;
   xTopLevelPane attachTo xPane;
   xScrollBarPane attachTo xTopLevelPane, "20x100%+0+0";
   xCanvasPane attachTo xTopLevelPane, "380x100%+20+0";
@@ -16001,7 +16001,7 @@ int main (int argv, char **argc) @{
 
 @end example
 
-@subheading Instance Variables
+@subsubheading Instance Variables
 
 @table @code
 
@@ -16092,7 +16092,7 @@ A @code{X11Bitmap} that contains the thumb's beveled image, if the
 pane is drawn with @code{bevel} set to @samp{true}.
 @end table
 
-@subheading Instance Methods
+@subsubheading Instance Methods
 
 @table @code
 
@@ -16203,336 +16203,68 @@ Here is an example of an @code{X11TextEntryPane} object's use.
 @c demos/x11/entrybox.ca
 @example
 
-/*
-  ctedit.ca - Basic text editor using X11TextEditorPane class.
 
-  Usage:
+#include <ctalk/ctalkdefs.h>
 
-    ctedit [<options>] <filename>
-
-  Typing, "ctedit -h" displays a list of options.
-
-  Pressing Esc or selecting "Close" from the window menu
-  exits the program and saves the edited text.
-  
-  If <filename> exists, ctedit renames the previous version
-  of the file to <filename>.bak.  If <filename> doesn't
-  exist, ctedit creates a new file.
-
-  The editing commands are set in the X11TextEditorPane :
-  handleKbdInput method.  They are:
-
-     Right, Ctrl-F       Next character
-     Left, Ctrl-B        Previous character
-     Up, Ctrl-P          Previous line
-     Down, Ctrl-N        Next line
-     PgDn, Ctrl-V        Next page
-     PgUp, Ctrl-T        Previous page
-     Home, Ctrl-A        Start of line
-     End, Ctrl-E         End of line
-     Ctrl-Q              Start of text
-     Ctrl-Z              End of text
-     Ctrl-D              Delete character under cursor
-     Backspace           Delete previous character
-     Del                 At the end of the text, delete the
-                         previous character.  Otherwise delete
-                         the character under the cursor.
-     Esc                 Close the window, save the edited text,
-                         and exit the program.
-
-     Mouse-1             Move the insertion point cursor to the
-                         click.  Hold down the button and drag
-                         the mouse pointer to select text.
- */
-
-#define WIN_WIDTH 500
-#define WIN_HEIGHT 340
-#define WIN_X 25
-#define WIN_Y 30
-#define FIXED_FONT "fixed"
-#define DEFAULT_BG "white"
-#define DEFAULT_FG "black"
-#ifdef __APPLE__
-#define DEFAULT_FT_FONT "Courier"
-#else
-#define DEFAULT_FT_FONT "DejaVu Sans Mono"
-#endif
-#define DEFAULT_FT_PTSIZE 12.0
-
-Application new ctEdit;
-String new geomString;
-String new infileName;
-String new xFontName;
-String new ftFontName;
-Float new ftFontSize;
-String new bgColor;
-String new fgColor;
-
-Boolean new createFile;
-
-Boolean new useFtFonts;
-Boolean new useXFont;
-
-/* Needed if we're editing shell scripts that need the new file
-   to have the same permissions. */
-Integer new filePerms;
-
-void exit_help () @{
-  printf ("usage: ctedit [-h] | [-g <geom>] [-fg <color>] "
-	  "[-bg <color>] [-fn <font> ] <filename>\n");
-  printf ("-bg <color>    Set the window background to <color>.\n");
-  printf ("-fg <color>    Display the text using <color>.\n");
-  printf ("-fn <font>     Use the X <font> to display the text. See xfontsel(1).\n");
-  printf ("-ft <font>     Use the FreeType <font> to display the text. See\n");
-  printf ("               X11FreeTypeFont class.\n");
-  printf ("-g  <geom>     Set the window geometry to <geom>. See XParseGeometry (3).\n");
-  printf ("-h             Print this message and exit.\n");
-  printf ("-pt <ptsize>   If using an outline font, sets the point size.\n");
-  printf ("-xfonts        Use X bitmap fonts, even if outline fonts are available.\n");
-  exit (1);
-@}
-
-/* UNIX-compatible line ending. */
-#define LF 10
-
-X11TextEditorPane instanceMethod writeOutput (String infileName) @{
-  "Create a backup of the previous version of the file, if any,
-   and check that the text ends with a UNIX-standard newline
-   (ASCII 10) character."
-  WriteFileStream new writeFile;
-  Character new c;
-
-  c = self text at (self text length - 1);
-  if (c != LF) @{
-    self text += "\n";
-  @}
-  
-  if (!createFile) @{
-    writeFile renameFile infileName, infileName + ".bak";
-    writeFile openOn infileName;
-    writeFile writeStream (self text);
-    writeFile closeStream;
-    chmod (infileName, filePerms);
-  @} else @{
-    writeFile openOn infileName;
-    writeFile writeStream (self text);
-    writeFile closeStream;
-  @}
-
-@}
-
-Application instanceMethod commandLineOptions (void) @{
-  Integer new i, nParams;
-  String new param;
-
-
-  nParams = self cmdLineArgs size;
-  for (i = 1; i < nParams; i++) @{
-
-    param = self cmdLineArgs at i;
-
-    if (param  == "-g") @{
-      ++i;
-      geomString = self cmdLineArgs at i;
-      continue;
-    @}
-    if (param == "-fn") @{
-      ++i;
-      xFontName = self cmdLineArgs at i;
-      continue;
-    @}
-    if (param == "-bg") @{
-      ++i;
-      bgColor = self cmdLineArgs at i;
-      continue;
-    @}
-    if (param == "-fg") @{
-      ++i;
-      fgColor = self cmdLineArgs at i;
-      continue;
-    @}
-    if (param == "-ft") @{
-      ++i;
-      ftFontName = self cmdLineArgs at i;
-      continue;
-    @}
-    if (param == "-xfonts") @{
-      useXFont = True;
-      continue;
-    @}
-    if (param == "-pt") @{
-      ++i;
-      ftFontSize = (self cmdLineArgs at i) asFloat;
-      continue;
-    @}
-    if (param == "-h" || param == "--help" || param == "--h" ||
-	param at 0 == '-') @{
-      exit_help ();
-    @}
-    
-    infileName = param;
-
-  @}
-
-@}
-
-Application instanceMethod winDimensions (void) @{
-  if (geomString length > 0) @{
-    self parseX11Geometry geomString;
-    if (self winWidth == 0) @{
-      self winWidth = WIN_WIDTH;
-    @}
-    if (self winHeight == 0) @{
-      self winHeight = WIN_HEIGHT;
-    @}
-    if (self winXOrg == 0) @{
-      self winXOrg = WIN_X;
-    @}
-    if (self winYOrg == 0) @{
-      self winYOrg = WIN_Y;
-    @}
-  @} else @{
-    self winWidth = WIN_WIDTH;
-    self winHeight = WIN_HEIGHT;
-    self winXOrg = WIN_X;
-    self winYOrg = WIN_Y;
-  @}
-@}
-
-X11TextEditorPane instanceMethod findFTFonts (void) @{
-  if (useFtFonts && !useXFont) @{
-    /* Even though the font libraries can be initialized when we start
-       receiving events from the X server (when the program calls
-       openEventStream), the program here calls initFontLib earlier so
-       it can select fonts from the program's options before it
-       finishes initializing the Pane objects.  Further calls to the
-       initFontLib method simply return SUCCESS (i.e., 0). */
-    self ftFontVar initFontLib;
-    self ftFontVar selectFont ftFontName, 0, 80, 0, ftFontSize;
-    self ftFontVar namedX11Color fgColor;
-  @}
-@}
-
-int main (int argc, char **argv) @{
+int main (int argv, char **argc) @{
   X11Pane new xPane;
-  X11PaneDispatcher new xTopLevelPane;
-  X11TextEditorPane new xEditorPane;
+  X11PaneDispatcher new dispatcher;
+  X11TextEntryPane new entry;
+  X11LabelPane new label;
+  X11ButtonPane new button;
   InputEvent new e;
-  Exception new ex;
-  X11Cursor new watchCursor;
-  ReadFileStream new readFile;
-  String new winTitle;
+  Integer new nEvents;
+  Integer new verbose;
+  X11Cursor new cursor;
+   xPane resources atPut "backgroundColor", "blue";
+  label resources replaceAt "backgroundColor", "blue";
+  label resources replaceAt "foregroundColor", "blue";
+  label resources replaceAt "highlightForegroundColor", "blue";
+  label resources replaceAt "textColor", "white";
+  label resources replaceAt "highlightTextColor", "white";
+  label border = false;
 
-  geomString = "";
-  xFontName = FIXED_FONT;
-  bgColor = DEFAULT_BG;
-  fgColor = DEFAULT_FG;
-  infileName = "";
-  useFtFonts = True;
-  useXFont = False;
-  ftFontSize = DEFAULT_FT_PTSIZE;
-  ftFontName = DEFAULT_FT_FONT;
-
-  ctEdit parseArgs argc, argv;
-  ctEdit commandLineOptions;
-  ctEdit winDimensions;
-
-  if (xEditorPane ftFontVar version < 10) @{
-    useFtFonts = false;
-  @} else @{
-    xEditorPane findFTFonts;
-  @}
-  
-
-  if (infileName length == 0) @{
-    exit_help ();
-  @}
-
-  if (!readFile exists infileName) @{
-    createFile = true;
-    winTitle = infileName + "   (New file)";
-  @} else @{
-    readFile openOn infileName;
-    readFile statStream;
-    filePerms = readFile streamMode;
-    xEditorPane text = readFile readAll;
-    xEditorPane textLength = xEditorPane text length;
-    if (ex pending) @{
-      ex handle;
-      xEditorPane text = "";
-    @}
-    readFile closeStream;
-    winTitle = infileName;
-    createFile = false;
-  @}
-
-  xPane initialize ctEdit winXOrg, ctEdit winYOrg,
-    ctEdit winWidth, ctEdit winHeight, ctEdit geomFlags, winTitle;
-
-  xTopLevelPane attachTo xPane;
-  xEditorPane attachTo xTopLevelPane;
+   xPane inputStream eventMask = EXPOSE|ENTERWINDOWNOTIFY|LEAVEWINDOWNOTIFY| \
+    KEYPRESS|KEYRELEASE|WINDELETE|BUTTONPRESS|BUTTONRELEASE;
+   xPane initialize 300, 200;
+  dispatcher attachTo xPane;
+  label attachTo dispatcher, "100x80+10+10";
+  button attachTo dispatcher, "60x45+120+100";
+  entry attachTo dispatcher, "140x32+120+32";
   xPane map;
   xPane raiseWindow;
-  watchCursor watch;
 
-  xPane inputStream eventMask = EXPOSE|WINDELETE|KEYPRESS|KEYRELEASE \
-    |MOTIONNOTIFY|BUTTONPRESS|BUTTONRELEASE|RESIZENOTIFY|SELECTIONCLEAR;
   xPane openEventStream;
 
-  /* Setting to zero indicates that the program should set
-     the maximum line width to the width of the window. */
-  xEditorPane lineWidth = 0;
-
-  xEditorPane background bgColor;
-  xEditorPane foreground fgColor;
-
-  if (!useFtFonts || useXFont)
-    xEditorPane font xFontName;
-
-  xEditorPane defaultFormat;
-  xEditorPane displayText;
-
-  xPane defaultCursor;
+  xPane setWMTitle "X11TextEntryPane Demo";
+  label multiLine "Enter your\ntext:";
+  button label text "Done";
 
   while (TRUE) @{
     xPane inputStream queueInput;
     if (xPane inputStream eventPending) @{
       e become xPane inputStream inputQueue unshift;
+
       xPane subPaneNotify e;
-      if (ex pending)
- 	ex handle;
-      switch (e eventClass value) 
-	@{
-	  /*
-	   *  Handle both types of events in case the window
-	   *  manager doesn't distinguish between them.
-	   */
-	case MOVENOTIFY:
-	  break;
-#if 0 /***/
-	case RESIZENOTIFY:
-	  /***/
-	  printf ("defaultFormat!\n");
-	  /* xEditorPane defaultFormat; *//***/
-	  break;
-#endif	  
-	case EXPOSE:
-	  xEditorPane displayText;
-	  break;
-	case WINDELETE:
-	  xEditorPane writeOutput infileName;
- 	  xPane deleteAndClose;
-	  exit (0);
-	  break;
-	default:
-	  break;
-	@}
-    @} else @{
-      if (xEditorPane requestClose) @{
-	xEditorPane writeOutput infileName;
-	xPane deleteAndClose;
-	exit (0);
-      @}
+
+      switch (e eventClass value)
+        @{
+        case EXPOSE:
+          entry refresh;
+          break;
+        case WINDELETE:
+          xPane deleteAndClose;
+          exit (0);
+          break;
+        default:
+          if (button haveClick) @{
+            button clearClick;
+            xPane deleteAndClose;
+            printf ("You entered: %s\n", entry entryText);
+            exit (0);
+          @}
+        break;
+        @}
     @}
   @}
 @}
@@ -16582,7 +16314,7 @@ int main (void) @{
   label canFocus = false;
   label borderWidth = 0;
 
-  label ftFontVar notifyLevel XFT_NOTIFY_NONE;
+  label ftFontVar notifyLevel XFT_NOTIFY_ERRORS;
 
   mainWindow backgroundColor = "blue";
   label resources replaceAt "backgroundColor", "blue";
@@ -16605,6 +16337,8 @@ int main (void) @{
 
   mainWindow setWMTitle "X11YesNoBoxPane Demo";
 
+  label ftFontVar initFontLib;
+
   label multiLine "X11YesNoBoxPane\nDemo";
   label resources replaceAt "textColor", "lightgray";
   label resources replaceAt "foregroundColor", "blue";
@@ -16613,6 +16347,9 @@ int main (void) @{
   button label multiLine "Open\nYes/No\nDialog";
 
   button label resources replaceAt "highlightForegroundColor", "gray80";
+
+  /* Icon IDs, like ICON_QUESTION, are defined in ctalkdefs.h. */
+  yesnoBox resources replaceAt "iconID", ICON_QUESTION;
 
   /* The program uses the "replaceAt" method because the key/value
      entry for "backgroundColor" the X11MessageBoxPane : new method

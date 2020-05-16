@@ -1,4 +1,4 @@
-/* $Id: guiputxstr.c,v 1.4 2020/02/29 02:54:05 rkiesling Exp $ -*-c-*-*/
+/* $Id: guiputxstr.c,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.

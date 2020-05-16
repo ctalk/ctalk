@@ -2,12 +2,19 @@
 
 #include <ctalk/ctalkdefs.h>
 
-/* Uncomment this to draw buttons with multiline labels. */
+/* Uncomment this #define to use X bitmap fonts. */
+/* #define XFONTS */
+
+/* Also, uncomment this to draw a multiline label. */
 /* #define MULTILINE */
 
 /* Uncomment if you want the buttons to be highlighted with wider
    borders and a bold label (if the font supports it). */
 /* #define BOLD_HILITE */
+
+/* See the X11FreeTypeFont section of the the Ctalk reference. */
+#define FTFONT_BOLD   200
+#define FTFONT_MEDIUM 100
 
 int main (void) {
   X11Pane new mainWindow;
@@ -44,6 +51,21 @@ int main (void) {
   mainWindow openEventStream;
 
   mainWindow setWMTitle "X11ButtonPane Demo";
+
+#ifndef XFONTS
+  /*
+   * This is the recommended way to set up fonts for each widget.
+   */
+  label ftFontVar initFontLib;
+  label ftFont "DejaVu Sans", 0, FTFONT_BOLD, 0, 12.0;
+  label ftFontVar saveSelectedFont;
+  lbutton ftFont "DejaVu Sans", 0, FTFONT_MEDIUM, 0, 10.0;
+  lbutton ftFontVar saveSelectedFont;
+  rbutton ftFont "DejaVu Sans", 0, FTFONT_MEDIUM, 0, 10.0;
+  rbutton ftFontVar saveSelectedFont;
+#else
+  lbutton label font "fixed";
+#endif  
 
   label multiLine "X11ButtonPane\nDemo";
 

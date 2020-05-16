@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.12 2020/04/03 10:31:10 rkiesling Exp $
+# $Id: Makefile.am,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $
 
 SUBDIRS=classes doc libctpp ctpp lib src 
 HOST_OS=@host_os@

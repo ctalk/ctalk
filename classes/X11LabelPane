@@ -1,4 +1,4 @@
-/* $Id: X11LabelPane,v 1.48 2020/05/15 22:47:27 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11LabelPane,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -28,8 +28,11 @@
 /* 
  *  The X11LabelPane class defines the following resources.
  *
- *  ftFont             "sans serif-12:weight=medium:slant=roman"
- *  xFont              "fixed"
+ *  ftFont             A Fontconfig font specification.  These
+ *                     are described in the X11FreeTypeFont
+ *                     section of the Ctalk Language Reference.
+ *  xFont              A X Logical Font Descriptor.  See
+ *                     xfontsel(1).
  *
  *    These are all X11 compatible color names. Refer to 
  *      showrgb (1).
@@ -114,7 +117,7 @@ X11LabelPane instanceMethod new (String __paneName) {
 
   __paneName resources atPut "backgroundColor", "gray";
   __paneName resources atPut "foregroundColor", "white";
-  __paneName resources atPut "ftFont", "sans-serif-12:weight=medium:slant=roman";
+  __paneName resources atPut "ftFont", "sans-serif-12";
   __paneName resources atPut "textColor", "black";
   __paneName resources atPut "borderColor", "black";
   __paneName resources atPut "highlightTextColor", "black";
@@ -175,7 +178,7 @@ X11LabelPane instanceMethod multiLine (String textArg) {
 X11LabelPane instanceMethod __drawJustified (String textArg,
 					     Integer textWidth,
 					     Integer lineStartY) {
-
+  Integer new hAir, hCenter;
   switch (self justify)
     {
     case LABEL_LEFT:
@@ -183,8 +186,9 @@ X11LabelPane instanceMethod __drawJustified (String textArg,
 	self resources at "highlightBorderWidth", lineStartY value, textArg;
       break;
     case LABEL_CENTER:
-      self putStrXY ((self size x / 2) - (textWidth / 2)),
-	lineStartY value, textArg;
+      hCenter = (self size x / 2) - (textWidth / 2);
+      hAir = hCenter - (hCenter / 10);
+      self putStrXY hAir, lineStartY value, textArg;
       break;
     case LABEL_RIGHT:
       self putStrXY ((self size x) -

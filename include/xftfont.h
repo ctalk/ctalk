@@ -1,4 +1,4 @@
-/* $Id: xftfont.h,v 1.1.1.1 2019/10/26 23:40:50 rkiesling Exp $ -*-c-*-*/
+/* $Id: xftfont.h,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -28,6 +28,7 @@ typedef struct {
   XftFont *bold;
   XftFont *italic;
   XftFont *bold_italic;
+  void *display;
 } XFTFONT;
 
 #define _XFTFONT_H_

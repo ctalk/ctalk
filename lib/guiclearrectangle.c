@@ -1,4 +1,4 @@
-/* $Id: guiclearrectangle.c,v 1.9 2020/03/26 02:58:39 rkiesling Exp $ -*-c-*-*/
+/* $Id: guiclearrectangle.c,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.

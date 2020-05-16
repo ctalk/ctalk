@@ -1,11 +1,29 @@
-Ctalk News - ______ __, 2020
+Ctalk News - May 10, 2020
 
 Ctalk Home page: http://sourceforge.net/projects/ctalk.
 Ctalk Wiki:      http://sourceforge.net/p/ctalk/wiki/Home.
 Github:          http://github.com/ctalk/ctalk
 
 
-What's New in Release 0.0.66 200-__-__
+What's New in Release 0.0.66 2020-05-10
+
+- The widget classes X11MessageBoxPane, X11YesNoBoxPane, and
+  X11TextEntryPane, and the example programs in demos/x11:
+  entrybox.ca, messagebox.ca, roundbuttons.ca, and yesnobox.ca.
+
+- Added the X11Pane : resource instance variable to store key/value
+  pairs of data like colors, dimensions, and font descriptors that
+  classes use primarily during widget initialization.  Also added
+  Resource sections to some of the relevant X11Pane and subclass
+  sections of the Ctalk language reference as resources get added
+  to the X11Pane subclasses.
+
+- Added the X11Bitmap methods icon, iconStop, iconCaution, iconInfo,
+  and iconQuestion, which draw 64x64 dialog box icons on the receiver
+  Drawable.
+
+- Also added the X11Bitmap methods drawCircle, drawRectangle, and
+  drawFilledRectangle.
 
 - Ctalk's libXft and Fontconfig support has been updated to read a
 system or local fonts.conf(5) file as configured during Fontconfig

@@ -1,4 +1,4 @@
-/* $Id: chash.h,v 1.2 2019/11/11 20:21:51 rkiesling Exp $ */
+/* $Id: chash.h,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
