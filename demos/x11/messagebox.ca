@@ -18,7 +18,7 @@ int main (void) {
   label canFocus = false;
   label borderWidth = 0;
 
-  label ftFontVar notifyLevel XFT_NOTIFY_ERRORS;
+  label ftFontVar notifyLevel XFT_NOTIFY_NONE;
 
   mainWindow backgroundColor = "blue";
   label resources replaceAt "backgroundColor", "blue";
@@ -40,8 +40,6 @@ int main (void) {
   mainWindow openEventStream;
 
   mainWindow setWMTitle "X11MessageBoxPane Demo";
-
-  label ftFontVar initFontLib;
 
   label multiLine "X11MessageBoxPane\nDemo";
   label resources replaceAt "textColor", "lightgray";

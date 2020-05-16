@@ -1182,20 +1182,31 @@ metrics based on the font, typeface, the font file's format, and the
 display characteristics.  Also, the spacing between characters can vary
 depending on which portion of a string is being rendered.
 
-At present, the Ctalk libraries do not duplicate the calculations of the
-Freetype libraries.  However, the factors mentioned above do not need to
-apply to monospace fonts.  When rendering text using monospace fonts,
-the Ctalk libraries can use a consistent character width and spacing.
+In these cases, the Ctalk libraries use the libXft function
+'XftTextExtents8(1)', which renders and measures entire chunks of text
+to be displayed.
 
-So when rendering editable text, it is recommended that programs use
-monospace fonts.  The method, 'X11FreeTypeFont : isMonospace', returns
-'true' or 'false' to a program or a class depending on the current
-selected font's characteristics.
+However, the Ctalk libraries do not duplicate the calculations of the
+Freetype libraries.  That means, in situations where text alignment
+between is critical, as in the 'X11TextEditorPane' and
+'X11TextEntryPane' classes, it may very well be the case that font
+alignment may not be correct.
 
-These factors mainly apply to the classes, 'X11TextEditorPane' and
-'X11TextEntryPane' at present.  When drawing editable text, it is
-strongly recommended that programs and classes use monospace fonts,
-though it is not required.
+But the factors mentioned above do not need to apply to monospace fonts.
+When rendering text using monospace fonts, the Ctalk libraries can use a
+consistent character width and spacing.  In these cases, the Ctalk
+library can measure text character-by-character using the individual
+character glyphs that the Freetype library functions render.
+
+So when drawing editable text, programs should use monospace fonts.  The
+method, 'X11FreeTypeFont : isMonospace', returns 'true' or 'false' to a
+program or a class depending on the currently selected font's
+characteristics.
+
+Again, these factors mainly apply to classes like 'X11TextEditorPane'
+and 'X11TextEntryPane'.  When drawing editable text, it is strongly
+recommended that programs and classes use monospace fonts, although it
+is not required.
 
 Further Information Qbout Fontconfig and libXft
 -----------------------------------------------

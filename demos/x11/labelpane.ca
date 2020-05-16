@@ -11,10 +11,6 @@ int main (int argv, char **argc) {
   InputEvent new e;
   Exception new ex;
 
-#ifdef FTFONTS 
-  xPane ftFontVar initFontLib;
-#endif       
-
   xLabelPane resources replaceAt "backgroundColor", "white";
 
   xPane initialize 0, 0, 300, 300;

@@ -1,4 +1,4 @@
-/* $Id: X11LabelPane,v 1.47 2020/05/05 22:23:16 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11LabelPane,v 1.48 2020/05/15 22:47:27 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -28,11 +28,8 @@
 /* 
  *  The X11LabelPane class defines the following resources.
  *
- *  ftFont             A Fontconfig font specification.  These
- *                     are described in the X11FreeTypeFont
- *                     section of the Ctalk Language Reference.
- *  xFont              A X Logical Font Descriptor.  See
- *                     xfontsel(1).
+ *  ftFont             "sans serif-12:weight=medium:slant=roman"
+ *  xFont              "fixed"
  *
  *    These are all X11 compatible color names. Refer to 
  *      showrgb (1).
@@ -117,7 +114,7 @@ X11LabelPane instanceMethod new (String __paneName) {
 
   __paneName resources atPut "backgroundColor", "gray";
   __paneName resources atPut "foregroundColor", "white";
-  __paneName resources atPut "ftFont", "sans-serif-12";
+  __paneName resources atPut "ftFont", "sans-serif-12:weight=medium:slant=roman";
   __paneName resources atPut "textColor", "black";
   __paneName resources atPut "borderColor", "black";
   __paneName resources atPut "highlightTextColor", "black";
