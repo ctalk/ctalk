@@ -1,4 +1,4 @@
-/* $Id: X11TextEntryPane,v 1.23 2020/05/18 17:03:13 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11TextEntryPane,v 1.29 2020/05/19 19:45:39 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -46,6 +46,17 @@ Character class CharCell;
  *     spacingHint          Integer  0          -1
  *     cursorAdvanceHint    Integer  4           2
  *
+ *
+ *   Motion Keys:
+ *
+ *   Right Arrow            Next Character
+ *   Ctrl-F
+ *   Left Arrow             Previous Character
+ *   Ctrl-B
+ *   Home                    Start of Buffer
+ *   Ctrl-A
+ *   End                        End of Buffer
+ *   Ctrl-E
  */
 
 X11TextEntryPane instanceVariable cursor X11Cursor 0;
@@ -57,6 +68,8 @@ X11TextEntryPane instanceVariable spacingHint Integer 0;
 X11TextEntryPane instanceVariable baselineY Integer 0;
 X11TextEntryPane instanceVariable point Integer 0;
 X11TextEntryPane instanceVariable clipX Integer 0;
+X11TextEntryPane instanceVariable center Boolean false;
+X11TextEntryPane instanceVariable paneWidthChars Integer 0;
 
 CharCell instanceVariable width Integer 0;
 CharCell instanceVariable boxOrg Point NULL;
@@ -117,6 +130,7 @@ X11TextEntryPane instanceMethod attachTo (X11Pane parentPane,
     /* X11Bitmap new xPaneBuffer;
        X11Bitmap new xPaneBackingStore; *//***/
   String new parentGeometry;
+  Integer new eWidth;
   int x, y, width, height;
   unsigned int mainWinID;
   
@@ -139,6 +153,11 @@ X11TextEntryPane instanceMethod attachTo (X11Pane parentPane,
   self origin y = y;
 
   self resources atPut "geometry", geomspec;
+
+  self ftFontVar selectFontFromFontConfig (self resources at "font");
+  self ftFontVar saveSelectedFont;
+  eWidth = self ftFontVar textWidth "e";
+  self paneWidthChars = self size x / eWidth;
 
   self cursor xterm;
 
@@ -187,9 +206,14 @@ X11TextEntryPane instanceMethod drawCursor (void) {
       }
        self cursorX -= (clipLength - vPad);
     }
-    cursorAdvanceHint = self resources at "cursorAdvanceHint";
-    self paneBuffer drawLine self cursorX + cursorAdvanceHint, hPad,
-      self cursorX + cursorAdvanceHint, self size y - hPad, self pen;
+    if (self point > 0) {
+      cursorAdvanceHint = self resources at "cursorAdvanceHint";
+      self paneBuffer drawLine self cursorX + cursorAdvanceHint, hPad,
+	self cursorX + cursorAdvanceHint, self size y - hPad, self pen;
+    } else {
+      self paneBuffer drawLine self cursorX, hPad,
+	self cursorX, self size y - hPad, self pen;
+    }
   } else {
     if (self clipX == 0) {
       (Object *)cPoint = self charCellAt self point;
@@ -252,13 +276,33 @@ X11TextEntryPane instanceMethod draw (void) {
 
   vPad = self resources at "vPad";
   
-  entryChars = entryText length;
-  for (clipStartIdx = 0; clipStartIdx < entryChars; clipStartIdx += 1) {
-    textWidthPx = self inputWidth self chars, clipStartIdx;
-    if (textWidthPx < ((self size x - vPad) * .75))
-      break;
+  if (self center) {
+    if ((self chars size - self point) > self point) {
+      /* i.e., if the point is closer to the beginning of the text */
+      if (self point < (self paneWidthChars / 2)) {
+	self clipX = 0;
+      } else {
+	self clipX = self point  - (self paneWidthChars / 2);
+	if (self clipX < 0) {
+	  self clipX = 0;
+	}
+      }
+    } else {
+      if ((self paneWidthChars / 2) > self chars size) {
+	self clipX = self point - (self paneWidthChars / 2);
+      } else {
+	self clipX = self point - (self chars size / 2);
+      }
+    }
+  } else {
+    entryChars = entryText length;
+    for (clipStartIdx = 0; clipStartIdx < entryChars; clipStartIdx += 1) {
+      textWidthPx = self inputWidth self chars, clipStartIdx;
+      if (textWidthPx < ((self size x - vPad) * .75))
+	break;
+    }
+    self clipX = clipStartIdx;
   }
-  self clipX = clipStartIdx;
   
   if (self spacingHint == 0) {
     /* The app can't initialize these much earlier than
@@ -278,7 +322,6 @@ X11TextEntryPane instanceMethod draw (void) {
       (Object *)cm = self;
       super paneBuffer putStr drawX,
 	super baselineY, cm asString;
-      /* drawX += (cm width + super spacingHint); *//***/
       drawX += cm width;
     }
     ++idx;
@@ -328,7 +371,7 @@ X11TextEntryPane instanceMethod insertAt (OBJECT *(*newItem)(),
     OBJECT *key, *self_object, *t, *arg;
   int i;
 
-  self_object = self;
+  self_object = self chars;
   key = __ctalkCreateObjectInit ("keyObject", "Key", "Symbol", 
 				 self_object -> scope,
 				 "");
@@ -406,13 +449,13 @@ X11TextEntryPane instanceMethod subPaneButtonPress (Object subPane,
     self chars map {
       if (event xEventData1 > self boxOrg x &&
 	  event xEventData1 < self boxExt x) {
-#if 0
-	printf ("a: %d\n", super point);
+#if 1
+	printf ("a: %c %d\n", self, super point);
 #endif
 	break;
       } else if (event xEventData1 == self boxExt x) {
-#if 0
-	printf ("b: %d\n", super point);
+#if 1
+	printf ("b: %c %d\n", self, super point);
 #endif	
 	break;
       }
@@ -423,6 +466,52 @@ X11TextEntryPane instanceMethod subPaneButtonPress (Object subPane,
     self draw;
     self super refresh;
   }
+}
+
+X11TextEntryPane instanceMethod calculateSpaceAppend (void) {
+  "To calculate the actual width of the space as it is
+   rendered, and the width of the character that follows it,
+   we use _three_separate width measuremnts."
+  String new s0, s1, s2;
+  Integer new w0, w1, w2;
+  CharCell new cSpace, cAfter;
+
+  (Object *)cAfter = self chars pop;
+  (Object *)cSpace = self chars pop;
+
+  s0 = self chars asString;
+  w0 = self ftFontVar textWidth s0;
+
+#if 0
+  printf ("s0: %d: %s\n", w0, s0);
+#endif  
+
+  self chars push cAfter;
+  s1 = self chars asString;
+  w1 = self ftFontVar textWidth s1;
+#if 0
+  printf ("s1: %d: %s\n", w1, s1);
+#endif  
+  (Object *)cAfter = self chars pop;
+
+  self chars push cSpace;
+  self chars push cAfter;
+
+  s2 = self chars asString;
+  w2 = self ftFontVar textWidth s2;
+#if 0
+  printf ("s2: %d: %s\n", w2, s2);
+#endif  
+
+  cSpace width = (w2 - w1) + self spacingHint;
+  cAfter width = (w1 - w0) + self spacingHint;
+  cAfter boxOrg x += cSpace width;
+  cAfter boxExt x = cAfter boxOrg x + cAfter width;
+
+#if 0
+  printf ("%d %d %d %d\n", cSpace width, cAfter width, cAfter boxOrg x, cAfter boxExt x);
+#endif  
+
 }
 
 /* Some of these are also defined in X11TextEditorPane class and edittext.c. */
@@ -449,6 +538,21 @@ X11TextEntryPane instanceMethod subPaneButtonPress (Object subPane,
 #ifndef XK_Backspace
 #define XK_Backspace 0xff08
 #endif
+#ifndef XK_Right
+#define XK_Right     0xff53
+#endif
+#ifndef XK_Left
+#define XK_Left      0xff51
+#endif
+#ifndef XK_Home
+#define XK_Home      0xff50
+#endif
+#ifndef XK_End
+#define XK_End       0xff57
+#endif
+
+
+static char c_prev = 0;
 
 X11TextEntryPane instanceMethod subPaneKbd (Object subPane,
 					    InputEvent event) {
@@ -494,6 +598,36 @@ X11TextEntryPane instanceMethod subPaneKbd (Object subPane,
 	    }
 	  }
 	  break;
+	case XK_Right:
+	  self center = true;
+	  if (self point < self chars size) {
+	    self point += 1;
+	    self draw;
+	    self refresh;
+	  }
+	  break;
+	case XK_Left:
+	  self center = true;
+	  if (self point > 0) {
+	    self point -= 1;
+	    self draw;
+	    self refresh;
+	  }
+	  break;
+	case XK_Home:
+	  self center = true;
+	  self point = 0;
+	  self draw;
+	  self refresh;
+	  return NULL;
+	  break;
+	case XK_End:
+	  self center = true;
+	  self point = self chars size;
+	  self draw;
+	  self refresh;
+	  return NULL;
+	  break;
 	default:
 	  c = __edittext_xk_keysym (event xEventData4, self shiftState,
 				    event xEventData5);
@@ -525,6 +659,42 @@ X11TextEntryPane instanceMethod subPaneKbd (Object subPane,
 	      case '/': c = '?'; break;
 	      default: c &= ~32; break;
 	      }
+	  } else if (subPane shiftState & shiftStateCtrl){
+	    switch (c)
+	      {
+	      case 'f':
+		if (self point < self chars size) {
+		  self center = true;
+		  self point += 1;
+		  self draw;
+		  self refresh;
+		  return NULL;
+		}
+		break;
+	      case 'b':
+		self center = true;
+		if (self point > 0) {
+		  self point -= 1;
+		  self draw;
+		  self refresh;
+		  return NULL;
+		}
+		break;
+	      case 'a':
+		self center = true;
+		self point = 0;
+		self draw;
+		self refresh;
+		return NULL;
+		break;
+	      case 'e':
+		self center = true;
+		self point = self chars size;
+		self draw;
+		self refresh;
+		return NULL;
+		break;
+	      }
 	  }
 	  s1 = self chars asString;
 	  w1 = self ftFontVar textWidth s1;
@@ -544,8 +714,18 @@ X11TextEntryPane instanceMethod subPaneKbd (Object subPane,
 	    s2 = self chars asString;
 	    w2 = self ftFontVar textWidth s2;
 	    cc width = (w2 - w1 + self spacingHint);
+	    if (c_prev == ' ') {
+	      self calculateSpaceAppend;
+	      self chars reflow;
+	    }
+	  } else if (self point == 0) {
+	    self chars shift cc;
+	    s2 = self chars asString;
+	    w2 = self ftFontVar textWidth s2;
+	    cc width = (w2 - w1 + self spacingHint);
+	    self chars reflow;
 	  } else {
-	    self chars insertAt cc, self point;
+	    self insertAt cc, self point;
 	    s2 = self chars asString;
 	    w2 = self ftFontVar textWidth s2;
 	    cc width = (w2 - w1 + self spacingHint);
@@ -554,6 +734,7 @@ X11TextEntryPane instanceMethod subPaneKbd (Object subPane,
 	  self point += 1;
 	  self draw;
 	  self refresh;
+	  c_prev = c;
 	  break;
 	}
     } else if (event eventClass == KEYRELEASE) {
