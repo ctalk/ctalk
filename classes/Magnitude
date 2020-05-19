@@ -1,4 +1,4 @@
-/* $Id: Magnitude,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ -*-C-*-*/
+/* $Id: Magnitude,v 1.2 2020/05/18 22:51:04 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -184,7 +184,8 @@ Magnitude instanceMethod asInteger (void) {
 	i = (int)l;
       }
     } else {
-      if (self is Character) {
+      if ((self is Character) ||
+	  (self isSubClassOf Character)) {
 	i = __ctalkIntFromCharConstant (self_value -> __o_value);
       } else { 
 	if (self is Float) {
