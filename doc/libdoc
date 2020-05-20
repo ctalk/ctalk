@@ -529,6 +529,22 @@ that the block call is the result of an inline method call and sets
 the run-time stack's RTINFO structure to indicate a block call with
 the correct stack frame for the block's scope.
 
+>>>__ctalkEntryIconXPM (int iconID)
+Returns a char ** with the contents of an eye
+or slashed eye icon used when X11TextEntryPane objects echo
+dots.  The argument, iconID, may be one of the following.
+
+---------------------------------------------------------
+
+#define ENTRY_ICON_EYE_NON       0
+#define ENTRY_ICON_EYE_OK        1
+#define ENTRY_ICON_EYE_SLASHED   2
+
+---------------------------------------------------------
+
+The definitions are included in x11defs.h and should be
+included in classes or programs.
+
 >>>__ctalkExec(char *cmdline, OBJECT *strObject)
 Executes the command line given as the argument and waits for the
 subprocess to finish.  If the strObject argument is non-NULL,

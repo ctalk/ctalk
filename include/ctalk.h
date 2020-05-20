@@ -1,4 +1,4 @@
-/* $Id: ctalk.h,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ -*-Fundamental-*- */
+/* $Id: ctalk.h,v 1.2 2020/05/20 20:25:20 rkiesling Exp $ -*-Fundamental-*- */
 
 /*
   This file is part of Ctalk.
@@ -2766,6 +2766,7 @@ int read_event (int *, unsigned int *, unsigned int [], int);
 int __ctalkX11CreateDialogWindow (OBJECT *);
 int __ctalkCloseX11DialogPane (OBJECT *);
 extern char **__ctalkIconXPM (int);
+extern char **__ctalkEntryIconXPM (int);
 extern void __enable_dialog (OBJECT *);
 
 /* libdeps.c */

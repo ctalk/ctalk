@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.2 2020/05/20 20:25:20 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -20955,6 +20955,23 @@ Ctalk inserts this call at the beginning of argument blocks.  Checks
 that the block call is the result of an inline method call and sets
 the run-time stack's RTINFO structure to indicate a block call with
 the correct stack frame for the block's scope.
+
+@idxfncite{__ctalkEntryIconXPM}
+@item __ctalkEntryIconXPM (@code{int} @var{iconID})
+Returns a @code{char **} with the contents of an eye
+or slashed eye icon used when X11TextEntryPane objects echo
+dots.  The argument, @var{iconID}, may be one of the following.
+
+@example
+
+#define ENTRY_ICON_EYE_NON       0
+#define ENTRY_ICON_EYE_OK        1
+#define ENTRY_ICON_EYE_SLASHED   2
+
+@end example
+
+The definitions are included in @flnm{x11defs.h} and should be
+included in classes or programs.
 
 @anchor{ctalkExec}
 @idxfncite{__ctalkExec}

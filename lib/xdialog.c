@@ -36,6 +36,8 @@
 #include "xpms/info64x64.xpm"
 #include "xpms/stop64x64.xpm"
 #include "xpms/warning64x64.xpm"
+#include "xpms/mini-eye-ok.xpm"
+#include "xpms/mini-eye-slashed.xpm"
 
 #if ! defined (DJGPP) && ! defined (WITHOUT_X11)
 #include "x11defs.h"
@@ -231,10 +233,28 @@ int __ctalkCloseX11DialogPane (OBJECT *self) {
   return SUCCESS;
 }
 
+char **__ctalkEntryIconXPM (int entry_icon_id) {
+  switch (entry_icon_id)
+    {
+    case ENTRY_ICON_EYE_NONE:
+      break;
+    case ENTRY_ICON_EYE_OK:
+      return mini_icon_eye_ok_xpm;
+      break;
+    case ENTRY_ICON_EYE_SLASHED:
+      return mini_icon_eye_slashed_xpm;
+      break;
+    default:
+      _warning ("ctalk: Unknown entry icon ID: %d.\n", entry_icon_id);
+      break;
+    }
+  return (char **)NULL;
+}
+
+
 char **__ctalkIconXPM (int icon_id) {
   switch (icon_id) {
   case ICON_NONE:
-    return (char **)NULL;
     break;
   case ICON_STOP:
     return stop64x64_xpm;
@@ -247,7 +267,6 @@ char **__ctalkIconXPM (int icon_id) {
     break;
   default:
     _warning ("ctalk: Unknown dialog icon ID: %d.\n", icon_id);
-    return (char **)NULL;
     break;
   } 
   return (char **)NULL;
@@ -269,6 +288,9 @@ void __enable_dialog (OBJECT *self) {
 }
 
 char **__ctalkIconXPM (int icon_id) {
+  x_support_error ();
+}
+char **__ctalkEntryIconXPM (int entry_icon_id) {
   x_support_error ();
 }
 
