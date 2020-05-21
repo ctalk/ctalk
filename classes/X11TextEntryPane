@@ -1,4 +1,4 @@
-/* $Id: X11TextEntryPane,v 1.29 2020/05/19 19:45:39 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11TextEntryPane,v 1.33 2020/05/21 23:25:51 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -20,6 +20,8 @@
   License along with this library; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
 */
+
+#include <ctalk/ctalkdefs.h>
 
 X11CanvasPane class X11TextEntryPane;
 
@@ -59,6 +61,9 @@ Character class CharCell;
  *   Ctrl-E
  */
 
+/* Still under construction. */
+/* #define VIEW_PASSWORD_ICON */
+
 X11TextEntryPane instanceVariable cursor X11Cursor 0;
 X11TextEntryPane instanceVariable shiftState Integer 0;
 X11TextEntryPane instanceVariable hover Boolean false;
@@ -70,6 +75,15 @@ X11TextEntryPane instanceVariable point Integer 0;
 X11TextEntryPane instanceVariable clipX Integer 0;
 X11TextEntryPane instanceVariable center Boolean false;
 X11TextEntryPane instanceVariable paneWidthChars Integer 0;
+X11TextEntryPane instanceVariable dots Boolean false;
+
+#ifdef VIEW_PASSWORD_ICOM
+X11TextEntryPane instanceVariable iconEye X11Bitmap NULL;
+X11TextEntryPane instanceVariable iconEyeSlashed X11Bitmap NULL;
+X11TextEntryPane instanceVariable eyeVisible Boolean false;
+X11TextEntryPane instanceVariable eyeOrg Point NULL;
+X11TextEntryPane instanceVariable eyeExt Point NULL;
+#endif
 
 CharCell instanceVariable width Integer 0;
 CharCell instanceVariable boxOrg Point NULL;
@@ -130,7 +144,7 @@ X11TextEntryPane instanceMethod attachTo (X11Pane parentPane,
     /* X11Bitmap new xPaneBuffer;
        X11Bitmap new xPaneBackingStore; *//***/
   String new parentGeometry;
-  Integer new eWidth;
+  Integer new eWidth, vPad;
   int x, y, width, height;
   unsigned int mainWinID;
   
@@ -159,9 +173,21 @@ X11TextEntryPane instanceMethod attachTo (X11Pane parentPane,
   eWidth = self ftFontVar textWidth "e";
   self paneWidthChars = self size x / eWidth;
 
-  self cursor xterm;
+#ifdef VIEW_PASSWORD_ICON
+  (X11Bitmap *)self iconEye create self displayPtr, self xWindowID,
+    ENTRY_ICON_WIDTH_PX, ENTRY_ICON_HEIGHT_PX, self depth;
+  (X11Bitmap *)self iconEyeSlashed create self displayPtr, self xWindowID,
+    ENTRY_ICON_WIDTH_PX, ENTRY_ICON_HEIGHT_PX, self depth;
 
-  
+  vPad = self resources at "vPad";
+
+  self eyeOrg x = self size x - vPad - ENTRY_ICON_WIDTH_PX;
+  self eyeOrg y = (self size y / 2) - (ENTRY_ICON_HEIGHT_PX / 2);
+  self eyeExt x = self eyeOrg x + ENTRY_ICON_WIDTH_PX;
+  self eyeExt y = self eyeOrg y + ENTRY_ICON_HEIGHT_PX;
+#endif  
+
+  self cursor xterm;
 
   return NULL;
 }
@@ -249,18 +275,32 @@ X11TextEntryPane instanceMethod inputWidth (List input, Integer startIdx) {
   return width;
 }
 
+#ifdef VIEW_PASSWORD_ICON
+static bool eyes_initialized = false;
+#endif
+
 X11TextEntryPane instanceMethod draw (void) {
   Integer new vPad, hPad;
   Integer new textWidthPx, clipStartIdx;
   Integer new entryChars, idx, drawX;
+  Float new rMarginPct;
   String new entryText;
   CharCell new cm;
+  Pen new dotPen;
   
   self ftFontVar selectFontFromFontConfig (self resources at "font");
   self ftFontVar saveSelectedFont;
 
   self paneBuffer background (self resources at "backgroundColor");
   self paneBuffer clear;
+
+#if VIEW_PASSWORD_ICON
+  if (!eyes_initialized) {
+    self iconEye entryIconEye;
+    self iconEyeSlashed entryIconEyeSlashed;
+    eyes_initialized = true;
+  }
+#endif  
 
   self pen colorName = self resources at "borderColor";
   if (self hover) {
@@ -276,6 +316,22 @@ X11TextEntryPane instanceMethod draw (void) {
 
   vPad = self resources at "vPad";
   
+#ifdef VIEW_PASSWORD_ICON
+  if (self dots) {
+    if (!self eyeVisible) {
+      self paneBuffer copy self iconEye, 0, 0, 16, 14,
+	self eyeOrg x, self eyeOrg y;
+	/* self size x - vPad - ENTRY_ICON_WIDTH_PX,
+	   (self size y / 2) - (ENTRY_ICON_HEIGHT_PX / 2); */
+    } else {
+      self paneBuffer copy self iconEyeSlashed, 0, 0, 16, 14,
+	self eyeOrg x, self eyeOrg y;
+	/* self size x - vPad - ENTRY_ICON_WIDTH_PX,
+	   (self size y / 2) - (ENTRY_ICON_HEIGHT_PX / 2); */
+    }
+  }
+#endif  
+
   if (self center) {
     if ((self chars size - self point) > self point) {
       /* i.e., if the point is closer to the beginning of the text */
@@ -295,10 +351,15 @@ X11TextEntryPane instanceMethod draw (void) {
       }
     }
   } else {
+    if (self dots) {
+      rMarginPct = 0.90;
+    } else {
+      rMarginPct = 0.75;
+    }
     entryChars = entryText length;
     for (clipStartIdx = 0; clipStartIdx < entryChars; clipStartIdx += 1) {
       textWidthPx = self inputWidth self chars, clipStartIdx;
-      if (textWidthPx < ((self size x - vPad) * .75))
+      if (textWidthPx < ((self size x - vPad) * rMarginPct))
 	break;
     }
     self clipX = clipStartIdx;
@@ -313,16 +374,28 @@ X11TextEntryPane instanceMethod draw (void) {
     hPad = self resources at "hPad";
     self baselineY = self size y -
       borderWidth - hPad - (self ftFontVar descent);
+    if (self dots)
+      self baselineY -= (self ftFontVar textHeight "T") / 2;
   }
 
   idx = 0;
   drawX = vPad;
+  if (self dots) {
+    dotPen colorName = "black";
+    dotPen width = self ftFontVar textWidth "e";
+  }
   self chars map {
     if (idx >= super clipX) {
-      (Object *)cm = self;
-      super paneBuffer putStr drawX,
-	super baselineY, cm asString;
-      drawX += cm width;
+      if (super dots) {
+	/* self paneBuffer drawPoint drawX, super baselineY, dotPen;*/
+	super paneBuffer drawPoint drawX, super baselineY, dotPen;
+	drawX += dotPen width;
+      } else {
+	(Object *)cm = self;
+	super paneBuffer putStr drawX,
+	  super baselineY, cm asString;
+	drawX += cm width;
+      }
     }
     ++idx;
   }

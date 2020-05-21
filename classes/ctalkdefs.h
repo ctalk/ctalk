@@ -1,4 +1,4 @@
-/* $Id: ctalkdefs.h,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ -*-C-*-*/
+/* $Id: ctalkdefs.h,v 1.2 2020/05/20 21:20:57 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -334,6 +334,13 @@ int memcmp(const void *s1, const void *s2, size_t n);
 /* The distance between the edges of the bitmap and the icon's
    drawing area. */
 #define ICON_BORDER_PX 2
+
+#define ENTRY_ICON_EYE_NONE     0
+#define ENTRY_ICON_EYE_OK       1
+#define ENTRY_ICON_EYE_SLASHED  2
+
+#define ENTRY_ICON_WIDTH_PX     16
+#define ENTRY_ICON_HEIGHT_PX    14
 
 #ifndef YESNO_LBUTTON
 #define YESNO_LBUTTON 1

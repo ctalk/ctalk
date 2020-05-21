@@ -1,4 +1,4 @@
-/* $Id: guixpm.c,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ -*-c-*-*/
+/* $Id: guixpm.c,v 1.2 2020/05/21 23:25:51 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -137,10 +137,12 @@ int __ctalkX11XPMFromData (void *d, int drawable_id,
 #endif
   wait_req (shm_mem);
 
+#if 0
   if ((r = unlink (h)) != 0) {
     fprintf (stderr, "__ctalkX11XPMFromData (unlink): %s.\n",
 	     strerror (errno));
   }
+#endif  
 
   return SUCCESS;
 }

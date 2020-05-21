@@ -1,4 +1,4 @@
-/* $Id: X11TerminalStream,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11TerminalStream,v 1.2 2020/05/21 23:25:50 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -124,6 +124,7 @@ void save_x_event (OBJECT *event_value_obj, int event_class,
   for (var = var -> next, i = 0; i < 6; var = var -> next, ++i)
     INTVAL(var -> instancevars -> __o_value) =
       INTVAL(var -> __o_value) = data[i];
+
 }
 
 X11TerminalStream instanceMethod queueInput (void) {

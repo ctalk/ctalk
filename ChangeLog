@@ -794,11 +794,15 @@
 2020-05-18
 	- Updated Magnitude : asInteger to check for a receiver that
 	is a member of a subclass of Character.
-	2020-05-20
+2020-05-20
 	- Added include/xpms/mini-eye-ok.xpm and
 	include/xpms/mini-eye-slashed.xpm, and added the definitions
 	of ENTRY_ICON_EYE_NONE, ENTRY_ICON_EYE_OK, and
 	ENTRY_ICON_EYE_SLASHED in x11defs.h.  Added the library
-	function __ctalkEntryIconXPM (xdialog.c).
+	function __ctalkEntryIconXPM (xdialog.c).  Also added the
+	X11Bitmap methods entryIcon, entryIconEye, and
+	entryIconEyeSlashed.
+2020-05-21
+	- Added the ability to echo dots to X11TextEntryPane.
 
 

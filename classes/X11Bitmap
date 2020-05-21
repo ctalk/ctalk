@@ -1,4 +1,4 @@
-/* $Id: X11Bitmap,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11Bitmap,v 1.3 2020/05/21 23:25:50 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -326,6 +326,33 @@ X11Bitmap instanceMethod iconQuestion (void) {
   self putStr 16, 
     (ICON_HEIGHT_PX / 2) + (height / 2), "?";
   return NULL;
+}
+
+X11Bitmap instanceMethod entryIcon (int entry_icon_id) {
+  __ctalkX11XPMFromData (self displayPtr, self xID, self xGC, 0, 0,
+			 __ctalkEntryIconXPM (entry_icon_id));
+}
+
+X11Bitmap instanceMethod entryIconEye (void) {
+  char **data;
+#if 0
+  __ctalkX11XPMFromData (self displayPtr, self xID, self xGC, 0, 0,
+			 __ctalkEntryIconXPM (ENTRY_ICON_EYE_OK));
+#else  
+  data = __ctalkEntryIconXPM (ENTRY_ICON_EYE_OK);
+  self pixmapFromData data;
+#endif  
+}
+
+X11Bitmap instanceMethod entryIconEyeSlashed (void) {
+  char **data;
+#if 0
+  __ctalkX11XPMFromData (self displayPtr, self xID, self xGC, 0, 0,
+			 __ctalkEntryIconXPM (ENTRY_ICON_EYE_SLASHED));
+#else  
+  data = __ctalkEntryIconXPM (ENTRY_ICON_EYE_SLASHED);
+  self pixmapFromData data;
+#endif  
 }
 
 X11Bitmap instanceMethod pixmapFromData (char **xpm_data) {

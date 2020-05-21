@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.2 2020/05/20 20:25:20 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.3 2020/05/20 21:20:58 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -2113,6 +2113,37 @@ if the argument is true.  If @var{fill} is false, use the
 @var{pen_width} argument to determine the line width.  If @var{radius}
 is non-zero, draw the rectangle with rounded corners with the radius
 in pixels given by the argument.
+
+@cindex @mnm{entryIcon} instance method @idxclscite{X11Bitmap}
+@cindex @mnm{entryIconEye} instance method @idxclscite{X11Bitmap}
+@cindex @mnm{entryIconEyeSlashed} instance method @idxclscite{X11Bitmap}
+@item entryIcon (@code{int} @var{iconID})
+@item entryIconEye (@code{void})
+@item entryIconEyeSlashed (@code{void})
+Draws an eye or slashed eye icon on the receiver bitmap.  The bitmap
+should already be created with a call to the @code{X11Bitmap : create}
+method, and should have the dimensions @samp{ENTRY_ICON_WIDTH_PX} by
+@samp{ENTRY_ICON_HEIGHT_PX}.  These values are defined in @flnm{ctalkdefs.h},
+which can be included in programs and classes with the line:
+
+@example
+
+#include <ctalk/ctalkdefs.h>
+
+@end example
+
+In the case of the @mnm{entryIcon} method, the @var{iconID} argument
+should have one of the following values.
+
+@example
+
+ENTRY_ICON_EYE_NONE
+ENTRY_ICON_EYE_OK
+ENTRY_ICON_EYE_SLASHED
+
+@end example
+
+These constants are also defined in @flnm{ctalkdefs.h}.
 
 @cindex @mnm{faceRegular} instance method @idxclscite{X11Bitmap}
 @cindex @mnm{faceBold} instance method @idxclscite{X11Bitmap}
@@ -20970,8 +21001,15 @@ dots.  The argument, @var{iconID}, may be one of the following.
 
 @end example
 
-The definitions are included in @flnm{x11defs.h} and should be
-included in classes or programs.
+The definitions are included in @flnm{x11defs.h} and
+@flnm{ctalkdefs.h}, which should be included in classes or programs
+with a statement like this.
+
+@example
+
+#include <ctalk/ctalkdefs.h>
+
+@end example
 
 @anchor{ctalkExec}
 @idxfncite{__ctalkExec}

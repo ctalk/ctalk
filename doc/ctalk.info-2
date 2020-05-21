@@ -8263,8 +8263,13 @@ functions.
           #define ENTRY_ICON_EYE_SLASHED   2
 
 
-     The definitions are included in 'x11defs.h' and should be included
-     in classes or programs.
+     The definitions are included in 'x11defs.h' and 'ctalkdefs.h',
+     which should be included in classes or programs with a statement
+     like this.
+
+
+          #include <ctalk/ctalkdefs.h>
+
 
      '__ctalkExec' C function
 '__ctalkExec(char *CMDLINE, OBJECT *STROBJECT)'

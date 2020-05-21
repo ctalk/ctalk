@@ -981,6 +981,34 @@ pen_width argument to determine the line width.  If radius
 is non-zero, draw the rectangle with rounded corners with the radius
 in pixels given by the argument.
 
+>>>X11Bitmap::entryIcon (int iconID)
+>>>X11Bitmap::entryIconEye (void)
+>>>X11Bitmap::entryIconEyeSlashed (void)
+Draws an eye or slashed eye icon on the receiver bitmap.  The bitmap
+should already be created with a call to the X11Bitmap : create
+method, and should have the dimensions 'ENTRY_ICON_WIDTH_PX' by
+'ENTRY_ICON_HEIGHT_PX'.  These values are defined in ctalkdefs.h,
+which can be included in programs and classes with the line:
+
+---------------------------------------------------------
+  
+  #include <ctalk/ctalkdefs.h>
+  
+---------------------------------------------------------
+
+In the case of the entryIcon method, the iconID argument
+should have one of the following values.
+
+---------------------------------------------------------
+  
+  ENTRY_ICON_EYE_NONE
+  ENTRY_ICON_EYE_OK
+  ENTRY_ICON_EYE_SLASHED
+  
+---------------------------------------------------------
+
+These constants are also defined in ctalkdefs.h.
+
 >>>X11Bitmap::faceRegular (void)
 >>>X11Bitmap::faceBold (void)
 >>>X11Bitmap::faceItalic (void)
