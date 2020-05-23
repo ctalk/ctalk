@@ -1,4 +1,4 @@
-/* $Id: X11TextEntryPane,v 1.35 2020/05/23 19:51:01 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11TextEntryPane,v 1.36 2020/05/23 22:05:49 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -61,9 +61,6 @@ Character class CharCell;
  *   Ctrl-E
  */
 
-/* Still under construction. */
-#define VIEW_PASSWORD_ICON
-
 X11TextEntryPane instanceVariable cursor X11Cursor 0;
 X11TextEntryPane instanceVariable shiftState Integer 0;
 X11TextEntryPane instanceVariable hover Boolean false;
@@ -76,14 +73,6 @@ X11TextEntryPane instanceVariable clipX Integer 0;
 X11TextEntryPane instanceVariable center Boolean false;
 X11TextEntryPane instanceVariable paneWidthChars Integer 0;
 X11TextEntryPane instanceVariable dots Boolean false;
-
-#ifdef VIEW_PASSWORD_ICON
-X11TextEntryPane instanceVariable iconEye X11Bitmap NULL;
-X11TextEntryPane instanceVariable iconEyeSlashed X11Bitmap NULL;
-X11TextEntryPane instanceVariable eyeVisible Boolean false;
-X11TextEntryPane instanceVariable eyeOrg Point NULL;
-X11TextEntryPane instanceVariable eyeExt Point NULL;
-#endif
 
 CharCell instanceVariable width Integer 0;
 CharCell instanceVariable boxOrg Point NULL;
@@ -173,20 +162,6 @@ X11TextEntryPane instanceMethod attachTo (X11Pane parentPane,
   eWidth = self ftFontVar textWidth "e";
   self paneWidthChars = self size x / eWidth;
 
-#ifdef VIEW_PASSWORD_ICON
-  (X11Bitmap *)self iconEye create self displayPtr, self xWindowID,
-    ENTRY_ICON_WIDTH_PX, ENTRY_ICON_HEIGHT_PX, self depth;
-  (X11Bitmap *)self iconEyeSlashed create self displayPtr, self xWindowID,
-    ENTRY_ICON_WIDTH_PX, ENTRY_ICON_HEIGHT_PX, self depth;
-
-  vPad = self resources at "vPad";
-
-  self eyeOrg x = self size x - vPad - ENTRY_ICON_WIDTH_PX;
-  self eyeOrg y = (self size y / 2) - (ENTRY_ICON_HEIGHT_PX / 2);
-  self eyeExt x = self eyeOrg x + ENTRY_ICON_WIDTH_PX;
-  self eyeExt y = self eyeOrg y + ENTRY_ICON_HEIGHT_PX;
-#endif  
-
   self cursor xterm;
 
   return NULL;
@@ -275,10 +250,6 @@ X11TextEntryPane instanceMethod inputWidth (List input, Integer startIdx) {
   return width;
 }
 
-#ifdef VIEW_PASSWORD_ICON
-static bool eyes_initialized = false;
-#endif
-
 X11TextEntryPane instanceMethod draw (void) {
   Integer new vPad, hPad;
   Integer new textWidthPx, clipStartIdx;
@@ -294,14 +265,6 @@ X11TextEntryPane instanceMethod draw (void) {
   self paneBuffer background (self resources at "backgroundColor");
   self paneBuffer clear;
 
-#if VIEW_PASSWORD_ICON
-  if (!eyes_initialized) {
-    self iconEye entryIconEye;
-    self iconEyeSlashed entryIconEyeSlashed;
-    eyes_initialized = true;
-  }
-#endif  
-
   self pen colorName = self resources at "borderColor";
   if (self hover) {
     self pen width = self resources at "hoverBorderWidth";
@@ -316,22 +279,6 @@ X11TextEntryPane instanceMethod draw (void) {
 
   vPad = self resources at "vPad";
   
-#ifdef VIEW_PASSWORD_ICON
-  if (self dots) {
-    if (!self eyeVisible) {
-      self paneBuffer copy self iconEye, 0, 0, 16, 14,
-	self eyeOrg x, self eyeOrg y;
-	/* self size x - vPad - ENTRY_ICON_WIDTH_PX,
-	   (self size y / 2) - (ENTRY_ICON_HEIGHT_PX / 2); */
-    } else {
-      self paneBuffer copy self iconEyeSlashed, 0, 0, 16, 14,
-	self eyeOrg x, self eyeOrg y;
-	/* self size x - vPad - ENTRY_ICON_WIDTH_PX,
-	   (self size y / 2) - (ENTRY_ICON_HEIGHT_PX / 2); */
-    }
-  }
-#endif  
-
   if (self center) {
     if ((self chars size - self point) > self point) {
       /* i.e., if the point is closer to the beginning of the text */
