@@ -1,4 +1,4 @@
-/* $Id: X11TextEntryPane,v 1.33 2020/05/21 23:25:51 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11TextEntryPane,v 1.35 2020/05/23 19:51:01 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -62,7 +62,7 @@ Character class CharCell;
  */
 
 /* Still under construction. */
-/* #define VIEW_PASSWORD_ICON */
+#define VIEW_PASSWORD_ICON
 
 X11TextEntryPane instanceVariable cursor X11Cursor 0;
 X11TextEntryPane instanceVariable shiftState Integer 0;
@@ -77,7 +77,7 @@ X11TextEntryPane instanceVariable center Boolean false;
 X11TextEntryPane instanceVariable paneWidthChars Integer 0;
 X11TextEntryPane instanceVariable dots Boolean false;
 
-#ifdef VIEW_PASSWORD_ICOM
+#ifdef VIEW_PASSWORD_ICON
 X11TextEntryPane instanceVariable iconEye X11Bitmap NULL;
 X11TextEntryPane instanceVariable iconEyeSlashed X11Bitmap NULL;
 X11TextEntryPane instanceVariable eyeVisible Boolean false;
@@ -387,8 +387,8 @@ X11TextEntryPane instanceMethod draw (void) {
   self chars map {
     if (idx >= super clipX) {
       if (super dots) {
-	/* self paneBuffer drawPoint drawX, super baselineY, dotPen;*/
-	super paneBuffer drawPoint drawX, super baselineY, dotPen;
+	self paneBuffer drawPoint drawX, super baselineY, dotPen;
+	/* super paneBuffer drawPoint drawX, super baselineY, dotPen; */
 	drawX += dotPen width;
       } else {
 	(Object *)cm = self;
