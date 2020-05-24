@@ -4319,10 +4319,26 @@ File: ctalk.info,  Node: X11TextEntryPane,  Next: X11YesNoBoxPane,  Prev: X11Scr
 'X11TextEntryPane' Class
 ------------------------
 
-A 'X11TextEntryPane' object displays a basic, single line text entry box
-in a X window.  Users can enter text when the pointer is over the entry
-box, and the application can retrieve the text that the user enters as
-the contents of the 'X11TextEntryPane : entryText' instance variable.
+A 'X11TextEntryPane' object displays a basic, single line text entry
+box.  Users can enter text when the pointer is over the entry box, and
+the application can retrieve the text that the user enters as the
+contents of the 'X11TextEntryPane : entryText' method.
+
+Editing is performed using the pointer's left button or cursor motion
+keys to position the cursor.  Users may insert text at that point, or
+delete characters using the <Backspace> and <Delete> keys.  The class
+also supports cursor motion using Emacs-compatible editing keys.
+
+
+     Action            Keys
+     ------            ----
+     Character Left    Left Arrow,  <Ctrl-B>
+     Character Right   Right Arrow, <Ctrl-F>
+     Start of Text     Home,        <Ctrl-A>
+     End of Text       End,         <Ctrl-E>
+     Delete Right      Del,         <Ctrl-D>
+     Delete Left       <Backspace>
+
 
 Here is an example of an 'X11TextEntryPane' object's use.
 
@@ -4393,6 +4409,201 @@ Here is an example of an 'X11TextEntryPane' object's use.
        }
      }
 
+
+Echoing Dots
+------------
+
+Normally a 'X11TextEntryPane' object displays characters as you type
+them.  However, you can set the 'dots' instance variable to 'true' to
+cause the pane to display dots instead, like this.
+
+
+     entry dots = true;
+
+
+Resources
+---------
+
+For information about how to set and retrieve resources, refer to the
+'X11Pane' section *Note PaneResources::.
+
+'backgroundColor'
+     The background color of the entry pane's window.  The default is
+     'white'.
+
+'borderColor'
+     The color of the entry pane's border.  The default is 'gray'.
+
+'borderWidth'
+     The width in pixels of the pane's border when the pointer is not
+     above it.  The default is 1 pixels.
+
+'cursorAdvanceHint'
+     The distance in pixels between the last character and the cursor
+     when the point is positioned at the end of the buffer for appending
+     text.  The default is 2 pixels when built and run with MacOS, 4
+     pixels for Linux and other systems.
+
+'font'
+     A 'String' that contains the display font's descriptor.  In order
+     to maintain alignment between the character display and insertion
+     point, it is strongly recommended that the display font be
+     monospaced.
+
+     The default font for MacOS is 'Bitstream Vera Sans
+     Mono-14:weight=medium;slant=roman'.  The default font for Linux and
+     other systems is 'DejaVu Sans Mono-12:weight=medium;slant=roman'.
+
+'hoverBorderWidth'
+     The width in pixels of the pane's border when the pointer is over
+     it and the pane's window has the input focus.  The default is 4
+     pixels.
+
+'hPad'
+'vPad'
+     The distance in pixels between the edges of the text and the edge
+     to the window, including the width of the border.  The default is 4
+     pixels.
+
+'spacingHint'
+     The distance in pixels that the pane adjusts the displayed text's
+     horizontal spacing.  The default is -1 for MacOs and 0 for Linux
+     and other systems.
+
+'textColor'
+     The color that the pane uses to display text.  The default is
+     'black'.
+
+Instance Variables
+------------------
+
+'center'
+     A 'Boolean' that helps determine how a part of the text is
+     displayed if the text is too large to fit within the pane.
+
+'clipX'
+     An 'Integer' that contains the leftmost character that is displayed
+     when the text is scrolled leftward.
+
+'chars'
+     A 'List' that contains the entry pane's text.  Each member of the
+     list is a 'CharCell', a class used exclusively by
+     'X11TextEntryPane' objects, which contains both the character and
+     information about its dimensions and placement within the window.
+
+'cursor'
+     A 'X11Cursor' object that contains a text editing cursor which is
+     displayed when the pointer is over the pane and it has the keyboard
+     input focus.
+
+'dots'
+     A 'Boolean', which, if set by a program, causes the entry pane to
+     echo dots instead of the typed characters.  In order to display
+     dots, the calling program should contain a statement like this.
+
+
+          entry dots = true;
+
+
+'hover'
+     A 'Boolean' object that is true when the pointer is over the pane
+     and the pane has the keyboard input focus.
+
+'paneWidth'
+     The width of the pane as measured in the number of characters that
+     can be displayed at one time using the current font.  The pane uses
+     the 'paneWidth' variable's value to help determine which section of
+     the text to display when the entire text is too wide to fit within
+     the pane's window.
+
+'point'
+     An 'Integer' that determines where each character that the user
+     types is inserted into the buffer's text.  If 'point' is equal to
+     the size of the 'chars' list, then the pane appends the characters
+     to the end of the text.
+
+'shiftState'
+     An 'Integer' that records whether a 'Shift', 'Control', or 'Caps
+     Lock' key is being pressed while typing.
+
+'spacingHint'
+     An 'Integer' that contains the value of the 'spacingHint' resource.
+
+Instance Methods
+----------------
+
+'attachTo (X11Pane PARENTPANE, String GEOMETRY)'
+     Attaches the entry pane to PARENTPANE using the dimensions and
+     placement given by GEOMETRY.  For information about how to specify
+     a pane's geometry, refer to the 'X11PaneDispatcher' class *Note
+     X11PaneDispatcher::.
+
+'calclulateSpaceAppend (void)'
+     This method defers calculating the width of a space that the user
+     appends to the text until a following character is added.
+
+'charCellAt (Integer charIndex)'
+     Returns the 'CharCell' object for the 'charIndex' position in the
+     text.  (I.e., the _nth_ element of the 'chars' instance variable's
+     list).
+
+'deleteAt (Integer CHARINDEX)'
+     Deletes the character at CHARINDEX and returns the element, which
+     is a 'CharCell' object.  'CharCell' objects are a class that
+     'X11TextEntryPane' class uses to store each character, as well as
+     its dimensions and placement within the window.
+
+'deleteForward (Integer CHARINDEX)'
+     This deletes the character at the insertion point and is called
+     when the user presses the 'Delete' or 'Ctrl-D' key.
+
+'draw (void)'
+     Draws the pane's border, its text contents after determining how
+     far left to scroll the text, and calls 'drawCursor' to draw the
+     insertion cursor.  The drawing occurs on the pane's 'paneBuffer'
+     instance variable, which is a 'X11Bitmap' object.  To make the the
+     pane's contents visible in the application's window, use the
+     'refresh' method.
+
+'drawCursor (void)'
+     Draws the pane's editing cursor at the text insertion point.
+
+'entryText (void)'
+     Returns the text contents of the entry pane as a 'String' object.
+
+'inputWidth (Integer STARTIDX)'
+     Returns an 'Integer' that contains the width in pixels of the input
+     text starting at character STARTIDX.  This method determines how
+     far leftward text should be scrolled to keep the insertion point
+     and its surrounding text visible in the pane's window.
+
+'insertAt (Integer CHARINDEX)'
+     Inserts a 'CharCell' object at CHARINDEX in the entry object's
+     'chars' list.
+
+'new (String PANENAME)'
+     The 'X11TextEntryPane' constructor.  Initializes resources to their
+     default values and the event handler instance variables to the
+     classes' event handlers.  These instance variables are declared in
+     'X11PaneDispatcher' class *Note X11PaneDispatcher::.
+
+'reflow (void)'
+     Recalculates the character placement in the entry object's 'chars'
+     list.  This method should be used after any operation that inserts
+     or deletes text in the middle of the CHARS list.
+
+'refresh (void)'
+     Displays the contents of the pane's drawing surfaces on the
+     program's visible window.
+
+'subPaneButtonPress (Object SUBPANEOBJECT, InputEvent EVENT)'
+'subPaneEnter (Object SUBPANEOBJECT, InputEvent EVENT)'
+'subPaneExpose (Object SUBPANEOBJECT, InputEvent EVENT)'
+'subPaneLeave (Object SUBPANEOBJECT, InputEvent EVENT)'
+'subPaneKbd (Object SUBPANEOBJECT, InputEvent EVENT)'
+     Handler methods for different types of X 'InputEvent' objects.  For
+     more information about the handlers and event types, refer to the
+     'X11PaneDispatcher' class.  *Note X11PaneDispatcher::.
 
 
 File: ctalk.info,  Node: X11YesNoBoxPane,  Next: X11TextPane,  Prev: X11TextEntryPane,  Up: Classes

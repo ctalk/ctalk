@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.3 2020/05/20 21:20:58 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.9 2020/05/24 17:12:28 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -16224,10 +16224,29 @@ only be used after a call to, for example, X11Pane : openEventStream.
 @cindex @code{X11TextEntryPane} class
 
 A @code{X11TextEntryPane} object displays a basic, single line text
-entry box in a X window.  Users can enter text when the pointer is
-over the entry box, and the application can retrieve the text that the
-user enters as the contents of the @code{X11TextEntryPane :
-entryText} instance variable.
+entry box.  Users can enter text when the pointer is over the entry
+box, and the application can retrieve the text that the user enters as
+the contents of the @code{X11TextEntryPane : entryText} method.
+
+Editing is performed using the pointer's left button or cursor motion
+keys to position the cursor.  Users may insert text at that point, or
+delete characters using the @key{Backspace} and @key{Delete} keys.
+The class also supports cursor motion using Emacs-compatible editing
+keys.
+
+@example
+
+Action            Keys
+------            ----
+Character Left    Left Arrow,  @key{Ctrl-B}
+Character Right   Right Arrow, @key{Ctrl-F}
+Start of Text     Home,        @key{Ctrl-A}
+End of Text       End,         @key{Ctrl-E}
+Delete Right      Del,         @key{Ctrl-D}
+Delete Left       @key{Backspace}
+
+@end example
+
 
 Here is an example of an @code{X11TextEntryPane} object's use.
 
@@ -16301,6 +16320,251 @@ int main (int argv, char **argc) @{
 @}
 
 @end example
+
+@subheading Echoing Dots
+
+Normally a @code{X11TextEntryPane} object displays characters
+as you type them.  However, you can set the @code{dots} instance
+variable to @samp{true} to cause the pane to display dots instead,
+like this.
+
+@example
+
+entry dots = true;
+
+@end example
+
+@subheading Resources
+
+For information about how to set and retrieve resources, refer
+to the @code{X11Pane} section @xref{PaneResources}.
+
+@table @code
+
+@cindex @code{backgroundColor} resource @idxclscite{X11TextEntryPane}
+@item backgroundColor
+The background color of the entry pane's window.  The default is
+@samp{white}.
+
+@cindex @code{borderColor} resource @idxclscite{X11TextEntryPane}
+@item borderColor
+The color of the entry pane's border.  The default is @samp{gray}.
+
+@cindex @code{borderWidth} resource @idxclscite{X11TextEntryPane}
+@item borderWidth
+The width in pixels of the pane's border when the pointer is not above
+it.  The default is 1 pixels.
+
+@cindex @code{cursorAdvanceHint} resource @idxclscite{X11TextEntryPane}
+@item cursorAdvanceHint
+The distance in pixels between the last character and the cursor
+when the point is positioned at the end of the buffer for appending
+text.  The default is 2 pixels when built and run with MacOS, 4 pixels
+for Linux and other systems.
+
+@cindex @code{font} resource @idxclscite{X11TextEntryPane}
+@item font
+A @code{String} that contains the display font's descriptor.  In
+order to maintain alignment between the character display and
+insertion point, it is strongly recommended that the display
+font be monospaced.
+
+The default font for MacOS is @samp{Bitstream Vera Sans
+Mono-14:weight=medium;slant=roman}. The default font for Linux and
+other systems is @samp{DejaVu Sans Mono-12:weight=medium;slant=roman}.
+
+@cindex @code{hoverBorderWidth} resource @idxclscite{X11TextEntryPane}
+@item hoverBorderWidth
+The width in pixels of the pane's border when the pointer is over
+it and the pane's window has the input focus.  The default is 4
+pixels.
+
+@cindex @code{hPad} resource @idxclscite{X11TextEntryPane}
+@cindex @code{vPad} resource @idxclscite{X11TextEntryPane}
+@item hPad
+@item vPad
+The distance in pixels between the edges of the text and the
+edge to the window, including the width of the border.  The
+default is 4 pixels.
+
+@cindex @code{spacingHint} resource @idxclscite{X11TextEntryPane}
+@item spacingHint
+The distance in pixels that the pane adjusts the displayed
+text's horizontal spacing.  The default is -1 for MacOs and 0
+for Linux and other systems.
+
+@cindex @code{textColor} resource @idxclscite{X11TextEntryPane}
+@item textColor
+The color that the pane uses to display text.  The default is
+@samp{black}.
+
+@end table
+
+@subheading Instance Variables
+
+@table @code
+
+@cindex @code{center} instance variable @idxclscite{X11TextEntryPane}
+@item center
+A @code{Boolean} that helps determine how a part of the text is
+displayed if the text is too large to fit within the pane.
+
+@cindex @code{clipX} instance variable @idxclscite{X11TextEntryPane}
+@item clipX
+An @code{Integer} that contains the leftmost character that is
+displayed when the text is scrolled leftward.
+
+@cindex @code{chars} instance variable @idxclscite{X11TextEntryPane}
+@item chars
+A @code{List} that contains the entry pane's text.  Each member of the
+list is a @code{CharCell}, a class used exclusively by
+@code{X11TextEntryPane} objects, which contains both the character and
+information about its dimensions and placement within the window.
+
+@cindex @code{cursor} instance variable @idxclscite{X11TextEntryPane}
+@item cursor
+A @code{X11Cursor} object that contains a text editing cursor which is
+displayed when the pointer is over the pane and it has the keyboard
+input focus.
+
+@cindex @code{dots} instance variable @idxclscite{X11TextEntryPane}
+@item dots
+A @code{Boolean}, which, if set by a program, causes the entry pane
+to echo dots instead of the typed characters.  In order to display
+dots, the calling program should contain a statement like this.
+
+@example
+
+entry dots = true;
+
+@end example
+
+@cindex @code{hover} instance variable @idxclscite{X11TextEntryPane}
+@item hover
+A @code{Boolean} object that is true when the pointer is over the
+pane and the pane has the keyboard input focus.
+
+@cindex @code{paneWidth} instance variable @idxclscite{X11TextEntryPane}
+@item paneWidth
+The width of the pane as measured in the number of characters that can
+be displayed at one time using the current font.  The pane uses the
+@code{paneWidth} variable's value to help determine which section of
+the text to display when the entire text is too wide to fit within
+the pane's window.
+
+@cindex @code{point} instance variable @idxclscite{X11TextEntryPane}
+@item point
+An @code{Integer} that determines where each character that the user
+types is inserted into the buffer's text.  If @code{point} is equal
+to the size of the @code{chars} list, then the pane appends the
+characters to the end of the text.
+
+@cindex @code{shiftState} instance variable @idxclscite{X11TextEntryPane}
+@item shiftState
+An @code{Integer} that records whether a @kbd{Shift}, @kbd{Control},
+or @kbd{Caps Lock} key is being pressed while typing.
+
+@cindex @code{spacingHint} instance variable @idxclscite{X11TextEntryPane}
+@item spacingHint
+An @code{Integer} that contains the value of the @samp{spacingHint}
+resource.
+
+@end table
+
+@subheading Instance Methods
+
+@table @code
+
+@cindex @code{attachTo} instance method @idxclscite{X11TextEntryPane}
+@item attachTo (@code{X11Pane} @var{parentPane}, @code{String} @var{geometry})
+Attaches the entry pane to @var{parentPane} using the dimensions and
+placement given by @var{geometry}.  For information about how to
+specify a pane's geometry, refer to the @code{X11PaneDispatcher} class
+@xref{X11PaneDispatcher}.
+
+@cindex @code{calculateSpaceAppend} instance method @idxclscite{X11TextEntryPane}
+@item calclulateSpaceAppend (@code{void})
+This method defers calculating the width of a space that the user
+appends to the text until a following character is added.
+
+@cindex @code{charCellAt} instance method @idxclscite{X11TextEntryPane}
+@item charCellAt (@code{Integer} @code{charIndex})
+Returns the @code{CharCell} object for the @code{charIndex} position
+in the text. (I.e., the @emph{nth} element of the @code{chars}
+instance variable's list).
+
+@cindex @code{deleteAt} instance method @idxclscite{X11TextEntryPane}
+@item deleteAt (@code{Integer} @var{charIndex})
+Deletes the character at @var{charIndex} and returns the element,
+which is a @code{CharCell} object.  @code{CharCell} objects are a
+class that @code{X11TextEntryPane} class uses to store each character,
+as well as its dimensions and placement within the window.
+
+@cindex @code{deleteForward} instance method @idxclscite{X11TextEntryPane}
+@item deleteForward (@code{Integer} @var{charIndex})
+This deletes the character at the insertion point and is
+called when the user presses the @kbd{Delete} or @kbd{Ctrl-D} key.
+
+@cindex @code{draw} instance method @idxclscite{X11TextEntryPane}
+@item draw (@code{void})
+Draws the pane's border, its text contents after determining how far
+left to scroll the text, and calls @mnm{drawCursor} to draw the
+insertion cursor.  The drawing occurs on the pane's @code{paneBuffer}
+instance variable, which is a @code{X11Bitmap} object.  To make
+the the pane's contents visible in the application's window, use the
+@code{refresh} method.
+
+@cindex @code{drawCursor} instance method @idxclscite{X11TextEntryPane}
+@item drawCursor (@code{void})
+Draws the pane's editing cursor at the text insertion point.
+
+@cindex @code{entryText} instance method @idxclscite{X11TextEntryPane}
+@item entryText (@code{void})
+Returns the text contents of the entry pane as a @code{String} object.
+
+@cindex @code{inputWidth} instance method @idxclscite{X11TextEntryPane}
+@item inputWidth (@code{Integer} @var{startIdx})
+Returns an @code{Integer} that contains the width in pixels of the
+input text starting at character @var{startIdx}.  This method
+determines how far leftward text should be scrolled to keep the
+insertion point and its surrounding text visible in the pane's window.
+
+@cindex @code{insertAt} instance method @idxclscite{X11TextEntryPane}
+@item insertAt (@code{Integer} @var{charIndex})
+Inserts a @code{CharCell} object at @var{charIndex} in the
+entry object's @code{chars} list.
+
+@cindex @code{new} instance method @idxclscite{X11TextEntryPane}
+@item new (@code{String} @var{paneName})
+The @code{X11TextEntryPane} constructor.  Initializes resources to
+their default values and the event handler instance variables to the
+classes' event handlers.  These instance variables are declared in
+@code{X11PaneDispatcher} class @xref{X11PaneDispatcher}.
+
+@cindex @code{reflow} instance method @idxclscite{X11TextEntryPane}
+@item reflow (@code{void})
+Recalculates the character placement in the entry object's @code{chars}
+list.  This method should be used after any operation that inserts
+or deletes text in the middle of the @var{chars} list.
+
+@cindex @code{refresh} instance method @idxclscite{X11TextEntryPane}
+@item refresh (@code{void})
+Displays the contents of the pane's drawing surfaces on the program's
+visible window.
+
+@cindex @code{subPaneButtonPress} instance method @idxclscite{X11TextEntryPane}
+@cindex @code{subPaneEnter} instance method @idxclscite{X11TextEntryPane}
+@cindex @code{subPaneExpose} instance method @idxclscite{X11TextEntryPane}
+@cindex @code{subPaneLeave} instance method @idxclscite{X11TextEntryPane}
+@cindex @code{subPaneKbd} instance method @idxclscite{X11TextEntryPane}
+@item subPaneButtonPress (@code{Object} @var{subPaneObject}, @code{InputEvent} @var{event})
+@item subPaneEnter (@code{Object} @var{subPaneObject}, @code{InputEvent} @var{event})
+@item subPaneExpose (@code{Object} @var{subPaneObject}, @code{InputEvent} @var{event})
+@item subPaneLeave (@code{Object} @var{subPaneObject}, @code{InputEvent} @var{event})
+@item subPaneKbd (@code{Object} @var{subPaneObject}, @code{InputEvent} @var{event})
+Handler methods for different types of X @code{InputEvent} objects.  For more information about the handlers and event types, refer to the @code{X11PaneDispatcher} class. @xref{X11PaneDispatcher}.
+
+@end table
 
 
 @node X11YesNoBoxPane, X11TextPane, X11TextEntryPane, Classes

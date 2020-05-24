@@ -1,4 +1,4 @@
-/* $Id: X11TextEntryPane,v 1.37 2020/05/23 22:13:08 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11TextEntryPane,v 1.40 2020/05/24 17:12:27 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -130,12 +130,9 @@ X11TextEntryPane instanceMethod attachTo (X11Pane parentPane,
   specification like, '300x200', i.e., without the x and
   y origins, is okay - the Ctalk libraries center the
   message box above the parent window."
-    /* X11Bitmap new xPaneBuffer;
-       X11Bitmap new xPaneBackingStore; *//***/
   String new parentGeometry;
   Integer new eWidth, vPad;
   int x, y, width, height;
-  unsigned int mainWinID;
   
   self displayPtr = self mainWindow displayPtr;
   self paneBuffer backgroundColor = self resources at "backgroundColor";
@@ -243,7 +240,6 @@ X11TextEntryPane instanceMethod inputWidth (List input, Integer startIdx) {
     if (i >= startIdx) {
       (Object *)c = self;
       width += c width;
-      /* width += super spacingHint; *//***/
     }
     ++i;
   }
@@ -363,7 +359,7 @@ X11TextEntryPane instanceMethod deleteAt (int delete_idx) {
     return NULL;
   } else {
     i = 0;
-    for (t = __LIST_HEAD(char_list); t && t -> next; t = t -> next) {
+    for (t = __LIST_HEAD(char_list); t; t = t -> next) {
       if (i == delete_idx) {
 	t_key = t;
 	if (t_key -> prev)
@@ -388,15 +384,13 @@ X11TextEntryPane instanceMethod insertAt (OBJECT *(*newItem)(),
    Creates the Key object that refers to newItem directly,
    which makes the method faster."
 
-    OBJECT *key, *self_object, *t, *arg;
+    OBJECT *key, *self_object, *t;
   int i;
 
   self_object = self chars;
   key = __ctalkCreateObjectInit ("keyObject", "Key", "Symbol", 
 				 self_object -> scope,
 				 "");
-
-  /* arg = newItem;*/
 
   __ctalkReferenceObject (key, newItem);
 
@@ -551,7 +545,20 @@ X11TextEntryPane instanceMethod calculateSpaceAppend (void) {
 #ifndef XK_End
 #define XK_End       0xff57
 #endif
+#ifndef XK_Delete
+#define XK_Delete    0xffff
+#endif
 
+
+X11TextEntryPane instanceMethod deleteForward (void) {
+  printf ("%d %d\n", self point, self chars size);
+  if (self point < self chars size) {
+    self deleteAt self point;
+    self reflow;
+    self draw;
+    self refresh;
+  }
+}
 
 static char c_prev = 0;
 
@@ -598,6 +605,9 @@ X11TextEntryPane instanceMethod subPaneKbd (Object subPane,
 	      self refresh;
 	    }
 	  }
+	  break;
+	case XK_Delete:
+	  self deleteForward;
 	  break;
 	case XK_Right:
 	  self center = true;
@@ -660,6 +670,9 @@ X11TextEntryPane instanceMethod subPaneKbd (Object subPane,
 	      case '/': c = '?'; break;
 	      default: c &= ~32; break;
 	      }
+	  } else if (c == 127) {  /* Delete on some keyboards. */
+	    self deleteForward;
+	    return NULL;
 	  } else if (subPane shiftState & shiftStateCtrl){
 	    switch (c)
 	      {
@@ -693,6 +706,10 @@ X11TextEntryPane instanceMethod subPaneKbd (Object subPane,
 		self point = self chars size;
 		self draw;
 		self refresh;
+		return NULL;
+		break;
+	      case 'd':
+		self deleteForward;
 		return NULL;
 		break;
 	      }
