@@ -4477,6 +4477,10 @@ For information about how to set and retrieve resources, refer to the
 Instance Variables
 ------------------
 
+'button'
+     An 'Integer' that records the state of the pointer buttons when the
+     program receives a BUTTONPRESS or BUTTONRELEASE event.
+
 'center'
      A 'Boolean' that helps determine how a part of the text is
      displayed if the text is too large to fit within the pane.
@@ -4546,6 +4550,10 @@ Instance Methods
      Returns the 'CharCell' object for the 'charIndex' position in the
      text.  (I.e., the _nth_ element of the 'chars' instance variable's
      list).
+
+'charIndexAtClick (Integer clickX, Integer CLICKY)'
+     Returns an 'Integer' with the index of the character displayed at
+     CLICKX,CLICKY.
 
 'deleteAt (Integer CHARINDEX)'
      Deletes the character at CHARINDEX and returns the element, which

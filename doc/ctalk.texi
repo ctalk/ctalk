@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.9 2020/05/24 17:12:28 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.11 2020/05/26 01:06:37 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -16404,6 +16404,11 @@ The color that the pane uses to display text.  The default is
 
 @table @code
 
+@cindex @code{button} instance variable @idxclscite{X11TextEntryPane}
+@item button
+An @code{Integer} that records the state of the pointer buttons
+when the program receives a BUTTONPRESS or BUTTONRELEASE event.
+
 @cindex @code{center} instance variable @idxclscite{X11TextEntryPane}
 @item center
 A @code{Boolean} that helps determine how a part of the text is
@@ -16492,6 +16497,11 @@ appends to the text until a following character is added.
 Returns the @code{CharCell} object for the @code{charIndex} position
 in the text. (I.e., the @emph{nth} element of the @code{chars}
 instance variable's list).
+
+@cindex @code{charIndexAtClick} instance method @idxclscite{X11TextEntryPane}
+@item charIndexAtClick (@code{Integer} @code{clickX}, @code{Integer} @var{clickY})
+Returns an @code{Integer} with the index of the character displayed at
+@var{clickX},@var{clickY}.
 
 @cindex @code{deleteAt} instance method @idxclscite{X11TextEntryPane}
 @item deleteAt (@code{Integer} @var{charIndex})
