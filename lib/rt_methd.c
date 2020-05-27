@@ -1,4 +1,4 @@
-/* $Id: rt_methd.c,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ */
+/* $Id: rt_methd.c,v 1.2 2020/05/25 23:12:52 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -155,7 +155,14 @@ static METHOD *__ctalk_method_find_method_by_fn (METHODSRCHINFO *msi) {
 						msi -> cfunc, FALSE))
 		   == NULL)) {
 		if ((method = assign_method_orig_obj (msi)) == NULL) {
-		  _warning ("__ctalk_method: Undefined method.\n");
+		  _warning ("__ctalk_method: Undefined method, \"%s.\"\n"
+			    "Receiver, \"%s,\" (Class \"%s\").\n",
+			    msi -> method_name,
+			    msi -> rcvr_obj -> __o_name,
+			    IS_OBJECT(msi -> rcvr_obj -> instancevars) ?
+			    msi -> rcvr_obj -> instancevars -> __o_class
+			    -> __o_name :
+			    msi -> rcvr_obj -> __o_class -> __o_name);
 		  return NULL;
 		} else {
 		  return method;

@@ -804,5 +804,18 @@
 	entryIconEyeSlashed.
 2020-05-21
 	- Added the ability to echo dots to X11TextEntryPane.
+	- In rt_self_expr, don't issue a warning if the
+	expression contains a "super" token (src/rt_expr.c).
+2020-05-23
+	- Added the start and end parameters to __ctalkX11PaneDrawCircleBasic
+	and __ctalkGUIPaneDrawCircleBasic (xcircle.c), and the start and end
+	instance variables to Circle class.
+2020-05-25
+	- Added the X11TextEntryPane : button instance variable, and the
+	X11TextEntryPane : charIndexAtClick instance method.
+2020-05-26
+	- Added a check in __receiver_become for an old receiver that is
+	a VAR_REF_OBJECT and whether it has been saved as a
+	METHOD_USER_OBJECT (become.c).
 
 
