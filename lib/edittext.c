@@ -1,4 +1,4 @@
-/* $Id: edittext.c,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ -*-c-*-*/
+/* $Id: edittext.c,v 1.3 2020/05/26 02:10:15 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -1912,6 +1912,110 @@ int __edittext_get_primary_selection (OBJECT *editorpane_object,
     r = fread (intbuf, sizeof (char), 0xff, f_info);
     fclose (f_info);
     data_length = atoi (intbuf);
+    unlink (info_path);
+  }
+  if (data_length > 0) {
+    *buf_out = (void *)__xalloc (data_length + 1);
+    if ((f_dat = fopen (data_path, "r")) != NULL) {
+      r = fread (*buf_out, sizeof (char), data_length, f_dat);
+      fclose (f_dat);
+      unlink (data_path);
+    }
+  } else {
+    *buf_out = NULL;
+    *size_out = 0;
+  }
+
+  return SUCCESS;
+}
+
+/* This is the same as above, but it's for X11TextEntryPane objects,
+   which haven't initialized all of the instance variables above; in
+   particular, we fetch the entry object's displayPtr instance
+   variable ourselves. But we might use the size_out (the texteditor
+   pane version doesn't always set it). (We also probably don't need
+   all the stuff that handles pasting within the same window.)
+*/
+int __entrytext_get_primary_selection (OBJECT *entrypane_object,
+				       void **buf_out, int *size_out) {
+  char handle_basename_path[FILENAME_MAX], intbuf[0xff],
+    data_path[FILENAME_MAX], info_path[FILENAME_MAX];
+  OBJECT *win_id_var, *content_var, *sstart_var, *send_var;
+  OBJECT *displayPtr_var;
+  Display *d_l;
+  Drawable win_id, selection_win;
+  int r, s_start, s_end, data_length = 0;
+  FILE *f_info, *f_dat;
+
+  /***/
+  if ((win_id_var = __ctalkGetInstanceVariable (entrypane_object, "xWindowID",
+						TRUE)) != NULL) {
+    if ((d_l = XOpenDisplay (getenv ("DISPLAY"))) != NULL) {
+      win_id = (Drawable)INTVAL(win_id_var -> __o_value);
+      if ((selection_win = XGetSelectionOwner (d_l, XA_PRIMARY)) == win_id) {
+	content_var = __ctalkGetInstanceVariable (entrypane_object, "text",
+						  TRUE);
+	sstart_var = __ctalkGetInstanceVariable (entrypane_object, "sStart", TRUE);
+	send_var = __ctalkGetInstanceVariable (entrypane_object, "sEnd", TRUE);
+	s_start = INTVAL(sstart_var -> __o_value);
+	s_end = INTVAL(send_var -> __o_value);
+	if (s_start == 0 && s_end == 0) {
+	  *buf_out = NULL;
+	  *size_out = 0;
+	  return SUCCESS;
+	}
+	if (s_end < s_start) {
+	  *size_out = s_start - s_end + 1;
+	  *buf_out = (void *)__xalloc (*size_out);
+	  memset (*buf_out, 0, *size_out);
+	  strncpy (*buf_out, &content_var -> __o_value[s_end], s_start - s_end + 1);
+	} else {
+	  *size_out = s_end - s_start + 1;
+	  *buf_out = (void *)__xalloc (*size_out);
+	  memset (*buf_out, 0, *size_out);
+	  strncpy (*buf_out, &content_var -> __o_value[s_start], s_end - s_start + 1);
+	}
+	return SUCCESS;
+      }
+      XCloseDisplay (d_l);
+    }
+  }
+
+  /***/
+  if ((displayPtr_var = __ctalkGetInstanceVariable (entrypane_object,
+						    "displayPtr",
+						    TRUE)) == NULL) {
+    printf ("ctalk: %s: Missing displayPtr instance variable.\n",
+	    entrypane_object -> __o_name);
+    exit (1);
+  }
+
+
+  strcatx (handle_basename_path, P_tmpdir, "/text", ctitoa (getpid (), intbuf),
+	   NULL);
+  memset ((void *)shm_mem, 0, SHM_BLKSIZE);
+
+#if 0 /***/
+  make_req (shm_mem,
+	    SYMVAL(display_ptr_instance_var -> instancevars -> __o_value),
+	    PANE_GET_PRIMARY_SELECTION_REQUEST, 0, 0,
+	    handle_basename_path);
+#else
+  make_req (shm_mem,
+	    SYMVAL(displayPtr_var -> instancevars -> __o_value),
+	    PANE_GET_PRIMARY_SELECTION_REQUEST, 0, 0,
+	    handle_basename_path);
+#endif  
+  wait_req (shm_mem);
+
+  strcatx (info_path, handle_basename_path, ".inf", NULL);
+  strcatx (data_path, handle_basename_path, ".dat", NULL);
+
+  if ((f_info = fopen (info_path, "r")) != NULL) {
+    memset (intbuf, 0, 0xff);
+    r = fread (intbuf, sizeof (char), 0xff, f_info);
+    fclose (f_info);
+    *size_out = data_length = atoi (intbuf);
     unlink (info_path);
   }
   if (data_length > 0) {
