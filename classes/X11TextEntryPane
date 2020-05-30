@@ -1,4 +1,4 @@
-/* $Id: X11TextEntryPane,v 1.47 2020/05/30 01:50:28 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11TextEntryPane,v 1.50 2020/05/30 22:01:29 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -258,6 +258,13 @@ X11TextEntryPane instanceMethod draw (void) {
   
   self ftFontVar selectFontFromFontConfig (self resources at "font");
   self ftFontVar saveSelectedFont;
+  if (self baselineY == 0) {
+    hPad = self resources at "hPad";
+    self baselineY = self size y -
+      borderWidth - hPad - (self ftFontVar descent);
+    if (self dots)
+      self baselineY -= (self ftFontVar textHeight "T") / 2;
+  }
 
   self paneBuffer background (self resources at "backgroundColor");
   self paneBuffer clear;
@@ -314,6 +321,7 @@ X11TextEntryPane instanceMethod draw (void) {
        the first time this method is called. */
     self spacingHint = self resources at "spacingHint";
   }
+#if 0 /***/
   if (self baselineY == 0) {
     hPad = self resources at "hPad";
     self baselineY = self size y -
@@ -321,6 +329,7 @@ X11TextEntryPane instanceMethod draw (void) {
     if (self dots)
       self baselineY -= (self ftFontVar textHeight "T") / 2;
   }
+#endif
 
   idx = 0;
   drawX = vPad;
@@ -420,13 +429,17 @@ X11TextEntryPane instanceMethod insertAt (OBJECT *(*newItem)(),
 
 X11TextEntryPane instanceMethod reflow (void) {
   CharCell new c;
-  Integer new totalWidth;
+  Integer new totalWidth, bboxTop, bboxYExt;
 
   totalWidth = 0;
+  bboxTop = self baselineY - self ftFontVar ascent;
+  bboxYExt = bboxTop + self ftFontVar height;
   self chars map {
     (Object *)c = self;
     c boxOrg x = totalWidth;
+    c boxOrg y = bboxTop;
     c boxExt x = c boxOrg x + c width;
+    c boxExt y = bboxYExt;
     totalWidth += c width;
   }
 }
@@ -508,22 +521,18 @@ X11TextEntryPane instanceMethod subPaneButtonPress (Object subPane,
 	
 	__entrytext_get_primary_selection (self, &selection_out,
 					  &selection_length_out);
+
+	if (selection_length_out == 0)
+	  break;
+
 	if (self clipX > 0)
 	  self point += self clipX;
+
 	for (i = 0; i < selection_length_out; ++i) {
 	  s1 = self chars asString;
 	  w1 = self ftFontVar textWidth s1;
 	  c = ((char *)selection_out)[i];
 	  *cSym = CharCell basicNew c asString, c;
-	  if (c == ' ') {
-	    (*cSym) width = self ftFontVar textWidth "e";
-	  } else {
-	    (*cSym) width = self ftFontVar textWidth cc asString;
-	  }
-	  (*cSym) boxOrg x = self inputWidth self chars, 0;
-	  (*cSym) boxOrg y = self baselineY - self ftFontVar ascent;
-	  (*cSym) boxExt x = cc boxOrg x + cc width;
-	  (*cSym) boxExt y = cc boxOrg y + self ftFontVar height;
 
 	  if (self point == self chars size) {
 	    self chars push (*cSym);
@@ -531,29 +540,16 @@ X11TextEntryPane instanceMethod subPaneButtonPress (Object subPane,
 	    s2 = self chars asString;
 	    w2 = self ftFontVar textWidth s2;
 	    (*cSym) width = (w2 - w1 + self spacingHint);
-	  }
-	}
-#if 0
-	  } else if (self point == 0) {
-#if 0
-	    self chars shift cc;
-	    s2 = self chars asString;
-	    w2 = self ftFontVar textWidth s2;
-	    cc width = (w2 - w1 + self spacingHint);
-	    self chars reflow;
-#endif	    
+	    self reflow;
 	  } else {
-#if 0
-	    self insertAt cc, self point;
+	    self insertAt (*cSym), self point;
 	    s2 = self chars asString;
 	    w2 = self ftFontVar textWidth s2;
-	    cc width = (w2 - w1 + self spacingHint);
-	    self chars reflow;
-#endif	    
+	    (*cSym) width = (w2 - w1 + self spacingHint);
+	    self reflow;
+	    self point += 1;
 	  }
-	  self point += 1;
 	}
-#endif	  
 	self draw;
 	self super refresh;
 	break;

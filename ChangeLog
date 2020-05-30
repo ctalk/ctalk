@@ -817,5 +817,10 @@
 	- Added a check in __receiver_become for an old receiver that is
 	a VAR_REF_OBJECT and whether it has been saved as a
 	METHOD_USER_OBJECT (become.c).
+2020-05-30
+	- Added a check for self if it is present in the warning message
+	in eval_expr 2nd pass (rt_expr.c).
+	- Added pasting from the X primary selection to the text buffer
+	in X11TextEntryPane.
 
 

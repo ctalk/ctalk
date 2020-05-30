@@ -1,4 +1,4 @@
-/* $Id: rt_expr.c,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ */
+/* $Id: rt_expr.c,v 1.2 2020/05/30 22:01:29 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -4265,11 +4265,31 @@ OBJECT *eval_expr (char *s, OBJECT *recv_class, METHOD *method,
 					  p -> msg_frame_start) &&
 		     !rcvr_has_ptr_cx (p, i, c_rcvr_idx) &&
 		     !prev_tok_is_symbol (e_messages, i)) {
+	    /* If we've resolved a self token here, it might be helpful. 
+	       Any more complex and this should go in rt_error.c */
+	    int j_2, j_self = -1;
 	    if (__ctalkGetExceptionTrace ())
 	      __warning_trace ();
-	    _warning ("Warning: In the expression:\n\n\t%s\n\n"
-		      "Label, \"%s,\" is not resolved as an object "
-		      "or a method.\n", p -> expr_str, M_NAME(m));
+	    for (j_2 = i; j_2 <= expr_parsers[expr_parser_ptr] -> msg_frame_start;
+		 ++j_2) {
+	      if (e_messages[j_2] -> attrs & RT_TOK_IS_SELF_KEYWORD) {
+		j_self = j_2;
+	      }
+	    }
+	    if (j_self > 0) {
+	      _warning ("Warning: In the expression:\n\n\t%s\n\n"
+			"Label, \"%s,\" is not resolved as an object "
+			"or a method.  (Receiver \"self,\" class, \"%s.\")\n",
+			p -> expr_str, M_NAME(m),
+			(IS_OBJECT(e_messages[j_self] -> obj -> instancevars) ?
+			 e_messages[j_self] -> obj -> instancevars -> 
+			 __o_class -> __o_name :
+			 e_messages[j_self] -> obj -> __o_class -> __o_name));
+	    } else {
+	      _warning ("Warning: In the expression:\n\n\t%s\n\n"
+			"Label, \"%s,\" is not resolved as an object "
+			"or a method.\n", p -> expr_str, M_NAME(m));
+	    }
 	  }
 	  ++m -> evaled;
 	}
