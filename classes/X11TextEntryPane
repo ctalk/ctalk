@@ -1,4 +1,4 @@
-/* $Id: X11TextEntryPane,v 1.40 2020/05/24 17:12:27 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11TextEntryPane,v 1.47 2020/05/30 01:50:28 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -43,7 +43,7 @@ Character class CharCell;
  *     font (Linux)        String    
  *                  "DejaVu Sans Mono-12:weight=medium:slant=roman"
  *     font (MacOS)        String    
- *                  "Bitstream Vera Sans Mono-14:weight=medium:slant=roman"
+ *                  "sans serif-14:weight=medium:slant=roman"
  *                                   Linux       MacOS
  *     spacingHint          Integer  0          -1
  *     cursorAdvanceHint    Integer  4           2
@@ -73,6 +73,7 @@ X11TextEntryPane instanceVariable clipX Integer 0;
 X11TextEntryPane instanceVariable center Boolean false;
 X11TextEntryPane instanceVariable paneWidthChars Integer 0;
 X11TextEntryPane instanceVariable dots Boolean false;
+X11TextEntryPane instanceVariable button Integer false;
 
 CharCell instanceVariable width Integer 0;
 CharCell instanceVariable boxOrg Point NULL;
@@ -102,7 +103,7 @@ X11TextEntryPane instanceMethod new (String paneName) {
 
 #ifdef __APPLE__
   paneName resources atPut "font",
-    "Bitstream Vera Sans Mono-14:weight=normal:slant=roman";
+     "sans serif-14:weight=normal:slant=roman";
   paneName resources atPut "spacingHint", -1;
   paneName resources atPut "cursorAdvanceHint", 2;
 #else  
@@ -456,23 +457,124 @@ X11TextEntryPane instanceMethod subPaneExpose (Object subPane,
   self super refresh;
 }
 
+X11TextEntryPane instanceMethod charIndexAtClick (Integer clickX,
+						  Integer clickY) {
+  returnObjectClass Integer;
+  Integer new idx;
+
+  idx = 0;
+  self chars map {
+    if (clickX > self boxOrg x && clickX < self boxExt x) {
+      break;
+    } else if (clickX == self boxExt x) {
+      break;
+    }
+    idx += 1;
+  }
+  return idx;
+}
+
+/* These are from x11defs.h. */
+#define BUTTON1MASK  (1 << 0)
+#define BUTTON2MASK  (1 << 1)
+#define BUTTON3MASK  (1 << 2)  
+
 X11TextEntryPane instanceMethod subPaneButtonPress (Object subPane,
 					       InputEvent event) {
+  void *selection_out;
+  int selection_length_out, i;
+  char c;
+  CharCell new cc;
+  Symbol new cSym;
+  String new s1, s2;
+  Integer new w1, w2;
+  
   if (event eventClass == BUTTONPRESS) {
-    self point = 0;
-    self chars map {
-      if (event xEventData1 > self boxOrg x &&
-	  event xEventData1 < self boxExt x) {
+    switch (event xEventData4)
+      {
+      case Button1:
+	self button |= BUTTON1MASK;
+	self point =
+	  self charIndexAtClick event xEventData1, event xEventData2;
+	if (self clipX > 0)
+	  self point += self clipX;
+	self draw;
+	self super refresh;
 	break;
-      } else if (event xEventData1 == self boxExt x) {
+      case Button2:
+	self button |= BUTTON2MASK;
+	self point =
+	  self charIndexAtClick event xEventData1, event xEventData2;
+	
+	__entrytext_get_primary_selection (self, &selection_out,
+					  &selection_length_out);
+	if (self clipX > 0)
+	  self point += self clipX;
+	for (i = 0; i < selection_length_out; ++i) {
+	  s1 = self chars asString;
+	  w1 = self ftFontVar textWidth s1;
+	  c = ((char *)selection_out)[i];
+	  *cSym = CharCell basicNew c asString, c;
+	  if (c == ' ') {
+	    (*cSym) width = self ftFontVar textWidth "e";
+	  } else {
+	    (*cSym) width = self ftFontVar textWidth cc asString;
+	  }
+	  (*cSym) boxOrg x = self inputWidth self chars, 0;
+	  (*cSym) boxOrg y = self baselineY - self ftFontVar ascent;
+	  (*cSym) boxExt x = cc boxOrg x + cc width;
+	  (*cSym) boxExt y = cc boxOrg y + self ftFontVar height;
+
+	  if (self point == self chars size) {
+	    self chars push (*cSym);
+	    self point += 1;
+	    s2 = self chars asString;
+	    w2 = self ftFontVar textWidth s2;
+	    (*cSym) width = (w2 - w1 + self spacingHint);
+	  }
+	}
+#if 0
+	  } else if (self point == 0) {
+#if 0
+	    self chars shift cc;
+	    s2 = self chars asString;
+	    w2 = self ftFontVar textWidth s2;
+	    cc width = (w2 - w1 + self spacingHint);
+	    self chars reflow;
+#endif	    
+	  } else {
+#if 0
+	    self insertAt cc, self point;
+	    s2 = self chars asString;
+	    w2 = self ftFontVar textWidth s2;
+	    cc width = (w2 - w1 + self spacingHint);
+	    self chars reflow;
+#endif	    
+	  }
+	  self point += 1;
+	}
+#endif	  
+	self draw;
+	self super refresh;
+	break;
+      case Button3:
+	self button |= BUTTON3MASK;
 	break;
       }
-      super point += 1;
-    }
-    if (self clipX > 0)
-      self point += self clipX;
-    self draw;
-    self super refresh;
+      
+  } else if (event eventClass == BUTTONRELEASE) {
+    switch (event xEventData4)
+      {
+	case Button1:
+	  self button &= ~BUTTON1MASK;
+	  break;
+	case Button2:
+	  self button &= ~BUTTON2MASK;
+	  break;
+	case Button3:
+	  self button &= ~BUTTON3MASK;
+	  break;
+      }
   }
 }
 
@@ -551,7 +653,6 @@ X11TextEntryPane instanceMethod calculateSpaceAppend (void) {
 
 
 X11TextEntryPane instanceMethod deleteForward (void) {
-  printf ("%d %d\n", self point, self chars size);
   if (self point < self chars size) {
     self deleteAt self point;
     self reflow;
@@ -642,6 +743,10 @@ X11TextEntryPane instanceMethod subPaneKbd (Object subPane,
 	default:
 	  c = __edittext_xk_keysym (event xEventData4, self shiftState,
 				    event xEventData5);
+	  /* Some pointer buttons can return weird values.  Try to
+	     catch them here. */
+	  if (!isprint (c))
+	    return NULL;
 	  if ((subPane shiftState & shiftStateShift) ||
 	      (subPane shiftState & shiftStateCapsLock)) {
 	    /* We're just gonna do the shifted keys here. */
