@@ -1,4 +1,4 @@
-/* $Id: X11TextEntryPane,v 1.50 2020/05/30 22:01:29 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11TextEntryPane,v 1.51 2020/05/30 22:23:42 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -835,20 +835,20 @@ X11TextEntryPane instanceMethod subPaneKbd (Object subPane,
 	    cc width = (w2 - w1 + self spacingHint);
 	    if (c_prev == ' ') {
 	      self calculateSpaceAppend;
-	      self chars reflow;
+	      self reflow;
 	    }
 	  } else if (self point == 0) {
 	    self chars shift cc;
 	    s2 = self chars asString;
 	    w2 = self ftFontVar textWidth s2;
 	    cc width = (w2 - w1 + self spacingHint);
-	    self chars reflow;
+	    self reflow;
 	  } else {
 	    self insertAt cc, self point;
 	    s2 = self chars asString;
 	    w2 = self ftFontVar textWidth s2;
 	    cc width = (w2 - w1 + self spacingHint);
-	    self chars reflow;
+	    self reflow;
 	  }
 	  self point += 1;
 	  self draw;
