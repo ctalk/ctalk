@@ -20,7 +20,7 @@ int main (int argv, char **argc) {
   label border = false;
 
    xPane inputStream eventMask = EXPOSE|ENTERWINDOWNOTIFY|LEAVEWINDOWNOTIFY| \
-    KEYPRESS|KEYRELEASE|WINDELETE|BUTTONPRESS|BUTTONRELEASE;
+    KEYPRESS|KEYRELEASE|WINDELETE|BUTTONPRESS|BUTTONRELEASE|MOTIONNOTIFY;
    xPane initialize 300, 200;
   dispatcher attachTo xPane;
   label attachTo dispatcher, "100x80+10+10";
