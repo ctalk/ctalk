@@ -1,4 +1,4 @@
-/* $Id: ifexpr.c,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ */
+/* $Id: ifexpr.c,v 1.2 2020/05/31 16:59:09 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -1266,10 +1266,16 @@ int ctrlblk_pred_rt_expr (MESSAGE_STACK messages, int msg_ptr) {
 	} else {
 	  for (i = pred_start_idx; i >= pred_end_idx; i--) {
 	    if (M_TOK(messages[i]) == LABEL) {
+	      /***/
+	      if ((c_1 = get_local_var (M_NAME(messages[i]))) != NULL) {
+		argblk_CVAR_name_to_msg (messages[i], c_1);
+	      }
+#if 0
 	      if (((c_1 = get_local_var (M_NAME(messages[i]))) != NULL) ||
 		  ((c_1 = get_global_var (M_NAME(messages[i]))) != NULL)) {
 		argblk_CVAR_name_to_msg (messages[i], c_1);
 	      }
+#endif	      
 	    }
 	  }
 	}
