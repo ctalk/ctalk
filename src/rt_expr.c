@@ -1,4 +1,4 @@
-/* $Id: rt_expr.c,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ */
+/* $Id: rt_expr.c,v 1.3 2020/06/03 19:22:32 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -1499,6 +1499,40 @@ static bool c_operand (MESSAGE_STACK messages, int assign_op_idx,
   return false;
 }
 
+/* This could handle more checks as we need them... */
+static bool rtse_instvar_msg (MESSAGE_STACK messages, int tok_idx,
+			      int stack_start_idx) {
+  int lookback;
+  OBJECT *prev_tok_obj, *t;
+  if ((lookback = prevlangmsg (messages, tok_idx)) != ERROR) {
+    if (M_TOK(messages[lookback]) == LABEL) {
+      if (interpreter_pass == method_pass) {
+	if ((prev_tok_obj = get_local_object (M_NAME(messages[lookback]), NULL))
+	    != NULL) {
+	  messages[lookback] -> obj = prev_tok_obj;
+	  for (t = prev_tok_obj -> instancevars; t; t = t -> next) {
+	    if (str_eq (t -> __o_name, M_NAME(messages[tok_idx]))) {
+	      messages[tok_idx] -> attrs |= OBJ_IS_INSTANCE_VAR;
+	      messages[tok_idx] -> obj = t;
+	      return true;
+	    }
+	  }
+	} else if (messages[lookback] -> attrs & OBJ_IS_INSTANCE_VAR &&
+		   IS_OBJECT(messages[lookback] -> obj)) {
+	  for (t = messages[lookback] -> obj -> instancevars; t; t = t -> next) {
+	    if (str_eq (t -> __o_name, M_NAME(messages[tok_idx]))) {
+	      messages[tok_idx] -> attrs |= OBJ_IS_INSTANCE_VAR;
+	      messages[tok_idx] -> obj = t;
+	      return true;
+	    }
+	  }
+	}
+      }
+    }
+  }
+  return false;
+}
+
 /*
  *  Use this macro when rt_self_expr () needs to use the first token
  *  of the expression to determine its context.  The, "start_idx," 
@@ -1667,6 +1701,8 @@ char *rt_self_expr (MESSAGE_STACK messages, int start_idx, int *end_idx,
 				      expr_rcvr_class -> __o_name),
 				     FALSE) &&
 		!get_local_object (M_NAME(messages[i]), NULL) &&
+		/***/
+		!rtse_instvar_msg (messages, i, stack_start_idx) &&
 		/* Believe it or not... */
 		!is_method_name (M_NAME(messages[i])) &&
 		!is_method_parameter (messages, i) &&
@@ -1713,6 +1749,8 @@ char *rt_self_expr (MESSAGE_STACK messages, int start_idx, int *end_idx,
 	    !is_method_name (M_NAME(messages[i])) &&
 	    !class_object_search (M_NAME(messages[i]), FALSE) &&
 	    !is_c_data_type (M_NAME(messages[i])) &&
+	    /***/
+	    !(messages[i] -> attrs & TOK_SUPER) &&
 	    !is_instance_var (M_NAME(messages[i]))) {
 	  warning (messages[i], "Undefined label, \"%s.\"",
 		   M_NAME(messages[i]));
