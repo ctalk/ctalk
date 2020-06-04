@@ -1,4 +1,4 @@
-/* $Id: ctalk.h,v 1.2 2020/05/20 20:25:20 rkiesling Exp $ -*-Fundamental-*- */
+/* $Id: ctalk.h,v 1.6 2020/06/04 01:20:06 rkiesling Exp $ -*-Fundamental-*- */
 
 /*
   This file is part of Ctalk.
@@ -518,6 +518,7 @@ typedef MESSAGE ** MESSAGE_STACK;
                        is_struct_member(s) || \
                        is_gnuc_builtin_type (s) || \
                        is_apple_ppc_math_builtin (s) || \
+		       is_darwin_ctype_fn (s) || \
                        is_fn_param(s))
 #  else /* __ppc__ */    /* (i.e., __i386__) */
 #  define IS_DEFINED_LABEL(s) (is_c_keyword(s) || \
@@ -532,6 +533,7 @@ typedef MESSAGE ** MESSAGE_STACK;
                        is_struct_member(s) || \
                        is_gnuc_builtin_type (s) || \
                        is_apple_i386_math_builtin (s) || \
+		       is_darwin_ctype_fn (s) || \
                        is_fn_param(s))
 #  endif
 # else /* __APPLE__ */
@@ -1493,6 +1495,7 @@ int __edittext_scroll_down (OBJECT *);
 int __edittext_scroll_up (OBJECT *);
 int __edittext_recenter (OBJECT *);
 unsigned int __edittext_xk_keysym (int, int, int);
+int __entrytext_get_primary_selection (OBJECT *, void **, int *);
 
 /* lib/err_out.c */
 void _error_out (char *);
@@ -1798,6 +1801,9 @@ int is_gnu_extension_keyword (const char *);
 int is_gnuc_builtin_type (const char *);
 int is_macro_keyword (const char *);
 int is_OBJECT_member (const char *);
+#ifdef __APPLE__
+bool is_darwin_ctype_fn (const char *);
+#endif
 
 /* lib/message.c */
 MESSAGE *dup_message (MESSAGE *);

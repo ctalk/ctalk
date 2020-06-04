@@ -827,5 +827,6 @@
 	if it's a local variable (ifexpr.c).
 2020-06-03
 	- Added rtse_instvar_msg, called by rt_self_expr (src/rt_expr.c).
-
-
+	- Added is_darwin_ctype_fn (keyword.c), and added it to the
+	IS_DEFINED_LABEL macros for Apple (ctalk.h), and begin_fn_buffer
+	(fnbuf.c).

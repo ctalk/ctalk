@@ -1,4 +1,4 @@
-/* $Id: keyword.c,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ */
+/* $Id: keyword.c,v 1.2 2020/06/04 01:20:06 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -538,6 +538,55 @@ int is_apple_i386_libkern_builtin (const char *s) {
 }
 
 #endif /* __ppc__ */
+
+static char *darwin_ctype_fns[] = {
+  "__runetype",
+  "isascii",
+  "__maskrune",
+  "__istype",
+  "__isctype",
+  "__toupper",
+  "__tolower",
+  "__wcwidth",
+  "_tolower",
+  "_toupper",
+  "isalnum",
+  "isalpha",
+  "isblank",
+  "iscntrl",
+  "isdigit",
+  "isgraph",
+  "islower",
+  "isprint",
+  "ispunct",
+  "isspace",
+  "isupper",
+  "isxdigit",
+  "toascii",
+  "tolower",
+  "toupper",
+  "digittoint",
+  "ishexnumber",
+  "isideogram",
+  "isnumber",
+  "isphonogram",
+  "isrune",
+  "isspecial",
+  "__sputc"
+};
+
+#define N_DARWIN_CTYPE_FNS 33
+
+bool is_darwin_ctype_fn (const char *s) {
+  int i;
+  for (i = 0; i < N_DARWIN_CTYPE_FNS; ++i) {
+    if (str_eq ((char *)s, darwin_ctype_fns[i])) {
+      return true;
+    }
+  }
+  return false;
+}
+
 #endif /* __APPLE__ */
 
 static char *OBJECT_member_names[] = {

@@ -89,6 +89,8 @@ if [ -f /usr/include/libkern/i386/OSByteOrder.h ]; then
 	awk '{ if($1 == '1') print $2 }' | \
 	sed 's/\(.*\)/\"\1\"\,/g' >>include/osx_i386_builtins.h
 fi
+# Below, we only use sort -u, which is okay as long as the
+# compiler can handle occasional zero-length strings.
 if [ -f /usr/include/libkern/i386/_OSByteOrder.h ]; then
     cat /usr/include/libkern/i386/_OSByteOrder.h | \
 	sed '/^#/d' | \
@@ -99,9 +101,7 @@ if [ -f /usr/include/libkern/i386/_OSByteOrder.h ]; then
  (/'   | \
 	sed '/(/,/)/d' | \
 	sed '/^[^a-zA-Z0-9_]/d' | \
-	sort | \
-	uniq -c | \
-	awk '{ if($1 == '1') print $2 }' | \
+	sort -u | \
 	sed 's/\(.*\)/\"\1\"\,/g' >>include/osx_i386_builtins.h
 fi
 echo 'NULL, NULL };' >>include/osx_i386_builtins.h
