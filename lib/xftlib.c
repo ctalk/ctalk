@@ -1,4 +1,4 @@
-/* $Id: xftlib.c,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ -*-c-*-*/
+/* $Id: xftlib.c,v 1.2 2020/06/04 04:38:16 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -1798,7 +1798,7 @@ int __ctalkInitFTLib (void) {
 }
 
 int __ctalkXftInitLib (void) {
-  return ERROR;
+  return -1;
 #if 0
   xft_support_error ();
   return 0; /* notreached */
@@ -1981,8 +1981,8 @@ int __ctalkXftRequestedDPI (void) {
   xft_support_error ();
   return 0;
 }
-bool __ctalkXftIsMonospace (void) {
+int __ctalkXftIsMonospace (void) {
   xft_support_error ();
-  return true;
+  return 1;
 }
 #endif /* ! defined (DJGPP) && ! defined (WITHOUT_X11) */ 
