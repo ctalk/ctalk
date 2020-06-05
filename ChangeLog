@@ -830,3 +830,7 @@
 	- Added is_darwin_ctype_fn (keyword.c), and added it to the
 	IS_DEFINED_LABEL macros for Apple (ctalk.h), and begin_fn_buffer
 	(fnbuf.c).
+2020-06-04
+	- In sym_ptr_expr, if a called function places an entry on
+	the call stack and hasn't removed it, clean it up after the
+	fn returns (rt_call.c).

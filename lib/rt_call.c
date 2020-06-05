@@ -1,8 +1,9 @@
-/* $Id: rt_call.c,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ -*-c-*-*/
+/* $Id: rt_call.c,v 1.2 2020/06/04 18:56:06 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
-  Copyright © 2005-2012, 2016, 2019  Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2005-2012, 2016, 2019 - 2020  Robert Kiesling, 
+     rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
 
@@ -31,6 +32,9 @@
 
 extern DEFAULTCLASSCACHE *rt_defclasses; /* Declared in rtclslib.c. */
 
+extern RT_INFO *__call_stack[MAXARGS+1];    /* Declared in rtinfo.c. */
+extern int __call_stack_ptr;
+
 static OBJECT *__e_result;
 
 OBJECT *__ctalkCallMethodFn (METHOD *m) {
@@ -53,6 +57,7 @@ bool sym_ptr_expr (EXPR_PARSER *p,
   int prev_idx;
   int pfx_idx;
   int label_idx;
+  int pre_call_stack_ptr;
   void (*fn_addr) ();
   OBJECT *symbol_obj, *symbol_value_obj;
 
@@ -110,6 +115,7 @@ bool sym_ptr_expr (EXPR_PARSER *p,
   symbol_value_obj = ((symbol_obj -> instancevars) ? 
 		      symbol_obj -> instancevars :
 		      symbol_obj);
+  pre_call_stack_ptr = __call_stack_ptr;
 
   fn_addr = *(void **)symbol_value_obj -> __o_value;
   if (fn_addr != NULL) {
@@ -117,6 +123,17 @@ bool sym_ptr_expr (EXPR_PARSER *p,
   } else {
     _warning ("In expression, \"(*%s)(),\"  \"%s,\" is NULL.\n",
 	      symbol_obj -> __o_name, symbol_obj -> __o_name);
+  }
+  /***/
+  if (pre_call_stack_ptr > __call_stack_ptr) {
+    /* If the function placed an entry on the call stack and didn't
+       remove it, remove it here.  TODO - Check for nested calls
+       (more than one new stack_entry), and the full state being
+       saved in rtinfo.c if possible. */
+    RT_INFO *r;
+    r = __call_stack[++__call_stack_ptr];
+    __call_stack[__call_stack_ptr] = NULL;
+    __xfree (MEMADDR(r));
   }
   *last_paren_idx_out = param_close_paren_idx;
   return false;
