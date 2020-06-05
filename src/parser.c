@@ -1,4 +1,4 @@
-/* $Id: parser.c,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ */
+/* $Id: parser.c,v 1.2 2020/06/05 04:53:47 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -66,7 +66,8 @@ int last_method_line;            /* Last line number of method sub-parser,
 
 extern EXCEPTION parse_exception;  /* Declared in pexcept.c. */
 
-extern int fn_defined_by_header;
+extern int fn_defined_by_header;   /* Declared in fnbuf.c. */
+extern bool fn_is_builtin;
 
 extern FRAME *frames[MAXFRAMES+1]; /* Declared in frame.c. */
 extern int frame_pointer;
@@ -771,6 +772,8 @@ int parser_pass (int this_frame_ptr, PARSER *p) {
 	      } else {
 		fn_defined_by_header = FALSE;
 	      }
+	      /***/
+	      if (fn_is_builtin) fn_is_builtin = false;
 	      if (p -> need_main_exit) p -> need_main_exit = FALSE;
  	    }
 	  }

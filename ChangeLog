@@ -834,3 +834,5 @@
 	- In sym_ptr_expr, if a called function places an entry on
 	the call stack and hasn't removed it, clean it up after the
 	fn returns (rt_call.c).
+	- In parser_pass, check for a non-cleared fn_is_builtin
+	flag (parser.c).
