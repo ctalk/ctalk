@@ -1,4 +1,4 @@
-/* $Id: edittext.c,v 1.3 2020/05/26 02:10:15 rkiesling Exp $ -*-c-*-*/
+/* $Id: edittext.c,v 1.14 2020/06/09 00:20:50 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -920,6 +920,54 @@ static void delete_selection (void) {
 
 }
 
+/* TODO - Get this to work in a dialog window also. */
+int __entrytext_set_selection_owner (void *d, unsigned int drawable_id,
+				     unsigned long int gc_ptr) {
+  char d_buf[MAXLABEL];
+  int r;
+
+  if (!shm_mem)
+      return ERROR;
+
+  memset (d_buf, 0, MAXLABEL);
+  make_req (shm_mem, d, PANE_SET_PRIMARY_SELECTION_OWNERSHIP_REQUEST,
+	    drawable_id, (GC)gc_ptr, d_buf);
+  wait_req (shm_mem);
+
+  r = ((shm_mem[SHM_RETVAL] == '0') ? SUCCESS : ERROR);
+  return r;
+}
+
+int __xlib_set_primary_selection_owner (Display *d, Window win_id) {
+  XSetSelectionOwner (d, XA_PRIMARY, win_id, CurrentTime);
+  XFlush (d);
+  if (XGetSelectionOwner (d, XA_PRIMARY) != win_id) {
+    return ERROR;
+  } else {
+    return SUCCESS;
+  }
+}
+
+static char xa_primary_buf[0xffff];
+
+int __xlib_set_primary_selection_text (char *text) {
+  memset (xa_primary_buf, 0, 0xffff);
+  strcpy (xa_primary_buf, text);
+}
+
+int __entrytext_update_selection (void *d, unsigned int win_id,
+				  unsigned long int gc_ptr,
+				  char *text) {
+  if (!shm_mem)
+      return ERROR;
+
+  make_req (shm_mem, d, PANE_SET_PRIMARY_SELECTION_TEXT,
+	    win_id, (GC)gc_ptr, text);
+  wait_req (shm_mem);
+
+  return SUCCESS;
+}
+
 int __edittext_set_selection_owner (OBJECT *editorpane_object) {
   Drawable win_id;
   if (need_init)
@@ -1764,8 +1812,6 @@ static LINEREC *calc_point_cursor (LINEREC *lines,
   *point_x = point - point_line -> start;
   return point_line;
 }
-
-static char xa_primary_buf[0xffff];
 
 #ifdef HAVE_XFT_H
 
@@ -2779,6 +2825,31 @@ unsigned int __edittext_xk_keysym (int keycode, int shift_state,
 int __xlib_get_primary_selection (void *d, unsigned int pixmap, uintptr_t gc,
 				  char  *handle_basename_path) {
   fprintf (stderr, "__edittext_get_primary_selection: This function requires "
+	   "the X Window System.\n");
+  exit (EXIT_FAILURE);
+}
+
+int __edittext_set_selection_owner (void *d, unsigned int win_id,
+				     unsigned long int gc_ptr) {
+  fprintf (stderr, "__edittext_set_selection_owner: This function requires "
+	   "the X Window System.\n");
+  exit (EXIT_FAILURE);
+}
+int __entrytext_set_selection_owner (void *d, unsigned int drawable_id,
+				     unsigned long int gc_ptr) {
+  fprintf (stderr, "__entrypane_set_selection_owner: This function requires "
+	   "the X Window System.\n");
+  exit (EXIT_FAILURE);
+}
+int __entrytext_get_primary_selection (OBJECT *entrypane_object,
+				       void **buf_out, int *size_out) {
+  fprintf (stderr, "__entrytext_get_primary_selection: This function requires "
+	   "the X Window System.\n");
+  exit (EXIT_FAILURE);
+}
+int __entrytext_update_selection (void *d, unsigned int win_id,
+				   unsigned long int gc_ptr, char *text) {
+  fprintf (stderr, "__entrytext_update_selection: This function requires "
 	   "the X Window System.\n");
   exit (EXIT_FAILURE);
 }

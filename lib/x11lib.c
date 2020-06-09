@@ -1,4 +1,4 @@
-/* $Id: x11lib.c,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ -*-c-*-*/
+/* $Id: x11lib.c,v 1.4 2020/06/09 00:12:13 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -136,6 +136,8 @@ int __xlib_render_text (Display *, Drawable, GC, char *);
 int __xlib_get_primary_selection (Display *, Drawable, GC, char *);
 int __xlib_send_selection (XEvent *);
 int __xlib_clear_selection (XEvent *);
+int __xlib_set_primary_selection_owner (Display *, Drawable);
+int __xlib_set_primary_selection_text (char *);
 
 int __have_bitmap_buffers (OBJECT *);
 void request_client_shutdown (void) {
@@ -1625,6 +1627,13 @@ int __xlib_handle_client_request (char *shm_mem_2) {
     case PANE_GET_PRIMARY_SELECTION_REQUEST:
       __xlib_get_primary_selection (d, (Drawable)w, gc, &shm_mem_2[SHM_DATA]);
       break;
+    case PANE_SET_PRIMARY_SELECTION_OWNERSHIP_REQUEST:
+      r = __xlib_set_primary_selection_owner (d, (Drawable)w);
+      shm_mem_2[SHM_RETVAL] = ((r == SUCCESS) ? '0' : '1');
+      break;
+    case PANE_SET_PRIMARY_SELECTION_TEXT:
+      __xlib_set_primary_selection_text (&shm_mem_2[SHM_DATA]);
+      break;
     } 
  x_event_cleanup:
   unset_client_sighandlers ();
@@ -2470,7 +2479,7 @@ static void event_to_client (int eventclass,
 
     INTVAL(&shm_mem[SHM_EVENT_READY]) = TRUE;
     return;
-  } else if (eventclass == BUTTONRELEASE) {
+  } else if (eventclass == BUTTONRELEASE || eventclass == BUTTONPRESS) {
     INTVAL(&shm_mem[SHM_EVENT_TYPE]) = eventclass;
     UINTVAL(&shm_mem[SHM_EVENT_WIN]) = win_id;
     INTVAL(&shm_mem[SHM_EVENT_DATA1]) = eventdata1;

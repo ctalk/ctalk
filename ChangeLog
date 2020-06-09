@@ -836,3 +836,15 @@
 	fn returns (rt_call.c).
 	- In parser_pass, check for a non-cleared fn_is_builtin
 	flag (parser.c).
+2020-06-07
+	- Added __entrytext_set_selection_owner library function
+	(edittext.c), and use it in X11TextEntryPane whenever
+	beginning to select text.
+2020-06-08
+	- Added PANE_SET_PRIMARY_SELECTION_OWNERSHIP_REQUEST and
+	PANE_SET_PRIMARY_SELECTION_TEXT	(x11defs.h).  Added
+	__entrytext_set_selection_owner and __entrytext_update_selection
+	(for X11TextEntryPane clients), and __xlib_set_primary_selection_owner
+	and __xlib_set_primary_selection_text (for generic server)
+	(edittext.c).
+	- Added the X11TextEntryPane : selectionToText method.

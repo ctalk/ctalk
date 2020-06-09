@@ -1,4 +1,4 @@
-/* $Id: X11TextEntryPane,v 1.51 2020/05/30 22:23:42 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11TextEntryPane,v 1.71 2020/06/09 00:40:01 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -35,6 +35,7 @@ Character class CharCell;
  *
  *     backgroundColor     String    "white"
  *     textColor           String    "black"
+ *     selectionColor      String    "orange"
  *     borderWidth         Integer   1
  *     hoverBorderWidth    Integer   2
  *     borderColor         String    "gray"
@@ -73,7 +74,11 @@ X11TextEntryPane instanceVariable clipX Integer 0;
 X11TextEntryPane instanceVariable center Boolean false;
 X11TextEntryPane instanceVariable paneWidthChars Integer 0;
 X11TextEntryPane instanceVariable dots Boolean false;
-X11TextEntryPane instanceVariable button Integer false;
+X11TextEntryPane instanceVariable button Integer 0;
+X11TextEntryPane instanceVariable sStart Integer 0;
+X11TextEntryPane instanceVariable sEnd Integer 0;
+X11TextEntryPane instanceVariable selecting Boolean false;
+
 
 CharCell instanceVariable width Integer 0;
 CharCell instanceVariable boxOrg Point NULL;
@@ -81,7 +86,7 @@ CharCell instanceVariable boxExt Point NULL;
 
 X11TextEntryPane instanceMethod new (String paneName) {
   Method new enterMethod, leaveMethod, kbdMethod, exposeMethod,
-    buttonPressMethod;
+    buttonPressMethod, pointerMotionMethod;
 
   X11TextEntryPane super new paneName;
 
@@ -101,6 +106,10 @@ X11TextEntryPane instanceMethod new (String paneName) {
     "subPaneButtonPress";
   paneName setMethodHandler "pointerinput", buttonPressMethod;
 
+  pointerMotionMethod definedInstanceMethod "X11TextEntryPane",
+    "subPanePointerMotion";
+  paneName setMethodHandler "pointermotion", pointerMotionMethod;
+
 #ifdef __APPLE__
   paneName resources atPut "font",
      "sans serif-14:weight=normal:slant=roman";
@@ -114,6 +123,7 @@ X11TextEntryPane instanceMethod new (String paneName) {
 #endif  
   paneName resources atPut "textColor", "black";
   paneName resources atPut "backgroundColor", "white";
+  paneName resources atPut "selectionColor", "orange";
   paneName resources atPut "borderWidth", 1;
   paneName resources atPut "hoverBorderWidth", 2;
   paneName resources atPut "borderColor", "gray";
@@ -247,6 +257,42 @@ X11TextEntryPane instanceMethod inputWidth (List input, Integer startIdx) {
   return width;
 }
 
+X11TextEntryPane instanceMethod drawSelection (void) {
+  CharCell new c_start, c_end;
+  Integer new vPad, start_px_x, hPad;
+  String new selectionColor;
+
+  if ((self sStart != 0) || (self sEnd != 0)) {
+    /* If selecting, draw the area behind the chars 
+       in the selection color. */
+    if (self sStart > self sEnd) {
+      (Object *)c_start = self charCellAt self sEnd;
+      if (self sStart < self chars size)
+	(Object *)c_end = self charCellAt self sStart;
+      else
+	(Object *)c_end = self charCellAt self chars size - 1;
+    } else {
+      (Object *)c_start = self charCellAt self sStart;
+      if (self sEnd < self chars size)
+	(Object *)c_end = self charCellAt self sEnd;
+      else
+	(Object *)c_end = self charCellAt self chars size - 1;
+    }
+
+    vPad = self resources at "vPad";
+    hPad = self resources at "hPad";
+    start_px_x = c_start boxOrg x;
+    start_px_x += vPad;
+    selectionColor = self resources at "selectionColor";
+    /* TODO clean up - do away with start_px_x, etc. */
+    self paneBuffer drawRectangle start_px_x,
+      hPad, 
+      (c_end boxExt x - start_px_x) + vPad,
+      self size y - hPad - hPad,
+      true, 1, selectionColor, 0;
+  }
+}
+
 X11TextEntryPane instanceMethod draw (void) {
   Integer new vPad, hPad;
   Integer new textWidthPx, clipStartIdx;
@@ -321,15 +367,6 @@ X11TextEntryPane instanceMethod draw (void) {
        the first time this method is called. */
     self spacingHint = self resources at "spacingHint";
   }
-#if 0 /***/
-  if (self baselineY == 0) {
-    hPad = self resources at "hPad";
-    self baselineY = self size y -
-      borderWidth - hPad - (self ftFontVar descent);
-    if (self dots)
-      self baselineY -= (self ftFontVar textHeight "T") / 2;
-  }
-#endif
 
   idx = 0;
   drawX = vPad;
@@ -337,6 +374,8 @@ X11TextEntryPane instanceMethod draw (void) {
     dotPen colorName = "black";
     dotPen width = self ftFontVar textWidth "e";
   }
+
+  self drawSelection;
   self chars map {
     if (idx >= super clipX) {
       if (super dots) {
@@ -464,13 +503,61 @@ X11TextEntryPane instanceMethod subPaneLeave (Object subPane,
   }
 }
 
+X11TextEntryPane instanceMethod selectionToText (String textOut) {
+  String new content;
+  returnObjectClass String;
+  content = self chars asString;
+  if (self sEnd < self sStart) {
+    textOut = content subString self sEnd,
+      (self sStart + 1) - self sEnd;
+  } else {
+    textOut = content subString self sStart,
+      (self sEnd + 1) - self sStart;
+  }
+  return textOut;
+}
+
+/* These are from x11defs.h. */
+#define BUTTON1MASK  (1 << 0)
+#define BUTTON2MASK  (1 << 1)
+#define BUTTON3MASK  (1 << 2)  
+
+X11TextEntryPane instanceMethod subPanePointerMotion (Object subPane,
+						      InputEvent event) {
+  String new s;
+
+  if (self selecting) {
+    self sEnd = self charIndex event xEventData1, event xEventData2;
+    self selectionToText s;
+    __entrytext_update_selection (self displayPtr, self xWindowID,
+				  self xGC, s);
+    self draw;
+    self refresh;
+  } else if (!self selecting && self button & BUTTON1MASK) {
+    if (!__entrytext_set_selection_owner (subPane displayPtr,
+					  subPane xWindowID,
+					  subPane xGC)) {
+      self selecting = true;
+      self sStart = self charIndex event xEventData1, event xEventData2;
+      self sEnd = self charIndex event xEventData1, event xEventData2;
+      self selectionToText s;
+      __entrytext_update_selection (self displayPtr, self xWindowID,
+				    self xGC, s);
+      self draw;
+      self refresh;
+    }
+  }
+
+  return NULL;
+}
+
 X11TextEntryPane instanceMethod subPaneExpose (Object subPane,
 					       InputEvent event) {
   self draw;
   self super refresh;
 }
 
-X11TextEntryPane instanceMethod charIndexAtClick (Integer clickX,
+X11TextEntryPane instanceMethod charIndex (Integer clickX,
 						  Integer clickY) {
   returnObjectClass Integer;
   Integer new idx;
@@ -487,10 +574,11 @@ X11TextEntryPane instanceMethod charIndexAtClick (Integer clickX,
   return idx;
 }
 
-/* These are from x11defs.h. */
-#define BUTTON1MASK  (1 << 0)
-#define BUTTON2MASK  (1 << 1)
-#define BUTTON3MASK  (1 << 2)  
+X11TextEntryPane instanceMethod clearSelection (void) {
+  self sStart = 0;
+  self sEnd = 0;
+  self selecting = false;
+}
 
 X11TextEntryPane instanceMethod subPaneButtonPress (Object subPane,
 					       InputEvent event) {
@@ -506,9 +594,10 @@ X11TextEntryPane instanceMethod subPaneButtonPress (Object subPane,
     switch (event xEventData4)
       {
       case Button1:
+	self clearSelection;
 	self button |= BUTTON1MASK;
 	self point =
-	  self charIndexAtClick event xEventData1, event xEventData2;
+	  self charIndex event xEventData1, event xEventData2;
 	if (self clipX > 0)
 	  self point += self clipX;
 	self draw;
@@ -517,7 +606,7 @@ X11TextEntryPane instanceMethod subPaneButtonPress (Object subPane,
       case Button2:
 	self button |= BUTTON2MASK;
 	self point =
-	  self charIndexAtClick event xEventData1, event xEventData2;
+	  self charIndex event xEventData1, event xEventData2;
 	
 	__entrytext_get_primary_selection (self, &selection_out,
 					  &selection_length_out);
@@ -563,6 +652,11 @@ X11TextEntryPane instanceMethod subPaneButtonPress (Object subPane,
       {
 	case Button1:
 	  self button &= ~BUTTON1MASK;
+	  if (self selecting) {
+	    self sEnd = self charIndex event xEventData1,
+	      event xEventData2;
+	    self selecting = false;
+	  }
 	  break;
 	case Button2:
 	  self button &= ~BUTTON2MASK;

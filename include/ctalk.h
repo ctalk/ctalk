@@ -1,4 +1,4 @@
-/* $Id: ctalk.h,v 1.6 2020/06/04 01:20:06 rkiesling Exp $ -*-Fundamental-*- */
+/* $Id: ctalk.h,v 1.10 2020/06/08 23:45:33 rkiesling Exp $ -*-Fundamental-*- */
 
 /*
   This file is part of Ctalk.
@@ -1496,6 +1496,9 @@ int __edittext_scroll_up (OBJECT *);
 int __edittext_recenter (OBJECT *);
 unsigned int __edittext_xk_keysym (int, int, int);
 int __entrytext_get_primary_selection (OBJECT *, void **, int *);
+int __entrytext_set_selection_owner (void *, unsigned int, unsigned long int);
+int __entrytext_update_selection (void *, unsigned int, unsigned long int,
+    				  char *);
 
 /* lib/err_out.c */
 void _error_out (char *);
