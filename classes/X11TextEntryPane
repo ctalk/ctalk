@@ -1,4 +1,4 @@
-/* $Id: X11TextEntryPane,v 1.71 2020/06/09 00:40:01 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11TextEntryPane,v 1.78 2020/06/10 20:19:01 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -60,6 +60,20 @@ Character class CharCell;
  *   Ctrl-A
  *   End                        End of Buffer
  *   Ctrl-E
+ *
+ *   Pointer Buttons and Motion:
+ *
+ *   Left Button (Button 1)      Set Insertion Point
+ *   Click and Release
+ *
+ *   Center Button, or Right     Paste Selection Text
+ *   and Left Buttons Together
+ *   (Button 2) Click and
+ *   Release
+ *
+ *   Left Button Click +         Select Text to Place on
+ *   Drag Pointer Across         the X Clipboard.
+ *   Text
  */
 
 X11TextEntryPane instanceVariable cursor X11Cursor 0;
@@ -86,7 +100,7 @@ CharCell instanceVariable boxExt Point NULL;
 
 X11TextEntryPane instanceMethod new (String paneName) {
   Method new enterMethod, leaveMethod, kbdMethod, exposeMethod,
-    buttonPressMethod, pointerMotionMethod;
+    buttonPressMethod, pointerMotionMethod, selectionClearMethod;
 
   X11TextEntryPane super new paneName;
 
@@ -101,6 +115,10 @@ X11TextEntryPane instanceMethod new (String paneName) {
 
   exposeMethod definedInstanceMethod "X11TextEntryPane", "subPaneExpose";
   paneName setMethodHandler "expose", exposeMethod;
+
+  selectionClearMethod definedInstanceMethod "X11TextEntryPane",
+    "subPaneSelectionClear";
+  paneName setMethodHandler "selectionclear", selectionClearMethod;
 
   buttonPressMethod definedInstanceMethod "X11TextEntryPane",
     "subPaneButtonPress";
@@ -259,22 +277,35 @@ X11TextEntryPane instanceMethod inputWidth (List input, Integer startIdx) {
 
 X11TextEntryPane instanceMethod drawSelection (void) {
   CharCell new c_start, c_end;
-  Integer new vPad, start_px_x, hPad;
+  Integer new vPad, start_px_x, hPad,
+    i_start, i_end;
   String new selectionColor;
 
   if ((self sStart != 0) || (self sEnd != 0)) {
     /* If selecting, draw the area behind the chars 
        in the selection color. */
+    i_start = self sStart;
+    i_end = self sEnd;
+#if 0
+    if (self clipX > 0) {
+      i_start += (self clipX - 1);
+      i_end += (self clipX - 1);
+    }
+    else if (self clipX > 1) {
+      i_start += self clipX;
+      i_end += self clipX;
+    }
+#endif    
     if (self sStart > self sEnd) {
-      (Object *)c_start = self charCellAt self sEnd;
+      (Object *)c_start = self charCellAt i_end;
       if (self sStart < self chars size)
-	(Object *)c_end = self charCellAt self sStart;
+	(Object *)c_end = self charCellAt i_start;
       else
 	(Object *)c_end = self charCellAt self chars size - 1;
     } else {
-      (Object *)c_start = self charCellAt self sStart;
+      (Object *)c_start = self charCellAt i_start;
       if (self sEnd < self chars size)
-	(Object *)c_end = self charCellAt self sEnd;
+	(Object *)c_end = self charCellAt i_end;
       else
 	(Object *)c_end = self charCellAt self chars size - 1;
     }
@@ -483,6 +514,13 @@ X11TextEntryPane instanceMethod reflow (void) {
   }
 }
 
+X11TextEntryPane instanceMethod subPaneSelectionClear (Object subPane,
+						       InputEvent event) {
+  subPane clearSelection;
+  subPane draw;
+  subPane refresh;
+}
+
 X11TextEntryPane instanceMethod subPaneEnter (Object subPane,
 					      InputEvent event) {
   if (event eventData == subPane xWindowID) {
@@ -505,14 +543,27 @@ X11TextEntryPane instanceMethod subPaneLeave (Object subPane,
 
 X11TextEntryPane instanceMethod selectionToText (String textOut) {
   String new content;
+  Integer new i_end, i_start;
   returnObjectClass String;
   content = self chars asString;
   if (self sEnd < self sStart) {
-    textOut = content subString self sEnd,
-      (self sStart + 1) - self sEnd;
+    if (self clipX > 0) {
+      i_start = self sStart + self clipX;
+      i_end = self sEnd + self clipX;
+      textOut = content subString i_end, (i_start + 1) - i_end;
+    } else {
+      textOut = content subString self sEnd,
+	(self sStart + 1) - self sEnd;
+    }
   } else {
-    textOut = content subString self sStart,
-      (self sEnd + 1) - self sStart;
+    if (self clipX > 0) {
+      i_start = self sStart + self clipX;
+      i_end = self sEnd + self clipX;
+      textOut = content subString i_start, (i_end + 1) - i_start;
+    } else {
+      textOut = content subString self sStart,
+	(self sEnd + 1) - self sStart;
+    }
   }
   return textOut;
 }
@@ -783,17 +834,42 @@ X11TextEntryPane instanceMethod subPaneKbd (Object subPane,
 	  break;
 	case XK_Backspace:
 	  if (self chars size > 0) {
-	    if (self point == self chars size) {
-	      cc = self chars pop;
-	      self point -= 1;
+	    if (self sStart != 0 || self sEnd != 0) {
+	      if (self sStart > self sEnd) {
+		while (self sStart >= self sEnd) {
+		  cc = self deleteAt self sStart;
+		  self sStart--;
+		}
+		self point = self sEnd;
+	      } else {
+		while (self sEnd >= self sStart) {
+		  cc = self deleteAt self sEnd;
+		  self sEnd --;
+		}
+		self point = self sStart;
+	      }
+	      self reflow;
+	      cc = self charCellAt (self point - 1);
+	      self cursorX = cc boxExt x;
+	      self sStart = 0;
+	      self sEnd = 0;
+	      if (self selecting)
+		self selecting = false;
 	      self draw;
 	      self refresh;
 	    } else {
-	      cc = self deleteAt self point;
-	      self point -= 1;
-	      self reflow;
-	      self draw;
-	      self refresh;
+	      if (self point == self chars size) {
+		cc = self chars pop;
+		self point -= 1;
+		self draw;
+		self refresh;
+	      } else {
+		cc = self deleteAt self point;
+		self point -= 1;
+		self reflow;
+		self draw;
+		self refresh;
+	      }
 	    }
 	  }
 	  break;

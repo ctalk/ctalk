@@ -848,3 +848,12 @@
 	and __xlib_set_primary_selection_text (for generic server)
 	(edittext.c).
 	- Added the X11TextEntryPane : selectionToText method.
+2020-06-09
+	- Updated selection methods to check for display clipping
+	when the entry text scrolls leftward, and added the
+	X11TextEntryPane : subPaneSelectionClear method.
+2020-06-10
+	- Updated X11TextEntryBoxPane selection mechanism to
+	adjust to left scrolled text, delete the selection if the
+	user presses the Backspace key, and to release the selection
+	ownership if another X client application requests it.

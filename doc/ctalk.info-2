@@ -4338,6 +4338,26 @@ also supports cursor motion using Emacs-compatible editing keys.
      End of Text       End,         <Ctrl-E>
      Delete Right      Del,         <Ctrl-D>
      Delete Left       <Backspace>
+     Delete Selection  <Backspace> (If Selecting Text)
+
+
+In addition, 'X11TextEntryPane' objects support cutting and pasting of
+entry text using the X primary selection.  The class uses the standard
+pointer buttons to select text and to paste text selected by other X
+client programs.
+
+
+     Action                           Pointer Buttons
+     ------                           ---------------
+     Set Insertion Point              Button 1 (Left Button) Press and
+                                      Release
+
+     Paste Selected Text At Cursor    Button 2 (Center Button, or Both
+                                      Left and Right Buttons) Press and
+                                      Release
+
+     Select Text to Place on the      Button 1 (Left Button) Press + Drag
+     X selection                      Pointer Across Text
 
 
 Here is an example of an 'X11TextEntryPane' object's use.
@@ -4470,12 +4490,20 @@ For information about how to set and retrieve resources, refer to the
      horizontal spacing.  The default is -1 for MacOs and 0 for Linux
      and other systems.
 
+'selectionColor'
+     A 'String' that contains the background color of selected text.
+     The default is 'orange'.
+
 'textColor'
      The color that the pane uses to display text.  The default is
      'black'.
 
 Instance Variables
 ------------------
+
+'baselineY'
+     An 'Integer' that contains the vertical location of the text's
+     baseline in the entry window, in pixels.
 
 'button'
      An 'Integer' that records the state of the pointer buttons when the
@@ -4500,6 +4528,10 @@ Instance Variables
      displayed when the pointer is over the pane and it has the keyboard
      input focus.
 
+'cursorX'
+     An 'Integer' that contains the character index of the cursor and
+     insertion point within the text.
+
 'dots'
      A 'Boolean', which, if set by a program, causes the entry pane to
      echo dots instead of the typed characters.  In order to display
@@ -4513,7 +4545,7 @@ Instance Variables
      A 'Boolean' object that is true when the pointer is over the pane
      and the pane has the keyboard input focus.
 
-'paneWidth'
+'paneWidthChars'
      The width of the pane as measured in the number of characters that
      can be displayed at one time using the current font.  The pane uses
      the 'paneWidth' variable's value to help determine which section of
@@ -4525,6 +4557,16 @@ Instance Variables
      types is inserted into the buffer's text.  If 'point' is equal to
      the size of the 'chars' list, then the pane appends the characters
      to the end of the text.
+
+'selecting'
+     A 'Boolean' that is true if the user is in the process of selecting
+     text; that is, when the pointer's left button is depressed and the
+     pointer is dragged across the text.
+
+'sEnd'
+'sStart'
+     These are 'Integer', which, if non-zero contain the start and end
+     indexes of selected text within the entry pane's buffer.
 
 'shiftState'
      An 'Integer' that records whether a 'Shift', 'Control', or 'Caps
@@ -4551,9 +4593,13 @@ Instance Methods
      text.  (I.e., the _nth_ element of the 'chars' instance variable's
      list).
 
-'charIndexAtClick (Integer clickX, Integer CLICKY)'
+'charIndex (Integer clickX, Integer CLICKY)'
      Returns an 'Integer' with the index of the character displayed at
      CLICKX,CLICKY.
+
+'clearSelection (void)'
+     Clears the selection in response to events from the user or from
+     another X client application requesting the selection ownership.
 
 'deleteAt (Integer CHARINDEX)'
      Deletes the character at CHARINDEX and returns the element, which
@@ -4575,6 +4621,10 @@ Instance Methods
 
 'drawCursor (void)'
      Draws the pane's editing cursor at the text insertion point.
+
+'drawSelection (void)'
+     If any text is selected, highlight the text using the color defined
+     by the 'selectionColor' resource.
 
 'entryText (void)'
      Returns the text contents of the entry pane as a 'String' object.
@@ -4604,11 +4654,17 @@ Instance Methods
      Displays the contents of the pane's drawing surfaces on the
      program's visible window.
 
+'selectionToText (String TEXTOUT)'
+     Sets its argument, a 'String' object, to the currently selected
+     text as a 'string'.
+
 'subPaneButtonPress (Object SUBPANEOBJECT, InputEvent EVENT)'
 'subPaneEnter (Object SUBPANEOBJECT, InputEvent EVENT)'
 'subPaneExpose (Object SUBPANEOBJECT, InputEvent EVENT)'
 'subPaneLeave (Object SUBPANEOBJECT, InputEvent EVENT)'
 'subPaneKbd (Object SUBPANEOBJECT, InputEvent EVENT)'
+'subPanePointerMotion (Object SUBPANEOBJECT, InputEvent EVENT)'
+'subPaneSelectionClear (Object SUBPANEOBJECT, InputEvent EVENT)'
      Handler methods for different types of X 'InputEvent' objects.  For
      more information about the handlers and event types, refer to the
      'X11PaneDispatcher' class.  *Note X11PaneDispatcher::.
@@ -10606,6 +10662,16 @@ functions.
      Text editing functions used by 'X11TextEditorPane' objects.  For
      more information, refer to 'X11TextEditorPane' class..  *Note
      X11TextEditorPane::.
+
+'__entrytext_set_selection_owner (void *DISPLAYPTR, unsigned int WIN_ID unsigned long int GC_PTR)'
+'__entrytext_get_primary_selection (OBJECT *entrypane_object)'
+'__entrytext_update_selection (void *DISPLAYPTR, unsigned int WIN_ID, unsigned long int GC_PTR)'
+     These functions handle requesting ownership of the X display's
+     primary selection, storing current values of the selection text
+     that might be requested by other programs, and requesting the
+     contents of the primary selection when another X application owns
+     the selection.  The functions are normally called by methods in
+     'X11TextEntryPane' class that handle X events.
 
 '_error (char *FMT, ...)'
      Display an error message and exit the program.

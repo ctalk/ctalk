@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.11 2020/05/26 01:06:37 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.19 2020/06/10 20:19:02 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -16244,9 +16244,30 @@ Start of Text     Home,        @key{Ctrl-A}
 End of Text       End,         @key{Ctrl-E}
 Delete Right      Del,         @key{Ctrl-D}
 Delete Left       @key{Backspace}
+Delete Selection  @key{Backspace} (If Selecting Text)
 
 @end example
 
+In addition, @code{X11TextEntryPane} objects support cutting
+and pasting of entry text using the X primary selection.  The
+class uses the standard pointer buttons to select text and
+to paste text selected by other X client programs.
+
+@example
+
+Action                           Pointer Buttons
+------                           ---------------
+Set Insertion Point              Button 1 (Left Button) Press and 
+                                 Release
+                                 
+Paste Selected Text At Cursor    Button 2 (Center Button, or Both
+                                 Left and Right Buttons) Press and
+                                 Release
+
+Select Text to Place on the      Button 1 (Left Button) Press + Drag
+X selection                      Pointer Across Text
+
+@end example
 
 Here is an example of an @code{X11TextEntryPane} object's use.
 
@@ -16393,6 +16414,11 @@ The distance in pixels that the pane adjusts the displayed
 text's horizontal spacing.  The default is -1 for MacOs and 0
 for Linux and other systems.
 
+@cindex @code{selectionColor} resource @idxclscite{X11TextEntryPane}
+@item selectionColor
+A @code{String} that contains the background color of selected text.
+The default is @samp{orange}.
+
 @cindex @code{textColor} resource @idxclscite{X11TextEntryPane}
 @item textColor
 The color that the pane uses to display text.  The default is
@@ -16403,6 +16429,11 @@ The color that the pane uses to display text.  The default is
 @subheading Instance Variables
 
 @table @code
+
+@cindex @code{baselineY} instance variable @idxclscite{X11TextEntryPane}
+@item baselineY
+An @code{Integer} that contains the vertical location of the text's
+baseline in the entry window, in pixels.
 
 @cindex @code{button} instance variable @idxclscite{X11TextEntryPane}
 @item button
@@ -16432,6 +16463,11 @@ A @code{X11Cursor} object that contains a text editing cursor which is
 displayed when the pointer is over the pane and it has the keyboard
 input focus.
 
+@cindex @code{cursorX} instance variable @idxclscite{X11TextEntryPane}
+@item cursorX
+An @code{Integer} that contains the character index of the cursor
+and insertion point within the text.
+
 @cindex @code{dots} instance variable @idxclscite{X11TextEntryPane}
 @item dots
 A @code{Boolean}, which, if set by a program, causes the entry pane
@@ -16449,8 +16485,8 @@ entry dots = true;
 A @code{Boolean} object that is true when the pointer is over the
 pane and the pane has the keyboard input focus.
 
-@cindex @code{paneWidth} instance variable @idxclscite{X11TextEntryPane}
-@item paneWidth
+@cindex @code{paneWidthChars} instance variable @idxclscite{X11TextEntryPane}
+@item paneWidthChars
 The width of the pane as measured in the number of characters that can
 be displayed at one time using the current font.  The pane uses the
 @code{paneWidth} variable's value to help determine which section of
@@ -16463,6 +16499,19 @@ An @code{Integer} that determines where each character that the user
 types is inserted into the buffer's text.  If @code{point} is equal
 to the size of the @code{chars} list, then the pane appends the
 characters to the end of the text.
+
+@cindex @code{selecting} instance variable @idxclscite{X11TextEntryPane}
+@item selecting
+A @code{Boolean} that is true if the user is in the process of selecting
+text; that is, when the pointer's left button is depressed and the
+pointer is dragged across the text.
+
+@cindex @code{sEnd} instance variable @idxclscite{X11TextEntryPane}
+@item sEnd
+@cindex @code{sStart} instance variable @idxclscite{X11TextEntryPane}
+@item sStart
+These are @code{Integer}, which, if non-zero contain the start and
+end indexes of selected text within the entry pane's buffer.
 
 @cindex @code{shiftState} instance variable @idxclscite{X11TextEntryPane}
 @item shiftState
@@ -16498,10 +16547,15 @@ Returns the @code{CharCell} object for the @code{charIndex} position
 in the text. (I.e., the @emph{nth} element of the @code{chars}
 instance variable's list).
 
-@cindex @code{charIndexAtClick} instance method @idxclscite{X11TextEntryPane}
-@item charIndexAtClick (@code{Integer} @code{clickX}, @code{Integer} @var{clickY})
+@cindex @code{charIndex} instance method @idxclscite{X11TextEntryPane}
+@item charIndex (@code{Integer} @code{clickX}, @code{Integer} @var{clickY})
 Returns an @code{Integer} with the index of the character displayed at
 @var{clickX},@var{clickY}.
+
+@cindex @code{clearSelection} instance method @idxclscite{X11TextEntryPane}
+@item clearSelection (@code{void})
+Clears the selection in response to events from the user or from another
+X client application requesting the selection ownership.
 
 @cindex @code{deleteAt} instance method @idxclscite{X11TextEntryPane}
 @item deleteAt (@code{Integer} @var{charIndex})
@@ -16527,6 +16581,11 @@ the the pane's contents visible in the application's window, use the
 @cindex @code{drawCursor} instance method @idxclscite{X11TextEntryPane}
 @item drawCursor (@code{void})
 Draws the pane's editing cursor at the text insertion point.
+
+@cindex @code{drawSelection} instance method @idxclscite{X11TextEntryPane}
+@item drawSelection (@code{void})
+If any text is selected, highlight the text using the color defined by
+the @code{selectionColor} resource.
 
 @cindex @code{entryText} instance method @idxclscite{X11TextEntryPane}
 @item entryText (@code{void})
@@ -16562,16 +16621,25 @@ or deletes text in the middle of the @var{chars} list.
 Displays the contents of the pane's drawing surfaces on the program's
 visible window.
 
+@cindex @code{selectionToText} instance method @idxclscite{X11TextEntryPane}
+@item selectionToText (@code{String} @var{textOut})
+Sets its argument, a @code{String} object, to the currently selected text
+as a @code{string}.
+
 @cindex @code{subPaneButtonPress} instance method @idxclscite{X11TextEntryPane}
 @cindex @code{subPaneEnter} instance method @idxclscite{X11TextEntryPane}
 @cindex @code{subPaneExpose} instance method @idxclscite{X11TextEntryPane}
 @cindex @code{subPaneLeave} instance method @idxclscite{X11TextEntryPane}
 @cindex @code{subPaneKbd} instance method @idxclscite{X11TextEntryPane}
+@cindex @code{subPanePointerMotion} instance method @idxclscite{X11TextEntryPane}
+@cindex @code{subPaneSelectionClear} instance method @idxclscite{X11TextEntryPane}
 @item subPaneButtonPress (@code{Object} @var{subPaneObject}, @code{InputEvent} @var{event})
 @item subPaneEnter (@code{Object} @var{subPaneObject}, @code{InputEvent} @var{event})
 @item subPaneExpose (@code{Object} @var{subPaneObject}, @code{InputEvent} @var{event})
 @item subPaneLeave (@code{Object} @var{subPaneObject}, @code{InputEvent} @var{event})
 @item subPaneKbd (@code{Object} @var{subPaneObject}, @code{InputEvent} @var{event})
+@item subPanePointerMotion (@code{Object} @var{subPaneObject}, @code{InputEvent} @var{event})
+@item subPaneSelectionClear (@code{Object} @var{subPaneObject}, @code{InputEvent} @var{event})
 Handler methods for different types of X @code{InputEvent} objects.  For more information about the handlers and event types, refer to the @code{X11PaneDispatcher} class. @xref{X11PaneDispatcher}.
 
 @end table
@@ -23868,6 +23936,19 @@ is, if the value of the object is an empty string, @samp{(NULL)}, or
 Text editing functions used by @code{X11TextEditorPane} objects.
 For more information, refer to @code{X11TextEditorPane} class..
 @xref{X11TextEditorPane}.
+
+@idxlibfn{__entrytext_set_selection_owner}
+@idxlibfn{__entrytext_get_primary_selection}
+@idxlibfn{__entrytext_update_selection}
+@item __entrytext_set_selection_owner (@code{void *}@var{displayPtr}, @code{unsigned int} @var{win_id} @code{unsigned long int} @var{gc_ptr})
+@item __entrytext_get_primary_selection (OBJECT *entrypane_object)
+@item __entrytext_update_selection (@code{void *}@var{displayPtr}, @code{unsigned int} @var{win_id}, @code{unsigned long int} @var{gc_ptr})
+These functions handle requesting ownership of the X display's primary
+selection, storing current values of the selection text that might be
+requested by other programs, and requesting the contents of the
+primary selection when another X application owns the selection.  The
+functions are normally called by methods in @code{X11TextEntryPane}
+class that handle X events.
 
 @anchor{errorfuncs}
 @cindex _error function
