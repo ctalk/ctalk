@@ -1,4 +1,4 @@
-/* $Id: X11TextEntryPane,v 1.78 2020/06/10 20:19:01 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11TextEntryPane,v 1.80 2020/06/12 05:06:15 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -205,11 +205,8 @@ X11TextEntryPane instanceMethod charCellAt (Integer n) {
 }
 
 X11TextEntryPane instanceMethod drawCursor (void) {
-  Integer new hPad, vPad, cursorAdvanceHint, i, clipLength;
-  CharCell new c, cPoint, cClip;
-
-  hPad = self resources at "hPad";
-  vPad = self resources at "vPad";
+  Integer new i, clipLength;
+  CharCell new cPoint, cClip;
 
   if (self point == self chars size) {
     /* Inserting at end of text. */
@@ -218,11 +215,11 @@ X11TextEntryPane instanceMethod drawCursor (void) {
 	(Object *)cPoint = self charCellAt (self point - 1);
 	self cursorX = cPoint boxExt x;
       } else {
-	self cursorX = vPad;
+	self cursorX += self resources integerAt "vPad";
       }
     } else {
       i = 0;
-      self cursorX = vPad;
+      self cursorX = self resources integerAt "vPad";
       self chars map {
 	if (i < super clipX) {
 	  clipLength = self boxExt x;
@@ -231,15 +228,21 @@ X11TextEntryPane instanceMethod drawCursor (void) {
 	}
 	++i;
       }
-       self cursorX -= (clipLength - vPad);
+       self cursorX -= (clipLength - self resources integerAt "vPad");
     }
     if (self point > 0) {
-      cursorAdvanceHint = self resources at "cursorAdvanceHint";
-      self paneBuffer drawLine self cursorX + cursorAdvanceHint, hPad,
-	self cursorX + cursorAdvanceHint, self size y - hPad, self pen;
+      self paneBuffer drawLine
+	self cursorX + self resources integerAt "cursorAdvanceHint",
+	self resources integerAt "hPad",
+	self cursorX + self resources integerAt "cursorAdvanceHint",
+	self size y - self resources integerAt "hPad",
+	self pen;
     } else {
-      self paneBuffer drawLine self cursorX, hPad,
-	self cursorX, self size y - hPad, self pen;
+      self paneBuffer drawLine self cursorX,
+	self resources integerAt "hPad",
+	self cursorX,
+	self size y - self resources integerAt "hPad",
+	self pen;
     }
   } else {
     if (self clipX == 0) {
@@ -251,9 +254,12 @@ X11TextEntryPane instanceMethod drawCursor (void) {
       (Object *)cClip = self charCellAt self clipX;
       self cursorX -= cClip boxOrg x;
     }
-    self cursorX += vPad;
-    self paneBuffer drawLine self cursorX, hPad,
-      self cursorX, self size y - hPad, self pen;
+    self cursorX += self resources integerAt "vPad";
+    self paneBuffer drawLine self cursorX,
+      self resources integerAt "hPad",
+      self cursorX,
+      self size y - self resources integerAt "hPad",
+      self pen;
   }
 
 }
@@ -325,7 +331,6 @@ X11TextEntryPane instanceMethod drawSelection (void) {
 }
 
 X11TextEntryPane instanceMethod draw (void) {
-  Integer new vPad, hPad;
   Integer new textWidthPx, clipStartIdx;
   Integer new entryChars, idx, drawX;
   Float new rMarginPct;
@@ -336,9 +341,9 @@ X11TextEntryPane instanceMethod draw (void) {
   self ftFontVar selectFontFromFontConfig (self resources at "font");
   self ftFontVar saveSelectedFont;
   if (self baselineY == 0) {
-    hPad = self resources at "hPad";
     self baselineY = self size y -
-      borderWidth - hPad - (self ftFontVar descent);
+      borderWidth -
+      (self resources integerAt "hPad") - (self ftFontVar descent);
     if (self dots)
       self baselineY -= (self ftFontVar textHeight "T") / 2;
   }
@@ -358,8 +363,6 @@ X11TextEntryPane instanceMethod draw (void) {
 
   entryText = self chars asString;
 
-  vPad = self resources at "vPad";
-  
   if (self center) {
     if ((self chars size - self point) > self point) {
       /* i.e., if the point is closer to the beginning of the text */
@@ -387,7 +390,8 @@ X11TextEntryPane instanceMethod draw (void) {
     entryChars = entryText length;
     for (clipStartIdx = 0; clipStartIdx < entryChars; clipStartIdx += 1) {
       textWidthPx = self inputWidth self chars, clipStartIdx;
-      if (textWidthPx < ((self size x - vPad) * rMarginPct))
+      if (textWidthPx < ((self size x - self resources integerAt "vPad") *
+			 rMarginPct))
 	break;
     }
     self clipX = clipStartIdx;
@@ -400,7 +404,7 @@ X11TextEntryPane instanceMethod draw (void) {
   }
 
   idx = 0;
-  drawX = vPad;
+  drawX = self resources integerAt "vPad";
   if (self dots) {
     dotPen colorName = "black";
     dotPen width = self ftFontVar textWidth "e";
@@ -411,7 +415,6 @@ X11TextEntryPane instanceMethod draw (void) {
     if (idx >= super clipX) {
       if (super dots) {
 	self paneBuffer drawPoint drawX, super baselineY, dotPen;
-	/* super paneBuffer drawPoint drawX, super baselineY, dotPen; */
 	drawX += dotPen width;
       } else {
 	(Object *)cm = self;

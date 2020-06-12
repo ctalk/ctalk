@@ -1232,6 +1232,13 @@ variable alias), delete the item also.
 >>>Collection::getValue (void)
 Return the value of the receiver, a Key object.
 
+>>>Collection::integerAt (String keyName)
+Returns the value for keyString as an Integer.  The
+method does not do any checking to make sure that the value is
+a valid Integer object; the program should ensure that
+the collection element is either an Integer object or is
+validly translatable to an Integer.
+
 >>>Collection::isEmtpy (void)
 Return TRUE if the receiver collection is emtpy, FALSE otherwise.
 

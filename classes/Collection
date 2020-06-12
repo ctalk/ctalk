@@ -1,4 +1,4 @@
-/* $Id: Collection,v 1.2 2020/05/17 19:34:38 rkiesling Exp $ -*-c-*-*/
+/* $Id: Collection,v 1.3 2020/06/12 04:50:31 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -104,6 +104,29 @@ Collection instanceMethod at (char *__keyString) {
   if (key_object) {
     item_object = *(OBJECT **) (key_object -> instancevars -> __o_value);
     return item_object;
+  } else {
+    _warning ("ctalk: Key, \"%s,\" not found in collection,"
+	      " \"%s\" (class %s).\n",
+	      __keyString, self name, self className);
+    __warning_trace ();
+    return NULLSTR;
+  }
+}
+
+Collection instanceMethod integerAt (char *__keyString) {
+  "Return the receiver element with the key given by the
+  argument, a String."
+  OBJECT *key_object, *item_object;
+  Integer new r;
+  
+  returnObjectClass Integer;
+
+  key_object = __ctalkGetInstanceVariable (self, __keyString, FALSE);
+  if (key_object) {
+    item_object = *(OBJECT **) (key_object -> instancevars -> __o_value);
+    /* This is the quickest way to cast to an Integer */
+    r = item_object;
+    return r;
   } else {
     _warning ("ctalk: Key, \"%s,\" not found in collection,"
 	      " \"%s\" (class %s).\n",

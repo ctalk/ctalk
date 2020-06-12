@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.19 2020/06/10 20:19:02 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.20 2020/06/12 04:50:32 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -2471,6 +2471,14 @@ variable alias), delete the item also.
 @cindex @mnm{getValue} instance method @idxclscite{Collection}
 @item @mnm{getValue} (@code{void})
 Return the value of the receiver, a @code{Key} object.
+
+@cindex @mnm{integerAt} instance method @idxclscite{Collection}
+@item @mnm{integerAt} (@code{String} @var{keyName})
+Returns the value for @var{keyString} as an @code{Integer}.  The
+method does not do any checking to make sure that the value is
+a valid @code{Integer} object; the program should ensure that
+the collection element is either an @code{Integer} object or is
+validly translatable to an @code{Integer}.
 
 @cindex @mnm{isEmtpy} instance method @idxclscite{Collection}
 @item @mnm{isEmtpy} (@code{void})
