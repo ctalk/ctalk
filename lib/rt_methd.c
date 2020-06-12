@@ -1,4 +1,4 @@
-/* $Id: rt_methd.c,v 1.2 2020/05/25 23:12:52 rkiesling Exp $ */
+/* $Id: rt_methd.c,v 1.3 2020/06/12 02:20:14 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -1563,7 +1563,9 @@ static inline void __delete_local_object_internal (VARENTRY *__v) {
 	__ctalkSetObjectScope 
 	  (__v -> var_object,
 	   __v -> var_object -> scope & ~LOCAL_VAR);
-	__v -> var_object -> __o_vartags -> tag = NULL;
+	/***/
+	if (IS_VARTAG(__v -> var_object -> __o_vartags))
+	  __v -> var_object -> __o_vartags -> tag = NULL;
 	__ctalkRegisterUserObject (__v -> var_object);
       }
     }
