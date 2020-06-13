@@ -1,4 +1,4 @@
-/* $Id: X11TextEntryPane,v 1.80 2020/06/12 05:06:15 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11TextEntryPane,v 1.81 2020/06/13 01:30:16 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -539,6 +539,8 @@ X11TextEntryPane instanceMethod subPaneLeave (Object subPane,
   if (event eventData == subPane xWindowID) {
     subPane defaultCursor;
     subPane hover = false;
+    if (self selecting)
+      self selecting = false;
     subPane draw;
     subPane refresh;
   }
