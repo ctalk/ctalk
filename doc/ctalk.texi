@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.20 2020/06/12 04:50:32 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.21 2020/06/13 20:13:43 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -454,6 +454,7 @@ Object
      X11ScrollBarPane
      X11TextEntryPane
      X11YesNoBoxPane
+      X11TextEntryBox
     X11TextPane
      X11TextEditorPane
  Symbol
@@ -546,6 +547,7 @@ Object
 *      X11ScrollBarPane::
 *      X11TextEntryPane::
 *      X11YesNoBoxPane::
+*       X11TextEntryBox::
 *     X11TextPane::
 *      X11TextEditorPane::
 *  Symbol::
@@ -17069,6 +17071,16 @@ the display, and the @mnm{show} or @mnm{showManaged} method returns to
 the main program.
 
 @end table
+
+
+@node X11TextEntryBox, X11TextEditorPane, X11YesNoBoxPane, Classes
+@iftex
+@section @code{X11TextEntryBox} Class
+@end iftex
+@ifnottex
+@subheading @code{X11TextEntryBox} Class
+@end ifnottex
+@cindex @code{X11TextEntryBox} class
 
 
 @node X11TextPane, X11TextEditorPane, X11YesNoBoxPane, Classes
