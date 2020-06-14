@@ -1,4 +1,4 @@
-/* $Id: ctxlogo.ca,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ */
+/* $Id: ctxlogo.ca,v 1.8 2020/06/14 21:07:01 rkiesling Exp $ -*- c -*- */
 
 /*
   This file is part of Ctalk.
@@ -34,12 +34,12 @@
 
 #include <math.h>
 #include <stdlib.h>
-#include "ctalk-logo.xpm"
-
-#define LOGO_WIDTH 189
-#define LOGO_HEIGHT 61
 
 #define CTRL_C 3
+
+/* x.xpm wxh is 230x230 */
+#define BG_XPM_WIDTH_HALF (230 / 2)
+#define BG_XPM_HEIGHT_HALF ((230 / 2) + (winHeight / 20))
 
 /* From the #defines in X11/keysymdef.h */
 #define X_Escape_keycode 0xff1b
@@ -89,50 +89,78 @@ Application instanceMethod ctxlogoOptions (void) {
   }
 }
 
-/*
- *  The xlogo program uses polygons to draw its logo.  Without
- *  having a Polygon class, this method uses different stroke
- *  widths to construct the logo.
- */
-X11CanvasPane instanceMethod drawXLogo (Integer winWidth, Integer winHeight) {
-  Integer new winCenterX;
-  Integer new winCenterY;
-  Integer new wideStrokeWidth;
-  Integer new wideStrokeHalf;
-  Integer new narrowStrokeWidth;
-  Integer new narrowStrokeHalf;
-  Integer new dividerWidth;
+X11CanvasPane instanceMethod drawLogo (Integer winWidth, Integer winHeight) {
+  Integer new centerX, centerY, wideStrokeWidth, wideStrokeHalf,
+    narrowStrokeWidth, narrowStrokeHalf, dividerWidth, dividerWidth;
+  Integer new winCenterX, winCenterY;
+  Integer new wideInset, narrowInset;
+  Rectangle new rectUpperLeft, rectLowerRight;
+  X11FreeTypeFont new font;
+  Pen new logoFgPen;
 
-  wideStrokeWidth = winWidth / 5;
-  wideStrokeHalf = wideStrokeWidth / 2;
+  self clear;
 
-  narrowStrokeWidth = winWidth / 10;
+  /* Draw the "X" background. */
+
+  wideStrokeWidth = winWidth / 4.5;
+  wideStrokeHalf = winWidth / 2;
+
+  narrowStrokeWidth = winWidth / 12;
   narrowStrokeHalf = narrowStrokeWidth / 2;
 
-  dividerWidth = 4;
+  logoFgPen width = wideStrokeWidth;
+  logoFgPen colorName = fgColor;
 
-  self pen width = wideStrokeWidth;
-  self pen colorName = fgColor;
+  wideInset = winWidth / 23;
 
-  self drawLine 0, -20, winWidth, winHeight + 20;
+  self drawLine wideInset, -20, winWidth - wideInset, winHeight + 20, logoFgPen;
 
-  
   winCenterX = winWidth / 2;
   winCenterY = winHeight / 2;
+  dividerWidth = 4;
 
-  self pen width = narrowStrokeWidth;
-  self drawLine winWidth + dividerWidth, -narrowStrokeHalf,
-    winCenterX + dividerWidth, winCenterY + narrowStrokeWidth;
+  logoFgPen width = narrowStrokeWidth;
+  narrowInset = winWidth / 23;
+
+  self drawLine winWidth + dividerWidth - narrowInset, -narrowStrokeHalf,
+    winCenterX + dividerWidth, winCenterY + narrowStrokeWidth,
+    logoFgPen;
 
   self drawLine winCenterX - dividerWidth, winCenterY - narrowStrokeHalf,
-    -dividerWidth, winHeight + narrowStrokeWidth;
+    -dividerWidth, winHeight + narrowStrokeWidth, logoFgPen;
 
-  self pen width = dividerWidth;
-  self pen colorName = bgColor;
+  logoFgPen width = dividerWidth;
+  logoFgPen colorName = bgColor;
 
   self drawLine
     winWidth - narrowStrokeHalf, -narrowStrokeWidth,
-    narrowStrokeWidth - dividerWidth, winHeight + narrowStrokeWidth;
+    narrowStrokeWidth - dividerWidth, winHeight + narrowStrokeWidth,
+    logoFgPen;
+
+  /* Draw the logo itself. */
+
+  centerX = winWidth / 2;
+  centerY = winHeight / 2 + (winHeight / 20);
+
+  self pen width = 2;
+  self pen colorName = "blue";
+
+  rectUpperLeft dimensions centerX - 50, centerY - 70, 77, 77;
+  rectUpperLeft drawWithPen self, self pen;
+
+  rectLowerRight dimensions centerX - 30, centerY - 50, 77, 77;
+  rectLowerRight drawWithPen self, self pen;
+
+  font selectFontFromFontConfig "sans-serif-16";
+  font namedX11Color "white";
+  font saveSelectedFont;
+
+  self putStrXY centerX - 17, centerY - 16, "Ctalk";
+
+  font namedX11Color "black";
+  font saveSelectedFont;
+
+  self putStrXY centerX - 16, centerY - 15, "Ctalk";
 
 }
 
@@ -142,7 +170,6 @@ int main (int argc, char **argv) {
   Integer new xWindowOrg;
   Integer new yWindowOrg;
   // Raise the logo a little above the vertical center.
-  Integer new logoAirPix;
   X11Pane new xPane;
   X11PaneDispatcher new xTopLevelPane;
   X11CanvasPane new xCanvasPane;
@@ -156,13 +183,20 @@ int main (int argc, char **argv) {
   ctxlogo installExitHandlerBasic;
   ctxlogo installAbortHandlerBasic;
 
-  fgColor = "blue";
-  bgColor = "red";
+  fgColor = "antiquewhite";
+  bgColor = "white";
+
+  /* This performs a color fill of the window and the buffers. */
 
   ctxlogo parseArgs argc, argv;
   ctxlogo ctxlogoOptions;
   if (geomString length > 0) 
     ctxlogo parseX11Geometry geomString;
+
+  xPane foreground fgColor;
+  xPane background bgColor;
+  xCanvasPane foreground fgColor;
+  xCanvasPane background bgColor;
 
   // The window needs to have a height and a width, so check
   // for zero.
@@ -183,12 +217,6 @@ int main (int argc, char **argv) {
   yWindowOrg = ctxlogo winYOrg;
 
 
-  logoAirPix = xWindowSize / 20;
-#if 1 /***/
-  xCanvasPane background bgColor;
-#endif  
-
-  xPane backgroundColor = bgColor;
   xPane initialize xWindowOrg, yWindowOrg, xWindowSize, yWindowSize,
     ctxlogo geomFlags;
   xPane inputStream eventMask =
@@ -196,17 +224,16 @@ int main (int argc, char **argv) {
   xTopLevelPane attachTo xPane;
   xCanvasPane attachTo xTopLevelPane;
 
-
+  xPane setResources "ctalk x", "Ctalk X";
+  
   xPane map;
   xPane raiseWindow;
 
   xPane openEventStream;
 
-#if 0 /***/
-  xCanvasPane background bgColor;
-#endif  
+  xPane setWMTitle "Ctalk X";
 
-  xPane setWMTitle "Ctalk Logo";
+  xPane ftFontVar initFontLib;
 
   while (TRUE) {
 
@@ -245,27 +272,16 @@ int main (int argc, char **argv) {
 	  }
 	  break;
 	case RESIZENOTIFY:
-	  xWindowSize = xPane size x;
-	  yWindowSize = xPane size y;
-	  logoAirPix = xWindowSize / 20;
-	  xCanvasPane clear;
-	  xCanvasPane drawXLogo xWindowSize, yWindowSize;
-	  xCanvasPane pixmapFromData (xWindowSize / 2) - (LOGO_WIDTH / 2), 
-	    ((yWindowSize / 2) - (LOGO_HEIGHT / 2)) - logoAirPix, 
-	    ctalk_logo_xpm;
-	  xCanvasPane refresh;
-	  break;
 	case EXPOSE:
 	  xWindowSize = xPane size x;
 	  yWindowSize = xPane size y;
-	  logoAirPix = xWindowSize / 20;
-	  xCanvasPane clear;
-	  xCanvasPane drawXLogo xWindowSize, yWindowSize;
-	  xCanvasPane pixmapFromData (xWindowSize / 2) - (LOGO_WIDTH / 2), 
-	    ((yWindowSize / 2) - (LOGO_HEIGHT / 2)) - logoAirPix, 
-	    ctalk_logo_xpm;
-	  xCanvasPane refreshReframe;
-  	  break;
+	  /* Re-fill the resized buffer with the foreground and
+	     background colors. */
+	  xCanvasPane foreground fgColor;
+	  xCanvasPane background bgColor;
+	  xCanvasPane drawLogo xWindowSize, yWindowSize;
+	  xCanvasPane refresh;
+	  break;
   	default:
 	  break;
  	}
