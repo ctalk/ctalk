@@ -1,4 +1,4 @@
-/* $Id: X11Bitmap,v 1.3 2020/05/21 23:25:50 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11Bitmap,v 1.4 2020/06/15 21:28:37 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -294,13 +294,7 @@ X11Bitmap instanceMethod iconInfo (void) {
   aCircle radius = 3;
   self drawCircle aCircle, aPen, FALSE,
     aPen;
-#if 0
-  aPen width = 10;
-  self drawPoint ICON_WIDTH_PX / 2,
-    (ICON_HEIGHT_PX / 2) - 15,
-    aPen;
-#endif  
-    return NULL;
+  return NULL;
 }
 
 X11Bitmap instanceMethod iconQuestion (void) {
@@ -308,7 +302,6 @@ X11Bitmap instanceMethod iconQuestion (void) {
   Circle new aCircle;
   Pen new aPen;
   X11FreeTypeFont new font;
-  Integer new height;
 
   aCircle center x = ICON_WIDTH_PX / 2;
   aCircle center y = ICON_HEIGHT_PX / 2;
@@ -321,10 +314,13 @@ X11Bitmap instanceMethod iconQuestion (void) {
   aPen colorName = "white";
   font initFontLib;
   font namedX11Color "white";
+  /* This must be monospace for the '?' to be centered. */ 
   font selectFontFromFontConfig "monospace-42:bold";
-  height = font textHeight "?";
-  self putStr 16, 
-    (ICON_HEIGHT_PX / 2) + (height / 2), "?";
+  font saveSelectedFont;
+  self putStr (aCircle center x) - (font maxAdvance / 2), 
+    /* raising the letter 3 px above the vertical center makes it
+       look better */
+    (aCircle center y) + (font ascent / 2) - 3, "?";
   return NULL;
 }
 
