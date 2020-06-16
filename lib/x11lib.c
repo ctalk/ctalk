@@ -1,4 +1,4 @@
-/* $Id: x11lib.c,v 1.4 2020/06/09 00:12:13 rkiesling Exp $ -*-c-*-*/
+/* $Id: x11lib.c,v 1.6 2020/06/16 21:32:45 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -3945,27 +3945,37 @@ static int __x11_resize_request_internal (void *d, int width, int height, int de
 }
 
 /* cursor_id's are defined in x11defs.h and X11Cursor class */
+/* It might be sometime necessary to include the Display * in
+   the X11Cursor object, if (when) the dialogs also become 
+   non-modal. */
 int __ctalkX11FontCursor (OBJECT *self, int cursor_id) {
   char buf[255];
   Cursor cursor;
-  if (display == NULL)
+  Display *l_d;
+  if (display == NULL) {
     __x11_open_display ();
+    l_d = display;
+  } else if (dpyrec) {
+    l_d = dpyrec -> d_p ? dpyrec -> d_p : display;
+  } else {
+    l_d = display;
+  }
   switch (cursor_id)
     {
     case CURSOR_GRAB_MOVE:
-      cursor = XCreateFontCursor (display, XC_fleur);
+      cursor = XCreateFontCursor (l_d, XC_fleur);
       break;
     case CURSOR_SCROLL_ARROW:
-      cursor = XCreateFontCursor (display, XC_sb_v_double_arrow);
+      cursor = XCreateFontCursor (l_d, XC_sb_v_double_arrow);
       break;
     case CURSOR_WATCH:
-      cursor = XCreateFontCursor (display, XC_watch);
+      cursor = XCreateFontCursor (l_d, XC_watch);
       break;
     case CURSOR_ARROW:
-      cursor = XCreateFontCursor (display, XC_arrow);
+      cursor = XCreateFontCursor (l_d, XC_arrow);
       break;
     case CURSOR_XTERM:
-      cursor = XCreateFontCursor (display, XC_xterm);
+      cursor = XCreateFontCursor (l_d, XC_xterm);
       break;
     default:
       fprintf (stderr, "__ctalkX11FontCursor: unknown cursor %d.\n",
