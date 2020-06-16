@@ -1,4 +1,4 @@
-/* $Id: X11TextEntryPane,v 1.81 2020/06/13 01:30:16 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11TextEntryPane,v 1.82 2020/06/16 11:48:28 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -215,7 +215,7 @@ X11TextEntryPane instanceMethod drawCursor (void) {
 	(Object *)cPoint = self charCellAt (self point - 1);
 	self cursorX = cPoint boxExt x;
       } else {
-	self cursorX += self resources integerAt "vPad";
+	self cursorX = self resources integerAt "vPad";
       }
     } else {
       i = 0;
