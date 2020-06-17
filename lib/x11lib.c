@@ -1,4 +1,4 @@
-/* $Id: x11lib.c,v 1.6 2020/06/16 21:32:45 rkiesling Exp $ -*-c-*-*/
+/* $Id: x11lib.c,v 1.7 2020/06/17 01:44:51 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -1834,8 +1834,6 @@ Font get_user_font (OBJECT *self) {
     return ERROR;
 
   l_d = (Display *)SYMVAL(displayPtr_instvar -> instancevars -> __o_value);
-  /* user_font_set = XListFonts (display, fontDesc_value_var->__o_value, 10,
-     &n_user_fonts); *//***/
   user_font_set = XListFonts (l_d, fontDesc_value_var->__o_value, 10,
 			      &n_user_fonts);
 
@@ -3824,7 +3822,6 @@ int __ctalkRaiseX11Window (OBJECT *self_object) {
   OBJECT *win_id_value_obj;
   win_id_value_obj =
     __x11_pane_win_id_value_object (self_object);
-  /* win_id = strtoul (win_id_value_obj -> __o_value, NULL, 10); *//***/
   win_id = INTVAL(win_id_value_obj -> __o_value);
   XRaiseWindow (display, (Window)win_id);
   return SUCCESS; 
@@ -3984,10 +3981,6 @@ int __ctalkX11FontCursor (OBJECT *self, int cursor_id) {
       break;
     }
   
-#if 0
-  __ctalkDecimalIntegerToASCII ((int)cursor, buf);
-  __ctalkSetObjectValueVar (self, buf);
-#endif
   INTVAL(self -> instancevars -> __o_value) = cursor;
   return SUCCESS;
 }
@@ -4000,25 +3993,31 @@ int __ctalkX11UseCursor (OBJECT *pane_object, OBJECT *cursor_object) {
   OBJECT *win_id_value, *gc_value, *displayvar_value;
   Cursor cursor;
   char d_buf[MAXMSG];
+  Display *l_d;
   win_id_value = __x11_pane_win_id_value_object (pane_object);
   gc_value = __x11_pane_win_gc_value_object (pane_object);
   displayvar_value = __ctalkGetInstanceVariable (pane_object, "displayPtr",
 						 TRUE);
+  l_d = (Display *)SYMVAL(displayvar_value -> instancevars -> __o_value);
+
   if (cursor_object) {
-    /* cursor = (Cursor) atoi (cursor_object -> instancevars -> __o_value); *//***/
     cursor = INTVAL(cursor_object -> instancevars -> __o_value);
   } else {
     cursor = None;
   }
-  __ctalkDecimalIntegerToASCII ((int)cursor, d_buf);
+  sprintf (d_buf, "%lu", cursor);
 
-  make_req (shm_mem,
-	    SYMVAL(displayvar_value -> instancevars -> __o_value),
-	    PANE_CURSOR_REQUEST,
-	    INTVAL(win_id_value -> __o_value),
-	    SYMVAL(gc_value -> __o_value), d_buf);
+  if (DIALOG(l_d)) {
+    __xlib_use_cursor (l_d, INTVAL(win_id_value -> __o_value),
+		       (GC)SYMVAL(gc_value -> __o_value), d_buf);
+  } else {
+    make_req (shm_mem, l_d,
+	      PANE_CURSOR_REQUEST,
+	      INTVAL(win_id_value -> __o_value),
+	      SYMVAL(gc_value -> __o_value), d_buf);
 
-  wait_req (shm_mem);
+    wait_req (shm_mem);
+  }
   return SUCCESS;
 }
 
