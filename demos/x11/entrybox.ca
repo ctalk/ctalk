@@ -1,66 +1,93 @@
+/* entrybox.ca, a X11TextEntryBox demonstration. -*-c-*- */
 
 #include <ctalk/ctalkdefs.h>
 
-int main (int argv, char **argc) {
-  X11Pane new xPane;
+int main (void) {
+  X11Pane new mainWindow;
   X11PaneDispatcher new dispatcher;
-  X11TextEntryPane new entry;
-  X11LabelPane new label;
   X11ButtonPane new button;
+  X11LabelPane new label;
+  X11TextEntryBox new textEntryBox;
   InputEvent new e;
-  Integer new nEvents;
-  Integer new verbose;
-  X11Cursor new cursor;
-   xPane resources atPut "backgroundColor", "blue";
+
+  label textColor = "white";
+  label canFocus = false;
+  label borderWidth = 0;
+
+  label ftFontVar notifyLevel XFT_NOTIFY_NONE;
+
+  mainWindow backgroundColor = "blue";
   label resources replaceAt "backgroundColor", "blue";
+  button resources replaceAt "backgroundColor", "blue";
+  textEntryBox resources replaceAt "backgroundColor", "blue";
+  
+  mainWindow initialize 255, 200;
+  mainWindow inputStream eventMask = 
+    EXPOSE|ENTERWINDOWNOTIFY|LEAVEWINDOWNOTIFY|BUTTONPRESS|BUTTONRELEASE|KEYPRESS|KEYRELEASE|WINDELETE|MOVENOTIFY;
+
+  dispatcher attachTo mainWindow;
+  button attachTo dispatcher, "110x70+73+100";
+  label attachTo dispatcher, "177x80+34+15";
+  textEntryBox attachTo dispatcher, "300x200";
+
+  mainWindow map;
+  mainWindow raiseWindow;
+
+  mainWindow openEventStream;
+
+  mainWindow setWMTitle "X11TextEntryBox Demo";
+
+  label ftFontVar initFontLib;
+
+  label multiLine "X11YTextEntryBox\nDemo";
+  label resources replaceAt "textColor", "lightgray";
   label resources replaceAt "foregroundColor", "blue";
-  label resources replaceAt "highlightForegroundColor", "blue";
-  label resources replaceAt "textColor", "white";
-  label resources replaceAt "highlightTextColor", "white";
-  label border = false;
+  label resources replaceAt "borderColor", "blue";
 
-   xPane inputStream eventMask = EXPOSE|ENTERWINDOWNOTIFY|LEAVEWINDOWNOTIFY| \
-    KEYPRESS|KEYRELEASE|WINDELETE|BUTTONPRESS|BUTTONRELEASE|MOTIONNOTIFY;
-   xPane initialize 300, 200;
-  dispatcher attachTo xPane;
-  label attachTo dispatcher, "100x80+10+10";
-  button attachTo dispatcher, "60x45+120+100";
-  entry attachTo dispatcher, "140x32+120+32";
-  xPane map;
-  xPane raiseWindow;
+  button label multiLine "Open\nText Entry\nDialog";
 
-  xPane openEventStream;
+  button label resources replaceAt "highlightForegroundColor", "gray80";
 
-  xPane setWMTitle "X11TextEntryPane Demo";
-  label multiLine "Enter your\ntext:";
-  button label text "Done";
+  /* The program uses the "replaceAt" method because the key/value
+     entry for "backgroundColor" the X11MessageBoxPane : new method
+     has alread created an entry for backgroundColor. */
+  textEntryBox resources replaceAt "backgroundColor", "blue";
+  textEntryBox resources replaceAt "foregroundColor", "blue";
+  textEntryBox resources replaceAt "messageColor", "white";
+  textEntryBox resources replaceAt "messageText",
+    	       "Hello, textEntryBox!\nYour message text here.";
+
+  button draw;
+  button refresh;
+  label draw;
+  label refresh;
 
   while (TRUE) {
-    xPane inputStream queueInput;
-    if (xPane inputStream eventPending) {
-      e become xPane inputStream inputQueue unshift;
+    mainWindow inputStream queueInput;
+    if (mainWindow inputStream eventPending) {
+      e become mainWindow inputStream inputQueue unshift;
 
-      xPane subPaneNotify e;
+      mainWindow subPaneNotify e;
 
       switch (e eventClass value)
-        {
-        case EXPOSE:
-          entry refresh;
-          break;
-        case WINDELETE:
-          xPane deleteAndClose;
-          exit (0);
-          break;
-        default:
-          if (button haveClick) {
-            button clearClick;
-            xPane deleteAndClose;
-            printf ("You entered: %s\n", entry entryText);
-            exit (0);
-          }
-        break;
-        }
+	{
+	case EXPOSE:
+	  button subPaneExpose (button, e);
+	  label subPaneExpose (label, e);
+	  break;
+	case BUTTONRELEASE:
+	  textEntryBox showManaged button;
+	  printf ("returnVal: %d: %s: %s\n", textEntryBox returnVal,
+		  textEntryBox returnText, textEntryBox entryContents);
+	  break;
+	case WINDELETE:
+ 	  mainWindow deleteAndClose;
+	  exit (0);
+	  break;
+	}
+    } else {
+      usleep (1000);
     }
   }
-}
 
+}

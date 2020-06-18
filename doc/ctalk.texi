@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.21 2020/06/13 20:13:43 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.22 2020/06/18 17:50:25 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -16281,7 +16281,7 @@ X selection                      Pointer Across Text
 
 Here is an example of an @code{X11TextEntryPane} object's use.
 
-@c demos/x11/entrybox.ca
+@c demos/x11/entrypane.ca
 @example
 
 
@@ -17081,6 +17081,117 @@ the main program.
 @subheading @code{X11TextEntryBox} Class
 @end ifnottex
 @cindex @code{X11TextEntryBox} class
+
+A @code{X11TextEntryBox} object pops up a dialog window that contains
+a @code{X11TextEntryPane} object, where the user can enter text.  The
+contents of the text entry persist if the dialog window is re-opened,
+and the contents are available to the calling program, as is the
+text of the button and return code that indicates how the user closed
+the dialog box.
+
+Here is an example program that demonstrates a @code{X11TextEntryBox's}
+use.
+
+@c demos/x11/entrybox.ca
+
+@example
+
+/* entrybox.ca, a X11TextEntryBox demonstration. -*-c-*- */
+
+#include <ctalk/ctalkdefs.h>
+
+int main (void) @{
+  X11Pane new mainWindow;
+  X11PaneDispatcher new dispatcher;
+  X11ButtonPane new button;
+  X11LabelPane new label;
+  X11TextEntryBox new textEntryBox;
+  InputEvent new e;
+
+  label textColor = "white";
+  label canFocus = false;
+  label borderWidth = 0;
+
+  label ftFontVar notifyLevel XFT_NOTIFY_NONE;
+
+  mainWindow backgroundColor = "blue";
+  label resources replaceAt "backgroundColor", "blue";
+  button resources replaceAt "backgroundColor", "blue";
+  textEntryBox resources replaceAt "backgroundColor", "blue";
+  
+  mainWindow initialize 255, 200;
+  mainWindow inputStream eventMask = 
+    EXPOSE|ENTERWINDOWNOTIFY|LEAVEWINDOWNOTIFY|BUTTONPRESS|BUTTONRELEASE|KEYPRESS|KEYRELEASE|WINDELETE|MOVENOTIFY;
+
+  dispatcher attachTo mainWindow;
+  button attachTo dispatcher, "110x70+73+100";
+  label attachTo dispatcher, "177x80+34+15";
+  textEntryBox attachTo dispatcher, "300x200";
+
+  mainWindow map;
+  mainWindow raiseWindow;
+
+  mainWindow openEventStream;
+
+  mainWindow setWMTitle "X11TextEntryBox Demo";
+
+  label ftFontVar initFontLib;
+
+  label multiLine "X11YTextEntryBox\nDemo";
+  label resources replaceAt "textColor", "lightgray";
+  label resources replaceAt "foregroundColor", "blue";
+  label resources replaceAt "borderColor", "blue";
+
+  button label multiLine "Open\nText Entry\nDialog";
+
+  button label resources replaceAt "highlightForegroundColor", "gray80";
+
+  /* The program uses the "replaceAt" method because the key/value
+     entry for "backgroundColor" the X11MessageBoxPane : new method
+     has alread created an entry for backgroundColor. */
+  textEntryBox resources replaceAt "backgroundColor", "blue";
+  textEntryBox resources replaceAt "foregroundColor", "blue";
+  textEntryBox resources replaceAt "messageColor", "white";
+  textEntryBox resources replaceAt "messageText",
+               "Hello, textEntryBox!\nYour message text here.";
+
+  button draw;
+  button refresh;
+  label draw;
+  label refresh;
+
+  while (TRUE) @{
+    mainWindow inputStream queueInput;
+    if (mainWindow inputStream eventPending) @{
+      e become mainWindow inputStream inputQueue unshift;
+
+      mainWindow subPaneNotify e;
+
+      switch (e eventClass value)
+        @{
+        case EXPOSE:
+          button subPaneExpose (button, e);
+          label subPaneExpose (label, e);
+          break;
+        case BUTTONRELEASE:
+          textEntryBox showManaged button;
+          printf ("returnVal: %d: %s: %s\n", textEntryBox returnVal,
+                  textEntryBox returnText, textEntryBox entryContents);
+          break;
+        case WINDELETE:
+          mainWindow deleteAndClose;
+          exit (0);
+          break;
+        @}
+    @} else @{
+      usleep (1000);
+    @}
+  @}
+
+@}
+
+@end example
+
 
 
 @node X11TextPane, X11TextEditorPane, X11YesNoBoxPane, Classes
