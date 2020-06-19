@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.22 2020/06/18 17:50:25 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.23 2020/06/19 08:01:10 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -24071,9 +24071,11 @@ For more information, refer to @code{X11TextEditorPane} class..
 @idxlibfn{__entrytext_set_selection_owner}
 @idxlibfn{__entrytext_get_primary_selection}
 @idxlibfn{__entrytext_update_selection}
+@idxlibfn{__entrytext_send_selection}
 @item __entrytext_set_selection_owner (@code{void *}@var{displayPtr}, @code{unsigned int} @var{win_id} @code{unsigned long int} @var{gc_ptr})
 @item __entrytext_get_primary_selection (OBJECT *entrypane_object)
 @item __entrytext_update_selection (@code{void *}@var{displayPtr}, @code{unsigned int} @var{win_id}, @code{unsigned long int} @var{gc_ptr})
+@item __entrytext_send_selection (@code{void *}@var{displayPtr}, @code{void *} @var{xEvent})
 These functions handle requesting ownership of the X display's primary
 selection, storing current values of the selection text that might be
 requested by other programs, and requesting the contents of the

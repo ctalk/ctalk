@@ -1,4 +1,4 @@
-/* $Id: edittext.c,v 1.14 2020/06/09 00:20:50 rkiesling Exp $ -*-c-*-*/
+/* $Id: edittext.c,v 1.19 2020/06/19 21:36:50 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -66,6 +66,7 @@ extern char *ascii[8193];             /* from intascii.h */
 extern bool monospace;
 
 extern Display *display;
+extern DIALOG_C *dpyrec;
 extern XLIBFONT xlibfont;
 
 #define TAB_WIDTH 8
@@ -920,24 +921,6 @@ static void delete_selection (void) {
 
 }
 
-/* TODO - Get this to work in a dialog window also. */
-int __entrytext_set_selection_owner (void *d, unsigned int drawable_id,
-				     unsigned long int gc_ptr) {
-  char d_buf[MAXLABEL];
-  int r;
-
-  if (!shm_mem)
-      return ERROR;
-
-  memset (d_buf, 0, MAXLABEL);
-  make_req (shm_mem, d, PANE_SET_PRIMARY_SELECTION_OWNERSHIP_REQUEST,
-	    drawable_id, (GC)gc_ptr, d_buf);
-  wait_req (shm_mem);
-
-  r = ((shm_mem[SHM_RETVAL] == '0') ? SUCCESS : ERROR);
-  return r;
-}
-
 int __xlib_set_primary_selection_owner (Display *d, Window win_id) {
   XSetSelectionOwner (d, XA_PRIMARY, win_id, CurrentTime);
   XFlush (d);
@@ -948,11 +931,33 @@ int __xlib_set_primary_selection_owner (Display *d, Window win_id) {
   }
 }
 
+int __entrytext_set_selection_owner (void *d, unsigned int drawable_id,
+				     unsigned long int gc_ptr) {
+  char d_buf[MAXLABEL];
+  int r;
+
+  if (!shm_mem)
+      return ERROR;
+
+  if (DIALOG(d)) {
+    return __xlib_set_primary_selection_owner (d, drawable_id);
+  } else {
+    memset (d_buf, 0, MAXLABEL);
+    make_req (shm_mem, d, PANE_SET_PRIMARY_SELECTION_OWNERSHIP_REQUEST,
+	      drawable_id, (GC)gc_ptr, d_buf);
+    wait_req (shm_mem);
+
+    r = ((shm_mem[SHM_RETVAL] == '0') ? SUCCESS : ERROR);
+  }
+  return r;
+}
+
 static char xa_primary_buf[0xffff];
 
 int __xlib_set_primary_selection_text (char *text) {
   memset (xa_primary_buf, 0, 0xffff);
   strcpy (xa_primary_buf, text);
+  return SUCCESS;
 }
 
 int __entrytext_update_selection (void *d, unsigned int win_id,
@@ -961,9 +966,13 @@ int __entrytext_update_selection (void *d, unsigned int win_id,
   if (!shm_mem)
       return ERROR;
 
-  make_req (shm_mem, d, PANE_SET_PRIMARY_SELECTION_TEXT,
-	    win_id, (GC)gc_ptr, text);
-  wait_req (shm_mem);
+  if (DIALOG(d)) {
+    return __xlib_set_primary_selection_text (text);
+  } else {
+    make_req (shm_mem, d, PANE_SET_PRIMARY_SELECTION_TEXT,
+	      win_id, (GC)gc_ptr, text);
+    wait_req (shm_mem);
+  }
 
   return SUCCESS;
 }
@@ -1975,6 +1984,7 @@ int __edittext_get_primary_selection (OBJECT *editorpane_object,
   return SUCCESS;
 }
 
+int __xlib_get_primary_selection (Display *, Drawable, GC, char *);
 /* This is the same as above, but it's for X11TextEntryPane objects,
    which haven't initialized all of the instance variables above; in
    particular, we fetch the entry object's displayPtr instance
@@ -2041,18 +2051,19 @@ int __entrytext_get_primary_selection (OBJECT *entrypane_object,
 	   NULL);
   memset ((void *)shm_mem, 0, SHM_BLKSIZE);
 
-#if 0 /***/
-  make_req (shm_mem,
-	    SYMVAL(display_ptr_instance_var -> instancevars -> __o_value),
-	    PANE_GET_PRIMARY_SELECTION_REQUEST, 0, 0,
-	    handle_basename_path);
-#else
-  make_req (shm_mem,
-	    SYMVAL(displayPtr_var -> instancevars -> __o_value),
-	    PANE_GET_PRIMARY_SELECTION_REQUEST, 0, 0,
-	    handle_basename_path);
-#endif  
-  wait_req (shm_mem);
+  d_l = (Display *)SYMVAL(displayPtr_var -> instancevars -> __o_value);
+
+  if (DIALOG(d_l)) {
+    __xlib_get_primary_selection (d_l, (Drawable)0, (GC)0,
+				  handle_basename_path);
+  } else {
+    make_req (shm_mem,
+	      /* SYMVAL(displayPtr_var -> instancevars -> __o_value), *//***/
+	      d_l,
+	      PANE_GET_PRIMARY_SELECTION_REQUEST, 0, 0,
+	      handle_basename_path);
+    wait_req (shm_mem);
+  }
 
   strcatx (info_path, handle_basename_path, ".inf", NULL);
   strcatx (data_path, handle_basename_path, ".dat", NULL);
@@ -2149,6 +2160,33 @@ int __xlib_send_selection (XEvent *e) {
   XSendEvent (display, e -> xselectionrequest.requestor, 
 	      0, 0, &ne);
   XFlush (display);
+  return SUCCESS;
+}
+
+/* We use void *'s in the parameter list so we don't need to
+   include the Xlib header files in every Ctalk program. 
+   Because the second argument is a raw X event, the only place
+   this is useful is in an event loop in a class - see 
+   X11TextEntryBox : show for an example. */
+int __entrytext_send_selection (void *d_p, void *e_p) {
+  XEvent ne, *e = e_p;
+  Display *d = d_p;
+  
+  XChangeProperty 
+    (d, e -> xselectionrequest.requestor,
+     e -> xselectionrequest.property,
+     XA_STRING, 8, PropModeReplace,
+     (unsigned char *)xa_primary_buf, strlen (xa_primary_buf));
+  ne.xselection.property = e -> xselectionrequest.property;
+  ne.xselection.type = SelectionNotify;
+  ne.xselection.display = e -> xselectionrequest.display;
+  ne.xselection.requestor = e -> xselectionrequest.requestor;
+  ne.xselection.selection = e -> xselectionrequest.selection;
+  ne.xselection.target = e -> xselectionrequest.target;
+  ne.xselection.time = e -> xselectionrequest.time;
+  XSendEvent (d, e -> xselectionrequest.requestor, 
+	      0, 0, &ne);
+  XFlush (d);
   return SUCCESS;
 }
 
@@ -2829,8 +2867,7 @@ int __xlib_get_primary_selection (void *d, unsigned int pixmap, uintptr_t gc,
   exit (EXIT_FAILURE);
 }
 
-int __edittext_set_selection_owner (void *d, unsigned int win_id,
-				     unsigned long int gc_ptr) {
+int __edittext_set_selection_owner (OBJECT *editorpane_object) {
   fprintf (stderr, "__edittext_set_selection_owner: This function requires "
 	   "the X Window System.\n");
   exit (EXIT_FAILURE);
@@ -2850,6 +2887,11 @@ int __entrytext_get_primary_selection (OBJECT *entrypane_object,
 int __entrytext_update_selection (void *d, unsigned int win_id,
 				   unsigned long int gc_ptr, char *text) {
   fprintf (stderr, "__entrytext_update_selection: This function requires "
+	   "the X Window System.\n");
+  exit (EXIT_FAILURE);
+}
+int __entrytext_send_selection (void *d_p, void *e_p) {
+  fprintf (stderr, "__entrytext_send_selection: This function requires "
 	   "the X Window System.\n");
   exit (EXIT_FAILURE);
 }

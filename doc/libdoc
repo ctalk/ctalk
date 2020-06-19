@@ -2659,6 +2659,14 @@ Text editing functions used by X11TextEditorPane objects.
 For more information, refer to X11TextEditorPane class..
 
 
+>>>__entrytext_set_selection_owner (void *displayPtr, unsigned int win_id unsigned long int gc_ptr):__entrytext_get_primary_selection (OBJECT *entrypane_object):__entrytext_update_selection (void *displayPtr, unsigned int win_id, unsigned long int gc_ptr):__entrytext_send_selection (void *displayPtr, void * xEvent)
+These functions handle requesting ownership of the X display's primary
+selection, storing current values of the selection text that might be
+requested by other programs, and requesting the contents of the
+primary selection when another X application owns the selection.  The
+functions are normally called by methods in X11TextEntryPane
+class that handle X events.
+
 >>>_error (char *fmt, ...)
 Display an error message and exit the program.
 

@@ -1,4 +1,4 @@
-/* $Id: ctalklib.in,v 1.9 2020/06/08 23:45:33 rkiesling Exp $ -*-c-*-*/
+/* $Id: ctalklib.in,v 1.10 2020/06/19 08:01:10 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -1414,6 +1414,7 @@ extern int __entrytext_get_primary_selection (OBJECT *, void **, int *);
 extern int __entrytext_set_selection_owner (void *, unsigned int, unsigned long int);
 extern int __entrytext_update_selection (void *, unsigned int, unsigned long int,
 					 char *);
+extern int __entrytext_send_selection (void *, void *);
 
 
 extern void __glx_resize (int, int);

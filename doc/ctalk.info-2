@@ -10777,6 +10777,7 @@ functions.
 '__entrytext_set_selection_owner (void *DISPLAYPTR, unsigned int WIN_ID unsigned long int GC_PTR)'
 '__entrytext_get_primary_selection (OBJECT *entrypane_object)'
 '__entrytext_update_selection (void *DISPLAYPTR, unsigned int WIN_ID, unsigned long int GC_PTR)'
+'__entrytext_send_selection (void *DISPLAYPTR, void * XEVENT)'
      These functions handle requesting ownership of the X display's
      primary selection, storing current values of the selection text
      that might be requested by other programs, and requesting the

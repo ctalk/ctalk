@@ -876,3 +876,13 @@
 	- Changed the demos/x11/entrybox.ca program to entrypane.ca,
 	and added the X11TextEntryBox demonstration program as
 	demos/x11/entrybox.ca.
+	- Updated __entrytext_set_selection_owner to work with
+	dialog windows (edittext.c).
+	- Added the pointermotion, button press, and button release
+	handlers for the entry pane in X11TextEntryBox class.
+2020-06-19
+	- Updated __entrytext_update_selection for dialog windows
+	(edittext.c). Also added the __entrytext_send_selection
+	library funciton (edittext.c).
+	- Updated __entrytext_get_primary_selection to work with
+	a dialog box (edittext.c).

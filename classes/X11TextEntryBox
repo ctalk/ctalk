@@ -1,4 +1,4 @@
-/* $Id: X11TextEntryBox,v 1.15 2020/06/18 17:20:20 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11TextEntryBox,v 1.19 2020/06/19 21:36:50 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -363,6 +363,14 @@ X11TextEntryBox instanceMethod show (void) {
 	      (xev.xbutton.window == self rbutton xWindowID)) {
 	    e eventClass = BUTTONPRESS;
 	    self methodObjectMessage self handlePointerInput, self, e;
+	  } else if (xev.xbutton.window == self entryPane xWindowID) {
+	    e eventClass = BUTTONPRESS;
+	    e xEventData1 = xev.xbutton.x;
+	    e xEventData2 = xev.xbutton.y;
+	    e xEventData3 = xev.xbutton.state;
+	    e xEventData4 = xev.xbutton.button;
+	    self entryPane methodObjectMessage
+	      self entryPane handlePointerInput, self entryPane, e;
 	  }
 	  break;
 	case ButtonRelease:
@@ -374,6 +382,19 @@ X11TextEntryBox instanceMethod show (void) {
 	    dispatcher modalWin = 0;
 	    dispatcher modalPane = NULL;
 	    return self returnVal;
+	  } else if (xev.xbutton.window == self entryPane xWindowID) {
+	    e eventClass = BUTTONRELEASE;
+	    e xEventData1 = xev.xbutton.x;
+	    e xEventData2 = xev.xbutton.y;
+	    e xEventData3 = xev.xbutton.state;
+	    e xEventData4 = xev.xbutton.button;
+	    self entryPane methodObjectMessage
+	      self entryPane handlePointerInput, self entryPane, e;
+	    if (xev.xbutton.button == Button2) {
+	      /* We've pasted the primary selection into the 
+		 entryPane - get the updated contents. */
+	      self entryContents = self entryPane entryText;
+	    }
 	  }
 	  break;
 	case EnterNotify:
@@ -433,6 +454,20 @@ X11TextEntryBox instanceMethod show (void) {
 	  }
 	case Expose:
 	  self methodObjectMessage self handleExpose, self, e;
+	  break;
+	case MotionNotify:
+	  if (xev.xkey.window == self entryPane xWindowID) {
+	    e eventClass = MOTIONNOTIFY;
+	    e xEventData1 = xev.xmotion.x;
+	    e xEventData2 = xev.xmotion.y;
+	    e xEventData3 = xev.xmotion.state;
+	    e xEventData4 = xev.xmotion.is_hint;
+	    self entryPane subPanePointerMotion
+	      self entryPane, e;
+	  }
+	  break;
+	case SelectionRequest:
+	  __entrytext_send_selection (self displayPtr, &xev);
 	  break;
 	case ClientMessage:
 	  if(xev.xclient.data.l[0] == wm_delete_dialog) {
