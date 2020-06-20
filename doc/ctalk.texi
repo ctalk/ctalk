@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.23 2020/06/19 08:01:10 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.24 2020/06/20 16:55:13 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -17192,6 +17192,124 @@ int main (void) @{
 
 @end example
 
+@subheading Resources
+
+@code{X11TextEntryBox} objects do not define resources of their
+own.  Instead, it uses the resources defined by the classes of
+its components:
+
+@table @code
+@item X11YesNoBoxPane @xref{X11YesNoBoxPane}.
+@item X11LabelPane @xref{X11LabelPane}.
+@item X11ButtonPane @xref{X11ButtonPane}.
+@item X11TextEntryPane @xref{X11TextEntryPane}.
+
+@end table
+
+The top-level window's resources are defined by the @code{X11YesNoBox}
+superclass.  Each of the component subpanes is defined by an instance
+variable.  This allows each of the subpanes to be managed individually.
+
+@table @code
+@item lbutton
+Defined by the @code{X11ButtonPane} class. @xref{X11ButtonPane}.
+@item rbutton
+Defined by the @code{X11ButtonPane} class. @xref{X11ButtonPane}.
+@item label
+Defined by the @code{X11LabelPane} class. @xref{X11LabelPane}.
+@item icon
+Defined by the @code{X11Bitmap} class. @xref{X11Bitmap}.
+@item entryPane
+Defined by the @code{X11TextEntryPane} class. @xref{X11TextEntryPane}.
+
+@end table
+
+For example, to change the background color of selected text
+in the entrybox subwindow, a program would contain a statement
+like this one.
+
+@example
+
+myEntryBox entryPane resources replaceAt "selectionColor", "lightblue";
+
+@end example
+
+Occasionally, the subpane's class defines its own resources that it
+propagates to its own subpanes.  For example, to change the text that
+appears on the buttons:
+
+@example
+
+myEntryBox resources replaceAt "leftButtonText", "Dismiss";
+myEntryBox resources replaceAt "rightButtonText", "Accept";
+
+@end example
+
+It's necessary to use the @code{Collection : replaceAt} method,
+because each subpane's default resources has already been created
+when the subpane is constructed (generally, this is done by each
+classes' @code{new} method).
+
+
+@subheading Instance Variables
+
+@table @code
+
+@cindex @code{entryContents} instance method @idxclscite{X11TextEntryBox}
+@item draw (@code{entryContents}
+A @code{String} that contains the text contents of the entry window.
+This variable is updated whenever the contents of the @code{entryPane}
+object are modified.
+
+@cindex @code{entryPane} instance method @idxclscite{X11TextEntryBox}
+@item draw (@code{entryPane}
+The @code{X11TextEntryPane} object that is constructed when the
+@code{show} method is first called, and is updated and displayed
+via the @code{show} method's event loop.
+
+@end table
+
+@subheading Instance Methods
+
+@table @code
+
+@cindex @code{draw} instance method @idxclscite{X11TextEntryBox}
+@item draw (@code{void}
+Draws the main pane and each subpane's controls on each subpane's
+buffer, as well as the main pane's icon, if any.
+
+@cindex @code{initWidgets} instance method @idxclscite{X11TextEntryBox}
+@item initWidgets (@code{void})
+Constructs the subpanes when the entrybox window is first constructed
+and mapped to the display.  The method sets the @code{initialized}
+instance variable (defined in @code{X11YesNoBoxPane} class) to true,
+so the pane is only constructed once if it is withdrawn from the
+display and then remapped.
+
+@cindex @code{new} instance method @idxclscite{X11TextEntryBox}
+@item new (@code{String} @var{paneName})
+The @code{X11TextEntryBox} constructor.  This method calls the
+constructor of its superclass, @code{X11YesNoBoxPane}, which defines
+the resources that this class uses as well.  However, this constructor
+defines the event handlers it needs, in order to make the events
+available to the @code{entryPane} subpane when necessary.
+
+@cindex @code{show} instance method @idxclscite{X11TextEntryBox}
+@item show (@code{Object} @var{subPane}, @code{InputEvent} @var{event})
+This method constructs the @code{X11TextEntryBox} object when it is
+first called, and then on the first and each following call, maps the
+entry box to the display, waits for and dispatches events from the
+display server, and withdraws the window from the display when the
+user clicks on a button or on the window's close menu.
+
+@cindex @code{subPaneEnter} instance method @idxclscite{X11TextEntryBox}
+@cindex @code{subPaneLeave} instance method @idxclscite{X11TextEntryBox}
+@item subPaneEnter (@code{Object} @var{subPane}, @code{InputEvent} @var{event})
+@item subPaneLeave (@code{Object} @var{subPane}, @code{InputEvent} @var{event})
+Event handlers for enter and leave events, which are generated when the
+pointer is over one of the subpanes.
+
+@end table
 
 
 @node X11TextPane, X11TextEditorPane, X11YesNoBoxPane, Classes

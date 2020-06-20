@@ -1,4 +1,4 @@
-/* $Id: X11TextEntryBox,v 1.19 2020/06/19 21:36:50 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11TextEntryBox,v 1.20 2020/06/20 16:55:12 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -40,19 +40,6 @@ X11TextEntryBox instanceMethod new (String paneName) {
 
   X11TextEntryBox super new paneName;
   
-#if 0
-  exposeMethod definedInstanceMethod "X11YesNoBoxPane", "subPaneExpose";
-  paneName setMethodHandler "expose", exposeMethod;
-
-  buttonPressMethod definedInstanceMethod "X11YesNoBoxPane",
-    "subPaneButton";
-  paneName setMethodHandler "pointerinput", buttonPressMethod;
-  
-  kbdInputMethod definedInstanceMethod "X11YesNoBoxPane",
-    "subPaneKbdInput";
-  paneName setMethodHandler "kbdinput", kbdInputMethod;
-#endif  
-
   enterMethod definedInstanceMethod "X11TextEntryBox",
     "subPaneEnter";
   paneName setMethodHandler "enternotify", enterMethod;
@@ -65,19 +52,6 @@ X11TextEntryBox instanceMethod new (String paneName) {
   paneName resources replaceAt "leftButtonText", "Cancel";
   paneName resources replaceAt "rightButtonText", "OK";
 
-#if 0  
-  paneName resources atPut "backgroundColor", "gray";
-  paneName resources atPut "foregroundColor", "gray";
-  paneName resources atPut "pad", 10;
-  paneName resources atPut "messageText", "Hello, messageBox!\nSample message text.";
-
-  /* ICON_QUESTION, from ctalkdefs.h */
-  paneName resources atPut "iconID", 4;
-  paneName resources atPut "titleText", "Message";
-  paneName resources atPut "messageColor", "black";
-  paneName resources atPut "messageFont", "sans serif-12";
-#endif
-  
   return paneName;
 }
 
@@ -88,10 +62,8 @@ X11TextEntryBox instanceMethod draw (void) {
   self label draw;
   self entryPane draw;
 
-#if 1
   self lbutton draw;
   self rbutton draw;
-#endif  
 
   if (self resources at "iconID" > 0) {
     self paneBuffer copy self icon, 0, 0, ICON_WIDTH_PX, ICON_HEIGHT_PX,
@@ -159,7 +131,6 @@ X11TextEntryBox instanceMethod initWidgets (void) {
 
   self label attachTo self, geomspec;
 
-  /***/
   entry_height_px = 32;
   entry_width_px = usable_width;
   entry_x_px = padInt;

@@ -5134,6 +5134,98 @@ Here is an example program that demonstrates a 'X11TextEntryBox's' use.
      }
 
 
+Resources
+---------
+
+'X11TextEntryBox' objects do not define resources of their own.
+Instead, it uses the resources defined by the classes of its components:
+
+'X11YesNoBoxPane *Note X11YesNoBoxPane::.'
+'X11LabelPane *Note X11LabelPane::.'
+'X11ButtonPane *Note X11ButtonPane::.'
+'X11TextEntryPane *Note X11TextEntryPane::.'
+
+The top-level window's resources are defined by the 'X11YesNoBox'
+superclass.  Each of the component subpanes is defined by an instance
+variable.  This allows each of the subpanes to be managed individually.
+
+'lbutton'
+     Defined by the 'X11ButtonPane' class.  *Note X11ButtonPane::.
+'rbutton'
+     Defined by the 'X11ButtonPane' class.  *Note X11ButtonPane::.
+'label'
+     Defined by the 'X11LabelPane' class.  *Note X11LabelPane::.
+'icon'
+     Defined by the 'X11Bitmap' class.  *Note X11Bitmap::.
+'entryPane'
+     Defined by the 'X11TextEntryPane' class.  *Note X11TextEntryPane::.
+
+For example, to change the background color of selected text in the
+entrybox subwindow, a program would contain a statement like this one.
+
+
+     myEntryBox entryPane resources replaceAt "selectionColor", "lightblue";
+
+
+Occasionally, the subpane's class defines its own resources that it
+propagates to its own subpanes.  For example, to change the text that
+appears on the buttons:
+
+
+     myEntryBox resources replaceAt "leftButtonText", "Dismiss";
+     myEntryBox resources replaceAt "rightButtonText", "Accept";
+
+
+It's necessary to use the 'Collection : replaceAt' method, because each
+subpane's default resources has already been created when the subpane is
+constructed (generally, this is done by each classes' 'new' method).
+
+Instance Variables
+------------------
+
+'draw (entryContents'
+     A 'String' that contains the text contents of the entry window.
+     This variable is updated whenever the contents of the 'entryPane'
+     object are modified.
+
+'draw (entryPane'
+     The 'X11TextEntryPane' object that is constructed when the 'show'
+     method is first called, and is updated and displayed via the 'show'
+     method's event loop.
+
+Instance Methods
+----------------
+
+'draw (void'
+     Draws the main pane and each subpane's controls on each subpane's
+     buffer, as well as the main pane's icon, if any.
+
+'initWidgets (void)'
+     Constructs the subpanes when the entrybox window is first
+     constructed and mapped to the display.  The method sets the
+     'initialized' instance variable (defined in 'X11YesNoBoxPane'
+     class) to true, so the pane is only constructed once if it is
+     withdrawn from the display and then remapped.
+
+'new (String PANENAME)'
+     The 'X11TextEntryBox' constructor.  This method calls the
+     constructor of its superclass, 'X11YesNoBoxPane', which defines the
+     resources that this class uses as well.  However, this constructor
+     defines the event handlers it needs, in order to make the events
+     available to the 'entryPane' subpane when necessary.
+
+'show (Object SUBPANE, InputEvent EVENT)'
+     This method constructs the 'X11TextEntryBox' object when it is
+     first called, and then on the first and each following call, maps
+     the entry box to the display, waits for and dispatches events from
+     the display server, and withdraws the window from the display when
+     the user clicks on a button or on the window's close menu.
+
+'subPaneEnter (Object SUBPANE, InputEvent EVENT)'
+'subPaneLeave (Object SUBPANE, InputEvent EVENT)'
+     Event handlers for enter and leave events, which are generated when
+     the pointer is over one of the subpanes.
+
 
 File: ctalk.info,  Node: X11TextPane,  Next: X11TextEditorPane,  Prev: X11YesNoBoxPane,  Up: Classes
 
