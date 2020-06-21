@@ -1,4 +1,4 @@
-/* $Id: edittext.c,v 1.19 2020/06/19 21:36:50 rkiesling Exp $ -*-c-*-*/
+/* $Id: edittext.c,v 1.21 2020/06/21 12:09:17 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -66,7 +66,6 @@ extern char *ascii[8193];             /* from intascii.h */
 extern bool monospace;
 
 extern Display *display;
-extern DIALOG_C *dpyrec;
 extern XLIBFONT xlibfont;
 
 #define TAB_WIDTH 8
@@ -581,7 +580,6 @@ static void buf_init (OBJECT *editorpane_object) {
   }
   EDITINTSET(buflength_instance_var, bufsize);
   EDITINTSET(textlength_instance_var, newtextlength);
-  /***/
   if (INTVAL(point_instance_var -> __o_value) > newtextlength) {
     EDITINTSET(point_instance_var, newtextlength);
   }
@@ -939,7 +937,7 @@ int __entrytext_set_selection_owner (void *d, unsigned int drawable_id,
   if (!shm_mem)
       return ERROR;
 
-  if (DIALOG(d)) {
+  if (dialog_dpy ()) {
     return __xlib_set_primary_selection_owner (d, drawable_id);
   } else {
     memset (d_buf, 0, MAXLABEL);
@@ -966,7 +964,7 @@ int __entrytext_update_selection (void *d, unsigned int win_id,
   if (!shm_mem)
       return ERROR;
 
-  if (DIALOG(d)) {
+  if (dialog_dpy ()) {
     return __xlib_set_primary_selection_text (text);
   } else {
     make_req (shm_mem, d, PANE_SET_PRIMARY_SELECTION_TEXT,
@@ -1072,7 +1070,6 @@ int __edittext_insert_str_at_point (OBJECT *editorpane_object, char *str) {
   return SUCCESS;
 }
 
-/***/
 unsigned int __edittext_xk_keysym (int keycode, int shift_state,
 				   int keypress) {
   Display *d_local;
@@ -1226,7 +1223,7 @@ int __edittext_insert_at_point (OBJECT *editorpane_object,
 
   /* Make sure that the point is in the visible region. */
   /* going into __edittext_recenter */
-#if 0 /***/
+#if 0
   l_viewstart = INTVAL(viewstartline_instance_var -> __o_value);
   l_scrollmargin = INTVAL(scrollmargin_instance_var -> __o_value);
   l_viewlines = calc_viewlines ();
@@ -1243,9 +1240,6 @@ int __edittext_insert_at_point (OBJECT *editorpane_object,
     if (l -> next) {
       if (l_point >= l -> start && l_point < l -> next -> start) {
 	l_col = l_point - l -> start;
-	/* point_new = shorter_line_adj (l, l -> next, l_col); *//***/
-	/* EDITINTSET(point_instance_var, point_new); *//***/
-	/* cursor_line = line_no; *//***/
 	break;
       }
     } else {
@@ -1597,9 +1591,6 @@ int __edittext_scroll_down (OBJECT *editorpane_object) {
     if (l -> next) {
       if (l_point >= l -> start && l_point < l -> next -> start) {
 	l_col = l_point - l -> start;
-	/* point_new = shorter_line_adj (l, l -> next, l_col); *//***/
-	/* EDITINTSET(point_instance_var, point_new); *//***/
-	/* cursor_line = line_no; *//***/
 	break;
       }
     } else {
@@ -1640,9 +1631,6 @@ int __edittext_scroll_up (OBJECT *editorpane_object) {
     if (l -> next) {
       if (l_point >= l -> start && l_point < l -> next -> start) {
 	l_col = l_point - l -> start;
-	/* point_new = shorter_line_adj (l, l -> next, l_col); *//***/
-	/* EDITINTSET(point_instance_var, point_new); *//***/
-	/* cursor_line = line_no; *//***/
 	break;
       }
     } else {
@@ -1916,7 +1904,6 @@ int __edittext_get_primary_selection (OBJECT *editorpane_object,
   int r, s_start, s_end, data_length = 0;
   FILE *f_info, *f_dat;
 
-  /***/
   if ((win_id_var = __ctalkGetInstanceVariable (editorpane_object, "xWindowID",
 						TRUE)) != NULL) {
     if ((d_l = XOpenDisplay (getenv ("DISPLAY"))) != NULL) {
@@ -2003,7 +1990,6 @@ int __entrytext_get_primary_selection (OBJECT *entrypane_object,
   int r, s_start, s_end, data_length = 0;
   FILE *f_info, *f_dat;
 
-  /***/
   if ((win_id_var = __ctalkGetInstanceVariable (entrypane_object, "xWindowID",
 						TRUE)) != NULL) {
     if ((d_l = XOpenDisplay (getenv ("DISPLAY"))) != NULL) {
@@ -2037,7 +2023,6 @@ int __entrytext_get_primary_selection (OBJECT *entrypane_object,
     }
   }
 
-  /***/
   if ((displayPtr_var = __ctalkGetInstanceVariable (entrypane_object,
 						    "displayPtr",
 						    TRUE)) == NULL) {
@@ -2053,13 +2038,11 @@ int __entrytext_get_primary_selection (OBJECT *entrypane_object,
 
   d_l = (Display *)SYMVAL(displayPtr_var -> instancevars -> __o_value);
 
-  if (DIALOG(d_l)) {
+  if (dialog_dpy ()) {
     __xlib_get_primary_selection (d_l, (Drawable)0, (GC)0,
 				  handle_basename_path);
   } else {
-    make_req (shm_mem,
-	      /* SYMVAL(displayPtr_var -> instancevars -> __o_value), *//***/
-	      d_l,
+    make_req (shm_mem, d_l,
 	      PANE_GET_PRIMARY_SELECTION_REQUEST, 0, 0,
 	      handle_basename_path);
     wait_req (shm_mem);
@@ -2201,7 +2184,6 @@ int __xlib_render_text (Display *d, Drawable pixmap, GC gc, char *fn) {
   GC cursor_gc, selection_gc;
   XRenderColor fgColor;
   XftColor ftFg;
-  /***/
   XColor fg_screen, fg_exact;
   XGCValues xgcv_foreground;
   XColor l_selection_screen, l_selection_exact;
@@ -2260,7 +2242,6 @@ int __xlib_render_text (Display *d, Drawable pixmap, GC gc, char *fn) {
 		       &fgColor, &ftFg);
     line_height = selected_font -> ascent + selected_font -> descent;
   } else {
-    /***/
     XAllocNamedColor (d,
 		      DefaultColormap (d, DefaultScreen (d)),
 		      fgcolorname, &fg_screen, &fg_exact);
@@ -2358,13 +2339,8 @@ int __xlib_render_text (Display *d, Drawable pixmap, GC gc, char *fn) {
       }
       line_y = line_height;
       visible_line = 0;
-#if 1 /***/
       for (l = text_lines; l && (visible_line <= view_end_y); l = l -> next) {
 	if (visible_line >= view_start_y) {
-#else
-       for (l = text_lines; l; l = l -> next) {
-	if (visible_line >= view_start_y && visible_line <= view_end_y) {
-#endif	  
 	  line_x = l -> start;
 	  for (i_x = 0; l -> text[i_x]; ++i_x) {
 	    if ((line_x + i_x >= selection_start) &&
@@ -2405,10 +2381,6 @@ int __xlib_render_text (Display *d, Drawable pixmap, GC gc, char *fn) {
       visible_line = 0;
       for (l = text_lines; l && (visible_line <= view_end_y); l = l -> next) {
 	if (visible_line >= view_start_y) {
-#if 0 /***/
-      for (l = text_lines; l; l = l -> next) {
-	if (visible_line >= view_start_y && visible_line <= view_end_y) {
-#endif	  
 	  line_x = l -> start;
 	  for (i_x = 0; l -> text[i_x]; ++i_x) {
 	    if ((line_x + i_x >= selection_start) &&
@@ -2454,8 +2426,6 @@ int __edittext_get_primary_selection (OBJECT *editorpane_object,
   Drawable win_id, selection_win;
   FILE *f_info, *f_dat;
 
-
-  /***/
   if ((win_id_var = __ctalkGetInstanceVariable (editorpane_object, "xWindowID",
 						TRUE)) != NULL) {
     if ((d_l = XOpenDisplay (getenv ("DISPLAY"))) != NULL) {
@@ -2704,10 +2674,6 @@ int __xlib_render_text (Display *d, Drawable pixmap, GC gc, char *fn) {
     visible_line = 0;
     for (l = text_lines; l && (visible_line <= view_end_y); l = l -> next) {
       if (visible_line >= view_start_y) {
-#if 0 /***/
-    for (l = text_lines; l; l = l -> next) {
-      if (visible_line >= view_start_y && visible_line <= view_end_y) {
-#endif	
 	line_x = l -> start;
 	for (i_x = 0; l -> text[i_x]; ++i_x) {
 	  if ((line_x + i_x >= selection_start) &&

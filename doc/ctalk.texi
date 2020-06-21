@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.24 2020/06/20 16:55:13 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.26 2020/06/21 18:25:26 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -16655,7 +16655,7 @@ Handler methods for different types of X @code{InputEvent} objects.  For more in
 @end table
 
 
-@node X11YesNoBoxPane, X11TextPane, X11TextEntryPane, Classes
+@node X11YesNoBoxPane, X11TextEntryBox, X11TextEntryPane, Classes
 @iftex
 @section @code{X11YesNoBoxPane} Class
 @end iftex
@@ -17073,7 +17073,7 @@ the main program.
 @end table
 
 
-@node X11TextEntryBox, X11TextEditorPane, X11YesNoBoxPane, Classes
+@node X11TextEntryBox, X11TextPane, X11YesNoBoxPane, Classes
 @iftex
 @section @code{X11TextEntryBox} Class
 @end iftex
@@ -17255,14 +17255,19 @@ classes' @code{new} method).
 
 @table @code
 
+@cindex @code{dots} instance method @idxclscite{X11TextEntryBox}
+@item dots
+A @code{Boolean} that causes the entryPane to echo dots instead
+of the text that the user typed.
+
 @cindex @code{entryContents} instance method @idxclscite{X11TextEntryBox}
-@item draw (@code{entryContents}
+@item entryContents
 A @code{String} that contains the text contents of the entry window.
 This variable is updated whenever the contents of the @code{entryPane}
 object are modified.
 
 @cindex @code{entryPane} instance method @idxclscite{X11TextEntryBox}
-@item draw (@code{entryPane}
+@item entryPane
 The @code{X11TextEntryPane} object that is constructed when the
 @code{show} method is first called, and is updated and displayed
 via the @code{show} method's event loop.
@@ -17312,7 +17317,7 @@ pointer is over one of the subpanes.
 @end table
 
 
-@node X11TextPane, X11TextEditorPane, X11YesNoBoxPane, Classes
+@node X11TextPane, X11TextEditorPane, X11TextEntryBox, Classes
 @iftex
 @section @code{X11TextPane} Class
 @end iftex

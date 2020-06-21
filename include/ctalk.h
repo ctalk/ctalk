@@ -1,4 +1,4 @@
-/* $Id: ctalk.h,v 1.10 2020/06/08 23:45:33 rkiesling Exp $ -*-Fundamental-*- */
+/* $Id: ctalk.h,v 1.12 2020/06/21 04:04:59 rkiesling Exp $ -*-Fundamental-*- */
 
 /*
   This file is part of Ctalk.
@@ -1499,6 +1499,7 @@ int __entrytext_get_primary_selection (OBJECT *, void **, int *);
 int __entrytext_set_selection_owner (void *, unsigned int, unsigned long int);
 int __entrytext_update_selection (void *, unsigned int, unsigned long int,
     				  char *);
+int __entrytext_send_selection (void *, void *);				  
 
 /* lib/err_out.c */
 void _error_out (char *);
@@ -2777,6 +2778,7 @@ int __ctalkCloseX11DialogPane (OBJECT *);
 extern char **__ctalkIconXPM (int);
 extern char **__ctalkEntryIconXPM (int);
 extern void __enable_dialog (OBJECT *);
+Display *dialog_dpy (void);
 
 /* libdeps.c */
 int cache_ctpp_output_file (char *);

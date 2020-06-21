@@ -1,8 +1,8 @@
-/* $Id: guixpm.c,v 1.2 2020/05/21 23:25:51 rkiesling Exp $ -*-c-*-*/
+/* $Id: guixpm.c,v 1.3 2020/06/21 22:37:30 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
-  Copyright © 2014-2019  Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2014-2020  Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
 
@@ -35,7 +35,6 @@
 #define SHM_BLKSIZE 10240  /* If changing, also change in x11lib.c, etc... */
 
 extern Display *display;   /* Defined in x11lib.c. */
-extern DIALOG_C *dpyrec;   /* Declared in xdialog.c. */
 extern char *shm_mem;
 extern int mem_id;
 
@@ -121,7 +120,8 @@ int __ctalkX11XPMFromData (void *d, int drawable_id,
 	   ":", ctitoa (x_org, intbuf1),
 	   ":", ctitoa (y_org, intbuf2),
 	   ":", h, NULL);
-    if (DIALOG(d)) {
+
+  if (dialog_dpy ()) {
       __xlib_xpm_from_data (d, drawable_id, (GC)gc_ptr, d_buf);
     } else {
       make_req (shm_mem, d, PANE_XPM_FROM_DATA_REQUEST,

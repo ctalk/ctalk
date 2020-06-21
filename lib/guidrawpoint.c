@@ -1,4 +1,4 @@
-/* $Id: guidrawpoint.c,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ -*-c-*-*/
+/* $Id: guidrawpoint.c,v 1.3 2020/06/21 22:37:29 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -39,7 +39,6 @@
 #include "x11defs.h"
 
 extern Display *display;   /* Defined in x11lib.c. */
-extern DIALOG_C *dpyrec;   /* Declared in xdialog.c. */
 extern char *shm_mem;
 extern int mem_id;
 
@@ -89,7 +88,7 @@ int __ctalkX11PaneDrawPointBasic (void *d, int drawable_id,
 	   ":", pen_color,
 	   NULL);
   
-  if (DIALOG(d)) {
+  if (dialog_dpy ()) {
     __xlib_draw_point (d, drawable_id, (GC)gc_ptr, d_buf);
   } else {
     make_req (shm_mem, d, PANE_DRAW_POINT_REQUEST,

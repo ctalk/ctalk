@@ -886,3 +886,14 @@
 	library funciton (edittext.c).
 	- Updated __entrytext_get_primary_selection to work with
 	a dialog box (edittext.c).
+2020-06-20
+	- Added the push_dpyrec and pop_dpyrec functions. Updated
+	open_dialog_display_connection to call push_dpyrec and return
+	the new Display * to the window creation function. Added
+	display_dpy (xdialog.c).
+2020-06-21
+	- Added the X11TextEntryBox : dots instance variable.
+	- Updated the DIALOG macros int libctalk to display_dpy.
+
+
+

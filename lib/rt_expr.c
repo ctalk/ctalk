@@ -1,4 +1,4 @@
-/* $Id: rt_expr.c,v 1.2 2020/05/30 22:01:29 rkiesling Exp $ */
+/* $Id: rt_expr.c,v 1.4 2020/06/21 19:50:24 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -2142,17 +2142,18 @@ static inline bool resolve_single_object (MESSAGE *m, char *name) {
 
 /* be sure that have_instance_var and have_class_var are initialized
    before calling this fn.  Doesn't (yet) handle class names. */
-static bool non_method_label (OBJECT *prev_msg_obj, char *prev_msg_name,
+static bool non_method_label (MESSAGE *prev_msg,
+			      char *msg_name,
 			      char *pname,
 			      OBJECT **instance_var_tmp,
 			      OBJECT **class_var_tmp) {
   if ((*instance_var_tmp = __ctalkGetInstanceVariable
-       (prev_msg_obj, prev_msg_name, FALSE)) != NULL) {
-  } else if (IS_OBJECT(prev_msg_obj) &&
-	     str_eq (pname, prev_msg_obj -> __o_name) &&
-	     IS_OBJECT(prev_msg_obj -> __o_p_obj) &&
+       (prev_msg -> obj, msg_name, FALSE)) != NULL) {
+  } else if (IS_OBJECT(prev_msg -> obj) &&
+	     str_eq (pname, prev_msg -> obj -> __o_name) &&
+	     IS_OBJECT(prev_msg -> obj -> __o_p_obj) &&
 	     ((*instance_var_tmp =
-	       __ctalkGetInstanceVariable (prev_msg_obj -> __o_p_obj,
+	       __ctalkGetInstanceVariable (prev_msg -> obj -> __o_p_obj,
 					   pname, FALSE)) != NULL)) {
     /* this situation can occur if we have an instance or class
        var expression as an argument - the entire expression
@@ -2403,7 +2404,7 @@ OBJECT *eval_expr (char *s, OBJECT *recv_class, METHOD *method,
 	    METHOD *test_mthd;
 	    if ((aggregate_type_end == -2) ||
 		((m_prev_msg && 
-		  non_method_label (m_prev_msg -> obj, m -> name,
+		  non_method_label (m_prev_msg, m -> name,
 				    pname, &instance_var_tmp,
 				    &class_var_tmp) &&
 		  ((test_mthd =

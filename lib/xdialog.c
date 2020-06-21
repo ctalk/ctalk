@@ -60,18 +60,28 @@ void __save_pane_to_vars (OBJECT *, GC, int, int);
 void x_support_error ();
 int __x11_pane_border_width (OBJECT *);
 
+static void push_dpyrec (Display *d_l) {
+  dpyrec = __xalloc (sizeof (struct _dc));
+  dpyrec -> d_p = d_l;
+  dpyrec -> d_p_screen = DefaultScreen (dpyrec -> d_p);
+  dpyrec -> d_p_root = RootWindow (dpyrec -> d_p, dpyrec -> d_p_screen);
+  dpyrec -> d_p_screen_depth = DefaultDepth (dpyrec -> d_p, dpyrec -> d_p_screen);
+}
 
-static int open_dialog_display_connection (void) {
+static void pop_dpyrec (void) {
+  __xfree (MEMADDR(dpyrec));
+  dpyrec = NULL;
+}
+
+static Display *open_dialog_display_connection (void) {
+  Display *d_l;
   if (dpyrec == NULL || dpyrec -> d_p == NULL) {
-    dpyrec = __xalloc (sizeof (struct _dc));
-    if ((dpyrec -> d_p = XOpenDisplay (getenv ("DISPLAY"))) == NULL) {
-      return ERROR;
+    if ((d_l = XOpenDisplay (getenv ("DISPLAY"))) == NULL) {
+      return NULL;
     }
-    dpyrec -> d_p_screen = DefaultScreen (dpyrec -> d_p);
-    dpyrec -> d_p_root = RootWindow (dpyrec -> d_p, dpyrec -> d_p_screen);
-    dpyrec -> d_p_screen_depth = DefaultDepth (dpyrec -> d_p, dpyrec -> d_p_screen);
+    push_dpyrec (d_l);
   }
-  return SUCCESS;
+  return d_l;
 }
 
 static void dialog_xy_from_parent (OBJECT *self, OBJECT *mainWin,
@@ -112,6 +122,15 @@ static void dialog_xy_from_parent (OBJECT *self, OBJECT *mainWin,
   if (*y_org < 0) *y_org = 0;
 }
 
+Display *dialog_dpy (void) {
+  /* The parameter is not used yet. */
+  if (dpyrec && dpyrec -> d_p) {
+    return dpyrec -> d_p;
+  } else {
+    return NULL;
+  }
+}
+
 extern GC create_pane_win_gc (Display *d, Window w, OBJECT *pane);
 
 int __ctalkX11CreateDialogWindow (OBJECT *self_object) {
@@ -128,15 +147,16 @@ int __ctalkX11CreateDialogWindow (OBJECT *self_object) {
   int pane_x, pane_y, pane_width, pane_height, border_width;
   unsigned int width_return, height_return, depth_return, border_width_return;
   int x_org, y_org, x_size, y_size;
+  Display *d_l;
 
   wm_event_mask = WM_CONFIGURE_EVENTS | WM_INPUT_EVENTS;
 
-  if (open_dialog_display_connection () < 0) {
+  if ((d_l = open_dialog_display_connection ()) == NULL) {
     return ERROR;
   } else {
     displayPtr = __ctalkGetInstanceVariable (self_object,
 					     "displayPtr", TRUE);
-    SYMVAL(displayPtr -> instancevars -> __o_value) = (uintptr_t)dpyrec -> d_p;
+    SYMVAL(displayPtr -> instancevars -> __o_value) = (uintptr_t)d_l;
   }
   mainWinPtr = __ctalkGetInstanceVariable (self_object,
 					   "mainWindowPtr", TRUE);
@@ -202,9 +222,13 @@ int __ctalkX11CreateDialogWindow (OBJECT *self_object) {
 void __enable_dialog (OBJECT *self) {
   OBJECT *mainWinPtr, *mainWin, *self_xID;
   OBJECT *origin_var, *origin_x_var, *origin_y_var;
+  OBJECT *displayPtr_var;
   Window self_win;
   int x_org, y_org;
 
+  displayPtr_var = __ctalkGetInstanceVariable (self, "displayPtr", TRUE);
+  push_dpyrec ((Display *)SYMVAL(displayPtr_var -> instancevars -> __o_value));
+      
   origin_var = __ctalkGetInstanceVariable (self, "origin", TRUE);
   origin_x_var = __ctalkGetInstanceVariable (origin_var, "x", TRUE);
   origin_y_var = __ctalkGetInstanceVariable (origin_var, "y", TRUE);
@@ -227,9 +251,7 @@ void __enable_dialog (OBJECT *self) {
 }
 
 int __ctalkCloseX11DialogPane (OBJECT *self) {
-
-  dpyrec -> mapped = false;
-
+  pop_dpyrec ();
   return SUCCESS;
 }
 

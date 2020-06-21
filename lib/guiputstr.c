@@ -1,8 +1,8 @@
-/* $Id: guiputstr.c,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ -*-c-*-*/
+/* $Id: guiputstr.c,v 1.2 2020/06/21 22:37:30 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
-  Copyright © 2005-2012, 2016-2019 Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2005-2012, 2016-2020 Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
 
@@ -39,7 +39,6 @@
 #include "x11defs.h"
 
 extern Display *display;   /* Defined in x11lib.c. */
-extern DIALOG_C *dpyrec;   /* Defined in xdialog.c. */
 
 extern char *shm_mem;
 extern int mem_id;
@@ -80,7 +79,7 @@ int __ctalkX11PanePutStrBasic (void *d, int drawable_id, unsigned long int gc_pt
 	     ":", (((y >= 0) && (y <= 8192)) ? ascii[y] : ascii[0]),
 	     ":", s, NULL);
 
-    if (DIALOG(d)) {
+    if (dialog_dpy ()) {
       __xlib_put_str_ft (d, drawable_id, (GC)gc_ptr, d_buf);
       return SUCCESS;
     } else {
@@ -93,7 +92,7 @@ int __ctalkX11PanePutStrBasic (void *d, int drawable_id, unsigned long int gc_pt
 
     strcatx (d_buf, ascii[x], ":", ascii[y], ":", s, NULL);
 
-    if (DIALOG(d)) {
+    if (dialog_dpy ()) {
       __xlib_put_str (d, drawable_id, (GC)gc_ptr, d_buf);
       return SUCCESS;
     } else {
@@ -109,7 +108,6 @@ int __ctalkX11PanePutStrBasic (void *d, int drawable_id, unsigned long int gc_pt
   send_event.xgraphicsexpose.drawable = drawable_id;
   XSendEvent (display, drawable_id, False, 0L, &send_event);
 #endif
-  /* wait_req (shm_mem); *//***/
 
   return SUCCESS;
 }

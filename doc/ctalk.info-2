@@ -4670,7 +4670,7 @@ Instance Methods
      'X11PaneDispatcher' class.  *Note X11PaneDispatcher::.
 
 
-File: ctalk.info,  Node: X11YesNoBoxPane,  Next: X11TextPane,  Prev: X11TextEntryPane,  Up: Classes
+File: ctalk.info,  Node: X11YesNoBoxPane,  Next: X11TextEntryBox,  Prev: X11TextEntryPane,  Up: Classes
 
 'X11YesNoBoxPane' Class
 -----------------------
@@ -5024,7 +5024,7 @@ Instance Methods
      returns to the main program.
 
 
-File: ctalk.info,  Node: X11TextEntryBox,  Next: X11TextEditorPane,  Prev: X11YesNoBoxPane,  Up: Classes
+File: ctalk.info,  Node: X11TextEntryBox,  Next: X11TextPane,  Prev: X11YesNoBoxPane,  Up: Classes
 
 'X11TextEntryBox' Class
 -----------------------
@@ -5183,12 +5183,16 @@ constructed (generally, this is done by each classes' 'new' method).
 Instance Variables
 ------------------
 
-'draw (entryContents'
+'dots'
+     A 'Boolean' that causes the entryPane to echo dots instead of the
+     text that the user typed.
+
+'entryContents'
      A 'String' that contains the text contents of the entry window.
      This variable is updated whenever the contents of the 'entryPane'
      object are modified.
 
-'draw (entryPane'
+'entryPane'
      The 'X11TextEntryPane' object that is constructed when the 'show'
      method is first called, and is updated and displayed via the 'show'
      method's event loop.
@@ -5227,7 +5231,7 @@ Instance Methods
      the pointer is over one of the subpanes.
 
 
-File: ctalk.info,  Node: X11TextPane,  Next: X11TextEditorPane,  Prev: X11YesNoBoxPane,  Up: Classes
+File: ctalk.info,  Node: X11TextPane,  Next: X11TextEditorPane,  Prev: X11TextEntryBox,  Up: Classes
 
 'X11TextPane' Class
 -------------------

@@ -1,4 +1,4 @@
-/* $Id: guidrawrectangle.c,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ -*-c-*-*/
+/* $Id: guidrawrectangle.c,v 1.2 2020/06/21 22:37:29 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -38,7 +38,6 @@
 #include "x11defs.h"
 
 extern Display *display;   /* Defined in x11lib.c. */
-extern DIALOG_C *dpyrec;
 
 extern char *shm_mem;
 extern int mem_id;
@@ -109,7 +108,7 @@ int __ctalkX11PaneDrawRectangleBasic (void *d, int drawable_id,
 	   ascii[corner_radius], ":",
 	   pen_color, NULL);
 	   
-  if (DIALOG(d)) {
+  if (dialog_dpy ()) {
     __xlib_draw_rectangle (d, drawable_id, (GC)gc_ptr, d_buf);
   } else {
     make_req (shm_mem, d, 
@@ -202,9 +201,9 @@ int __ctalkGUIPaneDrawRectangle (OBJECT *self, OBJECT *rectangle, OBJECT *pen,
 	   ctitoa (panebuffer_xid, intbuf2), ":",
 	   ascii[0], ":",   /* radius */
 	   pen_color_object->instancevars->__o_value,
-	   NULL); /***/
+	   NULL);
 	   
-  if (DIALOG(l_d)) {
+  if (dialog_dpy ()) {
     __xlib_draw_rectangle (l_d, INTVAL(win_id_value -> __o_value),
 			   (GC)SYMVAL(gc_value -> __o_value), d_buf);
   } else {
@@ -309,9 +308,9 @@ int __ctalkGUIPaneDrawRoundedRectangle (OBJECT *self, OBJECT *rectangle,
 	   ctitoa (panebuffer_xid, intbuf2), ":",
 	   ascii[corner_radius], ":",
 	   pen_color_object->instancevars->__o_value,
-	   NULL); /***/
+	   NULL);
 	   
-  if (DIALOG(l_d)) {
+  if (dialog_dpy ()) {
     __xlib_draw_rectangle (l_d, INTVAL(win_id_value -> __o_value),
 			   (GC)SYMVAL(gc_value -> __o_value), d_buf);
   } else {

@@ -1,4 +1,4 @@
-/* $Id: guidrawline.c,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ -*-c-*-*/
+/* $Id: guidrawline.c,v 1.3 2020/06/21 17:46:39 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -41,7 +41,6 @@
 char intbuf[MAXARGS][MAXLABEL] = {'\0',};
 
 extern Display *display;   /* Defined in x11lib.c. */
-extern DIALOG_C *dpyrec;   /* Defined in xdialog.c */
 
 extern char *shm_mem;
 extern int mem_id;
@@ -105,7 +104,7 @@ int __ctalkX11PaneDrawLineBasic (void *d, int drawable_id,
 	   ":", pen_color,
 	   NULL);
   
-  if (DIALOG(d)) {
+  if (dialog_dpy ()) {
     __xlib_draw_line (d, drawable_id, (GC)gc_ptr, d_buf);
   } else {
 
@@ -191,7 +190,7 @@ int __ctalkGUIPaneDrawLine (OBJECT *self, OBJECT *line, OBJECT *pen) {
 	   pen_color_object->instancevars->__o_value,
 	   NULL);
 
-  if (DIALOG(l_d)) {
+  if (dialog_dpy ()) {
     __xlib_draw_line (l_d, INTVAL(win_id_value -> __o_value),
 		      (GC)SYMVAL(gc_value -> __o_value),
 		      d_buf);

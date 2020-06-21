@@ -1,4 +1,4 @@
-/* $Id: x11lib.c,v 1.7 2020/06/17 01:44:51 rkiesling Exp $ -*-c-*-*/
+/* $Id: x11lib.c,v 1.8 2020/06/21 22:37:30 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -96,8 +96,6 @@ static int screen, screen_depth;
 int display_width, display_height;
 static Window root;
 static bool wm_xfce, wm_kwin, wm_xquartz;
-
-extern DIALOG_C *dpyrec;
 
 extern char **fixed_font_set;
 Font fixed_font = 0;
@@ -554,7 +552,7 @@ int __xlib_put_str_ft (Display *d, Drawable w, GC gc, char *s) {
 		      (unsigned char *)c_term, 
 		      strlen (c_term));
 
-  if (DIALOG(d)) {
+  if (dialog_dpy ()) {
     /* The next call may be a completely new server connection. */
     XftDrawDestroy (ft_str.draw);
     ft_str.draw = NULL;
@@ -3884,7 +3882,7 @@ int __ctalkX11UseFontBasic (void *d, int drawable_id, unsigned long int gc_ptr,
 
     sprintf (d_buf, ":%ld:%s", GCFont, xlfd);
 
-    if (DIALOG(d)) {
+    if (dialog_dpy ()) {
 
       __xlib_change_gc (d, drawable_id, (GC)gc_ptr, d_buf);
 
@@ -3952,9 +3950,7 @@ int __ctalkX11FontCursor (OBJECT *self, int cursor_id) {
   if (display == NULL) {
     __x11_open_display ();
     l_d = display;
-  } else if (dpyrec) {
-    l_d = dpyrec -> d_p ? dpyrec -> d_p : display;
-  } else {
+  } else if ((l_d = dialog_dpy ()) == NULL) {
     l_d = display;
   }
   switch (cursor_id)
@@ -4007,7 +4003,7 @@ int __ctalkX11UseCursor (OBJECT *pane_object, OBJECT *cursor_object) {
   }
   sprintf (d_buf, "%lu", cursor);
 
-  if (DIALOG(l_d)) {
+  if (dialog_dpy ()) {
     __xlib_use_cursor (l_d, INTVAL(win_id_value -> __o_value),
 		       (GC)SYMVAL(gc_value -> __o_value), d_buf);
   } else {

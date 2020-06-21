@@ -1,8 +1,8 @@
-/* $Id: guiclearrectangle.c,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ -*-c-*-*/
+/* $Id: guiclearrectangle.c,v 1.3 2020/06/21 17:14:25 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
-  Copyright © 2005-2012, 2015-2019  Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2005-2012, 2015-2020  Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
 
@@ -38,8 +38,6 @@
 #include "x11defs.h"
 
 extern Display *display;   /* Defined in x11lib.c. */
-
-extern DIALOG_C *dpyrec;
 
 extern char *shm_mem;
 extern int mem_id;
@@ -116,7 +114,7 @@ int __ctalkX11ClearRectangleBasic (void *d, int drawable_id,
 	     ctitoa (drawable_id, cr_intbuf2), ":",
 	     NULL);
 
-    if (DIALOG(d)) {
+    if (dialog_dpy ()) {
       __xlib_clear_rectangle (d, drawable_id, (GC)gc_ptr, d_buf);
     } else {
       make_req (shm_mem, (uintptr_t)d, PANE_CLEAR_RECTANGLE_REQUEST,
@@ -167,7 +165,7 @@ int __ctalkGUIPaneClearRectangle (OBJECT *self, int x, int y,
 	     ctitoa (panebuffer_xid, cr_intbuf5), ":",
 	     ctitoa (panebackingstore_xid, cr_intbuf6), ":",
 	     NULL);
-    if (DIALOG(l_d)) {
+    if (dialog_dpy ()) {
       __xlib_clear_rectangle (l_d, panebuffer_xid,
 			      (GC)SYMVAL(gc_value -> __o_value), d_buf);
 			      
@@ -184,7 +182,7 @@ int __ctalkGUIPaneClearRectangle (OBJECT *self, int x, int y,
 	     ascii[width], ":",
 	     ascii[height], ":", ":0:0:",
 	     NULL);
-    if (DIALOG(l_d)) {
+    if (dialog_dpy ()) {
       __xlib_clear_rectangle (l_d, panebuffer_xid,
 			      (GC)SYMVAL(gc_value -> __o_value), d_buf);
 			      

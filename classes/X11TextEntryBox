@@ -1,4 +1,4 @@
-/* $Id: X11TextEntryBox,v 1.20 2020/06/20 16:55:12 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11TextEntryBox,v 1.21 2020/06/21 17:46:38 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -28,8 +28,9 @@
 
 X11YesNoBoxPane class X11TextEntryBox;
 
-X11YesNoBoxPane instanceVariable entryPane X11TextEntryPane NULL;
-X11YesNoBoxPane instanceVariable entryContents String NULL;
+X11TextEntryBox instanceVariable entryPane X11TextEntryPane NULL;
+X11TextEntryBox instanceVariable entryContents String NULL;
+X11TextEntryBox instanceVariable dots Boolean false;
 
 #define KEY_TAB   1
 #define KEY_ENTER 2
@@ -143,6 +144,9 @@ X11TextEntryBox instanceMethod initWidgets (void) {
   
   geomspec printOn "%dx%d+%d+%d", entry_width_px, entry_height_px,
     entry_x_px, entry_y_px;
+
+  if (self dots)
+    l_entry dots = true;
 
   self entryPane become l_entry;
   self entryPane attachTo self, geomspec;
