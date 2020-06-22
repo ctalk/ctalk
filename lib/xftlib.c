@@ -1,4 +1,4 @@
-/* $Id: xftlib.c,v 1.2 2020/06/04 04:38:16 rkiesling Exp $ -*-c-*-*/
+/* $Id: xftlib.c,v 1.4 2020/06/22 03:32:47 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -74,9 +74,8 @@ char *__ctalkXftSelectedFontPath (void);
 
 extern Display *display;  /* Defined in x11lib.c.  */
 
-extern DIALOG_C *dpyrec;
-#define DISPLAY (((dpyrec == NULL) || (dpyrec -> mapped == false)) ?	\
-		 display : dpyrec -> d_p)
+#define DISPLAY ((dialog_dpy () != NULL) ? dialog_dpy () : \
+		 display)
 
 extern void sync_ft_font (bool);
 
@@ -85,7 +84,6 @@ FT_Face ft2_selectedface = NULL;
 
 FcConfig *config = NULL;
 XftFont *selected_font = NULL;
-/* static char selected_font_path[FILENAME_MAX];*//***/
 
 unsigned short fgred = 0, fggreen = 0, fgblue = 0, fgalpha = 0xffff;
 
@@ -1641,13 +1639,15 @@ void save_new_color_spec (XRenderColor *c) {
 
 static bool new_font_spec (char *p_family, int p_weight, int p_slant,
 			   int p_dpi, double p_pt_size) {
+  Display *d_l = DISPLAY;
+
   if (strcmp (p_family, g_family))
     return true;
   if ((p_weight != g_weight) ||
       (p_slant != g_slant) ||
       (p_dpi != g_dpi) ||
       (p_pt_size != g_pt_size) ||
-      (DISPLAY != g_dpy))
+      (d_l != g_dpy))
     return true;
   else
     return false;

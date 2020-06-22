@@ -1,4 +1,4 @@
-/* $Id: ctalk.h,v 1.12 2020/06/21 04:04:59 rkiesling Exp $ -*-Fundamental-*- */
+/* $Id: ctalk.h,v 1.13 2020/06/22 04:22:08 rkiesling Exp $ -*-Fundamental-*- */
 
 /*
   This file is part of Ctalk.
@@ -2180,6 +2180,7 @@ char *math_op_does_not_understand_error (MESSAGE_STACK, int, int, int, int);
 void strtol_error (int, char *, char *);
 char *vartab_var_basename (char *);
 void __ctalkRegisterUserFunctionName (char *);
+void self_enclosing_class_message_warning (OBJECT *, char *, char *);
 
 /* lib/sconvchk.c */
 int chkatoi (const char *);

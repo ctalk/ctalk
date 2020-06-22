@@ -1,4 +1,4 @@
-/* $Id: rt_error.c,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ -*-c-*-*/
+/* $Id: rt_error.c,v 1.2 2020/06/22 04:22:08 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -290,4 +290,24 @@ void __ctalkRegisterUserFunctionName (char *name) {
   } else {
     list_add (user_fns, l);
   }
+}
+
+/* Display a warning if we've used self as a receiver in an argument
+   block, but the next message is an instance or class variable
+   in the enclosing method's receiver class, in which case the
+   expression should use "super" instead of "self". */
+void self_enclosing_class_message_warning (OBJECT *encl_rcvr_class_obj,
+					   char *expr, char *msg) {
+  OBJECT *tmp = create_object_init_internal
+    ("tmp", encl_rcvr_class_obj, CREATED_PARAM, "");
+  __ctalkInstanceVarsFromClassObject (tmp);
+  if (__ctalkGetInstanceVariable (tmp, msg, FALSE) ||
+      __ctalkGetClassVariable (tmp, msg, FALSE)) {
+    _warning ("In the argument block expression:\n\n\t%s\n\n"
+	      "Found the instance variable definition \"%s\" in "
+	      "the enclosing method's receiver class.\n"
+	      "Did you mean to use, \"super?\"\n",
+	      expr, msg);
+  }
+  __ctalkDeleteObject (tmp);
 }

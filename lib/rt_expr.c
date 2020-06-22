@@ -1,4 +1,4 @@
-/* $Id: rt_expr.c,v 1.4 2020/06/21 19:50:24 rkiesling Exp $ */
+/* $Id: rt_expr.c,v 1.5 2020/06/22 04:22:08 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -2163,6 +2163,22 @@ static bool non_method_label (MESSAGE *prev_msg,
     *class_var_tmp = __ctalkFindClassVariable (pname, FALSE);
   }
   
+  if ((*instance_var_tmp == NULL && *class_var_tmp == NULL) &&
+      __call_stack[__call_stack_ptr + 1] -> inline_call &&
+      (prev_msg -> attrs & RT_TOK_IS_SELF_KEYWORD)) {
+    /* If we haven't found an instance var or a method, 
+       and the preceding token is "self" and we're in an
+       argument block, then check for the message in the
+       receiver's superclass, and warn the user if that's
+       the case. */
+    OBJECT *encl_rcvr_class = __call_stack[__call_stack_ptr + 2]
+      -> rcvr_class_obj;
+    self_enclosing_class_message_warning
+      (__call_stack[__call_stack_ptr+2] -> rcvr_class_obj,
+       expr_parsers[expr_parser_ptr] -> expr_str,
+       msg_name);
+  }
+
   return !(*instance_var_tmp || *class_var_tmp);
 }
 

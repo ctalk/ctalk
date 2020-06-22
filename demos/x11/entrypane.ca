@@ -1,5 +1,8 @@
 /* entrypane.ca, a X11TextEntryPane demonstration. -*-c-*- */
 
+/* Uncomment if you want the entry box to echo dots. */
+/* #define DOTS */
+
 #include <ctalk/ctalkdefs.h>
 
 int main (int argv, char **argc) {
@@ -19,7 +22,10 @@ int main (int argv, char **argc) {
   label resources replaceAt "textColor", "white";
   label resources replaceAt "highlightTextColor", "white";
   label border = false;
+
+#ifdef DOTS
   entry dots = true;
+#endif  
   
   xPane inputStream eventMask = EXPOSE|ENTERWINDOWNOTIFY|LEAVEWINDOWNOTIFY| \
     KEYPRESS|KEYRELEASE|WINDELETE|BUTTONPRESS|BUTTONRELEASE|MOTIONNOTIFY| \

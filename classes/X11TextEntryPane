@@ -1,4 +1,4 @@
-/* $Id: X11TextEntryPane,v 1.83 2020/06/21 22:07:00 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11TextEntryPane,v 1.85 2020/06/22 04:27:07 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -414,8 +414,6 @@ X11TextEntryPane instanceMethod draw (void) {
   self chars map {
     if (idx >= super clipX) {
       if (super dots) {
-	/* Leave here for testing right now. */
-	/* self paneBuffer drawPoint drawX, super baselineY, dotPen; */
 	super paneBuffer drawPoint drawX, super baselineY, dotPen;
 	drawX += dotPen width;
       } else {
