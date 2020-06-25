@@ -1,4 +1,4 @@
-/* $Id: X11TextEntryBox,v 1.21 2020/06/21 17:46:38 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11TextEntryBox,v 1.22 2020/06/24 22:16:30 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -58,7 +58,9 @@ X11TextEntryBox instanceMethod new (String paneName) {
 
 X11TextEntryBox instanceMethod draw (void) {
   
+#if 0
   self fill self resources at "backgroundColor";
+#endif  
 
   self label draw;
   self entryPane draw;

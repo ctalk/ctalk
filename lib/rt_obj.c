@@ -1,4 +1,4 @@
-/* $Id: rt_obj.c,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ */
+/* $Id: rt_obj.c,v 1.6 2020/06/25 18:51:34 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -1542,7 +1542,12 @@ static bool __get_object_from_tag (OBJECT *o) {
   if (IS_OBJECT (o)) {
     if (o -> __o_vartags) {
       if (!IS_EMPTY_VARTAG (o -> __o_vartags)) {
+#if 1
+	if (IS_VARENTRY(o -> __o_vartags -> tag) &&
+	    IS_PARAM (o -> __o_vartags -> tag -> var_decl)) {
+#else
 	if (IS_PARAM (o -> __o_vartags -> tag -> var_decl)) {
+#endif
 	  return (bool) __ctalk_get_object 
 	    (o -> __o_vartags -> tag -> var_decl -> name,
 	     o -> __o_vartags -> tag -> var_decl -> class);
@@ -2334,7 +2339,14 @@ void delete_extra_local_objects (EXPR_PARSER *p) {
 	      __ctalkRegisterExtraObjectInternal 
 		(M_LOCAL_VAR_LIST(m) -> var_object, m);
 	    } else {
-	      __ctalkDeleteObject (M_LOCAL_VAR_LIST(m) -> var_object); 
+	      if (M_LOCAL_VAR_LIST(m) -> var_object -> scope &
+		  LOCAL_VAR) {
+		M_LOCAL_VAR_LIST(m) -> var_object =
+		  M_LOCAL_VAR_LIST(m) -> orig_object_rec;
+		M_LOCAL_VAR_LIST(m) -> orig_object_rec = NULL;
+	      } else {
+		__ctalkDeleteObject (M_LOCAL_VAR_LIST(m) -> var_object);
+	      }
 	    }
 	    delete_varentry (M_LOCAL_VAR_LIST(m));
 	    M_LOCAL_VAR_LIST(m) = NULL;

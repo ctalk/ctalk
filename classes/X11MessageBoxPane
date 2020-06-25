@@ -1,4 +1,4 @@
-/* $Id: X11MessageBoxPane,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11MessageBoxPane,v 1.2 2020/06/25 18:51:33 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -389,6 +389,14 @@ X11MessageBoxPane instanceMethod initWidgets (void) {
 extern Atom wm_delete_dialog;
 extern void __enable_dialog (OBJECT *);
 
+/* Use a Non-Dialog Container - 
+   Uncomment the #define below if we want to keep track of the 
+   container when the messagebox is opened from a non-dialog window - 
+   unlike a validatedtextentrybox - otherwise we might need to think
+   of some other way to keep track of the subPanes for keyboard
+   equivalents. */
+/* #define NDC */
+   
 X11MessageBoxPane instanceMethod show (void) {
   "Displays the pane's window. Note that th method uses raw X
    events. This is because the pane maintains its own connection
@@ -397,19 +405,30 @@ X11MessageBoxPane instanceMethod show (void) {
   Display *display;
   Window win_id;
   XEvent xev;
+#if NDC
+  /* This might be temporary - We may need for the dispatcher to
+     keep track of the subPanes externally for keystroke equivalents,
+     and we may also need to add a library function to determine if
+     we should not be checking the container if the pane is opened
+     via a dialog. */
   X11PaneDispatcher new dispatcher;
+#endif  
   X11Pane new mainWin;
   InputEvent new e;
 
+#if NDC
   dispatcher = *self container;
   mainWin = dispatcher mainWindow;
+#endif  
   
   if (!self initialized) {
 
     win_id = __ctalkX11CreateDialogWindow (self);
     self xWindowID = win_id;
+#if NDC
     dispatcher modalWin = win_id;
     dispatcher modalPane = self;
+#endif    
 
     display = self displayPtr;
   
@@ -455,8 +474,10 @@ X11MessageBoxPane instanceMethod show (void) {
 	    e eventClass = BUTTONRELEASE;
 	    self methodObjectMessage self handlePointerInput, self, e;
 	    self withdraw;
+#if NDC
 	    dispatcher modalWin = 0;
 	    dispatcher modalPane = NULL;
+#endif	    
 	    return self;
 	  }
 	  break;
@@ -483,8 +504,10 @@ X11MessageBoxPane instanceMethod show (void) {
 	  self methodObjectMessage self handleKbdInput, self, e;
 	  if (self keyState == KEY_ENTER) {
 	    self withdraw;
+#if NDC
 	    dispatcher modalWin = 0;
 	    dispatcher modalPane = NULL;
+#endif	    
 	    return self;
 	  }
 	  break;
@@ -494,8 +517,10 @@ X11MessageBoxPane instanceMethod show (void) {
 	case ClientMessage:
 	  if(xev.xclient.data.l[0] == wm_delete_dialog) {
 	    self withdraw;
+#if NDC
 	    dispatcher modalWin = 0;
 	    dispatcher modalPane = NULL;
+#endif
 	    return self;
 	  }
 	  break;

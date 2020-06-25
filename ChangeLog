@@ -898,6 +898,13 @@
 	dialog_dpy function.
 	- Added the self_enclosing_class_message_warning
 	(rt_error.c), called by non_message_label (rt_expr.c).
+2020-06-22
+	- Changed dpyrec into the dpyrecs stack (xdialog.c).
+	- Added a check for a valid VARTAG in __get_object_from_tag
+	(rt_obj.c).
+2020-06-23
+	- Updated delete_extra_local_objects to not delete objects
+	declared as LOCAL_VAR (rt_obj.c).
 
 
 

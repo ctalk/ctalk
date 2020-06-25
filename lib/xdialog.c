@@ -43,7 +43,11 @@
 #include "x11defs.h"
 #include <X11/Xutil.h>
 
-DIALOG_C *dpyrec = NULL;
+/* DIALOG_C *dpyrec = NULL; */
+#define N_DPYRECS 63
+#define C_DPYREC dpyrecs[dpyrecs_ptr+1]
+static DIALOG_C *dpyrecs[N_DPYRECS+1] =  {NULL,};
+static int dpyrecs_ptr = N_DPYRECS;
 
 Atom wm_delete_dialog;
 extern Font fixed_font;
@@ -61,26 +65,33 @@ void x_support_error ();
 int __x11_pane_border_width (OBJECT *);
 
 static void push_dpyrec (Display *d_l) {
-  dpyrec = __xalloc (sizeof (struct _dc));
-  dpyrec -> d_p = d_l;
-  dpyrec -> d_p_screen = DefaultScreen (dpyrec -> d_p);
-  dpyrec -> d_p_root = RootWindow (dpyrec -> d_p, dpyrec -> d_p_screen);
-  dpyrec -> d_p_screen_depth = DefaultDepth (dpyrec -> d_p, dpyrec -> d_p_screen);
+  dpyrecs[dpyrecs_ptr] = __xalloc (sizeof (struct _dc));
+  dpyrecs[dpyrecs_ptr] -> d_p = d_l;
+  dpyrecs[dpyrecs_ptr] -> d_p_screen =
+    DefaultScreen (dpyrecs[dpyrecs_ptr] -> d_p);
+  dpyrecs[dpyrecs_ptr] -> d_p_root =
+    RootWindow (dpyrecs[dpyrecs_ptr] -> d_p,
+		dpyrecs[dpyrecs_ptr] -> d_p_screen);
+  dpyrecs[dpyrecs_ptr] -> d_p_screen_depth =
+    DefaultDepth (dpyrecs[dpyrecs_ptr] -> d_p,
+		  dpyrecs[dpyrecs_ptr] -> d_p_screen);
+  --dpyrecs_ptr;
 }
 
 static void pop_dpyrec (void) {
-  __xfree (MEMADDR(dpyrec));
-  dpyrec = NULL;
+  ++dpyrecs_ptr;
+  __xfree (MEMADDR(dpyrecs[dpyrecs_ptr]));
+  dpyrecs[dpyrecs_ptr] = NULL;
 }
 
 static Display *open_dialog_display_connection (void) {
   Display *d_l;
-  if (dpyrec == NULL || dpyrec -> d_p == NULL) {
-    if ((d_l = XOpenDisplay (getenv ("DISPLAY"))) == NULL) {
-      return NULL;
-    }
-    push_dpyrec (d_l);
+  /* if (dpyrecs[dpyrecs_ptr+1] == NULL || dpyrec -> d_p == NULL) { *//***/
+  if ((d_l = XOpenDisplay (getenv ("DISPLAY"))) == NULL) {
+    return NULL;
   }
+  push_dpyrec (d_l);
+    /* }*/ /***/
   return d_l;
 }
 
@@ -123,9 +134,12 @@ static void dialog_xy_from_parent (OBJECT *self, OBJECT *mainWin,
 }
 
 Display *dialog_dpy (void) {
-  /* The parameter is not used yet. */
-  if (dpyrec && dpyrec -> d_p) {
-    return dpyrec -> d_p;
+  if (dpyrecs_ptr < N_DPYRECS) {
+    if ((C_DPYREC != NULL) && (C_DPYREC -> d_p != NULL)) {
+      return C_DPYREC -> d_p;
+    } else {
+      return NULL;
+    }
   } else {
     return NULL;
   }
@@ -175,9 +189,9 @@ int __ctalkX11CreateDialogWindow (OBJECT *self_object) {
   x_size = __pane_x_size (self_object);
   y_size = __pane_y_size (self_object);
 
-  win_id = XCreateWindow (dpyrec -> d_p, dpyrec -> d_p_root, 
+  win_id = XCreateWindow (C_DPYREC -> d_p, C_DPYREC -> d_p_root, 
 			  x_org, y_org, x_size, y_size,
-			  border_width, dpyrec -> d_p_screen_depth,
+			  border_width, C_DPYREC -> d_p_screen_depth,
 			  CopyFromParent, CopyFromParent, 
 			  CWBackingStore|CWSaveUnder,
 			  &set_attributes);
@@ -185,7 +199,7 @@ int __ctalkX11CreateDialogWindow (OBJECT *self_object) {
   wm_hints.flags = (InputHint|StateHint);
   wm_hints.input = TRUE;
   wm_hints.initial_state = NormalState;
-  XSetWMHints (dpyrec -> d_p, win_id, &wm_hints);
+  XSetWMHints (C_DPYREC -> d_p, win_id, &wm_hints);
   
   size_hints = XAllocSizeHints ();
   size_hints -> x = x_org;
@@ -193,28 +207,30 @@ int __ctalkX11CreateDialogWindow (OBJECT *self_object) {
   size_hints -> base_width = x_size;
   size_hints -> base_height = y_size;
   size_hints -> flags = PWinGravity|USSize|USPosition;
-  XSetWMNormalHints (dpyrec -> d_p, win_id, size_hints);
+  XSetWMNormalHints (C_DPYREC -> d_p, win_id, size_hints);
   XFree (size_hints);
 
-  wm_delete_dialog = XInternAtom (dpyrec -> d_p, "WM_DELETE_WINDOW", False);
-  XSetWMProtocols (dpyrec -> d_p, win_id, &wm_delete_dialog, 1);
+  wm_delete_dialog = XInternAtom (C_DPYREC -> d_p, "WM_DELETE_WINDOW", False);
+  XSetWMProtocols (C_DPYREC -> d_p, win_id, &wm_delete_dialog, 1);
 
-  XSetWindowBorder (dpyrec -> d_p, win_id, BlackPixel(dpyrec -> d_p, dpyrec -> d_p_screen));
-  XSelectInput(dpyrec -> d_p, win_id, wm_event_mask);
+  XSetWindowBorder (C_DPYREC -> d_p, win_id,
+		    BlackPixel(C_DPYREC -> d_p, C_DPYREC -> d_p_screen));
+  XSelectInput(C_DPYREC -> d_p, win_id, wm_event_mask);
 
-  gc = create_pane_win_gc (dpyrec -> d_p, win_id, self_object);
+  gc = create_pane_win_gc (C_DPYREC -> d_p, win_id, self_object);
 
   __xlib_set_wm_name_prop 
-    (dpyrec -> d_p, win_id, gc, 
+    (C_DPYREC -> d_p, win_id, gc, 
      titleStr -> instancevars -> __o_value);
 #if 0
      basename_w_extent(__argvFileName ()));
 #endif  
 
   __save_pane_to_vars (self_object, gc, win_id,
-		       DefaultDepth (dpyrec -> d_p, DefaultScreen (dpyrec -> d_p)));
-  dpyrec -> mapped = true;
-  XMoveResizeWindow (dpyrec -> d_p, win_id, x_org, y_org, x_size, y_size);
+		       DefaultDepth (C_DPYREC -> d_p,
+				     DefaultScreen (C_DPYREC -> d_p)));
+  C_DPYREC -> mapped = true;
+  XMoveResizeWindow (C_DPYREC -> d_p, win_id, x_org, y_org, x_size, y_size);
 
   return win_id;
 }
@@ -244,9 +260,9 @@ void __enable_dialog (OBJECT *self) {
   INTVAL(origin_y_var -> instancevars -> __o_value) =
     INTVAL(origin_y_var -> __o_value) = y_org;
 
-  dpyrec -> mapped = true;
+  C_DPYREC -> mapped = true;
 
-  XMoveWindow (dpyrec -> d_p, self_win, x_org, y_org);
+  XMoveWindow (C_DPYREC -> d_p, self_win, x_org, y_org);
 
 }
 
