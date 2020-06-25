@@ -1,0 +1,97 @@
+/* valdatedentrybox.ca, a X11TextEntryBox demonstration. -*-c-*- */
+/* This must be built with the X11ValidatedTextEntryBox class, which
+   is also in demos/x11/validatedentrybox. */
+
+#include <ctalk/ctalkdefs.h>
+
+int main (void) {
+  X11Pane new mainWindow;
+  X11PaneDispatcher new dispatcher;
+  X11ButtonPane new button;
+  X11LabelPane new label;
+  X11ValidatedTextEntryBox new textEntryBox;
+  InputEvent new e;
+
+  label textColor = "white";
+  label canFocus = false;
+  label borderWidth = 0;
+
+  label ftFontVar notifyLevel XFT_NOTIFY_NONE;
+
+  mainWindow backgroundColor = "blue";
+  label resources replaceAt "backgroundColor", "blue";
+  button resources replaceAt "backgroundColor", "blue";
+  textEntryBox resources replaceAt "backgroundColor", "blue";
+
+  textEntryBox enableExceptionTrace;
+  
+  mainWindow initialize 255, 200;
+  mainWindow inputStream eventMask = 
+    EXPOSE|ENTERWINDOWNOTIFY|LEAVEWINDOWNOTIFY|BUTTONPRESS|BUTTONRELEASE|KEYPRESS|KEYRELEASE|WINDELETE|MOVENOTIFY;
+
+  dispatcher attachTo mainWindow;
+  button attachTo dispatcher, "110x70+73+100";
+  label attachTo dispatcher, "177x80+34+15";
+  textEntryBox attachTo dispatcher, "300x200";
+
+  mainWindow map;
+  mainWindow raiseWindow;
+
+  mainWindow openEventStream;
+
+  mainWindow setWMTitle "X11TextEntryBox Demo";
+
+  label ftFontVar initFontLib;
+
+  label multiLine "X11YTextEntryBox\nDemo";
+  label resources replaceAt "textColor", "lightgray";
+  label resources replaceAt "foregroundColor", "blue";
+  label resources replaceAt "borderColor", "blue";
+
+  button label multiLine "Open\nText Entry\nDialog";
+
+  button label resources replaceAt "highlightForegroundColor", "gray80";
+
+  /* The program uses the "replaceAt" method because the key/value
+     entry for "backgroundColor" the X11MessageBoxPane : new method
+     has alread created an entry for backgroundColor. */
+  textEntryBox resources replaceAt "backgroundColor", "blue";
+  textEntryBox resources replaceAt "foregroundColor", "blue";
+  textEntryBox resources replaceAt "messageColor", "white";
+  textEntryBox resources replaceAt "messageText",
+    	       "Please Enter Letters\nOr Numbers Only";
+
+  button draw;
+  button refresh;
+  label draw;
+  label refresh;
+
+  while (TRUE) {
+    mainWindow inputStream queueInput;
+    if (mainWindow inputStream eventPending) {
+      e become mainWindow inputStream inputQueue unshift;
+
+      mainWindow subPaneNotify e;
+
+      switch (e eventClass value)
+	{
+	case EXPOSE:
+	  button subPaneExpose (button, e);
+	  label subPaneExpose (label, e);
+	  break;
+	case BUTTONRELEASE:
+	  textEntryBox showManaged button;
+	  printf ("returnVal: %d: %s: %s\n", textEntryBox returnVal,
+		  textEntryBox returnText, textEntryBox entryContents);
+	  break;
+	case WINDELETE:
+ 	  mainWindow deleteAndClose;
+	  exit (0);
+	  break;
+	}
+    } else {
+      usleep (1000);
+    }
+  }
+
+}
