@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $
+# $Id: Makefile.am,v 1.2 2020/06/26 17:44:22 rkiesling Exp $
 
 SUBDIRS=classes doc libctpp ctpp lib src 
 HOST_OS=@host_os@
@@ -44,7 +44,6 @@ EXTRA_DIST=$(top_builddir)/build/gccincdir.sh \
 	$(top_builddir)/tools/methods/Makefile \
 	$(top_builddir)/tools/ctxlogo/ctxlogo.ca \
 	$(top_builddir)/tools/ctxlogo/Makefile \
-	$(top_builddir)/tools/ctxlogo/ctalk-logo.xpm \
 	$(top_builddir)/tools/classes/Makefile \
 	$(top_builddir)/tools/classes/classes.ca \
 	$(top_builddir)/tools/methodsource/methodsource.ca \

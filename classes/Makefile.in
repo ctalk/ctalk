@@ -14,7 +14,7 @@
 
 @SET_MAKE@
 
-# $Id: Makefile.in,v 1.2 2020/06/13 19:59:58 rkiesling Exp $
+# $Id: Makefile.in,v 1.4 2020/06/26 17:44:22 rkiesling Exp $
 
 VPATH = @srcdir@
 am__is_gnu_make = { \
@@ -389,10 +389,7 @@ pkginclude_HEADERS = ANSIButtonPane ANSILabelPane ANSIListBoxPane \
 	UNIXNetworkStreamReader UNIXNetworkStreamWriter Vector \
 	Win32TerminalStream WriteFileStream X11Bitmap X11ButtonPane \
 	X11CanvasPane X11Cursor X11Font X11FreeTypeFont X11LabelPane \
-	X11MessageBoxPane X11Pane X11Pixmap X11ScrollBarPane X11TerminalStream \
-	X11TextPane X11TextEditorPane X11TextEntryBox X11TextEntryPane \
-	X11PaneDispatcher X11YesNoBoxPane ctalklib ctldjgpp ctalkdefs.h \
-	ctalkGLUTdefs.h
+	X11ListPane X11MessageBoxPane X11Pane X11Pixmap X11ScrollBarPane
 
 EXTRA_DIST = $(top_builddir)/classes/Makefile.djgpp \
 	$(top_builddir)/classes/ctalklib.in
@@ -733,6 +730,10 @@ uninstall-am: uninstall-pkgincludeHEADERS
 
 .PRECIOUS: Makefile
 
+	X11TerminalStream \
+	X11TextPane X11TextEditorPane X11TextEntryBox X11TextEntryPane \
+	X11PaneDispatcher X11YesNoBoxPane ctalklib ctldjgpp ctalkdefs.h \
+	ctalkGLUTdefs.h
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
