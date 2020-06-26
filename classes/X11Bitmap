@@ -1,4 +1,4 @@
-/* $Id: X11Bitmap,v 1.4 2020/06/15 21:28:37 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11Bitmap,v 1.6 2020/06/25 23:55:04 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -271,32 +271,6 @@ X11Bitmap instanceMethod iconCaution (void) {
   return NULL;
 }
 
-X11Bitmap instanceMethod iconInfo (void) {
-  "Draws an information icon on the receiver."
-  Circle new aCircle;
-  Pen new aPen;
-
-  aCircle center x = ICON_WIDTH_PX / 2;
-  aCircle center y = ICON_HEIGHT_PX / 2;
-  aCircle radius = (ICON_WIDTH_PX / 2) - ICON_BORDER_PX;
-  aPen width = 5;
-  aPen alpha = 0xffff;
-  aPen colorName = "white";
-  self drawCircle aCircle, aPen, FALSE,
-    self backgroundColor;
-  /* Draw an "i" */
-  aPen width = 7;
-  self drawLine ICON_WIDTH_PX / 2,
-    ICON_HEIGHT_PX / 2 - 7, ICON_WIDTH_PX / 2,
-    ICON_HEIGHT_PX - 13, aPen;
-  aCircle center x = ICON_WIDTH_PX / 2;
-  aCircle center y = (ICON_HEIGHT_PX / 2) - 15;
-  aCircle radius = 3;
-  self drawCircle aCircle, aPen, FALSE,
-    aPen;
-  return NULL;
-}
-
 X11Bitmap instanceMethod iconQuestion (void) {
   "Draws a question mark icon on the receiver."
   Circle new aCircle;
@@ -321,6 +295,31 @@ X11Bitmap instanceMethod iconQuestion (void) {
     /* raising the letter 3 px above the vertical center makes it
        look better */
     (aCircle center y) + (font ascent / 2) - 3, "?";
+  return NULL;
+}
+
+X11Bitmap instanceMethod iconInfo (void) {
+  "Draws a circled 'i' icon on the receiver.  Similar to the
+   iconQuestion method - refer to the code there for the details."
+  Circle new aCircle;
+  Pen new aPen;
+  X11FreeTypeFont new font;
+
+  aCircle center x = ICON_WIDTH_PX / 2;
+  aCircle center y = ICON_HEIGHT_PX / 2;
+  aCircle radius = (ICON_WIDTH_PX / 2) - ICON_BORDER_PX;
+  aPen width = 5;
+  aPen alpha = 0xffff;
+  aPen colorName = "white";
+  self drawCircle aCircle, aPen, FALSE,
+    self backgroundColor;
+  aPen colorName = "white";
+  font initFontLib;
+  font namedX11Color "white";
+  font selectFontFromFontConfig "monospace-42:bold";
+  font saveSelectedFont;
+  self putStr (aCircle center x) - (font maxAdvance / 2), 
+    (aCircle center y) + (font ascent / 2) - 3, "i";
   return NULL;
 }
 
