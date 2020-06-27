@@ -1,4 +1,4 @@
-/* $Id: X11ListPane,v 1.2 2020/06/26 18:03:14 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11ListPane,v 1.4 2020/06/26 23:03:39 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -24,6 +24,100 @@
 /* 
    X11ListPane Class
 
+   Resources
+
+   borderColor              "gray"
+   scrollWidth              10
+   focusBorderWidth         2
+   borderWidth              1
+
 */
 
 X11CanvasPane class X11ListPane;
+
+X11ListPane instanceVariable hover Boolean false;
+
+X11ListPane instanceMethod new (String paneName) {
+  Method new exposeMethod, enterMethod, leaveMethod;
+
+  X11ListPane super new paneName;
+  
+  exposeMethod definedInstanceMethod "X11ListPane", "onExpose";
+  paneName setMethodHandler "expose", exposeMethod;
+
+  enterMethod definedInstanceMethod "X11ListPane", "onEnter";
+  paneName setMethodHandler "enternotify", enterMethod;
+
+  leaveMethod definedInstanceMethod "X11ListPane", "onLeave";
+  paneName setMethodHandler "leavenotify", leaveMethod;
+
+  paneName resources atPut "borderColor", "gray";
+  paneName resources atPut "scrollWidth", 10;
+  paneName resources atPut "borderWidth", 1;
+  paneName resources atPut "focusBorderWidth", 2;
+
+  return paneName;
+}
+
+X11ListPane instanceMethod onEnter (Object subPane,
+				    InputEvent __event) {
+  subPane hover = true;
+  subPane draw;
+  subPane refresh;
+}
+
+X11ListPane instanceMethod onLeave (Object subPane,
+				    InputEvent __event) {
+  subPane hover = false;
+  subPane draw;
+  subPane refresh;
+}
+
+
+X11ListPane instanceMethod onExpose (InputEvent e, Object subPane) {
+  self draw;
+  self refresh;
+}
+
+X11ListPane instanceMethod draw (void) {
+
+  Integer new border;
+  self background "white";
+  self clear;
+
+  self pen colorName = self resources at "borderColor";
+  if (self hover) {
+    self pen width = self resources integerAt "focusBorderWidth";
+  } else {
+    self pen width = self resources integerAt "borderWidth";
+  }
+  self drawRectangle 0, 0, self size x, self size y;
+
+  self pen colorName = "darkgray";
+  self pen width = 2;
+#if 0
+  if (self hover) {
+    border = self resources integerAt "focusBorderWidth";
+  } else {
+    border = self resources integerAt "borderWidth";
+  }
+  self drawLine self resources integerAt "scrollWidth",
+    border,
+    self resources integerAt "scrollWidth", 
+    self size y - border;
+#else  
+  if (self hover) {
+    self drawLine self resources integerAt "scrollWidth",
+      self resources integerAt "focusBorderWidth",
+      self resources integerAt "scrollWidth", 
+      self size y - self resources integerAt "focusBorderWidth";
+  } else {
+    self drawLine self resources integerAt "scrollWidth",
+      self resources integerAt "borderWidth",
+      self resources integerAt "scrollWidth", 
+      self size y - self resources integerAt "borderWidth";
+
+  }
+#endif  
+}
+
