@@ -1,4 +1,4 @@
-/* $Id: ctalk.h,v 1.13 2020/06/22 04:22:08 rkiesling Exp $ -*-Fundamental-*- */
+/* $Id: ctalk.h,v 1.14 2020/06/27 01:30:07 rkiesling Exp $ -*-Fundamental-*- */
 
 /*
   This file is part of Ctalk.
@@ -622,7 +622,7 @@ typedef MESSAGE ** MESSAGE_STACK;
 #define CHAR_CONSTANT_RETURN_FN "__ctalkRegisterCharReturn"
 #define FLOAT_CONSTANT_RETURN_FN "__ctalkRegisterFloatReturn"
 #define LLINT_CONSTANT_RETURN_FN "__ctalkRegisterLongLongIntReturn"
-#define OBJECT_TOK_RETURN_FN	 "__ctalk_get_object"
+#define OBJECT_TOK_RETURN_FN	 "__ctalk_get_object_return"
 #define CVAR_TOK_RETURN_FN	 "__ctalkSaveCVARResource"
 #define CVAR_ARRAY_TOK_RETURN_FN "__ctalkSaveCVARArrayResource"
 #define OBJECT_MBR_RETURN_FN	 "__ctalkSaveOBJECTMemberResource"

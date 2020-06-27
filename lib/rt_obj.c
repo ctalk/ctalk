@@ -1,4 +1,4 @@
-/* $Id: rt_obj.c,v 1.6 2020/06/25 18:51:34 rkiesling Exp $ */
+/* $Id: rt_obj.c,v 1.7 2020/06/27 01:30:07 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -167,6 +167,12 @@ static OBJECT *object_from_argblk_caller_fn (const char *__name,
     }
   }
   return NULL;
+}
+
+/***/
+OBJECT *__ctalk_get_object_return (const char *name,
+				   const char *classname) {
+  return __ctalk_get_object (name, classname);
 }
 
 /* 

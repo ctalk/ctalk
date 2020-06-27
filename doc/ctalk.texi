@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.26 2020/06/21 18:25:26 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.28 2020/06/27 01:30:07 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -450,6 +450,7 @@ Object
     X11CanvasPane
      X11ButtonPane
      X11LabelPane
+     X11ListPane
      X11MessageBoxPane
      X11ScrollBarPane
      X11TextEntryPane
@@ -543,6 +544,7 @@ Object
 *     X11CanvasPane::
 *      X11ButtonPane::
 *      X11LabelPane::
+*      X11ListPane::
 *      X11MessageBoxPane::
 *      X11ScrollBarPane::
 *      X11TextEntryPane::
@@ -15147,7 +15149,7 @@ with a space character (@samp{ }) between them.
 @end table
 
 
-@node X11LabelPane, X11MessageBoxPane, X11ButtonPane, Classes
+@node X11LabelPane, X11ListPane, X11ButtonPane, Classes
 @iftex
 @section @code{X11LabelPane} Class
 @end iftex
@@ -15576,7 +15578,16 @@ to @code{true}.
 
 @end table
 
-@node X11MessageBoxPane, X11ScrollBarPane, X11LabelPane, Classes
+@node X11ListPane, X11MessageBoxPane, X11LabelPane, Classes
+@iftex
+@section @code{X11ListPane} Class
+@end iftex
+@ifnottex
+@subheading @code{X11ListlPane} Class
+@end ifnottex
+@cindex @code{X11ListPane} class
+
+@node X11MessageBoxPane, X11ScrollBarPane, X11ListPane, Classes
 @iftex
 @section @code{X11MessageBoxPane} Class
 @end iftex
@@ -23998,9 +24009,17 @@ Called during method or function initialization to delete
 old local objects before creating new objects.
 
 @idxlibfn{__ctalk_get_object}
+@idxlibfn{__ctalk_get_object_return}
 @item __ctalk_get_object (@code{char *}@var{name}, @code{char *}@var{classname})
+@item __ctalk_get_object_return (@code{char *}@var{name}, @code{char *}@var{classname})
 Retrieves the object @var{name}.  If @var{classname} is non-null,
 retrieves the object by name and class.
+
+The @code{__ctalk_get_object_return} function is similar, but it is
+used only as an operand to a @code{return} keyword.  The function checks
+the call stack's local object cache, in case an expression cleanup removed
+the most recent call's local variable list during recursive or successive
+calls of the same method.
 
 @idxlibfn{__ctalk_init}
 @item __ctalk_init (@code{char *}@var{program_name})

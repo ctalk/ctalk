@@ -3400,7 +3400,7 @@ Instance Methods
      with a space character (' ') between them.
 
 
-File: ctalk.info,  Node: X11LabelPane,  Next: X11MessageBoxPane,  Prev: X11ButtonPane,  Up: Classes
+File: ctalk.info,  Node: X11LabelPane,  Next: X11ListPane,  Prev: X11ButtonPane,  Up: Classes
 
 'X11LabelPane' Class
 --------------------
@@ -3763,7 +3763,13 @@ Instance Methods
      'true'.
 
 
-File: ctalk.info,  Node: X11MessageBoxPane,  Next: X11ScrollBarPane,  Prev: X11LabelPane,  Up: Classes
+File: ctalk.info,  Node: X11ListPane,  Next: X11MessageBoxPane,  Prev: X11LabelPane,  Up: Classes
+
+'X11ListlPane' Class
+--------------------
+
+
+File: ctalk.info,  Node: X11MessageBoxPane,  Next: X11ScrollBarPane,  Prev: X11ListPane,  Up: Classes
 
 'X11MessageBoxPane' Class
 -------------------------
@@ -10725,8 +10731,15 @@ functions.
      objects before creating new objects.
 
 '__ctalk_get_object (char *NAME, char *CLASSNAME)'
+'__ctalk_get_object_return (char *NAME, char *CLASSNAME)'
      Retrieves the object NAME.  If CLASSNAME is non-null, retrieves the
      object by name and class.
+
+     The '__ctalk_get_object_return' function is similar, but it is used
+     only as an operand to a 'return' keyword.  The function checks the
+     call stack's local object cache, in case an expression cleanup
+     removed the most recent call's local variable list during recursive
+     or successive calls of the same method.
 
 '__ctalk_init (char *PROGRAM_NAME)'
      Initialize the Ctalk class libraries when the program starts.  The
