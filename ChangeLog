@@ -910,6 +910,10 @@
 	class and demonstration program in demos/x11/validatedentrybox.
 	- Updated the X11Bitmap : iconInfo method to use an actual
 	"i" from a monospace font.
-
-
-
+2020-06-27
+	- Added __ctalk_get_object_return (rt_obj.c).
+	- Added save_local_objects_to_extra_b, which puts the local
+	objects of a successive call on the call stack entry's
+	local_object_cache.  Also added obj_from_local_object_cache
+	and cleanup_local_object_cache to retrieve them when called
+	by __ctalk_get_object_return (rt_obj.c).

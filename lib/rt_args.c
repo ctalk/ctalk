@@ -1,4 +1,4 @@
-/* $Id: rt_args.c,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ */
+/* $Id: rt_args.c,v 1.2 2020/06/27 12:43:43 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -708,7 +708,7 @@ int __ctalk_arg_cleanup (OBJECT *result_obj) {
       }
     } else {
       if (arg_object -> scope & VAR_REF_OBJECT) {
-	save_local_objects_to_extra ();
+	save_local_objects_to_extra_b (); /***/
 	return arg_nrefs;
       }
       if (arg_object -> scope == CREATED_PARAM) {

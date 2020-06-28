@@ -1,4 +1,4 @@
-/* $Id: ctalk.h,v 1.14 2020/06/27 01:30:07 rkiesling Exp $ -*-Fundamental-*- */
+/* $Id: ctalk.h,v 1.15 2020/06/27 12:43:43 rkiesling Exp $ -*-Fundamental-*- */
 
 /*
   This file is part of Ctalk.
@@ -2328,6 +2328,7 @@ void __ctalk_set_local (OBJECT *);
 void __delete_operand_result (OBJREF_T, OBJREF_T);
 void delete_extra_local_objects (EXPR_PARSER *);
 void save_local_objects_to_extra (void);
+void save_local_objects_to_extra_b (void);
 void delete_varentry (VARENTRY *);
 void reset_varentry_i (VARENTRY *);
 OBJECT *match_instancevar (OBJECT *, OBJECT *);

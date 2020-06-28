@@ -1,4 +1,4 @@
-/* $Id: rt_obj.c,v 1.7 2020/06/27 01:30:07 rkiesling Exp $ */
+/* $Id: rt_obj.c,v 1.9 2020/06/28 00:03:14 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -170,8 +170,64 @@ static OBJECT *object_from_argblk_caller_fn (const char *__name,
 }
 
 /***/
+/* FOR NOW, these two functions deal with just a single-variable 
+   varlist, called from save_local_objects_to_extra_b */
+static void cleanup_local_object_cache (void) {
+  RT_INFO *r;
+  OBJECT *o_tmp, *o_tmp_orig;
+  VARENTRY *v;
+  r = __call_stack[__call_stack_ptr+1];
+  v = r -> local_object_cache[r -> local_obj_cache_ptr - 1];
+  o_tmp = v -> var_object;
+  unlink_varentry (o_tmp);
+  o_tmp -> __o_vartags -> tag = NULL;
+  __ctalkRegisterExtraObjectInternal (o_tmp, r -> method);
+  if (v -> orig_object_rec != o_tmp) {
+    o_tmp_orig = v -> orig_object_rec;
+    unlink_varentry (o_tmp_orig);
+    __ctalkRegisterExtraObjectInternal (o_tmp_orig, r -> method);
+  }
+  delete_varentry (r -> local_object_cache[r -> local_obj_cache_ptr - 1]);
+  r -> local_object_cache[r -> local_obj_cache_ptr - 1] = NULL;
+}
+
+static OBJECT *obj_from_local_object_cache (const char *name,
+					    const char *classname) {
+  RT_INFO *r;
+  VARENTRY *v;
+  r = __call_stack[__call_stack_ptr+1];
+  v = r -> local_object_cache[r -> local_obj_cache_ptr - 1];
+  if (str_eq (v -> var_decl -> name, (char *)name)) {
+    if (classname) {
+      if (str_eq (v -> var_decl -> class, (char *)classname)) {
+	return v -> var_object;
+      } else {
+	return NULL;
+      }
+    } else {
+      return v -> var_object;
+    }
+  }
+  return NULL;
+}
+
+/***/
 OBJECT *__ctalk_get_object_return (const char *name,
 				   const char *classname) {
+  RT_INFO *r;
+  OBJECT *return_obj;
+  r = __call_stack[__call_stack_ptr + 1];
+  if (r -> local_obj_cache_ptr > 0) {
+    /* See the comments above for what this can do. */
+    if ((return_obj = obj_from_local_object_cache (name, classname))
+	!= NULL) {
+      cleanup_local_object_cache ();
+      return return_obj;
+    } else {
+      cleanup_local_object_cache ();
+    }
+    --r -> local_obj_cache_ptr;
+  }
   return __ctalk_get_object (name, classname);
 }
 
@@ -2233,6 +2289,95 @@ void save_local_objects_to_extra (void) {
 	    }
 	  }
 	  delete_varentry (M_LOCAL_VAR_LIST(m));
+	  M_LOCAL_VAR_LIST(m) = NULL;
+	} else {
+	  while (v != M_LOCAL_VAR_LIST(m)) {
+	    v_prev = v -> prev;
+	    if (v && v -> var_object) {
+	      o_tmp = v -> var_object;
+	      if (o_tmp -> __o_vartags) {
+		unlink_varentry_2 (v -> var_object, v);
+		o_tmp -> __o_vartags -> tag = NULL;
+	      }
+	      __ctalkRegisterExtraObjectInternal (o_tmp, m);
+	    }
+	    if (v -> orig_object_rec !=v -> var_object) {
+	      if ((o_tmp_orig = v -> orig_object_rec) != NULL) {
+		unlink_varentry_2 (o_tmp_orig, v);
+		o_tmp_orig -> __o_vartags -> tag = NULL;
+		__ctalkRegisterExtraObjectInternal (o_tmp_orig, m);
+	      }
+	    }
+	    delete_varentry (v);
+	    v = v_prev;
+	    if (!v) break;
+	    v -> next = NULL;
+	  }
+	  if (M_LOCAL_VAR_LIST(m) && M_LOCAL_VAR_LIST(m) -> var_object) {
+	    o_tmp = M_LOCAL_VAR_LIST(m) -> var_object;
+	    unlink_varentry_2 (M_LOCAL_VAR_LIST(m) -> var_object, 
+			       M_LOCAL_VAR_LIST (m));
+	    o_tmp -> __o_vartags -> tag = NULL;
+	    __ctalkRegisterExtraObjectInternal (o_tmp, m);
+	  }
+	  if (M_LOCAL_VAR_LIST(m) -> orig_object_rec != o_tmp) {
+	    if ((o_tmp_orig = M_LOCAL_VAR_LIST(m) -> orig_object_rec)
+		!= NULL) {
+	      unlink_varentry_2 (M_LOCAL_VAR_LIST(m) -> orig_object_rec,
+				 M_LOCAL_VAR_LIST(m));
+	      o_tmp_orig -> __o_vartags -> tag = NULL;
+	      __ctalkRegisterExtraObjectInternal (o_tmp_orig, m);
+	    }
+	  }
+	  delete_varentry (M_LOCAL_VAR_LIST(m));
+	  M_LOCAL_VAR_LIST(m) = NULL;
+	}
+	--m -> nth_local_ptr;
+      }
+    }
+  }
+}
+
+/* similar to above, but it saves the varlist to the RTINFO's
+   local_object_cache, where it can be checked and 
+   retrieved by __ctalk_get_object_return when the program
+   actually returns from the method. for an example, refer to
+   Collection : integerAt.  this needs to evolve as we find more
+   cases where it applies. */
+void save_local_objects_to_extra_b (void) {
+  int i;
+  METHOD *m;
+  VARENTRY *v, *v_prev;
+  OBJECT *o_tmp, *o_tmp_orig;
+  RT_INFO *r;
+  for (i = 0; (i < MAXARGS) && saved_e_methods[i]; i++) {
+    m = saved_e_methods[i];
+    saved_e_methods[i] = NULL;
+    if (m -> nth_local_ptr) {
+      while (m -> nth_local_ptr > 0) {
+	v = last_varentry (M_LOCAL_VAR_LIST(m));
+	if (v == M_LOCAL_VAR_LIST(m)) {
+	  r = __call_stack[__call_stack_ptr+1];
+	  r -> local_object_cache[r -> local_obj_cache_ptr++] =
+	    M_LOCAL_VAR_LIST(m);
+#if 0
+	  if (M_LOCAL_VAR_LIST(m) &&
+	      IS_OBJECT(M_LOCAL_VAR_LIST(m) -> var_object)) {
+	    o_tmp = M_LOCAL_VAR_LIST(m) -> var_object;
+	    unlink_varentry_2 (o_tmp, M_LOCAL_VAR_LIST(m));
+	    o_tmp -> __o_vartags -> tag = NULL;
+	    __ctalkRegisterExtraObjectInternal (o_tmp, m);
+	    if (M_LOCAL_VAR_LIST(m) -> orig_object_rec != o_tmp) {
+	      if ((o_tmp_orig = M_LOCAL_VAR_LIST(m) -> orig_object_rec)
+		  != NULL) {
+		unlink_varentry_2 (o_tmp_orig, M_LOCAL_VAR_LIST(m));
+		M_LOCAL_VAR_LIST(m) -> orig_object_rec = NULL;
+		__ctalkRegisterExtraObjectInternal (o_tmp_orig, m);
+	      }
+	    }
+	  }
+	  delete_varentry (M_LOCAL_VAR_LIST(m));
+#endif	  
 	  M_LOCAL_VAR_LIST(m) = NULL;
 	} else {
 	  while (v != M_LOCAL_VAR_LIST(m)) {
