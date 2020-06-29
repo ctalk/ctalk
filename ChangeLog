@@ -926,3 +926,6 @@
 	- Updated X11Bitmap : putStrXY (4 and 5 arguments) to check
 	if the Freetype font libaries have been initialized, and to
 	select either X or Freetype font selection.
+2020-06-29
+	- In prefix_method_expr_a, remove newlines from an expression when
+	formatting as a __ctalkEvalExpr argument (rt_expr.c).
