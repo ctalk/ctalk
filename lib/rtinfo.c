@@ -1,4 +1,4 @@
-/* $Id: rtinfo.c,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ */
+/* $Id: rtinfo.c,v 1.2 2020/06/28 05:10:41 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -616,9 +616,8 @@ int is_recursive_method_call (METHOD *m) {
 }
 
 /*
- *  The *successive_call* functions are called only from
- *  __ctalkInitLocalObjects at the moment.  Local objects are restored
- *  in __restore_rt_info (), above.
+ *  A "successive call" also gets registered when a method is 
+ *  called multiple times in a single argument list.
  *
  *  See the notes for last_eval_result () in rt_expr.c. 
  */

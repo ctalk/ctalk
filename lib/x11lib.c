@@ -1,4 +1,4 @@
-/* $Id: x11lib.c,v 1.8 2020/06/21 22:37:30 rkiesling Exp $ -*-c-*-*/
+/* $Id: x11lib.c,v 1.10 2020/06/29 03:29:11 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -875,7 +875,7 @@ int __xlib_change_gc (Display *d, Drawable drawable, GC gc, char *data) {
 	v.font = xlibfont.selected_xfs -> fid;
 	r = XChangeGC (d, gc, valuemask, &v);
       } else {
-	fprintf (stderr, "ctalk: Couldn't load font, \"%s.\"\n", value);
+	fprintf (stderr, "__ctalkX11UseFontBasic: Couldn't load font, \"%s.\"\n", value);
       }
       break;
     case GCBackground:
@@ -3848,6 +3848,7 @@ int __ctalkX11SetWMNameProp (OBJECT *self_object, char *title) {
   return SUCCESS;
 }
 
+#if 0
 int __ctalkX11UseFontBasic (void *d, int drawable_id, unsigned long int gc_ptr,
 			    char *xlfd) {
   char d_buf[MAXLABEL];
@@ -3903,7 +3904,8 @@ int __ctalkX11UseFontBasic (void *d, int drawable_id, unsigned long int gc_ptr,
     return SUCCESS;
   }
 }
-
+#endif
+ 
 static int __x11_resize_request_internal (void *d, int width, int height, int depth,
 					  int win_id_value,
 					  GC gc_value) {
@@ -4272,10 +4274,13 @@ int __ctalkX11UseCursor (OBJECT *pane_object, OBJECT *cursor_object) {
 int __ctalkX11FontCursor (OBJECT *self, int cursor_id) {
   x_support_error (); return ERROR;
 }
+#if 0
+/***/
 int __ctalkX11UseFontBasic (void *d, int drawable_id, unsigned long int gc_ptr,
 			    char *xlfd) {
   x_support_error (); return ERROR;
 }
+#endif 
 int __ctalkX11CloseParentPane (OBJECT *self) {
   x_support_error (); return ERROR;
 }

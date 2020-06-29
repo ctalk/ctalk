@@ -1,4 +1,4 @@
-/* $Id: X11Bitmap,v 1.6 2020/06/25 23:55:04 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11Bitmap,v 1.7 2020/06/29 03:29:08 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -180,21 +180,29 @@ X11Bitmap instanceMethod putStr (Integer x, Integer y, String s) {
 X11Bitmap instanceMethod putStr (Integer x, Integer y,
 					 String s, String font_desc) {
   "Print a string to the receiver using the font given by
-   the parameter, font_desc.  The method's prototype is:
+   the parameter, font_desc (which is either a XLFD if using X
+   bitmap fonts or a Fontconfig descriptor if using Freetype fonts).  
+   The method's prototype is:
    <X11BitmapObject> putStr Integer <x>,
                             Integer <y>,
                             String <text>,
                             String <font_desc>"
-  __ctalkX11UseFontBasic (self displayPtr, self xID, self xGC, font_desc);
-  __ctalkX11PanePutStrBasic (self displayPtr, self xID, self xGC, x, y, s);
+   if (__ctalkXftInitialized ()) {
+     __ctalkXftSelectFontFromFontConfig (font_desc);
+   } else {
+     __ctalkX11UseFontBasic (self displayPtr, self xID, self xGC, font_desc);
+   }
+   __ctalkX11PanePutStrBasic (self displayPtr, self xID, self xGC, x, y, s);
 }
 
 X11Bitmap instanceMethod putStr (Integer x, Integer y,
 				 String s, String font_desc,
 				 String colorName) {
   "Print a string to the receiver using the font given by
-   the parameter font_desc using the foreground color given
-   as the parameter foreground_color_name.  The method's
+   the parameter font_desc (which is ether a XLFD if using X
+   bitmap fonts or a fontconfig descriptor if using Freetype
+   fonts) using the foreground color given as the parameter 
+   foreground_color_name.  The method's
    prototype is:
    <X11BitmapObject> putStr Integer <x>,
                             Integer <y>,
@@ -202,7 +210,11 @@ X11Bitmap instanceMethod putStr (Integer x, Integer y,
                             String <font_desc>,
                             String <foreground_color_name>"
   __ctalkX11SetForegroundBasic (self displayPtr, self xID, self xGC, colorName);
-  __ctalkX11UseFontBasic (self displayPtr, self xID, self xGC, font_desc);
+  if (__ctalkXftInitialized ()) {
+    __ctalkXftSelectFontFromFontConfig (font_desc);
+  } else {
+    __ctalkX11UseFontBasic (self displayPtr, self xID, self xGC, font_desc);
+  }
   __ctalkX11PanePutStrBasic (self displayPtr, self xID, self xGC, x, y, s);
 }
 

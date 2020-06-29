@@ -1083,9 +1083,18 @@ add this line near the top of the source module.
 >>>X11Bitmap::putStr (Integer x, Integer y, String text, String font_desc)
 >>>X11Bitmap::putStr (Integer x, Integer y, String text, String font_desc, String colorName)
 Print text on the receiver's drawable X resource, at
-x,y.  If font_desc, a, X logical font descriptor, is
-given, use that font to display the text. If colorName is also
-given, render the text using that color.
+x,y.
+
+If font_desc, (which is either a X Logical Font Descriptor if
+using X bitmap fonts or a Fontconfig descriptor if using Freetype
+fonts), is given, use that font to display the text.
+
+For information about Fontconfig descriptors, refer to the
+X11FreeTypeFont section   For
+information about X Logical Font Descriptors, refer to the
+X11Font section 
+
+If colorName is also given, render the text using that color.
 
 >>>X11Bitmap::pixmapFromData (int x_org, int y_org, char *xpm_data[])
 Draw the X pixmap defined by xpm_data with the upper left 
@@ -6689,7 +6698,16 @@ Write text on the receiver pane's drawing surface (usually a X11Bitmap)
 at position xOrg,yOrg.  
 
 If the fourth argument is font_desc, the method draws the text
-using that font.  If a color_name argument is also given, draws
+using that font,  which is either a X Logical Font Descriptor if
+using X bitmap fonts or a Fontconfig descriptor if using Freetype
+fonts.
+
+For information about Fontconfig descriptors, refer to the
+X11FreeTypeFont section   For
+information about X Logical Font Descriptors, refer to the
+X11Font section 
+
+If a color_name argument is also given, draws
 the text using that color.
 
 >>>X11CanvasPane::subPaneDestroy (Object subPaneRef, InputEvent event)

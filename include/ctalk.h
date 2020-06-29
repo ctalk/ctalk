@@ -1,4 +1,4 @@
-/* $Id: ctalk.h,v 1.15 2020/06/27 12:43:43 rkiesling Exp $ -*-Fundamental-*- */
+/* $Id: ctalk.h,v 1.16 2020/06/29 03:03:49 rkiesling Exp $ -*-Fundamental-*- */
 
 /*
   This file is part of Ctalk.
@@ -2653,6 +2653,8 @@ int load_xlib_fonts_internal (void *, char *);
 int load_xlib_fonts_internal_1t (void *, char *);
 void clear_font_descriptors (void *);
 int __ctalkSelectXFontFace (void *, int, unsigned long int, int);
+int __ctalkX11UseFontBasic (void *, int, unsigned long int, char *);
+int __ctalkX11UseFontBasic (void *, int, unsigned long int, char *);
 
 /* lib/xrender.c */
 void __ctalkX11UseXRender (bool);
@@ -2752,7 +2754,10 @@ int __ctalkX11Colormap (void);
 */
 void *__ctalkX11Display (void);
 int __ctalkX11SetWMNameProp (OBJECT *, char *);
+#if 0
+/***/
 int __ctalkX11UseFontBasic (void *, int, unsigned long int, char *);
+#endif
 int __ctalkX11UseCursor (OBJECT *, OBJECT *);
 void *__ctalkX11NextInputEvent (OBJECT *);
 int __ctalkX11InputClient (OBJECT *, int, int, int); 

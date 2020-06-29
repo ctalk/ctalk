@@ -1,4 +1,4 @@
-/* $Id: xlibfont.c,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ -*-c-*-*/
+/* $Id: xlibfont.c,v 1.2 2020/06/29 03:03:50 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -333,6 +333,62 @@ int __ctalkSelectXFontFace (void *d, int drawable_id,
 
 }
 
+int __ctalkX11UseFontBasic (void *d, int drawable_id, unsigned long int gc_ptr,
+			    char *xlfd) {
+  char d_buf[MAXLABEL];
+  GC gc;
+  XGCValues v;
+  Display *l_d = NULL;
+  int r;
+  XFontStruct *xfs;
+#ifdef GRAPHICS_WRITE_SEND_EVENT
+  XEvent send_event;
+#endif
+
+  if (__client_pid () < 0) {
+    if ((gc = (GC) gc_ptr) == NULL)
+      return ERROR;
+    if (d == NULL) {
+      if ((l_d = XOpenDisplay (getenv ("DISPLAY"))) == NULL) {
+	_error ("ctalk: This program requires the X Window System. Exiting.\n");
+      }
+      load_xlib_fonts_internal_1t (l_d, xlfd);
+      v.font = xlibfont.selected_xfs -> fid;
+      r = XChangeGC (l_d, gc, GCFont, &v);
+      XCloseDisplay (l_d);
+    } else {
+      load_xlib_fonts_internal_1t (d, xlfd);
+      v.font = xlibfont.selected_xfs -> fid;
+      r = XChangeGC (d, gc, GCFont, &v);
+    }
+  } else {
+    if (!shm_mem)
+      return ERROR;
+
+    sprintf (d_buf, ":%ld:%s", GCFont, xlfd);
+
+    if (dialog_dpy ()) {
+
+      __xlib_change_gc (d, drawable_id, (GC)gc_ptr, d_buf);
+
+    } else {
+
+      make_req (shm_mem, d, PANE_CHANGE_GC_REQUEST,
+		drawable_id, gc_ptr, d_buf);
+#ifdef GRAPHICS_WRITE_SEND_EVENT
+      send_event.xgraphicsexpose.type = GraphicsExpose;
+      send_event.xgraphicsexpose.send_event = True;
+      send_event.xgraphicsexpose.display = display;
+      send_event.xgraphicsexpose.drawable = drawable_id;
+      XSendEvent (display, drawable_id, False, 0L, &send_event);
+#endif
+      wait_req (shm_mem);
+
+    }
+    return SUCCESS;
+  }
+}
+
 #else /* HAVE_XFT_H */
 
 int __ctalkSelectXFontFace (void *d, int drawable_id,
@@ -364,6 +420,62 @@ int __ctalkSelectXFontFace (void *d, int drawable_id,
 
 }
 
+int __ctalkX11UseFontBasic (void *d, int drawable_id, unsigned long int gc_ptr,
+			    char *xlfd) {
+  char d_buf[MAXLABEL];
+  GC gc;
+  XGCValues v;
+  Display *l_d = NULL;
+  int r;
+  XFontStruct *xfs;
+#ifdef GRAPHICS_WRITE_SEND_EVENT
+  XEvent send_event;
+#endif
+
+  if (__client_pid () < 0) {
+    if ((gc = (GC) gc_ptr) == NULL)
+      return ERROR;
+    if (d == NULL) {
+      if ((l_d = XOpenDisplay (getenv ("DISPLAY"))) == NULL) {
+	_error ("ctalk: This program requires the X Window System. Exiting.\n");
+      }
+      load_xlib_fonts_internal_1t (l_d, xlfd);
+      v.font = xlibfont.selected_xfs -> fid;
+      r = XChangeGC (l_d, gc, GCFont, &v);
+      XCloseDisplay (l_d);
+    } else {
+      load_xlib_fonts_internal_1t (d, xlfd);
+      v.font = xlibfont.selected_xfs -> fid;
+      r = XChangeGC (d, gc, GCFont, &v);
+    }
+  } else {
+    if (!shm_mem)
+      return ERROR;
+
+    sprintf (d_buf, ":%ld:%s", GCFont, xlfd);
+
+    if (dialog_dpy ()) {
+
+      __xlib_change_gc (d, drawable_id, (GC)gc_ptr, d_buf);
+
+    } else {
+
+      make_req (shm_mem, d, PANE_CHANGE_GC_REQUEST,
+		drawable_id, gc_ptr, d_buf);
+#ifdef GRAPHICS_WRITE_SEND_EVENT
+      send_event.xgraphicsexpose.type = GraphicsExpose;
+      send_event.xgraphicsexpose.send_event = True;
+      send_event.xgraphicsexpose.display = display;
+      send_event.xgraphicsexpose.drawable = drawable_id;
+      XSendEvent (display, drawable_id, False, 0L, &send_event);
+#endif
+      wait_req (shm_mem);
+
+    }
+    return SUCCESS;
+  }
+}
+
 #endif /* HAVE_XFT_H */
 
 
@@ -381,6 +493,10 @@ int load_xlib_fonts_internal (void *d, char *xlfd) {
 int __ctalkSelectXFontFace (void *d, int drawable_id,
 			    unsigned long int gc_ptr,
 			    int face) {
+  x_support_error (); return ERROR;
+}
+int __ctalkX11UseFontBasic (void *d, int drawable_id, unsigned long int gc_ptr,
+			    char *xlfd) {
   x_support_error (); return ERROR;
 }
 #endif /* ! defined (DJGPP) && ! defined (WITHOUT_X11) */

@@ -2838,8 +2838,17 @@ Instance Methods
      X11Bitmap) at position XORG,YORG.  *Note X11Bitmap::.
 
      If the fourth argument is FONT_DESC, the method draws the text
-     using that font.  If a COLOR_NAME argument is also given, draws the
-     text using that color.
+     using that font, which is either a X Logical Font Descriptor if
+     using X bitmap fonts or a Fontconfig descriptor if using Freetype
+     fonts.
+
+     For information about Fontconfig descriptors, refer to the
+     'X11FreeTypeFont' section *Note X11FreeTypeFont::.  For information
+     about X Logical Font Descriptors, refer to the 'X11Font' section
+     *Note X11Font::.
+
+     If a COLOR_NAME argument is also given, draws the text using that
+     color.
 
 'subPaneDestroy (Object SUBPANEREF, InputEvent EVENT)'
      Deletes the pane's window and its data when the user closes the

@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.28 2020/06/27 01:30:07 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.29 2020/06/29 03:29:10 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -2236,9 +2236,18 @@ add this line near the top of the source module.
 @item @mnm{putStr} (@code{Integer} @var{x}, @code{Integer} @var{y}, @code{String} @var{text}, @code{String} @var{font_desc})
 @item @mnm{putStr} (@code{Integer} @var{x}, @code{Integer} @var{y}, @code{String} @var{text}, @code{String} @var{font_desc}, @code{String} @var{colorName})
 Print @var{text} on the receiver's drawable X resource, at
-@var{x},@var{y}.  If @var{font_desc}, a, X logical font descriptor, is
-given, use that font to display the text. If @var{colorName} is also
-given, render the text using that color.
+@var{x},@var{y}.
+
+If @var{font_desc}, (which is either a X Logical Font Descriptor if
+using X bitmap fonts or a Fontconfig descriptor if using Freetype
+fonts), is given, use that font to display the text.
+
+For information about Fontconfig descriptors, refer to the
+@code{X11FreeTypeFont} section @xref{X11FreeTypeFont}.  For
+information about X Logical Font Descriptors, refer to the
+@code{X11Font} section @xref{X11Font}.
+
+If @var{colorName} is also given, render the text using that color.
 
 @cindex @mnm{pixmapFromData} instance method @idxclscite{X11Bitmap}
 @cindex @mnm{pixmapFromData} instance method @idxclscite{X11CanvasPane}
@@ -14511,7 +14520,16 @@ Write @var{text} on the receiver pane's drawing surface (usually a X11Bitmap)
 at position @var{xOrg},@var{yOrg}.  @xref{X11Bitmap}.
 
 If the fourth argument is @var{font_desc}, the method draws the text
-using that font.  If a @var{color_name} argument is also given, draws
+using that font,  which is either a X Logical Font Descriptor if
+using X bitmap fonts or a Fontconfig descriptor if using Freetype
+fonts.
+
+For information about Fontconfig descriptors, refer to the
+@code{X11FreeTypeFont} section @xref{X11FreeTypeFont}.  For
+information about X Logical Font Descriptors, refer to the
+@code{X11Font} section @xref{X11Font}.
+
+If a @var{color_name} argument is also given, draws
 the text using that color.
 
 @cindex @mnm{subPaneDestroy} instance method @idxclscite{X11CanvasPane}

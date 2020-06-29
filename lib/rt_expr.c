@@ -1,4 +1,4 @@
-/* $Id: rt_expr.c,v 1.5 2020/06/22 04:22:08 rkiesling Exp $ */
+/* $Id: rt_expr.c,v 1.7 2020/06/29 00:26:07 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -2147,6 +2147,8 @@ static bool non_method_label (MESSAGE *prev_msg,
 			      char *pname,
 			      OBJECT **instance_var_tmp,
 			      OBJECT **class_var_tmp) {
+  bool inline_call_or_body;
+  int argblk_enclosing_offset;
   if ((*instance_var_tmp = __ctalkGetInstanceVariable
        (prev_msg -> obj, msg_name, FALSE)) != NULL) {
   } else if (IS_OBJECT(prev_msg -> obj) &&
@@ -2162,16 +2164,29 @@ static bool non_method_label (MESSAGE *prev_msg,
   } else {
     *class_var_tmp = __ctalkFindClassVariable (pname, FALSE);
   }
+
+  if (__call_stack_ptr < (MAXARGS - 1)) {
+    inline_call_or_body =
+      ((__call_stack[__call_stack_ptr + 1] -> inline_call ||
+	__call_stack[__call_stack_ptr + 2] -> inline_call) ? true : false);
+    argblk_enclosing_offset = 3;
+  } else {
+    inline_call_or_body =
+      ((__call_stack[__call_stack_ptr + 1] -> inline_call) ? true : false);
+    argblk_enclosing_offset = 2;
+  }
+  
   
   if ((*instance_var_tmp == NULL && *class_var_tmp == NULL) &&
-      __call_stack[__call_stack_ptr + 1] -> inline_call &&
+      inline_call_or_body &&
       (prev_msg -> attrs & RT_TOK_IS_SELF_KEYWORD)) {
     /* If we haven't found an instance var or a method, 
        and the preceding token is "self" and we're in an
        argument block, then check for the message in the
        receiver's superclass, and warn the user if that's
        the case. */
-    OBJECT *encl_rcvr_class = __call_stack[__call_stack_ptr + 2]
+    OBJECT *encl_rcvr_class = __call_stack[__call_stack_ptr +
+					   argblk_enclosing_offset]
       -> rcvr_class_obj;
     self_enclosing_class_message_warning
       (__call_stack[__call_stack_ptr+2] -> rcvr_class_obj,

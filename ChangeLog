@@ -917,3 +917,12 @@
 	local_object_cache.  Also added obj_from_local_object_cache
 	and cleanup_local_object_cache to retrieve them when called
 	by __ctalk_get_object_return (rt_obj.c).
+2020-06-28
+	- Updated non_method_label to check for more expression
+	contexts in argument blocks where a "self" keyword might
+	erroneously appear instead of a "super" keyword
+	(lib/rt_expr.c).
+	- Moved __ctalkX11UseFontBasic from x11lib.c to xlibfont.c.
+	- Updated X11Bitmap : putStrXY (4 and 5 arguments) to check
+	if the Freetype font libaries have been initialized, and to
+	select either X or Freetype font selection.

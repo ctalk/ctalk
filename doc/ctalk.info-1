@@ -1683,10 +1683,18 @@ Instance Methods
 'putStr (Integer X, Integer Y, String TEXT)'
 'putStr (Integer X, Integer Y, String TEXT, String FONT_DESC)'
 'putStr (Integer X, Integer Y, String TEXT, String FONT_DESC, String COLORNAME)'
-     Print TEXT on the receiver's drawable X resource, at X,Y.  If
-     FONT_DESC, a, X logical font descriptor, is given, use that font to
-     display the text.  If COLORNAME is also given, render the text
-     using that color.
+     Print TEXT on the receiver's drawable X resource, at X,Y.
+
+     If FONT_DESC, (which is either a X Logical Font Descriptor if using
+     X bitmap fonts or a Fontconfig descriptor if using Freetype fonts),
+     is given, use that font to display the text.
+
+     For information about Fontconfig descriptors, refer to the
+     'X11FreeTypeFont' section *Note X11FreeTypeFont::.  For information
+     about X Logical Font Descriptors, refer to the 'X11Font' section
+     *Note X11Font::.
+
+     If COLORNAME is also given, render the text using that color.
 
 'pixmapFromData (int X_ORG, int Y_ORG, char *XPM_DATA[])'
      Draw the X pixmap defined by XPM_DATA with the upper left corner at
