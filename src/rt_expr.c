@@ -1,4 +1,4 @@
-/* $Id: rt_expr.c,v 1.3 2020/06/03 19:22:32 rkiesling Exp $ */
+/* $Id: rt_expr.c,v 1.4 2020/06/29 17:28:47 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -3290,6 +3290,7 @@ int prefix_method_expr_a (MESSAGE_STACK messages, int prefix_idx,
 	  } else {
 	    ms.tok = prefix_idx_2;
 	    expr_buf = collect_expression (&ms, &end_idx); 
+	    de_newline_buf (expr_buf); /***/
 	    if (leading_paren_idx != -1)
 	      leading_paren_idx = -1;
 	  }
