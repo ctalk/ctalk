@@ -1,5 +1,5 @@
 \input style.tex @c -*-texinfo-*-
-@c $Id: tutorial.texi,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $
+@c $Id: tutorial.texi,v 1.2 2020/06/30 01:46:53 rkiesling Exp $
 @c %**start of header  
 @setfilename tutorial.info
 @settitle Ctalk Tutorial
@@ -1806,9 +1806,11 @@ variables of each class, and the return classes of methods.
 If you enclose a simple expression in parentheses, then
 Ctalk can treat the complete expression as a receiver.  This 
 expression provides an example.
+
 @example
 ("Hello, " + "world!") length;
 @end example
+
 This expression returns the result @code{13}, because the
 expression @code{"Hello, " + "world!"} returns a
 @code{String} object containing the result, the complete
@@ -1817,6 +1819,7 @@ of the @mnm{length} message.
 
 C variables and objects work equivalently in receiver
 expressions.  So the following example,
+
 @example
 String new s1;
 String new s2;
@@ -1836,9 +1839,11 @@ strcpy (s2, "world!);
 
 (s1 + s2) length;
 @end example
+
 Method parameters and @code{self} also work normally within
 simple receiver expressions.  The following example does
 exactly what you would expect it to do.
+
 @c test/expect/constrcvr17.c
 @example
 String instanceMethod catLengthArg (String sArg) @{
@@ -1862,6 +1867,7 @@ math operators; that is, they have a higher precedence.
 
 So an expression like the following doesn't do what you
 expect.
+
 @example
 ("Hello, " + "world ") + ("again" + "!") length;
 @end example
@@ -1876,9 +1882,54 @@ receiver of the second @code{+} message is a @code{String}.
 
 To get @code{length} to evaluate the complete expression,
 enclose the expression in parentheses.
+
 @example
 (("Hello, " + "world ") + ("again" + "!")) length;
 @end example 
+
+Here's another example of an expresison where it's necessary to add
+parentheses.
+
+@example
+
+(*itemPtr) org x = self resources integerAt "scrollWidth" +
+  self resources integerAt "leftMargin";
+
+@end example
+
+This expression is ambiguous because the @samp{+} operator in the
+argument list is overloaded in both @code{String} and @code{Integer}
+classes.  So if Ctalk is to interpret the argument list, it
+might consider the first @code{integerAt} token to use the rest of the
+expression as its single argument, in which case Ctalk would interpret
+the argument expression like this, and try to perform an increment of
+the "scrollWidth" token, which isn't (as yet) supported, and would
+(probably) make no sense, because "scrollWidth" is a key in the
+@code{AssociativeArray,} "resources".
+
+@example
+
+(*itemPtr) org x = self resources integerAt ("scrollWidth" +
+  self resources integerAt "leftMargin");
+
+@end example
+
+Instead, what we really want is to interpret the complete argument
+expression to the @samp{=} operator as this.
+
+@example
+
+(*itemPtr) org x = (self resources integerAt "scrollWidth") +
+  (self resources integerAt "leftMargin");
+
+@end example
+
+This causes Ctalk to first evaluate each operand of the @samp{+}
+operator, which results in @code{Integer} operands, so Ctalk evaluates
+the entire expression as an integer addition, and it uses the
+@code{Integer: +} method, and returns the addition of the two
+@code{Integer} values that are stored in the "resources"
+@code{AssociativeArray}.
 
 @anchor{Variable Promotion and Type Conversion}
 @iftex
