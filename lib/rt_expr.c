@@ -1,4 +1,4 @@
-/* $Id: rt_expr.c,v 1.7 2020/06/29 00:26:07 rkiesling Exp $ */
+/* $Id: rt_expr.c,v 1.8 2020/06/30 01:18:07 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -531,6 +531,13 @@ static OBJECT *expr_result_object (void) {
 	       (eval_status & EVAL_STATUS_CLASS_VAR)) {
       return M_VALUE_OBJ(e_messages[p -> msg_frame_top]);
     }
+  } else if ((m_term -> attrs & RT_VALUE_OBJ_IS_INSTANCE_VAR) &&
+	     ((m_term -> value_obj  && m_term -> value_obj -> instancevars) ? 
+	      (m_term -> value_obj -> instancevars -> attrs &
+	       OBJECT_IS_VALUE_VAR) : 0)) {
+    /***/
+    eval_status |= (EVAL_STATUS_TERMINAL_TOK|EVAL_STATUS_INSTANCE_VAR);
+    return M_VALUE_OBJ(e_messages[p -> msg_frame_top]);
   } else {
     /*
      *  Typecast alone not part of an expression.
