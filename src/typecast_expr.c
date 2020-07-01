@@ -1,4 +1,4 @@
-/* $Id: typecast_expr.c,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ */
+/* $Id: typecast_expr.c,v 1.2 2020/07/01 16:32:04 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -363,11 +363,11 @@ char *basic_class_from_typecast (MESSAGE_STACK messages, int start,
 
 /* #define CLASS_CAST_WARNINGS */
 
-static int class_cast_receiver_scan (MESSAGE_STACK messages,
-				     int stack_top_idx,
-				     int cast_end_idx,
-				     int *receiver_label_idx,
-				     int *deref_prefix_op_idx) {
+int class_cast_receiver_scan (MESSAGE_STACK messages,
+			      int stack_top_idx,
+			      int cast_end_idx,
+			      int *receiver_label_idx,
+			      int *deref_prefix_op_idx) {
   int i;
 
   for (i = cast_end_idx - 1, *receiver_label_idx = -1;
@@ -473,7 +473,8 @@ bool is_class_typecast (MSINFO *msi, int class_obj_tok) {
       !str_eq (M_NAME(msi -> messages[rcvr_tok_idx]), "super") &&
       !get_local_var (M_NAME(msi -> messages[rcvr_tok_idx])) &&
       !get_global_var (M_NAME(msi -> messages[rcvr_tok_idx])) &&
-      !get_object (M_NAME(msi -> messages[rcvr_tok_idx]), NULL)) {
+      !get_object (M_NAME(msi -> messages[rcvr_tok_idx]), NULL) &&
+      !is_method_parameter (msi -> messages, rcvr_tok_idx)) { /***/
 #ifdef CLASS_CAST_WARNINGS
     warning (msi -> messages[close_paren_idx],
 	     "Undefined class cast receiver, \"%s.\"",

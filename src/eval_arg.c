@@ -1,4 +1,4 @@
-/* $Id: eval_arg.c,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ */
+/* $Id: eval_arg.c,v 1.2 2020/07/01 16:32:04 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -2074,7 +2074,20 @@ OBJECT *eval_arg (METHOD *method, OBJECT *rcvr_class, ARGSTR *argbuf,
 
 	__xfree (MEMADDR(concat_buf));
       }
-      
+    } else if (M_TOK(m_arg) == OPENPAREN) { /***/
+      /* check for a class cast */
+#if 0
+      int close_paren_idx, rcvr_idx, deref_prefix_op_idx;
+      if ((next_tok_idx = nextlangmsg (m_messages, i)) != ERROR) {
+	if (is_class_typecast (&msi, next_tok_idx)) {
+	  if ((close_paren_idx = match_paren (m_messages,
+					      i, stack_end)) != ERROR) {
+	    class_cast_receiver_scan (m_messages, i, close_paren_idx,
+				      &rcvr_idx, &deref_prefix_op_idx);
+	  }
+	}
+      }
+#endif      
     } /* if (M_TOK(m_arg) == LABEL) */
     prev_tok_idx = i;
 
