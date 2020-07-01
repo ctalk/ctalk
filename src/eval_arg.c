@@ -1,4 +1,4 @@
-/* $Id: eval_arg.c,v 1.2 2020/07/01 16:32:04 rkiesling Exp $ */
+/* $Id: eval_arg.c,v 1.3 2020/07/01 19:17:53 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -2076,14 +2076,27 @@ OBJECT *eval_arg (METHOD *method, OBJECT *rcvr_class, ARGSTR *argbuf,
       }
     } else if (M_TOK(m_arg) == OPENPAREN) { /***/
       /* check for a class cast */
-#if 0
+#if 1
       int close_paren_idx, rcvr_idx, deref_prefix_op_idx;
       if ((next_tok_idx = nextlangmsg (m_messages, i)) != ERROR) {
 	if (is_class_typecast (&msi, next_tok_idx)) {
 	  if ((close_paren_idx = match_paren (m_messages,
 					      i, stack_end)) != ERROR) {
-	    class_cast_receiver_scan (m_messages, i, close_paren_idx,
+	    class_cast_receiver_scan (m_messages, stack_end, i,
 				      &rcvr_idx, &deref_prefix_op_idx);
+	    if ((m_messages[rcvr_idx] -> obj =
+		 get_class_object (M_NAME(m_messages[next_tok_idx])))
+		!= NULL) {
+	      m_arg -> receiver_msg = m_messages[next_tok_idx];
+	      m_messages[next_tok_idx] -> obj =
+		m_messages[rcvr_idx] -> obj;
+	      m_messages[next_tok_idx] -> attrs |= TOK_IS_CLASS_TYPECAST;
+	    } else if (is_cached_class (M_NAME(m_messages[next_tok_idx]))) {
+		/* what? */
+	    }
+	    prev_tok_idx = i;
+	    i = rcvr_idx;
+	    continue;
 	  }
 	}
       }
