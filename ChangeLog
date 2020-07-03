@@ -935,3 +935,8 @@
 	- Added a check for method parameters in is_class_typecast
 	(typecast_expr.c).
 	- Added a check for a class typecast in eval_arg (eval_arg.c).
+2020-07-02
+	- Updated rt_self_expr to check for an opening paren of a
+	self expr that is the parenthesized receiver of a method
+	expression; e.g., "(self items size) asFloat" (rt_expr.c).
+	- Added the rcvrexpr5.c test program.

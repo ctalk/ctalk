@@ -1,4 +1,4 @@
-/* $Id: resolve.c,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ */
+/* $Id: resolve.c,v 1.2 2020/07/01 22:26:35 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -58,6 +58,8 @@ extern OBJECT *rcvr_class_obj;         /* declared in lib/rtnwmthd.c       */
 extern int nolinemarker_opt;           /* declared in main.c.              */
 extern OBJECT *classes;       /* Class dictionary, declared in cclasses.c */
 extern int fn_defined_by_header;  /* declared in fnbuf.c */
+
+extern HASHTAB declared_method_names;       /* Initialized from init_method_stack*/
 
 static inline bool is_method_or_proto_name (OBJECT *class_object,
 					    char *name) {
@@ -2855,6 +2857,10 @@ OBJECT *resolve (int message_ptr) {
 		    /* might need to be upgraded to is_typecast_expr,
 		       which looks up actual types */
 		    return NULL;
+		  } else if (_hash_get (declared_method_names, M_NAME(m))) {
+		    /***/
+		    warning (m, "Method, \"%s\" cannot be resolved.  Waiting "
+			     "until run time.", M_NAME(m));
 		  } else {
 #if defined(__APPLE__) && defined (__x86_64)
 		    if (!strstr (m -> name, "__builtin_"))

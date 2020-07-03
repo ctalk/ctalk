@@ -1,4 +1,4 @@
-/* $Id: rt_expr.c,v 1.4 2020/06/29 17:28:47 rkiesling Exp $ */
+/* $Id: rt_expr.c,v 1.6 2020/07/03 03:51:18 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -1568,6 +1568,8 @@ char *rt_self_expr (MESSAGE_STACK messages, int start_idx, int *end_idx,
   int stack_start_idx, stack_top_idx;
   METHOD *assign_method;
   bool have_cvar_registration = false;
+  bool have_rcvr_expr_open_paren_adj = false;
+  int rcvr_expr_open_paren_idx, actual_expr_start;
 
   stack_start_idx = stack_start (messages);
   stack_top_idx = get_stack_top (messages);
@@ -1634,7 +1636,34 @@ char *rt_self_expr (MESSAGE_STACK messages, int start_idx, int *end_idx,
       }
       return arg_expr_buf;
     } else {
+      int lookahead, lookahead2, l_lookback;
       fmt_rt_expr (messages, start_idx, end_idx, exprbuf);
+      if ((lookahead = nextlangmsg (messages, *end_idx)) != ERROR) {
+	if (M_TOK(messages[lookahead]) == CLOSEPAREN) {
+	  /* 
+	   *  Check for an expression like this: 
+	   *
+	   *    (<self_expr>) <method_expr>
+	   *               ^^^
+	   *
+	   *  and backtrack.  TODO - multiple enclosing parens. 
+	   */
+	  if ((lookahead2 = nextlangmsg (messages, lookahead)) != ERROR) {
+	    if (M_TOK(messages[lookahead2]) == LABEL) {
+	      if (leading_tok_idx != ERROR) {
+		if ((l_lookback = prevlangmsg (messages, leading_tok_idx))
+		    != ERROR) {
+		  if (M_TOK(messages[l_lookback]) == OPENPAREN) {
+		    fmt_rt_expr (messages, l_lookback, end_idx, exprbuf);
+		    have_rcvr_expr_open_paren_adj = true;
+		    rcvr_expr_open_paren_idx = l_lookback;
+		  }
+		}
+	      }
+	    }
+	  }
+	}
+      }
       leading_tok_idx = -1;
     }
   }
@@ -1658,7 +1687,12 @@ char *rt_self_expr (MESSAGE_STACK messages, int start_idx, int *end_idx,
    *  anyway.
    */
   messages_self_is_receiver_of = FALSE;
-  for (i = start_idx; i >= *end_idx; i--) {
+  if (have_rcvr_expr_open_paren_adj) { /***/
+    actual_expr_start = rcvr_expr_open_paren_idx;
+  } else {
+    actual_expr_start = start_idx;
+  }
+  for (i = actual_expr_start; i >= *end_idx; i--) {
     messages[i] -> attrs |= TOK_IS_RT_EXPR;
     if (M_ISSPACE(messages[i]))
       continue;
@@ -1830,7 +1864,12 @@ char *rt_self_expr (MESSAGE_STACK messages, int start_idx, int *end_idx,
 	/* Limited right now - we should be able to do
 	   expressions with methods the same way. */
 
-	if (messages[start_idx] -> attrs & TOK_IS_PRINTF_ARG) {
+	if (have_rcvr_expr_open_paren_adj) { /***/
+	  actual_expr_start = rcvr_expr_open_paren_idx;
+	} else {
+	  actual_expr_start = start_idx;
+	}
+	if (messages[actual_expr_start] -> attrs & TOK_IS_PRINTF_ARG) {
 
 	  /* Simplify this, or fix is_fmt_arg () to handle more cases. */
 	  if (is_fmt_arg (messages, _RTSE_1ST_TOK, stack_start_idx,
@@ -1853,7 +1892,8 @@ char *rt_self_expr (MESSAGE_STACK messages, int start_idx, int *end_idx,
 	  goto rt_expr_evaled;
 	}
 
-	if ((lookback = prevlangmsg (messages, start_idx)) != ERROR) {
+	if ((lookback = prevlangmsg (messages, actual_expr_start))
+	    != ERROR) { /***/
 	  if (M_TOK(messages[lookback]) == ARRAYOPEN) {
 	    fmt_rt_return (exprbuf, INTEGER_CLASSNAME,
 			   TRUE, arg_expr_buf);
@@ -1985,9 +2025,19 @@ char *rt_self_expr (MESSAGE_STACK messages, int start_idx, int *end_idx,
       }      
   }
  rt_expr_evaled:
-  fileout (arg_expr_buf, 0, start_idx);
+  if (have_rcvr_expr_open_paren_adj) { /***/
+    actual_expr_start = rcvr_expr_open_paren_idx;
+  } else {
+    actual_expr_start = start_idx;
+  }
+  fileout (arg_expr_buf, 0, actual_expr_start);
  rt_expr_evaled_2:
-  if (leading_tok_idx != -1) {
+  if (have_rcvr_expr_open_paren_adj) {
+    for (i = actual_expr_start; i >= *end_idx; i--) {
+      ++messages[i] -> evaled;
+      ++messages[i] -> output;
+    }
+  } else if (leading_tok_idx != -1) {
     for (i = leading_tok_idx; i >= *end_idx; i--) {
       ++messages[i] -> evaled;
       ++messages[i] -> output;
