@@ -943,3 +943,7 @@
 2020-07-04
 	- Added another check for an instance variable series to
 	mcct_check_token (mcct.c).
+	- Added a check for a unary minus following an assignment
+	operator in find_leading_tok_idx (pattypes.c).
+	- Updated rt_self_expr to use the leading_tok_idx as the
+	actual_expr_start (rt_expr.c).

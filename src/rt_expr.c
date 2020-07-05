@@ -1,4 +1,4 @@
-/* $Id: rt_expr.c,v 1.6 2020/07/03 03:51:18 rkiesling Exp $ */
+/* $Id: rt_expr.c,v 1.8 2020/07/05 03:40:04 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -1690,7 +1690,8 @@ char *rt_self_expr (MESSAGE_STACK messages, int start_idx, int *end_idx,
   if (have_rcvr_expr_open_paren_adj) { /***/
     actual_expr_start = rcvr_expr_open_paren_idx;
   } else {
-    actual_expr_start = start_idx;
+    actual_expr_start =
+      ((leading_tok_idx != -1) ? leading_tok_idx : start_idx); /***/
   }
   for (i = actual_expr_start; i >= *end_idx; i--) {
     messages[i] -> attrs |= TOK_IS_RT_EXPR;
@@ -1864,10 +1865,18 @@ char *rt_self_expr (MESSAGE_STACK messages, int start_idx, int *end_idx,
 	/* Limited right now - we should be able to do
 	   expressions with methods the same way. */
 
+#if 0
 	if (have_rcvr_expr_open_paren_adj) { /***/
 	  actual_expr_start = rcvr_expr_open_paren_idx;
 	} else {
 	  actual_expr_start = start_idx;
+	}
+#endif
+	/***/
+	actual_expr_start = ((leading_tok_idx != -1) ?
+			     leading_tok_idx : start_idx);
+	if (have_rcvr_expr_open_paren_adj) {
+	  actual_expr_start = rcvr_expr_open_paren_idx;
 	}
 	if (messages[actual_expr_start] -> attrs & TOK_IS_PRINTF_ARG) {
 

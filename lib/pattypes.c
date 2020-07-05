@@ -1,4 +1,4 @@
- /* $Id: pattypes.c,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ */
+ /* $Id: pattypes.c,v 1.2 2020/07/04 22:10:37 rkiesling Exp $ */
 
  /*
    This file is part of Ctalk.
@@ -1272,6 +1272,11 @@ int find_leading_tok_idx (MESSAGE_STACK messages, int start_idx,
 	} else {
 	  return start_idx;
 	} 
+	break;
+      case MINUS: /***/
+	if (IS_C_ASSIGNMENT_OP(M_TOK(messages[lookback]))) {
+	  return i;
+	}
 	break;
       case OPENPAREN:
 	if (lookback == ERROR)
