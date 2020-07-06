@@ -1,4 +1,4 @@
-/* $Id: rt_expr.c,v 1.8 2020/07/05 03:40:04 rkiesling Exp $ */
+/* $Id: rt_expr.c,v 1.9 2020/07/05 20:32:50 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -1569,7 +1569,7 @@ char *rt_self_expr (MESSAGE_STACK messages, int start_idx, int *end_idx,
   METHOD *assign_method;
   bool have_cvar_registration = false;
   bool have_rcvr_expr_open_paren_adj = false;
-  int rcvr_expr_open_paren_idx, actual_expr_start;
+  int rcvr_expr_open_paren_idx = start_idx, actual_expr_start = start_idx;
 
   stack_start_idx = stack_start (messages);
   stack_top_idx = get_stack_top (messages);

@@ -1,4 +1,4 @@
-/* $Id: X11ListPane,v 1.4 2020/06/26 23:03:39 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11ListPane,v 1.50 2020/07/06 12:15:48 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -30,15 +30,120 @@
    scrollWidth              10
    focusBorderWidth         2
    borderWidth              1
+   font                     "sans serif-12";
+   leftMargin               4
+   keyScrollIncrement       4
+   scrollThumbColor         "darkgray"
 
 */
 
 X11CanvasPane class X11ListPane;
 
 X11ListPane instanceVariable hover Boolean false;
+X11ListPane instanceVariable items List NULL;
+X11ListPane instanceVariable iInit Integer 0;
+X11ListPane instanceVariable viewStartY Integer  0;
+X11ListPane instanceVariable scrollWidth Integer 0;
+X11ListPane instanceVariable buttonState Integer 0;
+X11ListPane instanceVariable thumbOrg Point NULL;
+X11ListPane instanceVariable thumbExt Point NULL;
+
+String class ItemBox;
+
+ItemBox instanceVariable org Point 0;
+ItemBox instanceVariable ext Point 0;
+ItemBox instanceVariable size Point 0;
+
+static int y_1 = 0, x_1 = 0, d_y;
+static int scroll_max_y, scroll_min_y;
+static int nth_item_clicked = -1;
+
+X11ListPane instanceMethod selectFont (void) {
+  self ftFontVar selectFontFromFontConfig self resources at "font";
+  self ftFontVar saveSelectedFont;
+}
+
+X11ListPane instanceMethod calcThumb (void) {
+  Integer new borderMargin, usableScroll;
+  Float new nItems, itemsPerPage, visiblePct;
+  ItemBox new item;
+  double px_size;
+
+  borderMargin = self resources integerAt "focusBorderWidth";
+  usableScroll = self resources integerAt "scrollWidth";
+
+  scroll_max_y = self size y - borderMargin;
+  scroll_min_y = borderMargin;
+
+  /* The (Object *) cast tells Ctalk to use Object : = . not 
+     String : =, which is in ItemBox's immediate superclass. */
+  (Object *)item = **self items;
+
+#if 0
+
+  /* For testing. */
+  itemsPerPage = (self size y asFloat) / (self size y asFloat)
+
+#else  
+
+  itemsPerPage = self size y asFloat / item size y asFloat;
+
+#endif    
+
+  nItems = self items size asFloat;
+  visiblePct = itemsPerPage / nItems;
+
+  px_size = scroll_max_y * visiblePct;
+  self thumbExt y = px_size asInteger;
+
+  if (self thumbExt y > scroll_max_y)
+    self thumbExt y = scroll_max_y;
+
+  self thumbOrg x = borderMargin;
+  self thumbExt x = borderMargin + usableScroll;
+  /* initial position at the top of the scrollbar */
+  self thumbOrg y = borderMargin;
+
+}
+
+X11ListPane instanceMethod add (String itemText) {
+  Symbol new itemPtr;
+  Integer new nth, lOffset, itemWidth;
+
+  self ftFontVar selectFontFromFontConfig self resources at "font";
+  self selectFont;
+
+  *itemPtr = ItemBox basicNew itemText, itemText;
+
+  nth = self items size;
+  lOffset = self resources integerAt "scrollWidth";
+  lOffset += self resources integerAt "leftMargin";
+  itemWidth = self ftFontVar textWidth itemText;
+  /* self itemHeight = self ftFontVar textHeight itemText; */
+
+  (*itemPtr) org x = (self resources integerAt "scrollWidth") +
+    (self resources integerAt "leftMargin");
+
+  /* Should see how this draws, if we need to add extra space between
+     each item */
+  (*itemPtr) org x = lOffset;
+  (*itemPtr) org y = (nth * self ftFontVar height);
+
+  (*itemPtr) ext x = lOffset + itemWidth;
+  /* This is here for testing. */
+  (*itemPtr) ext y = ((nth * self ftFontVar height) + self ftFontVar height);
+
+  (*itemPtr) size x = itemWidth;
+  (*itemPtr) size y = self ftFontVar height;
+
+  self items push *itemPtr;
+
+  self calcThumb;
+}
 
 X11ListPane instanceMethod new (String paneName) {
-  Method new exposeMethod, enterMethod, leaveMethod;
+  Method new exposeMethod, enterMethod, leaveMethod, kbdMethod,
+    buttonMethod, motionMethod;
 
   X11ListPane super new paneName;
   
@@ -51,12 +156,171 @@ X11ListPane instanceMethod new (String paneName) {
   leaveMethod definedInstanceMethod "X11ListPane", "onLeave";
   paneName setMethodHandler "leavenotify", leaveMethod;
 
+  kbdMethod definedInstanceMethod "X11ListPane", "onKey";
+  paneName setMethodHandler "kbdinput", kbdMethod;
+
+  buttonMethod definedInstanceMethod "X11ListPane", "onClick";
+  paneName setMethodHandler "pointerinput", buttonMethod;
+
+  motionMethod definedInstanceMethod "X11ListPane", "onMotion";
+  paneName setMethodHandler "pointermotion", motionMethod;
+
   paneName resources atPut "borderColor", "gray";
   paneName resources atPut "scrollWidth", 10;
   paneName resources atPut "borderWidth", 1;
   paneName resources atPut "focusBorderWidth", 2;
+  paneName resources atPut "font", "sans-serif-12";
+  paneName resources atPut "leftMargin", 4;
+  paneName resources atPut "keyScrollIncrement", 4;
+  paneName resources atPut "scrollThumbColor", "darkgray";
 
   return paneName;
+}
+
+/* These are from x11defs.h. */
+#define BUTTON1MASK  (1 << 0)
+#define BUTTON2MASK  (1 << 1)
+#define BUTTON3MASK  (1 << 2)  
+
+X11ListPane instanceMethod onClick (Object subPane, InputEvent event) {
+  ItemBox new item;
+  int i;
+  
+  switch (event eventClass)
+    {
+    case BUTTONPRESS:
+      switch (event xEventData4)
+	{
+	case Button1:
+	  subPane buttonState |= BUTTON1MASK;
+	  x_1 = event xEventData1;
+	  y_1 = event xEventData2;
+	  if (x_1 > self scrollWidth) {
+	    i = 0;
+	    /* nth_item_clicked = -1; *//***/
+	    self items map {
+	      item = (ItemBox *)self;
+	      if (((y_1 + super viewStartY) >= item org y) &&
+		  ((y_1 + super viewStartY) <= item ext y)) {
+		/* Clicking on the same item twice de-selects it. */
+		if (nth_item_clicked == -1) {
+		  nth_item_clicked = i;
+		} else {
+		  if (i != nth_item_clicked) {
+		    nth_item_clicked = i;
+		  } else {
+		    nth_item_clicked = -1;
+		  }
+		}
+		super draw;
+		super refresh;
+	      }
+	      ++i;
+	    }
+	  }
+	  break;
+	case Button2:
+	  subPane buttonState |= BUTTON2MASK;
+	  break;
+	case Button3:
+	  subPane buttonState |= BUTTON3MASK;
+	  break;
+	}
+      break;
+    case BUTTONRELEASE:
+      switch (event xEventData4)
+	{
+	case Button1:
+	  subPane buttonState &= ~BUTTON1MASK;
+	  y_1 = 0;
+	  break;
+	case Button2:
+	  subPane buttonState &= ~BUTTON2MASK;
+	  break;
+	case Button3:
+	  subPane buttonState &= ~BUTTON3MASK;
+	  break;
+	}
+      break;
+    }
+}
+
+X11ListPane instanceMethod onMotion (Object subPane, InputEvent event) {
+
+  Integer new focusBorderWidth;
+
+  if (event eventData == self xWindowID) {
+    if ((event xEventData1 >= self thumbOrg x) &&
+	(event xEventData1 <= self thumbExt x)) {
+      if (self buttonState & BUTTON1MASK) {
+	focusBorderWidth = self resources at "focusBorderWidth";
+	d_y = event xEventData2 - y_1;
+	y_1 += d_y;
+	self thumbOrg y += d_y;
+	self thumbExt y += d_y;
+	self viewStartY += d_y;
+	if (self thumbOrg y > (scroll_max_y - 5)) {
+	  d_y = (self thumbOrg y - (scroll_max_y - 5));
+	  self thumbOrg y -= d_y;
+	  self thumbExt y -= d_y;
+	  self viewStartY -= d_y;
+	} else if (self thumbOrg y < 2) {
+	  if (self thumbOrg y >= 0) {
+	    d_y = (2 - self thumbOrg y);
+	    self thumbOrg y += d_y;
+	    self thumbExt y += d_y;
+	    self viewStartY += d_y;
+	  } else {
+	    d_y = -self thumbOrg y;
+	    d_y += 2;
+	    self thumbOrg y += d_y;
+	    self thumbExt y += d_y;
+	    self viewStartY += d_y;
+	  }
+	}
+	self draw;
+	self refresh;
+      }
+    }
+  }
+}
+
+#ifndef XK_Up
+#define XK_Up 0xff52
+#endif
+#ifndef XK_Down
+#define XK_Down 0xff54
+#endif
+#define CTRL_N 14
+#define CTRL_P 16
+
+X11ListPane instanceMethod onKey (Object subPane,
+				    InputEvent __event) {
+  Integer new scrollInc;
+
+  /* We could simply declare subPane as a X11ListPane in the 
+     parameter list.  This is here for testing. */
+  scrollInc = (X11ListPane *)subPane resources integerAt
+    "keyScrollIncrement";
+
+  if (__event eventClass == KEYPRESS) {
+    switch (__event xEventData5)
+      {
+      case XK_Up:
+      case CTRL_P:
+	if ((subPane viewStartY  - scrollInc) > 0) {
+	  subPane viewStartY -= scrollInc;
+	}
+	break;
+      case XK_Down:
+      case CTRL_N:
+	if ((subPane viewStartY + scrollInc) < subPane size y) {
+	  subPane viewStartY += scrollInc;
+	}
+	break;
+      }
+  }
+
 }
 
 X11ListPane instanceMethod onEnter (Object subPane,
@@ -73,51 +337,168 @@ X11ListPane instanceMethod onLeave (Object subPane,
   subPane refresh;
 }
 
+X11ListPane instanceMethod onExpose (Object subPane, InputEvent event) {
+  subPane draw;
+  subPane refresh;
+}
 
-X11ListPane instanceMethod onExpose (InputEvent e, Object subPane) {
-  self draw;
-  self refresh;
+X11ListPane instanceMethod attachTo (Object parentPane,
+				       String geomspec) {
+  "Register the receiver pane as a subpane of the X11Pane
+  given as the argument.  Generally parent pane should
+  be a X11PaneDispatcher object."
+  X11Bitmap new xPaneBuffer;
+  X11Bitmap new xPaneBackingStore;
+  int x, y, width, height;
+  self super attachTo (parentPane, geomspec);
+  self paneBuffer become xPaneBuffer;
+  self paneBackingStore become xPaneBackingStore;
+
+  __ctalkX11SubWindowGeometry (parentPane, geomspec,
+				 &x, &y, &width, &height);
+  self viewWidth = width;
+  self viewHeight = height;
+  self size x = width;
+  self size y = height;
+  self origin x = x;
+  self origin y = y;
+
+  /*
+   *  The evaluation of these statements  needs to be deferred
+   *  until run time.  See the comment in the other, "attachTo,"
+   *  method, below.
+   */
+  (X11Bitmap *)self paneBuffer create self displayPtr, self xWindowID,
+    self size x, self size y, self depth;
+  (X11Bitmap *)self paneBuffer background (self backgroundColor);
+  (X11Bitmap *)self paneBackingStore create self displayPtr, self xWindowID,
+    self size x, self size y, self depth;
+
+  self paneBuffer background "white";
+  self paneBuffer clear;
+
+  self ftFontVar selectFontFromFontConfig self resources at "font";
+  self ftFontVar saveSelectedFont;
+  self ftFontVar namedX11Color "black";
+
+  self scrollWidth = self resources at "scrollWidth";
+
+  return NULL;
+}
+
+X11ListPane instanceMethod dumpList (void) {
+  "For testing."
+  ItemBox new item;
+  
+  self items map {
+    item = self;
+    printf ("%s: org: %d,%d\text: %d,%d\tsize: %d,%d\n", item, item org x,
+	    item org y, item ext x, item ext y, item size x, item size y);
+  }
+}
+
+X11ListPane instanceMethod drawItemList (void) {
+  ItemBox new item;
+  Integer new nthItemTopY, lineHeight, l_viewStartY, l_viewHeight;
+  Integer new visible;
+  Integer new textHeight;
+  int i;
+  
+  if (self iInit++ < 5)
+    return NULL;
+
+  self ftFontVar selectFontFromFontConfig self resources at "font";
+  self ftFontVar saveSelectedFont;
+  self ftFontVar namedX11Color "black";
+
+  nthItemTopY = 0;
+  lineHeight = self ftFontVar textHeight "T";
+  l_viewStartY = self viewStartY;
+  l_viewHeight = self size y;
+
+  i = 0;
+  self items map {
+    item = self;
+    if (l_viewStartY - lineHeight <= item org y) {
+      visible = true;
+    }
+
+    if (visible) {
+      if (i == nth_item_clicked) {
+
+	textHeight = super ftFontVar textHeight item;
+	/* Try to center the rectangle vertically over the text. */
+	textHeight += super ftFontVar descent;
+
+	super pen colorName = "lightblue";
+	super drawFilledRectangle (item org x,
+				   (item ext y - l_viewStartY - textHeight),
+				   item size x,
+				   item size y);
+      }
+      super putStrXY item org x,
+	(item ext y - l_viewStartY),
+	item value;
+    }
+    ++i;
+  }
+
+}
+
+X11ListPane instanceMethod drawThumb (void) {
+  Integer new bordermargin;
+  Integer new usableScroll;
+
+  bordermargin = self resources integerAt "focusBorderWidth";
+  usableScroll = self resources integerAt "scrollWidth";
+  usableScroll -= (bordermargin * 2);
+  
+  self pen colorName = self resources at "scrollThumbColor";
+  self drawFilledRectangle self thumbOrg x, self thumbOrg y,
+    bordermargin + usableScroll, self thumbExt y;
+
 }
 
 X11ListPane instanceMethod draw (void) {
 
   Integer new border;
+
   self background "white";
   self clear;
 
   self pen colorName = self resources at "borderColor";
-  if (self hover) {
-    self pen width = self resources integerAt "focusBorderWidth";
-  } else {
-    self pen width = self resources integerAt "borderWidth";
-  }
-  self drawRectangle 0, 0, self size x, self size y;
+  self pen width = self resources integerAt "borderWidth";
+  self drawRectangle self resources integerAt "scrollWidth", 0,
+    self size x, self size y;
 
   self pen colorName = "darkgray";
-  self pen width = 2;
-#if 0
-  if (self hover) {
-    border = self resources integerAt "focusBorderWidth";
-  } else {
-    border = self resources integerAt "borderWidth";
-  }
-  self drawLine self resources integerAt "scrollWidth",
-    border,
-    self resources integerAt "scrollWidth", 
-    self size y - border;
-#else  
-  if (self hover) {
-    self drawLine self resources integerAt "scrollWidth",
-      self resources integerAt "focusBorderWidth",
-      self resources integerAt "scrollWidth", 
-      self size y - self resources integerAt "focusBorderWidth";
-  } else {
-    self drawLine self resources integerAt "scrollWidth",
-      self resources integerAt "borderWidth",
-      self resources integerAt "scrollWidth", 
-      self size y - self resources integerAt "borderWidth";
 
-  }
-#endif  
+  self pen width = self resources integerAt "borderWidth";
+  self drawRectangle 0, 0, self resources integerAt "scrollWidth",
+    self size y;
+  
+  self drawThumb;
+  self drawItemList;
 }
 
+X11ListPane instanceMethod selectedItem (void) {
+  returnObjectClass Integer;
+  return nth_item_clicked;
+}
+
+X11ListPane instanceMethod selectedItemText (void) {
+  String new s;
+  ItemBox new item;
+  int i;
+  returnObjectClass String;
+  i = 0;
+  s = "";
+  self items map {
+    item = (ItemBox *)self;
+    if (i == nth_item_clicked) {
+      s = item value;
+    }
+    ++i;
+  }
+  return s;
+}

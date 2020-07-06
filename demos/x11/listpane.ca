@@ -1,0 +1,83 @@
+/* listpane.ca, a X11ListPane demonstration. -*-c-*- */
+
+#define N_ITEMS 10
+
+#include <ctalk/ctalkdefs.h>
+
+int main (int argv, char **argc) {
+  X11Pane new xPane;
+  X11PaneDispatcher new dispatcher;
+  X11ListPane new listPane;
+  X11LabelPane new label;
+  X11ButtonPane new button;
+  InputEvent new e;
+  Integer new nEvents;
+  Integer new verbose;
+  Integer new i;
+  X11Cursor new cursor;
+   xPane resources atPut "backgroundColor", "blue";
+  label resources replaceAt "backgroundColor", "blue";
+  label resources replaceAt "foregroundColor", "blue";
+  label resources replaceAt "highlightForegroundColor", "blue";
+  label resources replaceAt "textColor", "white";
+  label resources replaceAt "highlightTextColor", "white";
+  label border = false;
+
+  xPane inputStream eventMask = EXPOSE|ENTERWINDOWNOTIFY|LEAVEWINDOWNOTIFY| \
+    KEYPRESS|KEYRELEASE|WINDELETE|BUTTONPRESS|BUTTONRELEASE|MOTIONNOTIFY| \
+     SELECTIONCLEAR|SELECTIONREQUEST;
+  xPane initialize 300, 200;
+  dispatcher attachTo xPane;
+  label attachTo dispatcher, "100x80+10+46";
+  button attachTo dispatcher, "60x45+120+136";
+  listPane attachTo dispatcher, "140x96+120+32";
+
+  xPane ftFontVar initFontLib;
+
+  for (i = 1; i < N_ITEMS; ++i) {
+    listPane add "item " + i asString;
+  }
+  
+  xPane map;
+  xPane raiseWindow;
+
+  xPane openEventStream;
+
+  xPane setWMTitle "X11TextListPane Demo";
+  label multiLine "Select\nan\nItem";
+  button label text "Done";
+
+  listPane draw;
+  listPane refresh;
+
+  while (TRUE) {
+    xPane inputStream queueInput;
+    if (xPane inputStream eventPending) {
+      e become xPane inputStream inputQueue unshift;
+
+      xPane subPaneNotify e;
+
+      switch (e eventClass value)
+        {
+        case EXPOSE:
+	  listPane draw;
+          listPane refresh;
+          break;
+        case WINDELETE:
+          xPane deleteAndClose;
+          exit (0);
+          break;
+        default:
+          if (button haveClick) {
+            button clearClick;
+            xPane deleteAndClose;
+	    printf ("%d: %s\n", listPane selectedItem,
+		    listPane selectedItemText);
+            exit (0);
+          }
+        break;
+        }
+    }
+  }
+}
+
