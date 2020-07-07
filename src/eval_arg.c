@@ -1,4 +1,4 @@
-/* $Id: eval_arg.c,v 1.3 2020/07/01 19:17:53 rkiesling Exp $ */
+/* $Id: eval_arg.c,v 1.4 2020/07/06 21:53:48 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -947,6 +947,8 @@ OBJECT *eval_arg (METHOD *method, OBJECT *rcvr_class, ARGSTR *argbuf,
   bool have_struct_op = false;
   MSINFO msi;
   char buf[MAXMSG];
+  bool math_subexpr_rewrite = false;
+  char *ptr_math_subexpr_rewrite_expr, math_subexpr_rewrite_expr[MAXMSG];
 
   if (argbuf -> start_idx == argbuf -> end_idx) {
     if ((arg_obj = eval_constant_arg (argbuf -> start_idx)) != NULL) {
@@ -2101,7 +2103,69 @@ OBJECT *eval_arg (METHOD *method, OBJECT *rcvr_class, ARGSTR *argbuf,
 	}
       }
 #endif      
-    } /* if (M_TOK(m_arg) == LABEL) */
+    } else if (IS_C_BINARY_MATH_OP (M_TOK(m_arg))) {/* if (M_TOK(m_arg) == OPENPAREN) */
+      /* If we have an expression like this:
+       *
+       *   (<operand 1 expr>) / (<operand 2 expr>)
+       *
+       * enclosed in parens and consisting only of label tokens, 
+       * rewrite to this.
+       *
+       *   <operand 1 expr> / <operand 2 expr>
+       *
+       *
+       * This is because subexprs enclosed in parentheses get only
+       * one result value in eval_arg, and in this case there would be
+       * two subexpr results, so we remove the parens, and evaluate
+       * the expression by operator precedence only. Aargh.
+       */
+      if (((prev_tok_idx = prevlangmsg (m_messages, i)) != ERROR) &&
+	  ((next_tok_idx = nextlangmsg (m_messages, i)) != ERROR)) {
+	if (M_TOK(m_messages[prev_tok_idx]) == CLOSEPAREN &&
+	    M_TOK(m_messages[next_tok_idx]) == OPENPAREN) {
+	  int op1_start_idx, op2_end_idx, i_2;
+	  op1_start_idx = match_paren_rev (m_messages, prev_tok_idx,
+					   msi.stack_start);
+	  op2_end_idx = match_paren (m_messages, next_tok_idx,
+				     stack_end);
+	  if (M_TOK(m_messages[op1_start_idx]) == OPENPAREN &&
+	      M_TOK(m_messages[op2_end_idx]) == CLOSEPAREN) {
+	    if (op1_start_idx == msi.stack_start &&
+		op2_end_idx == (msi.stack_ptr + 1)) {
+	      for (i_2 = op1_start_idx - 1; i_2 > prev_tok_idx; i_2--) {
+		if (!M_ISSPACE(m_messages[i_2]) &&
+		    M_TOK(m_messages[i_2]) != LABEL &&
+		    M_TOK(m_messages[i_2]) != METHODMSGLABEL) {
+		  goto subexpr_rewrite_done;
+		}
+	      }
+	      for (i_2 = next_tok_idx - 1; i_2 > op2_end_idx; i_2--) {
+		if (!M_ISSPACE(m_messages[i_2]) &&
+		    M_TOK(m_messages[i_2]) != LABEL &&
+		    M_TOK(m_messages[i_2]) != METHODMSGLABEL) {
+		  goto subexpr_rewrite_done;
+		}
+	      }
+	      math_subexpr_rewrite = true;
+	      ptr_math_subexpr_rewrite_expr =
+		collect_tokens (m_messages, msi.stack_start,
+				msi.stack_ptr);
+	      for (i_2 = 0; ptr_math_subexpr_rewrite_expr[i_2]; i_2++) {
+		if (ptr_math_subexpr_rewrite_expr[i_2] == '(' ||
+		    ptr_math_subexpr_rewrite_expr[i_2] == ')') {
+		  ptr_math_subexpr_rewrite_expr[i_2] = ' ';
+		}
+	      }
+	      trim_leading_whitespace (ptr_math_subexpr_rewrite_expr,
+				       math_subexpr_rewrite_expr);
+	      __xfree (MEMADDR(ptr_math_subexpr_rewrite_expr));
+	    }
+	  }
+	}
+      }
+    subexpr_rewrite_done:
+      prev_tok_idx = i;
+    } /* if (M_TOK(m_arg) == OPENPAREN) */
     prev_tok_idx = i;
 
     if (i == start_stack) {
@@ -2161,7 +2225,14 @@ OBJECT *eval_arg (METHOD *method, OBJECT *rcvr_class, ARGSTR *argbuf,
   } else {
     elide_inc_or_dec_prefix (argbuf);
     elide_inc_or_dec_postfix (argbuf);
-    arg_obj  = create_arg_EXPR_object (argbuf);
+    if (math_subexpr_rewrite) { /***/
+      char *argbuf_save = argbuf -> arg;
+      argbuf -> arg = math_subexpr_rewrite_expr;
+      arg_obj  = create_arg_EXPR_object_2 (argbuf);
+      argbuf -> arg = argbuf_save;
+    } else {
+      arg_obj  = create_arg_EXPR_object (argbuf);
+    }
     save_method_object (arg_obj);
   }
 
