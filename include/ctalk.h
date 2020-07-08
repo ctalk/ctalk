@@ -1,4 +1,4 @@
-/* $Id: ctalk.h,v 1.16 2020/06/29 03:03:49 rkiesling Exp $ -*-Fundamental-*- */
+/* $Id: ctalk.h,v 1.19 2020/07/08 20:12:11 rkiesling Exp $ -*-Fundamental-*- */
 
 /*
   This file is part of Ctalk.
@@ -2785,7 +2785,7 @@ int __ctalkCloseX11DialogPane (OBJECT *);
 extern char **__ctalkIconXPM (int);
 extern char **__ctalkEntryIconXPM (int);
 extern void __enable_dialog (OBJECT *);
-Display *dialog_dpy (void);
+void *dialog_dpy (void);
 
 /* libdeps.c */
 int cache_ctpp_output_file (char *);
@@ -3003,6 +3003,7 @@ int primitive_arg_shadows_c_symbol (char *);
 int is_self_expr_as_fn_lvalue (MESSAGE *, int, int, int);
 int is_self_expr_as_C_expr_lvalue (MESSAGE *, int, int, int);
 OBJECT *create_arg_EXPR_object (ARGSTR *);
+OBJECT *create_arg_EXPR_object_2 (ARGSTR *);
 OBJECT *create_arg_CFUNCTION_object (char *);
 bool primitive_arg_shadows_method_parameter (char *);
 
@@ -3358,6 +3359,8 @@ int is_typecast_expr (MESSAGE_STACK, int, int *);
 char *basic_class_from_typecast (MESSAGE_STACK, int, int);
 bool is_class_typecast (MSINFO *, int);
 bool has_typecast_form (MSINFO *ms, int);
+int class_cast_receiver_scan (MESSAGE_STACK messages, int, int, int *,
+			      int *deref_prefix_op_idx);
 
 /* typecheck.c */
 bool is_unary_minus (MESSAGE_STACK, int);
