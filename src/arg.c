@@ -1,8 +1,8 @@
-/* $Id: arg.c,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ */
+/* $Id: arg.c,v 1.2 2020/07/08 02:47:49 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
-  Copyright © 2005-2019 Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2005-2020 Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
 
@@ -1557,7 +1557,7 @@ char *fmt_c_fn_obj_args_expr (MESSAGE_STACK messages, int fn_idx,
   return expr_buf;
 }
 
-MESSAGE *var_messages[N_VAR_MESSAGES + 1];
+extern MESSAGE *var_messages[N_VAR_MESSAGES + 1];
 extern int var_messageptr;
 
 int resolve_arg2 (MESSAGE_STACK messages, int idx) {

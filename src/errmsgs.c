@@ -1,4 +1,4 @@
-/* $Id: errmsgs.c,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ */
+/* $Id: errmsgs.c,v 1.2 2020/07/08 02:47:49 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -49,7 +49,7 @@ extern int m_message_ptr;
 extern CTRLBLK *ctrlblks[MAXARGS + 1];  /* Declared in control.c. */
 extern int ctrlblk_ptr;
 
-bool argblk;                            /* Declared in argblk.c. */
+extern bool argblk;                            /* Declared in argblk.c. */
 
 extern HASHTAB defined_instancevars;    /* Declared in primitives.c. */
 

@@ -1,4 +1,4 @@
-/* $Id: preprocess.c,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ */
+/* $Id: preprocess.c,v 1.2 2020/07/08 02:34:28 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -474,7 +474,7 @@ DEFINITION *add_symbol (char *name, char *value, MACRO_ARG **m_args) {
   return macro_symbol;
 }
 
-INCLUDE *includes[MAXARGS + 1] = {NULL,};
+extern INCLUDE *includes[MAXARGS + 1];
 					  
 extern int include_ptr;
 

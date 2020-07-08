@@ -1,8 +1,8 @@
-/* $Id: reg_cvar.c,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ */
+/* $Id: reg_cvar.c,v 1.2 2020/07/08 02:47:49 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
-  Copyright © 2005-2019 Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2005-2020 Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
 
@@ -33,8 +33,8 @@
 extern bool argblk;          /* Declared in argblk.c.                    */
 
 extern bool ctrlblk_pred;    /* From control.c. */
-CTRLBLK *ctrlblks[MAXARGS + 1];
-int ctrlblk_ptr;
+extern CTRLBLK *ctrlblks[MAXARGS + 1];
+extern int ctrlblk_ptr;
 
 extern SUBSCRIPT subscripts[MAXARGS];       /* Declared in subscr.c. */
 extern int subscript_ptr;

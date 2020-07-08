@@ -1,8 +1,8 @@
-/* $Id: fnbuf.c,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ */
+/* $Id: fnbuf.c,v 1.3 2020/07/08 02:47:49 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
-  Copyright © 2005-2015, 2017-2019 Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2005-2015, 2017-2020 Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
 
@@ -63,14 +63,14 @@ int buffer_function_output = FALSE;
 int fn_defined_by_header = FALSE;
 
 static int fn_start_line; /* Because functions are only buffered for source */
-                          /* files, we should only have to record the line */
+                          /* files, we should only have to record the line  */
                           /* of the function start.  TO DO - Add line info  */
                           /* for each function_buffer[] statement.          */
 
 extern int nolinemarker_opt; /* Declared in main.c                          */
 extern I_PASS interpreter_pass;
 
-FN_DECLARATOR declarators[10];  /* Declared in cparse.c.             */
+extern FN_DECLARATOR declarators[MAXARGS];  /* Declared in cparse.c.         */
 extern int n_declarators;
 
 char fn_name[MAXLABEL] = {0,};
@@ -123,6 +123,7 @@ void begin_function_buffer (void) {
 #endif
 	strstr (fn_name, "__builtin_") ||
 	strstr (fn_name, "__inline_") ||
+	is_darwin_ctype_fn (fn_name) ||
 	!strncmp (fn_name, "__darwin_", 9))
       fn_defined_by_header = TRUE;
 #else
