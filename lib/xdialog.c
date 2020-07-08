@@ -332,4 +332,7 @@ char **__ctalkEntryIconXPM (int entry_icon_id) {
   x_support_error ();
 }
 
+void *dialog_dpy (void) {
+  x_support_error ();
+}
 #endif /* ! defined (DJGPP) && ! defined (WITHOUT_X11) */

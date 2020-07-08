@@ -1,4 +1,4 @@
-/* $Id: ctalk.h,v 1.19 2020/07/08 20:12:11 rkiesling Exp $ -*-Fundamental-*- */
+/* $Id: ctalk.h,v 1.20 2020/07/08 23:34:37 rkiesling Exp $ -*-Fundamental-*- */
 
 /*
   This file is part of Ctalk.
@@ -2785,7 +2785,11 @@ int __ctalkCloseX11DialogPane (OBJECT *);
 extern char **__ctalkIconXPM (int);
 extern char **__ctalkEntryIconXPM (int);
 extern void __enable_dialog (OBJECT *);
+#if ! defined (DJGPP) && ! defined (WITHOUT_X11)
+Display *dialog_dpy (void);
+#else
 void *dialog_dpy (void);
+#endif
 
 /* libdeps.c */
 int cache_ctpp_output_file (char *);
