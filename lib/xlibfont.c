@@ -1,8 +1,8 @@
-/* $Id: xlibfont.c,v 1.2 2020/06/29 03:03:50 rkiesling Exp $ -*-c-*-*/
+/* $Id: xlibfont.c,v 1.4 2020/07/08 16:57:01 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
-  Copyright © 2017-2019  Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2017-2020  Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
 
@@ -35,6 +35,8 @@
 #include <X11/Xutil.h>
 #include "xlibfont.h"
 extern Display *display;   /* Defined in x11lib.c. */
+
+extern int __xlib_change_gc (Display *, Drawable, GC, char *);
 
 #if X11LIB_FRAME
 int clear_font_descriptors_internal (void) {

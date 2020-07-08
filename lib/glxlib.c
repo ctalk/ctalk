@@ -1,8 +1,8 @@
-/* $Id: glxlib.c,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ -*-c-*-*/
+/* $Id: glxlib.c,v 1.4 2020/07/08 17:13:30 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
-  Copyright © 2017-2019 Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2017-2020 Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
 
@@ -50,6 +50,10 @@
 #include <GL/glu.h>
 #include <x11defs.h>
 
+
+#if HAVE_GLWINDOWPOS
+extern void glWindowPos2i (int, int);
+#endif
 
 extern Display *display;  /* defined in x11lib.c */
 Window g_win_id;
