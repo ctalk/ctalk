@@ -1001,11 +1001,6 @@ Instance Methods
      'X11TerminalStream' section of the manual describes X input event
      handling.  *Note X11TerminalStream::.
 
-     This method also calls 'X11FreeTypeFont : initFontLib', and sets
-     the 'X11Pane : haveXft' instance variable to 'true' if Ctalk is
-     built with Xft and Fontconfig library support and the libraries
-     have been initialized, false otherwise.  *Note haveXft::.
-
 'putStrXY (Integer XORG, Integer YORG, String STR)'
      Draw the string on the receiver's drawable surface at XORG, YORG,
      using the selected font.

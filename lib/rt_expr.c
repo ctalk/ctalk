@@ -1,4 +1,4 @@
-/* $Id: rt_expr.c,v 1.11 2020/07/05 23:15:13 rkiesling Exp $ */
+/* $Id: rt_expr.c,v 1.15 2020/07/10 19:49:50 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -80,7 +80,7 @@ int __get_expr_parser_level (void) {
 int expr_n_occurrences (METHOD *m) {
   int i, n;
   n = 0;
-  if (C_EXPR_PARSER)
+  if (expr_parser_ptr <= MAXARGS)
     for (i = 0; i < C_EXPR_PARSER -> e_method_ptr; ++i) {
       if (C_EXPR_PARSER -> e_methods[i] == m)
 	++n;
@@ -5144,7 +5144,7 @@ OBJECT *_rt_math_op (MESSAGE_STACK messages, int op_ptr, int stack_start,
 
   _rt_operands (C_EXPR_PARSER, op_ptr, &op1_ptr, &op2_ptr);
   if ((op1_ptr == ERROR) || (op2_ptr == ERROR)) {
-    if (expr_parsers[expr_parser_ptr+1]) {
+    if ((expr_parser_ptr + 1) <= MAXARGS) {
       if (expr_parsers[expr_parser_ptr+1] -> expr_str) {
 	_warning ("Warning: rt_math_op (): Invalid operand.\n");
 	_warning ("Warning: In expression:\n");
@@ -5159,6 +5159,7 @@ OBJECT *_rt_math_op (MESSAGE_STACK messages, int op_ptr, int stack_start,
       _warning ("\t%s\n", M_NAME(messages[op_ptr]));
       __warning_trace ();
     }
+    
     return NULL;
   }
 
@@ -5329,7 +5330,7 @@ int _set_expr_value (MESSAGE_STACK messages, int stack_start, int stack_end,
   _rt_operands (C_EXPR_PARSER, op_ptr, &op1_ptr, &op2_ptr);
   
   if ((op1_ptr == ERROR) || (op2_ptr == ERROR)) {
-    if (expr_parsers[expr_parser_ptr+1]) {
+    if (expr_parser_ptr + 1 <= MAXARGS) {
       if (expr_parsers[expr_parser_ptr+1] -> expr_str) {
 	_warning ("Warning: __set_expr_value (): Invalid operand.\n");
 	_warning ("Warning: In expression:\n");

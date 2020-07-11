@@ -1,4 +1,4 @@
-/* $Id: message.h,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ */
+/* $Id: message.h,v 1.2 2020/07/09 20:21:41 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -173,8 +173,10 @@ struct _argstr {
   MESSAGE_STACK m_s;
   int start_idx, end_idx;
   bool leading_typecast;
+  bool class_typecast;
   char *typecast_expr;
   int typecast_start_idx, typecast_end_idx;
+  int class_typecast_start_idx, class_typecast_end_idx;
 };
 
 typedef struct _msinfo {

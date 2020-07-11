@@ -1,4 +1,4 @@
-/* $Id: object.c,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ */
+/* $Id: object.c,v 1.3 2020/07/09 20:21:41 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -2021,6 +2021,12 @@ OBJECT *create_arg_EXPR_object (ARGSTR *argbuf) {
       m = argbuf -> m_s[i];
     }
 
+    if (argbuf -> class_typecast &&
+	(i <= argbuf -> class_typecast_start_idx &&
+	 i >= argbuf -> class_typecast_end_idx)) {
+      continue;
+    }
+
     switch (M_TOK(m))
       {
       case NEWLINE: case CR: case LF:
@@ -2063,6 +2069,103 @@ OBJECT *create_arg_EXPR_object (ARGSTR *argbuf) {
       }
   }
   o -> __o_value = strdup (o -> __o_name);
+
+  return o;
+}
+
+/* Like create_arg_EXPR_object, but it uses rewritten argbufs
+   directly */
+OBJECT *create_arg_EXPR_object_2 (ARGSTR *argbuf) {
+
+  OBJECT *o;
+
+  if ((o = (OBJECT *)__xalloc (object_size)) == NULL) {
+    printf ("create_arg_EXPR_object: %s\n", strerror (errno));
+    exit (EXIT_FAILURE);
+  }
+
+#ifndef __sparc__
+  o -> sig = 0xd3d3d3;
+#else
+  strcpy (o -> sig, "OBJECT");
+#endif
+
+  strcpy (o -> __o_classname, EXPR_CLASSNAME);
+  if (!EXPR_class_obj) {
+    o -> __o_class = EXPR_class_obj = get_class_object (EXPR_CLASSNAME);
+  } else {
+    o -> __o_class = EXPR_class_obj;
+  }
+  strcpy (o -> __o_superclassname, EXPR_SUPERCLASSNAME);
+  if (!EXPR_superclass_obj) {
+    o -> __o_superclass = EXPR_superclass_obj = 
+      get_class_object (EXPR_SUPERCLASSNAME);
+  } else {
+    o -> __o_superclass = EXPR_superclass_obj;
+  }
+
+  o -> scope = ARG_VAR;
+
+#if 0 /***/
+  *(o -> __o_name) = 0;
+  for (i = argbuf -> start_idx; i >= argbuf -> end_idx; --i) {
+    m = argbuf -> m_s[i];
+
+    /* the eval keyword has no effect here, so just remove it. */
+    if (i == argbuf -> start_idx) {
+      if (str_eq (M_NAME(m), "eval")) {
+	--i;
+	while (M_ISSPACE(argbuf -> m_s[i]))
+	  --i;
+      }
+      m = argbuf -> m_s[i];
+    }
+
+    switch (M_TOK(m))
+      {
+      case NEWLINE: case CR: case LF:
+	strcat (o -> __o_name, " ");
+	continue;
+	break;
+      case LABEL:
+	if (have_ref (M_NAME(m)) &&
+	    !(m -> attrs & TOK_CVAR_REGISTRY_IS_OUTPUT)) {
+	  strcat (o -> __o_name, fmt_getRef (M_NAME(m), buf_out));
+	  continue;
+	}
+	if (argblk) {
+	  if ((cvar = get_local_var (M_NAME(m))) != NULL) {
+	    scratch_msg = new_message ();
+	    if (!(m -> attrs & TOK_CVAR_REGISTRY_IS_OUTPUT)) {
+	      translate_argblk_cvar_arg_1 (scratch_msg, cvar);
+	      m -> attrs |= TOK_CVAR_REGISTRY_IS_OUTPUT;
+	    } else {
+	      argblk_CVAR_name_to_msg (scratch_msg, cvar);
+	    }
+	    op_precedence_fmt (argbuf -> m_s, i, scratch_msg -> name);
+	    strcat (o -> __o_name, M_NAME(scratch_msg));
+	    __xfree (MEMADDR(scratch_msg));
+	  } else {
+	    strcat (o -> __o_name, M_NAME(m));
+	  }
+	} else {
+	  strcat (o -> __o_name, M_NAME(m));
+	}
+	break;
+      case PATTERN:
+	esc_expr_and_pattern_quotes (M_NAME(m), buf_out);
+	strcat (o -> __o_name, buf_out);
+	continue;
+	break;
+      default:
+	strcat (o -> __o_name, M_NAME(m));
+	break;
+      }
+  }
+  o -> __o_value = strdup (o -> __o_name);
+#endif
+  strcpy (o -> __o_name, argbuf -> arg);
+  o -> __o_value = strdup (argbuf -> arg);
 
   return o;
 }

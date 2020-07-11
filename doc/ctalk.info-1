@@ -841,6 +841,9 @@ Instance Methods
             childPID =
               procRcvr backgroundMethodObjectMessage timeServerInit;
 
+            sleep (1); /* Wait a sec while the reader process creates the
+          		socket. This interval might be system dependent. */
+
             client openOn gSocketPath;
             if (ex pending) {
               ex handle;

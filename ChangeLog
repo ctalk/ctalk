@@ -955,3 +955,27 @@
 	test program.
 2020-07-07
 	- Updates to ctalk and ctpp for GCC 10.1.
+2020-07-08
+	- Updated expr_n_occurences to check whether we're
+	using an EXPR_PARSER record (rt_expr.c).
+2020-07-09
+	- Added the class_typecast, class_typecast_start_idx,
+	and class_typecast_end_idx members to the ARGSTR typedef
+	(message.h).
+	- Added the is_class_typecast_2 function (typecast_expr.c).
+	- Added a check in eval_arg for a class typecast expression,
+	which fills in the class information (eval_arg.c), and added
+	a check	in create_arg_EXPR_object to omit the typecast tokens
+	from the final (i.e., run-time) arg expression )object.c).
+	- Added a delay in demos/ipc/sockproc.c to allow the reader
+	process to create the socket before the writer process
+	starts writing to it.
+2020-07-10
+	- Updated string_return_needs_mutaion to check for any
+	vaild EXPR_PARSERS (rtobjvar.c).
+2020-07-11
+	- Removed the Xft library initialization from X11Pane :
+	openEventStream, which causes programs that use X bitmap
+	fonts not to display text.
+	- Moved demos/xft/xfthello.c to demos/x11/xhello.c.
+

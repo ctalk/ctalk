@@ -1,4 +1,4 @@
-/* $Id: x11lib.c,v 1.10 2020/06/29 03:29:11 rkiesling Exp $ -*-c-*-*/
+/* $Id: x11lib.c,v 1.11 2020/07/11 15:34:04 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -869,6 +869,7 @@ int __xlib_change_gc (Display *d, Drawable drawable, GC gc, char *data) {
   switch (valuemask)
     {
     case GCFont:
+      fprintf (stderr, "%s\n", value);
       load_xlib_fonts_internal (d, value);
       /* xlibfont.selectedfont is set in xlibfont.c */
       if (xlibfont.selected_xfs) {

@@ -1,4 +1,4 @@
-/* $Id: X11Pane,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11Pane,v 1.3 2020/07/11 15:34:02 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -83,8 +83,6 @@ X11Pane instanceMethod openEventStream (void) {
    variable to true if the libraries have been successfully 
    initialized."
   self inputStream openInputClient;
-  if (!self ftFontVar initFontLib)
-    self haveXft = true;
   return self;
 }
 
@@ -531,7 +529,10 @@ X11Pane instanceMethod mainWindow (void) {
     if (containerPane is X11Pane) {
       return containerPane;
     } else {
-      containerPane = *(X11Pane *)containerPane container;
+      /* We use this expression with and without the typecast (above)
+	 to check that both work - the typecast is actually not needed
+	 here. */
+      containerPane = *containerPane container;
     }
   }
   if (containerPane) {

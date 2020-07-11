@@ -1,8 +1,8 @@
-/* $Id: xhello.c,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ */
+/* $Id: xhello.c,v 1.2 2020/07/11 15:51:49 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
-  Copyright © 2005-2012 Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2014, 2016, 2019 Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
 
@@ -22,131 +22,124 @@
 */
 
 /*
- *  xhello.c
+ *  xfthello.c  - FreeType2 version of xhello.c. 
  *
- *  Demonstration of how to get X11Pane objects to respond
- *  to events from a X server; in this case, ConfigureNotify
- *  and Expose events, which are generated when the window is 
- *  moved, resized, or uncovered.
- *
- *  X11Pane objects define only a default fixed-width font
- *  in this Ctalk version, so this program can calculate
- *  text dimensions without consulting the X server.
- *  Instead, the macros below should be correct for most
- *  X Window systems.
+ *  If you build Ctalk with support for libxft (which is the default), 
+ *  then you'll also need to configure the font libraries if you haven't
+ *  already.  The X11FreeTypeFont section of the Ctalk Language Reference 
+ *  contains information about how to enable FreeType font support.
  */
 
-#define FIXED_CHAR_WIDTH 8
-#define FIXED_CHAR_HEIGHT 12
-
-X11Pane instanceMethod putCenteredText (String text) {
+X11Pane instanceMethod putCenteredText (String text, Integer strWidth,
+					Integer strHeight) {
   Integer new sizeX;
   Integer new sizeY;
-  Integer new textCharWidth;
-  Integer new textXSize;
-  Integer new textYSize;
 
   sizeX = self size x;
   sizeY = self size y;
-  textCharWidth = text length;
-
-  textXSize = textCharWidth * FIXED_CHAR_WIDTH;
-  textYSize = FIXED_CHAR_HEIGHT;
 
   self clearWindow;
 
-  self putStrXY (sizeX / 2) - (textXSize / 2), 
-    (sizeY / 2) - (textYSize / 2), 
-    text;
+  self putStrXY (sizeX / 2) - (strWidth / 2), (sizeY / 2), text;
   return NULL;
 }
 
-int main (int argv, char **argc) {
+int main (int argc, char **argv) {
   X11Pane new xPane;
   InputEvent new e;
   Integer new nEvents;
-  Integer new verbose;
+  Integer new strWidth;
+  Integer new strHeight;
+  Boolean new verbose;
+  String new defaultFont;
 
+  xPane backgroundColor = "white";
   xPane initialize 200, 100;
+  xPane inputStream eventMask = WINDELETE|EXPOSE|MOVENOTIFY|RESIZENOTIFY;
   xPane map;
   xPane raiseWindow;
 
+  xPane ftFontVar initFontLib;
+  xPane ftFont "sans-serif", 0, 0, 0, 12.0;
+
   xPane openEventStream;
 
-  xPane font "fixed";
-  
-  verbose = FALSE;
+  /* When writing to an unbuffered pane; i.e., directly to a
+     X11Pane instead of a X11Bitmap, using a method like 
+     faceRegular binds the actual face to the pane's window. */
+  xPane faceRegular;
+
   if (argc == 2) {
     if (!strcmp (argv[1], "-v")) {
-      verbose = TRUE;
+      printf ("%s\n", xPane ftFontVar selectedFont);
+      verbose = true;
     }
   }
 
-  if (verbose)
-    printf ("Actual font: %s\n", xPane fontVar fontDesc);
-
   WriteFileStream classInit;
 
-  xPane putCenteredText "Hello, world!";
+  strWidth = xPane ftFontVar textWidth "Hello, world!";
+  strHeight = xPane ftFontVar textHeight "Hello, world!";
+  xPane putCenteredText "Hello, world!", strWidth, strHeight;
 
   while (TRUE) {
     xPane inputStream queueInput;
     if (xPane inputStream eventPending) {
       e become xPane inputStream inputQueue unshift;
       switch (e eventClass value) 
-        {
-          /*
-           *  Handle both types of events in case the window
-           *  manager doesn't distinguish between them.
-           */
-        case MOVENOTIFY:
-          xPane putCenteredText "Hello, world!";
-          if (verbose) {
-            stdoutStream printOn "MOVENOTIFY\t%d\t%d\t%d\t%d\n",
-              e xEventData1, 
-              e xEventData2, 
-              e xEventData3, 
-              e xEventData4;
-            stdoutStream printOn "Window\t\t%d\t%d\t%d\t%d\n",
-              xPane origin x, 
-              xPane origin y, 
-              xPane size x,
-              xPane size y;
-          }
-          break;
-        case RESIZENOTIFY:
-          xPane putCenteredText "Hello, world!";
-          if (verbose) {
-            stdoutStream printOn "RESIZENOTIFY\t%d\t%d\t%d\t%d\n",
-              e xEventData1, 
-              e xEventData2, 
-              e xEventData3, 
-              e xEventData4;
-            stdoutStream printOn "Window\t\t%d\t%d\t%d\t%d\n",
-              xPane origin x, 
-              xPane origin y, 
-              xPane size x,
-              xPane size y;
-          }
-          break;
-        case EXPOSE:
-          xPane putCenteredText "Hello, world!";
-          if (verbose) {
-            stdoutStream printOn "Expose\t\t%d\t%d\t%d\t%d\t%d\n",
-              e xEventData1, 
-              e xEventData2, 
-              e xEventData3, 
-              e xEventData4,
-              e xEventData5;
-          }
-          break;
-        case WINDELETE:
-          xPane deleteAndClose;
-          exit (0);
-          break;
-        default:
-          break;
-        }
+	{
+	  /*
+	   *  Handle both types of events in case the window
+	   *  manager doesn't distinguish between them.
+	   */
+	case MOVENOTIFY:
+	  xPane putCenteredText "Hello, world!", strWidth, strHeight;
+	  if (verbose) {
+	    stdoutStream printOn "MOVENOTIFY\t%d\t%d\t%d\t%d\n",
+	      e xEventData1, 
+	      e xEventData2, 
+	      e xEventData3, 
+	      e xEventData4;
+	    stdoutStream printOn "Window\t\t%d\t%d\t%d\t%d\n",
+	      xPane origin x, 
+	      xPane origin y, 
+	      xPane size x,
+	      xPane size y;
+	  }
+	  break;
+	case RESIZENOTIFY:
+	  xPane putCenteredText "Hello, world!", strWidth, strHeight;
+	  if (verbose) {
+	    stdoutStream printOn "RESIZENOTIFY\t%d\t%d\t%d\t%d\n",
+	      e xEventData1, 
+	      e xEventData2, 
+	      e xEventData3, 
+	      e xEventData4;
+	    stdoutStream printOn "Window\t\t%d\t%d\t%d\t%d\n",
+	      xPane origin x, 
+	      xPane origin y, 
+	      xPane size x,
+	      xPane size y;
+	  }
+	  break;
+	case EXPOSE:
+	  xPane putCenteredText "Hello, world!", strWidth, strHeight;
+	  if (verbose) {
+	    stdoutStream printOn "Expose\t\t%d\t%d\t%d\t%d\t%d\n",
+	      e xEventData1, 
+	      e xEventData2, 
+	      e xEventData3, 
+	      e xEventData4,
+	      e xEventData5;
+	  }
+	  break;
+	case WINDELETE:
+	  xPane deleteAndClose;
+	  exit (0);
+	  break;
+	default:
+	  break;
+	}
     }
   }
 }

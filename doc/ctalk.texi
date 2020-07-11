@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.29 2020/06/29 03:29:10 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.31 2020/07/11 15:34:03 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -1193,6 +1193,9 @@ int main (int argc, char **argv) @{
     "startTimeServer";
   childPID = 
     procRcvr backgroundMethodObjectMessage timeServerInit;
+
+  sleep (1); /* Wait a sec while the reader process creates the
+		socket. This interval might be system dependent. */
 
   client openOn gSocketPath;
   if (ex pending) @{
@@ -12428,11 +12431,6 @@ Map the receiver window onto the X display.
 Open the window's input stream, a @code{X11TerminalStream}
 object.  The @code{X11TerminalStream} section of the manual
 describes X input event handling.  @xref{X11TerminalStream}.
-
-This method also calls @code{X11FreeTypeFont : initFontLib}, and sets
-the @code{X11Pane : haveXft} instance variable to @samp{true} if Ctalk
-is built with Xft and Fontconfig library support and the libraries have
-been initialized, false otherwise. @xref{haveXft}.
 
 @cindex @mnm{putStrXY} instance method @idxclscite{X11Pane}
 @item putStrXY (@code{Integer} @var{xOrg}, @code{Integer} @var{yOrg}, @code{String} @var{str})

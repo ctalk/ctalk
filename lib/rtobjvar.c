@@ -1,4 +1,4 @@
-/* $Id: rtobjvar.c,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ -*-c-*-*/
+/* $Id: rtobjvar.c,v 1.3 2020/07/10 17:21:16 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -1077,17 +1077,19 @@ static bool object_is_not_derived (OBJECT *obj) {
 static bool string_return_needs_mutation (void) {
   EXPR_PARSER *expr_parser;
   METHOD *method, *prev_method;
-  if ((expr_parser = C_EXPR_PARSER) != NULL) {
-    if (expr_parser -> call_stack_level == __current_call_stack_idx () + 1) {
-      if ((method = __ctalkRtGetMethod ()) != NULL) {
-	if (method == expr_parser -> e_methods[expr_parser -> e_method_ptr-1]) {
-	  /* We should just be able to check the previous method's return
-	     class. First check that there is a previous method. */
-	  if (expr_parser -> e_method_ptr >= 2) {
-	    prev_method = 
-	      expr_parser -> e_methods [expr_parser -> e_method_ptr - 2];
-	    if (!str_eq (prev_method -> returnclass, STRING_CLASSNAME))
-	      return true;
+  if (expr_parser_ptr <= MAXARGS) {
+    if ((expr_parser = C_EXPR_PARSER) != NULL) {
+      if (expr_parser -> call_stack_level == __current_call_stack_idx () + 1) {
+	if ((method = __ctalkRtGetMethod ()) != NULL) {
+	  if (method == expr_parser -> e_methods[expr_parser -> e_method_ptr-1]) {
+	    /* We should just be able to check the previous method's return
+	       class. First check that there is a previous method. */
+	    if (expr_parser -> e_method_ptr >= 2) {
+	      prev_method = 
+		expr_parser -> e_methods [expr_parser -> e_method_ptr - 2];
+	      if (!str_eq (prev_method -> returnclass, STRING_CLASSNAME))
+		return true;
+	    }
 	  }
 	}
       }

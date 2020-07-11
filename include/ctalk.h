@@ -1,4 +1,4 @@
-/* $Id: ctalk.h,v 1.20 2020/07/08 23:34:37 rkiesling Exp $ -*-Fundamental-*- */
+/* $Id: ctalk.h,v 1.21 2020/07/09 20:21:39 rkiesling Exp $ -*-Fundamental-*- */
 
 /*
   This file is part of Ctalk.
@@ -3362,6 +3362,7 @@ void delete_symbol (SYMBOL *);
 int is_typecast_expr (MESSAGE_STACK, int, int *);
 char *basic_class_from_typecast (MESSAGE_STACK, int, int);
 bool is_class_typecast (MSINFO *, int);
+bool is_class_typecast_2 (MSINFO *, int);
 bool has_typecast_form (MSINFO *ms, int);
 int class_cast_receiver_scan (MESSAGE_STACK messages, int, int, int *,
 			      int *deref_prefix_op_idx);

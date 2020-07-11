@@ -1,4 +1,4 @@
-/* $Id: sockproc.c,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ */
+/* $Id: sockproc.c,v 1.3 2020/07/10 01:12:31 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -50,6 +50,7 @@ Object instanceMethod startTimeServer (void) {
   }
 
   while (1) {
+
     utcTimeString = reader sockRead;
     if (ex pending) {
       ex handle;
@@ -85,6 +86,8 @@ int main (int argc, char **argv) {
   childPID = 
     procRcvr backgroundMethodObjectMessage timeServerInit;
 
+  sleep (1); /* Wait a sec while the reader process creates the
+		socket. This interval might be system dependent. */
   client openOn gSocketPath;
   if (ex pending) {
     ex handle;

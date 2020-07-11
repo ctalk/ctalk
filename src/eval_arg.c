@@ -1,4 +1,4 @@
-/* $Id: eval_arg.c,v 1.4 2020/07/06 21:53:48 rkiesling Exp $ */
+/* $Id: eval_arg.c,v 1.5 2020/07/09 20:21:41 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -922,7 +922,8 @@ OBJECT *eval_arg (METHOD *method, OBJECT *rcvr_class, ARGSTR *argbuf,
     parent_error_line = 0,   /* Avoid warnings.                      */
     parent_error_column = 0,
     prev_tok_idx,
-    next_tok_idx;
+    next_tok_idx,
+    close_paren_idx;
   int arg_has_leading_unary = FALSE,  /* Avoid warnings.             */
     leading_unary_idx;
   int lookahead, lookback;
@@ -1287,6 +1288,30 @@ OBJECT *eval_arg (METHOD *method, OBJECT *rcvr_class, ARGSTR *argbuf,
 	}
 	i = typecast_end;
 	continue;
+      } else if (is_class_typecast_2 (&msi, i)) { /***/
+	if ((close_paren_idx = match_paren (msi.messages, i,
+					    msi.stack_ptr)) != ERROR) {
+	  int rcvr_lookahead, class_tok_idx;
+	  if ((rcvr_lookahead = nextlangmsg (m_messages, close_paren_idx))
+	      != ERROR) {
+	    if ((class_tok_idx = nextlangmsg (m_messages, i))
+		!= ERROR) {
+	      m_messages[class_tok_idx] -> obj =
+		get_class_object (M_NAME(m_messages[class_tok_idx]));
+	      m_messages[rcvr_lookahead] -> receiver_msg =
+		m_messages[class_tok_idx];
+	      m_messages[class_tok_idx] -> attrs |=
+		TOK_IS_TYPECAST_EXPR;
+	      argbuf -> class_typecast = true;
+	      argbuf -> class_typecast_start_idx =
+		argbuf -> start_idx - (msi.stack_start - i);
+	      argbuf -> class_typecast_end_idx = argbuf -> start_idx -
+		(msi.stack_start - close_paren_idx);
+	      i = close_paren_idx;
+	      continue;
+	    }
+	  }
+	}
       }
     }
     
