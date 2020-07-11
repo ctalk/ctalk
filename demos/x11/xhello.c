@@ -1,4 +1,4 @@
-/* $Id: xhello.c,v 1.2 2020/07/11 15:51:49 rkiesling Exp $ */
+/* $Id: xhello.c,v 1.3 2020/07/11 16:02:19 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -22,12 +22,7 @@
 */
 
 /*
- *  xfthello.c  - FreeType2 version of xhello.c. 
- *
- *  If you build Ctalk with support for libxft (which is the default), 
- *  then you'll also need to configure the font libraries if you haven't
- *  already.  The X11FreeTypeFont section of the Ctalk Language Reference 
- *  contains information about how to enable FreeType font support.
+ *  xhello.c  - "Hello, world!" in a X Window
  */
 
 X11Pane instanceMethod putCenteredText (String text, Integer strWidth,

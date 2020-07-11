@@ -66,8 +66,7 @@ int main (int argc, char **argv) {
     xTextPane font "-*-helvetica-*-*-*-*-14-140-*-*-*-*-*-*";
   } else {
     xTextPane ftFontVar namedX11Color "black";
-    xTextPane ftFontVar selectFontFromXLFD
-    "-*-DejaVu Sans-medium-r-*-*-12-72-72-*-*-*-*-*";
+    xTextPane ftFontVar selectFontFromFontConfig "sans-serif-12";
   }
 
   if (verbose) {
