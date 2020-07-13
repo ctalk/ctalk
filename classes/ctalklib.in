@@ -1,4 +1,4 @@
-/* $Id: ctalklib.in,v 1.11 2020/06/27 01:30:06 rkiesling Exp $ -*-c-*-*/
+/* $Id: ctalklib.in,v 1.12 2020/07/13 03:22:16 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -321,12 +321,25 @@ typedef struct _vartag VARTAG;
 #endif /* #ifndef LIB_BUILD */
 
 #ifdef __need_boolean
+# ifndef HAVE__BOOL
+#  ifdef __cplusplus
+typedef bool _Bool
+#  else
+#   define _Bool signed char
+#  endif
+# define bool _Bool
+# define false 0
+# define true 1
+# define __bool_true_false_are_defined 1
+# endif
+
+#if 0 /***/
 typedef char bool;
 
 /* TRUE and FALSE are defined above. */
 #define true TRUE
 #define false FALSE
-
+#endif /* #if 0 */
 #endif
 
 #ifdef __need_param
