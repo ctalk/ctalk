@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.31 2020/07/11 15:34:03 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.32 2020/07/13 19:59:16 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -15602,6 +15602,313 @@ to @code{true}.
 @subheading @code{X11ListlPane} Class
 @end ifnottex
 @cindex @code{X11ListPane} class
+
+The @code{X11ListPane} class displays a scrolling list of items.
+Clicking the left pointer buttons selects an item, which is
+available to the program for as long as the @code{X11ListPane}
+object is available.
+
+The list may be larger than the pane can display at one time,
+and the list may be scrolled using the scrollbar on the left
+edge of the pane, or the @key{up} and @key{down} arrow keys, or
+the @key{C-p} and @key{C-n} keys.
+
+Here is a program that displays a @code{X11ListPane} object, and
+prints the selected item on the terminal when the program exits.
+
+@example
+
+#define N_ITEMS 10
+
+#include <ctalk/ctalkdefs.h>
+
+int main (int argv, char **argc) @{
+  X11Pane new xPane;
+  X11PaneDispatcher new dispatcher;
+  X11ListPane new listPane;
+  X11LabelPane new label;
+  X11ButtonPane new button;
+  InputEvent new e;
+  Integer new nEvents;
+  Integer new verbose;
+  Integer new i;
+  X11Cursor new cursor;
+   xPane resources atPut "backgroundColor", "blue";
+  label resources replaceAt "backgroundColor", "blue";
+  label resources replaceAt "foregroundColor", "blue";
+  label resources replaceAt "highlightForegroundColor", "blue";
+  label resources replaceAt "textColor", "white";
+  label resources replaceAt "highlightTextColor", "white";
+  label border = false;
+
+  xPane inputStream eventMask = EXPOSE|ENTERWINDOWNOTIFY|LEAVEWINDOWNOTIFY| \
+    KEYPRESS|KEYRELEASE|WINDELETE|BUTTONPRESS|BUTTONRELEASE|MOTIONNOTIFY| \
+     SELECTIONCLEAR|SELECTIONREQUEST;
+  xPane initialize 300, 200;
+  dispatcher attachTo xPane;
+  label attachTo dispatcher, "100x80+10+46";
+  button attachTo dispatcher, "60x45+120+136";
+  listPane attachTo dispatcher, "140x96+120+32";
+
+  xPane ftFontVar initFontLib;
+
+  for (i = 1; i < N_ITEMS; ++i) @{
+    listPane add "item " + i asString;
+  @}
+  
+  xPane map;
+  xPane raiseWindow;
+
+  xPane openEventStream;
+
+  xPane setWMTitle "X11TextListPane Demo";
+  label multiLine "Select\nan\nItem";
+  button label text "Done";
+
+  listPane draw;
+  listPane refresh;
+
+  while (TRUE) @{
+    xPane inputStream queueInput;
+    if (xPane inputStream eventPending) @{
+      e become xPane inputStream inputQueue unshift;
+
+      xPane subPaneNotify e;
+
+      switch (e eventClass value)
+        @{
+        case EXPOSE:
+	  listPane draw;
+          listPane refresh;
+          break;
+        case WINDELETE:
+          xPane deleteAndClose;
+          exit (0);
+          break;
+        default:
+          if (button haveClick) @{
+            button clearClick;
+            xPane deleteAndClose;
+	    printf ("%d: %s\n", listPane selectedItem,
+		    listPane selectedItemText);
+            exit (0);
+          @}
+        break;
+        @}
+    @}
+  @}
+@}
+
+@end example
+
+@subheading Retrieving Selected Items
+
+The @mnm{selectedItem} returns an @code{Integer} with the numerical
+index of of the item, where the indexes are numbers starting with zero.
+The @mnm{selectedItemText} method returns a @code{String} containing the
+text of the item.
+
+@subheading Resources
+
+@table @code
+@cindex @code{borderColor} resource @idxclscite{X11ListPane}
+@item borderColor
+A @code{String} that contains the named color of the
+pane's border.  The default is @samp{gray}.
+
+@cindex @code{borderWidth} resource @idxclscite{X11ListPane}
+@item borderWidth
+An @code{Integer} that defines the width in pixels of the pane's border
+The default is @samp{1} pixel.
+
+@cindex @code{font} resource @idxclscite{X11ListPane}
+@item font
+A @code{String} that contains the Fontconfig descriptor of the font used
+to display the list items.  The default is @samp{sans serif-12}.
+
+@cindex @code{keyScrollIncrement} resource @idxclscite{X11ListPane}
+@item keyScrollIncrement
+The distance in pixels the list should scroll up or down when
+the user scrolls the list.  The default is 4 pixels.
+
+@cindex @code{leftMargin} resource @idxclscite{X11ListPane}
+@item leftMargin
+An @code{Integer} that defines the width in pixels of between
+the left edge of pane's list area and the left margin of the
+item text.  The default is 4 pixels.
+
+@cindex @code{scrollThumbColor} resource @idxclscite{X11ListPane}
+@item scrollThumbColor
+A @code{String} that defines the color of the scroll bar's thumb.
+The default is @samp{darkgray}.
+
+@end table
+
+@subheading Instance Variables
+
+@table @code
+
+@cindex @code{buttonState} instance variable @idxclscite{X11ListPane}
+@item buttonState
+An @code{Integer} that records whether any of the pointer buttons
+are pressed.  The possible values may be any combination of the
+following definitions, or none (@samp{0}).
+
+@example
+
+BUTTON1MASK     (1 << 0)
+BUTTON2MASK     (1 << 1)
+BUTTON3MASK     (1 << 2)
+
+@end example
+
+@cindex @code{items} instance variable @idxclscite{X11ListPane}
+@item items
+A @code{List} that contains the pane's list items.  Each item uses
+an @code{ItemBox} object to store its information.  The definition of
+the @code{ItemBox} class (which is also defined in the
+@code{X11ListPane} class library) is:
+
+@example
+
+String class ItemBox;
+
+ItemBox instanceVariable org Point 0;
+ItemBox instanceVariable ext Point 0;
+ItemBox instanceVariable size Point 0;
+
+@end example
+
+@cindex @code{iInit} instance variable @idxclscite{X11ListPane}
+@item iInit
+An @code{Integer} that simply causes the @mnm{drawItemList} method to
+wait for class to initialize the fonts it needs.
+
+@cindex @code{scrollWidth} instance variable @idxclscite{X11ListPane}
+@item scrollWidth
+An @code{Integer} that defines the width in pixels of the scroll bar.
+It is initialized from the value of the @code{scrollWidth} resource when
+the @code{X11ListPane} object is attached to its parent window by the
+@mnm{attachTo} method.  The default is 10 pixels.
+
+@cindex @code{thumbExt} instance variable @idxclscite{X11ListPane}
+@cindex @code{thumbOrg} instance variable @idxclscite{X11ListPane}
+@item thumbExt
+@item thumbOrg
+These are @code{Integers} that define the position and height of
+the scroll thumb in pixels.  The value of @code{thumbExt} is calculated
+from the percentage of the list contents that are visible in the
+window at any one time.  The value of @code{thumbOrg} records the vertical
+position of the thumb where the user moved it using the pointer.
+
+@cindex @code{viewStartY} instance variable @idxclscite{X11ListPane}
+@item viewStartY
+An @code{Integer} that contains the distance from the top edge of the
+first list item (which is stored in the item's @code{org} instance
+variable) to the top of the portion of the list that is visible in
+the pane's window.
+
+@end table
+
+@subheading Instance Methods
+
+@table @code
+
+@cindex @code{add} instance method @idxclscite{X11ListPane}
+@item @mnm{add} (@code{String} @var{itemText})
+Addes a list item using @var{itemText} as its contents.  New items are
+added sequentially to the end of the item list.  The method also
+calculates the item's width and height in pixels, and the position of
+the top and bottom edges relative to the top edge of the zero'eth item
+in the list.  Each item is stored in the pane's @code{items} list using
+an @code{ItemBox} object, which stores each item's dimensions as well as
+the item's contents. The @code{ItemBox} class is defined in the
+@code{X11ListPane} class library.
+
+@cindex @code{attachTo} instance method @idxclscite{X11ListPane}
+@item attachTo (@code{Object} @var{parentPane}, @code{String} @var{geomspect})
+Attaches the @code{X11ListPane} object to @var{parentPane}, with the
+dimensions given by @var{geomspect}.  Also initializes the object's
+drawing surfaces and the actual window within the parent window.
+
+The @var{geomspec} argument defines the width, height and position of
+the pane within the parent window.  For a description of its contents,
+refer to the @code{X11PaneDispatcher} class @xref{X11PaneDispatcher}.
+
+@cindex @code{calcThumb} instance method @idxclscite{X11ListPane}
+@item calcThumb (@code{void})
+Calculates the height of the scroll thumb as a proportion of the
+percentage of the list contents that can be displayed on the pane at any
+one time, and stores the value in the pane's @code{thumbExt} instance
+variable (which is itself a @code{Point} object, so a program would
+retrieve the thumb's height like this).
+
+@example
+
+thumbHeight = myListPane thumbExt y;
+
+@end example
+
+@cindex @code{draw} instance method @idxclscite{X11ListPane}
+@item @mnm{draw} (@code{void})
+This method draws the the pane's scroll frame and borders, and
+calls the @mnm{drawItemList} and @mnm{drawThumb} methods to
+display the list contents.
+
+@cindex @code{drawItemList} instance method @idxclscite{X11ListPane}
+@item @mnm{drawItemList} (@code{void})
+This method is called by the @mnm{draw} method to display the
+visible items on the pane's window.
+
+@cindex @code{drawThumb} instance method @idxclscite{X11ListPane}
+@item @mnm{drawThumb} (@code{void})
+Another method that is called by the @mnm{draw} method, this
+method draws the scroll thumb within the scroll bar.
+
+@cindex @code{new} instance method @idxclscite{X11ListPane}
+@item @mnm{new} (@code{String} @var{paneName})
+The @code{X11ListPane} constructor.  This method creates a
+@code{X11ListPane} object with the name given by @var{paneName},
+and initializes the object's resources and event handlers.
+
+@cindex @code{onClick} instance method @idxclscite{X11ListPane}
+@cindex @code{onEnter} instance method @idxclscite{X11ListPane}
+@cindex @code{onExpose} instance method @idxclscite{X11ListPane}
+@cindex @code{onKey} instance method @idxclscite{X11ListPane}
+@cindex @code{onLeave} instance method @idxclscite{X11ListPane}
+@cindex @code{onMotion} instance method @idxclscite{X11ListPane}
+@item onClick (@code{Object} @var{subPane}, @code{InputEvent} @var{event})
+@item onEnter (@code{Object} @var{subPane}, @code{InputEvent} @var{event})
+@item onExpose (@code{Object} @var{subPane}, @code{InputEvent} @var{event})
+@item onKey (@code{Object} @var{subPane}, @code{InputEvent} @var{event})
+@item onLeave (@code{Object} @var{subPane}, @code{InputEvent} @var{event})
+@item onMotion (@code{Object} @var{subPane}, @code{InputEvent} @var{event})
+These are the @code{X11ListPane} object's event handlers, which receive
+events from the display server.  They are initialized by the @mnm{new}
+method.
+
+@cindex @code{selectedItem} instance method @idxclscite{X11ListPane}
+@item @mnm{selectedItem} (@code{void})
+This method returns an @code{Integer} with the index of the
+selected item.
+
+The indexes are numbered from zero, which is the index of the first
+item.
+
+If no item is selected, this method returns @samp{-1}.
+
+@cindex @code{selectedItemText} instance method @idxclscite{X11ListPane}
+@item @mnm{selectedItemText} (@code{void})
+Returns a @code{String} with the text of the selected item.
+If no item is selected, the method returns and empty @code{String}.
+
+@cindex @code{selectFont} instance method @idxclscite{X11ListPane}
+@item @mnm{selectFont} (@code{void})
+Selects the font to display the list items, and saves the font
+parameters in the object's @code{ftFontVar} instance variable,
+which is inherited from @code{X11Pane} class.
+
+@end table
 
 @node X11MessageBoxPane, X11ScrollBarPane, X11ListPane, Classes
 @iftex
