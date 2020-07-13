@@ -5644,6 +5644,223 @@ adjust's the pane's size to fit the text.
 
 
 
+>>>X11Pane::attachTo (Object parentPane)
+Attach the receiver to parentPane.  The value of
+parentPane's subWidget instance variable is the receiver.
+
+>>>X11Pane::background (String color_name)
+Sets the background color of the pane object's window.  For buffered
+Panes, programs need to set the background color of that Pane
+independently.  This method also has the effect of clearing the
+window.
+
+If a program doesn't set a background color for the window, the
+default background color is white.
+
+>>>X11Pane::clearRectangle (int x, int y, int width, int height)
+Clear the area of the receiver's window with the dimensions 
+given as the arguments.
+
+>>>X11Pane::clearWindow (void)
+Clear the receiver's window.  This method clears only the main window
+and does not affect any image buffers associated with the pane object.
+To also clear the pane object's image buffers, use
+clearRectangle, above.
+
+>>>X11Pane::defaultCursor (void)
+Restore the window's default cursor, which is normally the
+cursor of the parent window.
+
+>>>X11Pane::deleteAndClose (void)
+Delete the receiver window and close the display.
+
+>>>X11Pane::displayHeight (void)
+Returns an Integer with  the display's height in pixels.
+
+>>>X11Pane::displayWidth (void)
+Returns an Integer with the display's width in pixels.
+
+>>>X11Pane::faceRegular (void)
+>>>X11Pane::faceBold (void)
+>>>X11Pane::faceItalic (void)
+>>>X11Pane::faceBoldItalic (void)
+These methods select which X11FreeTypeFont typeface a pane
+should use.  These methods need the program to initialize the Xft
+libraries (with the initFontLib method in X11FreeTypeFont
+class), and the pane has established a connection to the X server
+(with the openEventStream method).
+
+>>>X11Pane::font (String font_desc)
+Set the X font used for drawing on the window.  This font can
+be set independently of the fonts used by subpanes.
+ and 
+
+Because the Ctalk libraries use shared memory to manage font
+information, it is generally necessary to call this method
+after the openEventStream method, for the program to
+calculate the character spacing of multiple typefaces correctly.
+
+>>>X11Pane::foreground (String colorName)
+Sets the window's foreground color (the default color for drawing
+on the window) to colorName.  If a program doesn't set
+the window's foreground color, the default color is black.
+
+>>>X11Pane::ftFont
+Integer weight Integer dpi, Float pointSize)
+Selects an outline font for use by the X11Pane object.  The method
+selects the font, and fills in the ftFontVar instance variable
+with the font's information.  Programs should first determine if FreeType
+fonts are available on the system, by using the X11FreeTypeFont method
+version first, as in this example.
+
+---------------------------------------------------------
+  
+  Boolean new useXFonts;
+  X11Pane new myPane;
+  
+  ...
+  
+  if (myPane ftFontVar version >= 10) {
+    myPane ftFontVar initFontLib;
+    useXFonts = false;
+  } else {
+    useXFonts = true;
+  }
+  
+  ...
+  
+  /* Selects the font DejaVu Sans Mono, regular slant, normal weight,
+     72 dpi, 12 points. */
+  myPane ftFont "DejaVu Sans Mono", 0, 80, 72, 12.0;
+  
+---------------------------------------------------------
+
+The X11FreeTypeFont class also provides methods that use Xft
+and X11 font descriptors to select fonts.  
+
+>>>X11Pane::initialize (int width, int height)
+>>>X11Pane::initialize (int x, int y, int width, int height)
+Create the window and its graphics context with the width and height
+given as the arguments.  This method also opens a connection to the X 
+server if necessary.  This method uses the window system to set
+the window's initial position.
+
+Create the window and its graphics context with the dimensions given
+as the arguments.  This method also opens the connection to the X
+server if necessary.
+
+This method is here for older programs, or programs that set the
+window position directly.  Otherwise, use the form of
+initialize, below, that takes the window's geometry flags as an
+argument, and only set the window's position if the user provides one
+on the command line and the program retrieves it with
+parseX11Geometry.
+
+Even more simply, a program can set x_org and y_org to
+zero, and let the window system handle any positioning.  Or use
+the form of initialize that uses only the width and 
+height arguments.
+
+>>>X11Pane::initialize (int x, int y, int width, int height, int geom_flags)
+Create the window and its graphics context with the dimensions given
+as the arguments.  Like the other forms of initialize, this
+method also opens the connection to the X server if necessary.
+
+The geom_flags argument provides placement hints for the
+window's initial position.  It has the format provided by the
+parseX11Geometry method in Application class.
+  
+
+The x and y parameters can also be given directly if the
+program sets the window position itself.  If these arguments are zero,
+then the window manager or the user supplied window geometry determine
+the window placement.
+
+>>>X11Pane::initialize (int x, int y, int width, int height, int geom_flags, char *win_title)
+This method is similar to the five-argument form of initialize,
+and additionally sets the window's title using the contents of the
+string win_title.
+
+>>>X11Pane::isTopLevel (void)
+Return TRUE if the receiver's container pane is NULL.
+
+>>>X11Pane::mainWindow (void)
+Returns the X11Pane object that manages a program's
+main window.  The method retrieves the main window object
+by following the references of each subpane's container
+instance variable.  If the top-level pane object is not a
+X11Pane, the method prints a warning.
+
+>>>X11Pane::map (void)
+Map the receiver window onto the X display.
+
+>>>X11Pane::openEventStream (void)
+Open the window's input stream, a X11TerminalStream
+object.  The X11TerminalStream section of the manual
+describes X input event handling.  
+
+>>>X11Pane::putStrXY (Integer xOrg, Integer yOrg, String str)
+Draw the string on the receiver's drawable surface at xOrg, yOrg,
+using the selected font.
+
+>>>X11Pane::putStrXY (Integer xOrg, Integer yOrg, String str)
+Draw the string on the receiver's drawable surface at xOrg, yOrg.
+Currently this method is the same as putStrXY, above.
+
+
+>>>X11Pane::raiseWindow (void)
+Display the receiver window above other windows on the X
+display.  Note that the method's name was changed from
+raise to avoid warnings when including the C
+raise(3) function.
+
+>>>X11Pane::setResources (String resourceName, String resourceClass)
+Set the resource name and class of the main window.  Normally the resource
+name is the name of the application, which may vary from the window title.
+The resource class should be used to identify the window for X resources.
+
+A program can call this method either before or after connecting to
+the server with the openEventStream method.  Generally, if the
+resources affect the appearance of decorations provided by the system,
+like the window frame or icon, the window needs to be remapped for the
+changes to be visible, but this may vary with the application and the
+type of window manager.
+
+>>>X11Pane::setWMTitle (char *title)
+Set the window's title.  Because setting a X window's title requires
+communication between the window and the display server, this method
+requires that the window is first mapped and raised (with the
+map and raiseWindow methods, above), and has a connection
+to the display server (which is done with the openEventStream
+method, also above).  
+
+In other words, when setting a window's title for the first time, this
+method works best when used just before processing any other events.
+
+>>>X11Pane::subPaneNotify (InputEvent event)
+Called by applications that need to invoke sub-pane handlers in
+response to window events.  For examples of its usage, refer to
+the section for X11CanvasPane,  and
+other X11Pane subclasses.
+
+>>>X11Pane::useCursor (Cursor cursor_object)
+Display the X11 cursor defined by cursor_object, a
+X11Cursor object, in the receiver's window.  To
+create cursors, 
+
+>>>X11Pane::useXRender (Boolean b)
+If b is true, draw graphics using the X Render extension
+if it is available. If b is false, use Xlib for graphics
+drawing.  The default is to draw using the X Render extension
+if it is available.
+
+>>>X11Pane::usingXRender (void)
+Returns a Boolean value of True if the program is
+using the X Render extension for drawing, False otherwise.
+
+
+
+
 >>>GLXCanvasPane::alpha (Float alpha)
 Sets the alpha channel (opacity) when rendering outline fonts.  Values
 should be between 0.0 (transparent) and 1.0 (opaque).  The Ctalk
@@ -6734,6 +6951,310 @@ X window and adjusts the pane's dimensions.
 
 
 
+>>>X11ButtonPane::attachTo (Object parentPane, String geometry)
+Attaches the receiver to the parentPane named by parentPane,
+with the placement and size given by geometry.  The parent pane
+should generally be a X11PaneDispatcher which directs X events
+to the correct subpane.
+
+The positioning of subwindows within the parent window is controlled
+by the arguments to the attachTo methods; in particular, these
+methods accept a geometry specification, as an argument, which has
+the following format.
+
+---------------------------------------------------------
+  
+  width[%]xheight[%]+x[%]+y[%]
+  
+---------------------------------------------------------
+
+If a dimension does not contain a percent ('%') sign, the dimensions
+are in pixels.  With a percent sign, the dimensions are a fractional
+percentage of the parent pane's width or height, or a horizontal or
+vertical distance that places the subwindow's upper left-hand corner
+that distance from the parent window's upper left-hand corner.
+
+>>>X11ButtonPane::clearClick (void)
+Resets a button's clicked state as returned by haveClick to
+false.
+
+>>>X11ButtonPane::draw (void)
+Draws the button and its label on the pane's buffer so the
+widget can be displayed with the refresh method.
+
+If the program has saved a font specification to the widget's
+ftFontVar instance variable, then this method also selects
+the font before drawing the widget.  If you want a button to display
+a different font than the surronding window, this is the way to
+declare and save a font specification.
+
+---------------------------------------------------------
+  
+  /* The button inherits the ftFont method from X11Pane class. */
+  
+  button ftFont "DejaVu Sans", FTFONT_ROMAN, FTFONT_MEDIUM, DEFAULT_DPI, 10.0;
+  button ftFontVar saveSelectedFont;
+  
+---------------------------------------------------------
+
+The X11FreeTypeFont section describes the parameters that
+the X11FreeTypeFont class uses when selecting fonts. 
+
+>>>X11ButtonPane::haveClicked (void)
+Returns a Boolean true or false depending on whether the
+button has been clicked previously.  In that case, the program
+should call the clearClick method to detect further
+button clicks.
+
+>>>X11ButtonPane::isClicked (void)
+Returns a Boolean value of true or false depending on
+whether the pointer's button 1 is currently pressed within the
+button. 
+
+>>>X11ButtonPane::new (String newObjectName)
+The X11ButtonPane constructor.  Creates a X11ButtonPane
+object with the classes' instance variables, and initialized the
+object's event handlers and Pen objects for drawing a beveled
+button.
+
+>>>X11ButtonPane::subPaneExpose (Object subPane, InputEvent event)
+>>>X11ButtonPane::subPaneButtonPress (Object subPane, InputEvent event)
+>>>X11ButtonPane::subPaneEnter (Object subPane, InputEvent event)
+>>>X11ButtonPane::subPaneLeave (Object subPane, InputEvent event)
+The class's handlers for events generated by the X server.
+
+>>>X11ButtonPane::subPaneFocusIn (void)
+>>>X11ButtonPane::subPaneFocusOut (void)
+Handlers for focus changes generated by the application.  These do not
+respond to X events and don't require any arguments. These methods are
+designed to be called by methods like @code{X11PaneDispatcher :
+shiftFocus} (e.g., in response to a @key{Tab} keypress).
+
+>>>X11ButtonPane::text (void)
+Returns a String with the button's text.  If the text is
+displayed on multiple lines, this method concatenates the lines
+with a space character (' ') between them.
+
+
+
+
+
+>>>X11LabelPane::draw (void)
+>>>X11LabelPane::drawButtonLayout (void)
+Draws the text of the label, and updates the visible label on the
+display.  The instance variables in this class and the text font's
+class allow programs to adjust how the text is laid out.
+
+The drawButtonLayout method is similar, but it uses a different
+algorithm that is more suited to laying out text on button labels.
+
+If the widget has saved a font specification to its ftFontVar
+instance variable, then this method also selects the font before
+drawing the label.  If you want a label to have a different font
+than the rest of the window, this is how to declare and save
+a font specification.
+
+---------------------------------------------------------
+  
+  /* The label inherits the ftFont method from X11Pane class. */
+  
+  label ftFont "DejaVu Sans", FTFONT_ROMAN, FTFONT_MEDIUM, DEFAULT_DPI, 10.0;
+  label ftFontVar saveSelectedFont;
+  
+---------------------------------------------------------
+
+The X11FreeTypeFont section describes the parameters that
+the X11FreeTypeFont class uses when selecting fonts. 
+
+>>>X11LabelPane::new
+Creates a new X11LabelPane object, initializes the object's
+instance variables and event handlers, and sets the pane's default
+foreground and background colors.
+
+>>>X11LabelPane::subPaneExpose (Object subPane, InputEvent event)
+The widget's Expose event handler.  When the widget receives an Expose
+event, this method redraws the widget.
+
+>>>X11LabelPane::subPaneEnter (Object subPane, InputEvent event)
+>>>X11LabelPane::subPaneLeave (Object subPane, InputEvent event)
+The widget's EnterNotify and LeaveNotify event handlers.  These
+methods set the subPane's highlight instance variable to
+true or false (if the widget is configured to accept input focus),
+then calls the draw method to redraw the label.
+
+>>>X11LabelPane::font (String fontdesc)
+Sets the X11 font to use for the label's text.  When drawing using
+Freetype scalable fonts, the widget uses the ftFont method from
+X11CanvasPane.
+
+>>>X11LabelPane::text (String labelText)
+Sets the text of a single-line label.
+
+>>>X11LabelPane::text (String labelText)
+Sets the receiver's textLine instance variable for single-line
+labels.
+
+>>>X11LabelPane::multiText (String labelText)
+Divides the text given as the argument into lines where newline
+characters '\n' appear in the text, and sets the elements of the
+receiver's textLine instance variable to one line for each
+array element.  Also sets the haveMultiLine instance variable
+to true.
+
+
+
+
+>>>X11ListPane::add (String itemText)
+Addes a list item using itemText as its contents.  New items are
+added sequentially to the end of the item list.  The method also
+calculates the item's width and height in pixels, and the position of
+the top and bottom edges relative to the top edge of the zero'eth item
+in the list.  Each item is stored in the pane's items list using
+an ItemBox object, which stores each item's dimensions as well as
+the item's contents. The ItemBox class is defined in the
+X11ListPane class library.
+
+>>>X11ListPane::attachTo (Object parentPane, String geomspect)
+Attaches the X11ListPane object to parentPane, with the
+dimensions given by geomspect.  Also initializes the object's
+drawing surfaces and the actual window within the parent window.
+
+The geomspec argument defines the width, height and position of
+the pane within the parent window.  For a description of its contents,
+refer to the X11PaneDispatcher class 
+
+>>>X11ListPane::calcThumb (void)
+Calculates the height of the scroll thumb as a proportion of the
+percentage of the list contents that can be displayed on the pane at any
+one time, and stores the value in the pane's thumbExt instance
+variable (which is itself a Point object, so a program would
+retrieve the thumb's height like this).
+
+---------------------------------------------------------
+  
+  thumbHeight = myListPane thumbExt y;
+  
+---------------------------------------------------------
+
+>>>X11ListPane::draw (void)
+This method draws the the pane's scroll frame and borders, and
+calls the drawItemList and drawThumb methods to
+display the list contents.
+
+>>>X11ListPane::drawItemList (void)
+This method is called by the draw method to display the
+visible items on the pane's window.
+
+>>>X11ListPane::drawThumb (void)
+Another method that is called by the draw method, this
+method draws the scroll thumb within the scroll bar.
+
+>>>X11ListPane::new (String paneName)
+The X11ListPane constructor.  This method creates a
+X11ListPane object with the name given by paneName,
+and initializes the object's resources and event handlers.
+
+>>>X11ListPane::onClick (Object subPane, InputEvent event)
+>>>X11ListPane::onEnter (Object subPane, InputEvent event)
+>>>X11ListPane::onExpose (Object subPane, InputEvent event)
+>>>X11ListPane::onKey (Object subPane, InputEvent event)
+>>>X11ListPane::onLeave (Object subPane, InputEvent event)
+>>>X11ListPane::onMotion (Object subPane, InputEvent event)
+These are the X11ListPane object's event handlers, which receive
+events from the display server.  They are initialized by the new
+method.
+
+>>>X11ListPane::selectedItem (void)
+This method returns an Integer with the index of the
+selected item.
+
+The indexes are numbered from zero, which is the index of the first
+item.
+
+If no item is selected, this method returns '-1'.
+
+>>>X11ListPane::selectedItemText (void)
+Returns a String with the text of the selected item.
+If no item is selected, the method returns and empty String.
+
+>>>X11ListPane::selectFont (void)
+Selects the font to display the list items, and saves the font
+parameters in the object's ftFontVar instance variable,
+which is inherited from X11Pane class.
+
+
+
+
+>>>X11MessageBoxPane::attachTo (Object parentPane, String geometry)
+Sets the message box's dimensions and creates the object's buffers and
+main window.  Unlike other X11Pane subclasses, this method does
+not immediately attach the message box's object to its parent pane, so
+the message box isn't displayed until the program invokes the show
+or showManaged method.
+
+>>>X11MessageBoxPane::draw (void)
+Draws the label and button subpanes in the message box's buffers
+and the buffers of the button and label subpanes.  After calling
+this method, the refresh method makes the changes visible.
+
+
+>>>X11MessageBoxPane::fill (String colorName)
+A convenience method that fills the pane window with the color
+given as the argument.
+
+>>>X11MessageBoxPane::initWidgets (void)
+Initializes the message box's button and label subpanes when the pane's
+window is first opened.  When constructed this method sets the
+initialized instance variable to 'true', so when the
+message box appears again, this method is a no-op.
+
+>>>X11MessageBoxPane::new (String newPaneName)
+The X11MessageBoxPane constructor.
+
+>>>X11MessageBoxPane::refresh (void)
+After the method draw renders the main window and the label and
+the button subwindow's contents on the pane objects' buffers, this
+method updates the visible window with the contents of the buffers.
+
+>>>X11MessageBoxPane::show (void)
+This method displays the message box, waits for events from the
+display system, and closes the message box when its button is
+clicked, then returns to the calling program.
+
+>>>X11MessageBoxPane::show (X11ButtonPane buttonPane)
+This method is similar to the show method, but it takes as its
+argument the pane object from the main window that caused the message
+window to open.
+
+This method sets the main window's button to be unclicked and
+then redrawn.
+
+This method manages X11ButtonPane objects specifically, but
+it can be subclassed to manage any pane class object.
+
+>>>X11MessageBoxPane::subPaneButton (Object subPane, InputEvent event)
+This is the event handler for button press and button release events from
+the display hardware.  When a button is clicked on, the message box
+draws the button in its clicked state.  When the button is released,
+the pane draws the button unclicked, then unmaps the message box window
+from the display, and returns to the main program.
+
+>>>X11MessageBoxPane::subPaneExpose (Object subPane, InputEvent event)
+Handles drawing the message box when the program receives an Expose
+event from the display.  This method calls the message box's draw
+and refresh methods.
+
+>>>X11MessageBoxPane::withdraw (void)
+Unmaps the message box's window from the display after the pane object
+receives a button release event while processing the show method.
+When the show or showManaged method receives the button
+release event, this method is called to remove the pane's window from
+the display, and the show or showManaged method returns to
+the main program.
+
+
+
+
 >>>X11ScrollBarPane::attachTo (Object parentPane)
 Attaches the X11ScrollBarPane object to its parent pane,
 which is usually a X11PaneDispatcher object.  Also sizes the
@@ -6801,6 +7322,203 @@ Note that, in order to make these calculations and update the thumb height in
 the pane's viewing area, the scrollbar must already be attached to its parent
 pane, and the program needs to be receiving X events.  So this method should
 only be used after a call to, for example, X11Pane : openEventStream.
+
+
+
+
+>>>X11TextEntryPane::attachTo (X11Pane parentPane, String geometry)
+Attaches the entry pane to parentPane using the dimensions and
+placement given by geometry.  For information about how to
+specify a pane's geometry, refer to the X11PaneDispatcher class
+
+
+>>>X11TextEntryPane::calclulateSpaceAppend (void)
+This method defers calculating the width of a space that the user
+appends to the text until a following character is added.
+
+>>>X11TextEntryPane::charCellAt (Integer charIndex)
+Returns the CharCell object for the charIndex position
+in the text. (I.e., the nth element of the chars
+instance variable's list).
+
+>>>X11TextEntryPane::charIndex (Integer clickX, Integer clickY)
+Returns an Integer with the index of the character displayed at
+clickX,clickY.
+
+>>>X11TextEntryPane::clearSelection (void)
+Clears the selection in response to events from the user or from another
+X client application requesting the selection ownership.
+
+>>>X11TextEntryPane::deleteAt (Integer charIndex)
+Deletes the character at charIndex and returns the element,
+which is a CharCell object.  CharCell objects are a
+class that X11TextEntryPane class uses to store each character,
+as well as its dimensions and placement within the window.
+
+>>>X11TextEntryPane::deleteForward (Integer charIndex)
+This deletes the character at the insertion point and is
+called when the user presses the @kbd{Delete} or @kbd{Ctrl-D} key.
+
+>>>X11TextEntryPane::draw (void)
+Draws the pane's border, its text contents after determining how far
+left to scroll the text, and calls drawCursor to draw the
+insertion cursor.  The drawing occurs on the pane's paneBuffer
+instance variable, which is a X11Bitmap object.  To make
+the the pane's contents visible in the application's window, use the
+refresh method.
+
+>>>X11TextEntryPane::drawCursor (void)
+Draws the pane's editing cursor at the text insertion point.
+
+>>>X11TextEntryPane::drawSelection (void)
+If any text is selected, highlight the text using the color defined by
+the selectionColor resource.
+
+>>>X11TextEntryPane::entryText (void)
+Returns the text contents of the entry pane as a String object.
+
+>>>X11TextEntryPane::inputWidth (Integer startIdx)
+Returns an Integer that contains the width in pixels of the
+input text starting at character startIdx.  This method
+determines how far leftward text should be scrolled to keep the
+insertion point and its surrounding text visible in the pane's window.
+
+>>>X11TextEntryPane::insertAt (Integer charIndex)
+Inserts a CharCell object at charIndex in the
+entry object's chars list.
+
+>>>X11TextEntryPane::new (String paneName)
+The X11TextEntryPane constructor.  Initializes resources to
+their default values and the event handler instance variables to the
+classes' event handlers.  These instance variables are declared in
+X11PaneDispatcher class 
+
+>>>X11TextEntryPane::reflow (void)
+Recalculates the character placement in the entry object's chars
+list.  This method should be used after any operation that inserts
+or deletes text in the middle of the chars list.
+
+>>>X11TextEntryPane::refresh (void)
+Displays the contents of the pane's drawing surfaces on the program's
+visible window.
+
+>>>X11TextEntryPane::selectionToText (String textOut)
+Sets its argument, a String object, to the currently selected text
+as a string.
+
+>>>X11TextEntryPane::subPaneButtonPress (Object subPaneObject, InputEvent event)
+>>>X11TextEntryPane::subPaneEnter (Object subPaneObject, InputEvent event)
+>>>X11TextEntryPane::subPaneExpose (Object subPaneObject, InputEvent event)
+>>>X11TextEntryPane::subPaneLeave (Object subPaneObject, InputEvent event)
+>>>X11TextEntryPane::subPaneKbd (Object subPaneObject, InputEvent event)
+>>>X11TextEntryPane::subPanePointerMotion (Object subPaneObject, InputEvent event)
+>>>X11TextEntryPane::subPaneSelectionClear (Object subPaneObject, InputEvent event)
+Handler methods for different types of X InputEvent objects.  For more information about the handlers and event types, refer to the X11PaneDispatcher class. 
+
+
+
+
+
+>>>X11YesNoBoxPane::attachTo (Object parentPane, String geometry)
+Sets the yes/no box's dimensions and creates the object's buffers and
+main window.  Unlike other X11Pane subclasses, this method does
+not immediately attach the yes/no box's object to its parent pane, so
+the yes/no box isn't displayed until the program invokes the show
+or showManaged method.
+
+>>>X11YesNoBoxPane::draw (void)
+Draws the label and button subpanes in the yes/no box's buffers
+and the buffers of the button and label subpanes.  After calling
+this method, the refresh method makes the changes visible.
+
+>>>X11YesNoBoxPane::fill (String colorName)
+A convenience method that fills the pane window with the color
+given as the argument.
+
+>>>X11YesNoBoxPane::initWidgets (void)
+Initializes the yes/no box's button and label subpanes when the pane's
+window is first opened.  When constructed this method sets the
+initialized instance variable to 'true', so when the
+yes/no box appears again, this method is a no-op.
+
+>>>X11YesNoBoxPane::new (String newPaneName)
+The X11YesNoBoxPane constructor.
+
+>>>X11YesNoBoxPane::refresh (void)
+After the method draw renders the main window and the label and
+the button subwindow's contents on the pane objects' buffers, this
+method updates the visible window with the contents of the buffers.
+
+>>>X11YesNoBoxPane::show (void)
+This method displays the yes/no box, waits for events from the
+display system, and closes the yes/no box when its button is
+clicked, then returns to the calling program.
+
+>>>X11YesNoBoxPane::show (X11ButtonPane buttonPane)
+This method is similar to the show method, but it takes as its
+argument the pane object from the main window that caused the yes/no
+window to open.
+
+This method sets the main window's button to be unclicked and
+then redrawn.
+
+This method manages X11ButtonPane objects specifically, but
+it can be subclassed to manage any pane class object.
+
+>>>X11YesNoBoxPane::subPaneButton (Object subPane, InputEvent event)
+This is the event handler for button press and button release events from
+the display hardware.  When a button is clicked on, the yes/no box
+draws the button in its clicked state.  When the button is released,
+the pane draws the button unclicked, then unmaps the yes/no box window
+from the display, and returns to the main program.
+
+>>>X11YesNoBoxPane::subPaneExpose (Object subPane, InputEvent event)
+Handles drawing the yes/no box when the program receives an Expose
+event from the display.  This method calls the yes/no box's draw
+and refresh methods.
+
+>>>X11YesNoBoxPane::withdraw (void)
+Unmaps the yes/no box's window from the display after the pane object
+receives a button release event while processing the show method.
+When the show or showManaged method receives the button
+release event, this method is called to remove the pane's window from
+the display, and the show or showManaged method returns to
+the main program.
+
+
+
+
+
+>>>X11TextEntryBox::draw
+Draws the main pane and each subpane's controls on each subpane's
+buffer, as well as the main pane's icon, if any.
+
+>>>X11TextEntryBox::initWidgets (void)
+Constructs the subpanes when the entrybox window is first constructed
+and mapped to the display.  The method sets the initialized
+instance variable (defined in X11YesNoBoxPane class) to true,
+so the pane is only constructed once if it is withdrawn from the
+display and then remapped.
+
+>>>X11TextEntryBox::new (String paneName)
+The X11TextEntryBox constructor.  This method calls the
+constructor of its superclass, X11YesNoBoxPane, which defines
+the resources that this class uses as well.  However, this constructor
+defines the event handlers it needs, in order to make the events
+available to the entryPane subpane when necessary.
+
+>>>X11TextEntryBox::show (Object subPane, InputEvent event)
+This method constructs the X11TextEntryBox object when it is
+first called, and then on the first and each following call, maps the
+entry box to the display, waits for and dispatches events from the
+display server, and withdraws the window from the display when the
+user clicks on a button or on the window's close menu.
+
+>>>X11TextEntryBox::subPaneEnter (Object subPane, InputEvent event)
+>>>X11TextEntryBox::subPaneLeave (Object subPane, InputEvent event)
+Event handlers for enter and leave events, which are generated when the
+pointer is over one of the subpanes.
+
 
 
 >>>X11TextPane::addText (Object text)

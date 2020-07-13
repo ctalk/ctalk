@@ -79,7 +79,8 @@ while (<$rh>) {
 	next;
     }
 
-    if ($_ =~ /\@subsubheading Instance Methods/) {
+    if (($_ =~ /\@subsubheading Instance Methods/)  ||
+	($_ =~ /\@subheading Instance Methods/)) {
 	$inmethod = 1;
 	next;
     }
