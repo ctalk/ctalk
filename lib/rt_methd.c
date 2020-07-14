@@ -1,4 +1,4 @@
-/* $Id: rt_methd.c,v 1.3 2020/06/12 02:20:14 rkiesling Exp $ */
+/* $Id: rt_methd.c,v 1.5 2020/07/14 20:08:39 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -1544,6 +1544,12 @@ static int is_declared_outside_method_2 (OBJECT *tgt) {
     is_arg (tgt);
 }
 
+static inline void __delete_LOCAL_VAR_scope (OBJECT *o) {
+  if (!(o -> attrs & OBJECT_HAS_LOCAL_TAG)) {
+    __ctalkSetObjectScope (o, o -> scope & ~LOCAL_VAR);
+  }
+}
+
 static inline void __delete_local_object_internal (VARENTRY *__v) {
 
   if (!IS_OBJECT (__v -> var_object))
@@ -1560,9 +1566,12 @@ static inline void __delete_local_object_internal (VARENTRY *__v) {
 	__ctalkDeleteObject ( __v -> var_object);
       } else {
 	__objRefCntDec (OBJREF (__v -> var_object));
+	__delete_LOCAL_VAR_scope (__v -> var_object);
+#if 0 /***/
 	__ctalkSetObjectScope 
 	  (__v -> var_object,
 	   __v -> var_object -> scope & ~LOCAL_VAR);
+#endif	
 	/***/
 	if (IS_VARTAG(__v -> var_object -> __o_vartags))
 	  __v -> var_object -> __o_vartags -> tag = NULL;
@@ -1575,9 +1584,14 @@ static inline void __delete_local_object_internal (VARENTRY *__v) {
 	__ctalkDeleteObject ( __v -> var_object);
       } else {
 	__objRefCntDec (OBJREF (__v -> var_object));
-	__ctalkSetObjectScope 
-	  (__v -> var_object,
-	   __v -> var_object -> scope & ~LOCAL_VAR);
+	/***/
+	__delete_LOCAL_VAR_scope (__v -> var_object);
+#if 0
+	if (!(__v -> var_object -> attrs & OBJECT_HAS_LOCAL_TAG))
+	  __ctalkSetObjectScope 
+	    (__v -> var_object,
+	     __v -> var_object -> scope & ~LOCAL_VAR);
+#endif	
 	  if (IS_VARTAG(__v -> var_object -> __o_vartags) &&
 	      !IS_EMPTY_VARTAG(__v -> var_object -> __o_vartags))
 	    __v -> var_object -> __o_vartags -> tag = NULL;
@@ -1591,9 +1605,12 @@ static inline void __delete_local_object_internal (VARENTRY *__v) {
 	  __ctalkDeleteObject ( __v -> orig_object_rec);
 	} else {
 	  __objRefCntDec (OBJREF (__v -> orig_object_rec));
+	  __delete_LOCAL_VAR_scope (__v -> orig_object_rec);
+#if 0 /***/
 	  __ctalkSetObjectScope 
 	    (__v -> orig_object_rec,
 	     __v -> orig_object_rec -> scope & ~LOCAL_VAR);
+#endif	  
 	  if (IS_VARTAG(__v -> orig_object_rec -> __o_vartags) &&
 	      !IS_EMPTY_VARTAG(__v -> orig_object_rec -> __o_vartags))
 	    __v -> orig_object_rec -> __o_vartags -> tag = NULL;

@@ -986,4 +986,12 @@
 	is_c_keyword and is_c_data_type (keyword.c).
 	- Added _Bool replacement in ctalklib.in if stdbool.h
 	isn't present.
+2020-07-13
+	- Removed the hover and focusBorderWidth resources from
+	X11ListPane class, and added the thumbMargin, thumbColor,
+	textColor, and selectColor resources.
+2020-07-14
+	- In __delete_local_object_internal, check for an
+	OBJECT_HAS_LOCAL_TAG attribute before removing the LOCAL_VAR
+	scope (rt_methd.c).
 

@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.32 2020/07/13 19:59:16 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.33 2020/07/13 22:42:35 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -15737,10 +15737,25 @@ An @code{Integer} that defines the width in pixels of between
 the left edge of pane's list area and the left margin of the
 item text.  The default is 4 pixels.
 
-@cindex @code{scrollThumbColor} resource @idxclscite{X11ListPane}
-@item scrollThumbColor
+@cindex @code{selectColor} resource @idxclscite{X11ListPane}
+@item selectColor
+A @code{String} that contains the background color of selected
+items.  The default is @samp{lightblue}.
+
+@cindex @code{textColor} resource @idxclscite{X11ListPane}
+@item textColor
+A @code{String} that contains the color of the list text.
+The default is @samp{black}.
+
+@cindex @code{thumbColor} resource @idxclscite{X11ListPane}
+@item thumbColor
 A @code{String} that defines the color of the scroll bar's thumb.
 The default is @samp{darkgray}.
+
+@cindex @code{thumbMargin} resource @idxclscite{X11ListPane}
+@item thumbMargin
+An @code{Integer} that defines the distance in pixels between the
+thumb and its channel.  The default is 2 pixels.
 
 @end table
 
