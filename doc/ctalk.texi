@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.33 2020/07/13 22:42:35 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.34 2020/07/15 16:56:02 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -15805,6 +15805,19 @@ An @code{Integer} that defines the width in pixels of the scroll bar.
 It is initialized from the value of the @code{scrollWidth} resource when
 the @code{X11ListPane} object is attached to its parent window by the
 @mnm{attachTo} method.  The default is 10 pixels.
+
+@cindex @code{scrollWidth} instance variable @idxclscite{X11ListPane}
+@item scrollWidth
+An @code{Integer} that records whether a @key{Shift} or @key{Ctrl} key
+is currently being pressed.  The state is used when selecting 
+multiple items, and may be either or both of the following, or none.
+
+@example
+
+shiftStateShift     (1 << 0)
+shiftStateCtrl      (1 << 1)
+
+@end example
 
 @cindex @code{thumbExt} instance variable @idxclscite{X11ListPane}
 @cindex @code{thumbOrg} instance variable @idxclscite{X11ListPane}

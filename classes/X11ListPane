@@ -1,4 +1,4 @@
-/* $Id: X11ListPane,v 1.53 2020/07/13 23:21:30 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11ListPane,v 1.54 2020/07/15 16:56:01 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -48,6 +48,7 @@ X11ListPane instanceVariable scrollWidth Integer 0;
 X11ListPane instanceVariable buttonState Integer 0;
 X11ListPane instanceVariable thumbOrg Point NULL;
 X11ListPane instanceVariable thumbExt Point NULL;
+X11ListPane instanceVariable shiftState Integer 0;
 
 String class ItemBox;
 
@@ -299,6 +300,22 @@ X11ListPane instanceMethod onMotion (Object subPane, InputEvent event) {
 #define CTRL_N 14
 #define CTRL_P 16
 
+#define shiftStateShift (1 << 0)
+#define shiftStateCtrl  (1 << 1)
+
+#ifndef XK_Control_L
+#define XK_Control_L  0xffe3
+#endif
+#ifndef XK_Control_R
+#define XK_Control_R  0xffe4
+#endif
+#ifndef XK_Shift_L
+#define XK_Shift_L 0xffe1
+#endif
+#ifndef XK_Shift_R
+#define XK_Shift_R 0xffe2
+#endif
+
 X11ListPane instanceMethod onKey (Object subPane,
 				    InputEvent __event) {
   Integer new scrollInc;
@@ -322,6 +339,25 @@ X11ListPane instanceMethod onKey (Object subPane,
 	if ((subPane viewStartY + scrollInc) < subPane size y) {
 	  subPane viewStartY += scrollInc;
 	}
+      case XK_Control_R:
+      case XK_Control_L:
+	subPane shiftState |= shiftStateCtrl;
+	break;
+      case XK_Shift_R:
+      case XK_Shift_L:
+	subPane shiftState |= shiftStateShift;
+	break;
+      }
+  } else if (__event eventClass == KEYRELEASE) {
+    switch (__event xEventData5)
+      {
+      case XK_Control_R:
+      case XK_Control_L:
+	subPane shiftState &= ~shiftStateCtrl;
+	break;
+      case XK_Shift_R:
+      case XK_Shift_L:
+	subPane shiftState &= ~shiftStateShift;
 	break;
       }
   }

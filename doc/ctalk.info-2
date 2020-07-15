@@ -3952,6 +3952,16 @@ Instance Variables
      the 'X11ListPane' object is attached to its parent window by the
      'attachTo' method.  The default is 10 pixels.
 
+'scrollWidth'
+     An 'Integer' that records whether a <Shift> or <Ctrl> key is
+     currently being pressed.  The state is used when selecting multiple
+     items, and may be either or both of the following, or none.
+
+
+          shiftStateShift     (1 << 0)
+          shiftStateCtrl      (1 << 1)
+
+
 'thumbExt'
 'thumbOrg'
      These are 'Integers' that define the position and height of the

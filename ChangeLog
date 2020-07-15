@@ -994,4 +994,8 @@
 	- In __delete_local_object_internal, check for an
 	OBJECT_HAS_LOCAL_TAG attribute before removing the LOCAL_VAR
 	scope (rt_methd.c).
+2020-07-15
+	- Added the X11ListPane : shiftState instance variable, and
+	the #defines shiftStateCtrl and shiftStateShift, which are
+	set and cleared in the X11ListPane : onKey method.
 
