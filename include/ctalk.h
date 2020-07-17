@@ -1,4 +1,4 @@
-/* $Id: ctalk.h,v 1.21 2020/07/09 20:21:39 rkiesling Exp $ -*-Fundamental-*- */
+/* $Id: ctalk.h,v 1.2 2020/07/17 07:43:34 rkiesling Exp $ -*-Fundamental-*- */
 
 /*
   This file is part of Ctalk.
@@ -2319,7 +2319,7 @@ int __ctalkRegisterExtraObjectInternal (OBJECT *, METHOD *m);
 int __ctalkRegisterUserObject (OBJECT *);
 OBJECT *__ctalkReplaceVarEntry (VARENTRY *, OBJECT *);
 void __ctalkSetObjectScope (OBJECT *, int);
-void __ctalkSetObjectAttr (OBJECT *__o, int attr);
+void __ctalkSetObjectAttr (OBJECT *__o, unsigned int attr);
 int __ctalk_remove_object (OBJECT *o);
 OBJECT *__ctalk_self_internal (void);
 OBJECT *__ctalk_self_internal_value (void);

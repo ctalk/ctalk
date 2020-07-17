@@ -998,4 +998,11 @@
 	- Added the X11ListPane : shiftState instance variable, and
 	the #defines shiftStateCtrl and shiftStateShift, which are
 	set and cleared in the X11ListPane : onKey method.
+	- Added clauses in eval_arg to register global CVARs when
+	they're included in a complete argument expressions, in
+	argument blocks (eval_arg.c).
+	- Added listoffset[1-2].c test programs.
+2020-07-16
+	- Changed the attr argument of __ctalkSetObjectAttr to
+	unsigned int (rt_obj.c).
 

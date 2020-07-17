@@ -1,4 +1,4 @@
-/* $Id: rt_obj.c,v 1.9 2020/06/28 00:03:14 rkiesling Exp $ */
+/* $Id: rt_obj.c,v 1.2 2020/07/17 07:43:34 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -1529,7 +1529,7 @@ void __ctalkSetObjectScope (OBJECT *__o, int scope) {
   }
 }
 
-void __ctalkSetObjectAttr (OBJECT *__o, int attr) {
+void __ctalkSetObjectAttr (OBJECT *__o, unsigned int attr) {
 
   OBJECT *__var;
   if (IS_OBJECT(__o)) {

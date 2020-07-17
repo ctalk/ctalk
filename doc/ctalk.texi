@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.34 2020/07/15 16:56:02 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.2 2020/07/17 07:43:33 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -23285,6 +23285,10 @@ and similar methods. @xref{String}.
 @item __ctalkSetExceptionTrace (@code{int} @var{val})
 Enable or disable exception method traces in @mnm{handle} (class
 @code{Exception}) and other methods. @xref{Exception}.
+
+@idxlibfn{__ctalkSetObjectAttr}
+@item __ctalkSetObjectAttr (@code{OBJECT *}@var{object}, @code{unsigned int}@var{attribute})
+Sets the @code{attr} member of @var{object} to @var{attribute}.
 
 @idxlibfn{__ctalkSetObjectName}
 @item __ctalkSetObjectName (@code{OBJECT *}@var{object}, @code{char *}@var{name})
