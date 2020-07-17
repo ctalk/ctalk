@@ -1,4 +1,4 @@
-/* $Id: rt_expr.c,v 1.15 2020/07/10 19:49:50 rkiesling Exp $ */
+/* $Id: rt_expr.c,v 1.3 2020/07/17 21:49:02 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -2902,8 +2902,12 @@ OBJECT *eval_expr (char *s, OBJECT *recv_class, METHOD *method,
 	  */
 	  if (m_prev_msg && (m_prev_msg -> attrs & RT_TOK_IS_PREFIX_OPERATOR)) {
 	    if (tok_precedes_assignment_op (p, i)) {
+#if 1
+	      __ctalkObjectAttrOr (m -> obj, OBJECT_HAS_PTR_CX);
+#else /***/
 	      __ctalkSetObjectAttr (m -> obj, 
 				    m -> obj -> attrs | OBJECT_HAS_PTR_CX);
+#endif	      
 	      m -> attrs |= RT_TOK_HAS_LVAL_PTR_CX;
 	    }
 	  }
@@ -5040,8 +5044,12 @@ OBJECT *eval_expr (char *s, OBJECT *recv_class, METHOD *method,
       continue;
     if (n -> attrs & RT_TOK_HAS_LVAL_PTR_CX) {
       if (IS_OBJECT (n -> obj)) 
+#if 1
+	__ctalkObjectAttrAnd (n -> obj, (unsigned)~OBJECT_HAS_PTR_CX);
+#else /***/
 	__ctalkSetObjectAttr (n -> obj,
 			      n -> obj -> attrs & ~OBJECT_HAS_PTR_CX);
+#endif      
     }
     if (IS_OBJECT (n -> obj)) {
       clean_up_message_objects (e_messages, n, n -> obj,

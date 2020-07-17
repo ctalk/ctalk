@@ -1,4 +1,4 @@
-/* $Id: rt_obj.c,v 1.2 2020/07/17 07:43:34 rkiesling Exp $ */
+/* $Id: rt_obj.c,v 1.7 2020/07/17 21:52:44 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -1536,6 +1536,26 @@ void __ctalkSetObjectAttr (OBJECT *__o, unsigned int attr) {
     for (__var = __o -> instancevars; __var; __var = __var -> next) 
       __ctalkSetObjectAttr (__var, attr);
     __o -> attrs = attr;
+  }
+}
+
+void __ctalkObjectAttrAnd (OBJECT *__o, unsigned int attr) {
+
+  OBJECT *__var;
+  if (IS_OBJECT(__o)) {
+    for (__var = __o -> instancevars; __var; __var = __var -> next) 
+      __ctalkObjectAttrAnd (__var, attr);
+    __o -> attrs &= attr;
+  }
+}
+
+void __ctalkObjectAttrOr (OBJECT *__o, unsigned int attr) {
+
+  OBJECT *__var;
+  if (IS_OBJECT(__o)) {
+    for (__var = __o -> instancevars; __var; __var = __var -> next) 
+      __ctalkObjectAttrOr (__var, attr);
+    __o -> attrs |= attr;
   }
 }
 

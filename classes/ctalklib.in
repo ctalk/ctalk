@@ -1,4 +1,4 @@
-/* $Id: ctalklib.in,v 1.2 2020/07/17 07:43:33 rkiesling Exp $ -*-c-*-*/
+/* $Id: ctalklib.in,v 1.4 2020/07/17 13:47:58 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -1163,6 +1163,8 @@ extern int __ctalkSelfPrintOn (void);
 extern void __ctalkSetExceptionTrace (int);
 extern void __ctalkSetObjectScope (OBJECT *, int);
 extern void __ctalkSetObjectAttr (OBJECT *, unsigned int);
+extern void __ctalkObjectAttrAnd (OBJECT *, unsigned int);
+extern void __ctalkObjectAttrOr (OBJECT *, unsigned int);
 extern int __ctalkSetObjectValue (OBJECT *, char *);
 extern int __ctalkSetObjectValueBuf (OBJECT *, void *);
 extern int __ctalkSetObjectValueAddr (OBJECT *, void *, int);

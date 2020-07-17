@@ -1629,6 +1629,64 @@ and similar methods.
 Enable or disable exception method traces in handle (class
 Exception) and other methods. 
 
+>>>__ctalkSetObjectAttr (OBJECT *object, unsigned intattribute):__ctalkObjectAttrAnd (OBJECT *object, unsigned intattribute):__ctalkObjectAttrOr (OBJECT *object, unsigned intattribute)
+These methods sets the attr member of object to attribute.
+
+Note that when setting or clearing attributes on complex objects, it is better to
+use __ctalkObjectAttrAnd or __ctalkObjectAttrOr, because complex
+objects can contain instance variables that use different attributes.
+
+For
+example, an instance variable that is a Symbol would have the additional
+attribute OBJECT_VALUE_IS_BIN_SYMBOL, so if a method or function contained
+an expression like this:
+
+---------------------------------------------------------
+
+__ctalkSetObjectAttr (myObj, myObj -> attrs | OBJ_HAS_PTR_CX);
+
+---------------------------------------------------------
+
+This would have the effect of setting the parent object's attributes
+as well as the instance variables, which would clear any additional
+attributes that the instance variables have.
+
+What would actually happen is that the parent object myObj, and its
+instance variables would have their attributes set like this.
+
+---------------------------------------------------------
+
+<obj> -> attrs = (myObj -> attrs | OBJ_HAS_PTR_CX);
+
+---------------------------------------------------------
+
+so it is better to use an expression like this one.
+
+---------------------------------------------------------
+
+__ctalkObjectAttrOr (myObj, OBJ_HAS_PTR_CX);
+
+---------------------------------------------------------
+
+This has the effect of applying the following to the parent object and
+each instance variable:
+
+---------------------------------------------------------
+
+<obj> -> attrs |= OBJ_HAS_PTR_CX);
+
+---------------------------------------------------------
+
+Conversely, to clear a single attribute, a function or method would
+contain an expression like this.
+
+---------------------------------------------------------
+
+__ctalkObjectAttrAnd (myObj, ~OBJ_HAS_PTR_CX);
+
+---------------------------------------------------------
+
+
 >>>__ctalkSetObjectName (OBJECT *object, char *name)
 Sets the name of object to name.
 
@@ -2533,9 +2591,15 @@ name.
 Called during method or function initialization to delete
 old local objects before creating new objects.
 
->>>__ctalk_get_object (char *name, char *classname)
+>>>__ctalk_get_object (char *name, char *classname):__ctalk_get_object_return (char *name, char *classname)
 Retrieves the object name.  If classname is non-null,
 retrieves the object by name and class.
+
+The __ctalk_get_object_return function is similar, but it is
+used only as an operand to a return keyword.  The function checks
+the call stack's local object cache, in case an expression cleanup removed
+the most recent call's local variable list during recursive or successive
+calls of the same method.
 
 >>>__ctalk_init (char *program_name)
 Initialize the Ctalk class libraries when the program starts.  The argument,

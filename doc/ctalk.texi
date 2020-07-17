@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.2 2020/07/17 07:43:33 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.3 2020/07/17 17:46:05 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -23287,8 +23287,67 @@ Enable or disable exception method traces in @mnm{handle} (class
 @code{Exception}) and other methods. @xref{Exception}.
 
 @idxlibfn{__ctalkSetObjectAttr}
+@idxlibfn{__ctalkObjectAttrAnd}
+@idxlibfn{__ctalkObjectAttrOr}
 @item __ctalkSetObjectAttr (@code{OBJECT *}@var{object}, @code{unsigned int}@var{attribute})
-Sets the @code{attr} member of @var{object} to @var{attribute}.
+@item __ctalkObjectAttrAnd (@code{OBJECT *}@var{object}, @code{unsigned int}@var{attribute})
+@item __ctalkObjectAttrOr (@code{OBJECT *}@var{object}, @code{unsigned int}@var{attribute})
+These methods sets the @code{attr} member of @var{object} to @var{attribute}.
+
+Note that when setting or clearing attributes on complex objects, it is better to
+use @cite{__ctalkObjectAttrAnd} or @cite{__ctalkObjectAttrOr}, because complex
+objects can contain instance variables that use different attributes.
+
+For
+example, an instance variable that is a @code{Symbol} would have the additional
+attribute @samp{OBJECT_VALUE_IS_BIN_SYMBOL}, so if a method or function contained
+an expression like this:
+
+@example
+
+__ctalkSetObjectAttr (myObj, myObj -> attrs | OBJ_HAS_PTR_CX);
+
+@end example
+
+This would have the effect of setting the parent object's attributes
+as well as the instance variables, which would clear any additional
+attributes that the instance variables have.
+
+What would actually happen is that the parent object @code{myObj}, and its
+instance variables would have their attributes set like this.
+
+@example
+
+<obj> -> attrs = (myObj -> attrs | OBJ_HAS_PTR_CX);
+
+@end example
+
+so it is better to use an expression like this one.
+
+@example
+
+__ctalkObjectAttrOr (myObj, OBJ_HAS_PTR_CX);
+
+@end example
+
+This has the effect of applying the following to the parent object and
+each instance variable:
+
+@example
+
+<obj> -> attrs |= OBJ_HAS_PTR_CX);
+
+@end example
+
+Conversely, to clear a single attribute, a function or method would
+contain an expression like this.
+
+@example
+
+__ctalkObjectAttrAnd (myObj, ~OBJ_HAS_PTR_CX);
+
+@end example
+
 
 @idxlibfn{__ctalkSetObjectName}
 @item __ctalkSetObjectName (@code{OBJECT *}@var{object}, @code{char *}@var{name})
