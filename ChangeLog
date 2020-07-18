@@ -1008,4 +1008,19 @@
 2020-07-16
 	- Added the __ctalkObjectAttrAnd and __ctalkObjectAttrOr
 	library functions (rt_obj.c).
+2020-07-17
+	- Added unresolved_instance_variable_warning (rt_error.c),
+	called by eval_expr (rt_expr.c).
+	- In op_is_prefix_op, check for a preceding typecast token
+	(pattypes.c).
+2020-07-18
+	- Added is_OBJECT_vartab_deref_cast (pattypes.c), called
+	by eval_expr (rt_expr.c).
+	- In eval_expr (rt_expr.c), added a clause that selects
+	a CVAR that matches an entire OBJECT * deref expression,
+	including the typecast.
+	- Added cvar_for_OBJECT_deref_typecast (rt_cvar.c), called
+	by eval_expr (rt_expr.c).
+	- Added a clause to add a DELETE_CVARS_CALL in rt_self_expr
+	(ifexpr.c), and the DELETE_CVARS_CALL in ctalk.h.
 

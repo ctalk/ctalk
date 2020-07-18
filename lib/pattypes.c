@@ -1,4 +1,4 @@
- /* $Id: pattypes.c,v 1.2 2020/07/04 22:10:37 rkiesling Exp $ */
+ /* $Id: pattypes.c,v 1.3 2020/07/18 08:16:53 rkiesling Exp $ */
 
  /*
    This file is part of Ctalk.
@@ -1069,6 +1069,11 @@ bool op_is_prefix_op (EXPR_PARSER *p, int op_ptr) {
 
   if ((prev_msg_ptr = __ctalkPrevLangMsg (p -> m_s, op_ptr,
 					  p -> msg_frame_start)) != ERROR) {
+
+    if (p -> m_s[prev_msg_ptr] -> attrs & RT_TOK_IS_TYPECAST_EXPR) {
+      return true;
+    }
+
     if (IS_C_OP_TOKEN_NOEVAL (M_TOK(p -> m_s[prev_msg_ptr]))) {
       if (M_TOK(p -> m_s[prev_msg_ptr]) == M_TOK(p -> m_s[op_ptr])) {
 	if (!(p -> m_s[prev_msg_ptr] -> attrs & RT_TOK_IS_PREFIX_OPERATOR)) {
@@ -1881,3 +1886,35 @@ bool prev_tok_is_symbol (MESSAGE_STACK messages, int tok_idx) {
   }
 }
 #endif
+
+/*
+ *   Returns true and sets terminal_mbr_idx to the last token for
+ *   expressions like this.
+ *
+ *    ((OBJECT *)*<myOBJECT>) -> <OBJECT_mbr>
+ *
+ *   These are templated when the compiler adds OBJECT *'s to vartabs,
+ *   so this pattern should always work.
+ */
+bool is_OBJECT_vartab_deref_cast (MESSAGE_STACK messages, int open_paren_idx,
+				  int *terminal_mbr_idx) {
+  if (M_TOK(messages[open_paren_idx]) == OPENPAREN &&
+      M_TOK(messages[open_paren_idx-1]) == OPENPAREN &&
+      M_TOK(messages[open_paren_idx-2]) == LABEL &&
+      M_TOK(messages[open_paren_idx-3]) == WHITESPACE &&
+      M_TOK(messages[open_paren_idx-4]) == ASTERISK &&
+      M_TOK(messages[open_paren_idx-5]) == CLOSEPAREN &&
+      M_TOK(messages[open_paren_idx-6]) == ASTERISK &&
+      M_TOK(messages[open_paren_idx-7]) == LABEL &&
+      M_TOK(messages[open_paren_idx-8]) == CLOSEPAREN &&
+      M_TOK(messages[open_paren_idx-9]) == WHITESPACE &&
+      M_TOK(messages[open_paren_idx-10]) == DEREF &&
+      M_TOK(messages[open_paren_idx-11]) == WHITESPACE &&
+      M_TOK(messages[open_paren_idx-12]) == LABEL) {
+    *terminal_mbr_idx = open_paren_idx-12;
+    return true;
+  } else {
+    *terminal_mbr_idx = -1;
+    return false;
+  }
+}

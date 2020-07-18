@@ -1,8 +1,8 @@
-/* $Id: rt_error.c,v 1.2 2020/06/22 04:22:08 rkiesling Exp $ -*-c-*-*/
+/* $Id: rt_error.c,v 1.2 2020/07/18 00:12:44 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
-  Copyright © 2005-2012, 2014-2015, 2019
+  Copyright © 2005-2012, 2014-2015, 2019-2020
     Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
@@ -310,4 +310,85 @@ void self_enclosing_class_message_warning (OBJECT *encl_rcvr_class_obj,
 	      expr, msg);
   }
   __ctalkDeleteObject (tmp);
+}
+
+void unresolved_instance_variable_warning (MESSAGE_STACK messages,
+					   int label_tok, int prev_tok,
+					   int frame_start, char *expr) {
+  MESSAGE *m_label,  *m_prev;
+  OBJECT *reffed_obj, *reffed_rcvr;
+  METHOD *m;
+
+  if (prev_tok == -1)
+    return;
+  
+  m_label = messages[label_tok];
+  m_prev = messages[prev_tok];
+
+  if (IS_MESSAGE(m_prev) && (M_TOK(m_prev) == LABEL) &&
+      !str_eq (M_NAME(m_label), "super") && !str_eq (M_NAME(m_prev), "super") &&
+      IS_OBJECT(M_OBJ(m_prev)) && !strstr (expr, "->")) {
+    if (M_OBJ(m_prev) -> attrs & OBJECT_VALUE_IS_BIN_SYMBOL) {
+      if ((reffed_obj = *(OBJECT **)M_OBJ(m_prev)->__o_value) != NULL) {
+	if (IS_OBJECT(reffed_obj)) {
+	  reffed_rcvr = reffed_obj;
+	  if ((m = __ctalkFindInstanceMethodByName (&reffed_rcvr,
+						    M_NAME(m_label),
+						    FALSE, ANY_ARGS)) != NULL) {
+	    return;
+	  }
+	  reffed_rcvr = reffed_obj;
+	  if ((m = __ctalkFindClassMethodByName (&reffed_rcvr,
+						 M_NAME(m_label),
+						 FALSE, ANY_ARGS)) != NULL) {
+	    return;
+	  }
+	}
+      } else if (IS_OBJECT(M_OBJ(m_prev) -> instancevars) &&
+		 ((reffed_obj = *(OBJECT **)M_OBJ(m_prev)
+		   -> instancevars -> __o_value) != NULL)) {
+	if (IS_OBJECT(reffed_obj)) {
+	  reffed_rcvr = reffed_obj;
+	  if ((m = __ctalkFindInstanceMethodByName (&reffed_rcvr,
+						    M_NAME(m_label),
+						    FALSE, ANY_ARGS)) != NULL) {
+	    return;
+	  }
+	  reffed_rcvr = reffed_obj;
+	  if ((m = __ctalkFindClassMethodByName (&reffed_rcvr,
+						 M_NAME(m_label),
+						 FALSE, ANY_ARGS)) != NULL) {
+	    return;
+	  }
+	}
+      }
+    } else if (IS_OBJECT(M_OBJ(m_prev) -> instancevars) &&
+	       M_OBJ(m_prev) -> instancevars -> attrs & OBJECT_VALUE_IS_BIN_SYMBOL) {
+      /* This is almost different enough to put in a separate set of functions.*/
+      if ((reffed_obj = *(OBJECT **)M_OBJ(m_prev)->instancevars->__o_value)
+	  != NULL) {
+	if (IS_OBJECT(reffed_obj)) {
+	  reffed_rcvr = reffed_obj;
+	  if ((m = __ctalkFindInstanceMethodByName (&reffed_rcvr,
+						    M_NAME(m_label),
+						    FALSE, ANY_ARGS)) != NULL) {
+	    return;
+	  }
+	  reffed_rcvr = reffed_obj;
+	  if ((m = __ctalkFindClassMethodByName (&reffed_rcvr,
+						 M_NAME(m_label),
+						 FALSE, ANY_ARGS)) != NULL) {
+	    return;
+	  }
+	}
+      }
+    }
+    _warning ("In expression\n\n\t%s\n\n"
+	      "Could not resolve label, \"%s.\" "
+	      "(Previous message, \"%s.\" "
+	      "Class, \"%s.\")\n\n",
+	      expr, M_NAME(m_label),
+	      M_NAME(m_prev),
+	      M_OBJ(m_prev) -> __o_class -> __o_name);
+  }
 }

@@ -1,4 +1,4 @@
-/* $Id: X11ListPane,v 1.54 2020/07/15 16:56:01 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11ListPane,v 1.2 2020/07/18 20:52:38 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -55,10 +55,26 @@ String class ItemBox;
 ItemBox instanceVariable org Point 0;
 ItemBox instanceVariable ext Point 0;
 ItemBox instanceVariable size Point 0;
+ItemBox instanceVariable selected Boolean false;
 
 static int y_1 = 0, x_1 = 0, d_y;
 static int scroll_max_y, scroll_min_y;
-static int nth_item_clicked = -1;
+static int last_click_nth = -1;
+
+ItemBox instanceMethod = setEqual (OBJECT *__newObject) {
+  "This is basically Object : =, but we define it here so Ctalk
+  doesn't try to use String : =, which is ItemBox's immediate
+  superclass."
+
+  if (__ctalkAliasObject (self, __newObject) != 0) {
+    printf ("ItemBox : = : Could not set object, \"%s,\" value.\n", self name);
+    if (self traceEnabled)
+      __warning_trace ();
+    return NULL;
+  }
+
+  return __newObject;
+}
 
 X11ListPane instanceMethod selectFont (void) {
   self ftFontVar selectFontFromFontConfig self resources at "font";
@@ -187,7 +203,7 @@ X11ListPane instanceMethod new (String paneName) {
 #define BUTTON3MASK  (1 << 2)  
 
 X11ListPane instanceMethod onClick (Object subPane, InputEvent event) {
-  ItemBox new item;
+  ItemBox new item, lastItem;
   int i;
   
   switch (event eventClass)
@@ -209,16 +225,25 @@ X11ListPane instanceMethod onClick (Object subPane, InputEvent event) {
 	       *  immediate superclass.
 	       */
 	      item = (Object *)self;
-	      if (((y_1 + super viewStartY) >= item org y) &&
-		  ((y_1 + super viewStartY) <= item ext y)) {
-		/* Clicking on the same item twice de-selects it. */
-		if (nth_item_clicked == -1) {
-		  nth_item_clicked = i;
-		} else {
-		  if (i != nth_item_clicked) {
-		    nth_item_clicked = i;
+	      if (super shiftState == 0) {
+		if (((y_1 + super viewStartY) >= item org y) &&
+		    ((y_1 + super viewStartY) <= item ext y)) {
+		  /* Clicking on the same item twice de-selects it. */
+		  if (last_click_nth == -1) {
+		    last_click_nth = i;
+		    item selected = true;
 		  } else {
-		    nth_item_clicked = -1;
+		    if (i != last_click_nth) {
+		      /*** The need to derefence the right-hand expression
+			   should be in the tutorial. */
+		      lastItem = *(super items + last_click_nth);
+		      lastItem selected = false;
+		      last_click_nth = i;
+		      item selected = true;
+		    } else {
+		      last_click_nth = -1;
+		      item selected = false;
+		    }
 		  }
 		}
 		super draw;
@@ -463,7 +488,7 @@ X11ListPane instanceMethod drawItemList (void) {
     }
 
     if (visible) {
-      if (i == nth_item_clicked) {
+      if (item selected) {
 
 	textHeight = super ftFontVar textHeight item;
 	/* Try to center the rectangle vertically over the text. */
@@ -523,7 +548,7 @@ X11ListPane instanceMethod draw (void) {
 
 X11ListPane instanceMethod selectedItem (void) {
   returnObjectClass Integer;
-  return nth_item_clicked;
+  return last_click_nth;
 }
 
 X11ListPane instanceMethod selectedItemText (void) {
@@ -540,7 +565,7 @@ X11ListPane instanceMethod selectedItemText (void) {
      *  String : =, i.e., ItemBox's immediate superclass.
      */
     item = (Object *)self;
-    if (i == nth_item_clicked) {
+    if (i == last_click_nth) {
       s = item value;
     }
     ++i;

@@ -1,4 +1,4 @@
-/* $Id: output.c,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ */
+/* $Id: output.c,v 1.2 2020/07/18 17:51:16 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -239,7 +239,10 @@ void output_delete_cvars_call (MESSAGE_STACK messages, int expr_idx,
 
   if ((term_idx = scanforward (messages, expr_idx, stack_end_idx,
 			       SEMICOLON)) != ERROR) {
+    fileout (DELETE_CVARS_CALL, 0, term_idx - 1);
+#if 0 /***/
     fileout ("\ndelete_method_arg_cvars ();\n", 0, term_idx - 1);
+#endif    
   }
 }
 

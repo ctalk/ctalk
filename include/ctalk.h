@@ -1,4 +1,4 @@
-/* $Id: ctalk.h,v 1.2 2020/07/17 07:43:34 rkiesling Exp $ -*-Fundamental-*- */
+/* $Id: ctalk.h,v 1.7 2020/07/18 17:51:16 rkiesling Exp $ -*-Fundamental-*- */
 
 /*
   This file is part of Ctalk.
@@ -643,6 +643,7 @@ typedef MESSAGE ** MESSAGE_STACK;
 #define TMPL_CVAR_ACCESSOR_FN "__ctalkGetTemplateCallerCVAR"
 #define TMPL_CVAR_CLEANUP_FN  "__ctalkTemplateCallerCVARCleanup"
 #define ARGBLK_LABEL "__ctblk"
+#define DELETE_CVARS_CALL "\ndelete_method_arg_cvars ();\n"
 
 #define DELETE_MESSAGES(__s,__i,__l) \
    while (++__i <= __l) {\
@@ -1966,6 +1967,7 @@ char *elide_cvartab_struct_alias_2 (char *, char *);
 #ifdef __APPLE__
 bool is_apple_inline_chk (MSINFO *ms);
 #endif
+bool is_OBJECT_vartab_deref_cast (MESSAGE_STACK, int, int *);
 
 /* lib/radixof.c */
 RADIX radix_of (char *);
@@ -2108,6 +2110,7 @@ bool is_cvar (char *);
 void write_val_CVAR (OBJECT *, METHOD *);
 void unref_vartab_var (int *, CVAR *, OBJECT *);
 OBJECT *OBJECT_mbr_class (OBJECT *, char *);
+void cvar_for_OBJECT_deref_typecast (MESSAGE_STACK, int, int, int);
 
 /* lib/rt_expr.c */
 int __ctalkMatchParen (MESSAGE_STACK, int, int);
@@ -2181,6 +2184,8 @@ void strtol_error (int, char *, char *);
 char *vartab_var_basename (char *);
 void __ctalkRegisterUserFunctionName (char *);
 void self_enclosing_class_message_warning (OBJECT *, char *, char *);
+void unresolved_instance_variable_warning (MESSAGE_STACK, int, int,
+					   int, char *);
 
 /* lib/sconvchk.c */
 int chkatoi (const char *);
@@ -2320,6 +2325,8 @@ int __ctalkRegisterUserObject (OBJECT *);
 OBJECT *__ctalkReplaceVarEntry (VARENTRY *, OBJECT *);
 void __ctalkSetObjectScope (OBJECT *, int);
 void __ctalkSetObjectAttr (OBJECT *__o, unsigned int attr);
+void __ctalkObjectAttrAnd (OBJECT *__o, unsigned int attr);
+void __ctalkObjectAttrOr (OBJECT *__o, unsigned int attr);
 int __ctalk_remove_object (OBJECT *o);
 OBJECT *__ctalk_self_internal (void);
 OBJECT *__ctalk_self_internal_value (void);

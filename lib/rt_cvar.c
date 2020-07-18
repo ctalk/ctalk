@@ -1,4 +1,4 @@
-/* $Id: rt_cvar.c,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ */
+/* $Id: rt_cvar.c,v 1.2 2020/07/18 14:41:22 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -3089,3 +3089,58 @@ void unref_vartab_var (int *idx, CVAR *c, OBJECT *m_obj) {
 			  
 }
 
+/***/
+void cvar_for_OBJECT_deref_typecast (MESSAGE_STACK messages,
+				     int open_paren_idx,
+				     int terminal_mbr_idx,
+				     int expr_parser_lvl) {
+  char *__s, s2[MAXMSG], c2[MAXMSG];
+  CVAR *c, *c_1, *c_prev;
+  OBJECT *cvar_alias;
+  int cvar_object_is_created, i_2;
+  METHOD *m;
+  __s = collect_tokens (e_messages, open_paren_idx, terminal_mbr_idx);
+  remove_whitespace (__s, s2);
+  if ((m = __ctalkRtGetMethod ()) != NULL) {
+    c_1 = NULL;
+    for (c = m -> local_cvars; c && c -> next;
+	 c = c -> next)
+      ;
+    while (1) {
+      if (c -> evaled &&
+	  (expr_parser_ptr >= c -> attr_data)) {
+	if (c -> prev == NULL) {
+	  break;
+	} else {
+	  c = c -> prev;
+	  continue;
+	}
+      }
+      c_prev = c -> prev;
+      remove_whitespace (c -> name, c2);
+      if (str_eq (c2, s2)) {
+	c_1 = c;
+	break;
+      } else {
+	c = c_prev;
+      }
+    }
+    
+    if (c_1) {
+      cvar_alias = cvar_object_mark_evaled
+	(c_1, &cvar_object_is_created, expr_parser_ptr);
+      __objRefCntInc (OBJREF(cvar_alias));
+      for (i_2 = open_paren_idx; i_2 >= terminal_mbr_idx; --i_2) {
+	if (!IS_OBJECT(e_messages[i_2] -> obj)) {
+	  e_messages[i_2] -> obj = cvar_alias;
+	  e_messages[i_2] -> attrs |=
+	    RT_TOK_OBJ_IS_CREATED_CVAR_ALIAS;
+	}
+	e_messages[i_2] -> value_obj = cvar_alias;
+	e_messages[i_2] -> evaled += 1;
+      }
+    }
+  }
+  __xfree (MEMADDR(__s));
+}
+				     
