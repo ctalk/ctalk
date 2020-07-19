@@ -1,5 +1,5 @@
 \input style.tex @c -*-texinfo-*-
-@c $Id: tutorial.texi,v 1.2 2020/06/30 01:46:53 rkiesling Exp $
+@c $Id: tutorial.texi,v 1.2 2020/07/19 02:31:28 rkiesling Exp $
 @c %**start of header  
 @setfilename tutorial.info
 @settitle Ctalk Tutorial
@@ -4936,6 +4936,111 @@ left-hand side of an assignment.  If you only want to iterate
   @}
 
 @end example
+
+Here's example of how dereferencing works when using a numerical offset
+to retrieve a @code{List} element.
+
+@c test/expect/listoffset2.c
+@example
+
+Object class ListWrapper;
+
+ListWrapper instanceVariable items List NULL;
+
+int n = 1;
+
+
+ListWrapper instanceMethod prOffset (void) @{
+  String new item;
+  
+  self items map @{
+    item = *(super items + n);
+    printf ("%s\n", item);
+  @}
+@}
+
+int main () @{
+  ListWrapper new lw;
+
+  lw items push "Item 0";
+  lw items push "Item 1";
+  lw items push "Item 2";
+  lw items push "Item 3";
+  lw items push "Item 4";
+
+  lw prOffset;
+@}
+
+@end example
+
+The main action in this case occurs in the @code{prOffset} method.
+Here, we want to retrieve only the @emph{n'th} element in the receiver
+list.  We've placed it inside an argument block, so the keyword
+@code{super} refers to @code{prOffset's} receiver while the program is
+executing in the argument block's scope.
+
+The important thing to note is the dereference operator in this
+expression.
+
+@example
+
+item = *(super items + n);
+
+@end example
+
+Here, @code{item} is a @code{String} object.  When we want to
+set its value, we need to get the list element's content.
+
+The result of the right-hand side of the expression,
+
+@example
+
+(super items + n)
+
+@end example
+
+is a @code{Key} object.  That's why the @samp{*} dereference operator
+is there - it retrieves the object that the @emph{nth} position in the
+list refers to.
+
+Here is another, less compact way to write the @code{prOffset} method.
+
+@example
+
+ListWrapper instanceMethod prOffset (void) @{
+  Key new item;
+  String new content;
+  
+  self items map @{
+    item = super items + l_offset;
+    content = *item;
+    printf ("%s\n", content);
+  @}
+@}
+
+@end example
+
+The main difference is where the dereference operator, @samp{*}, occurs
+within the method.
+
+And here is yet a third way that we can retrieve the content of the
+@emph{n'th} list element.
+
+@example
+
+ListWrapper instanceMethod prOffset (void) @{
+  Key new item;
+  
+  self items map @{
+    item = super items + n;
+    printf ("%s\n", *item);
+  @}
+@}
+
+@end example
+
+Here, the retrieval of the list's @code{String} element occurs when
+the @cite{printf} statement is executed.
 
 @iftex
 @section Class Casting

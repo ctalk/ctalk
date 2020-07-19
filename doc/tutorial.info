@@ -3873,6 +3873,99 @@ use something like this.
        }
 
 
+Here's example of how dereferencing works when using a numerical offset
+to retrieve a 'List' element.
+
+
+     Object class ListWrapper;
+
+     ListWrapper instanceVariable items List NULL;
+
+     int n = 1;
+
+
+     ListWrapper instanceMethod prOffset (void) {
+       String new item;
+
+       self items map {
+         item = *(super items + n);
+         printf ("%s\n", item);
+       }
+     }
+
+     int main () {
+       ListWrapper new lw;
+
+       lw items push "Item 0";
+       lw items push "Item 1";
+       lw items push "Item 2";
+       lw items push "Item 3";
+       lw items push "Item 4";
+
+       lw prOffset;
+     }
+
+
+The main action in this case occurs in the 'prOffset' method.  Here, we
+want to retrieve only the _n'th_ element in the receiver list.  We've
+placed it inside an argument block, so the keyword 'super' refers to
+'prOffset's' receiver while the program is executing in the argument
+block's scope.
+
+The important thing to note is the dereference operator in this
+expression.
+
+
+     item = *(super items + n);
+
+
+Here, 'item' is a 'String' object.  When we want to set its value, we
+need to get the list element's content.
+
+The result of the right-hand side of the expression,
+
+
+     (super items + n)
+
+
+is a 'Key' object.  That's why the '*' dereference operator is there -
+it retrieves the object that the _nth_ position in the list refers to.
+
+Here is another, less compact way to write the 'prOffset' method.
+
+
+     ListWrapper instanceMethod prOffset (void) {
+       Key new item;
+       String new content;
+
+       self items map {
+         item = super items + l_offset;
+         content = *item;
+         printf ("%s\n", content);
+       }
+     }
+
+
+The main difference is where the dereference operator, '*', occurs
+within the method.
+
+And here is yet a third way that we can retrieve the content of the
+_n'th_ list element.
+
+
+     ListWrapper instanceMethod prOffset (void) {
+       Key new item;
+
+       self items map {
+         item = super items + n;
+         printf ("%s\n", *item);
+       }
+     }
+
+
+Here, the retrieval of the list's 'String' element occurs when the
+'printf' statement is executed.
+
 Class Casting
 -------------
 
@@ -7709,8 +7802,8 @@ File: tutorial.info,  Node: Index,  Prev: GNU Free Documentation License,  Up: T
 * = method (Character class):            Basic classes.      (line  801)
 * = method (Integer class):              Basic classes.      (line  801)
 * = method (Integer class) <1>:          Methods.            (line  792)
-* = method (List class):                 Collections.        (line  889)
-* = method (List class) <1>:             Collections.        (line  900)
+* = method (List class):                 Collections.        (line  982)
+* = method (List class) <1>:             Collections.        (line  993)
 * = method (String class):               Basic classes.      (line  128)
 * = method (String class) <1>:           Basic classes.      (line  801)
 * = method (Symbol class):               Basic classes.      (line  908)
@@ -8150,23 +8243,23 @@ Node: Collections105941
 Ref: ListClass107532
 Ref: MapArguments110280
 Ref: CollectionMathOperators120742
-Ref: InitializingCollections130062
-Node: Classes133202
-Ref: Instance Variables137328
-Ref: Class Variables138783
-Node: Methods149745
-Ref: Method Declarations158833
-Ref: Working with Object References167314
-Ref: Assigning Values169425
-Ref: Constructor Methods185587
-Node: Graphics197553
-Ref: ANSIGraphics199059
-Ref: X11Graphics210920
-Ref: X Widget API218150
-Ref: GLUTGraphics226318
-Ref: GLXGraphics231438
-Node: Debugging244092
-Node: GNU Free Documentation License255676
-Node: Index276885
+Ref: InitializingCollections132194
+Node: Classes135334
+Ref: Instance Variables139460
+Ref: Class Variables140915
+Node: Methods151877
+Ref: Method Declarations160965
+Ref: Working with Object References169446
+Ref: Assigning Values171557
+Ref: Constructor Methods187719
+Node: Graphics199685
+Ref: ANSIGraphics201191
+Ref: X11Graphics213052
+Ref: X Widget API220282
+Ref: GLUTGraphics228450
+Ref: GLXGraphics233570
+Node: Debugging246224
+Node: GNU Free Documentation License257808
+Node: Index279017
 
 End Tag Table
