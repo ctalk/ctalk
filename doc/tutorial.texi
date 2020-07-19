@@ -1,5 +1,5 @@
 \input style.tex @c -*-texinfo-*-
-@c $Id: tutorial.texi,v 1.2 2020/07/19 02:31:28 rkiesling Exp $
+@c $Id: tutorial.texi,v 1.3 2020/07/19 07:25:10 rkiesling Exp $
 @c %**start of header  
 @setfilename tutorial.info
 @settitle Ctalk Tutorial
@@ -4995,13 +4995,53 @@ The result of the right-hand side of the expression,
 
 @example
 
-(super items + n)
+super items + n
 
 @end example
 
 is a @code{Key} object.  That's why the @samp{*} dereference operator
 is there - it retrieves the object that the @emph{nth} position in the
 list refers to.
+
+Internally, the organization of a @code{Collection} object, or an
+instance of one of its subclasses (like @code{List} in this example)
+is this: a sequence of keys that comprise instance variables in
+addition to the @code{value} instance variable (internally, it's a C
+list also).  This is what an expression like @code{super items + n}
+would retrieve: the @emph{n'th} key (counting from zero) from the
+entire set of the collection's keys.
+
+However, each key doesn't itself contain the collection's contents;
+each of the keys contains a @emph{reference} another object, which may
+be declared anywhere else in the program.  From the perspective of a
+Ctalk expression, all of the target objects together comprise the
+contents of the collection.
+
+When you use a statement like @code{*(super items + n)} in a situation
+like this, it instructs the class to return the object that the
+@emph{n'th} key refers to.
+
+@example
+
+                               (super items + n)
+                              n = 0         n = 1          ... etc.
+ -------       -------       -------       -------
+|       |     | value |     |       |     |       |
+| aList | --> | inst. | --> |  Key  | --> |  Key  | -->    ...
+|       |     |  var. |     |       |     |       |
+ -------       -------       -------       -------
+
+                                |             |
+                                |             |
+
+                              *(super items + n)                                
+                             -------       -------
+                            |       |     |       |
+                            |Content|     |Content|
+                            |       |     |       |
+                             -------       -------
+                             
+@end example
 
 Here is another, less compact way to write the @code{prOffset} method.
 
@@ -5041,6 +5081,23 @@ ListWrapper instanceMethod prOffset (void) @{
 
 Here, the retrieval of the list's @code{String} element occurs when
 the @cite{printf} statement is executed.
+
+It's probably worth mentioning in passing that the actual @emph{names}
+of the @code{Key} objects in a @code{List} aren't significant.  The
+methods in @code{List} class treat each key in the collection by
+referring to the object that comprises the list's contents in
+succession (generally, this is referred to as each element's
+@emph{value}), whether the key/value item is at the beginning or end
+of the list, or by the key/value's position in the list.
+
+However, collections like @code{AssociativeArray} and @code{Array} do
+use key names that are significant.  An example is the
+@code{AssociativeArray} classes' method, @code{mapKeys}, that doesn't
+directly retrieve the collection's values; that is, in an argument
+block that uses @code{mapKeys}, @code{self} refers to a @code{Key}
+object, in addition to the more common @code{map} method.  There are
+examples of this and other expressions that use collections in the
+@cite{Ctalk Language Reference}.
 
 @iftex
 @section Class Casting

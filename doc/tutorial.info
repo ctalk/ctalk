@@ -3925,11 +3925,48 @@ need to get the list element's content.
 The result of the right-hand side of the expression,
 
 
-     (super items + n)
+     super items + n
 
 
 is a 'Key' object.  That's why the '*' dereference operator is there -
 it retrieves the object that the _nth_ position in the list refers to.
+
+Internally, the organization of a 'Collection' object, or an instance of
+one of its subclasses (like 'List' in this example) is this: a sequence
+of keys that comprise instance variables in addition to the 'value'
+instance variable (internally, it's a C list also).  This is what an
+expression like 'super items + n' would retrieve: the _n'th_ key
+(counting from zero) from the entire set of the collection's keys.
+
+However, each key doesn't itself contain the collection's contents; each
+of the keys contains a _reference_ another object, which may be declared
+anywhere else in the program.  From the perspective of a Ctalk
+expression, all of the target objects together comprise the contents of
+the collection.
+
+When you use a statement like '*(super items + n)' in a situation like
+this, it instructs the class to return the object that the _n'th_ key
+refers to.
+
+
+                                    (super items + n)
+                                   n = 0         n = 1          ... etc.
+      -------       -------       -------       -------
+     |       |     | value |     |       |     |       |
+     | aList | --> | inst. | --> |  Key  | --> |  Key  | -->    ...
+     |       |     |  var. |     |       |     |       |
+      -------       -------       -------       -------
+
+                                     |             |
+                                     |             |
+
+                                   *(super items + n)
+                                  -------       -------
+                                 |       |     |       |
+                                 |Content|     |Content|
+                                 |       |     |       |
+                                  -------       -------
+
 
 Here is another, less compact way to write the 'prOffset' method.
 
@@ -3965,6 +4002,22 @@ _n'th_ list element.
 
 Here, the retrieval of the list's 'String' element occurs when the
 'printf' statement is executed.
+
+It's probably worth mentioning in passing that the actual _names_ of the
+'Key' objects in a 'List' aren't significant.  The methods in 'List'
+class treat each key in the collection by referring to the object that
+comprises the list's contents in succession (generally, this is referred
+to as each element's _value_), whether the key/value item is at the
+beginning or end of the list, or by the key/value's position in the
+list.
+
+However, collections like 'AssociativeArray' and 'Array' do use key
+names that are significant.  An example is the 'AssociativeArray'
+classes' method, 'mapKeys', that doesn't directly retrieve the
+collection's values; that is, in an argument block that uses 'mapKeys',
+'self' refers to a 'Key' object, in addition to the more common 'map'
+method.  There are examples of this and other expressions that use
+collections in the 'Ctalk Language Reference'.
 
 Class Casting
 -------------
@@ -7802,8 +7855,8 @@ File: tutorial.info,  Node: Index,  Prev: GNU Free Documentation License,  Up: T
 * = method (Character class):            Basic classes.      (line  801)
 * = method (Integer class):              Basic classes.      (line  801)
 * = method (Integer class) <1>:          Methods.            (line  792)
-* = method (List class):                 Collections.        (line  982)
-* = method (List class) <1>:             Collections.        (line  993)
+* = method (List class):                 Collections.        (line 1035)
+* = method (List class) <1>:             Collections.        (line 1046)
 * = method (String class):               Basic classes.      (line  128)
 * = method (String class) <1>:           Basic classes.      (line  801)
 * = method (Symbol class):               Basic classes.      (line  908)
@@ -8243,23 +8296,23 @@ Node: Collections105941
 Ref: ListClass107532
 Ref: MapArguments110280
 Ref: CollectionMathOperators120742
-Ref: InitializingCollections132194
-Node: Classes135334
-Ref: Instance Variables139460
-Ref: Class Variables140915
-Node: Methods151877
-Ref: Method Declarations160965
-Ref: Working with Object References169446
-Ref: Assigning Values171557
-Ref: Constructor Methods187719
-Node: Graphics199685
-Ref: ANSIGraphics201191
-Ref: X11Graphics213052
-Ref: X Widget API220282
-Ref: GLUTGraphics228450
-Ref: GLXGraphics233570
-Node: Debugging246224
-Node: GNU Free Documentation License257808
-Node: Index279017
+Ref: InitializingCollections134810
+Node: Classes137950
+Ref: Instance Variables142076
+Ref: Class Variables143531
+Node: Methods154493
+Ref: Method Declarations163581
+Ref: Working with Object References172062
+Ref: Assigning Values174173
+Ref: Constructor Methods190335
+Node: Graphics202301
+Ref: ANSIGraphics203807
+Ref: X11Graphics215668
+Ref: X Widget API222898
+Ref: GLUTGraphics231066
+Ref: GLXGraphics236186
+Node: Debugging248840
+Node: GNU Free Documentation License260424
+Node: Index281633
 
 End Tag Table
