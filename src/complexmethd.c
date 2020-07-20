@@ -1,4 +1,4 @@
-/* $Id: complexmethd.c,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ */
+/* $Id: complexmethd.c,v 1.2 2020/07/19 20:07:47 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -376,6 +376,8 @@ int is_overloaded_aggregate_op (MESSAGE_STACK messages, int idx) {
   return FALSE;
 }
 
+#if 0 /***/
+/* was used only by the function below. */
 static bool objs_in_cvar_term (MESSAGE_STACK messages, int tok_idx) {
   int next_tok, prev_tok;
   if ((next_tok = nextlangmsg (messages, tok_idx)) != ERROR) {
@@ -390,6 +392,7 @@ static bool objs_in_cvar_term (MESSAGE_STACK messages, int tok_idx) {
   }
   return false;
 }
+#endif
 
 /* 
  *   Called by super_argblk_rcvr_expr () when simply writing expressions
@@ -420,11 +423,19 @@ void register_argblk_c_vars_1 (MESSAGE_STACK messages,
       /* So we don't cause an undefined label exception later on. */
       messages[i] -> attrs |= TOK_IS_RT_EXPR;
 
+#if 0
       if (objs_in_cvar_term (messages, i)) {
 	fmt_register_argblk_cvar_from_basic_cvar (messages, i,
 						  cvar, buf);
 	buffer_argblk_stmt (buf);
+      } else { /***/
+#endif	
+	fmt_register_argblk_cvar_from_basic_cvar (messages, i,
+						  cvar, buf);
+	buffer_argblk_stmt (buf);
+#if 0
       }
+#endif      
     }
     
   }

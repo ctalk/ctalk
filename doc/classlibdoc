@@ -7154,6 +7154,10 @@ The X11ListPane constructor.  This method creates a
 X11ListPane object with the name given by paneName,
 and initializes the object's resources and event handlers.
 
+>>>X11ListPane::nItemsSelected (void)
+Returns an Integer with the number of items that are currently
+selected.
+
 >>>X11ListPane::onClick (Object subPane, InputEvent event)
 >>>X11ListPane::onEnter (Object subPane, InputEvent event)
 >>>X11ListPane::onExpose (Object subPane, InputEvent event)
@@ -7164,7 +7168,7 @@ These are the X11ListPane object's event handlers, which receive
 events from the display server.  They are initialized by the new
 method.
 
->>>X11ListPane::selectedItem (void)
+>>>X11ListPane::selectedItemN (void)
 This method returns an Integer with the index of the
 selected item.
 
@@ -7172,6 +7176,10 @@ The indexes are numbered from zero, which is the index of the first
 item.
 
 If no item is selected, this method returns '-1'.
+
+>>>X11ListPane::selectedItems (List itemsOut)
+Pushes a String object with the text of each currently selected
+item onto the itemsOut list.
 
 >>>X11ListPane::selectedItemText (void)
 Returns a String with the text of the selected item.

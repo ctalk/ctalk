@@ -1023,4 +1023,11 @@
 	by eval_expr (rt_expr.c).
 	- Added a clause to add a DELETE_CVARS_CALL in rt_self_expr
 	(ifexpr.c), and the DELETE_CVARS_CALL in ctalk.h.
+2020-07-19
+	- In register_argblk_c_vars_1, register a C variable regardless
+	of whether an object is present in the argument expression
+	(complexmethd.c).
+	- In prefix_method_expr_a, rewrite the expression tokens after
+	registering CVARs in an argument block (rt_expr.c).
+	- Added the cvararg[8-9].c test programs.
 

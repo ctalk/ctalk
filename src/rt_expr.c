@@ -1,4 +1,4 @@
-/* $Id: rt_expr.c,v 1.9 2020/07/05 20:32:50 rkiesling Exp $ */
+/* $Id: rt_expr.c,v 1.2 2020/07/19 20:07:47 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -3167,7 +3167,12 @@ static bool register_prefix_expr_CVARs (MESSAGE_STACK messages,
       m = messages[i];
       if ((get_local_var (m -> name) != NULL) ||
 	  (get_global_var_not_shadowed (m -> name) != NULL)) {
-	(void)register_c_var (m, messages, i, &agg_var_end_idx);
+	if (argblk) {
+	  /* single-token only at the moment... */
+	  register_argblk_c_vars_1 (messages, i, i);
+	} else {
+	  (void)register_c_var (m, messages, i, &agg_var_end_idx);
+	}
 	retval = true;
       }
     }
@@ -3356,6 +3361,12 @@ int prefix_method_expr_a (MESSAGE_STACK messages, int prefix_idx,
 
 	  if (register_prefix_expr_CVARs (messages, prefix_idx_2, end_idx)) {
 	    have_cvar_reg = true;
+	    if (argblk) {
+	      /***/
+	      /* We have to re-write the tokens with the cvartab names. */
+	      expr_buf = collect_expression (&ms, &end_idx); 
+	      de_newline_buf (expr_buf); /***/
+	    }
 	  }
 	  check_r_assignment_expr (messages, prefix_idx_2, end_idx);
 	  if (typecast_open_idx != -1) {

@@ -1,4 +1,4 @@
-/* $Id: eval_arg.c,v 1.5 2020/07/09 20:21:41 rkiesling Exp $ */
+/* $Id: eval_arg.c,v 1.2 2020/07/19 20:07:47 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -1014,7 +1014,8 @@ OBJECT *eval_arg (METHOD *method, OBJECT *rcvr_class, ARGSTR *argbuf,
 						      start_stack,
 						      method);
 						      
-	if ((((cvar = get_local_local_cvar (m_arg -> name)) != NULL) ||
+	  /***/
+	  if ((((cvar = get_local_local_cvar (m_arg -> name)) != NULL) ||
 	       ((cvar = get_global_var (m_arg -> name)) != NULL)) &&
 	      IS_CVAR(cvar) &&
 	      !IS_CONSTRUCTOR (method)) {
@@ -1643,8 +1644,19 @@ OBJECT *eval_arg (METHOD *method, OBJECT *rcvr_class, ARGSTR *argbuf,
 		      continue;
 		    }
 		  } else {
-		    register_c_var (message_stack_at (main_stack_idx),
-				    m_messages, i, &agg_var_end_idx);
+		    if (argblk) {
+		      if (cvar && cvar -> scope & GLOBAL_VAR) {
+			/* See the comment below, in the next
+			   clause */
+			argblk = false;
+			register_c_var (message_stack_at (main_stack_idx),
+					m_messages, i, &agg_var_end_idx);
+			argblk = true;
+		      }
+		    } else {
+		      register_c_var (message_stack_at (main_stack_idx),
+				      m_messages, i, &agg_var_end_idx);
+		    }
 		    eval_arg_cvar_reg = true;
 		  }
 		}
@@ -1662,9 +1674,24 @@ OBJECT *eval_arg (METHOD *method, OBJECT *rcvr_class, ARGSTR *argbuf,
 	    if ((M_TOK(m_messages[_p]) != PERIOD) && (M_TOK(m_messages[_p]) != DEREF)) {
 	      if (interpreter_pass != expr_check &&  !ctrlblk_pred)
 		/* CVARs in control structures get registered at
-		   various places from control.c and ifexpr.c. */
+		   various places from control.c and ifexpr.c, 
+		   and fmt_register_argblk_c_vars_* ...  */
 		register_c_var (message_stack_at (main_stack_idx),
 				m_messages, i, &agg_var_end_idx);
+	      if (cvar && cvar -> scope & GLOBAL_VAR) {
+		if (argblk) {
+		  /* ... unless it's a global var, so here we still
+		     need to write the CVAR because it's included in the
+		     complete expression, but we don't need to work it 
+		     into the block's CVARTAB, so we just work around the 
+		     CVARTAB entry stuff. */
+		  argblk = false;
+		  register_c_var (message_stack_at (main_stack_idx),
+				  m_messages, i, &agg_var_end_idx);
+		  argblk = true;
+		}
+	      }
+	      eval_arg_cvar_reg = true;
 	      if (arg_class != arg_null) arg_class = arg_c_var_expr;
 	    }
 	  }
