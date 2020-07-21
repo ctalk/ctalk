@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.5 2020/07/19 16:20:45 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.8 2020/07/21 19:37:41 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -15616,6 +15616,17 @@ the @key{C-p} and @key{C-n} keys.
 Here is a program that displays a @code{X11ListPane} object, and
 prints the selected item on the terminal when the program exits.
 
+Clicking on an item using the left mouse button (or the single button
+on pointing devices that have only one button) selects that item.  Clicking
+on the item again de-selects the item, or if a different item is clicked,
+then that item is selected.
+
+If the user presses the @kbd{Shift} key while clicking on an item, it
+is selected in addition to any items that have already been selected.
+
+Pressing the @kbd{Ctrl} key while clicking selects every item in a range
+between the first selected item in the list and the last selected item.
+
 @example
 
 #define N_ITEMS 10
@@ -15633,7 +15644,10 @@ int main (int argv, char **argc) @{
   Integer new verbose;
   Integer new i;
   X11Cursor new cursor;
-   xPane resources atPut "backgroundColor", "blue";
+  String new itemText, itemN;
+  List new itemTextOut, itemNOut;
+
+  xPane resources atPut "backgroundColor", "blue";
   label resources replaceAt "backgroundColor", "blue";
   label resources replaceAt "foregroundColor", "blue";
   label resources replaceAt "highlightForegroundColor", "blue";
@@ -15689,8 +15703,23 @@ int main (int argv, char **argc) @{
           if (button haveClick) @{
             button clearClick;
             xPane deleteAndClose;
-	    printf ("%d: %s\n", listPane selectedItem,
-		    listPane selectedItemText);
+	    if (listPane nItemsSelected > 1) @{
+	      i = 0;
+	      listPane selectedItems itemTextOut;
+	      listPane selectedItemsN itemNOut;
+	      itemNOut map @{
+		itemN = self;
+		/* This is a convenient way to retrieve
+		   the i'th item in the itemTextOut list. */
+		itemText = *(itemTextOut + i);
+		printf ("%d: %s\n", itemN, itemText);
+		++i;
+	      @}
+	    @} else @{
+	      printf ("%d: %s\n",
+		      listPane selectedItemN,
+		      listPane selectedItemText);
+	    @}
             exit (0);
           @}
         break;
@@ -15703,10 +15732,46 @@ int main (int argv, char **argc) @{
 
 @subheading Retrieving Selected Items
 
-The @mnm{selectedItemN} method returns an @code{Integer} with the
-numerical index of of the item, where the indexes are numbers starting
-with zero.  The @mnm{selectedItemText} method returns a @code{String}
-containing the text of the item.
+The method @mnm{nItemsSelected} returns the number of list items that
+are currently selected.  If only one item is selected, a program use
+the @mnm{selectedItemN} and @mnm{selectedItem} methods to retrieve
+the selected item's position in the list, and its text.  This example
+shows how to print the list's selection when only one item is selected.
+
+@example
+
+if (myListPane nItemsSelected == 1) @{
+   printf ("%d: %s.\n", myListPane selectedItemN,
+     myListPane selectedItemText);
+@}
+
+@end example
+
+If there are multiple items selected (i.e., @mnm{nItemsSelected} returns
+an @code{Integer} greater than 1), a program can retrieve and display all
+of the results the @mnm{selectedItems} and @mnm{selectedItemsN} methods,
+and display all of the results using an expression like this (although
+this example doesn't print both sets of results at once).
+
+@example
+
+List new itemTextOut, itemNOut;
+
+...
+
+if (myListPane nItemsSelected > 1) @{
+   myListPane selectedItems itemTextOut;
+   myListPane selectedItemsN itemNOut;
+   itemNOut map @{
+     printf ("%d\n", self) 
+   @}
+   itemTextOut map @{
+     printf ("%s\n", self) 
+   @}
+@}
+
+@end example
+
 
 @subheading Resources
 
@@ -15934,6 +15999,12 @@ If no item is selected, this method returns @samp{-1}.
 @item @mnm{selectedItems} (@code{List} @var{itemsOut})
 Pushes a @code{String} object with the text of each currently selected
 item onto the @var{itemsOut} list.
+
+@cindex @code{selectedItemsN} instance method @idxclscite{X11ListPane}
+@item @mnm{selectedItemsN} (@code{List} @var{itemsOut})
+Pushes an @code{Integer} with the numerical position of each selected
+item onto @var{itemsOut}.  The indexes start with 0 reprsenting the
+first item, 1 representing the second item, and so on.
 
 @cindex @code{selectedItemText} instance method @idxclscite{X11ListPane}
 @item @mnm{selectedItemText} (@code{void})

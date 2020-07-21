@@ -17,6 +17,113 @@ Texts.  A copy of the license is included in the section entitled, "GNU
 Free Documentation License."
 
 
+File: ctalk.info,  Node: Method functions,  Next: Errors,  Prev: Variable method arguments,  Up: Methods
+
+Method Functions
+----------------
+
+Occasionally an application needs to call a method as a function.  One
+example of this is a `SignalHandler' method that the program installs
+as the handler for signals from the operating system.
+
+Methods that use a C calling convention need to do several things
+differently than normal methods.
+   * The method needs to use a C variable as its argument.
+
+   * Because the method can be called with no receivers, Ctalk does not
+     perform any of the normal initialization of local and parameter
+     objects.
+
+   * The method body needs to be written almost entirely in C.
+
+In order to make Ctalk interpret a method parameter as a C variable, the
+method must declare the parameter with the `__c_arg__' attribute.
+
+_Note:_ C functions that are called by the operating system generally
+need only one argument, and the `__c_arg__' attribute only works for
+methods with a single parameter.
+
+Additionally, to prevent Ctalk from adding local object initialization
+code to the method, the method must contain the `noMethodInit' keyword.
+
+Here is an example of a method that is used as a signal handler, and
+installed by the statements in `main.'
+     SignalHandler instanceMethod myHandler (__c_arg__ int signo) {
+       noMethodInit;
+       printf ("sigInt handler! Signal %d.\n", signo);
+       return NULL;
+     }
+
+     int main () {
+
+       SignalHandler new s;
+
+       s setSigInt;
+       s installHandler myHandler;
+     }
+
+The `setSigInt' method (class `SignalHandler') tells the
+`SignalHandler' object `s' that it is going to handle `SIGINT' signals.
+*Note SignalHandler::, for the other signals that the class can handle.
+
+The `__ctalkNewSignalEventInternal' function can generate and queue
+`SignalEvent' objects, so the signal handler does not need to create
+objects in order to send signal events to the application.  *Note
+__ctalkNewSignalEventInternal::.
+
+Including C Header Files
+........................
+
+Often you will need to use C functions and data types in method
+functions.  However, you need to take care that if you include a C
+header file,  it might not be included later on if a class library
+requires that file.
+
+Normally Ctalk includes whatever C definitions it needs in the class
+libraries.  However, that can cause the preprocessor to omit those
+definitions from another source file, should the definitions be needed
+later.
+
+For example, in the method `handleSignal', from the `timeclient.c'
+program,  the method needs the definition of the `time(2)' function.
+If you were to `#include' `time.h' in the input, as in this example,
+then `time.h''s definitions would not be included in the `CTime' class
+later on.
+     #include <time.h>    /* Could cause errors later. */
+
+     SignalHandler instanceMethod handleSignal (__c_arg__ int signo) {
+       time_t t;
+       char buf[MAXLABEL];
+       noMethodInit;
+       t = time (NULL);
+       __ctalkDecimalIntegerToASCII (t, buf);
+       __ctalkNewSignalEventInternal (signo, getpid (), buf);
+       return NULL;
+     }
+
+The best way to avoid omitting dependencies is to include only the
+definitions that the method needs.  In this case, you can include the
+prototype of `time(2)' in the source file.
+     extern time_t time (time_t *__timer) __THROW;  /* From time.h. */
+
+     SignalHandler instanceMethod handleSignal (__c_arg__ int signo) {
+       time_t t;
+       char buf[MAXLABEL];
+       noMethodInit;
+       t = time (NULL);
+       __ctalkDecimalIntegerToASCII (t, buf);
+       __ctalkNewSignalEventInternal (signo, getpid (), buf);
+       return NULL;
+     }
+
+The `time_t' type is defined with `ctalklib', and is available to all
+programs.
+
+How to resolve multiple library definitions depends on the system's
+header files, and may vary between different operating systems or
+compiler versions.
+
+
 File: ctalk.info,  Node: Errors,  Next: Cautions,  Prev: Method functions,  Up: Methods
 
 Exception and Error Handling

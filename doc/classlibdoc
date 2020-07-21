@@ -7181,6 +7181,11 @@ If no item is selected, this method returns '-1'.
 Pushes a String object with the text of each currently selected
 item onto the itemsOut list.
 
+>>>X11ListPane::selectedItemsN (List itemsOut)
+Pushes an Integer with the numerical position of each selected
+item onto itemsOut.  The indexes start with 0 reprsenting the
+first item, 1 representing the second item, and so on.
+
 >>>X11ListPane::selectedItemText (void)
 Returns a String with the text of the selected item.
 If no item is selected, the method returns and empty String.

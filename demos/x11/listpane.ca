@@ -15,7 +15,10 @@ int main (int argv, char **argc) {
   Integer new verbose;
   Integer new i;
   X11Cursor new cursor;
-   xPane resources atPut "backgroundColor", "blue";
+  String new itemText, itemN;
+  List new itemTextOut, itemNOut;
+
+  xPane resources atPut "backgroundColor", "blue";
   label resources replaceAt "backgroundColor", "blue";
   label resources replaceAt "foregroundColor", "blue";
   label resources replaceAt "highlightForegroundColor", "blue";
@@ -71,8 +74,23 @@ int main (int argv, char **argc) {
           if (button haveClick) {
             button clearClick;
             xPane deleteAndClose;
-	    printf ("%d: %s\n", listPane selectedItem,
-		    listPane selectedItemText);
+	    if (listPane nItemsSelected > 1) {
+	      i = 0;
+	      listPane selectedItems itemTextOut;
+	      listPane selectedItemsN itemNOut;
+	      itemNOut map {
+		itemN = self;
+		/* This is a convenient way to retrieve
+		   the i'th item in the itemTextOut list. */
+		itemText = *(itemTextOut + i);
+		printf ("%d: %s\n", itemN, itemText);
+		++i;
+	      }
+	    } else {
+	      printf ("%d: %s\n",
+		      listPane selectedItemN,
+		      listPane selectedItemText);
+	    }
             exit (0);
           }
         break;

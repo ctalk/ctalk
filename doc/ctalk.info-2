@@ -4069,6 +4069,17 @@ or the <up> and <down> arrow keys, or the <C-p> and <C-n> keys.
 Here is a program that displays a `X11ListPane' object, and prints the
 selected item on the terminal when the program exits.
 
+Clicking on an item using the left mouse button (or the single button
+on pointing devices that have only one button) selects that item.
+Clicking on the item again de-selects the item, or if a different item
+is clicked, then that item is selected.
+
+If the user presses the `Shift' key while clicking on an item, it is
+selected in addition to any items that have already been selected.
+
+Pressing the `Ctrl' key while clicking selects every item in a range
+between the first selected item in the list and the last selected item.
+
 
      #define N_ITEMS 10
 
@@ -4085,7 +4096,10 @@ selected item on the terminal when the program exits.
        Integer new verbose;
        Integer new i;
        X11Cursor new cursor;
-        xPane resources atPut "backgroundColor", "blue";
+       String new itemText, itemN;
+       List new itemTextOut, itemNOut;
+
+       xPane resources atPut "backgroundColor", "blue";
        label resources replaceAt "backgroundColor", "blue";
        label resources replaceAt "foregroundColor", "blue";
        label resources replaceAt "highlightForegroundColor", "blue";
@@ -4141,8 +4155,23 @@ selected item on the terminal when the program exits.
                if (button haveClick) {
                  button clearClick;
                  xPane deleteAndClose;
-     	    printf ("%d: %s\n", listPane selectedItem,
-     		    listPane selectedItemText);
+     	    if (listPane nItemsSelected > 1) {
+     	      i = 0;
+     	      listPane selectedItems itemTextOut;
+     	      listPane selectedItemsN itemNOut;
+     	      itemNOut map {
+     		itemN = self;
+     		/* This is a convenient way to retrieve
+     		   the i'th item in the itemTextOut list. */
+     		itemText = *(itemTextOut + i);
+     		printf ("%d: %s\n", itemN, itemText);
+     		++i;
+     	      }
+     	    } else {
+     	      printf ("%d: %s\n",
+     		      listPane selectedItemN,
+     		      listPane selectedItemText);
+     	    }
                  exit (0);
                }
              break;
@@ -4154,10 +4183,39 @@ selected item on the terminal when the program exits.
 Retrieving Selected Items
 -------------------------
 
-The `selectedItemN' method returns an `Integer' with the numerical
-index of of the item, where the indexes are numbers starting with zero.
-The `selectedItemText' method returns a `String' containing the text
-of the item.
+The method `nItemsSelected' returns the number of list items that are
+currently selected.  If only one item is selected, a program use the
+`selectedItemN' and `selectedItem' methods to retrieve the selected
+item's position in the list, and its text.  This example shows how to
+print the list's selection when only one item is selected.
+
+
+     if (myListPane nItemsSelected == 1) {
+        printf ("%d: %s.\n", myListPane selectedItemN,
+          myListPane selectedItemText);
+     }
+
+If there are multiple items selected (i.e., `nItemsSelected' returns an
+`Integer' greater than 1), a program can retrieve and display all of
+the results the `selectedItems' and `selectedItemsN' methods, and
+display all of the results using an expression like this (although this
+example doesn't print both sets of results at once).
+
+
+     List new itemTextOut, itemNOut;
+
+     ...
+
+     if (myListPane nItemsSelected > 1) {
+        myListPane selectedItems itemTextOut;
+        myListPane selectedItemsN itemNOut;
+        itemNOut map {
+          printf ("%d\n", self)
+        }
+        itemTextOut map {
+          printf ("%s\n", self)
+        }
+     }
 
 Resources
 ---------
@@ -4345,6 +4403,11 @@ Instance Methods
 ``selectedItems' (`List' ITEMSOUT)'
      Pushes a `String' object with the text of each currently selected
      item onto the ITEMSOUT list.
+
+``selectedItemsN' (`List' ITEMSOUT)'
+     Pushes an `Integer' with the numerical position of each selected
+     item onto ITEMSOUT.  The indexes start with 0 reprsenting the
+     first item, 1 representing the second item, and so on.
 
 ``selectedItemText' (`void')'
      Returns a `String' with the text of the selected item.  If no item
@@ -8300,111 +8363,4 @@ which should help illustrate this. *Note List::.
          self push arg;
        }
      }
-
-
-File: ctalk.info,  Node: Method functions,  Next: Errors,  Prev: Variable method arguments,  Up: Methods
-
-Method Functions
-----------------
-
-Occasionally an application needs to call a method as a function.  One
-example of this is a `SignalHandler' method that the program installs
-as the handler for signals from the operating system.
-
-Methods that use a C calling convention need to do several things
-differently than normal methods.
-   * The method needs to use a C variable as its argument.
-
-   * Because the method can be called with no receivers, Ctalk does not
-     perform any of the normal initialization of local and parameter
-     objects.
-
-   * The method body needs to be written almost entirely in C.
-
-In order to make Ctalk interpret a method parameter as a C variable, the
-method must declare the parameter with the `__c_arg__' attribute.
-
-_Note:_ C functions that are called by the operating system generally
-need only one argument, and the `__c_arg__' attribute only works for
-methods with a single parameter.
-
-Additionally, to prevent Ctalk from adding local object initialization
-code to the method, the method must contain the `noMethodInit' keyword.
-
-Here is an example of a method that is used as a signal handler, and
-installed by the statements in `main.'
-     SignalHandler instanceMethod myHandler (__c_arg__ int signo) {
-       noMethodInit;
-       printf ("sigInt handler! Signal %d.\n", signo);
-       return NULL;
-     }
-
-     int main () {
-
-       SignalHandler new s;
-
-       s setSigInt;
-       s installHandler myHandler;
-     }
-
-The `setSigInt' method (class `SignalHandler') tells the
-`SignalHandler' object `s' that it is going to handle `SIGINT' signals.
-*Note SignalHandler::, for the other signals that the class can handle.
-
-The `__ctalkNewSignalEventInternal' function can generate and queue
-`SignalEvent' objects, so the signal handler does not need to create
-objects in order to send signal events to the application.  *Note
-__ctalkNewSignalEventInternal::.
-
-Including C Header Files
-........................
-
-Often you will need to use C functions and data types in method
-functions.  However, you need to take care that if you include a C
-header file,  it might not be included later on if a class library
-requires that file.
-
-Normally Ctalk includes whatever C definitions it needs in the class
-libraries.  However, that can cause the preprocessor to omit those
-definitions from another source file, should the definitions be needed
-later.
-
-For example, in the method `handleSignal', from the `timeclient.c'
-program,  the method needs the definition of the `time(2)' function.
-If you were to `#include' `time.h' in the input, as in this example,
-then `time.h''s definitions would not be included in the `CTime' class
-later on.
-     #include <time.h>    /* Could cause errors later. */
-
-     SignalHandler instanceMethod handleSignal (__c_arg__ int signo) {
-       time_t t;
-       char buf[MAXLABEL];
-       noMethodInit;
-       t = time (NULL);
-       __ctalkDecimalIntegerToASCII (t, buf);
-       __ctalkNewSignalEventInternal (signo, getpid (), buf);
-       return NULL;
-     }
-
-The best way to avoid omitting dependencies is to include only the
-definitions that the method needs.  In this case, you can include the
-prototype of `time(2)' in the source file.
-     extern time_t time (time_t *__timer) __THROW;  /* From time.h. */
-
-     SignalHandler instanceMethod handleSignal (__c_arg__ int signo) {
-       time_t t;
-       char buf[MAXLABEL];
-       noMethodInit;
-       t = time (NULL);
-       __ctalkDecimalIntegerToASCII (t, buf);
-       __ctalkNewSignalEventInternal (signo, getpid (), buf);
-       return NULL;
-     }
-
-The `time_t' type is defined with `ctalklib', and is available to all
-programs.
-
-How to resolve multiple library definitions depends on the system's
-header files, and may vary between different operating systems or
-compiler versions.
 
