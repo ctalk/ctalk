@@ -6671,20 +6671,33 @@ the form:
 
 ---------------------------------------------------------
   
-  width[%]xheight[%]+x[%]+y[%]
+  [-]width[%]x[-]height[%][+[-]x[%]+[-]y[%]]
   
 ---------------------------------------------------------
 
 The dimensions are in pixels, unless a percent sign ('%') follows
-a dimension.  In that case, the dimension is a fractional percentage
-of the parent pane's width or height.  The String may contain a
-combination of absolute and relative dimensions.
+a dimension, or a minus sign ('-' precedes the dimension.
 
-With three arguments, the method positions the pane at
+When a percent sign follows the dimension, the width of the pane in
+pixels is the fractional percentage of the parent pane's width or
+height.
+
+If a minus sign precedes the dimension, the dimension is measured
+relative to the opposite edge of the parent window; i.e., a width of
+'-15' places the subpane's right edge 15 pixels in from the right
+edge of the parent window.  A x position of '-90' places the
+subpane's top edge (not the subpane's bottom edge) 90 pixels
+from the bottom edge of the parent window.
+
+The String may contain a combination of absolute and relative
+dimensions.
+
+With only the width and height given, the method positions the pane at
 xOrg,yOrg within the parent pane, which usually is
-relative to the upper left hand origin of the window.
+relative to the upper left hand origin of the window.  This is generally
+used to center modal dialog panes over their parent window.
 
-With five arguments, the method positions the pane at
+With all four dimensions given, the method positions the pane at
 xOrg,yOrg within the parent pane, with the width and
 height xSize,ySize.
 

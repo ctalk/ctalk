@@ -1,4 +1,4 @@
-/* $Id: xgeometry.c,v 1.3 2020/07/22 08:59:33 rkiesling Exp $ -*-c-*-*/
+/* $Id: xgeometry.c,v 1.5 2020/07/22 19:43:01 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -92,9 +92,12 @@ static int strtol_geom_error (char *s) {
 void __ctalkX11SubWindowGeometry (OBJECT *parentpane, char *geomspec,
 				  int *x_out, int *y_out,
 				  int *width_out, int *height_out) {
-  char *p, *q, *r, xbuf[DIMENBUFSIZE], ybuf[DIMENBUFSIZE], widthbuf[DIMENBUFSIZE], heightbuf[DIMENBUFSIZE];
+  char *p, *q, *r, *r_2,
+    xbuf[DIMENBUFSIZE], ybuf[DIMENBUFSIZE], widthbuf[DIMENBUFSIZE],
+    heightbuf[DIMENBUFSIZE];
   OBJECT *pt, *var, *subvar;
-  int pct;
+  int pct, inset;
+  bool width_inset_adj = false, height_inset_adj = false;
 
   if (parentpane -> attrs & OBJECT_IS_VALUE_VAR)
     pt = parentpane -> __o_p_obj;
@@ -131,7 +134,8 @@ void __ctalkX11SubWindowGeometry (OBJECT *parentpane, char *geomspec,
     }
   } else { /* if ((r = strchr (geomspec, '+')) == NULL) */
 
-    if ((r = strchr (geomspec, '%')) == NULL) {
+    if (((r = strchr (geomspec, '%')) == NULL) &&
+	((r = strchr (geomspec, '-')) == NULL)) { /***/
       /* absolute dimensions only */
 
       p = geomspec;
@@ -171,18 +175,33 @@ void __ctalkX11SubWindowGeometry (OBJECT *parentpane, char *geomspec,
 	_error ("ctalk: bad geometry specification: \"%s.\" Exiting.\n",
 		geomspec);
 
-    } else { /*   if ((r = strchr (geomspec, '%')) == NULL) { */
+    } else { /*   if (((r = strchr (geomspec, '%')) == NULL) ... { */
       p = geomspec;
       if ((q = strchr (p, 'x')) == NULL)
 	_error ("ctalk: bad geometry specification: \"%s.\" Exiting.\n",
 		geomspec);
       memset (widthbuf, 0, DIMENBUFSIZE);
       strncpy (widthbuf, p, q - p);
-      if ((r = strchr (widthbuf, '%')) == NULL) {
+      if (((r = strchr (widthbuf, '%')) == NULL) &&
+	  ((r = strchr (widthbuf, '-')) == NULL)) { /***/
 	if ((*width_out = strtol_geom_error (widthbuf)) < 0)
 	  _error ("ctalk: bad geometry specification: \"%s.\" Exiting.\n",
 		  geomspec);
-      } else {
+      } else if ((r = strchr (widthbuf, '-')) != NULL) {
+	var = __ctalkGetInstanceVariable (pt, "size", TRUE);
+	subvar = __ctalkGetInstanceVariable (var, "x", TRUE);
+	if ((r_2 = strchr (widthbuf, '-')) == NULL) {
+	  _error ("ctalk: bad geometry specification: \"%s.\" Exiting.\n",
+		  geomspec);
+	} else {
+	  ++r_2;
+	  if ((inset = strtol_geom_error (r_2)) < 0)
+	    _error ("ctalk: bad geometry specification: \"%s.\" Exiting.\n",
+		    geomspec);
+	}
+	*width_out = INTVAL(subvar -> __o_value) - inset;
+	width_inset_adj = true;
+      } else { /* widthbuf contains '%' */
 	var = __ctalkGetInstanceVariable (pt, "size", TRUE);
 	subvar = __ctalkGetInstanceVariable (var, "x", TRUE);
 	widthbuf[strlen (widthbuf) - 1] = 0;
@@ -198,11 +217,26 @@ void __ctalkX11SubWindowGeometry (OBJECT *parentpane, char *geomspec,
 		geomspec);
       memset (heightbuf, 0, DIMENBUFSIZE);
       strncpy (heightbuf, p, q - p);
-      if ((r = strchr (heightbuf, '%')) == NULL) {
+      if (((r = strchr (heightbuf, '%')) == NULL) &&
+	  ((r = strchr (heightbuf, '-')) == NULL)) { /***/
 	if ((*height_out = strtol_geom_error (heightbuf)) < 0)
 	  _error ("ctalk: bad geometry specification: \"%s.\" Exiting.\n",
 		  geomspec);
-      } else {
+      } else if ((r = strchr (heightbuf, '-')) != NULL) { /***/
+	var = __ctalkGetInstanceVariable (pt, "size", TRUE);
+	subvar = __ctalkGetInstanceVariable (var, "y", TRUE);
+	if ((r_2 = strchr (heightbuf, '-')) == NULL) {
+	  _error ("ctalk: bad geometry specification: \"%s.\" Exiting.\n",
+		  geomspec);
+	} else { /* heightbuf contains '%' */
+	  ++r_2;
+	  if ((inset = strtol_geom_error (r_2)) < 0)
+	    _error ("ctalk: bad geometry specification: \"%s.\" Exiting.\n",
+		    geomspec);
+	}
+	*height_out = INTVAL(subvar -> __o_value) - inset;
+	height_inset_adj = true;
+      } else { /* heightbuf contains '%' */
 	var = __ctalkGetInstanceVariable (pt, "size", TRUE);
 	subvar = __ctalkGetInstanceVariable (var, "y", TRUE);
 	heightbuf[strlen (heightbuf) - 1] = 0;
@@ -218,11 +252,24 @@ void __ctalkX11SubWindowGeometry (OBJECT *parentpane, char *geomspec,
 		geomspec);
       memset (xbuf, 0, DIMENBUFSIZE);
       strncpy (xbuf, p, q - p);
-      if ((r = strchr (xbuf, '%')) == NULL) {
+      if (((r = strchr (xbuf, '%')) == NULL) &&
+	  ((r = strchr (xbuf, '-')) == NULL)) { /***/
 	if ((*x_out = strtol_geom_error (xbuf)) < 0)
 	  _error ("ctalk: bad geometry specification: \"%s.\" Exiting.\n",
 		  geomspec);
-      } else {
+	if (width_inset_adj)
+	  *width_out -= *x_out;
+      } else if ((r = strchr (xbuf, '-')) != NULL) {
+	++r;
+	var = __ctalkGetInstanceVariable (pt, "size", TRUE);
+	subvar = __ctalkGetInstanceVariable (var, "x", TRUE);
+	if ((inset = strtol_geom_error (r)) < 0)
+	  _error ("ctalk: bad geometry specification: \"%s.\" Exiting.\n",
+		  geomspec);
+	*x_out = INTVAL(subvar -> __o_value) - inset;
+	if (width_inset_adj)
+	  *width_out -= *x_out;
+      } else { /* xbuf contains '%' */
 	var = __ctalkGetInstanceVariable (pt, "size", TRUE);
 	subvar = __ctalkGetInstanceVariable (var, "x", TRUE);
 	xbuf[strlen (xbuf) - 1] = 0;
@@ -230,15 +277,30 @@ void __ctalkX11SubWindowGeometry (OBJECT *parentpane, char *geomspec,
 	  _error ("ctalk: bad geometry specification: \"%s.\" Exiting.\n",
 		  geomspec);
 	*x_out = (INTVAL(subvar -> __o_value) * pct) / 100;
+	if (width_inset_adj)
+	  *width_out -= *x_out;
       }
       
       p = ++q;
       strcpy (ybuf, p);
-      if ((r = strchr (ybuf, '%')) == NULL) {
+      if (((r = strchr (ybuf, '%')) == NULL) &&
+	  ((r = strchr (ybuf, '-')) == NULL)) {
 	if ((*y_out = strtol_geom_error (ybuf)) < 0)
 	  _error ("ctalk: bad geometry specification: \"%s.\" Exiting.\n",
 		  geomspec);
-      } else {
+	if (height_inset_adj)
+	  *height_out -= *y_out;
+      } else if ((r = strchr (ybuf, '-')) != NULL) {
+	++r;
+	var = __ctalkGetInstanceVariable (pt, "size", TRUE);
+	subvar = __ctalkGetInstanceVariable (var, "y", TRUE);
+	if ((inset = strtol_geom_error (r)) < 0)
+	  _error ("ctalk: bad geometry specification: \"%s.\" Exiting.\n",
+		  geomspec);
+	*y_out = INTVAL(subvar -> __o_value) - inset;
+	if (height_inset_adj)
+	  *height_out -= *y_out;
+      } else { /* ybuf contains '%' */
 	var = __ctalkGetInstanceVariable (pt, "size", TRUE);
 	subvar = __ctalkGetInstanceVariable (var, "y", TRUE);
 	ybuf[strlen (ybuf) - 1] = 0;
@@ -246,6 +308,8 @@ void __ctalkX11SubWindowGeometry (OBJECT *parentpane, char *geomspec,
 	  _error ("ctalk: bad geometry specification: \"%s.\" Exiting.\n",
 		  geomspec);
 	*y_out = (INTVAL(subvar -> __o_value) * pct) / 100;
+	if (height_inset_adj)
+	  *height_out -= *y_out;
       }
     }
   } /* if ((r = strchr (geomspec, '+')) == NULL) */
@@ -256,9 +320,10 @@ void __ctalkX11WxHGeometry (int parent_width, int parent_height,
 			    int *x_out, int *y_out,
 			    int *width_out, int *height_out) {
 
-  char *p, *q, *r, xbuf[DIMENBUFSIZE], ybuf[DIMENBUFSIZE],
+  char *p, *q, *r, *r_2, xbuf[DIMENBUFSIZE], ybuf[DIMENBUFSIZE],
     widthbuf[DIMENBUFSIZE], heightbuf[DIMENBUFSIZE];
-  int pct;
+  int pct, inset;
+  int width_inset_adj = false, height_inset_adj = false;
 
   if ((r = strchr (geomspec, '+')) == NULL) {
     /* width and height only */
@@ -266,8 +331,9 @@ void __ctalkX11WxHGeometry (int parent_width, int parent_height,
     *x_out = DIM_UNDEF;
     *y_out = DIM_UNDEF;
 
-      p = geomspec;
-    if ((r = strchr (geomspec, '%')) == NULL) {
+    p = geomspec;
+    if (((r = strchr (geomspec, '%')) == NULL) &&
+	((r = strchr (geomspec, '-')) == NULL)) {
       /* absolute dimensions only */
 
       if ((q = strchr (p, 'x')) == NULL)
@@ -290,7 +356,8 @@ void __ctalkX11WxHGeometry (int parent_width, int parent_height,
     }
   } else { /* if ((r = strchr (geomspec, '+')) == NULL) */
 
-    if ((r = strchr (geomspec, '%')) == NULL) {
+    if (((r = strchr (geomspec, '%')) == NULL) &&
+	((r = strchr (geomspec, '-')) == NULL)) { /***/
       /* absolute dimensions only */
 
       p = geomspec;
@@ -330,18 +397,31 @@ void __ctalkX11WxHGeometry (int parent_width, int parent_height,
 	_error ("ctalk: bad geometry specification: \"%s.\" Exiting.\n",
 		geomspec);
 
-    } else { /*   if ((r = strchr (geomspec, '%')) == NULL) { */
+    } else { /*   if (((r = strchr (geomspec, '%')) == NULL) ...  */
       p = geomspec;
       if ((q = strchr (p, 'x')) == NULL)
 	_error ("ctalk: bad geometry specification: \"%s.\" Exiting.\n",
 		geomspec);
       memset (widthbuf, 0, DIMENBUFSIZE);
       strncpy (widthbuf, p, q - p);
-      if ((r = strchr (widthbuf, '%')) == NULL) {
+      if (((r = strchr (widthbuf, '%')) == NULL) &&
+	  ((r = strchr (widthbuf, '-')) == NULL)) { /***/
 	if ((*width_out = strtol_geom_error (widthbuf)) < 0)
 	  _error ("ctalk: bad geometry specification: \"%s.\" Exiting.\n",
 		  geomspec);
-      } else {
+      } else if ((r = strchr (widthbuf, '-')) != NULL) {
+	if ((r_2 = strchr (widthbuf, '-')) == NULL) {
+	  _error ("ctalk: bad geometry specification: \"%s.\" Exiting.\n",
+		  geomspec);
+	} else {
+	  ++r_2;
+	  if ((inset = strtol_geom_error (r_2)) < 0)
+	    _error ("ctalk: bad geometry specification: \"%s.\" Exiting.\n",
+		    geomspec);
+	}
+	*width_out = parent_width - inset;
+	width_inset_adj = true;
+      } else { /* widthbuf contains '%' */
 	widthbuf[strlen (widthbuf) - 1] = 0;
 	if ((pct = strtol_geom_error (widthbuf)) < 0)
 	  _error ("ctalk: bad geometry specification: \"%s.\" Exiting.\n",
@@ -355,11 +435,24 @@ void __ctalkX11WxHGeometry (int parent_width, int parent_height,
 		geomspec);
       memset (heightbuf, 0, DIMENBUFSIZE);
       strncpy (heightbuf, p, q - p);
-      if ((r = strchr (heightbuf, '%')) == NULL) {
+      if (((r = strchr (heightbuf, '%')) == NULL) &&
+	  ((r = strchr (heightbuf, '-')) == NULL)) { /***/
 	if ((*height_out = strtol_geom_error (heightbuf)) < 0)
 	  _error ("ctalk: bad geometry specification: \"%s.\" Exiting.\n",
 		  geomspec);
-      } else {
+      } else if ((r = strchr (heightbuf, '-')) != NULL) {
+	if ((r_2 = strchr (heightbuf, '-')) == NULL) {
+	  _error ("ctalk: bad geometry specification: \"%s.\" Exiting.\n",
+		  geomspec);
+	} else {
+	  ++r_2;
+	  if ((inset = strtol_geom_error (r_2)) < 0)
+	    _error ("ctalk: bad geometry specification: \"%s.\" Exiting.\n",
+		    geomspec);
+	}
+	*height_out = parent_height - inset;
+	height_inset_adj = true;
+      } else { /* heightbuf contains '%' */
 	heightbuf[strlen (heightbuf) - 1] = 0;
 	if ((pct = strtol_geom_error (heightbuf)) < 0)
 	  _error ("ctalk: bad geometry specification: \"%s.\" Exiting.\n",
@@ -373,11 +466,22 @@ void __ctalkX11WxHGeometry (int parent_width, int parent_height,
 		geomspec);
       memset (xbuf, 0, DIMENBUFSIZE);
       strncpy (xbuf, p, q - p);
-      if ((r = strchr (xbuf, '%')) == NULL) {
+      if (((r = strchr (xbuf, '%')) == NULL)  &&
+	  ((r = strchr (xbuf, '-')) == NULL)) {
 	if ((*x_out = strtol_geom_error (xbuf)) < 0)
 	  _error ("ctalk: bad geometry specification: \"%s.\" Exiting.\n",
 		  geomspec);
-      } else {
+	if (width_inset_adj)
+	  *width_out -= *x_out;
+      } else if ((r = strchr (xbuf, '-')) != NULL) {
+	++r;
+	if ((inset = strtol_geom_error (r)) < 0)
+	  _error ("ctalk: bad geometry specification: \"%s.\" Exiting.\n",
+		  geomspec);
+	*x_out = parent_width - inset;
+	if (width_inset_adj)
+	  *width_out -= *x_out;
+      } else { /* xbuf contains '%' */
 	xbuf[strlen (xbuf) - 1] = 0;
 	if ((pct = strtol_geom_error (xbuf)) < 0)
 	  _error ("ctalk: bad geometry specification: \"%s.\" Exiting.\n",
@@ -387,11 +491,22 @@ void __ctalkX11WxHGeometry (int parent_width, int parent_height,
       
       p = ++q;
       strcpy (ybuf, p);
-      if ((r = strchr (ybuf, '%')) == NULL) {
+      if (((r = strchr (ybuf, '%')) == NULL) &&
+	  ((r = strchr (ybuf, '-')) == NULL)) {
 	if ((*y_out = strtol_geom_error (ybuf)) < 0)
 	  _error ("ctalk: bad geometry specification: \"%s.\" Exiting.\n",
 		  geomspec);
-      } else {
+	if (height_inset_adj)
+	  *height_out -= *y_out;
+      } else if ((r = strchr (ybuf, '-')) != NULL) {
+	++r;
+	if ((inset = strtol_geom_error (r)) < 0)
+	  _error ("ctalk: bad geometry specification: \"%s.\" Exiting.\n",
+		  geomspec);
+	*y_out = parent_height - inset;
+	if (height_inset_adj)
+	  *height_out -= *y_out;
+      } else { /* ybuf contains '%' */
 	ybuf[strlen (ybuf) - 1] = 0;
 	if ((pct = strtol_geom_error (ybuf)) < 0)
 	  _error ("ctalk: bad geometry specification: \"%s.\" Exiting.\n",

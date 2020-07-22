@@ -2600,20 +2600,34 @@ Instance Methods
      have the form:
 
 
-          width[%]xheight[%]+x[%]+y[%]
+          [-]width[%]x[-]height[%][+[-]x[%]+[-]y[%]]
 
 
      The dimensions are in pixels, unless a percent sign ('%') follows a
-     dimension.  In that case, the dimension is a fractional percentage
-     of the parent pane's width or height.  The 'String' may contain a
-     combination of absolute and relative dimensions.
+     dimension, or a minus sign ('-' precedes the dimension.
 
-     With three arguments, the method positions the pane at XORG,YORG
-     within the parent pane, which usually is relative to the upper left
-     hand origin of the window.
+     When a percent sign follows the dimension, the width of the pane in
+     pixels is the fractional percentage of the parent pane's width or
+     height.
 
-     With five arguments, the method positions the pane at XORG,YORG
-     within the parent pane, with the width and height XSIZE,YSIZE.
+     If a minus sign precedes the dimension, the dimension is measured
+     relative to the opposite edge of the parent window; i.e., a width
+     of '-15' places the subpane's right edge 15 pixels in from the
+     right edge of the parent window.  A x position of '-90' places the
+     subpane's _top_ edge (not the subpane's bottom edge) 90 pixels from
+     the bottom edge of the parent window.
+
+     The 'String' may contain a combination of absolute and relative
+     dimensions.
+
+     With only the width and height given, the method positions the pane
+     at XORG,YORG within the parent pane, which usually is relative to
+     the upper left hand origin of the window.  This is generally used
+     to center modal dialog panes over their parent window.
+
+     With all four dimensions given, the method positions the pane at
+     XORG,YORG within the parent pane, with the width and height
+     XSIZE,YSIZE.
 
 'background (String COLOR)'
      Set the background of the pane to COLOR.  You need to update the
@@ -3799,7 +3813,9 @@ Pressing the 'Ctrl' key while clicking selects every item in a range
 between the first selected item in the list and the last selected item.
 
 
-     #define N_ITEMS 10
+     /* listpane.ca, a X11ListPane demonstration. -*-c-*- */
+
+     #define N_ITEMS 30
 
      #include <ctalk/ctalkdefs.h>
 
@@ -3827,12 +3843,12 @@ between the first selected item in the list and the last selected item.
 
        xPane inputStream eventMask = EXPOSE|ENTERWINDOWNOTIFY|LEAVEWINDOWNOTIFY| \
          KEYPRESS|KEYRELEASE|WINDELETE|BUTTONPRESS|BUTTONRELEASE|MOTIONNOTIFY| \
-          SELECTIONCLEAR|SELECTIONREQUEST;
-       xPane initialize 300, 200;
+          SELECTIONCLEAR|SELECTIONREQUEST|STRUCTURENOTIFY;
+       xPane initialize 300, 400;
        dispatcher attachTo xPane;
-       label attachTo dispatcher, "100x80+10+46";
-       button attachTo dispatcher, "60x45+120+136";
-       listPane attachTo dispatcher, "140x96+120+32";
+       label attachTo dispatcher, "100x70+10+30%";
+       button attachTo dispatcher, "60x45+50%+-75";
+       listPane attachTo dispatcher, "-15x-90+100+24";
 
        xPane ftFontVar initFontLib;
 

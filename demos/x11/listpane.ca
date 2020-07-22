@@ -1,6 +1,6 @@
 /* listpane.ca, a X11ListPane demonstration. -*-c-*- */
 
-#define N_ITEMS 10
+#define N_ITEMS 30
 
 #include <ctalk/ctalkdefs.h>
 
@@ -28,12 +28,12 @@ int main (int argv, char **argc) {
 
   xPane inputStream eventMask = EXPOSE|ENTERWINDOWNOTIFY|LEAVEWINDOWNOTIFY| \
     KEYPRESS|KEYRELEASE|WINDELETE|BUTTONPRESS|BUTTONRELEASE|MOTIONNOTIFY| \
-     SELECTIONCLEAR|SELECTIONREQUEST;
-  xPane initialize 300, 200;
+     SELECTIONCLEAR|SELECTIONREQUEST|STRUCTURENOTIFY;
+  xPane initialize 300, 400;
   dispatcher attachTo xPane;
-  label attachTo dispatcher, "100x80+10+46";
-  button attachTo dispatcher, "60x45+120+136";
-  listPane attachTo dispatcher, "140x96+120+32";
+  label attachTo dispatcher, "100x70+10+30%";
+  button attachTo dispatcher, "60x45+50%+-75";
+  listPane attachTo dispatcher, "-15x-90+100+24";
 
   xPane ftFontVar initFontLib;
 

@@ -1,4 +1,4 @@
-/* $Id: X11ListPane,v 1.10 2020/07/22 18:01:57 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11ListPane,v 1.11 2020/07/22 19:51:20 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -294,6 +294,8 @@ X11ListPane instanceMethod onClick (Object subPane, InputEvent event) {
 		    last_click_nth = i;
 		    item selected = true;
 		  }
+		  super draw;
+		  super refresh;
 		}
 	      } else if (super shiftState & shiftStateCtrl) {
 		if (((y_1 + super viewStartY) >= item org y) &&

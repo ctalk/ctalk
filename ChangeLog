@@ -1035,7 +1035,12 @@
 	- Fill in the subPane geometry spec in X11PaneDispatcher :
 	attachTo (2 args).
 	- Added the __ctalkX11WxHGeometry library function (xgeometry.c).
+2020-07-22
 	- Added the X11ButtonPane : subPaneResize, X11LabelPane :
 	subPaneResize, and X11ListPane : onResize  methods.
 	- Updated demos/x11/listpane.ca to use resizable subpanes.
+	- Added the ability for subpane geometry specifications to
+	recognize a leading minus sign, which positions the edge
+	of a window that many pixels in from either the right or
+	bottom edge of the parent window (xgeometry.c).
 
