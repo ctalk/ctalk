@@ -1,4 +1,4 @@
-/* $Id: xgeometry.c,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ -*-c-*-*/
+/* $Id: xgeometry.c,v 1.3 2020/07/22 08:59:33 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -54,7 +54,13 @@ void __ctalkX11FreeSizeHints (void) {
 
 void __ctalkX11SubWindowGeometry (OBJECT *parentpane, char *geomspec
 				  int *x_out, int *y_out,
-				  int *width_out, int *height_out);
+				  int *width_out, int *height_out) {
+}
+
+void __ctalkX11WxHGeometry (OBJECT *parentpane, char *geomspec,
+				  int *x_out, int *y_out,
+				  int *width_out, int *height_out) {
+}
 
 #else /* X11LIB_FRAME */
 
@@ -243,6 +249,158 @@ void __ctalkX11SubWindowGeometry (OBJECT *parentpane, char *geomspec,
       }
     }
   } /* if ((r = strchr (geomspec, '+')) == NULL) */
+}
+
+void __ctalkX11WxHGeometry (int parent_width, int parent_height,
+			    char *geomspec,
+			    int *x_out, int *y_out,
+			    int *width_out, int *height_out) {
+
+  char *p, *q, *r, xbuf[DIMENBUFSIZE], ybuf[DIMENBUFSIZE],
+    widthbuf[DIMENBUFSIZE], heightbuf[DIMENBUFSIZE];
+  int pct;
+
+  if ((r = strchr (geomspec, '+')) == NULL) {
+    /* width and height only */
+
+    *x_out = DIM_UNDEF;
+    *y_out = DIM_UNDEF;
+
+      p = geomspec;
+    if ((r = strchr (geomspec, '%')) == NULL) {
+      /* absolute dimensions only */
+
+      if ((q = strchr (p, 'x')) == NULL)
+	_error ("ctalk: bad geometry specification: \"%s.\" Exiting.\n",
+		geomspec);
+      memset (widthbuf, 0, DIMENBUFSIZE);
+      strncpy (widthbuf, p, q - p);
+      if ((*width_out = strtol_geom_error (widthbuf)) < 0)
+	_error ("ctalk: bad geometry specification: \"%s.\" Exiting.\n",
+		geomspec);
+    
+      ++q; p = q;
+      memset (heightbuf, 0, DIMENBUFSIZE);
+      strcpy (heightbuf, p);
+      if ((*height_out = strtol_geom_error (heightbuf)) < 0)
+	_error ("ctalk: bad geometry specification: \"%s.\" Exiting.\n",
+		geomspec);
+
+    } else {
+    }
+  } else { /* if ((r = strchr (geomspec, '+')) == NULL) */
+
+    if ((r = strchr (geomspec, '%')) == NULL) {
+      /* absolute dimensions only */
+
+      p = geomspec;
+      if ((q = strchr (p, 'x')) == NULL)
+	_error ("ctalk: bad geometry specification: \"%s.\" Exiting.\n",
+		geomspec);
+      memset (widthbuf, 0, DIMENBUFSIZE);
+      strncpy (widthbuf, p, q - p);
+      if ((*width_out = strtol_geom_error (widthbuf)) < 0)
+	_error ("ctalk: bad geometry specification: \"%s.\" Exiting.\n",
+		geomspec);
+    
+      ++q; p = q;
+      if ((q = strchr (p, '+')) == NULL)
+	_error ("ctalk: bad geometry specification: \"%s.\" Exiting.\n",
+		geomspec);
+      memset (heightbuf, 0, DIMENBUFSIZE);
+      strcpy (heightbuf, p);
+      if ((*height_out = strtol_geom_error (heightbuf)) < 0)
+	_error ("ctalk: bad geometry specification: \"%s.\" Exiting.\n",
+		geomspec);
+
+      ++q; p = q;
+      if ((q = strchr (p, '+')) == NULL)
+	_error ("ctalk: bad geometry specification: \"%s.\" Exiting.\n",
+		geomspec);
+      memset (xbuf, 0, DIMENBUFSIZE);
+      strncpy (xbuf, p, q - p);
+      if ((*x_out = strtol_geom_error (xbuf)) < 0)
+	_error ("ctalk: bad geometry specification: \"%s.\" Exiting.\n",
+		geomspec);
+
+      ++q;
+      memset (ybuf, 0, DIMENBUFSIZE);
+      strcpy (ybuf, q);
+      if ((*y_out = strtol_geom_error (ybuf)) < 0)
+	_error ("ctalk: bad geometry specification: \"%s.\" Exiting.\n",
+		geomspec);
+
+    } else { /*   if ((r = strchr (geomspec, '%')) == NULL) { */
+      p = geomspec;
+      if ((q = strchr (p, 'x')) == NULL)
+	_error ("ctalk: bad geometry specification: \"%s.\" Exiting.\n",
+		geomspec);
+      memset (widthbuf, 0, DIMENBUFSIZE);
+      strncpy (widthbuf, p, q - p);
+      if ((r = strchr (widthbuf, '%')) == NULL) {
+	if ((*width_out = strtol_geom_error (widthbuf)) < 0)
+	  _error ("ctalk: bad geometry specification: \"%s.\" Exiting.\n",
+		  geomspec);
+      } else {
+	widthbuf[strlen (widthbuf) - 1] = 0;
+	if ((pct = strtol_geom_error (widthbuf)) < 0)
+	  _error ("ctalk: bad geometry specification: \"%s.\" Exiting.\n",
+		  geomspec);
+	*width_out = (parent_width * pct) / 100;
+      }
+
+      ++q; p = q;
+      if ((q = strchr (p, '+')) == NULL)
+	_error ("ctalk: bad geometry specification: \"%s.\" Exiting.\n",
+		geomspec);
+      memset (heightbuf, 0, DIMENBUFSIZE);
+      strncpy (heightbuf, p, q - p);
+      if ((r = strchr (heightbuf, '%')) == NULL) {
+	if ((*height_out = strtol_geom_error (heightbuf)) < 0)
+	  _error ("ctalk: bad geometry specification: \"%s.\" Exiting.\n",
+		  geomspec);
+      } else {
+	heightbuf[strlen (heightbuf) - 1] = 0;
+	if ((pct = strtol_geom_error (heightbuf)) < 0)
+	  _error ("ctalk: bad geometry specification: \"%s.\" Exiting.\n",
+		  geomspec);
+	*height_out = (parent_width * pct) / 100;
+      }
+
+      ++q; p = q;
+      if ((q = strchr (p, '+')) == NULL)
+	_error ("ctalk: bad geometry specification: \"%s.\" Exiting.\n",
+		geomspec);
+      memset (xbuf, 0, DIMENBUFSIZE);
+      strncpy (xbuf, p, q - p);
+      if ((r = strchr (xbuf, '%')) == NULL) {
+	if ((*x_out = strtol_geom_error (xbuf)) < 0)
+	  _error ("ctalk: bad geometry specification: \"%s.\" Exiting.\n",
+		  geomspec);
+      } else {
+	xbuf[strlen (xbuf) - 1] = 0;
+	if ((pct = strtol_geom_error (xbuf)) < 0)
+	  _error ("ctalk: bad geometry specification: \"%s.\" Exiting.\n",
+		  geomspec);
+	*x_out = (parent_width * pct) / 100;
+      }
+      
+      p = ++q;
+      strcpy (ybuf, p);
+      if ((r = strchr (ybuf, '%')) == NULL) {
+	if ((*y_out = strtol_geom_error (ybuf)) < 0)
+	  _error ("ctalk: bad geometry specification: \"%s.\" Exiting.\n",
+		  geomspec);
+      } else {
+	ybuf[strlen (ybuf) - 1] = 0;
+	if ((pct = strtol_geom_error (ybuf)) < 0)
+	  _error ("ctalk: bad geometry specification: \"%s.\" Exiting.\n",
+		  geomspec);
+	*y_out = (parent_height * pct) / 100;
+      }
+    }
+  } /* if ((r = strchr (geomspec, '+')) == NULL) */
+
 }
 
 int __ctalkX11ParseGeometry (char *geometry_string, int *x, int *y, 
@@ -439,6 +597,12 @@ void __ctalkX11FreeSizeHints (void) {
 }
 
 void __ctalkX11SubWindowGeometry (OBJECT *parentpane, char *geomspec,
+				  int *x_out, int *y_out,
+				  int *width_out, int *height_out) {
+    x_support_error ();
+}
+
+void __ctalkX11WxHGeometry (int parent_width, parent_height, char *geomspec,
 				  int *x_out, int *y_out,
 				  int *width_out, int *height_out) {
     x_support_error ();

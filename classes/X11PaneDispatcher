@@ -1,4 +1,4 @@
-/* $Id: X11PaneDispatcher,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11PaneDispatcher,v 1.2 2020/07/22 08:28:58 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -372,6 +372,7 @@ X11PaneDispatcher instanceMethod attachTo (Object parentPane,
     self origin y = y;
     self size x = width;
     self size y = height;
+    self subPaneGeometry = geomspec;
     if (parentPane is X11PaneDispatcher) {
       self xWindowID = __ctalkCreateX11SubWindow
 	((X11PaneDispatcher *)parentPane container, self);
@@ -387,6 +388,8 @@ X11PaneDispatcher instanceMethod attachTo (Object parentPane,
     self size x = parentPane size x;
     self size y = parentPane size y;
     self xWindowID = parentPane xWindowID;
+    /* A single pane dispatcher covers the entire X11Pane window. */
+    self subPaneGeometry = "100%x100%+0+0";
   }
   parentPane children pushItemRef self;
   return NULL;

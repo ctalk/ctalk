@@ -1,4 +1,4 @@
-/* $Id: X11ButtonPane,v 1.2 2020/05/17 19:34:38 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11ButtonPane,v 1.5 2020/07/22 18:01:57 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -78,7 +78,7 @@ X11ButtonPane instanceMethod new (String __paneName) {
   event handlers that this class overrides."
 
   Method new exposeMethod, buttonPressMethod, enterMethod,
-    leaveMethod, focusInMethod, focusOutMethod;
+    leaveMethod, focusInMethod, focusOutMethod, resizeMethod;
   Method new motionMethod;
 #ifdef HANDLE_MAP
   Method mapMethod;
@@ -95,6 +95,7 @@ X11ButtonPane instanceMethod new (String __paneName) {
   focusInMethod definedInstanceMethod "X11ButtonPane", "subPaneFocusIn";
   focusOutMethod definedInstanceMethod "X11ButtonPane", "subPaneFocusOut";
   motionMethod definedInstanceMethod "X11ButtonPane", "subPaneMotion";
+  resizeMethod definedInstanceMethod "X11ButtonPane", "subPaneResize";
 
 #ifdef HANDLE_MAP
   mapMethod definedInstanceMethod "X11ButtonPane", "subPaneMap";
@@ -107,6 +108,7 @@ X11ButtonPane instanceMethod new (String __paneName) {
   __paneName setMethodHandler "focusin", focusInMethod;
   __paneName setMethodHandler "focusout", focusOutMethod;
   __paneName setMethodHandler "pointermotion", motionMethod;
+  __paneName setMethodHandler "resize", resizeMethod;
 
 #ifdef HANDLE_MAP
   __paneName setMethodHandler "map", mapMethod;
@@ -152,8 +154,6 @@ X11ButtonPane instanceMethod attachTo (Object parentPane,
 
   __ctalkX11SubWindowGeometry (parentPane, geomspec,
 				 &x, &y, &width, &height);
-  self viewWidth = width;
-  self viewHeight = height;
   self size x = width;
   self size y = height;
   self origin x = x;
@@ -337,6 +337,30 @@ X11ButtonPane instanceMethod draw (void) {
       self lOrg x, self lOrg y;
   }
   
+}
+
+X11ButtonPane instanceMethod subPaneResize (X11Pane subPane,
+					    InputEvent event) {
+  int x_out, y_out, width_out, height_out;
+
+  __ctalkX11WxHGeometry (event xEventData3, event xEventData4,
+			 subPane subPaneGeometry,
+			 &x_out, &y_out, &width_out, &height_out);
+
+  self size x = width_out;
+  self size y = height_out;
+  self origin x = x_out;
+  self origin y = y_out;
+
+  __ctalkX11MoveWindow (subPane, x_out, y_out);
+  __ctalkX11ResizeWindow (subPane, width_out, height_out, subPane depth);
+
+  (X11Bitmap *)self paneBuffer resize self xWindowID,
+    self size x, self size y;
+  (X11Bitmap *)self paneBuffer background (self backgroundColor);
+  (X11Bitmap *)self paneBackingStore resize self xWindowID,
+    self size x, self size y;
+
 }
 
 X11ButtonPane instanceMethod subPaneFocusIn (void) {

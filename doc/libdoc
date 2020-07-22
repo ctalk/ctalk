@@ -1052,6 +1052,14 @@ text argument when rendered in the font named by fontDesc.
 There is more information about how to use fonts in the sections
 that discuss the X graphics classes. 
 
+>>>__ctalkX11WxHGeometry (int parentWidth, int parenthHeight, char *geomspec, int xOut, int yOut, int widthOut, int heightOut)
+Calculate the dimensions specified by geomspec within
+parentWidth and parentHeight, and return the results in
+xOut, yOut, widthOut, and heightOut.  For
+information about the format of geomspec, refer to the
+Window Geometry subsection of the X11PaneDispatcher
+class. 
+
 >>>__ctalkHandleRunTimeException (void)
 Execute the exception handler for a pending exception.  The
 handle method (class Exception) calls this function.

@@ -1030,4 +1030,12 @@
 	- In prefix_method_expr_a, rewrite the expression tokens after
 	registering CVARs in an argument block (rt_expr.c).
 	- Added the cvararg[8-9].c test programs.
+2020-07-21
+	- Added resize handler frames in X11LabelPane, and X11ListPane.
+	- Fill in the subPane geometry spec in X11PaneDispatcher :
+	attachTo (2 args).
+	- Added the __ctalkX11WxHGeometry library function (xgeometry.c).
+	- Added the X11ButtonPane : subPaneResize, X11LabelPane :
+	subPaneResize, and X11ListPane : onResize  methods.
+	- Updated demos/x11/listpane.ca to use resizable subpanes.
 

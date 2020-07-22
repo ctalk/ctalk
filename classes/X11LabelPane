@@ -1,4 +1,4 @@
-/* $Id: X11LabelPane,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11LabelPane,v 1.4 2020/07/22 18:01:57 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -105,6 +105,7 @@ X11LabelPane instanceMethod new (String __paneName) {
   Method new exposeMethod;
   Method new enterMethod;
   Method new leaveMethod;
+  Method new resizeMethod;
 
   X11LabelPane super new __paneName;
 
@@ -114,6 +115,8 @@ X11LabelPane instanceMethod new (String __paneName) {
   __paneName setMethodHandler "enternotify", enterMethod;
   leaveMethod definedInstanceMethod "X11LabelPane", "subPaneLeave";
   __paneName setMethodHandler "leavenotify", leaveMethod;
+  resizeMethod definedInstanceMethod "X11LabelPane", "subPaneResize";
+  __paneName setMethodHandler "resize", resizeMethod;
 
   __paneName resources atPut "backgroundColor", "gray";
   __paneName resources atPut "foregroundColor", "white";
@@ -130,6 +133,30 @@ X11LabelPane instanceMethod new (String __paneName) {
   __paneName resources atPut "highlightTextBold", false;
 
   return __paneName;
+}
+
+X11LabelPane instanceMethod subPaneResize (X11Pane subPane,
+					    InputEvent event) {
+  int x_out, y_out, width_out, height_out;
+
+  __ctalkX11WxHGeometry (event xEventData3, event xEventData4,
+			 subPane subPaneGeometry,
+			 &x_out, &y_out, &width_out, &height_out);
+
+  self size x = width_out;
+  self size y = height_out;
+  self origin x = x_out;
+  self origin y = y_out;
+
+  __ctalkX11MoveWindow (subPane, x_out, y_out);
+  __ctalkX11ResizeWindow (subPane, width_out, height_out, subPane depth);
+
+  (X11Bitmap *)self paneBuffer resize self xWindowID,
+    self size x, self size y;
+  (X11Bitmap *)self paneBuffer background (self backgroundColor);
+  (X11Bitmap *)self paneBackingStore resize self xWindowID,
+    self size x, self size y;
+
 }
 
 X11LabelPane instanceMethod subPaneExpose (Object __subPane,

@@ -1,4 +1,4 @@
-/* $Id: ctalklib.in,v 1.4 2020/07/17 13:47:58 rkiesling Exp $ -*-c-*-*/
+/* $Id: ctalklib.in,v 1.5 2020/07/22 09:38:48 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -1010,6 +1010,8 @@ extern int __ctalkX11MakeEvent (OBJECT *, OBJECT *);
 extern int __ctalkX11SetResource (void *, int, char *, char *);
 extern int __ctalkX11SubWindowGeometry (OBJECT *, char *, int *, int *, int *,
 					int *);
+extern int __ctalkX11WxHGeometry (int, int, char *, int *, int *, int *,
+				  int *);
 extern int __ctalkX11TextFromData (void *, int, unsigned long int, char *);
 extern int __ctalkX11TextWidth (char *, char *);
 extern int __ctalkX11XPMFromData (void *, int, unsigned long int, int, int, char **);

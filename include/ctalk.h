@@ -1,4 +1,4 @@
-/* $Id: ctalk.h,v 1.7 2020/07/18 17:51:16 rkiesling Exp $ -*-Fundamental-*- */
+/* $Id: ctalk.h,v 1.8 2020/07/22 08:38:55 rkiesling Exp $ -*-Fundamental-*- */
 
 /*
   This file is part of Ctalk.
@@ -2654,6 +2654,7 @@ int __ctalkX11SetSizeHints (int, int, int, int, int);
 void __ctalkX11GetSizeHints (int, int *, int *, int *, int *, int *, int *);
 void __ctalkX11FreeSizeHints (void);
 void __ctalkX11SubWindowGeometry (OBJECT *, char *, int *, int *, int *, int *);
+void __ctalkX11WxHGeometry (int, int, char *, int *, int *, int *, int *);
 
 /* lib/xlibfont.c */
 int load_xlib_fonts_internal (void *, char *);
