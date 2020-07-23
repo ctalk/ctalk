@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.4 2020/06/27 02:25:13 rkiesling Exp $
+# $Id: Makefile.am,v 1.2 2020/07/23 20:53:13 rkiesling Exp $
 
 SUBDIRS = libc libctalk
 
@@ -21,8 +21,8 @@ pkginclude_HEADERS=ANSIButtonPane ANSILabelPane ANSIListBoxPane \
 	UNIXNetworkStreamReader UNIXNetworkStreamWriter Vector \
 	Win32TerminalStream WriteFileStream X11Bitmap X11ButtonPane \
 	X11CanvasPane X11Cursor X11Font X11FreeTypeFont X11LabelPane \
-	X11ListPane X11MessageBoxPane X11Pane X11Pixmap X11ScrollBarPane \
-	X11TerminalStream \
+	X11ListBox X11ListPane X11MessageBoxPane X11Pane X11Pixmap \
+	X11ScrollBarPane X11TerminalStream \
 	X11TextPane X11TextEditorPane X11TextEntryBox X11TextEntryPane \
 	X11PaneDispatcher X11YesNoBoxPane ctalklib ctldjgpp ctalkdefs.h \
 	ctalkGLUTdefs.h

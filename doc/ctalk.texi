@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.13 2020/07/23 01:52:07 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.14 2020/07/23 20:53:13 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -456,6 +456,7 @@ Object
      X11TextEntryPane
      X11YesNoBoxPane
       X11TextEntryBox
+       X11ListBox
     X11TextPane
      X11TextEditorPane
  Symbol
@@ -550,6 +551,7 @@ Object
 *      X11TextEntryPane::
 *      X11YesNoBoxPane::
 *       X11TextEntryBox::
+*        X11ListBox::
 *     X11TextPane::
 *      X11TextEditorPane::
 *  Symbol::
@@ -17549,7 +17551,7 @@ the main program.
 @end table
 
 
-@node X11TextEntryBox, X11TextPane, X11YesNoBoxPane, Classes
+@node X11TextEntryBox, X11ListBox, X11YesNoBoxPane, Classes
 @iftex
 @section @code{X11TextEntryBox} Class
 @end iftex
@@ -17793,7 +17795,16 @@ pointer is over one of the subpanes.
 @end table
 
 
-@node X11TextPane, X11TextEditorPane, X11TextEntryBox, Classes
+@node X11ListBox, X11TextPane, X11TextEntryBox, Classes
+@iftex
+@section @code{X11ListBox} Class
+@end iftex
+@ifnottex
+@subheading @code{X11ListBox} Class
+@end ifnottex
+@cindex @code{X11ListBox} class
+
+@node X11TextPane, X11TextEditorPane, X11ListBox, Classes
 @iftex
 @section @code{X11TextPane} Class
 @end iftex
