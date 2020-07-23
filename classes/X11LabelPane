@@ -1,4 +1,4 @@
-/* $Id: X11LabelPane,v 1.4 2020/07/22 18:01:57 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11LabelPane,v 1.5 2020/07/23 01:52:06 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -180,6 +180,11 @@ X11LabelPane instanceMethod subPaneLeave (Object __subPane,
     __subPane highlight = false;
     __subPane draw;
   }
+}
+
+X11LabelPane instanceMethod selectFont (void) {
+  self ftFontVar selectFontFromFontConfig self resources at "ftFont";
+  self ftFontVar saveSelectedFont;
 }
 
 X11LabelPane instanceMethod font (String fontDesc) {

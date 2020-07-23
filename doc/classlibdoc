@@ -7085,6 +7085,11 @@ Creates a new X11LabelPane object, initializes the object's
 instance variables and event handlers, and sets the pane's default
 foreground and background colors.
 
+>>>X11LabelPane::selectFont (void)
+A convenience method that selects the outline font named by the
+label's 'ftFont' resource, and saves the values of the font
+in the label's ftFontVar instance variable.
+
 >>>X11LabelPane::subPaneExpose (Object subPane, InputEvent event)
 The widget's Expose event handler.  When the widget receives an Expose
 event, this method redraws the widget.

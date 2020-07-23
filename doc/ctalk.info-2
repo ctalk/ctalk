@@ -3751,6 +3751,11 @@ Instance Methods
      instance variables and event handlers, and sets the pane's default
      foreground and background colors.
 
+'selectFont (void)'
+     A convenience method that selects the outline font named by the
+     label's 'ftFont' resource, and saves the values of the font in the
+     label's 'ftFontVar' instance variable.
+
 'subPaneExpose (Object SUBPANE, InputEvent EVENT)'
      The widget's Expose event handler.  When the widget receives an
      Expose event, this method redraws the widget.
@@ -3851,6 +3856,8 @@ between the first selected item in the list and the last selected item.
        listPane attachTo dispatcher, "-15x-90+100+24";
 
        xPane ftFontVar initFontLib;
+       listPane selectFont;
+       label selectFont;
 
        for (i = 1; i < N_ITEMS; ++i) {
          listPane add "item " + i asString;

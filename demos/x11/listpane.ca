@@ -36,6 +36,8 @@ int main (int argv, char **argc) {
   listPane attachTo dispatcher, "-15x-90+100+24";
 
   xPane ftFontVar initFontLib;
+  listPane selectFont;
+  label selectFont;
 
   for (i = 1; i < N_ITEMS; ++i) {
     listPane add "item " + i asString;

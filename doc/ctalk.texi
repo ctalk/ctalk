@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.12 2020/07/22 20:05:33 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.13 2020/07/23 01:52:07 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -15572,6 +15572,12 @@ Creates a new @code{X11LabelPane} object, initializes the object's
 instance variables and event handlers, and sets the pane's default
 foreground and background colors.
 
+@cindex @code{selectFont} instance method @idxclscite{X11LabelPane}
+@item selectFont (@code{void})
+A convenience method that selects the outline font named by the
+label's @samp{ftFont} resource, and saves the values of the font
+in the label's @code{ftFontVar} instance variable.
+
 @cindex @code{subPaneExpose} instance method @idxclscite{X11LabelPane}
 @item subPaneExpose (@code{Object} @var{subPane}, @code{InputEvent} @var{event})
 The widget's Expose event handler.  When the widget receives an Expose
@@ -15688,6 +15694,8 @@ int main (int argv, char **argc) @{
   listPane attachTo dispatcher, "-15x-90+100+24";
 
   xPane ftFontVar initFontLib;
+  listPane selectFont;
+  label selectFont;
 
   for (i = 1; i < N_ITEMS; ++i) @{
     listPane add "item " + i asString;
