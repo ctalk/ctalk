@@ -1,4 +1,4 @@
-/* $Id: X11ListBox,v 1.1 2020/07/23 21:08:19 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11ListBox,v 1.3 2020/07/23 21:17:25 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -21,1038 +21,449 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
 */
 
-#include <ctalk/ctalkdefs.h>
+/* 
+   X11TextEntryBox Class - Text Entry Dialog
 
-X11TextEntryPane class X11ListBox;
+*/
+
+X11TextEntryBox class X11ListBox;
 
 #if 0
-Character class CharCell;
+X11TextEntryBox instanceVariable entryPane X11TextEntryPane NULL;
+X11TextEntryBox instanceVariable entryContents String NULL;
+X11TextEntryBox instanceVariable dots Boolean false;
 
-/* 
- *   X11TextEntryPane Class - Text Entry Widget
- *
- *
- *   Resources:
- *
- *     backgroundColor     String    "white"
- *     textColor           String    "black"
- *     selectionColor      String    "orange"
- *     borderWidth         Integer   1
- *     hoverBorderWidth    Integer   2
- *     borderColor         String    "gray"
- *     vPad                Integer   4
- *     hPad                Integer   4
- *     font (Linux)        String    
- *                  "DejaVu Sans Mono-12:weight=medium:slant=roman"
- *     font (MacOS)        String    
- *                  "sans serif-14:weight=medium:slant=roman"
- *                                   Linux       MacOS
- *     spacingHint          Integer  0          -1
- *     cursorAdvanceHint    Integer  4           2
- *
- *
- *   Motion Keys:
- *
- *   Right Arrow            Next Character
- *   Ctrl-F
- *   Left Arrow             Previous Character
- *   Ctrl-B
- *   Home                    Start of Buffer
- *   Ctrl-A
- *   End                        End of Buffer
- *   Ctrl-E
- *
- *   Pointer Buttons and Motion:
- *
- *   Left Button (Button 1)      Set Insertion Point
- *   Click and Release
- *
- *   Center Button, or Right     Paste Selection Text
- *   and Left Buttons Together
- *   (Button 2) Click and
- *   Release
- *
- *   Left Button Click +         Select Text to Place on
- *   Drag Pointer Across         the X Clipboard.
- *   Text
- */
+#define KEY_TAB   1
+#define KEY_ENTER 2
 
-X11TextEntryPane instanceVariable cursor X11Cursor 0;
-X11TextEntryPane instanceVariable shiftState Integer 0;
-X11TextEntryPane instanceVariable hover Boolean false;
-X11TextEntryPane instanceVariable cursorX Integer 0;
-X11TextEntryPane instanceVariable chars List NULL;
-X11TextEntryPane instanceVariable spacingHint Integer 0;
-X11TextEntryPane instanceVariable baselineY Integer 0;
-X11TextEntryPane instanceVariable point Integer 0;
-X11TextEntryPane instanceVariable clipX Integer 0;
-X11TextEntryPane instanceVariable center Boolean false;
-X11TextEntryPane instanceVariable paneWidthChars Integer 0;
-X11TextEntryPane instanceVariable dots Boolean false;
-X11TextEntryPane instanceVariable button Integer 0;
-X11TextEntryPane instanceVariable sStart Integer 0;
-X11TextEntryPane instanceVariable sEnd Integer 0;
-X11TextEntryPane instanceVariable selecting Boolean false;
+X11TextEntryBox instanceMethod new (String paneName) {
+  Method new exposeMethod, buttonPressMethod, kbdInputMethod,
+    enterMethod, leaveMethod;
 
-
-CharCell instanceVariable width Integer 0;
-CharCell instanceVariable boxOrg Point NULL;
-CharCell instanceVariable boxExt Point NULL;
-
-X11TextEntryPane instanceMethod new (String paneName) {
-  Method new enterMethod, leaveMethod, kbdMethod, exposeMethod,
-    buttonPressMethod, pointerMotionMethod, selectionClearMethod;
-
-  X11TextEntryPane super new paneName;
-
-  enterMethod definedInstanceMethod "X11TextEntryPane", "subPaneEnter";
+  X11TextEntryBox super new paneName;
+  
+  enterMethod definedInstanceMethod "X11TextEntryBox",
+    "subPaneEnter";
   paneName setMethodHandler "enternotify", enterMethod;
 
-  leaveMethod definedInstanceMethod "X11TextEntryPane", "subPaneLeave";
+  leaveMethod definedInstanceMethod "X11TextEntryBox",
+    "subPaneLeave";
   paneName setMethodHandler "leavenotify", leaveMethod;
 
-  kbdMethod definedInstanceMethod "X11TextEntryPane", "subPaneKbd";
-  paneName setMethodHandler "kbdinput", kbdMethod;
-
-  exposeMethod definedInstanceMethod "X11TextEntryPane", "subPaneExpose";
-  paneName setMethodHandler "expose", exposeMethod;
-
-  selectionClearMethod definedInstanceMethod "X11TextEntryPane",
-    "subPaneSelectionClear";
-  paneName setMethodHandler "selectionclear", selectionClearMethod;
-
-  buttonPressMethod definedInstanceMethod "X11TextEntryPane",
-    "subPaneButtonPress";
-  paneName setMethodHandler "pointerinput", buttonPressMethod;
-
-  pointerMotionMethod definedInstanceMethod "X11TextEntryPane",
-    "subPanePointerMotion";
-  paneName setMethodHandler "pointermotion", pointerMotionMethod;
-
-#ifdef __APPLE__
-  paneName resources atPut "font",
-     "sans serif-14:weight=normal:slant=roman";
-  paneName resources atPut "spacingHint", -1;
-  paneName resources atPut "cursorAdvanceHint", 2;
-#else  
-  paneName resources atPut
-    "font", "DejaVu Sans Mono-12:weight=normal:slant=roman";
-  paneName resources atPut "spacingHint", 0;
-  paneName resources atPut "cursorAdvanceHint", 4;
-#endif  
-  paneName resources atPut "textColor", "black";
-  paneName resources atPut "backgroundColor", "white";
-  paneName resources atPut "selectionColor", "orange";
-  paneName resources atPut "borderWidth", 1;
-  paneName resources atPut "hoverBorderWidth", 2;
-  paneName resources atPut "borderColor", "gray";
-  paneName resources atPut "vPad", 4;
-  paneName resources atPut "hPad", 4;
+  /* These are modifications of the resources set in X11TextEntryPane : new. */
+  paneName resources replaceAt "leftButtonText", "Cancel";
+  paneName resources replaceAt "rightButtonText", "OK";
 
   return paneName;
 }
 
-X11TextEntryPane instanceMethod attachTo (X11Pane parentPane,
-					   String geomspec) {
-  "Register the receiver pane as a subpane of the X11Pane
-  given as the argument.  Generally parent pane should
-  be a X11PaneDispatcher object.  At this time, a geometry
-  specification like, '300x200', i.e., without the x and
-  y origins, is okay - the Ctalk libraries center the
-  message box above the parent window."
-  String new parentGeometry;
-  Integer new eWidth, vPad;
-  int x, y, width, height;
+X11TextEntryBox instanceMethod draw (void) {
   
-  self displayPtr = self mainWindow displayPtr;
-  self paneBuffer backgroundColor = self resources at "backgroundColor";
-  self super attachTo (parentPane, geomspec);
-
-  self container = parentPane;
-  (X11Bitmap *)self paneBuffer create self displayPtr, self xWindowID,
-    self size x, self size y, self depth;
-  (X11Bitmap *)self paneBackingStore create self displayPtr, self xWindowID,
-    self size x, self size y, self depth;
-
-  __ctalkX11SubWindowGeometry (parentPane, geomspec,
-			       &x, &y, &width, &height);
-
-  self size x = width;
-  self size y = height;
-  self origin x = x;
-  self origin y = y;
-
-  self resources atPut "geometry", geomspec;
-
-  self ftFontVar selectFontFromFontConfig (self resources at "font");
-  self ftFontVar saveSelectedFont;
-  eWidth = self ftFontVar textWidth "e";
-  self paneWidthChars = self size x / eWidth;
-
-  self cursor xterm;
-
-  return NULL;
-}
-
-X11TextEntryPane instanceMethod refresh (void) {
-  self super refresh;
-}
-
-X11TextEntryPane instanceMethod charCellAt (Integer n) {
-  returnObjectClass CharCell;
-  Key new k;
-  k = self chars + n;
-  return *k;
-}
-
-X11TextEntryPane instanceMethod drawCursor (void) {
-  Integer new i, clipLength;
-  CharCell new cPoint, cClip;
-
-  if (self point == self chars size) {
-    /* Inserting at end of text. */
-    if (self clipX == 0) {
-      if (self point > 0) {
-	(Object *)cPoint = self charCellAt (self point - 1);
-	self cursorX = cPoint boxExt x;
-      } else {
-	self cursorX = self resources integerAt "vPad";
-      }
-    } else {
-      i = 0;
-      self cursorX = self resources integerAt "vPad";
-      self chars map {
-	if (i < super clipX) {
-	  clipLength = self boxExt x;
-	} else {
-	  super cursorX = self boxExt x;
-	}
-	++i;
-      }
-       self cursorX -= (clipLength - self resources integerAt "vPad");
-    }
-    if (self point > 0) {
-      self paneBuffer drawLine
-	self cursorX + self resources integerAt "cursorAdvanceHint",
-	self resources integerAt "hPad",
-	self cursorX + self resources integerAt "cursorAdvanceHint",
-	self size y - self resources integerAt "hPad",
-	self pen;
-    } else {
-      self paneBuffer drawLine self cursorX,
-	self resources integerAt "hPad",
-	self cursorX,
-	self size y - self resources integerAt "hPad",
-	self pen;
-    }
-  } else {
-    if (self clipX == 0) {
-      (Object *)cPoint = self charCellAt self point;
-      self cursorX = cPoint boxOrg x;
-    } else {
-      (Object *)cPoint = self charCellAt self point;
-      self cursorX = cPoint boxOrg x;
-      (Object *)cClip = self charCellAt self clipX;
-      self cursorX -= cClip boxOrg x;
-    }
-    self cursorX += self resources integerAt "vPad";
-    self paneBuffer drawLine self cursorX,
-      self resources integerAt "hPad",
-      self cursorX,
-      self size y - self resources integerAt "hPad",
-      self pen;
-  }
-
-}
-
-X11TextEntryPane instanceMethod inputWidth (List input, Integer startIdx) {
-  Integer new i, width;
-  CharCell new c;
-  returnObjectClass Integer;
-
-  width = 0;
-  i = 0;
-  input map {
-    if (i >= startIdx) {
-      (Object *)c = self;
-      width += c width;
-    }
-    ++i;
-  }
-  return width;
-}
-
-X11TextEntryPane instanceMethod drawSelection (void) {
-  CharCell new c_start, c_end;
-  Integer new vPad, start_px_x, hPad,
-    i_start, i_end;
-  String new selectionColor;
-
-  if ((self sStart != 0) || (self sEnd != 0)) {
-    /* If selecting, draw the area behind the chars 
-       in the selection color. */
-    i_start = self sStart;
-    i_end = self sEnd;
 #if 0
-    if (self clipX > 0) {
-      i_start += (self clipX - 1);
-      i_end += (self clipX - 1);
-    }
-    else if (self clipX > 1) {
-      i_start += self clipX;
-      i_end += self clipX;
-    }
-#endif    
-    if (self sStart > self sEnd) {
-      (Object *)c_start = self charCellAt i_end;
-      if (self sStart < self chars size)
-	(Object *)c_end = self charCellAt i_start;
-      else
-	(Object *)c_end = self charCellAt self chars size - 1;
-    } else {
-      (Object *)c_start = self charCellAt i_start;
-      if (self sEnd < self chars size)
-	(Object *)c_end = self charCellAt i_end;
-      else
-	(Object *)c_end = self charCellAt self chars size - 1;
-    }
+  self fill self resources at "backgroundColor";
+#endif  
 
-    vPad = self resources at "vPad";
-    hPad = self resources at "hPad";
-    start_px_x = c_start boxOrg x;
-    start_px_x += vPad;
-    selectionColor = self resources at "selectionColor";
-    /* TODO clean up - do away with start_px_x, etc. */
-    self paneBuffer drawRectangle start_px_x,
-      hPad, 
-      (c_end boxExt x - start_px_x) + vPad,
-      self size y - hPad - hPad,
-      true, 1, selectionColor, 0;
+  self label draw;
+  self entryPane draw;
+
+  self lbutton draw;
+  self rbutton draw;
+
+  if (self resources at "iconID" > 0) {
+    self paneBuffer copy self icon, 0, 0, ICON_WIDTH_PX, ICON_HEIGHT_PX,
+      ((self resources at "pad") * 2),
+      ((self resources at "pad") +
+       ((self label size y / 2) + (self entryPane size y / 2))  -
+       (ICON_HEIGHT_PX / 2));
   }
 }
 
-X11TextEntryPane instanceMethod draw (void) {
-  Integer new textWidthPx, clipStartIdx;
-  Integer new entryChars, idx, drawX;
-  Float new rMarginPct;
-  String new entryText;
-  CharCell new cm;
-  Pen new dotPen;
-  
-  self ftFontVar selectFontFromFontConfig (self resources at "font");
-  self ftFontVar saveSelectedFont;
-  if (self baselineY == 0) {
-    self baselineY = self size y -
-      borderWidth -
-      (self resources integerAt "hPad") - (self ftFontVar descent);
-    if (self dots)
-      self baselineY -= (self ftFontVar textHeight "T") / 2;
-  }
+X11TextEntryBox instanceMethod initWidgets (void) {
+  "Initialize the entry box's button and label widgets.  The
+   message box defers constructing the new widgets until just
+   before it is displayed, so any modifications to the defaults
+   (colors, dimensions, etc.) can be done here, mainly by
+   subclassing the X11MessageBox class (for the present, at 
+   least, until Ctalk includes some sort of resource manager).
+   However, waiting until now to construct the widgets also
+   has the advantage that all of the other objects and methods
+   in a program have been defined."
 
-  self paneBuffer background (self resources at "backgroundColor");
-  self paneBuffer clear;
+  X11ButtonPane new l_button, r_button;
+  X11LabelPane new l_label;
+  X11TextEntryPane new l_entry;
+  X11Bitmap new l_icon;
+  Integer new usable_height, usable_width, padInt, label_width_px,
+    label_height_px, label_x_px, label_y_px, button_y_px;
+  Integer new entry_height_px, entry_width_px, entry_x_px,
+    entry_y_px;
+  String new geomspec;
 
-  self pen colorName = self resources at "borderColor";
-  if (self hover) {
-    self pen width = self resources at "hoverBorderWidth";
-  } else {
-    self pen width = self resources at "borderWidth";
-  }
-  self drawRectangle 0, 0, self size x, self size y;
-
-  self ftFontVar namedX11Color self resources at "textColor";
-
-  entryText = self chars asString;
-
-  if (self center) {
-    if ((self chars size - self point) > self point) {
-      /* i.e., if the point is closer to the beginning of the text */
-      if (self point < (self paneWidthChars / 2)) {
-	self clipX = 0;
-      } else {
-	self clipX = self point  - (self paneWidthChars / 2);
-	if (self clipX < 0) {
-	  self clipX = 0;
-	}
-      }
-    } else {
-      if ((self paneWidthChars / 2) > self chars size) {
-	self clipX = self point - (self paneWidthChars / 2);
-      } else {
-	self clipX = self point - (self chars size / 2);
-      }
-    }
-  } else {
-    if (self dots) {
-      rMarginPct = 0.90;
-    } else {
-      rMarginPct = 0.75;
-    }
-    entryChars = entryText length;
-    for (clipStartIdx = 0; clipStartIdx < entryChars; clipStartIdx += 1) {
-      textWidthPx = self inputWidth self chars, clipStartIdx;
-      if (textWidthPx < ((self size x - self resources integerAt "vPad") *
-			 rMarginPct))
-	break;
-    }
-    self clipX = clipStartIdx;
-  }
-  
-  if (self spacingHint == 0) {
-    /* The app can't initialize these much earlier than
-       the first time this method is called. */
-    self spacingHint = self resources at "spacingHint";
-  }
-
-  idx = 0;
-  drawX = self resources integerAt "vPad";
-  if (self dots) {
-    dotPen colorName = "black";
-    dotPen width = self ftFontVar textWidth "e";
-  }
-
-  self drawSelection;
-  self chars map {
-    if (idx >= super clipX) {
-      if (super dots) {
-	super paneBuffer drawPoint drawX, super baselineY, dotPen;
-	drawX += dotPen width;
-      } else {
-	(Object *)cm = self;
-	super paneBuffer putStr drawX,
-	  super baselineY, cm asString;
-	drawX += cm width;
-      }
-    }
-    ++idx;
-  }
-
-  if (self hover)
-    self drawCursor;
-
-}
-
-X11TextEntryPane instanceMethod deleteAt (int delete_idx) {
-  OBJECT *char_list, *t, *t_key, *t_ref;
-  int i;
-  returnObjectClass CharCell;
-
-  char_list = self chars;
-
-  if (!__LIST_HEAD(char_list)) {
+  if (self initialized)
     return NULL;
-  } else {
-    i = 0;
-    for (t = __LIST_HEAD(char_list); t; t = t -> next) {
-      if (i == delete_idx) {
-	t_key = t;
-	if (t_key -> prev)
-	  t_key -> prev -> next = t -> next;
-	if (t_key -> next)
-	  t_key -> next -> prev = t -> prev;
-	t_ref = *(OBJECT **) t_key -> instancevars -> __o_value;
-	__ctalkDeleteObject (t_key);
-	return t_ref;
+
+  padInt = self resources at "pad";
+
+  usable_height = self size y - (padInt * 2);
+  usable_width = self size x - (padInt * 2);
+  label_width_px = usable_width;
+  label_height_px = usable_height * .4 - (padInt / 2);
+  label_x_px = padInt;
+  label_y_px = padInt;
+
+  if (self resources at "iconID" > 0) {
+    label_x_px += ICON_WIDTH_PX + (padInt * 2);
+    label_width_px -= (ICON_WIDTH_PX + (padInt * 2));
+  }
+
+  geomspec printOn "%dx%d+%d+%d", label_width_px, label_height_px,
+    label_x_px, label_y_px;
+
+  l_label resources replaceAt "backgroundColor",
+    (self resources at "backgroundColor");
+  l_label resources replaceAt "foregroundColor",
+    (self resources at "foregroundColor");
+  l_label multiLine self resources at "messageText";
+  l_label border = false;
+  l_label resources replaceAt "textColor",
+    (self resources at "messageColor");
+  l_label resources replaceAt "ftFont",
+    (self resources at "messageFont");
+  l_label justify = LABEL_LEFT;
+
+  self label become l_label;
+
+  self label attachTo self, geomspec;
+
+  entry_height_px = 32;
+  entry_width_px = usable_width;
+  entry_x_px = padInt;
+  entry_y_px = label_height_px + padInt;
+
+  if (self resources at "iconID" > 0) {
+    entry_x_px += ICON_WIDTH_PX + (padInt * 2);
+    entry_width_px -= (ICON_WIDTH_PX + (padInt * 2));
+  }
+  
+  geomspec printOn "%dx%d+%d+%d", entry_width_px, entry_height_px,
+    entry_x_px, entry_y_px;
+
+  if (self dots)
+    l_entry dots = true;
+
+  self entryPane become l_entry;
+  self entryPane attachTo self, geomspec;
+  self children push self entryPane;
+
+  self lbutton become l_button;
+  self children push l_button;
+  self rbutton become r_button;
+  self children push r_button;
+
+  button_y_px = label_height_px + entry_height_px + (padInt * 4);
+
+  geomspec printOn "20%%x36+20%%+%d", button_y_px;
+  self lbutton attachTo self, geomspec;
+
+  geomspec printOn "20%%x36+60%%+%d", button_y_px;
+  self rbutton attachTo self, geomspec;
+
+  self lbutton label text (self resources at "leftButtonText");
+  self rbutton label text (self resources at "rightButtonText");
+
+  if (self resources at "iconID" > 0) {
+    l_icon create self displayPtr, self paneBuffer xID,
+      ICON_WIDTH_PX, ICON_HEIGHT_PX, self paneBuffer depth;
+    l_icon background self resources at "foregroundColor";
+    self icon become l_icon;
+    self drawIcon;
+  }
+
+  self initialized = true;
+
+}
+
+X11TextEntryBox instanceMethod subPaneEnter (Object subPane,
+					  InputEvent __event) {
+  if (__event eventData == subPane lbutton xWindowID) {
+    if (subPane lbutton canFocus) {
+      if (self lbutton clicked) {
+	self lbutton clicked = false;
       }
-      ++i;
+      if (!self lbutton hover) {
+	subPane lbutton label highlight = true;
+	self lbutton hover = true;
+      }
+      if (!self lbutton radius)
+	self lbutton label drawButtonLayout;
+      subPane lbutton draw;
+      subPane lbutton refresh;
     }
+    return NULL;
+  } else if (__event eventData == subPane rbutton xWindowID) {
+    if (subPane rbutton canFocus) {
+      if (self rbutton clicked) {
+	self rbutton clicked = false;
+      }
+      if (!self lbutton hover) {
+	subPane rbutton label highlight = true;
+	self rbutton hover = true;
+      }
+      if (!self lbutton radius)
+	self rbutton label drawButtonLayout;
+      subPane rbutton draw;
+      subPane rbutton refresh;
+    }
+    return NULL;
+  } else if (__event eventData == subPane entryPane xWindowID) {
+    subPane entryPane useCursor subPane entryPane cursor;
+    subPane entryPane hover = true;
+    subPane entryPane draw;
+    subPane entryPane refresh;
+    return NULL;
   }
-  return NULL;
+
+  /* The event comes from any other window. */
+  if (self lbutton clicked) {
+    self lbutton clicked = false;
+    self lbutton hover = false;
+    if (!self lbutton radius)
+      self lbutton label drawButtonLayout;
+    subPane lbutton draw;
+    subPane lbutton refresh;
+  }
+  if (self rbutton clicked) {
+    self rbutton clicked = false;
+    self rbutton hover = false;
+    if (!self rbutton radius)
+      self rbutton label drawButtonLayout;
+    subPane rbutton draw;
+    subPane rbutton refresh;
+  }
 }
 
-
-
-X11TextEntryPane instanceMethod insertAt (OBJECT *(*newItem)(),
-					  int insert_idx) {
-  "Adds the argument to the end of the receiver List.
-   Creates the Key object that refers to newItem directly,
-   which makes the method faster."
-
-    OBJECT *key, *self_object, *t;
-  int i;
-
-  self_object = self chars;
-  key = __ctalkCreateObjectInit ("keyObject", "Key", "Symbol", 
-				 self_object -> scope,
-				 "");
-
-  __ctalkReferenceObject (key, newItem);
-
-  __objRefCntSet (OBJREF(key), self_object -> nrefs);
-  key -> __o_p_obj = self_object;
-  key -> attrs |= OBJECT_IS_MEMBER_OF_PARENT_COLLECTION;
-  i = 0;
-  if (!__LIST_HEAD(self_object)) {
-    __LIST_HEAD(self_object) = key;
-  } else {
-    for (t = __LIST_HEAD(self_object); t && t -> next; t = t -> next) {
-      if (i == insert_idx) {
-	if (t -> prev)
-	  t -> prev -> next = key;
-	key -> prev = t -> prev;
-	key -> next = t;
-	t -> prev = key;
-	break;
-      } else {
-	++i;
+X11TextEntryBox instanceMethod subPaneLeave (Object subPane,
+					  InputEvent __event) {
+  if (__event eventData == subPane lbutton xWindowID) {
+    if (subPane lbutton canFocus) {
+      if (self lbutton hover) {
+	subPane lbutton label highlight = false;
+	if (self lbutton clicked)
+	  self lbutton clicked = false;
+	self lbutton label drawButtonLayout;
+	subPane lbutton draw;
+	subPane lbutton refresh;
+	self lbutton hover = false;
       }
     }
-  }
-  return self;
-}
-
-X11TextEntryPane instanceMethod reflow (void) {
-  CharCell new c;
-  Integer new totalWidth, bboxTop, bboxYExt;
-
-  totalWidth = 0;
-  bboxTop = self baselineY - self ftFontVar ascent;
-  bboxYExt = bboxTop + self ftFontVar height;
-  self chars map {
-    (Object *)c = self;
-    c boxOrg x = totalWidth;
-    c boxOrg y = bboxTop;
-    c boxExt x = c boxOrg x + c width;
-    c boxExt y = bboxYExt;
-    totalWidth += c width;
-  }
-}
-
-X11TextEntryPane instanceMethod subPaneSelectionClear (Object subPane,
-						       InputEvent event) {
-  subPane clearSelection;
-  subPane draw;
-  subPane refresh;
-}
-
-X11TextEntryPane instanceMethod subPaneEnter (Object subPane,
-					      InputEvent event) {
-  if (event eventData == subPane xWindowID) {
-    subPane useCursor subPane cursor;
-    subPane hover = true;
-    subPane draw;
-    subPane refresh;
-  }
-}
-
-X11TextEntryPane instanceMethod subPaneLeave (Object subPane,
-					      InputEvent event) {
-  if (event eventData == subPane xWindowID) {
+  } else if (__event eventData == subPane rbutton xWindowID) {
+    if (subPane rbutton canFocus) {
+      if (self rbutton hover) {
+	subPane rbutton label highlight = false;
+	if (self rbutton clicked)
+	  self rbutton clicked = false;
+	self rbutton label drawButtonLayout;
+	subPane rbutton draw;
+	subPane rbutton refresh;
+	self rbutton hover = false;
+      }
+    }
+  } else if (__event eventData == subPane entryPane xWindowID) {
     subPane defaultCursor;
-    subPane hover = false;
-    if (self selecting)
-      self selecting = false;
-    subPane draw;
-    subPane refresh;
+    subPane entryPane hover = false;
+    subPane entryPane draw;
+    subPane entryPane refresh;
   }
 }
 
-X11TextEntryPane instanceMethod selectionToText (String textOut) {
-  String new content;
-  Integer new i_end, i_start;
-  returnObjectClass String;
-  content = self chars asString;
-  if (self sEnd < self sStart) {
-    if (self clipX > 0) {
-      i_start = self sStart + self clipX;
-      i_end = self sEnd + self clipX;
-      textOut = content subString i_end, (i_start + 1) - i_end;
-    } else {
-      textOut = content subString self sEnd,
-	(self sStart + 1) - self sEnd;
-    }
-  } else {
-    if (self clipX > 0) {
-      i_start = self sStart + self clipX;
-      i_end = self sEnd + self clipX;
-      textOut = content subString i_start, (i_end + 1) - i_start;
-    } else {
-      textOut = content subString self sStart,
-	(self sEnd + 1) - self sStart;
-    }
-  }
-  return textOut;
-}
+extern Atom wm_delete_dialog;
+extern void __enable_dialog (OBJECT *);
 
-/* These are from x11defs.h. */
-#define BUTTON1MASK  (1 << 0)
-#define BUTTON2MASK  (1 << 1)
-#define BUTTON3MASK  (1 << 2)  
-
-X11TextEntryPane instanceMethod subPanePointerMotion (Object subPane,
-						      InputEvent event) {
-  String new s;
-
-  if (self selecting) {
-    self sEnd = self charIndex event xEventData1, event xEventData2;
-    self selectionToText s;
-    __entrytext_update_selection (self displayPtr, self xWindowID,
-				  self xGC, s);
-    self draw;
-    self refresh;
-  } else if (!self selecting && self button & BUTTON1MASK) {
-    if (!__entrytext_set_selection_owner (subPane displayPtr,
-					  subPane xWindowID,
-					  subPane xGC)) {
-      self selecting = true;
-      self sStart = self charIndex event xEventData1, event xEventData2;
-      self sEnd = self charIndex event xEventData1, event xEventData2;
-      self selectionToText s;
-      __entrytext_update_selection (self displayPtr, self xWindowID,
-				    self xGC, s);
-      self draw;
-      self refresh;
-    }
-  }
-
-  return NULL;
-}
-
-X11TextEntryPane instanceMethod subPaneExpose (Object subPane,
-					       InputEvent event) {
-  self draw;
-  self super refresh;
-}
-
-X11TextEntryPane instanceMethod charIndex (Integer clickX,
-						  Integer clickY) {
+X11TextEntryBox instanceMethod show (void) {
+  "Displays the pane's window. Note that th method uses raw X
+   events. This is because the pane maintains its own connection
+   to the display, and the event handler can be contained in
+   this method."
   returnObjectClass Integer;
-  Integer new idx;
+  Display *display;
+  Window win_id;
+  XEvent xev;
+  X11PaneDispatcher new dispatcher;
+  X11Pane new mainWin;
+  InputEvent new e;
 
-  idx = 0;
-  self chars map {
-    if (clickX > self boxOrg x && clickX < self boxExt x) {
-      break;
-    } else if (clickX == self boxExt x) {
-      break;
-    }
-    idx += 1;
-  }
-  return idx;
-}
-
-X11TextEntryPane instanceMethod clearSelection (void) {
-  self sStart = 0;
-  self sEnd = 0;
-  self selecting = false;
-}
-
-X11TextEntryPane instanceMethod subPaneButtonPress (Object subPane,
-					       InputEvent event) {
-  void *selection_out;
-  int selection_length_out, i;
-  char c;
-  CharCell new cc;
-  Symbol new cSym;
-  String new s1, s2;
-  Integer new w1, w2;
+  dispatcher = *self container;
+  mainWin = dispatcher mainWindow;
   
-  if (event eventClass == BUTTONPRESS) {
-    switch (event xEventData4)
-      {
-      case Button1:
-	self clearSelection;
-	self button |= BUTTON1MASK;
-	self point =
-	  self charIndex event xEventData1, event xEventData2;
-	if (self clipX > 0)
-	  self point += self clipX;
-	self draw;
-	self super refresh;
-	break;
-      case Button2:
-	self button |= BUTTON2MASK;
-	self point =
-	  self charIndex event xEventData1, event xEventData2;
-	
-	__entrytext_get_primary_selection (self, &selection_out,
-					  &selection_length_out);
+  if (!self initialized) {
 
-	if (selection_length_out == 0)
-	  break;
+    win_id = __ctalkX11CreateDialogWindow (self);
+    self xWindowID = win_id;
+    dispatcher modalWin = win_id;
+    dispatcher modalPane = self;
 
-	if (self clipX > 0)
-	  self point += self clipX;
-
-	for (i = 0; i < selection_length_out; ++i) {
-	  s1 = self chars asString;
-	  w1 = self ftFontVar textWidth s1;
-	  c = ((char *)selection_out)[i];
-	  *cSym = CharCell basicNew c asString, c;
-
-	  if (self point == self chars size) {
-	    self chars push (*cSym);
-	    self point += 1;
-	    s2 = self chars asString;
-	    w2 = self ftFontVar textWidth s2;
-	    (*cSym) width = (w2 - w1 + self spacingHint);
-	    self reflow;
-	  } else {
-	    self insertAt (*cSym), self point;
-	    s2 = self chars asString;
-	    w2 = self ftFontVar textWidth s2;
-	    (*cSym) width = (w2 - w1 + self spacingHint);
-	    self reflow;
-	    self point += 1;
-	  }
-	}
-	self draw;
-	self super refresh;
-	break;
-      case Button3:
-	self button |= BUTTON3MASK;
-	break;
-      }
-      
-  } else if (event eventClass == BUTTONRELEASE) {
-    switch (event xEventData4)
-      {
-	case Button1:
-	  self button &= ~BUTTON1MASK;
-	  if (self selecting) {
-	    self sEnd = self charIndex event xEventData1,
-	      event xEventData2;
-	    self selecting = false;
-	  }
-	  break;
-	case Button2:
-	  self button &= ~BUTTON2MASK;
-	  break;
-	case Button3:
-	  self button &= ~BUTTON3MASK;
-	  break;
-      }
-  }
-}
-
-X11TextEntryPane instanceMethod calculateSpaceAppend (void) {
-  "To calculate the actual width of the space as it is
-   rendered, and the width of the character that follows it,
-   we use _three_separate width measuremnts."
-  String new s0, s1, s2;
-  Integer new w0, w1, w2;
-  CharCell new cSpace, cAfter;
-
-  (Object *)cAfter = self chars pop;
-  (Object *)cSpace = self chars pop;
-
-  s0 = self chars asString;
-  w0 = self ftFontVar textWidth s0;
-
-  self chars push cAfter;
-  s1 = self chars asString;
-  w1 = self ftFontVar textWidth s1;
-
-  (Object *)cAfter = self chars pop;
-
-  self chars push cSpace;
-  self chars push cAfter;
-
-  s2 = self chars asString;
-  w2 = self ftFontVar textWidth s2;
-
-  cSpace width = (w2 - w1) + self spacingHint;
-  cAfter width = (w1 - w0) + self spacingHint;
-  cAfter boxOrg x += cSpace width;
-  cAfter boxExt x = cAfter boxOrg x + cAfter width;
-
-}
-
-/* Some of these are also defined in X11TextEditorPane class and edittext.c. */
-#define shiftStateShift     (1 << 0)
-#define shiftStateCtrl      (1 << 1)
-#define shiftStateCapsLock  (1 << 2)
-
-/* From X11/keysymdef.h, in case your machine defines these differently. */
-#ifndef XK_Control_L
-#define XK_Control_L  0xffe3
-#endif
-#ifndef XK_Control_R
-#define XK_Control_R  0xffe4
-#endif
-#ifndef XK_Shift_L
-#define XK_Shift_L 0xffe1
-#endif
-#ifndef XK_Shift_R
-#define XK_Shift_R 0xffe2
-#endif
-#ifndef XK_Caps_Lock
-#define XK_Caps_Lock 0xffe5
-#endif
-#ifndef XK_Backspace
-#define XK_Backspace 0xff08
-#endif
-#ifndef XK_Right
-#define XK_Right     0xff53
-#endif
-#ifndef XK_Left
-#define XK_Left      0xff51
-#endif
-#ifndef XK_Home
-#define XK_Home      0xff50
-#endif
-#ifndef XK_End
-#define XK_End       0xff57
-#endif
-#ifndef XK_Delete
-#define XK_Delete    0xffff
-#endif
-
-
-X11TextEntryPane instanceMethod deleteForward (void) {
-  if (self point < self chars size) {
-    self deleteAt self point;
-    self reflow;
-    self draw;
-    self refresh;
-  }
-}
-
-static char c_prev = 0;
-
-X11TextEntryPane instanceMethod subPaneKbd (Object subPane,
-					    InputEvent event) {
-  char c;
-  CharCell new cc, cm;
-  String new s1, s2;
-  Integer new w1, w2;
+    display = self displayPtr;
   
-  if (event eventData == subPane xWindowID) {
+    (X11Bitmap *)self paneBuffer create self displayPtr, self xWindowID, 
+      self size x, self size y, self depth;
+    (X11Bitmap *)self paneBuffer background
+      (self resources at "backgroundColor");
+    self paneBuffer backgroundColor = self resources at "backgroundColor";
+    (X11Bitmap *)self paneBuffer foreground
+      (self resources at "foregroundColor");
+    (X11Bitmap *)self paneBackingStore create self displayPtr, self xWindowID,
+      self size x, self size y, self depth;
 
-    if (event eventClass == KEYPRESS) {
-      switch (event xEventData5)
+    self initWidgets;
+  } else {
+
+    __enable_dialog (self);
+
+    win_id = self xWindowID;
+    display = self displayPtr;
+
+  }
+
+  XMapWindow (display, win_id);
+  XMapSubwindows (display, win_id);
+  XRaiseWindow (display, win_id);
+
+  self clearWindow;
+  self returnVal = 0;
+
+  while (1) {
+    if (XPending (display)) {
+      XNextEvent (display, &xev);
+      switch (xev.type)
 	{
-	case XK_Shift_L:
-	case XK_Shift_R:
-	  subPane shiftState |= shiftStateShift;
-	  break;
-	case XK_Control_L:
-	case XK_Control_R:
-	  subPane shiftState |= shiftStateCtrl;
-	  break;
-	case XK_Caps_Lock:
-	  /* sticky key */
-	  if (subPane shiftState & shiftStateCapsLock) {
-	    subPane shiftState &= ~shiftStateCapsLock;
-	  } else {
-	    subPane shiftState |= shiftStateCapsLock;
+	case ButtonPress:
+	  if ((xev.xbutton.window == self lbutton xWindowID) ||
+	      (xev.xbutton.window == self rbutton xWindowID)) {
+	    e eventClass = BUTTONPRESS;
+	    self methodObjectMessage self handlePointerInput, self, e;
+	  } else if (xev.xbutton.window == self entryPane xWindowID) {
+	    e eventClass = BUTTONPRESS;
+	    e xEventData1 = xev.xbutton.x;
+	    e xEventData2 = xev.xbutton.y;
+	    e xEventData3 = xev.xbutton.state;
+	    e xEventData4 = xev.xbutton.button;
+	    self entryPane methodObjectMessage
+	      self entryPane handlePointerInput, self entryPane, e;
 	  }
 	  break;
-	case XK_Backspace:
-	  if (self chars size > 0) {
-	    if (self sStart != 0 || self sEnd != 0) {
-	      if (self sStart > self sEnd) {
-		while (self sStart >= self sEnd) {
-		  cc = self deleteAt self sStart;
-		  self sStart--;
-		}
-		self point = self sEnd;
-	      } else {
-		while (self sEnd >= self sStart) {
-		  cc = self deleteAt self sEnd;
-		  self sEnd --;
-		}
-		self point = self sStart;
-	      }
-	      self reflow;
-	      cc = self charCellAt (self point - 1);
-	      self cursorX = cc boxExt x;
-	      self sStart = 0;
-	      self sEnd = 0;
-	      if (self selecting)
-		self selecting = false;
-	      self draw;
-	      self refresh;
-	    } else {
-	      if (self point == self chars size) {
-		cc = self chars pop;
-		self point -= 1;
-		self draw;
-		self refresh;
-	      } else {
-		cc = self deleteAt self point;
-		self point -= 1;
-		self reflow;
-		self draw;
-		self refresh;
-	      }
+	case ButtonRelease:
+	  if ((xev.xbutton.window == self lbutton xWindowID) ||
+	      (xev.xbutton.window == self rbutton xWindowID)) {
+	    e eventClass = BUTTONRELEASE;
+	    self methodObjectMessage self handlePointerInput, self, e;
+	    self withdraw;
+	    dispatcher modalWin = 0;
+	    dispatcher modalPane = NULL;
+	    return self returnVal;
+	  } else if (xev.xbutton.window == self entryPane xWindowID) {
+	    e eventClass = BUTTONRELEASE;
+	    e xEventData1 = xev.xbutton.x;
+	    e xEventData2 = xev.xbutton.y;
+	    e xEventData3 = xev.xbutton.state;
+	    e xEventData4 = xev.xbutton.button;
+	    self entryPane methodObjectMessage
+	      self entryPane handlePointerInput, self entryPane, e;
+	    if (xev.xbutton.button == Button2) {
+	      /* We've pasted the primary selection into the 
+		 entryPane - get the updated contents. */
+	      self entryContents = self entryPane entryText;
 	    }
 	  }
 	  break;
-	case XK_Delete:
-	  self deleteForward;
-	  break;
-	case XK_Right:
-	  self center = true;
-	  if (self point < self chars size) {
-	    self point += 1;
-	    self draw;
-	    self refresh;
+	case EnterNotify:
+	  if ((xev.xbutton.window == self lbutton xWindowID) ||
+	      (xev.xbutton.window == self rbutton xWindowID) ||
+	      (xev.xbutton.window == self entryPane xWindowID)) {
+	    e eventClass = ENTERWINDOWNOTIFY;
+	    e eventData = xev.xbutton.window;
+	    self methodObjectMessage self handleEnterNotify, self, e;
 	  }
 	  break;
-	case XK_Left:
-	  self center = true;
-	  if (self point > 0) {
-	    self point -= 1;
-	    self draw;
-	    self refresh;
+	case LeaveNotify:
+	  if ((xev.xbutton.window == self lbutton xWindowID) ||
+	      (xev.xbutton.window == self rbutton xWindowID) ||
+	      (xev.xbutton.window == self entryPane xWindowID)) {
+	    e eventClass = LEAVEWINDOWNOTIFY;
+	    e eventData = xev.xbutton.window;
+	    self methodObjectMessage self handleLeaveNotify, self, e;
 	  }
 	  break;
-	case XK_Home:
-	  self center = true;
-	  self point = 0;
-	  self draw;
-	  self refresh;
-	  return NULL;
-	  break;
-	case XK_End:
-	  self center = true;
-	  self point = self chars size;
-	  self draw;
-	  self refresh;
-	  return NULL;
-	  break;
-	default:
-	  c = __edittext_xk_keysym (event xEventData4, self shiftState,
-				    event xEventData5);
-	  /* Some pointer buttons can return weird values.  Try to
-	     catch them here. */
-	  if (!isprint (c))
-	    return NULL;
-	  if ((subPane shiftState & shiftStateShift) ||
-	      (subPane shiftState & shiftStateCapsLock)) {
-	    /* We're just gonna do the shifted keys here. */
-	    switch (c)
-	      {
-	      case '0':	c = ')'; break;
-	      case '1': c = '!'; break;
-	      case '2': c = '@'; break;
-	      case '3': c = '#'; break;
-	      case '4': c = '$'; break;
-	      case '5': c = '%'; break;
-	      case '6': c = '^'; break;
-	      case '7': c = '&'; break;
-	      case '8': c = '*'; break;
-	      case '9': c = '('; break;
-	      case '-': c = '_'; break;
-	      case '=':	c = '+'; break;
-	      case '\\':c = '|'; break;
-	      case '`':	c = '~'; break;
-	      case '[': c = '{'; break;
-	      case ']':	c = '}'; break;
-	      case ';':	c = ':'; break;
-	      case '\'':c = '\"';break;
-	      case ',': c = '<'; break;
-	      case '.':	c = '>'; break;
-	      case '/': c = '?'; break;
-	      default: c &= ~32; break;
-	      }
-	  } else if (c == 127) {  /* Delete on some keyboards. */
-	    self deleteForward;
-	    return NULL;
-	  } else if (subPane shiftState & shiftStateCtrl){
-	    switch (c)
-	      {
-	      case 'f':
-		if (self point < self chars size) {
-		  self center = true;
-		  self point += 1;
-		  self draw;
-		  self refresh;
-		  return NULL;
-		}
-		break;
-	      case 'b':
-		self center = true;
-		if (self point > 0) {
-		  self point -= 1;
-		  self draw;
-		  self refresh;
-		  return NULL;
-		}
-		break;
-	      case 'a':
-		self center = true;
-		self point = 0;
-		self draw;
-		self refresh;
-		return NULL;
-		break;
-	      case 'e':
-		self center = true;
-		self point = self chars size;
-		self draw;
-		self refresh;
-		return NULL;
-		break;
-	      case 'd':
-		self deleteForward;
-		return NULL;
-		break;
-	      }
-	  }
-	  s1 = self chars asString;
-	  w1 = self ftFontVar textWidth s1;
-	  cc become CharCell basicNew c asString, c;
-	  if (c == ' ') {
-	    /* Use the width of an 'e' for a space. */
-	    cc width = self ftFontVar textWidth "e";
+	case KeyPress:
+	  if (xev.xkey.window == self entryPane xWindowID) {
+	    e eventClass = KEYPRESS;
+	    e xEventData4 = xev.xkey.keycode;
+	    e xEventData5 = __edittext_xk_keysym
+	      (xev.xkey.keycode, xev.xkey.state, 0);
+	    self entryPane subPaneKbd self entryPane, e;
+	    self entryPane draw;
+	    self entryPane refresh;
+	    self entryContents = self entryPane entryText;
 	  } else {
-	    cc width = self ftFontVar textWidth cc asString;
-	  }
-	  cc boxOrg x = self inputWidth self chars, 0;
-	  cc boxOrg y = self baselineY - self ftFontVar ascent;
-	  cc boxExt x = cc boxOrg x + cc width;
-	  cc boxExt y = cc boxOrg y + self ftFontVar height;
-	  if (self point == self chars size) {
-	    self chars push cc;
-	    s2 = self chars asString;
-	    w2 = self ftFontVar textWidth s2;
-	    cc width = (w2 - w1 + self spacingHint);
-	    if (c_prev == ' ') {
-	      self calculateSpaceAppend;
-	      self reflow;
+	    /* For the Tab and Enter keys, we don't need to worry
+	       about the shift keys */
+	    e eventClass = KEYPRESS;
+	    e xEventData4 = __edittext_xk_keysym
+	      (xev.xkey.keycode, xev.xkey.state, 0);
+	    self methodObjectMessage self handleKbdInput, self, e;
+	    if (self keyState == KEY_ENTER) {
+	      self withdraw;
+	      dispatcher modalWin = 0;
+	      dispatcher modalPane = NULL;
+	      self entryContents = self entryPane entryText;
+	      return self returnVal;
 	    }
-	  } else if (self point == 0) {
-	    self chars shift cc;
-	    s2 = self chars asString;
-	    w2 = self ftFontVar textWidth s2;
-	    cc width = (w2 - w1 + self spacingHint);
-	    self reflow;
-	  } else {
-	    self insertAt cc, self point;
-	    s2 = self chars asString;
-	    w2 = self ftFontVar textWidth s2;
-	    cc width = (w2 - w1 + self spacingHint);
-	    self reflow;
 	  }
-	  self point += 1;
-	  self draw;
-	  self refresh;
-	  c_prev = c;
+	  break;
+	case KeyRelease:
+	  if (xev.xkey.window == self entryPane xWindowID) {
+	    e eventClass = KEYRELEASE;
+	    e xEventData4 = xev.xkey.keycode;
+	    e xEventData5 = __edittext_xk_keysym
+	      (xev.xkey.keycode, xev.xkey.state, 0);
+	    self entryPane subPaneKbd self entryPane, e;
+	    self entryPane draw;
+	    self entryPane refresh;
+	    self entryContents = self entryPane entryText;
+	  }
+	case Expose:
+	  self methodObjectMessage self handleExpose, self, e;
+	  break;
+	case MotionNotify:
+	  if (xev.xkey.window == self entryPane xWindowID) {
+	    e eventClass = MOTIONNOTIFY;
+	    e xEventData1 = xev.xmotion.x;
+	    e xEventData2 = xev.xmotion.y;
+	    e xEventData3 = xev.xmotion.state;
+	    e xEventData4 = xev.xmotion.is_hint;
+	    self entryPane subPanePointerMotion
+	      self entryPane, e;
+	  }
+	  break;
+	case SelectionRequest:
+	  __entrytext_send_selection (self displayPtr, &xev);
+	  break;
+	case ClientMessage:
+	  if(xev.xclient.data.l[0] == wm_delete_dialog) {
+	    self withdraw;
+	    dispatcher modalWin = 0;
+	    dispatcher modalPane = NULL;
+	    self returnVal = YESNO_NONE;
+	    self returnText = "";
+	    self entryContents = self entryPane entryText;
+	    return self returnVal;
+	  }
 	  break;
 	}
-    } else if (event eventClass == KEYRELEASE) {
-      switch (event xEventData5)
-	{
-	case XK_Shift_L:
-	case XK_Shift_R:
-	  subPane shiftState &= ~shiftStateShift;
-	  break;
-	case XK_Control_L:
-	case XK_Control_R:
-	  subPane shiftState &= ~shiftStateCtrl;
-	  break;
-	default:
-	  break;
-	}
+    } else {
+      usleep (5000);
     }
   }
+
 }
 
-X11TextEntryPane instanceMethod entryText (void) {
-  returnObjectClass String;
-
-  return self chars asString;
-}
 #endif
