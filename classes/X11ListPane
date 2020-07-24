@@ -1,4 +1,4 @@
-/* $Id: X11ListPane,v 1.11 2020/07/22 19:51:20 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11ListPane,v 1.14 2020/07/24 21:08:31 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -523,9 +523,8 @@ X11ListPane instanceMethod dumpList (void) {
 
 X11ListPane instanceMethod drawItemList (void) {
   ItemBox new item;
-  Integer new nthItemTopY, lineHeight, l_viewStartY, l_viewHeight;
+  Integer new lineHeight, l_viewStartY, l_viewHeight;
   Integer new visible;
-  Integer new textHeight;
   
   if (self iInit++ < 5)
     return NULL;
@@ -534,7 +533,6 @@ X11ListPane instanceMethod drawItemList (void) {
   self ftFontVar saveSelectedFont;
   self ftFontVar namedX11Color self resources at "textColor";
 
-  nthItemTopY = 0;
   lineHeight = self ftFontVar textHeight "T";
   l_viewStartY = self viewStartY;
   l_viewHeight = self size y;
@@ -548,13 +546,11 @@ X11ListPane instanceMethod drawItemList (void) {
     if (visible) {
       if (item selected == true) {
 
-	textHeight = super ftFontVar textHeight item;
-	/* Try to center the rectangle vertically over the text. */
-	textHeight += super ftFontVar descent;
-
 	super pen colorName = super resources at "selectColor";
 	super drawFilledRectangle (item org x,
-				   (item ext y - l_viewStartY - textHeight),
+				   /* Try to center the rectangle 
+				      vertically over the text. */
+				   (item ext y - l_viewStartY - lineHeight),
 				   item size x,
 				   item size y);
       }

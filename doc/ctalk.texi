@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.14 2020/07/23 20:53:13 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.15 2020/07/24 21:08:32 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -17803,6 +17803,142 @@ pointer is over one of the subpanes.
 @subheading @code{X11ListBox} Class
 @end ifnottex
 @cindex @code{X11ListBox} class
+
+A @code{X11ListBox} object pops up a dialog window that contains a label,
+a listbox, and ``Cancel'' and ``Ok'' buttons.
+
+After the listbox has first appeared and all of its subpanes have been
+initialized, a program can access any of the items selected in the
+listbox's list via the @code{listPane} instance variable.
+
+Here is an example program that shows how to display a @code{X11ListBox}
+and retrieve the selected list items.
+
+@example
+
+/* listbox.ca, a X11ListBox demonstration. -*-c-*- */
+
+#include <ctalk/ctalkdefs.h>
+
+#define N_ITEMS 30
+
+int main (void) @{
+  X11Pane new mainWindow;
+  X11PaneDispatcher new dispatcher;
+  X11ButtonPane new button;
+  X11LabelPane new label;
+  X11ListBox new listBox;
+  InputEvent new e;
+  Integer new i;
+  List new itemTextOut, itemNOut;
+  String new itemText, itemN;
+
+  label textColor = "white";
+  label canFocus = false;
+  label borderWidth = 0;
+
+  label ftFontVar notifyLevel XFT_NOTIFY_NONE;
+
+  mainWindow backgroundColor = "blue";
+  label resources replaceAt "backgroundColor", "blue";
+  button resources replaceAt "backgroundColor", "blue";
+  listBox resources replaceAt "backgroundColor", "blue";
+  
+  mainWindow initialize 255, 200;
+  mainWindow inputStream eventMask = 
+    EXPOSE|ENTERWINDOWNOTIFY|LEAVEWINDOWNOTIFY|BUTTONPRESS|BUTTONRELEASE|KEYPRESS|KEYRELEASE|WINDELETE|MOVENOTIFY|MOTIONNOTIFY;
+
+  dispatcher attachTo mainWindow;
+  button attachTo dispatcher, "110x70+73+100";
+  label attachTo dispatcher, "177x80+34+15";
+  listBox attachTo dispatcher, "300x400";
+
+  mainWindow map;
+  mainWindow raiseWindow;
+
+  mainWindow openEventStream;
+
+  mainWindow setWMTitle "X11ListBox Demo";
+
+  label ftFontVar initFontLib;
+
+  label multiLine "X11ListBox\nDemo";
+  label resources replaceAt "textColor", "lightgray";
+  label resources replaceAt "foregroundColor", "blue";
+  label resources replaceAt "borderColor", "blue";
+
+  button label multiLine "Open\nListPane\nDialog";
+
+  button label resources replaceAt "highlightForegroundColor", "gray80";
+
+  /* The program uses the "replaceAt" method because the key/value
+     entry for "backgroundColor" the X11MessageBoxPane : new method
+     has alread created an entry for backgroundColor. */
+  listBox resources replaceAt "backgroundColor", "blue";
+  listBox resources replaceAt "foregroundColor", "blue";
+  listBox resources replaceAt "messageColor", "white";
+  listBox resources replaceAt "messageText",
+    	       "Hello, listBox!\nPlease select an item.";
+
+  for (i = 1; i < N_ITEMS; ++i) @{
+    listBox items push "item " + i asString;
+  @}
+  
+  button draw;
+  button refresh;
+  label draw;
+  label refresh;
+
+  while (TRUE) @{
+    mainWindow inputStream queueInput;
+    if (mainWindow inputStream eventPending) @{
+      e become mainWindow inputStream inputQueue unshift;
+
+      mainWindow subPaneNotify e;
+
+      switch (e eventClass value)
+	@{
+	case EXPOSE:
+	  button subPaneExpose (button, e);
+	  label subPaneExpose (label, e);
+	  break;
+	case BUTTONRELEASE:
+	  listBox showManaged button;
+#if 0
+	  printf ("returnVal: %d: %s: %s\n", listBox returnVal,
+		  listBox returnText, listBox entryContents);
+#endif	  
+	  if (listBox listPane nItemsSelected > 1) @{
+	    i = 0;
+	    listBox listPane selectedItems itemTextOut;
+	    listBox listPane selectedItemsN itemNOut;
+	    itemNOut map @{
+	      itemN = self;
+	      /* This is a convenient way to retrieve
+		 the i'th item in the itemTextOut list. */
+	      itemText = *(itemTextOut + i);
+	      printf ("%d: %s\n", itemN, itemText);
+	      ++i;
+	    @}
+	  @} else @{
+	    printf ("%d: %s\n",
+		    listBox listPane selectedItemN,
+		    listBox listPane selectedItemText);
+	  @}
+	  break;
+	case WINDELETE:
+ 	  mainWindow deleteAndClose;
+	  exit (0);
+	  break;
+	@}
+    @} else @{
+      usleep (1000);
+    @}
+  @}
+
+@}
+
+@end example
 
 @node X11TextPane, X11TextEditorPane, X11ListBox, Classes
 @iftex

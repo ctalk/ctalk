@@ -1,4 +1,4 @@
-/* $Id: X11TextEntryBox,v 1.22 2020/06/24 22:16:30 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11TextEntryBox,v 1.3 2020/07/24 01:21:03 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -49,7 +49,7 @@ X11TextEntryBox instanceMethod new (String paneName) {
     "subPaneLeave";
   paneName setMethodHandler "leavenotify", leaveMethod;
 
-  /* These are modifications of the resources set in X11TextEntryPane : new. */
+  /* These are modifications of the resources set in X11YesNoBoxPane : new. */
   paneName resources replaceAt "leftButtonText", "Cancel";
   paneName resources replaceAt "rightButtonText", "OK";
 
@@ -429,11 +429,12 @@ X11TextEntryBox instanceMethod show (void) {
 	    self entryPane refresh;
 	    self entryContents = self entryPane entryText;
 	  }
+	  break;
 	case Expose:
 	  self methodObjectMessage self handleExpose, self, e;
 	  break;
 	case MotionNotify:
-	  if (xev.xkey.window == self entryPane xWindowID) {
+	  if (xev.xmotion.window == self entryPane xWindowID) {
 	    e eventClass = MOTIONNOTIFY;
 	    e xEventData1 = xev.xmotion.x;
 	    e xEventData2 = xev.xmotion.y;

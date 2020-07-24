@@ -17,6 +17,112 @@ Texts.  A copy of the license is included in the section entitled, "GNU
 Free Documentation License."
 
 
+File: ctalk.info,  Node: Errors,  Next: Cautions,  Prev: Method functions,  Up: Methods
+
+Exception and Error Handling
+----------------------------
+
+There are two ways to handle error conditions in Ctalk.  You can simply
+print an error or warning message in your code.  An error message
+formats the text and data that you provide, the same as in a 'printf'
+statement, and then exits the program.  Here is an example.
+     _error ("Program exited with code %d.\n", result_code);
+
+A '_warning' message is similar, but it prints the message and continues
+processing.  *Note errorfuncs::.
+
+The other way to handle errors is with exceptions.  This is the method
+you need to use if an error occurs within a method, and the program
+needs either to print a warning message, or exit.
+
+There are two methods of class 'Exception' that handle exceptions in
+application programs: 'pending' and 'handle.' There are also other API
+functions, but they are mostly used internally to translate exceptions
+into events that application programs can use.
+
+These two methods are generally used together.  The method 'pending,' if
+it returns 'TRUE,' signals that there is an exception pending.  Then the
+function 'handle' handles the event by executing an exception handler.
+
+Generally, events simply issue error messages.  It is up to you to
+determine how the program should handle the exception: by exiting,
+trying the procedure again, ignoring the condition, or some other
+procedure.  Here is an example.
+
+     Exception new e;
+     ...
+     inputStream openOn fileArg;
+     if (e pending) {
+        e handle;
+       exit (1);
+     }
+     if (inputStream isDir) {
+       printf ("Input is a directory.\n");
+       exit (1);
+     }
+This is simply the way that Ctalk notifies the application if the method
+'openOn' (class 'ReadFileStream') encountered an error while opening the
+file named by its argument, 'fileArg.'
+
+You should note that the program also checks whether the input is
+actually a directory, because opening a directory as if it were a file
+does not necessary cause an error condition.  The 'isDir' (class
+'FileStream') method is one portable way to check if the input path is
+actually a directory.
+
+The method 'openOn,' like other methods, raises an exception if
+necessary.  It does this with 'raiseException' (class
+'SystemErrnoException').
+
+Ctalk handles most 'stdio' error codes in this manner.  A program that
+uses the 'ReadFileStream' and 'WriteFileStream' classes should rarely
+need to use the C library's 'errno' macro, but it is still available if
+applications need to check for other errors from the C libraries.
+
+The Ctalk library also provides exceptions for missing arguments,
+undefined methods, and other error conditions.  The file,
+'include/except.h,' contains the definitions of Ctalk's compile and run
+time exceptions.
+
+
+File: ctalk.info,  Node: Cautions,  Next: Method keywords,  Prev: Errors,  Up: Methods
+
+Cautions when Using Arguments with C Library Calls
+--------------------------------------------------
+
+The interface for C functions is in development.  You can use a C
+function in a simple expression with any argument, as in the following
+example.
+
+     op1 = __ctalkGetInstanceVariableByName ("self", "value", TRUE);
+
+However, if you want to use a C function in a complex expression, then
+you must take care that the arguments to the function are C values that
+correspond to a Ctalk class, unless the function has a template written
+for it in the class library that performs the translations of specific
+classes and data types.  *Note Templates::.
+
+If you use a function in a method, and the compiler generates an,
+"implicit declaration," warning, you can include the library function's
+prototype in either the source file or in 'classes/ctalklib'.
+
+Cautions when using 'Array' class elements in C expressions.
+------------------------------------------------------------
+
+If you want to use an 'Array' element in a C expression, you need to
+take care that the value of the element translates to a 'void *,' which
+is the C type that Ctalk returns the values of these elements as.
+
+That means elements of class 'LongInteger' might be truncated, and
+'Float' class array elements cannot be translated in this manner.
+
+If array elements of these classes occur in C expressions, Ctalk prints
+a warning at run time.
+
+In these cases, it is necessary to convert the values to a compatible
+pointer type, for example an object of class 'String.'
+
+
 File: ctalk.info,  Node: Method keywords,  Next: Documentation,  Prev: Cautions,  Up: Methods
 
 Method Keywords
@@ -10116,7 +10222,7 @@ Index
 * X11Font class:                         X11Font.            (line    6)
 * X11FreeTypeFont class:                 X11FreeTypeFont.    (line    6)
 * X11LabelPane class:                    X11LabelPane.       (line    6)
-* X11ListBox class:                      X11ListBox.         (line    5)
+* X11ListBox class:                      X11ListBox.         (line    6)
 * X11ListPane class:                     X11ListPane.        (line    6)
 * X11MessageBoxPane class:               X11MessageBoxPane.  (line    6)
 * X11Pane class:                         X11Pane.            (line    6)
