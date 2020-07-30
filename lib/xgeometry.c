@@ -1,4 +1,4 @@
-/* $Id: xgeometry.c,v 1.5 2020/07/22 19:43:01 rkiesling Exp $ -*-c-*-*/
+/* $Id: xgeometry.c,v 1.1.1.1 2020/07/26 05:50:11 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.

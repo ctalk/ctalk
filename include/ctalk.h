@@ -1,4 +1,4 @@
-/* $Id: ctalk.h,v 1.8 2020/07/22 08:38:55 rkiesling Exp $ -*-Fundamental-*- */
+/* $Id: ctalk.h,v 1.2 2020/07/29 23:00:12 rkiesling Exp $ -*-Fundamental-*- */
 
 /*
   This file is part of Ctalk.
@@ -2036,6 +2036,8 @@ int __ctalkBlockCallerFrame (void);
 METHOD *__ctalkBlockCallerMethod (void);
 RT_FN *__ctalkBlockCallerFn (void);
 OBJECT *argblk_rcvr_object (MESSAGE_STACK, int);
+void subexpr_conditional (EXPR_PARSER *, int, int, int);
+void question_conditional (EXPR_PARSER *, int);
 
 /* lib/rt_args.c */
 int __add_arg_object_entry_frame (METHOD *, OBJECT *);

@@ -1,4 +1,4 @@
-L/* $Id: X11ListBox,v 1.8 2020/07/24 21:08:31 rkiesling Exp $ -*-C-*-*/
+L/* $Id: X11ListBox,v 1.1.1.1 2020/07/26 05:50:11 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -236,12 +236,6 @@ X11ListBox instanceMethod subPaneEnter (Object subPane,
     return NULL;
   } else if (__event eventData == subPane listPane xWindowID) {
     subPane listPane onEnter subPane listPane, __event;
-#if 0
-    /* subPane listPane useCursor subPane entryPane cursor; *//***/
-    subPane listPane hover = true;
-    subPane listPane draw;
-    subPane entryPane refresh;
-#endif    
     return NULL;
   }
 
@@ -372,15 +366,21 @@ X11ListBox instanceMethod show (void) {
 	    e xEventData2 = xev.xbutton.y;
 	    e xEventData3 = xev.xbutton.state;
 	    e xEventData4 = xev.xbutton.button;
+	    self listPane onClick self listPane, e;
+#if 0 /***/
 	    self listPane methodObjectMessage
 	      self listPane handlePointerInput, self listPane, e;
+#endif	    
 	  }
 	  break;
 	case ButtonRelease:
 	  if ((xev.xbutton.window == self lbutton xWindowID) ||
 	      (xev.xbutton.window == self rbutton xWindowID)) {
 	    e eventClass = BUTTONRELEASE;
+	    self listPane onClick self listPane, e;
+#if 0 /***/
 	    self methodObjectMessage self handlePointerInput, self, e;
+#endif	    
 	    self withdraw;
 	    dispatcher modalWin = 0;
 	    dispatcher modalPane = NULL;
@@ -391,8 +391,11 @@ X11ListBox instanceMethod show (void) {
 	    e xEventData2 = xev.xbutton.y;
 	    e xEventData3 = xev.xbutton.state;
 	    e xEventData4 = xev.xbutton.button;
+	    self listPane onClick self listPane, e;
+#if 0 /***/
 	    self listPane methodObjectMessage
 	      self listPane handlePointerInput, self listPane, e;
+#endif	    
 	  }
 	  break;
 	case EnterNotify:
@@ -401,7 +404,10 @@ X11ListBox instanceMethod show (void) {
 	      (xev.xbutton.window == self listPane xWindowID)) {
 	    e eventClass = ENTERWINDOWNOTIFY;
 	    e eventData = xev.xbutton.window;
+	    self subPaneEnter self, e;
+#if 0 /***/
 	    self methodObjectMessage self handleEnterNotify, self, e;
+#endif	    
 	  }
 	  break;
 	case LeaveNotify:
@@ -410,7 +416,10 @@ X11ListBox instanceMethod show (void) {
 	      (xev.xbutton.window == self listPane xWindowID)) {
 	    e eventClass = LEAVEWINDOWNOTIFY;
 	    e eventData = xev.xbutton.window;
+	    self subPaneLeave self, e;
+#if 0
 	    self methodObjectMessage self handleLeaveNotify, self, e;
+#endif	    
 	  }
 	  break;
 	case KeyPress:
@@ -430,52 +439,15 @@ X11ListBox instanceMethod show (void) {
 	    e xEventData4 = xev.xkey.keycode;
 	    e xEventData5 = __edittext_xk_keysym
 	      (xev.xkey.keycode, xev.xkey.state, 0);
-	    self listPane methodObjectMessage
-	      self listPane handleKbdInput, self listPane, e;
+	    self listPane onKey self listPane, e;
 	  }
 	  break;
-#if 0
-	  if (xev.xkey.window == self entryPane xWindowID) {
-	    e eventClass = KEYPRESS;
-	    e xEventData4 = xev.xkey.keycode;
-	    e xEventData5 = __edittext_xk_keysym
-	      (xev.xkey.keycode, xev.xkey.state, 0);
-	    self entryPane subPaneKbd self entryPane, e;
-	    self entryPane draw;
-	    self entryPane refresh;
-	    self entryContents = self entryPane entryText;
-	  } else {
-	    /* For the Tab and Enter keys, we don't need to worry
-	       about the shift keys */
-	    e eventClass = KEYPRESS;
-	    e xEventData4 = __edittext_xk_keysym
-	      (xev.xkey.keycode, xev.xkey.state, 0);
-	    self methodObjectMessage self handleKbdInput, self, e;
-	    if (self keyState == KEY_ENTER) {
-	      self withdraw;
-	      dispatcher modalWin = 0;
-	      dispatcher modalPane = NULL;
-	      self entryContents = self entryPane entryText;
-	      return self returnVal;
-	    }
-	  }
-	  break;
-	case KeyRelease:
-	  if (xev.xkey.window == self entryPane xWindowID) {
-	    e eventClass = KEYRELEASE;
-	    e xEventData4 = xev.xkey.keycode;
-	    e xEventData5 = __edittext_xk_keysym
-	      (xev.xkey.keycode, xev.xkey.state, 0);
-	    self entryPane subPaneKbd self entryPane, e;
-	    self entryPane draw;
-	    self entryPane refresh;
-	    self entryContents = self entryPane entryText;
-	  }
-	  break;
-#endif	  
 	case Expose:
 	  if (xev.xexpose.count == 0)
+	    self subPaneExpose self, e;
+#if 0
 	    self methodObjectMessage self handleExpose, self, e;
+#endif	  
 	  break;
 	case MotionNotify:
 	  if (xev.xmotion.window == self listPane xWindowID) {
@@ -485,8 +457,11 @@ X11ListBox instanceMethod show (void) {
 	    e xEventData2 = xev.xmotion.y;
 	    e xEventData3 = xev.xmotion.state;
 	    e xEventData4 = xev.xmotion.is_hint;
+	    self listPane onMotion self listPane, e;
+#if 0
 	    self listPane methodObjectMessage
 	      self listPane handlePointerMotion, self listPane, e;
+#endif	    
 	  }
 	  break;
 	case SelectionRequest:

@@ -1044,7 +1044,32 @@
 	of a window that many pixels in from either the right or
 	bottom edge of the parent window (xgeometry.c).
 	- Added the X11LabelPane : selectFont method.
-	2020-07-24
+2020-07-24
 	- Added the initial version of the X11ListBox class and
 	the demos/x11/listbox.ca demonstration program.
+2020-07-25
+	- In eval_expr, increment a conditional token '?' evaled count
+	in case the compiler didn't translate it into a C substitution
+	(rt_expr.c).
+	- Added subexpr_conditional (rt_argblk.c), called by eval_subexpr
+	(rt_expr.c), and the qcond2.c test program.
+2020-07-26
+	- Added the qcond[3-5].c test programs.
+2020-07-27
+	- Added the qcond[6-9].c test programs.
+	- Updated subexpr_conditional to use int, char, and char *
+	values as the result of the predicate expression (rt_argblk.c).
+2020-07-28
+	- Added the qcond[10-17].c test programs.
+2020-07-29
+	- Added the eval_subexpr_call global bool in rt_expr.c, set by
+	eval_subexpr and cleared in the recursive call to eval_expr when
+	it creates the EXPR_PARSER.  Added the EVAL_STATUS_DIRECT_SUBEXPR
+	define in rtinfo.h, set at the beginning of eval_expr if
+	eval_subexpr_call is true (rt_expr.c).
+	- Added the question_conditional function (rt_argblk.c), called
+	by eval_expr.
+	- Added the qcond18.c test program.
+2020-07-30
+	- Added the qcond[19-25].c test programs.
 

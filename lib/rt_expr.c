@@ -1,4 +1,4 @@
-/* $Id: rt_expr.c,v 1.6 2020/07/18 14:41:22 rkiesling Exp $ */
+/* $Id: rt_expr.c,v 1.4 2020/07/29 23:00:12 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -48,6 +48,8 @@ extern DEFAULTCLASSCACHE *rt_defclasses; /* Defined in rtclslib.c. */
 static OBJECT *null_result_obj_2 (METHOD *, OBJECT *, int);
 
 static int expr_parser_lvl = 0;
+
+static bool eval_subexpr_call = false;
 
 EXPR_PARSER *expr_parsers[MAXARGS+1];
 int expr_parser_ptr = MAXARGS + 1;
@@ -2332,6 +2334,12 @@ OBJECT *eval_expr (char *s, OBJECT *recv_class, METHOD *method,
   p -> is_arg_expr = (bool)is_arg_expr;
   p -> expr_str = s;
   p -> m_s = e_messages;
+  /***/
+  /* This might not actually be needed. */
+  if (eval_subexpr_call) {
+    p -> entry_eval_status |= EVAL_STATUS_DIRECT_SUBEXPR;
+    eval_subexpr_call = false;
+  }
   expr_parsers[--expr_parser_ptr] = p;
 
   p -> msg_frame_top = tokenize_no_error (e_message_push, pname);
@@ -4702,8 +4710,8 @@ OBJECT *eval_expr (char *s, OBJECT *recv_class, METHOD *method,
 		}
 	      }
 	      break;
-	    case CONDITIONAL:     /* Gets re-arranged in the parser, so
-				     this is a no-op here. */
+	    case CONDITIONAL:
+	      question_conditional (p, i); /***/
 	      break;
 	    case SIZEOF:
 	      if ((next_msg_ptr = 
@@ -5966,6 +5974,7 @@ OBJECT *eval_subexpr (MESSAGE_STACK messages, int idx, int is_arg_expr) {
   subexpr_rcvr = get_subexpr_rcvr (messages, idx, matching_paren_ptr,
 				   &subexpr_scope);
 
+  eval_subexpr_call = true;
   if (subexpr_rcvr) {
     subexpr_result = eval_expr (token_buf, subexpr_rcvr -> __o_class, 
 				method, subexpr_rcvr, subexpr_scope,
@@ -6087,6 +6096,9 @@ OBJECT *eval_subexpr (MESSAGE_STACK messages, int idx, int is_arg_expr) {
 	  }
 	}
       }
+    } else if (M_TOK(m_next) == CONDITIONAL) {
+      subexpr_conditional
+	(expr_parsers[expr_parser_ptr], idx, matching_paren_ptr, post_expr_ptr);
     }
   }
 
