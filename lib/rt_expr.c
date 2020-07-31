@@ -1,4 +1,4 @@
-/* $Id: rt_expr.c,v 1.4 2020/07/29 23:00:12 rkiesling Exp $ */
+/* $Id: rt_expr.c,v 1.5 2020/07/31 04:22:52 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -879,6 +879,7 @@ static inline int eval_op_precedence (int precedence,
 	default:
 	  break;
 	}
+      break;
     case 12:
       switch (messages[op_ptr] -> tokentype)
 	{
