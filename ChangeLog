@@ -1054,7 +1054,8 @@
 	- Added subexpr_conditional (rt_argblk.c), called by eval_subexpr
 	(rt_expr.c), and the qcond2.c test program.
 2020-07-26
-	- Added the qcond[3-5].c test programs.
+	- Added the qcond[3-5].c test programs.	      return prevlangmsg (messages, i_2);
+
 2020-07-27
 	- Added the qcond[6-9].c test programs.
 	- Updated subexpr_conditional to use int, char, and char *
@@ -1073,4 +1074,12 @@
 2020-07-30
 	- Added the qcond[19-26].c test programs.
 	- Fixed a bug in eval_op_precedence (rt_expr.c).
+2020-07-31
+	- Added the qcond[27-33].c test programs.
+	- Added a CONDITIONAL case to method_arg_limit, with scan
+	forward for a semicolon argument separator.
+	- In method_arg_limit_2, added a check for embedded parentheses
+	before returning at a closing paren (arg.c).
+2020-08-01
+	- Added the qcond[34-35].c test programs.
 

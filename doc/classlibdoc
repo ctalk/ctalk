@@ -7557,6 +7557,31 @@ pointer is over one of the subpanes.
 
 
 
+
+
+>>>X11ListBox::draw (void)
+This calls the indivdual subpane's draw and refresh methods
+in order to update the dialog's contents on the display.
+
+>>>X11ListBox::initWidgets (void)
+Called when the dialog first appears, this initializes each of the
+component widget objects.
+
+>>>X11ListBox::new
+The X11ListBox constructor.  Creates the dialog object with the
+name given as the argument, and initializes the dialog's event
+handlers and resources.
+
+>>>X11ListBox::show
+Displays the dialog window, also calling initWidgets if the
+dialog is being displayed for the first time.
+
+>>>X11ListBox::subPaneEnter (Object subPane, InputEvent event)
+>>>X11ListBox::subPaneLeave (Object subPane, InputEvent event)
+Event handlers for highlighting the dialog's label or buttons when the
+pointer is over them.
+
+
 >>>X11TextPane::addText (Object text)
 Adds the argument's text to the receiver pane's text instance
 variable, then word-wraps the entire text into the textList instance

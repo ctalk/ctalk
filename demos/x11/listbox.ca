@@ -86,10 +86,6 @@ int main (void) {
 	  break;
 	case BUTTONRELEASE:
 	  listBox showManaged button;
-#if 0
-	  printf ("returnVal: %d: %s: %s\n", listBox returnVal,
-		  listBox returnText, listBox entryContents);
-#endif	  
 	  if (listBox listPane nItemsSelected > 1) {
 	    i = 0;
 	    listBox listPane selectedItems itemTextOut;

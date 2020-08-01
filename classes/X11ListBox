@@ -1,4 +1,4 @@
-L/* $Id: X11ListBox,v 1.1.1.1 2020/07/26 05:50:11 rkiesling Exp $ -*-C-*-*/
+L/* $Id: X11ListBox,v 1.2 2020/08/01 23:03:26 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -75,15 +75,6 @@ X11ListBox instanceMethod draw (void) {
   self lbutton draw;
   self rbutton draw;
 
-#if 0
-  if (self resources at "iconID" > 0) {
-    self paneBuffer copy self icon, 0, 0, ICON_WIDTH_PX, ICON_HEIGHT_PX,
-      ((self resources at "pad") * 2),
-      ((self resources at "pad") +
-       ((self label size y / 2) + (self entryPane size y / 2))  -
-       (ICON_HEIGHT_PX / 2));
-  }
-#endif  
 }
 
 X11ListBox instanceMethod initWidgets (void) {
@@ -122,13 +113,6 @@ X11ListBox instanceMethod initWidgets (void) {
   label_x_px = padInt;
   label_y_px = padInt;
 
-#if 0
-  if (self resources at "iconID" > 0) {
-    label_x_px += ICON_WIDTH_PX + (padInt * 2);
-    label_width_px -= (ICON_WIDTH_PX + (padInt * 2));
-  }
-#endif  
-
   geomspec printOn "%dx%d+%d+%d", label_width_px, label_height_px,
     label_x_px, label_y_px;
 
@@ -153,13 +137,6 @@ X11ListBox instanceMethod initWidgets (void) {
   list_x_px = padInt;
   list_y_px = label_height_px + padInt;
 
-#if 0
-  if (self resources at "iconID" > 0) {
-    list_x_px += ICON_WIDTH_PX + (padInt * 2);
-    list_width_px -= (ICON_WIDTH_PX + (padInt * 2));
-  }
-#endif  
-  
   geomspec printOn "%dx-%d+%d+%d", list_width_px, list_height_px,
     list_x_px, list_y_px;
 
@@ -187,16 +164,6 @@ X11ListBox instanceMethod initWidgets (void) {
 
   self lbutton label text (self resources at "leftButtonText");
   self rbutton label text (self resources at "rightButtonText");
-
-#if 0
-  if (self resources at "iconID" > 0) {
-    l_icon create self displayPtr, self paneBuffer xID,
-      ICON_WIDTH_PX, ICON_HEIGHT_PX, self paneBuffer depth;
-    l_icon background self resources at "foregroundColor";
-    self icon become l_icon;
-    self drawIcon;
-  }
-#endif  
 
   self initialized = true;
 
@@ -284,14 +251,8 @@ X11ListBox instanceMethod subPaneLeave (Object subPane,
 	self rbutton hover = false;
       }
     }
-  } else if (__event eventData == subPane listPane xWindowID) { /***/
+  } else if (__event eventData == subPane listPane xWindowID) {
     subPane listPane onLeave subPane listPane, __event;
-#if 0
-    subPane defaultCursor;
-    subPane entryPane hover = false;
-    subPane entryPane draw;
-    subPane entryPane refresh;
-#endif    
   }
 }
 
@@ -367,10 +328,6 @@ X11ListBox instanceMethod show (void) {
 	    e xEventData3 = xev.xbutton.state;
 	    e xEventData4 = xev.xbutton.button;
 	    self listPane onClick self listPane, e;
-#if 0 /***/
-	    self listPane methodObjectMessage
-	      self listPane handlePointerInput, self listPane, e;
-#endif	    
 	  }
 	  break;
 	case ButtonRelease:
@@ -378,9 +335,6 @@ X11ListBox instanceMethod show (void) {
 	      (xev.xbutton.window == self rbutton xWindowID)) {
 	    e eventClass = BUTTONRELEASE;
 	    self listPane onClick self listPane, e;
-#if 0 /***/
-	    self methodObjectMessage self handlePointerInput, self, e;
-#endif	    
 	    self withdraw;
 	    dispatcher modalWin = 0;
 	    dispatcher modalPane = NULL;
@@ -392,10 +346,6 @@ X11ListBox instanceMethod show (void) {
 	    e xEventData3 = xev.xbutton.state;
 	    e xEventData4 = xev.xbutton.button;
 	    self listPane onClick self listPane, e;
-#if 0 /***/
-	    self listPane methodObjectMessage
-	      self listPane handlePointerInput, self listPane, e;
-#endif	    
 	  }
 	  break;
 	case EnterNotify:
@@ -405,9 +355,6 @@ X11ListBox instanceMethod show (void) {
 	    e eventClass = ENTERWINDOWNOTIFY;
 	    e eventData = xev.xbutton.window;
 	    self subPaneEnter self, e;
-#if 0 /***/
-	    self methodObjectMessage self handleEnterNotify, self, e;
-#endif	    
 	  }
 	  break;
 	case LeaveNotify:
@@ -417,15 +364,12 @@ X11ListBox instanceMethod show (void) {
 	    e eventClass = LEAVEWINDOWNOTIFY;
 	    e eventData = xev.xbutton.window;
 	    self subPaneLeave self, e;
-#if 0
-	    self methodObjectMessage self handleLeaveNotify, self, e;
-#endif	    
 	  }
 	  break;
 	case KeyPress:
 	case KeyRelease:
 	  if (xev.xkey.window == self listPane xWindowID) {
-	    /***/
+	    /* Here for testing. */
 #if 0
 	    e eventClass = (xev.type == KeyPress) ? KEYPRESS : KEYRELEASE;
 #else	    
@@ -445,9 +389,6 @@ X11ListBox instanceMethod show (void) {
 	case Expose:
 	  if (xev.xexpose.count == 0)
 	    self subPaneExpose self, e;
-#if 0
-	    self methodObjectMessage self handleExpose, self, e;
-#endif	  
 	  break;
 	case MotionNotify:
 	  if (xev.xmotion.window == self listPane xWindowID) {
@@ -458,10 +399,6 @@ X11ListBox instanceMethod show (void) {
 	    e xEventData3 = xev.xmotion.state;
 	    e xEventData4 = xev.xmotion.is_hint;
 	    self listPane onMotion self listPane, e;
-#if 0
-	    self listPane methodObjectMessage
-	      self listPane handlePointerMotion, self listPane, e;
-#endif	    
 	  }
 	  break;
 	case SelectionRequest:

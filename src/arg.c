@@ -1,4 +1,4 @@
-/* $Id: arg.c,v 1.2 2020/07/08 02:47:49 rkiesling Exp $ */
+/* $Id: arg.c,v 1.3 2020/08/01 11:27:13 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -84,9 +84,10 @@ int paren_expr (MESSAGE_STACK messages, int open_paren_idx) {
 
 int method_arg_limit (MESSAGE_STACK messages, int arg_start) {
 
-  int n_parens, n_subscripts, i, stack_end_idx, lookahead;
+  int n_parens, n_subscripts, i, i_2, stack_end_idx, lookahead;
   int arg_arglist_limit;
   int typecast_open_idx, typecast_close_idx;
+  int stack_top;
 
   n_parens = n_subscripts = i = stack_end_idx = 0;
 
@@ -96,9 +97,8 @@ int method_arg_limit (MESSAGE_STACK messages, int arg_start) {
       if ((i = paren_expr (messages, arg_start)) == ERROR)
 	return ERROR;
       if (interpreter_pass == expr_check) {
-	int __stack_top;
-	__stack_top = get_stack_top (messages);
-	if (i == (__stack_top + 1))
+	stack_top = get_stack_top (messages);
+	if (i == (stack_top + 1))
 	  return i;
       }
       if ((lookahead = nextlangmsg (messages, i)) == ERROR)
@@ -115,6 +115,20 @@ int method_arg_limit (MESSAGE_STACK messages, int arg_start) {
 	case ARGSEPARATOR:
 	  return i;
 	  /* break; */   /* Not reached. */
+	case CONDITIONAL:
+	  /***/
+	  stack_top = get_stack_top (messages);
+	  for (i_2 = lookahead; i_2 > stack_top; i_2--) {
+	    if (M_TOK(messages[i_2]) == SEMICOLON) {
+	      return prevlangmsg (messages, i_2);
+	    }
+#if 1 /***/
+	    else if (M_TOK(messages[i_2]) == ARGSEPARATOR) {
+	      return prevlangmsg (messages, i_2);
+	    }
+#endif	    
+	  }
+	  break;
 	default:
 	  /*
 	   *  The function also needs to handle cases like 
@@ -277,7 +291,15 @@ static int method_arg_limit_2 (MESSAGE_STACK messages, int arg_start) {
  		return ERROR;
 	      switch (M_TOK(messages[lookahead]))
 		{
-		case CLOSEPAREN:
+		case OPENPAREN: /***/
+		  ++n_parens;
+		  break;
+		case CLOSEPAREN: /***/
+		  if (n_parens == 0)
+		    return i;
+		  else
+		    --n_parens;
+		  break;
 		case SEMICOLON:
 		case ARGSEPARATOR:
 		  return i;

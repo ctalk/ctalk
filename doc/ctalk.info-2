@@ -5637,6 +5637,37 @@ After the listbox has first appeared and all of its subpanes have been
 initialized, a program can access any of the items selected in the
 listbox's list via the 'listPane' instance variable.
 
+A 'X11ListBox' dialog supports multiple selections.  Pressing <Shift>
+while clicking on a list item adds that item to list's selections.
+Pressing <Ctrl> while clicking on an item selects all of the items in a
+range between the first selected item and the last selected item of the
+list.
+
+Component Widgets
+-----------------
+
+A 'X11ListBox' consists of component widgets from the 'X11LabelPane',
+'X11ListPane', and 'X11ButtonPane' class.
+
+The objects for each component are declared as instance variables,
+which, except for the list subpane itself, are inherited from the
+'X11YesNoBoxPane' superclass.  *Note X11YesNoBoxPane::.
+
+
+     Component Instance       Class                 Inherited
+          Variable                                    From
+     ------------------       -----               --------------
+     listPane                 X11ListPane         --
+     lButton                  X11ButtonPane       X11YesNoBoxPane
+     rButton                  X11ButtonPane       X11YesNoBoxPane
+     label                    X11LabelPane        X11YesNoBoxPane
+
+
+More information about the resources, instance variables, and methods
+that each component uses is contained in each of the component classes'
+individual sections: *Note X11ListPane::, *Note X11ButtonPane::, and
+*Note X11LabelPane::
+
 Here is an example program that shows how to display a 'X11ListBox' and
 retrieve the selected list items.
 
@@ -5729,10 +5760,6 @@ retrieve the selected list items.
      	  break;
      	case BUTTONRELEASE:
      	  listBox showManaged button;
-     #if 0
-     	  printf ("returnVal: %d: %s: %s\n", listBox returnVal,
-     		  listBox returnText, listBox entryContents);
-     #endif
      	  if (listBox listPane nItemsSelected > 1) {
      	    i = 0;
      	    listBox listPane selectedItems itemTextOut;
@@ -5763,6 +5790,106 @@ retrieve the selected list items.
 
      }
 
+
+Retrieving List Selections
+--------------------------
+
+There are several methods that provide information about which item or
+list items are currently selected.  Generally, if a user has selected
+more than one item, then the results would be in the form of a list,
+instead of an 'Integer' index of a selection or a 'String' containing
+the selection's contents.
+
+The method, 'nItemsSelected', returns an 'Integer' with the number of
+items that are currently selected.  Programs can use this to determine
+which method to use to retrieve the list selections.
+
+Depending on whether a user has selected a single item or multiple
+items, a program can use the 'selectedItemN' or 'selectedItemsN' methods
+to retrieve selection indexes, and the 'selectedItemText' or
+'selectedItems' methods to retrieve the text of the selected item or
+items.
+
+The example program above uses this method to print either a single
+selected item or multiple selections.
+
+
+     if (listBox listPane nItemsSelected > 1) {
+       i = 0;
+       listBox listPane selectedItems itemTextOut;
+       listBox listPane selectedItemsN itemNOut;
+       itemNOut map {
+         itemN = self;
+         /* This is a convenient way to retrieve
+            the i'th item in the itemTextOut list. */
+         itemText = *(itemTextOut + i);
+         printf ("%d: %s\n", itemN, itemText);
+         ++i;
+       }
+     } else {
+       printf ("%d: %s\n",
+               listBox listPane selectedItemN,
+               listBox listPane selectedItemText);
+     }
+
+
+Resources
+---------
+
+'listFont'
+     A 'String' that contains the name of the font that the
+     'X11ListPane' subwidget uses to display the list items.  The
+     default is 'sans-serif-12'.
+
+Instance Variables
+------------------
+
+'items'
+     A 'List' that contains all of the items to be added to the list
+     when the dialog is first popped up.  Because the dialog box doesn't
+     construct itself and the list subpane until it first appears, this
+     is a convenient way for programs to define the items that will
+     initially appear in the list before the the dialog first appears.
+
+     After the dialog first appears, the list items may be modified by
+     using the list pane's 'add' method.  For example:
+
+
+          myListDialog listPane add "Extra List Item 1";
+
+
+'listPane'
+     A 'X11ListPane' object that defines the list subpane.  It is
+     initialized when the dialog is first popped up.  After that,
+     programs can use any of the methods, resources, and instance
+     variables that are defined in 'X11ListPane' class to alter or
+     retrieve the list's items or the user's selections *Note
+     X11ListPane::.
+
+Instance Methods
+----------------
+
+'draw (void)'
+     This calls the indivdual subpane's 'draw' and 'refresh' methods in
+     order to update the dialog's contents on the display.
+
+'initWidgets (void)'
+     Called when the dialog first appears, this initializes each of the
+     component widget objects.
+
+'new (String PANENAME'
+     The 'X11ListBox' constructor.  Creates the dialog object with the
+     name given as the argument, and initializes the dialog's event
+     handlers and resources.
+
+'show (String PANENAME'
+     Displays the dialog window, also calling 'initWidgets' if the
+     dialog is being displayed for the first time.
+
+'subPaneEnter (Object SUBPANE, InputEvent EVENT)'
+'subPaneLeave (Object SUBPANE, InputEvent EVENT)'
+     Event handlers for highlighting the dialog's label or buttons when
+     the pointer is over them.
 
 
 File: ctalk.info,  Node: X11TextPane,  Next: X11TextEditorPane,  Prev: X11ListBox,  Up: Classes
@@ -8166,151 +8293,4 @@ receiver again.  The output should look something like this.
 
      Hello, world!
      Hello, world! world! Again.
-
-
-File: ctalk.info,  Node: Variable method arguments,  Next: Method functions,  Prev: Overloading,  Up: Methods
-
-Variable Method Arguments
--------------------------
-
-Ctalk supports variable arguments lists for methods that follow the
-'stdarg.h' format for argument lists, where the argument assigned to the
-last named parameter determines the number and type of the following
-arguments.  (The manual page 'stdarg (3)' has more details.)
-
-
-       String instanceMethod writeFormat (char *fmt, ...)
-
-
-In addition, Ctalk supports argument lists with _no_ named parameters.
-To implement this, Ctalk interprets an ellipsis as a variable argument
-list, as usual.  It is then up to the method to interpret the arguments
-as they appear on Ctalk's argument stack.
-
-For this task, the '__ctalkNArgs' library function returns the number of
-arguments that the run-time libraries place on the stack.  The method
-can then interpret these arguments as necessary.
-
-Here is the slightly abbreviated code for the 'List' : '=' method, which
-should help illustrate this.  *Note List::.
-
-
-     List instanceMethod = initEQ (...) {
-       int n, i;
-       OBJECT *arg;
-
-       self delete;         /* Start with an empty List. */
-       n = __ctalkNArgs ();
-
-       for (i = (n - 1); i >= 0; --i) {
-         arg = __ctalk_arg_internal (i);
-         self push arg;
-       }
-     }
-
-
-
-File: ctalk.info,  Node: Method functions,  Next: Errors,  Prev: Variable method arguments,  Up: Methods
-
-Method Functions
-----------------
-
-Occasionally an application needs to call a method as a function.  One
-example of this is a 'SignalHandler' method that the program installs as
-the handler for signals from the operating system.
-
-Methods that use a C calling convention need to do several things
-differently than normal methods.
-   * The method needs to use a C variable as its argument.
-   * Because the method can be called with no receivers, Ctalk does not
-     perform any of the normal initialization of local and parameter
-     objects.
-   * The method body needs to be written almost entirely in C.
-
-In order to make Ctalk interpret a method parameter as a C variable, the
-method must declare the parameter with the '__c_arg__' attribute.
-
-_Note:_ C functions that are called by the operating system generally
-need only one argument, and the '__c_arg__' attribute only works for
-methods with a single parameter.
-
-Additionally, to prevent Ctalk from adding local object initialization
-code to the method, the method must contain the 'noMethodInit' keyword.
-
-Here is an example of a method that is used as a signal handler, and
-installed by the statements in 'main.'
-     SignalHandler instanceMethod myHandler (__c_arg__ int signo) {
-       noMethodInit;
-       printf ("sigInt handler! Signal %d.\n", signo);
-       return NULL;
-     }
-
-     int main () {
-
-       SignalHandler new s;
-
-       s setSigInt;
-       s installHandler myHandler;
-     }
-
-The 'setSigInt' method (class 'SignalHandler') tells the 'SignalHandler'
-object 's' that it is going to handle 'SIGINT' signals.  *Note
-SignalHandler::, for the other signals that the class can handle.
-
-The '__ctalkNewSignalEventInternal' function can generate and queue
-'SignalEvent' objects, so the signal handler does not need to create
-objects in order to send signal events to the application.  *Note
-__ctalkNewSignalEventInternal::.
-
-Including C Header Files
-........................
-
-Often you will need to use C functions and data types in method
-functions.  However, you need to take care that if you include a C
-header file, it might not be included later on if a class library
-requires that file.
-
-Normally Ctalk includes whatever C definitions it needs in the class
-libraries.  However, that can cause the preprocessor to omit those
-definitions from another source file, should the definitions be needed
-later.
-
-For example, in the method 'handleSignal', from the 'timeclient.c'
-program, the method needs the definition of the 'time(2)' function.  If
-you were to '#include' 'time.h' in the input, as in this example, then
-'time.h''s definitions would not be included in the 'CTime' class later
-on.
-     #include <time.h>    /* Could cause errors later. */
-
-     SignalHandler instanceMethod handleSignal (__c_arg__ int signo) {
-       time_t t;
-       char buf[MAXLABEL];
-       noMethodInit;
-       t = time (NULL);
-       __ctalkDecimalIntegerToASCII (t, buf);
-       __ctalkNewSignalEventInternal (signo, getpid (), buf);
-       return NULL;
-     }
-
-The best way to avoid omitting dependencies is to include only the
-definitions that the method needs.  In this case, you can include the
-prototype of 'time(2)' in the source file.
-     extern time_t time (time_t *__timer) __THROW;  /* From time.h. */
-
-     SignalHandler instanceMethod handleSignal (__c_arg__ int signo) {
-       time_t t;
-       char buf[MAXLABEL];
-       noMethodInit;
-       t = time (NULL);
-       __ctalkDecimalIntegerToASCII (t, buf);
-       __ctalkNewSignalEventInternal (signo, getpid (), buf);
-       return NULL;
-     }
-
-The 'time_t' type is defined with 'ctalklib', and is available to all
-programs.
-
-How to resolve multiple library definitions depends on the system's
-header files, and may vary between different operating systems or
-compiler versions.
 

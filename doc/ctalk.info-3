@@ -17,6 +17,153 @@ Texts.  A copy of the license is included in the section entitled, "GNU
 Free Documentation License."
 
 
+File: ctalk.info,  Node: Variable method arguments,  Next: Method functions,  Prev: Overloading,  Up: Methods
+
+Variable Method Arguments
+-------------------------
+
+Ctalk supports variable arguments lists for methods that follow the
+'stdarg.h' format for argument lists, where the argument assigned to the
+last named parameter determines the number and type of the following
+arguments.  (The manual page 'stdarg (3)' has more details.)
+
+
+       String instanceMethod writeFormat (char *fmt, ...)
+
+
+In addition, Ctalk supports argument lists with _no_ named parameters.
+To implement this, Ctalk interprets an ellipsis as a variable argument
+list, as usual.  It is then up to the method to interpret the arguments
+as they appear on Ctalk's argument stack.
+
+For this task, the '__ctalkNArgs' library function returns the number of
+arguments that the run-time libraries place on the stack.  The method
+can then interpret these arguments as necessary.
+
+Here is the slightly abbreviated code for the 'List' : '=' method, which
+should help illustrate this.  *Note List::.
+
+
+     List instanceMethod = initEQ (...) {
+       int n, i;
+       OBJECT *arg;
+
+       self delete;         /* Start with an empty List. */
+       n = __ctalkNArgs ();
+
+       for (i = (n - 1); i >= 0; --i) {
+         arg = __ctalk_arg_internal (i);
+         self push arg;
+       }
+     }
+
+
+
+File: ctalk.info,  Node: Method functions,  Next: Errors,  Prev: Variable method arguments,  Up: Methods
+
+Method Functions
+----------------
+
+Occasionally an application needs to call a method as a function.  One
+example of this is a 'SignalHandler' method that the program installs as
+the handler for signals from the operating system.
+
+Methods that use a C calling convention need to do several things
+differently than normal methods.
+   * The method needs to use a C variable as its argument.
+   * Because the method can be called with no receivers, Ctalk does not
+     perform any of the normal initialization of local and parameter
+     objects.
+   * The method body needs to be written almost entirely in C.
+
+In order to make Ctalk interpret a method parameter as a C variable, the
+method must declare the parameter with the '__c_arg__' attribute.
+
+_Note:_ C functions that are called by the operating system generally
+need only one argument, and the '__c_arg__' attribute only works for
+methods with a single parameter.
+
+Additionally, to prevent Ctalk from adding local object initialization
+code to the method, the method must contain the 'noMethodInit' keyword.
+
+Here is an example of a method that is used as a signal handler, and
+installed by the statements in 'main.'
+     SignalHandler instanceMethod myHandler (__c_arg__ int signo) {
+       noMethodInit;
+       printf ("sigInt handler! Signal %d.\n", signo);
+       return NULL;
+     }
+
+     int main () {
+
+       SignalHandler new s;
+
+       s setSigInt;
+       s installHandler myHandler;
+     }
+
+The 'setSigInt' method (class 'SignalHandler') tells the 'SignalHandler'
+object 's' that it is going to handle 'SIGINT' signals.  *Note
+SignalHandler::, for the other signals that the class can handle.
+
+The '__ctalkNewSignalEventInternal' function can generate and queue
+'SignalEvent' objects, so the signal handler does not need to create
+objects in order to send signal events to the application.  *Note
+__ctalkNewSignalEventInternal::.
+
+Including C Header Files
+........................
+
+Often you will need to use C functions and data types in method
+functions.  However, you need to take care that if you include a C
+header file, it might not be included later on if a class library
+requires that file.
+
+Normally Ctalk includes whatever C definitions it needs in the class
+libraries.  However, that can cause the preprocessor to omit those
+definitions from another source file, should the definitions be needed
+later.
+
+For example, in the method 'handleSignal', from the 'timeclient.c'
+program, the method needs the definition of the 'time(2)' function.  If
+you were to '#include' 'time.h' in the input, as in this example, then
+'time.h''s definitions would not be included in the 'CTime' class later
+on.
+     #include <time.h>    /* Could cause errors later. */
+
+     SignalHandler instanceMethod handleSignal (__c_arg__ int signo) {
+       time_t t;
+       char buf[MAXLABEL];
+       noMethodInit;
+       t = time (NULL);
+       __ctalkDecimalIntegerToASCII (t, buf);
+       __ctalkNewSignalEventInternal (signo, getpid (), buf);
+       return NULL;
+     }
+
+The best way to avoid omitting dependencies is to include only the
+definitions that the method needs.  In this case, you can include the
+prototype of 'time(2)' in the source file.
+     extern time_t time (time_t *__timer) __THROW;  /* From time.h. */
+
+     SignalHandler instanceMethod handleSignal (__c_arg__ int signo) {
+       time_t t;
+       char buf[MAXLABEL];
+       noMethodInit;
+       t = time (NULL);
+       __ctalkDecimalIntegerToASCII (t, buf);
+       __ctalkNewSignalEventInternal (signo, getpid (), buf);
+       return NULL;
+     }
+
+The 'time_t' type is defined with 'ctalklib', and is available to all
+programs.
+
+How to resolve multiple library definitions depends on the system's
+header files, and may vary between different operating systems or
+compiler versions.
+
+
 File: ctalk.info,  Node: Errors,  Next: Cautions,  Prev: Method functions,  Up: Methods
 
 Exception and Error Handling
@@ -7975,6 +8122,7 @@ Index
 * draw instance method (Rectangle class): Rectangle.         (line   95)
 * draw instance method (X11ButtonPane class): X11ButtonPane. (line  485)
 * draw instance method (X11LabelPane class): X11LabelPane.   (line  302)
+* draw instance method (X11ListBox class): X11ListBox.       (line  245)
 * draw instance method (X11ListPane class): X11ListPane.     (line  307)
 * draw instance method (X11MessageBoxPane class): X11MessageBoxPane.
                                                              (line  241)
@@ -8512,6 +8660,8 @@ Index
                                                              (line  199)
 * initialized instance variable (X11YesNoBoxPane class): X11YesNoBoxPane.
                                                              (line  240)
+* initWidgets instance method (X11ListBox class): X11ListBox.
+                                                             (line  249)
 * initWidgets instance method (X11MessageBoxPane class): X11MessageBoxPane.
                                                              (line  250)
 * initWidgets instance method (X11TextEntryBox class): X11TextEntryBox.
@@ -8657,6 +8807,7 @@ Index
                                                              (line   42)
 * items instance variable (ANSIScrollingListBoxPane class): ANSIScrollingListBoxPane.
                                                              (line   76)
+* items instance variable (X11ListBox class): X11ListBox.    (line  220)
 * items instance variable (X11ListPane class): X11ListPane.  (line  226)
 * justify instance variable (X11LabelPane class): X11LabelPane.
                                                              (line  247)
@@ -8704,8 +8855,11 @@ Index
 * lineWidth instance variable (X11TextEditorPane class): X11TextEditorPane.
                                                              (line  132)
 * List class:                            List.               (line    6)
+* List selections:                       X11ListBox.         (line  167)
+* listFont resource (X11ListBox class):  X11ListBox.         (line  212)
 * listFonts instance method (X11FreeTypeFont class): X11FreeTypeFont.
                                                              (line  211)
+* listPane instance variable (X11ListBox class): X11ListBox. (line  234)
 * llabs(3) C function:                   llabs.              (line    6)
 * llrint(3) C function:                  CFunction.          (line  121)
 * llrint(3) C function <1>:              llrint.             (line    6)
@@ -8917,6 +9071,7 @@ Index
 * new instance method (X11ButtonPane class): X11ButtonPane.  (line  515)
 * new instance method (X11CanvasPane class): X11CanvasPane.  (line  409)
 * new instance method (X11LabelPane class): X11LabelPane.    (line  328)
+* new instance method (X11ListBox class): X11ListBox.        (line  253)
 * new instance method (X11ListPane class): X11ListPane.      (line  320)
 * new instance method (X11MessageBoxPane class): X11MessageBoxPane.
                                                              (line  256)
@@ -9441,6 +9596,7 @@ Index
                                                              (line  149)
 * selectionColor resource (X11TextEntryPane class): X11TextEntryPane.
                                                              (line  177)
+* Selections, list:                      X11ListBox.         (line  167)
 * selectionToText instance method (X11TextEntryPane class): X11TextEntryPane.
                                                              (line  341)
 * selectNext instance method (ANSIListBoxPane class): ANSIListBoxPane.
@@ -9565,6 +9721,7 @@ Index
                                                              (line   91)
 * show instance method (ANSIYesNoBoxPane class): ANSIYesNoBoxPane.
                                                              (line  118)
+* show instance method (X11ListBox class): X11ListBox.       (line  258)
 * show instance method (X11MessageBoxPane class): X11MessageBoxPane.
                                                              (line  264)
 * show instance method (X11TextEntryBox class): X11TextEntryBox.
@@ -9725,6 +9882,8 @@ Index
                                                              (line  522)
 * subPaneEnter instance method (X11LabelPane class): X11LabelPane.
                                                              (line  342)
+* subPaneEnter instance method (X11ListBox class): X11ListBox.
+                                                             (line  262)
 * subPaneEnter instance method (X11TextEntryBox class): X11TextEntryBox.
                                                              (line  202)
 * subPaneEnter instance method (X11TextEntryPane class): X11TextEntryPane.
@@ -9765,6 +9924,8 @@ Index
                                                              (line  523)
 * subPaneLeave instance method (X11LabelPane class): X11LabelPane.
                                                              (line  343)
+* subPaneLeave instance method (X11ListBox class): X11ListBox.
+                                                             (line  263)
 * subPaneLeave instance method (X11TextEntryBox class): X11TextEntryBox.
                                                              (line  202)
 * subPaneLeave instance method (X11TextEntryPane class): X11TextEntryPane.

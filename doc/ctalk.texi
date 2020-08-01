@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.1.1.1 2020/07/26 05:50:11 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.2 2020/08/01 23:03:26 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -17811,6 +17811,39 @@ After the listbox has first appeared and all of its subpanes have been
 initialized, a program can access any of the items selected in the
 listbox's list via the @code{listPane} instance variable.
 
+A @code{X11ListBox} dialog supports multiple selections. Pressing
+@key{Shift} while clicking on a list item adds that item to list's
+selections.  Pressing @key{Ctrl} while clicking on an item selects all
+of the items in a range between the first selected item and the last
+selected item of the list.
+
+@subheading Component Widgets
+
+A @code{X11ListBox} consists of component widgets from the
+@code{X11LabelPane}, @code{X11ListPane}, and @code{X11ButtonPane}
+class.
+
+The objects for each component are declared as instance variables,
+which, except for the list subpane itself, are inherited from the
+@code{X11YesNoBoxPane} superclass. @xref{X11YesNoBoxPane}.
+
+@example
+
+Component Instance       Class                 Inherited 
+     Variable                                    From 
+------------------       -----               --------------
+listPane                 X11ListPane         --
+lButton                  X11ButtonPane       X11YesNoBoxPane
+rButton                  X11ButtonPane       X11YesNoBoxPane
+label                    X11LabelPane        X11YesNoBoxPane
+
+@end example
+
+More information about the resources, instance variables, and methods
+that each component uses is contained in each of the component
+classes' individual sections: @xref{X11ListPane},
+@xref{X11ButtonPane}, and @xref{X11LabelPane}
+
 Here is an example program that shows how to display a @code{X11ListBox}
 and retrieve the selected list items.
 
@@ -17904,10 +17937,6 @@ int main (void) @{
 	  break;
 	case BUTTONRELEASE:
 	  listBox showManaged button;
-#if 0
-	  printf ("returnVal: %d: %s: %s\n", listBox returnVal,
-		  listBox returnText, listBox entryContents);
-#endif	  
 	  if (listBox listPane nItemsSelected > 1) @{
 	    i = 0;
 	    listBox listPane selectedItems itemTextOut;
@@ -17939,6 +17968,128 @@ int main (void) @{
 @}
 
 @end example
+
+@cindex List selections
+@cindex Selections, list
+@subheading Retrieving List Selections
+
+There are several methods that provide information about which item
+or list items are currently selected.  Generally, if a user has
+selected more than one item, then the results would be in the form
+of a list, instead of an @code{Integer} index of a selection or a
+@code{String} containing the selection's contents.
+
+The method, @mnm{nItemsSelected}, returns an @code{Integer} with
+the number of items that are currently selected.  Programs can use
+this to determine which method to use to retrieve the list selections.
+
+Depending on whether a user has selected a single item or multiple items,
+a program can use the @mnm{selectedItemN} or @mnm{selectedItemsN} methods
+to retrieve selection indexes, and the @mnm{selectedItemText} or
+@mnm{selectedItems} methods to retrieve the text of the selected item
+or items.
+
+The example program above uses this method to print either a single
+selected item or multiple selections.
+
+@example
+
+if (listBox listPane nItemsSelected > 1) @{
+  i = 0;
+  listBox listPane selectedItems itemTextOut;
+  listBox listPane selectedItemsN itemNOut;
+  itemNOut map @{
+    itemN = self;
+    /* This is a convenient way to retrieve
+       the i'th item in the itemTextOut list. */
+    itemText = *(itemTextOut + i);
+    printf ("%d: %s\n", itemN, itemText);
+    ++i;
+  @}
+@} else @{
+  printf ("%d: %s\n",
+          listBox listPane selectedItemN,
+          listBox listPane selectedItemText);
+@}
+
+@end example
+
+
+@subheading Resources
+
+@table @code
+
+@cindex listFont resource @idxclscite{X11ListBox}
+@item listFont
+A @code{String} that contains the name of the font that the
+@code{X11ListPane} subwidget uses to display the list items.
+The default is @samp{sans-serif-12}.
+@end table
+
+@subheading Instance Variables
+
+@table @code
+
+@cindex @code{items} instance variable @idxclscite{X11ListBox}
+@item items
+A @code{List} that contains all of the items to be added to the list
+when the dialog is first popped up.  Because the dialog box doesn't
+construct itself and the list subpane until it first appears, this is
+a convenient way for programs to define the items that will initially
+appear in the list before the the dialog first appears.
+
+After the dialog first appears, the list items may be modified by
+using the list pane's @mnm{add} method.  For example:
+
+@example
+
+myListDialog listPane add "Extra List Item 1";
+
+@end example
+
+@cindex @code{listPane} instance variable @idxclscite{X11ListBox}
+@item listPane
+A @code{X11ListPane} object that defines the list subpane.  It is
+initialized when the dialog is first popped up.  After that, programs
+can use any of the methods, resources, and instance variables that are
+defined in @code{X11ListPane} class to alter or retrieve the list's
+items or the user's selections @xref{X11ListPane}.
+
+@end table
+
+@subheading Instance Methods
+
+@table @code
+
+@cindex @code{draw} instance method @idxclscite{X11ListBox}
+@item draw (@code{void})
+This calls the indivdual subpane's @mnm{draw} and @mnm{refresh} methods
+in order to update the dialog's contents on the display.
+
+@cindex @code{initWidgets} instance method @idxclscite{X11ListBox}
+@item initWidgets (@code{void})
+Called when the dialog first appears, this initializes each of the
+component widget objects.
+
+@cindex @code{new} instance method @idxclscite{X11ListBox}
+@item new (@code{String} @var{paneName}
+The @code{X11ListBox} constructor.  Creates the dialog object with the
+name given as the argument, and initializes the dialog's event
+handlers and resources.
+
+@cindex @code{show} instance method @idxclscite{X11ListBox}
+@item show (@code{String} @var{paneName}
+Displays the dialog window, also calling @mnm{initWidgets} if the
+dialog is being displayed for the first time.
+
+@cindex @code{subPaneEnter} instance method @idxclscite{X11ListBox}
+@item subPaneEnter (@code{Object} @var{subPane}, @code{InputEvent} @var{event})
+@cindex @code{subPaneLeave} instance method @idxclscite{X11ListBox}
+@item subPaneLeave (@code{Object} @var{subPane}, @code{InputEvent} @var{event})
+Event handlers for highlighting the dialog's label or buttons when the
+pointer is over them.
+
+@end table
 
 @node X11TextPane, X11TextEditorPane, X11ListBox, Classes
 @iftex
