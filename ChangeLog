@@ -1082,4 +1082,13 @@
 	before returning at a closing paren (arg.c).
 2020-08-01
 	- Added the qcond[34-35].c test programs.
+	- Updated eval_arg to check for a CONDITIONAL token after
+	a C variable in argument expressions (eval_arg.c).
+2020-08-02
+	- Added the qcond[36-37].c test programs.
+	- Added a check and a handler for a size_t function return
+	type in	output_mixed_c_to_obj_arg_block (ctoobj.c).
+	- In eval_arg, check to determine if the function needs to
+	register CVARs in trailing tokens if the argument contains
+	a C function call (eval_arg.c).
 

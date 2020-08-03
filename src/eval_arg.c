@@ -1,4 +1,4 @@
-/* $Id: eval_arg.c,v 1.1.1.1 2020/07/26 05:50:11 rkiesling Exp $ */
+/* $Id: eval_arg.c,v 1.3 2020/08/03 02:17:12 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -915,7 +915,7 @@ bool eval_arg_cvar_reg = false;
 
 OBJECT *eval_arg (METHOD *method, OBJECT *rcvr_class, ARGSTR *argbuf,
 		  int main_stack_idx) {
-  int i, j,
+  int i, i_2, j,
     start_stack,
     stack_end,
     n_brackets,
@@ -1476,6 +1476,18 @@ OBJECT *eval_arg (METHOD *method, OBJECT *rcvr_class, ARGSTR *argbuf,
 	    arg_class = arg_c_writable_fn_expr;
 	    goto arg_evaled;
 	  } else {
+	    /* for now, just check if we need to register C variables
+	       for trailing tokens */
+	    for (i_2 = i - 1; i_2 > stack_end; i_2 --) {
+	      if (M_TOK(m_messages[i_2]) == LABEL) {
+		if (((cvar = get_global_var (m_messages[i_2] -> name)) != NULL) ||
+		    ((cvar = get_local_var (m_messages[i_2] -> name)) != NULL)) {
+		  register_c_var (message_stack_at (main_stack_idx),
+				  m_messages, i_2,
+				  &agg_var_end_idx);
+		}
+	      }
+	    }
 	    arg_class = arg_c_fn_expr;
 	    save_method_object (fn_arg_obj);
 	    goto arg_evaled;
@@ -1547,7 +1559,11 @@ OBJECT *eval_arg (METHOD *method, OBJECT *rcvr_class, ARGSTR *argbuf,
 				&agg_var_end_idx);
 		arg_obj = create_arg_EXPR_object (argbuf);
 		if (arg_class != arg_null)  arg_class = arg_c_var_expr;
-		goto arg_evaled;
+		/***/
+		/* As a possible trailing token, this needs more work-up,
+		   when we have code examples. */
+		if (!strchr (argbuf -> arg, '?'))
+		  goto arg_evaled;
 	      }
 	      break;
 	    case DEREF:

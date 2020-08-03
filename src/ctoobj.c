@@ -1,4 +1,4 @@
-/* $Id: ctoobj.c,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ */
+/* $Id: ctoobj.c,v 1.2 2020/08/02 20:32:12 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -273,6 +273,7 @@ static int mixed_c_to_obj_call_id = 0;
 
 static char obj_arg_int_decl[] = "int";
 static char obj_arg_long_int_decl[] = "long int";
+static char obj_arg_unsigned_long_int_decl[] = "unsigned long int";
 static char obj_arg_long_long_int_decl[] = "long long int";
 static char obj_arg_float_decl[] = "float";
 static char obj_arg_double_decl[] = "double";
@@ -461,6 +462,29 @@ void output_mixed_c_to_obj_arg_block (MESSAGE_STACK messages,
 	  strcpy (tmp_cvar.qualifier, "long");
 	  strcpy (tmp_cvar.qualifier2, "long");
 	  tmp_cvar.type_attrs = CVAR_TYPE_INT | CVAR_TYPE_LONGLONG;
+	  tmp_cvar.n_derefs = 0;
+	  break;
+	default:
+	  warning (messages[arg_c_fn_terms[i].start],
+		   "Unsupported return derefs for function, \"%s\".",
+		   M_NAME(messages[arg_c_fn_terms[i].start]));
+	  break;
+	}
+    } else if (str_eq (fn -> return_type, "size_t")) { /***/
+      /* handle like an unsigned long int */
+      /* TODO - should have return type attributes derived 
+	 from size_t */
+      switch (fn -> return_derefs)
+	{
+	case 0:
+	  strcatx (tmp_label, 
+		   "arg_c_fn_", ascii[mixed_c_to_obj_call_id++],
+		   NULL);
+	  tmp_var_decl = obj_arg_unsigned_long_int_decl;
+	  strcpy (tmp_cvar.name, tmp_label);
+	  strcpy (tmp_cvar.type, "int");
+	  strcpy (tmp_cvar.qualifier, "long");
+	  tmp_cvar.type_attrs = CVAR_TYPE_INT | CVAR_TYPE_LONG | CVAR_TYPE_UNSIGNED;
 	  tmp_cvar.n_derefs = 0;
 	  break;
 	default:
