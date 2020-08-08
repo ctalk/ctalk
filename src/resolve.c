@@ -1,4 +1,4 @@
-/* $Id: resolve.c,v 1.2 2020/07/01 22:26:35 rkiesling Exp $ */
+/* $Id: resolve.c,v 1.2 2020/08/05 16:14:02 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -1204,6 +1204,9 @@ OBJECT *resolve (int message_ptr) {
 					     message_ptr);
       return NULL;
     }
+  } else if (M_TOK(m) == CONDITIONAL) { /***/
+    if (rt_fn_arg_cond_expr(&ms))
+      return NULL;
   } else if (M_TOK(m) == LABEL) {
 
     if (str_eq (M_NAME(m), "enum")) {

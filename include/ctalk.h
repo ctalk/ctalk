@@ -1,4 +1,4 @@
-/* $Id: ctalk.h,v 1.2 2020/07/29 23:00:12 rkiesling Exp $ -*-Fundamental-*- */
+/* $Id: ctalk.h,v 1.3 2020/08/05 16:14:01 rkiesling Exp $ -*-Fundamental-*- */
 
 /*
   This file is part of Ctalk.
@@ -3302,6 +3302,8 @@ void handle_self_conditional_fmt_arg (MSINFO *);
 int is_method_param_name (char *);
 int rte_expr_contains_c_fn_arg_call (MESSAGE_STACK messages,
 					    int start, int end);
+int rt_fn_arg_cond_expr (MSINFO *);
+
 
 /* rt_time.c */
 int __ctalkUTCTime (void);

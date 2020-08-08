@@ -1077,7 +1077,8 @@
 2020-07-31
 	- Added the qcond[27-33].c test programs.
 	- Added a CONDITIONAL case to method_arg_limit, with scan
-	forward for a semicolon argument separator.
+	forward for a semicolon argument terminator and comma
+	argument separator (arg.c).
 	- In method_arg_limit_2, added a check for embedded parentheses
 	before returning at a closing paren (arg.c).
 2020-08-01
@@ -1091,4 +1092,17 @@
 	- In eval_arg, check to determine if the function needs to
 	register CVARs in trailing tokens if the argument contains
 	a C function call (eval_arg.c).
+2020-08-03
+	- Added the qcond[39-49].c test programs.
+2020-08-04
+	- Added the qcond[50-65].c test programs.
+2020-08-05
+	- Added rt_fn_arg_cond_expr (src/rt_expr.c). Also added
+	the globals fn_arg_conditional and fn_cond_arg_fn_label_idx.
+	- Added the qcond[66-67].c test programs.
+2020-08-06
+	- Added the qcond[68-73].c test programs.
+2020-08-07
+	- Added the qcond[74-89].c test programs.
+
 

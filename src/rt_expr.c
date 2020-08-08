@@ -1,4 +1,4 @@
-/* $Id: rt_expr.c,v 1.1.1.1 2020/07/26 05:50:11 rkiesling Exp $ */
+/* $Id: rt_expr.c,v 1.5 2020/08/06 00:33:35 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -268,6 +268,9 @@ static bool rte_output_fn_arg (MESSAGE_STACK messages, int start_idx,
   return false;
 }
 
+bool fn_arg_conditional = false;
+int fn_cond_arg_fn_label_idx = -1;
+
 char *rt_expr (MESSAGE_STACK messages, int start_idx, int *end_idx,
 	       char *expr_out) {
   int i, struct_expr_limit, subscript_expr_limit;
@@ -351,13 +354,23 @@ char *rt_expr (MESSAGE_STACK messages, int start_idx, int *end_idx,
 	  if (is_struct_or_union_expr (messages, i, 
 				       stack_start_idx,
 				       stack_top_idx)) {
-	    generate_register_c_method_arg_call 
-	      (__c, 
-	       struct_or_union_expr (messages, i, 
-				     stack_top_idx,
-				     &struct_expr_limit),
-	       LOCAL_VAR,
-	       start_idx);
+	    if (fn_arg_conditional) {
+	      generate_register_c_method_arg_call 
+		(__c, 
+		 struct_or_union_expr (messages, i, 
+				       stack_top_idx,
+				       &struct_expr_limit),
+		 LOCAL_VAR,
+		 fn_cond_arg_fn_label_idx);
+	    } else {
+	      generate_register_c_method_arg_call 
+		(__c, 
+		 struct_or_union_expr (messages, i, 
+				       stack_top_idx,
+				       &struct_expr_limit),
+		 LOCAL_VAR,
+		 start_idx);
+	    }
 	    i = struct_expr_limit;
 	    have_cvar_registration = true;
 	  } else if (need_cvar_argblk_translation (__c_argblk)) {
@@ -4205,4 +4218,63 @@ void handle_self_conditional_fmt_arg (MSINFO *ms) {
     ++ms -> messages[i] -> evaled;
     ++ms -> messages[i] -> output;
   }
+}
+
+int rt_fn_arg_cond_expr (MSINFO *ms) {
+  int pred_start_idx, pred_end_idx, expr_end_idx, fn_idx = -1, i;
+  char expr_out[MAXMSG];
+  if (obj_expr_is_arg_ms (ms, &fn_idx) < 0)
+    return FALSE;
+  /* obj_expr_is_arg can return true for a if or while expresion, so
+     check */
+  if ((fn_idx < 0) || !get_function (M_NAME(ms -> messages[fn_idx])))
+    return FALSE;
+  if ((pred_end_idx = prevlangmsg (ms -> messages, ms -> tok)) != ERROR) {
+    if (M_TOK(ms -> messages[pred_end_idx]) == CLOSEPAREN) {
+      pred_start_idx = match_paren_rev (ms -> messages, pred_end_idx,
+					ms -> stack_start);
+    } else {
+      for (i = pred_end_idx; i <= fn_idx; i++) {
+	if ((M_TOK(ms -> messages[i]) == ARGSEPARATOR) ||
+	    (M_TOK(ms -> messages[i]) == OPENPAREN)) {
+	  break;
+	}
+	pred_start_idx = i;
+      }
+    }
+  }
+
+  for (i = pred_start_idx; i >= pred_end_idx; i--) {
+    if (M_TOK(ms -> messages[i]) == LABEL) {
+      if (get_local_object (M_NAME(ms -> messages[i]), NULL) ||
+	  get_global_object (M_NAME(ms -> messages[i]), NULL) ||
+	  is_method_parameter (ms -> messages, i)) {
+	goto cond_has_objects;
+      }
+    }
+  }
+
+  for (i = ms -> tok; i > ms -> stack_ptr; --i) {
+    if ((M_TOK(ms -> messages[i]) == ARGSEPARATOR) ||
+	(M_TOK(ms -> messages[i]) == SEMICOLON)) {
+      break;
+    }
+    if (M_TOK(ms -> messages[i]) == LABEL) {
+      if (get_local_object (M_NAME(ms -> messages[i]), NULL) ||
+	  get_global_object (M_NAME(ms -> messages[i]), NULL) ||
+	  is_method_parameter (ms -> messages, i)) {
+	goto cond_has_objects;
+      }
+    }
+  }
+  return FALSE;
+
+ cond_has_objects:
+  fn_arg_conditional = true;
+  fn_cond_arg_fn_label_idx = fn_idx;
+  rt_expr (ms -> messages, pred_start_idx, &expr_end_idx, expr_out);
+  fn_arg_conditional = false;
+  fn_cond_arg_fn_label_idx = -1;
+
+  return TRUE;
 }
