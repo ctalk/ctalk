@@ -1104,5 +1104,47 @@
 	- Added the qcond[68-73].c test programs.
 2020-08-07
 	- Added the qcond[74-89].c test programs.
+2020-08-08
+	- Added the qcond[90-106].c test programs.
+	- In __rt_math_op, print a warning and return if
+	either of the operand indexes <= 0 (rt_expr.c).
+2020-08-09
+	- Added the qcond[107-130].c test programs.
+2020-08-10
+	- Added the qcond[131-146].c test programs.
+2020-08-11
+	- Added is_question_conditional_predicate (object.c),
+	called by resolve.
+	- Added the qcond[147-156].c test programs.
+2020-08-12
+	- Added qcond_fn_arg_cvar_registration and
+	qcond_fn_arg_cvar_registration_idx, set by
+	is_question_conditional_predicate (object.c),
+	and cleared by rt_expr (rt_expr.c).
+	- Added is_cond_pred (rexpr.c), called by default_method.
+	- Added qcond[157-158].c test programs.
+2020-08-13
+	- Added format_fn_call_method_expr_block_cond
+	(c_rval.c), called by rt_expr.
+2020-08-14
+	- Added expression re-format after
+	format_fn_call_method_expr_block_cond in rt_expr (rt_expr.c).
+	- Also in rt_expr, added a check for a call from fn_arg_cond_expr,
+	and place CVAR registration calls before the function call if
+	needed (rt_expr.c).
+	- Added the qcond159.c test program.
+2020-08-15
+	- Removed qcond_fn_arg_cvar_registration and
+	qcond_fn_arg_cvar_registration_idx globals in object.c, and
+	use fn_arg_conditional and fn_cond_arg_fn_label_idx globals
+	(declared in rt_expr.c) instead.
+	- Added the qcond[160-170].c test programs.
+2020-08-16
+	- Updated arg_is_question_conditional_predicate to check
+	for predicates not enclosed in parens (object.c).
+	- Added the qcond[171-178].c test programs.
+	- Added check for internal parens in a conditional predicate
+	term in rt_fn_arg_cond_expr (rt_expr.c).
+
 
 

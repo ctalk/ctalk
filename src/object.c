@@ -1,8 +1,8 @@
-/* $Id: object.c,v 1.3 2020/07/09 20:21:41 rkiesling Exp $ */
+/* $Id: object.c,v 1.5 2020/08/16 14:19:49 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
-  Copyright © 2005-2019 Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2005-2020 Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
 
@@ -2218,4 +2218,83 @@ OBJECT *create_arg_CFUNCTION_object (char *name_value) {
   strcpy (o -> __o_value, name_value);
 
   return o;
+}
+
+/* Declared in rt_expr.c. */
+extern bool fn_arg_conditional;
+extern int fn_cond_arg_fn_label_idx;
+
+/* 
+ * Returns the stack index of the opening parenthesis of a question
+ * conditional's predicate, or the index of the first token of a
+ * predicate that is unparenthesized.  
+ * 
+ *   On entry, ms -> messages[ms -> tok] points to the '?' operator.
+ *
+ * Returns -1 if the expression is not an inline conditional
+ * expression.
+ */
+int arg_is_question_conditional_predicate (MSINFO *ms) {
+  int i, pred_end_tok,
+    pred_start_tok = ms -> tok, /* avoid a warning message */
+    fn_idx;
+  int i_2, n_parens;
+  
+  for (i = ms -> tok; i > ms -> stack_ptr; --i) {
+    if (M_TOK(ms -> messages[i]) == OPENBLOCK ||
+	M_TOK(ms -> messages[i]) == CLOSEBLOCK ||
+	M_TOK(ms -> messages[i]) == SEMICOLON) {
+      return ERROR;
+    } else if (M_TOK(ms -> messages[i]) == CONDITIONAL) {
+      if ((pred_end_tok = prevlangmsg (ms -> messages, i))
+	  != ERROR) {
+	if (M_TOK(ms -> messages[pred_end_tok]) == CLOSEPAREN) {
+	  if ((pred_start_tok = match_paren_rev (ms -> messages,
+						 pred_end_tok,
+						 ms -> stack_start))
+	      != ERROR) {
+	    if (obj_expr_is_arg_ms (ms, &fn_idx) >= 0) {
+	      /* cleared by rt_expr */
+	      fn_arg_conditional = true;
+	      fn_cond_arg_fn_label_idx = fn_idx;
+	      return pred_start_tok;
+	    }
+	  }
+	} else {
+	  n_parens = 0;
+	  for (i_2 = i + 1; i_2 <= ms -> stack_start; i_2++) {
+	    if (M_ISSPACE(ms -> messages[i_2]))
+	      continue;
+	    switch (M_TOK(ms -> messages[i_2]))
+	      {
+	      case OPENPAREN:
+		--n_parens;
+		if (n_parens < 0) {
+		  goto cond_expr_start;
+		}
+		break;
+	      case CLOSEPAREN:
+		++n_parens;
+		break;
+	      case ARGSEPARATOR:
+		goto cond_expr_start;
+		break;
+	      case SEMICOLON:
+	      case CLOSEBLOCK:
+		return ERROR;
+		break;
+	      }
+	    pred_start_tok = i_2;
+	  }
+	cond_expr_start:
+	  if (obj_expr_is_arg_ms (ms, &fn_idx) >= 0) {
+	    fn_arg_conditional = true;
+	    fn_cond_arg_fn_label_idx = fn_idx;
+	    return pred_start_tok;
+	  }
+	}
+      }
+    }
+  }
+  return ERROR;
 }

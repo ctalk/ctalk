@@ -1,4 +1,4 @@
-/* $Id: rt_expr.c,v 1.5 2020/08/06 00:33:35 rkiesling Exp $ */
+/* $Id: rt_expr.c,v 1.13 2020/08/17 00:34:52 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -270,6 +270,11 @@ static bool rte_output_fn_arg (MESSAGE_STACK messages, int start_idx,
 
 bool fn_arg_conditional = false;
 int fn_cond_arg_fn_label_idx = -1;
+/* Set in is_question_conditional_predicate (object.c), cleared below. */
+#if 0
+extern bool qcond_fn_arg_cvar_registration;
+extern int qcond_fn_arg_cvar_registration_idx;
+#endif
 
 char *rt_expr (MESSAGE_STACK messages, int start_idx, int *end_idx,
 	       char *expr_out) {
@@ -390,28 +395,58 @@ char *rt_expr (MESSAGE_STACK messages, int start_idx, int *end_idx,
 	      i = subscript_expr_limit;
 	      have_cvar_registration = true;
 	    } else {
-	      generate_register_c_method_arg_call (__c, M_NAME(messages[i]),
-						   LOCAL_VAR,
-						   start_idx);
+	      if (fn_arg_conditional) {
+		generate_register_c_method_arg_call
+		  (__c, M_NAME(messages[i]),
+		   LOCAL_VAR,
+		   fn_cond_arg_fn_label_idx);
+	      } else {
+		generate_register_c_method_arg_call (__c, M_NAME(messages[i]),
+						     LOCAL_VAR,
+						     start_idx);
+	      }
 	      have_cvar_registration = true;
 	    }
 	  }
 	} else if ((fn_name_idx = rte_expr_contains_c_fn_arg_call
 		    (messages, start_idx, *end_idx)) != ERROR)  {
-	  int i_2;
-	  format_fn_call_method_expr_block (messages, fn_name_idx,
+	  int i_2, major_fn_idx;
+	  if (fn_arg_conditional && (obj_expr_is_arg
+				     (messages, start_idx, stack_start_idx,
+				      &major_fn_idx) >= 0)) {
+	    /* This is probably going to need to handle other expression
+	       variants, so it has its own clause for now. */
+	    format_fn_call_method_expr_block_cond (messages, fn_name_idx,
+						   &fn_expr_end_idx,
+						   tmp_fn_alias);
+	    for (i_2 = fn_name_idx; i_2 >= fn_expr_end_idx; --i_2) {
+	      messages[i_2] -> name[0] = ' ', messages[i_2] -> name[1] = '\0';
+	      messages[i_2] -> tokentype = WHITESPACE;
+	    }
+	    memset (messages[fn_name_idx] -> name, 0, MAXLABEL);
+	    strncpy (messages[fn_name_idx] -> name, tmp_fn_alias, MAXLABEL);
+	    fmt_rt_expr (messages, start_idx, end_idx, expr_out);
+	  } else {
+	    format_fn_call_method_expr_block (messages, fn_name_idx,
 					      &fn_expr_end_idx,
 					      tmp_fn_alias);
-	  for (i_2 = fn_name_idx; i_2 >= fn_expr_end_idx; --i_2) {
-	    messages[i_2] -> name[0] = ' ', messages[i_2] -> name[1] = '\0';
-	    messages[i_2] -> tokentype = WHITESPACE;
+	    for (i_2 = fn_name_idx; i_2 >= fn_expr_end_idx; --i_2) {
+	      messages[i_2] -> name[0] = ' ', messages[i_2] -> name[1] = '\0';
+	      messages[i_2] -> tokentype = WHITESPACE;
+	    }
+	    memset (messages[fn_name_idx] -> name, 0, MAXLABEL);
+	    strncpy (messages[fn_name_idx] -> name, tmp_fn_alias, MAXLABEL);
 	  }
-	  memset (messages[fn_name_idx] -> name, 0, MAXLABEL);
-	  strncpy (messages[fn_name_idx] -> name, tmp_fn_alias, MAXLABEL);
-	  if (argblk)
+	  if (argblk) {
 	    fmt_rt_argblk_expr (messages, start_idx, end_idx, expr_out);
-	  else
+	  } else if (fn_arg_conditional) { /***/
+	    for (i = start_idx; i >= *end_idx; i--) {
+	      ++(messages[i] -> evaled);
+	      ++(messages[i] -> output);
+	    }
+	  } else {
 	    fmt_rt_expr (messages, start_idx, end_idx, expr_out);
+	  }
 	  /* Do a quick check so we can warn if the number of arguments
 	     is incorrect. */
 	  n_commas = n_parens = 0;
@@ -466,7 +501,7 @@ char *rt_expr (MESSAGE_STACK messages, int start_idx, int *end_idx,
 	     cvartab name for an argument block. */
 	  if (!(messages[i] -> attrs & TOK_IS_RT_EXPR)) {
 	    undefined_label_check (messages, i);
-	  } else if (prev_instvar_is_actually_method (messages, i)) { /***/
+	  } else if (prev_instvar_is_actually_method (messages, i)) {
 	    if (!IS_DEFINED_LABEL(M_NAME(messages[i])) &&
 		!get_local_object (M_NAME(messages[i]), NULL) &&
 		!get_global_object (M_NAME(messages[i]), NULL)) {
@@ -530,6 +565,10 @@ char *rt_expr (MESSAGE_STACK messages, int start_idx, int *end_idx,
   }
   if (have_cvar_registration) {
     output_delete_cvars_call (messages, *end_idx, stack_top_idx);
+  }
+  if (fn_arg_conditional) {
+    fn_arg_conditional = false;
+    fn_cond_arg_fn_label_idx = -1;
   }
   for (i = start_idx; i >= *end_idx; i--) {
     if (!messages[i]) break;
@@ -1700,11 +1739,11 @@ char *rt_self_expr (MESSAGE_STACK messages, int start_idx, int *end_idx,
    *  anyway.
    */
   messages_self_is_receiver_of = FALSE;
-  if (have_rcvr_expr_open_paren_adj) { /***/
+  if (have_rcvr_expr_open_paren_adj) {
     actual_expr_start = rcvr_expr_open_paren_idx;
   } else {
     actual_expr_start =
-      ((leading_tok_idx != -1) ? leading_tok_idx : start_idx); /***/
+      ((leading_tok_idx != -1) ? leading_tok_idx : start_idx);
   }
   for (i = actual_expr_start; i >= *end_idx; i--) {
     messages[i] -> attrs |= TOK_IS_RT_EXPR;
@@ -1749,7 +1788,6 @@ char *rt_self_expr (MESSAGE_STACK messages, int start_idx, int *end_idx,
 				      expr_rcvr_class -> __o_name),
 				     FALSE) &&
 		!get_local_object (M_NAME(messages[i]), NULL) &&
-		/***/
 		!rtse_instvar_msg (messages, i, stack_start_idx) &&
 		/* Believe it or not... */
 		!is_method_name (M_NAME(messages[i])) &&
@@ -1797,7 +1835,6 @@ char *rt_self_expr (MESSAGE_STACK messages, int start_idx, int *end_idx,
 	    !is_method_name (M_NAME(messages[i])) &&
 	    !class_object_search (M_NAME(messages[i]), FALSE) &&
 	    !is_c_data_type (M_NAME(messages[i])) &&
-	    /***/
 	    !(messages[i] -> attrs & TOK_SUPER) &&
 	    !is_instance_var (M_NAME(messages[i]))) {
 	  warning (messages[i], "Undefined label, \"%s.\"",
@@ -1878,14 +1915,6 @@ char *rt_self_expr (MESSAGE_STACK messages, int start_idx, int *end_idx,
 	/* Limited right now - we should be able to do
 	   expressions with methods the same way. */
 
-#if 0
-	if (have_rcvr_expr_open_paren_adj) { /***/
-	  actual_expr_start = rcvr_expr_open_paren_idx;
-	} else {
-	  actual_expr_start = start_idx;
-	}
-#endif
-	/***/
 	actual_expr_start = ((leading_tok_idx != -1) ?
 			     leading_tok_idx : start_idx);
 	if (have_rcvr_expr_open_paren_adj) {
@@ -1915,7 +1944,7 @@ char *rt_self_expr (MESSAGE_STACK messages, int start_idx, int *end_idx,
 	}
 
 	if ((lookback = prevlangmsg (messages, actual_expr_start))
-	    != ERROR) { /***/
+	    != ERROR) {
 	  if (M_TOK(messages[lookback]) == ARRAYOPEN) {
 	    fmt_rt_return (exprbuf, INTEGER_CLASSNAME,
 			   TRUE, arg_expr_buf);
@@ -2047,7 +2076,7 @@ char *rt_self_expr (MESSAGE_STACK messages, int start_idx, int *end_idx,
       }      
   }
  rt_expr_evaled:
-  if (have_rcvr_expr_open_paren_adj) { /***/
+  if (have_rcvr_expr_open_paren_adj) {
     actual_expr_start = rcvr_expr_open_paren_idx;
   } else {
     actual_expr_start = start_idx;
@@ -3367,7 +3396,7 @@ int prefix_method_expr_a (MESSAGE_STACK messages, int prefix_idx,
 	  } else {
 	    ms.tok = prefix_idx_2;
 	    expr_buf = collect_expression (&ms, &end_idx); 
-	    de_newline_buf (expr_buf); /***/
+	    de_newline_buf (expr_buf);
 	    if (leading_paren_idx != -1)
 	      leading_paren_idx = -1;
 	  }
@@ -3375,10 +3404,9 @@ int prefix_method_expr_a (MESSAGE_STACK messages, int prefix_idx,
 	  if (register_prefix_expr_CVARs (messages, prefix_idx_2, end_idx)) {
 	    have_cvar_reg = true;
 	    if (argblk) {
-	      /***/
 	      /* We have to re-write the tokens with the cvartab names. */
 	      expr_buf = collect_expression (&ms, &end_idx); 
-	      de_newline_buf (expr_buf); /***/
+	      de_newline_buf (expr_buf);
 	    }
 	  }
 	  check_r_assignment_expr (messages, prefix_idx_2, end_idx);
@@ -4222,6 +4250,7 @@ void handle_self_conditional_fmt_arg (MSINFO *ms) {
 
 int rt_fn_arg_cond_expr (MSINFO *ms) {
   int pred_start_idx, pred_end_idx, expr_end_idx, fn_idx = -1, i;
+  int n_parens;
   char expr_out[MAXMSG];
   if (obj_expr_is_arg_ms (ms, &fn_idx) < 0)
     return FALSE;
@@ -4234,11 +4263,24 @@ int rt_fn_arg_cond_expr (MSINFO *ms) {
       pred_start_idx = match_paren_rev (ms -> messages, pred_end_idx,
 					ms -> stack_start);
     } else {
+      n_parens = 0;
       for (i = pred_end_idx; i <= fn_idx; i++) {
+	if (M_TOK(ms -> messages[i]) == ARGSEPARATOR) {
+	  break;
+	} else if (M_TOK(ms -> messages[i]) == CLOSEPAREN) {
+	  ++n_parens;
+	} else if (M_TOK(ms -> messages[i]) == OPENPAREN) {
+	  --n_parens;
+	  if (n_parens < 0) {
+	    break;
+	  }
+	}
+#if 0 /***/
 	if ((M_TOK(ms -> messages[i]) == ARGSEPARATOR) ||
 	    (M_TOK(ms -> messages[i]) == OPENPAREN)) {
 	  break;
 	}
+#endif	  
 	pred_start_idx = i;
       }
     }

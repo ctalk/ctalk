@@ -1,4 +1,4 @@
-/* $Id: rt_expr.c,v 1.5 2020/07/31 04:22:52 rkiesling Exp $ */
+/* $Id: rt_expr.c,v 1.6 2020/08/08 22:19:06 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -5213,7 +5213,8 @@ OBJECT *_rt_math_op (MESSAGE_STACK messages, int op_ptr, int stack_start,
   char errmsg[MAXMSG];
 
   _rt_operands (C_EXPR_PARSER, op_ptr, &op1_ptr, &op2_ptr);
-  if ((op1_ptr == ERROR) || (op2_ptr == ERROR)) {
+  /* if ((op1_ptr == ERROR) || (op2_ptr == ERROR)) { *//***/
+  if ((op1_ptr <= 0) || (op2_ptr <= 0)) {
     if ((expr_parser_ptr + 1) <= MAXARGS) {
       if (expr_parsers[expr_parser_ptr+1] -> expr_str) {
 	_warning ("Warning: rt_math_op (): Invalid operand.\n");

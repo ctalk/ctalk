@@ -1,4 +1,4 @@
-/* $Id: ctalk.h,v 1.3 2020/08/05 16:14:01 rkiesling Exp $ -*-Fundamental-*- */
+/* $Id: ctalk.h,v 1.6 2020/08/13 12:43:55 rkiesling Exp $ -*-Fundamental-*- */
 
 /*
   This file is part of Ctalk.
@@ -1160,6 +1160,7 @@ int cvar_struct_ptr_is_arg_expr_rcvr (MESSAGE_STACK, int);
 char *format_fn_call_method_expr_block (MESSAGE_STACK, int, int *, char *);
 void eval_params_inline (MESSAGE_STACK, int, int, int, CFUNC *,
      char *);
+char *format_fn_call_method_expr_block_cond (MESSAGE_STACK, int, int *, char *);
 
 /* enum.c */
 CVAR *enum_decl (MESSAGE_STACK, int);
@@ -3040,6 +3041,7 @@ int match_c_type (CVAR *, CVAR *);
 char *basic_class_from_fmt_arg (MESSAGE_STACK, int);
 char *c_lval_class (MESSAGE_STACK, int);
 bool have_unknown_c_type (void);
+int arg_is_question_conditional_predicate (MSINFO *ms);
 
 /* op.c */
 OP_CONTEXT op_context (MESSAGE_STACK, int);
@@ -3264,9 +3266,10 @@ int terminal_printf_arg (MESSAGE_STACK, int);
 int is_single_token_method_param (MESSAGE_STACK, int, METHOD *);
 int lval_idx_from_arg_start (MESSAGE_STACK, int);
 int rval_ptr_context_translate (MSINFO *, int);
-
 int postfix_method_expr_a (MESSAGE_STACK, int);
 bool obj_rcvr_after_opening_parens (MESSAGE_STACK, int);
+bool is_cond_pred (MSINFO *ms);
+
 
 /* rt_expr.c */
 void cleanup_expr_parser (void);

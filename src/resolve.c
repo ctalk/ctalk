@@ -1,4 +1,4 @@
-/* $Id: resolve.c,v 1.2 2020/08/05 16:14:02 rkiesling Exp $ */
+/* $Id: resolve.c,v 1.4 2020/08/16 14:19:49 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -1165,7 +1165,10 @@ OBJECT *resolve (int message_ptr) {
   int fn_idx;
   int t;
   int expr_close_paren,
-    expr_open_paren;
+    expr_open_paren,
+    cond_pred_start,
+    cond_pred_end;
+  char conditional_expr[MAXMSG];
   int rcvr_expr_start,
     rcvr_expr_end;
   CVAR *cvar = NULL;
@@ -2583,6 +2586,13 @@ OBJECT *resolve (int message_ptr) {
 	      resolve_method_tok_method = method;
 	      ctrlblk_pred_rt_expr (ms.messages, prev_label_ptr);
 	    }
+	    return NULL;
+	  } else if ((cond_pred_start =
+		      arg_is_question_conditional_predicate (&ms)) > 0) {
+	    /* fn args only */
+	    /***/
+	    rt_expr (ms.messages, cond_pred_start,
+		     &cond_pred_end, conditional_expr);
 	    return NULL;
 	  } else {
 	    method_call (sender_idx); 
