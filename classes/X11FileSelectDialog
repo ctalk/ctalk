@@ -1,4 +1,4 @@
-L/* $Id: X11ListBox,v 1.3 2020/08/23 18:50:05 rkiesling Exp $ -*-C-*-*/
+L/* $Id: X11FileSelectDialog,v 1.2 2020/08/23 18:50:05 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -22,7 +22,7 @@ L/* $Id: X11ListBox,v 1.3 2020/08/23 18:50:05 rkiesling Exp $ -*-C-*-*/
 */
 
 /* 
-   X11ListBox Class - Text Entry Dialog
+   X11FileSelectDialog Class - Text Entry Dialog
 
    Resources: 
 
@@ -30,8 +30,9 @@ L/* $Id: X11ListBox,v 1.3 2020/08/23 18:50:05 rkiesling Exp $ -*-C-*-*/
 
 */
 
-X11TextEntryBox class X11ListBox;
+X11ListBox class X11FileSelectDialog;
 
+#if 0
 X11ListBox instanceVariable listPane X11ListPane NULL;
 X11ListBox instanceVariable items List NULL "These are the text of the 
 items to be added to the dialog's list when the dialog is first popped 
@@ -423,3 +424,4 @@ X11ListBox instanceMethod show (void) {
 
 }
 
+#endif
