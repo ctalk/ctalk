@@ -1,4 +1,4 @@
-L/* $Id: X11FileSelectDialog,v 1.2 2020/08/23 18:50:05 rkiesling Exp $ -*-C-*-*/
+L/* $Id: X11FileSelectDialog,v 1.3 2020/08/24 20:54:02 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -31,6 +31,117 @@ L/* $Id: X11FileSelectDialog,v 1.2 2020/08/23 18:50:05 rkiesling Exp $ -*-C-*-*/
 */
 
 X11ListBox class X11FileSelectDialog;
+
+X11FileSelectDialog instanceMethod getExpandedDir (String dirPattern,
+						   SortedList filesOut) {
+  DirectoryStream new dir;
+  String new qualPath;
+
+  if (dirPattern contains "." == -1 ||
+      dirPattern contains '~' == -1 ||
+      dirPattern contains '$' == -1) {
+    qualPath = dirPattern;
+  } else if (dirPattern == ".") {
+    qualPath = dir getCwd;
+  }
+  
+  dir sortedDirectoryList qualPath, filesOut;
+}
+
+X11FileSelectDialog instanceMethod initWidgets (void) {
+  "Initialize the entry box's button and label widgets.  The
+   message box defers constructing the new widgets until just
+   before it is displayed, so any modifications to the defaults
+   (colors, dimensions, etc.) can be done here, mainly by
+   subclassing the X11MessageBox class (for the present, at 
+   least, until Ctalk includes some sort of resource manager).
+   However, waiting until now to construct the widgets also
+   has the advantage that all of the other objects and methods
+   in a program have been defined."
+
+  X11ButtonPane new l_button, r_button;
+  X11LabelPane new l_label;
+  X11ListPane new l_list;
+  X11Bitmap new l_icon;
+  Integer new usable_height, usable_width, padInt, label_width_px,
+    label_height_px, label_x_px, label_y_px, button_y_px;
+  Integer new list_height_px, list_width_px, list_x_px,
+    list_y_px;
+  String new geomspec;
+  InputEvent new e;
+  SortedList new dirItems;
+
+
+  if (self initialized)
+    return NULL;
+
+  padInt = self resources at "pad";
+
+  usable_height = self size y - (padInt * 2);
+  usable_width = self size x - (padInt * 2);
+  label_width_px = usable_width;
+  l_label selectFont;
+  label_height_px = (l_label ftFontVar height * 3);
+  label_x_px = padInt;
+  label_y_px = padInt;
+
+  geomspec printOn "%dx%d+%d+%d", label_width_px, label_height_px,
+    label_x_px, label_y_px;
+
+  l_label resources replaceAt "backgroundColor",
+    (self resources at "backgroundColor");
+  l_label resources replaceAt "foregroundColor",
+    (self resources at "foregroundColor");
+  l_label multiLine self resources at "messageText";
+  l_label border = false;
+  l_label resources replaceAt "textColor",
+    (self resources at "messageColor");
+  l_label resources replaceAt "ftFont",
+    (self resources at "messageFont");
+  l_label justify = LABEL_LEFT;
+
+  self label become l_label;
+
+  self label attachTo self, geomspec;
+
+  list_height_px = 50;        /* this will be -50 in the geometry string */
+  list_width_px = usable_width;
+  list_x_px = padInt;
+  list_y_px = label_height_px + padInt;
+
+  geomspec printOn "%dx-%d+%d+%d", list_width_px, list_height_px,
+    list_x_px, list_y_px;
+
+  self listPane become l_list;
+  self listPane attachTo self, geomspec;
+  self children push self listPane;
+
+  self listPane resources replaceAt "font", (self resources at "listFont");
+
+  self getExpandedDir ".", dirItems;
+  dirItems map {
+    super listPane add self;
+  }
+
+  self lbutton become l_button;
+  self children push l_button;
+  self rbutton become r_button;
+  self children push r_button;
+
+  button_y_px = 46;   /* -46 in the geomspecs */
+
+  geomspec printOn "20%%x36+20%%+-%d", button_y_px;
+  self lbutton attachTo self, geomspec;
+
+  geomspec printOn "20%%x36+60%%+-%d", button_y_px;
+  self rbutton attachTo self, geomspec;
+
+  self lbutton label text (self resources at "leftButtonText");
+  self rbutton label text (self resources at "rightButtonText");
+
+  self initialized = true;
+
+}
 
 #if 0
 X11ListBox instanceVariable listPane X11ListPane NULL;

@@ -3249,6 +3249,9 @@ beyond the scope of this tutorial, but Ctalk internally can support a
 range of conventions when mapping over 'List' and other 'Collection'
 objects.
 
+Initializing Lists
+..................
+
 When initializing 'Lists', you can also use the '=' method to add items
 to the 'List', which you may find more convenient.  You could replace
 the 'push' methods in the example above with this expression.
@@ -3350,6 +3353,44 @@ following.
 
 To retrieve an object, use the method 'at'.
      myObjectFromBefore = myAssociativeArray at "keyName";
+
+Initializing AssociativeArrays
+..............................
+
+'AssociativeArray' is another class, like 'List,' that allows you to set
+multiple elements with one expression.  The methods, '=', and '+=',
+'init' and 'append' can take a variable number of keys and values as
+their arguments.
+
+Ctalk interprets the argument list to contain any number of _key,value_
+pairs following either the method '=', or 'init'.  The two are
+interchangeable.  Here is an example.
+
+
+     myAssocArray init "key1", "value1", "key2", "value2", "key3", "value3";
+
+     _... or ..._
+
+     myAssocArray = "key1", "value1", "key2", "value2", "key3", "value3";
+
+
+The '+=' and 'append' methods add the _key,value_ pairs given as the
+arguments to the end of the reciever 'AssociativeArray', as in this
+example.
+
+
+     myAssocArray init "key1", "first", "key2", "second", "key3", "third",
+       "key4", "fourth";
+     myAssocArray append "key5", "fifth", "key6", "sixth", "key7", "seventh",
+       "key8", "eigth";
+
+     _... or ..._
+
+     myAssocArray = "key1", "first", "key2", "second", "key3", "third",
+       "key4", "fourth";
+     myAssocArray += "key5", "fifth", "key6", "sixth", "key7", "seventh",
+       "key8", "eigth";
+
 
 You can also treat 'AssociativeArray' elements sequentially, using the
 methods 'map' and 'mapKeys'.  The 'Ctalk Language Reference' contains
@@ -7824,39 +7865,42 @@ File: tutorial.info,  Node: Index,  Prev: GNU Free Documentation License,  Up: T
 * Menu:
 
 * & method (Character class):            Basic classes.      (line   96)
-* * instance method (Collection class):  Collections.        (line  519)
-* * instance method (Key class):         Collections.        (line  519)
+* * instance method (Collection class):  Collections.        (line  560)
+* * instance method (Key class):         Collections.        (line  560)
 * * instance method (String class):      Basic classes.      (line  288)
 * * method (Symbol class):               Basic classes.      (line  908)
-* + instance method (Key class):         Collections.        (line  519)
+* + instance method (Key class):         Collections.        (line  560)
 * + instance method (String class):      Basic classes.      (line  288)
 * + method (Character class):            Basic classes.      (line   68)
 * + method (String class):               Basic classes.      (line  128)
 * ++ instance method (Collection class): Basic classes.      (line  598)
-* ++ instance method (Key class):        Collections.        (line  519)
+* ++ instance method (Key class):        Collections.        (line  560)
 * ++ instance method (String class):     Basic classes.      (line  288)
-* += instance method (Key class):        Collections.        (line  519)
+* += instance method (AssociativeArray class): Collections.  (line  322)
+* += instance method (Key class):        Collections.        (line  560)
+* += instance method (List class):       Collections.        (line  217)
 * += instance method (String class):     Basic classes.      (line  288)
 * - (Character class):                   Basic classes.      (line   84)
-* - instance method (Key class):         Collections.        (line  519)
+* - instance method (Key class):         Collections.        (line  560)
 * - instance method (String class):      Basic classes.      (line  288)
 * -- instance method (Collection class): Basic classes.      (line  598)
-* -- instance method (Key class):        Collections.        (line  519)
+* -- instance method (Key class):        Collections.        (line  560)
 * -- instance method (String class):     Basic classes.      (line  288)
 * --printlibdirs command line option:    Classes.            (line  371)
-* -= instance method (Key class):        Collections.        (line  519)
+* -= instance method (Key class):        Collections.        (line  560)
 * -= instance method (String class):     Basic classes.      (line  288)
 * -> instance method (Object class):     Basic classes.      (line 1164)
 * -I command line option:                Classes.            (line  335)
+* = instance method (AssociativeArray class): Collections.   (line  322)
 * = instance method (Integer class):     Methods.            (line  506)
 * = instance method (Integer class) <1>: Methods.            (line  810)
-* = instance method (List class):        Collections.        (line  214)
+* = instance method (List class):        Collections.        (line  217)
 * = instance method (String class):      Methods.            (line  880)
 * = method (Character class):            Basic classes.      (line  801)
 * = method (Integer class):              Basic classes.      (line  801)
 * = method (Integer class) <1>:          Methods.            (line  792)
-* = method (List class):                 Collections.        (line 1035)
-* = method (List class) <1>:             Collections.        (line 1046)
+* = method (List class):                 Collections.        (line 1076)
+* = method (List class) <1>:             Collections.        (line 1087)
 * = method (String class):               Basic classes.      (line  128)
 * = method (String class) <1>:           Basic classes.      (line  801)
 * = method (Symbol class):               Basic classes.      (line  908)
@@ -7876,12 +7920,15 @@ File: tutorial.info,  Node: Index,  Prev: GNU Free Documentation License,  Up: T
 * __ctalk_to_c_char_ptr() function:      Methods.            (line  381)
 * __ctalk_to_c_int() function:           Methods.            (line  381)
 * | method (Character class):            Basic classes.      (line   96)
-* addChild method (TreeNode class):      Collections.        (line  448)
+* addChild method (TreeNode class):      Collections.        (line  489)
 * addInstanceVariable instance method (Object class): Methods.
                                                              (line  512)
 * addressOf instance method (Object class): Basic classes.   (line 1103)
 * ANSIMessageBoxPane:                    Graphics.           (line   42)
 * ANSITerminalStream Class:              Collections.        (line   18)
+* append instance method (AssociativeArray class): Collections.
+                                                             (line  322)
+* append instance method (List class):   Collections.        (line  217)
 * argc C variable:                       Hello.              (line  119)
 * Argument blocks:                       Basic classes.      (line  466)
 * Arguments, class of:                   Self and super.     (line  471)
@@ -7899,16 +7946,17 @@ File: tutorial.info,  Node: Index,  Prev: GNU Free Documentation License,  Up: T
 * asInteger method (Magnitude class) <1>: Methods.           (line  275)
 * asLongInteger method (Magnitude class): Basic classes.     (line  796)
 * AssociativeArray Class:                Collections.        (line    7)
-* AssociativeArray Class <1>:            Collections.        (line  300)
+* AssociativeArray Class <1>:            Collections.        (line  303)
+* AssociativeArray, initialization:      Collections.        (line  322)
 * asString method (Magnitude class):     Basic classes.      (line  161)
 * at method (Array class):               Hello.              (line   97)
 * at method (Array class) <1>:           Basic classes.      (line  371)
 * at method (Array class) <2>:           Methods.            (line  195)
-* at method (AssociativeArray class):    Collections.        (line  306)
+* at method (AssociativeArray class):    Collections.        (line  309)
 * atPut method (Array class):            Basic classes.      (line  360)
-* atPut method (AssociativeArray class): Collections.        (line  306)
-* basicNew method (Object class):        Collections.        (line  271)
-* basicNew method (Object class) <1>:    Collections.        (line  448)
+* atPut method (AssociativeArray class): Collections.        (line  309)
+* basicNew method (Object class):        Collections.        (line  274)
+* basicNew method (Object class) <1>:    Collections.        (line  489)
 * become method (Object class):          Basic classes.      (line  808)
 * become method (Object class) <1>:      Methods.            (line 1115)
 * bitComp method (Integer class):        Basic classes.      (line   43)
@@ -7963,7 +8011,7 @@ File: tutorial.info,  Node: Index,  Prev: GNU Free Documentation License,  Up: T
 * ctpath example program:                Hello.              (line   54)
 * Debugging:                             Debugging.          (line    6)
 * Default method:                        Basic classes.      (line 1421)
-* delete instance method (List class):   Collections.        (line  232)
+* delete instance method (List class):   Collections.        (line  235)
 * deref instance method (Symbol class):  Basic classes.      (line 1103)
 * dimension instance method (Rectangle class): Graphics.     (line  408)
 * Directories:                           File input and output.
@@ -7995,14 +8043,14 @@ File: tutorial.info,  Node: Index,  Prev: GNU Free Documentation License,  Up: T
 * Float class <1>:                       Basic classes.      (line   29)
 * FMT_0XHEX macro:                       Methods.            (line 1189)
 * Fonts:                                 Graphics.           (line  515)
-* format method (TreeNode class):        Collections.        (line  476)
+* format method (TreeNode class):        Collections.        (line  517)
 * formatObject instance method (Object class): Debugging.    (line  258)
 * getCh instance method (ANSITerminalStream class): Graphics.
                                                              (line  122)
 * getCh instance method (ANSITerminalStream class) <1>: Graphics.
                                                              (line  232)
 * getFontInfo instance method (X11Font class): Graphics.     (line  545)
-* getValue method (Collection class):    Collections.        (line  496)
+* getValue method (Collection class):    Collections.        (line  537)
 * getValue method (Symbol class):        Basic classes.      (line  908)
 * GLUTApplication class:                 Graphics.           (line  733)
 * GLX:                                   Graphics.           (line  907)
@@ -8029,7 +8077,12 @@ File: tutorial.info,  Node: Index,  Prev: GNU Free Documentation License,  Up: T
 * hello example program:                 Hello.              (line   14)
 * highlightButton instance method (List class): Debugging.   (line   46)
 * Inheritance:                           Objects.            (line  144)
+* init instance method (AssociativeArray class): Collections.
+                                                             (line  322)
+* init instance method (List class):     Collections.        (line  217)
 * initialize instance method (X11Pane class): Graphics.      (line 1222)
+* Initializing AssociativeArray objects: Collections.        (line  322)
+* Initializing List objects:             Collections.        (line  217)
 * Inline methods:                        Basic classes.      (line  414)
 * inspect instance method (Object class): Debugging.         (line   17)
 * inspect instance method (Object class) <1>: Debugging.     (line  202)
@@ -8054,17 +8107,18 @@ File: tutorial.info,  Node: Index,  Prev: GNU Free Documentation License,  Up: T
 * isNull method (String class):          Methods.            (line  105)
 * isSubClassOf method (Object class):    Classes.            (line  313)
 * IS_OBJECT macro:                       Methods.            (line 1189)
-* Key class:                             Collections.        (line  300)
-* Key class <1>:                         Collections.        (line  324)
+* Key class:                             Collections.        (line  303)
+* Key class <1>:                         Collections.        (line  365)
 * Key class <2>:                         Methods.            (line  454)
 * levelMargin instance variable (TreeNode class): Collections.
-                                                             (line  476)
+                                                             (line  517)
 * levelMarginLength instance variable (TreeNode class): Collections.
-                                                             (line  476)
+                                                             (line  517)
 * Library search path:                   Classes.            (line  335)
 * Line class:                            Graphics.           (line  343)
 * List Class:                            Collections.        (line    7)
 * List Class <1>:                        Collections.        (line   49)
+* List, initialization:                  Collections.        (line  217)
 * localTime method (CTime class):        Hello.              (line  152)
 * localTime method (CTime class) <1>:    Hello.              (line  193)
 * localtime(3) C function:               Hello.              (line  152)
@@ -8073,10 +8127,10 @@ File: tutorial.info,  Node: Index,  Prev: GNU Free Documentation License,  Up: T
 * LongInteger class:                     Basic classes.      (line   10)
 * LongInteger class <1>:                 Basic classes.      (line   29)
 * Magnitude class:                       Basic classes.      (line  791)
-* makeSibling method (TreeNode class):   Collections.        (line  448)
+* makeSibling method (TreeNode class):   Collections.        (line  489)
 * map (Array class):                     Basic classes.      (line  414)
 * map instance method (ANSITerminalPane class): Graphics.    (line  272)
-* map method (AssociativeArray class):   Collections.        (line  316)
+* map method (AssociativeArray class):   Collections.        (line  357)
 * map method (List class):               Collections.        (line  127)
 * mapClassVariables instance method (Object class): Basic classes.
                                                              (line 1308)
@@ -8084,7 +8138,7 @@ File: tutorial.info,  Node: Index,  Prev: GNU Free Documentation License,  Up: T
                                                              (line  545)
 * mapInstanceVariables instance method (Object class) <1>: Basic classes.
                                                              (line 1308)
-* mapKeys method (AssociativeArray class): Collections.      (line  316)
+* mapKeys method (AssociativeArray class): Collections.      (line  357)
 * Message:                               Objects.            (line   52)
 * Method:                                Objects.            (line   52)
 * Method declarations:                   Methods.            (line  211)
@@ -8129,7 +8183,7 @@ File: tutorial.info,  Node: Index,  Prev: GNU Free Documentation License,  Up: T
 * Polymorphism:                          Objects.            (line  105)
 * pop method (List class):               Collections.        (line   60)
 * Primitive methods:                     Methods.            (line  133)
-* print method (TreeNode class):         Collections.        (line  476)
+* print method (TreeNode class):         Collections.        (line  517)
 * printf(3) C function.:                 File input and output.
                                                              (line  139)
 * printOn instance method (ANSITerminalStream class): Graphics.
@@ -8164,7 +8218,7 @@ File: tutorial.info,  Node: Index,  Prev: GNU Free Documentation License,  Up: T
 * Rectangle class:                       Graphics.           (line  343)
 * References to objects:                 Methods.            (line  446)
 * refresh instance method (ANSIWidgetPane class): Graphics.  (line  248)
-* removeAt method (Collection class):    Collections.        (line  320)
+* removeAt method (Collection class):    Collections.        (line  361)
 * require keyword:                       Classes.            (line   63)
 * require keyword <1>:                   Classes.            (line  267)
 * restoreTerm instance method (ANSITerminalStream class): Graphics.
@@ -8178,7 +8232,7 @@ File: tutorial.info,  Node: Index,  Prev: GNU Free Documentation License,  Up: T
 * self <1>:                              Self and super.     (line    6)
 * self, class of:                        Self and super.     (line  143)
 * self, class of <1>:                    Self and super.     (line  281)
-* setContent method (TreeNode class):    Collections.        (line  448)
+* setContent method (TreeNode class):    Collections.        (line  489)
 * setTty instance method (ANSITerminalStream class): Graphics.
                                                              (line  309)
 * setValue instance method (Symbol class): Methods.          (line  654)
@@ -8236,7 +8290,7 @@ File: tutorial.info,  Node: Index,  Prev: GNU Free Documentation License,  Up: T
 * toUpper (Character class):             Basic classes.      (line   84)
 * toUpper method (Character class):      Methods.            (line  258)
 * TreeNode Class:                        Collections.        (line   18)
-* TreeNode Class <1>:                    Collections.        (line  330)
+* TreeNode Class <1>:                    Collections.        (line  371)
 * Type conversion:                       Basic classes.      (line  785)
 * unmap instance method (ANSITerminalPane class): Graphics.  (line  272)
 * unshift method (List class):           Collections.        (line   74)
@@ -8295,24 +8349,24 @@ Ref: highlightButtonExample98219
 Node: Collections105941
 Ref: ListClass107532
 Ref: MapArguments110280
-Ref: CollectionMathOperators120742
-Ref: InitializingCollections134810
-Node: Classes137950
-Ref: Instance Variables142076
-Ref: Class Variables143531
-Node: Methods154493
-Ref: Method Declarations163581
-Ref: Working with Object References172062
-Ref: Assigning Values174173
-Ref: Constructor Methods190335
-Node: Graphics202301
-Ref: ANSIGraphics203807
-Ref: X11Graphics215668
-Ref: X Widget API222898
-Ref: GLUTGraphics231066
-Ref: GLXGraphics236186
-Node: Debugging248840
-Node: GNU Free Documentation License260424
-Node: Index281633
+Ref: CollectionMathOperators121987
+Ref: InitializingCollections136055
+Node: Classes139195
+Ref: Instance Variables143321
+Ref: Class Variables144776
+Node: Methods155738
+Ref: Method Declarations164826
+Ref: Working with Object References173307
+Ref: Assigning Values175418
+Ref: Constructor Methods191580
+Node: Graphics203546
+Ref: ANSIGraphics205052
+Ref: X11Graphics216913
+Ref: X Widget API224143
+Ref: GLUTGraphics232311
+Ref: GLXGraphics237431
+Node: Debugging250085
+Node: GNU Free Documentation License261669
+Node: Index282878
 
 End Tag Table

@@ -1,4 +1,4 @@
-/* $Id: String,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ -*-c-*- */
+/* $Id: String,v 1.2 2020/08/24 20:54:02 rkiesling Exp $ -*-c-*- */
 
 /*
   This file is part of Ctalk.
@@ -1278,3 +1278,4 @@ String instanceMethod systemErrnoStr (void) {
   __ctalkSetObjectValueVar (self, strerror (errno));
   return self;
 }
+

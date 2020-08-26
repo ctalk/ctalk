@@ -1,4 +1,4 @@
-/* $Id: rt_expr.c,v 1.6 2020/08/08 22:19:06 rkiesling Exp $ */
+/* $Id: rt_expr.c,v 1.9 2020/08/25 21:36:17 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -259,6 +259,18 @@ static inline int next_msg (MESSAGE_STACK messages, int this_msg) {
     --i;
   }
   return ERROR;
+}
+
+/* Check whether a label is a function call in a user template argument.
+   See test/expect/fn_param2.c for an example. */
+static bool is_fn_for_template (int fn_label_tok, EXPR_PARSER *p) {
+  int next_tok;
+  next_tok = next_msg (e_messages, fn_label_tok);
+  if (M_TOK(e_messages[next_tok]) == OPENPAREN) {
+    return true;
+  } else {
+    return false;
+  }
 }
 
 static inline bool method_label_is_arg (int i) {
@@ -4339,6 +4351,25 @@ OBJECT *eval_expr (char *s, OBJECT *recv_class, METHOD *method,
 	      _warning ("Warning: In the expression:\n\n\t%s\n\n"
 			"Label, \"%s,\" is not resolved as an object "
 			"or a method.\n", p -> expr_str, M_NAME(m));
+	    }
+	  } else {
+	    /***/
+	    if (IS_OBJECT(m -> obj)) { 
+	      if (m -> obj -> scope == CREATED_PARAM) {
+		/***/
+		if (!str_eq (m -> obj -> __o_name, "super") &&
+		    !(m -> attrs & RT_TOK_OBJ_IS_CREATED_CVAR_ALIAS) &&
+		    !(m -> attrs & RT_OBJ_IS_INSTANCE_VAR) &&
+		    !(m -> attrs & RT_VALUE_OBJ_IS_INSTANCE_VAR) &&
+		    !is_fn_for_template (i, p) &&
+		    /* This might be temporary, due to re-eval of
+		       tokens. */
+		    !strstr (p -> expr_str, "->")) {
+		  _warning ("Warning: In the expression:\n\n\t%s\n\n"
+			    "Label, \"%s,\" is not resolved as an object "
+			    "or a method.\n", p -> expr_str, M_NAME(m));
+		}
+	      }
 	    }
 	  }
 	  ++m -> evaled;

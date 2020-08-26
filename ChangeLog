@@ -1145,6 +1145,13 @@
 	- Added the qcond[171-178].c test programs.
 	- Added check for internal parens in a conditional predicate
 	term in rt_fn_arg_cond_expr (rt_expr.c).
+2020-08-24
+	- Added an undefined label warning in eval_expr
+	(lib/rt_expr.c).
+2020-08-25
+	- Added is_fn_for_template, called by eval_expr (lib/rt_expr.c),
+	to check for labels of functions that are called as arguments
+	by templated user functions.
 
 
 

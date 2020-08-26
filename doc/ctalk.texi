@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.2 2020/08/01 23:03:26 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.3 2020/08/25 18:22:17 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -2950,9 +2950,51 @@ int main () @{
 @item @mnm{at} (@code{char *}@var{key})
 Retrieve the element of the receiver array stored at @var{key}.
 
+@cindex @mnm{append} instance method @idxclscite{AssociativeArray}
+@item @mnm{init} (@code{...})
+@cindex @mnm{+=} instance method @idxclscite{AssociativeArray}
+@item @mnm{=} (@code{...})
+Append the arguments to the receiver @code{AssociativeArray}.
+The argument list may be any number of @emph{key,value} pairs.
+Here is an example.
+
+@example
+
+myAssocArray init "key1", "first", "key2", "second", "key3", "third", 
+  "key4", "fourth";
+myAssocArray append "key5", "fifth", "key6", "sixth", "key7", "seventh", 
+  "key8", "eigth";
+
+@emph{... or ... }
+
+myAssocArray = "key1", "first", "key2", "second", "key3", "third", 
+  "key4", "fourth";
+myAssocArray += "key5", "fifth", "key6", "sixth", "key7", "seventh", 
+  "key8", "eigth";
+
+@end example
+
 @cindex @mnm{atPut} instance method @idxclscite{AssociativeArray}
 @item @mnm{atPut} (@code{char *}@var{key}, @code{OBJECT *}@var{item})
 Add @var{item} to the receiver at @var{key}.
+
+@cindex @mnm{init} instance method @idxclscite{AssociativeArray}
+@item @mnm{init} (@code{...})
+@cindex @mnm{=} instance method @idxclscite{AssociativeArray}
+@item @mnm{=} (@code{...})
+Initializes the receiver @code{AssociativeArray} to the values given
+as the arguments, which may be composed of any number of
+@emph{key,value} pairs. Here is an example.
+
+@example
+
+myAssocArray init "key1", "value1", key2", "value2", "key3", "value3";
+
+@emph{... or ... }
+
+myAssocArray = "key1", "value1", key2", "value2", "key3", "value3";
+
+@end example
 
 @cindex @mnm{keyAt} instance method @idxclscite{AssociativeArray}
 @item @mnm{keyAt} (@code{String} @var{keyName})

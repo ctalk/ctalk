@@ -1507,8 +1507,46 @@ the list is empty.
 >>>AssociativeArray::at (char *key)
 Retrieve the element of the receiver array stored at key.
 
+>>>AssociativeArray::init (...)
+>>>AssociativeArray::= (...)
+Append the arguments to the receiver AssociativeArray.
+The argument list may be any number of key,value pairs.
+Here is an example.
+
+---------------------------------------------------------
+  
+  myAssocArray init "key1", "first", "key2", "second", "key3", "third", 
+    "key4", "fourth";
+  myAssocArray append "key5", "fifth", "key6", "sixth", "key7", "seventh", 
+    "key8", "eigth";
+  
+  ... or ... 
+  
+  myAssocArray = "key1", "first", "key2", "second", "key3", "third", 
+    "key4", "fourth";
+  myAssocArray += "key5", "fifth", "key6", "sixth", "key7", "seventh", 
+    "key8", "eigth";
+  
+---------------------------------------------------------
+
 >>>AssociativeArray::atPut (char *key, OBJECT *item)
 Add item to the receiver at key.
+
+>>>AssociativeArray::init (...)
+>>>AssociativeArray::= (...)
+Initializes the receiver AssociativeArray to the values given
+as the arguments, which may be composed of any number of
+key,value pairs. Here is an example.
+
+---------------------------------------------------------
+  
+  myAssocArray init "key1", "value1", key2", "value2", "key3", "value3";
+  
+  ... or ... 
+  
+  myAssocArray = "key1", "value1", key2", "value2", "key3", "value3";
+  
+---------------------------------------------------------
 
 >>>AssociativeArray::keyAt (String keyName)
 Returns the Key object named by keyName.

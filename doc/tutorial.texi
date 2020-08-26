@@ -1,5 +1,5 @@
 \input style.tex @c -*-texinfo-*-
-@c $Id: tutorial.texi,v 1.1.1.1 2020/07/26 05:50:11 rkiesling Exp $
+@c $Id: tutorial.texi,v 1.2 2020/08/25 18:22:17 rkiesling Exp $
 @c %**start of header  
 @setfilename tutorial.info
 @settitle Ctalk Tutorial
@@ -4177,7 +4177,19 @@ beyond the scope of this tutorial, but Ctalk internally can support a range
 of conventions when mapping over @code{List} and other @code{Collection}
 objects.
 
+@iftex
+@subsection Initializing Lists
+@end iftex
+@ifnottex
+@subsubheading Initializing Lists
+@end ifnottex
+@cindex @code{List,} initialization
+@cindex Initializing @code{List} objects
+
 @cindex @mnm{=} instance method @idxclscite{List}
+@cindex @mnm{+=} instance method @idxclscite{List}
+@cindex @mnm{init} instance method @idxclscite{List}
+@cindex @mnm{append} instance method @idxclscite{List}
 When initializing @code{Lists}, you can also use the @mnm{=} method
 to add items to the @code{List}, which you may find more convenient.
 You could replace the @mnm{push} methods in the example above with
@@ -4314,6 +4326,58 @@ myAssociativeArray atPut "keyName", myObject;
 To retrieve an object, use the method @mnm{at}.
 @example
 myObjectFromBefore = myAssociativeArray at "keyName";
+@end example
+
+@iftex
+@subsection Initializing AssociativeArrays
+@end iftex
+@ifnottex
+@subsubheading Initializing AssociativeArrays
+@end ifnottex
+@cindex @code{AssociativeArray,} initialization
+@cindex Initializing @code{AssociativeArray} objects
+
+@cindex @mnm{=} instance method @idxclscite{AssociativeArray}
+@cindex @mnm{+=} instance method @idxclscite{AssociativeArray}
+@cindex @mnm{init} instance method @idxclscite{AssociativeArray}
+@cindex @mnm{append} instance method @idxclscite{AssociativeArray}
+@code{AssociativeArray} is another class, like @code{List,} that
+allows you to set multiple elements with one expression.  The methods,
+@mnm{=}, and @mnm{+=}, @mnm{init} and @mnm{append} can take a variable
+number of keys and values as their arguments.
+
+Ctalk interprets the argument list to contain any number of
+@emph{key,value} pairs following either the method @mnm{=}, or
+@mnm{init}.  The two are interchangeable.  Here is an example.
+
+@example
+
+myAssocArray init "key1", "value1", "key2", "value2", "key3", "value3";
+
+@emph{... or ...}
+
+myAssocArray = "key1", "value1", "key2", "value2", "key3", "value3";
+
+@end example
+
+The @mnm{+=} and @mnm{append} methods add the @emph{key,value} pairs
+given as the arguments to the end of the reciever
+@code{AssociativeArray}, as in this example.
+
+@example
+
+myAssocArray init "key1", "first", "key2", "second", "key3", "third", 
+  "key4", "fourth";
+myAssocArray append "key5", "fifth", "key6", "sixth", "key7", "seventh", 
+  "key8", "eigth";
+
+@emph{... or ...}
+
+myAssocArray = "key1", "first", "key2", "second", "key3", "third", 
+  "key4", "fourth";
+myAssocArray += "key5", "fifth", "key6", "sixth", "key7", "seventh", 
+  "key8", "eigth";
+
 @end example
 
 @cindex @mnm{map} method @idxclscite{AssociativeArray}
