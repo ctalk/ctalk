@@ -1,8 +1,8 @@
-/* $Id: glxchaser.ca,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ */
+/* $Id: glxchaser.ca,v 1.2 2020/08/29 19:49:15 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
-  Copyright © 2019  Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2019 - 2020  Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
 
@@ -29,13 +29,13 @@
  *
  *    Ctalk supports (so far) the GLX_OML_sync_control and 
  *    GLX_MESA_swap_control extensions to enable refresh 
- *    synchronization.  They API for synchronization is a no-op
- *    with other systems, and you can comment out the following
- *    line if you don't want to view the warning messages on the
- *    terminal.
+ *    synchronization.  The API for synchronization is a no-op
+ *    with other systems.
+ *     
+ *    Uncomment the following line to enable sync swapping.
  */
 
-#define SYNC_SWAP
+/* #define SYNC_SWAP */
 
 /*
  *    The program isn't very graphics op intensive, and it can take a
@@ -383,8 +383,9 @@ void exit_help (char *cmd) {
   printf ("\nUsage: %s [-h|--help] | [-fr] [-rr] [-[-bg <color>] [-f <filename>] [-fg <color>] [-fn <font>] [-s <text>]\n", cmd);
   printf ("-bg <color>        Use <color> for the window background. See showrgb(1).\n");
   printf ("-f  <filename>     Use the contents of <filename> as the text to display.  The\n");
-  printf ("                   program reads <filename> between scans, so another program\n");
-  printf ("                   can update the text while glxchaser is running.\n");
+  printf ("                   program reads <filename> between horizontal animations,\n");
+  printf ("                   so another program can update the text content while\n");
+  printf ("                   glxchaser is running.\n");
   printf ("-fg <color>        Use <color> to display the text. See showrgb(1).\n");
   printf ("-fn <fontspec>     Display text using <fontspec>. See xlsfonts(1) or\n");
   printf ("-g  <geom>         Set the window's size and position.\n");
