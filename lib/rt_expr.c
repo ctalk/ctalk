@@ -1,4 +1,4 @@
-/* $Id: rt_expr.c,v 1.9 2020/08/25 21:36:17 rkiesling Exp $ */
+/* $Id: rt_expr.c,v 1.19 2020/08/29 00:58:05 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -265,12 +265,103 @@ static inline int next_msg (MESSAGE_STACK messages, int this_msg) {
    See test/expect/fn_param2.c for an example. */
 static bool is_fn_for_template (int fn_label_tok, EXPR_PARSER *p) {
   int next_tok;
-  next_tok = next_msg (e_messages, fn_label_tok);
-  if (M_TOK(e_messages[next_tok]) == OPENPAREN) {
-    return true;
-  } else {
-    return false;
+  if ((next_tok = next_msg (e_messages, fn_label_tok)) != ERROR) {
+    if (M_TOK(e_messages[next_tok]) == OPENPAREN) {
+      return true;
+    } else {
+      return false;
+    }
   }
+}
+
+static bool is_obj_deref_expr (EXPR_PARSER *p) {
+  int i, next;
+  for (i = p -> msg_frame_start; i > p -> msg_frame_top + 1; i--) {
+    if (M_TOK(e_messages[i]) == DEREF) {
+      if ((next = next_msg (e_messages, i)) != ERROR) {
+	if (IS_MESSAGE(e_messages[next])) {
+	  if (is_OBJECT_member (M_NAME(e_messages[next]))) {
+	    return true;
+	  }
+	}
+      }
+    } else if (M_TOK(e_messages[i]) == METHODMSGLABEL) {
+      if (str_eq (M_NAME(e_messages[i]), "->")) {
+	if ((next = next_msg (e_messages, i)) != ERROR) {
+	  if (IS_MESSAGE(e_messages[next])) {
+	    if (is_OBJECT_member (M_NAME(e_messages[next]))) {
+	      return true;
+	    }
+	  }
+	}
+      }
+    }
+  }
+  return false;
+}
+
+
+/*
+ *  Check if the label is a fragment of a registered aggegate
+ *  var; e.g.,
+ *
+ *    mySuff_s
+ *
+ *  which is part of ((OBJECT *)*myStuff_s)-> __o_value
+ */
+static bool is_label_in_deref (char *label) {
+  METHOD *m = __ctalkRtGetMethod ();
+  CVAR *c;
+  if (IS_METHOD(m)) {
+    for (c = m -> local_cvars; c; c = c -> next) {
+      if (strstr (c -> name, "->") && strstr (c -> name, label)) {
+	return true;
+      }
+    }
+  }
+  return false;
+}
+
+static inline int prev_msg (MESSAGE_STACK messages, int this_msg) {
+  int i = this_msg + 1;
+
+  while ( i <= C_EXPR_PARSER -> msg_frame_start) {
+    if (!M_ISSPACE(messages[i]))
+      return i;
+    ++i;
+  }
+  return ERROR;
+}
+
+static bool is_method_of_prev_tok_value (EXPR_PARSER *p, int tok_idx) {
+  int lookback;
+  OBJECT *src_object, *tgt_rcvr;
+  if ((lookback = prev_msg (e_messages, tok_idx)) != ERROR) {
+    if (is_class_or_subclass (M_VALUE_OBJ(e_messages[lookback]),
+			      rt_defclasses -> p_symbol_class)) {
+      src_object = M_VALUE_OBJ(e_messages[lookback]);
+      if (IS_OBJECT(src_object -> instancevars)) {
+	tgt_rcvr = SYMTOOBJ(src_object -> instancevars -> __o_value);
+      } else {
+	tgt_rcvr = SYMTOOBJ(src_object -> __o_value);
+      }
+      if (IS_OBJECT (tgt_rcvr)) {
+	if (__ctalkGetInstanceMethodByName (tgt_rcvr,
+					    M_NAME(e_messages[tok_idx]),
+					    FALSE, ANY_ARGS)) {
+	  return true;
+	}
+      }
+    } else if (M_VALUE_OBJ(e_messages[lookback]) -> scope &
+	       VAR_REF_OBJECT) {
+      if (__ctalkGetInstanceMethodByName
+	  (M_VALUE_OBJ(e_messages[lookback]),
+	   M_NAME(e_messages[tok_idx]), FALSE, ANY_ARGS)) {
+	return true;
+      }
+    }
+  }
+  return false;
 }
 
 static inline bool method_label_is_arg (int i) {
@@ -455,17 +546,6 @@ static inline void cleanup_created_param_arg (MESSAGE_STACK messages,
       }
     }
   }
-}
-
-static inline int prev_msg (MESSAGE_STACK messages, int this_msg) {
-  int i = this_msg + 1;
-
-  while ( i <= C_EXPR_PARSER -> msg_frame_start) {
-    if (!M_ISSPACE(messages[i]))
-      return i;
-    ++i;
-  }
-  return ERROR;
 }
 
 static bool method_is_instancevar_deref (EXPR_PARSER *p, int idx) {
@@ -4364,7 +4444,14 @@ OBJECT *eval_expr (char *s, OBJECT *recv_class, METHOD *method,
 		    !is_fn_for_template (i, p) &&
 		    /* This might be temporary, due to re-eval of
 		       tokens. */
-		    !strstr (p -> expr_str, "->")) {
+		    /* !strstr (p -> expr_str, "->") */
+		    !is_obj_deref_expr (p) &&
+		    !is_label_in_deref (M_NAME(m)) &&
+		    /***/
+		    /* This lines might need adjusting later on. */
+		    !(M_VALUE_OBJ(m) -> scope & ARG_VAR) &&
+		    !is_method_of_prev_tok_value (p, i) &&
+		    !is_method_param (M_NAME(m))) {
 		  _warning ("Warning: In the expression:\n\n\t%s\n\n"
 			    "Label, \"%s,\" is not resolved as an object "
 			    "or a method.\n", p -> expr_str, M_NAME(m));

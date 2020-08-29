@@ -1152,6 +1152,11 @@
 	- Added is_fn_for_template, called by eval_expr (lib/rt_expr.c),
 	to check for labels of functions that are called as arguments
 	by templated user functions.
+2020-08-26
+	- Added another is_obj_deref_expr for additional warning message
+	in eval_expr (rt_expr.c).
+2020-08-28
+	- Added is_method_of_prev_tok_value (rt_expr.c).
 
 
 
