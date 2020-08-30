@@ -1,4 +1,4 @@
-/* $Id: X11ListPane,v 1.1.1.1 2020/07/26 05:50:11 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11ListPane,v 1.2 2020/08/30 16:38:30 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -60,6 +60,13 @@ ItemBox instanceVariable selected Boolean false;
 static int y_1 = 0, x_1 = 0, d_y;
 static int scroll_max_y, scroll_min_y;
 static int last_click_nth = -1;
+
+/*
+ *  Helps speed up scrolling on slower systems.  If you
+ *  have a fast system, you can set this to 0 and have
+ *  finer scrolling.
+ */
+#define MIN_SCROLL 3
 
 ItemBox instanceMethod = setEqual (OBJECT *__newObject) {
   "This is basically Object : =, but we define it here so Ctalk
@@ -349,6 +356,8 @@ X11ListPane instanceMethod onMotion (Object subPane, InputEvent event) {
 	(event xEventData1 <= self thumbExt x)) {
       if (self buttonState & BUTTON1MASK) {
 	d_y = event xEventData2 - y_1;
+	if (abs (d_y) < MIN_SCROLL)
+	  return NULL;
 	y_1 += d_y;
 	self thumbOrg y += d_y;
 	self thumbExt y += d_y;
