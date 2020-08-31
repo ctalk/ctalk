@@ -1,4 +1,4 @@
-/* $Id: cvartab.c,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ */
+/* $Id: cvartab.c,v 1.2 2020/08/31 16:34:28 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -373,7 +373,18 @@ void method_cvar_tab_entry (MESSAGE_STACK messages, int idx,
       method_vartab_statement (vartab_entry);
     } else if (c -> attrs == CVAR_ATTR_STRUCT_PTR) {
       struct_type_idx = nextlangmsg (messages, idx);
-      struct_type_tag (c, M_NAME(messages[struct_type_idx]), struct_type_buf);
+      /***/
+      /* Skip over asterisks and any whitespace until we get to the 
+	 tag itself. */
+      while (M_TOK(messages[struct_type_idx]) == MULT)
+	++struct_type_idx;
+      if (M_ISSPACE(messages[struct_type_idx]))
+	struct_type_idx = prevlangmsg (messages, struct_type_idx);
+      if ((c -> type_attrs & CVAR_TYPE_OBJECT) && (c -> n_derefs == 1)) {
+	strcpy (struct_type_buf, c -> type);
+      } else {
+	struct_type_tag (c, M_NAME(messages[struct_type_idx]), struct_type_buf);
+      }
       strcatx (vartab_entry, c -> qualifier, " ", struct_type_buf, tab_pfx,
 	       new_methods[new_method_ptr+1] -> method -> selector,
 	       "_", c -> name, ";\n", NULL);
@@ -551,11 +562,22 @@ void method_cvar_tab_entry (MESSAGE_STACK messages, int idx,
 	       c -> name, ";\n", NULL);
       method_vartab_init_statement (vartab_init_entry);
     } else if (c -> attrs == CVAR_ATTR_STRUCT_PTR) {
-      strcatx (vartab_init_entry,
-	       new_methods[new_method_ptr+1] -> method -> selector, "_",
-	       c -> name,
-	       " = (struct ", struct_type_buf, " **)&",
-	       c -> name, ";\n", NULL);
+      /* This should be expanded to handle any typedef, besides
+	 OBJECT when we get examples in source code. */
+      /***/
+      if ((c -> type_attrs & CVAR_TYPE_OBJECT) && (c -> n_derefs == 1)) {
+	strcatx (vartab_init_entry,
+		 new_methods[new_method_ptr+1] -> method -> selector, "_",
+		 c -> name,
+		 " = (", struct_type_buf, " **)&",
+		 c -> name, ";\n", NULL);
+      } else {
+	strcatx (vartab_init_entry,
+		 new_methods[new_method_ptr+1] -> method -> selector, "_",
+		 c -> name,
+		 " = (struct ", struct_type_buf, " **)&",
+		 c -> name, ";\n", NULL);
+      }
       method_vartab_init_statement (vartab_init_entry);
     } else {
       strcatx (vartab_init_entry,
