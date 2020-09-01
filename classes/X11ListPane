@@ -1,4 +1,4 @@
-/* $Id: X11ListPane,v 1.2 2020/08/30 16:38:30 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11ListPane,v 1.3 2020/09/01 23:25:10 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -133,7 +133,7 @@ X11ListPane instanceMethod calcThumb (void) {
 
 X11ListPane instanceMethod add (String itemText) {
   Symbol new itemPtr;
-  Integer new nth, lOffset, itemWidth;
+  Integer new nth, itemWidth;
 
   self ftFontVar selectFontFromFontConfig self resources at "font";
   self selectFont;
@@ -141,20 +141,13 @@ X11ListPane instanceMethod add (String itemText) {
   *itemPtr = ItemBox basicNew itemText, itemText;
 
   nth = self items size;
-  lOffset = self resources integerAt "scrollWidth";
-  lOffset += self resources integerAt "leftMargin";
   itemWidth = self ftFontVar textWidth itemText;
-  /* self itemHeight = self ftFontVar textHeight itemText; */
 
   (*itemPtr) org x = (self resources integerAt "scrollWidth") +
     (self resources integerAt "leftMargin");
-
-  /* Should see how this draws, if we need to add extra space between
-     each item */
-  (*itemPtr) org x = lOffset;
   (*itemPtr) org y = (nth * self ftFontVar height);
 
-  (*itemPtr) ext x = lOffset + itemWidth;
+  (*itemPtr) ext x = (*itemPtr) org x + itemWidth;
   /* This is here for testing. */
   (*itemPtr) ext y = ((nth * self ftFontVar height) + self ftFontVar height);
 
