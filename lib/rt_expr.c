@@ -1,4 +1,4 @@
-/* $Id: rt_expr.c,v 1.19 2020/08/29 00:58:05 rkiesling Exp $ */
+/* $Id: rt_expr.c,v 1.20 2020/09/01 19:26:04 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -337,27 +337,29 @@ static bool is_method_of_prev_tok_value (EXPR_PARSER *p, int tok_idx) {
   int lookback;
   OBJECT *src_object, *tgt_rcvr;
   if ((lookback = prev_msg (e_messages, tok_idx)) != ERROR) {
-    if (is_class_or_subclass (M_VALUE_OBJ(e_messages[lookback]),
-			      rt_defclasses -> p_symbol_class)) {
-      src_object = M_VALUE_OBJ(e_messages[lookback]);
-      if (IS_OBJECT(src_object -> instancevars)) {
-	tgt_rcvr = SYMTOOBJ(src_object -> instancevars -> __o_value);
-      } else {
-	tgt_rcvr = SYMTOOBJ(src_object -> __o_value);
-      }
-      if (IS_OBJECT (tgt_rcvr)) {
-	if (__ctalkGetInstanceMethodByName (tgt_rcvr,
-					    M_NAME(e_messages[tok_idx]),
-					    FALSE, ANY_ARGS)) {
+    if (IS_OBJECT(M_VALUE_OBJ(e_messages[lookback]))) { /***/
+      if (is_class_or_subclass (M_VALUE_OBJ(e_messages[lookback]),
+				rt_defclasses -> p_symbol_class)) {
+	src_object = M_VALUE_OBJ(e_messages[lookback]);
+	if (IS_OBJECT(src_object -> instancevars)) {
+	  tgt_rcvr = SYMTOOBJ(src_object -> instancevars -> __o_value);
+	} else {
+	  tgt_rcvr = SYMTOOBJ(src_object -> __o_value);
+	}
+	if (IS_OBJECT (tgt_rcvr)) {
+	  if (__ctalkGetInstanceMethodByName (tgt_rcvr,
+					      M_NAME(e_messages[tok_idx]),
+					      FALSE, ANY_ARGS)) {
+	    return true;
+	  }
+	}
+      } else if (M_VALUE_OBJ(e_messages[lookback]) -> scope &
+		 VAR_REF_OBJECT) {
+	if (__ctalkGetInstanceMethodByName
+	    (M_VALUE_OBJ(e_messages[lookback]),
+	     M_NAME(e_messages[tok_idx]), FALSE, ANY_ARGS)) {
 	  return true;
 	}
-      }
-    } else if (M_VALUE_OBJ(e_messages[lookback]) -> scope &
-	       VAR_REF_OBJECT) {
-      if (__ctalkGetInstanceMethodByName
-	  (M_VALUE_OBJ(e_messages[lookback]),
-	   M_NAME(e_messages[tok_idx]), FALSE, ANY_ARGS)) {
-	return true;
       }
     }
   }
