@@ -1,4 +1,4 @@
-/* $Id: statfile.c,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ */
+/* $Id: statfile.c,v 1.3 2020/09/03 19:16:03 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -217,6 +217,7 @@ char *pwd (void) {
   return getcwd (buf, FILENAME_MAX);
 }
 
+
 char *expand_path (char *path, char *expanded_path) {
   char basename[FILENAME_MAX],
     dirpath[FILENAME_MAX],
@@ -294,6 +295,10 @@ char *expand_path (char *path, char *expanded_path) {
 
   strcpy (expanded_path, path);
   return path;
+}
+
+char *__ctalkExpandPath (char *dirglob, char *expanded_path_out) {
+  return expand_path (dirglob, expanded_path_out);
 }
 
 int file_mtime (char *path) {

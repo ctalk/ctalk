@@ -573,6 +573,10 @@ library function.
 Ctalk inserts this function, which is currenly a no-op, as the last
 function call in an argument block.
 
+>>>__ctalkEpandPath (char *dirGlobPattern, char *expandedPathOut)
+Expands dirGlobPattern into the full path name, and stores it in
+expanedPathOut.  Returns the value of expandedPathOut.
+
 >>>__ctalkErrorExit (void)
 Cleans up the program's immediate object environment before a call
 to the C exit(3) function.

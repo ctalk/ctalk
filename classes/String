@@ -1,4 +1,4 @@
-/* $Id: String,v 1.2 2020/08/24 20:54:02 rkiesling Exp $ -*-c-*- */
+/* $Id: String,v 1.3 2020/09/03 19:16:02 rkiesling Exp $ -*-c-*- */
 
 /*
   This file is part of Ctalk.
@@ -1279,3 +1279,8 @@ String instanceMethod systemErrnoStr (void) {
   return self;
 }
 
+String instanceMethod asExpandedPath (void) {
+  char expanded_path[FILENAME_MAX];
+  __ctalkExpandPath (self, expanded_path);
+  return expanded_path;
+}

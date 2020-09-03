@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.3 2020/08/25 18:22:17 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.4 2020/09/03 19:16:03 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -7619,6 +7619,11 @@ to the receiver's value by the amount given as the argument,
 an @code{Integer}.  Like the other methods that decrement 
 the reference to the receiver's value, the program must first
 have incremented it further than the start of the string.
+
+@cindex @mnm{asExpandedPath} instance method @idxclscite{String}
+@item @mnm{asExpanded} (@code{void})
+Return the expanded directory path for a directory glob pattern
+contained in the receiver.
 
 @cindex @mnm{asInteger} instance method @idxclscite{String}
 @item @mnm{asInteger} (@code{void})
@@ -22446,6 +22451,11 @@ library function.
 @item __ctalkExitArgBlockScope (@code{void})
 Ctalk inserts this function, which is currenly a no-op, as the last
 function call in an argument block.
+
+@idxfncite{__ctalkExpandPath}
+@item __ctalkEpandPath (@code{char *}@var{dirGlobPattern}, @code{char *}@var{expandedPathOut})
+Expands @var{dirGlobPattern} into the full path name, and stores it in
+@var{expanedPathOut}.  Returns the value of @var{expandedPathOut}.
 
 @cindex __ctalkErrorExit function
 @item __ctalkErrorExit (@code{void})

@@ -1,4 +1,4 @@
-/* $Id: ctalk.h,v 1.6 2020/08/13 12:43:55 rkiesling Exp $ -*-Fundamental-*- */
+/* $Id: ctalk.h,v 1.7 2020/09/03 19:02:26 rkiesling Exp $ -*-Fundamental-*- */
 
 /*
   This file is part of Ctalk.
@@ -2518,6 +2518,7 @@ char *which (char *);
 int __ctalkIsDir (char *);
 bool is_shell_script (char *);
 bool file_has_exec_permissions (char *);
+char *__ctalkExpandPath (char *, char *);
 
 /* lib/strcatx.c */
 int strcatx (char *, ...);

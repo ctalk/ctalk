@@ -3393,6 +3393,10 @@ an Integer.  Like the other methods that decrement
 the reference to the receiver's value, the program must first
 have incremented it further than the start of the string.
 
+>>>String::asExpanded (void)
+Return the expanded directory path for a directory glob pattern
+contained in the receiver.
+
 >>>String::asInteger (void)
 Return an Integer object with the value of the receiver.
 
