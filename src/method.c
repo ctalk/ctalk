@@ -1,4 +1,4 @@
-/* $Id: method.c,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ */
+/* $Id: method.c,v 1.2 2020/09/05 17:20:32 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -913,6 +913,20 @@ static void ma_add_arg (MESSAGE_STACK messages, int tok_idx,
   ++messages[tok_idx] -> output;
 }
 
+static void make_basic_arglist (MESSAGE_STACK messages,
+				int arglist_start, int arglist_end,
+				ARGSTR *argstrs, int *argstrptr) {
+  int i;
+  for (i = 0; i < *argstrptr; i++)
+    __xfree (MEMADDR(argstrs[i].arg));
+  argstrs[0].arg = collect_tokens (message_stack (),
+				   arglist_start, arglist_end);
+  argstrs[0].start_idx = arglist_start;
+  argstrs[0].end_idx = arglist_end;
+  argstrs[0].m_s = message_stack ();
+  *argstrptr = 1;
+}
+
 /*
  *  Split the argument list in separate arguments, then 
  *  evaluate each argument.
@@ -1421,7 +1435,7 @@ int method_args (METHOD *method, int method_msg_ptr) {
 	OBJECT *return_class_object;
 	METHOD *arg_method;
 	MESSAGE *m_arg_method;
-	int _i;
+	/* int _i; *//***/
 	/* Check if the following message is a method with the
 	   receiver of the main method's return class. */
 	m_method = message_stack_at (method_msg_ptr);
@@ -1435,6 +1449,9 @@ int method_args (METHOD *method, int method_msg_ptr) {
 	      (m_method, return_class_object, M_NAME(m_arg_method), 
 	       ERROR, FALSE)) 
 	     != NULL)) {
+	  make_basic_arglist (message_stack (), arglist_start, arglist_end,
+			      argstrs, &argstrptr);
+#if 0 /***/
 	  for (_i = 0; i < argstrptr; i++)
 	    __xfree (MEMADDR(argstrs[_i].arg));
 
@@ -1444,7 +1461,25 @@ int method_args (METHOD *method, int method_msg_ptr) {
 	  argstrs[0].end_idx = arglist_end;
 	  argstrs[0].m_s = message_stack ();
 	  argstrptr = 1;
+#endif	  
 
+	} else if (M_TOK(m_arg_method) == LABEL &&
+		   M_TOK(m_method) == METHODMSGLABEL) { /***/
+	  if (is_instance_variable_message (message_stack (), arglist_start)) {
+	    make_basic_arglist (message_stack (), arglist_start, arglist_end,
+				argstrs, &argstrptr);
+#if 0 /***/
+	    for (_i = 0; i < argstrptr; i++)
+	      __xfree (MEMADDR(argstrs[_i].arg));
+
+	    argstrs[0].arg = collect_tokens (message_stack (),
+					     arglist_start, arglist_end);
+	    argstrs[0].start_idx = arglist_start;
+	    argstrs[0].end_idx = arglist_end;
+	    argstrs[0].m_s = message_stack ();
+	    argstrptr = 1;
+#endif	  
+	  }
 	} else {
 	  method_args_wrong_number_of_arguments_1 
 	    (message_stack (),
