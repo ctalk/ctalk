@@ -1,4 +1,4 @@
-/* $Id: method.c,v 1.2 2020/09/05 17:20:32 rkiesling Exp $ */
+/* $Id: method.c,v 1.3 2020/09/05 22:14:56 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -1451,34 +1451,11 @@ int method_args (METHOD *method, int method_msg_ptr) {
 	     != NULL)) {
 	  make_basic_arglist (message_stack (), arglist_start, arglist_end,
 			      argstrs, &argstrptr);
-#if 0 /***/
-	  for (_i = 0; i < argstrptr; i++)
-	    __xfree (MEMADDR(argstrs[_i].arg));
-
-	  argstrs[0].arg = collect_tokens (message_stack (),
-					   arglist_start, arglist_end);
-	  argstrs[0].start_idx = arglist_start;
-	  argstrs[0].end_idx = arglist_end;
-	  argstrs[0].m_s = message_stack ();
-	  argstrptr = 1;
-#endif	  
-
 	} else if (M_TOK(m_arg_method) == LABEL &&
 		   M_TOK(m_method) == METHODMSGLABEL) { /***/
 	  if (is_instance_variable_message (message_stack (), arglist_start)) {
 	    make_basic_arglist (message_stack (), arglist_start, arglist_end,
 				argstrs, &argstrptr);
-#if 0 /***/
-	    for (_i = 0; i < argstrptr; i++)
-	      __xfree (MEMADDR(argstrs[_i].arg));
-
-	    argstrs[0].arg = collect_tokens (message_stack (),
-					     arglist_start, arglist_end);
-	    argstrs[0].start_idx = arglist_start;
-	    argstrs[0].end_idx = arglist_end;
-	    argstrs[0].m_s = message_stack ();
-	    argstrptr = 1;
-#endif	  
 	  }
 	} else {
 	  method_args_wrong_number_of_arguments_1 

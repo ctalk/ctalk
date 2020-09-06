@@ -1,4 +1,4 @@
-/* $Id: object.c,v 1.5 2020/08/16 14:19:49 rkiesling Exp $ */
+/* $Id: object.c,v 1.6 2020/09/05 22:14:56 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -1302,6 +1302,8 @@ int is_instance_variable_message (MESSAGE_STACK messages, int idx) {
   MESSAGE *m_prev_tok;
   OBJECT *prev_tok_obj;
   METHOD *m;
+  int rcvr_ptr;
+  OBJECT *return_class_obj, *var;
 
   if ((prev_tok_idx = prevlangmsgstack (messages, idx)) != ERROR) {
     m_prev_tok = messages[prev_tok_idx];
@@ -1360,6 +1362,27 @@ int is_instance_variable_message (MESSAGE_STACK messages, int idx) {
 	} else if (is_self_or_super_instance_var_series (messages, idx)) {
 	  return TRUE;
 	}
+      }
+    } else if (M_TOK(m_prev_tok) == METHODMSGLABEL) {
+      rcvr_ptr = prevlangmsg (messages, prev_tok_idx);
+      if (IS_OBJECT(messages[rcvr_ptr] -> obj)) {
+	if (((m = get_instance_method (messages[rcvr_ptr],
+				       messages[rcvr_ptr] -> obj,
+				       m_prev_tok -> name,
+				       ANY_ARGS, FALSE)) != NULL) ||
+	    ((m = get_class_method (messages[rcvr_ptr],
+				    messages[rcvr_ptr] -> obj,
+				    m_prev_tok -> name,
+				    ANY_ARGS, FALSE)) != NULL)) {
+	  if ((return_class_obj = get_class_object (m -> returnclass))
+	      != NULL) {
+            for (var = return_class_obj -> instancevars; var; var = var -> next) {
+	      if (str_eq (M_NAME(messages[idx]), var -> __o_name)) {
+		return TRUE;
+	      }
+            }
+          }
+        }
       }
     }
   }

@@ -1179,5 +1179,11 @@
 	- Updated method_args to check for an instance variable of
 	a method return value.  Also added mane_basic_arglist,
 	called by method_args (method.c).
+	- Added another check for an expression with an instance
+	variable as its terminal token in eval_expr (rt_expr.c).
+	- Updated is_instance_variable_message to check for
+	an instance variable that follows a method label (object.c).
+	- Added a call to find_expression_limit to arg_expr_object_2
+	(argexprchk.c).
 
 

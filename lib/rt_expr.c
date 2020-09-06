@@ -1,4 +1,4 @@
-/* $Id: rt_expr.c,v 1.20 2020/09/01 19:26:04 rkiesling Exp $ */
+/* $Id: rt_expr.c,v 1.22 2020/09/05 22:14:56 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -4365,6 +4365,18 @@ OBJECT *eval_expr (char *s, OBJECT *recv_class, METHOD *method,
 		  }
 		} else {
 		  fixup_forward_instance_var_of_method_return (p, i);
+		  /***/
+		  if ((m_next_idx =
+		       next_msg (e_messages, i)) != ERROR) { /***/
+		    if (m_next_idx == (p -> msg_frame_top + 1)) {
+		      eval_status |=
+			(EVAL_STATUS_TERMINAL_TOK|EVAL_STATUS_INSTANCE_VAR);
+		      result_obj =
+			M_VALUE_OBJ(e_messages[p -> msg_frame_top + 1]);
+		      e_messages[m_next_idx] -> attrs |= RT_OBJ_IS_INSTANCE_VAR;
+		      goto done;
+		    }
+		  }
 		}
 	      } else { /* if (__is_instvar_of_method_return ... */
 
