@@ -1,4 +1,4 @@
-L/* $Id: X11ListBox,v 1.3 2020/08/23 18:50:05 rkiesling Exp $ -*-C-*-*/
+L/* $Id: X11ListBox,v 1.5 2020/09/06 06:40:16 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -202,7 +202,8 @@ X11ListBox instanceMethod subPaneEnter (Object subPane,
     }
     return NULL;
   } else if (__event eventData == subPane listPane xWindowID) {
-    subPane listPane onEnter subPane listPane, __event;
+    subPane listPane draw;
+    subPane listPane refresh;
     return NULL;
   }
 
@@ -251,8 +252,6 @@ X11ListBox instanceMethod subPaneLeave (Object subPane,
 	self rbutton hover = false;
       }
     }
-  } else if (__event eventData == subPane listPane xWindowID) {
-    subPane listPane onLeave subPane listPane, __event;
   }
 }
 
@@ -334,7 +333,8 @@ X11ListBox instanceMethod show (void) {
 	  if ((xev.xbutton.window == self lbutton xWindowID) ||
 	      (xev.xbutton.window == self rbutton xWindowID)) {
 	    e eventClass = BUTTONRELEASE;
-	    self listPane onClick self listPane, e;
+	    self methodObjectMessage self handlePointerInput, self, e;
+	    /* self listPane onClick self listPane, e; *//***/
 	    self withdraw;
 	    dispatcher modalWin = 0;
 	    dispatcher modalPane = NULL;

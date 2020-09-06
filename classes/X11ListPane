@@ -1,4 +1,4 @@
-/* $Id: X11ListPane,v 1.3 2020/09/01 23:25:10 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11ListPane,v 1.7 2020/09/06 06:40:16 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -160,7 +160,8 @@ X11ListPane instanceMethod add (String itemText) {
 }
 
 X11ListPane instanceMethod new (String paneName) {
-  Method new exposeMethod, enterMethod, leaveMethod, kbdMethod,
+  /***/
+  Method new exposeMethod, /* enterMethod, leaveMethod, */ kbdMethod,
     buttonMethod, motionMethod, resizeMethod;
 
   X11ListPane super new paneName;
@@ -168,11 +169,13 @@ X11ListPane instanceMethod new (String paneName) {
   exposeMethod definedInstanceMethod "X11ListPane", "onExpose";
   paneName setMethodHandler "expose", exposeMethod;
 
+#if 0 /***/
   enterMethod definedInstanceMethod "X11ListPane", "onEnter";
   paneName setMethodHandler "enternotify", enterMethod;
 
   leaveMethod definedInstanceMethod "X11ListPane", "onLeave";
   paneName setMethodHandler "leavenotify", leaveMethod;
+#endif  
 
   kbdMethod definedInstanceMethod "X11ListPane", "onKey";
   paneName setMethodHandler "kbdinput", kbdMethod;
@@ -451,6 +454,7 @@ X11ListPane instanceMethod onKey (Object subPane,
 
 }
 
+#if 0 /***/
 X11ListPane instanceMethod onEnter (Object subPane,
 				    InputEvent __event) {
   subPane draw;
@@ -462,6 +466,7 @@ X11ListPane instanceMethod onLeave (Object subPane,
   subPane draw;
   subPane refresh;
 }
+#endif
 
 X11ListPane instanceMethod onExpose (Object subPane, InputEvent event) {
   subPane draw;
@@ -525,40 +530,32 @@ X11ListPane instanceMethod dumpList (void) {
 
 X11ListPane instanceMethod drawItemList (void) {
   ItemBox new item;
-  Integer new lineHeight, l_viewStartY, l_viewHeight;
-  Integer new visible;
+  Integer new lineHeight;
   
   if (self iInit++ < 5)
     return NULL;
 
   self ftFontVar selectFontFromFontConfig self resources at "font";
-  self ftFontVar saveSelectedFont;
   self ftFontVar namedX11Color self resources at "textColor";
 
   lineHeight = self ftFontVar textHeight "T";
-  l_viewStartY = self viewStartY;
-  l_viewHeight = self size y;
 
   self items map {
     item = self;
-    if (l_viewStartY - lineHeight <= item org y) {
-      visible = true;
-    }
 
-    if (visible) {
+    if (super viewStartY - lineHeight <= item org y) {
       if (item selected == true) {
 
 	super pen colorName = super resources at "selectColor";
 	super drawFilledRectangle (item org x,
 				   /* Try to center the rectangle 
 				      vertically over the text. */
-				   (item ext y - l_viewStartY - lineHeight),
+				   (item ext y - super viewStartY - lineHeight),
 				   item size x,
 				   item size y);
       }
       super putStrXY item org x,
-	(item ext y - l_viewStartY),
-	item value;
+	(item ext y - super viewStartY), item value;
     }
   }
 
