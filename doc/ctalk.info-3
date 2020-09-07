@@ -17,6 +17,156 @@ Texts.  A copy of the license is included in the section entitled, "GNU
 Free Documentation License."
 
 
+File: ctalk.info,  Node: Variable arguments,  Next: Overloading,  Prev: Return values,  Up: Methods
+
+Variable Arguments
+------------------
+
+C functions like 'scanf(3),' 'sscanf(3),' and 'fscanf(3)' have templates
+that allow you to call them with a variable number of arguments.
+
+If you need to call other C functions that use variable arguments, you
+must call '__ctalkLibcFnWithMethodVarArgs' with the name of the
+function, the method that contains the function's template, and the
+function's return class.
+
+The 'readFormat' method (implemented in 'String' and 'ReadFileStream'
+classes) can scan a string or input file into the objects that the
+program gives as arguments.  The methods also take care of
+scalar-to-object translation, memory allocation, and several other
+tasks.
+
+However, programs can also accomplish the same thing manually.
+
+For example, here is the code of the template method for 'fscanf(3),'
+'cFscanf' ('CFunction' class), without the preprocessing directives.
+
+     cFscanf (FILE *s, char *fmt,...) {
+       EXPR_PARSER *parser;
+       OBJECT *result_object;
+       parser = __ctalkGetExprParserAt (__ctalkGetExprParserPtr ());
+       result_object =
+         __ctalkLibcFnWithMethodVarArgs ((int (*)())fscanf, parser -> e_method, "Integer");
+       return result_object;
+     }
+
+At run time, the 'e_method' member of an expression parser contains the
+method and its arguments.
+
+The third argument of '__ctalkLibcFnWithMethodVarArgs' determines the
+class of 'result_object.' For C library functions that use variable
+arguments, the return class is 'Integer.'
+
+The typecast '(int (*)())' in the first argument in front of 'fscanf' is
+not strictly needed because we know that the number and types of
+arguments to 'fscanf(3)' (or 'scanf(3)' or any other variable-argument
+function) might vary from the '__ctalkLibcFnWithMethodVarArgs'
+prototype, but it tells the compiler not to print a warning message in
+that case.
+
+If you simply need to print formatted output, the 'writeFormat' or
+'printOn' methods (implemented in 'String', 'WriteFileStream' and many
+other classes classes) perform format-argument translations
+automatically.  Several classes also implement a 'readFmt' method, which
+reads formatted input from a 'String' or 'ReadFileStream'.  *Note
+writeFormat--class WriteFileStream::, and *note writeFormat--class
+String::.
+
+
+File: ctalk.info,  Node: Overloading,  Next: Variable method arguments,  Prev: Variable arguments,  Up: Methods
+
+Overloading Methods
+-------------------
+
+You can always implement a method in different classes.  For example,
+you can define a '+' method in 'Integer,' 'LongInteger,' 'Character,'
+and 'Float' classes, and Ctalk calls the method defined for that class
+of the receiver object.
+
+Some operators also have methods implemented in a superclass, like
+'Magnitude' in this case, which can provide any extra error checking and
+processing that may be necessary, for example, if you try to use a unary
+minus ('-') operator with a receiver like a 'Pen' or 'Rectangle' object.
+
+When you overload methods _within_ a class, however, Ctalk does some
+extra checking.  The compiler needs to examine the expression to find
+out how many arguments the statement has, whether the operator is a
+prefix operator, or whether the method's argument is a block of code or
+a variable argument list, or whether the method uses a C calling
+convention.
+
+Ctalk can overload math operators when they are also used as prefix
+operators.  Two examples of these are the unary minus ('-') and pointer
+('*') methods, which have different methods than the operators that
+perform subtraction and multiplication.  Writing methods that are prefix
+operators is described above.  *Note Prefixes::.
+
+Overloading Parameters
+......................
+
+Exactly when you should write methods that overload things like
+parameters and variable arguments is somewhat within the philosophy of
+programming languages.  For example, a common use of method overloading
+based on the number of parameters is the, "getter/setter," type of
+method, which retrieves and sets an object's private data.
+
+In Ctalk, these are much less necessary than in other languages, because
+Ctalk can address an object's private data with a message that has the
+same name as an instance or class variable.  Since these messages bind
+more tightly to receiver objects than messages that refer to methods,
+these types of methods might not work the way you think they would.  So
+be sure that if you write a method of this type, that the program is
+actually using a method message, and not an instance data message.
+
+Here is an example of overloading parameters.  Because the 'String'
+class already has a 'concat' method (it overloads the '+' operator), we
+overload the method, 'myConcat,' to concatenate one or two strings to
+the receiver.
+
+As long as the program is relatively simple, it's easy to keep track of
+which methods already exist in a class.  In a bigger application,
+though, you might want to define a subclass of 'String' class for this
+program.
+
+
+     String instanceMethod myConcat (String s1) {
+
+       self = self + s1;
+
+     }
+
+     String instanceMethod myConcat (String s1, String s2) {
+
+       self = self + s1 + s2;
+
+     }
+
+     int main () {
+       String new s1;
+       String new s2;
+       String new s3;
+
+       s1 = "Hello, ";
+       s2 = "world! ";
+       s3 = "Again.";
+
+       s1 myConcat s2;
+       printf ("%s\n", s1);
+
+       s1 myConcat s2, s3;
+       printf ("%s\n", s1);
+
+     }
+
+
+We should mention that the 'myConcat' method changes its receiver.  So
+the arguments to the second 'myConcat' message simply get added to the
+receiver again.  The output should look something like this.
+
+     Hello, world!
+     Hello, world! world! Again.
+
+
 File: ctalk.info,  Node: Variable method arguments,  Next: Method functions,  Prev: Overloading,  Up: Methods
 
 Variable Method Arguments
@@ -10394,6 +10544,8 @@ Index
 * X11ButtonPane class:                   X11ButtonPane.      (line    6)
 * X11CanvasPane class:                   X11CanvasPane.      (line    6)
 * X11Cursor class:                       X11Cursor.          (line    6)
+* X11FileSelectDialog class:             X11FileSelectDialog.
+                                                             (line    6)
 * X11Font class:                         X11Font.            (line    6)
 * X11FreeTypeFont class:                 X11FreeTypeFont.    (line    6)
 * X11LabelPane class:                    X11LabelPane.       (line    6)

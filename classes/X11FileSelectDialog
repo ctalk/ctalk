@@ -1,8 +1,8 @@
-L/* $Id: X11FileSelectDialog,v 1.3 2020/08/24 20:54:02 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11FileSelectDialog,v 1.35 2020/09/07 14:46:58 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
-  Copyright © 2020  Robert Kiesling, rk3314042@gmail.com.
+  Copyright Â© 2020  Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
 
@@ -22,7 +22,7 @@ L/* $Id: X11FileSelectDialog,v 1.3 2020/08/24 20:54:02 rkiesling Exp $ -*-C-*-*/
 */
 
 /* 
-   X11FileSelectDialog Class - Text Entry Dialog
+   X11FileSelectDialog Class - File select dialog.
 
    Resources: 
 
@@ -32,20 +32,323 @@ L/* $Id: X11FileSelectDialog,v 1.3 2020/08/24 20:54:02 rkiesling Exp $ -*-C-*-*/
 
 X11ListBox class X11FileSelectDialog;
 
-X11FileSelectDialog instanceMethod getExpandedDir (String dirPattern,
-						   SortedList filesOut) {
-  DirectoryStream new dir;
-  String new qualPath;
+X11FileSelectDialog instanceVariable dotFiles Boolean false
+"If true, include files that start with a '.' in the file list.";
+X11FileSelectDialog instanceVariable waitCursor X11Cursor NULL;
+X11FileSelectDialog instanceVariable dirPattern String ".";
+X11FileSelectDialog instanceVariable targetPath String "";
 
-  if (dirPattern contains "." == -1 ||
-      dirPattern contains '~' == -1 ||
-      dirPattern contains '$' == -1) {
-    qualPath = dirPattern;
-  } else if (dirPattern == ".") {
-    qualPath = dir getCwd;
-  }
+/* When doing something like this, make sure that the program
+   instantiates an object in the class library file where the
+   instance variable's class is (for example, a X11ListPane
+   object, since the ItemBox class is also declared in
+   the X11ListPane class library file). */
+ItemBox instanceVariable fileMode Integer 0;
+
+static bool needDirOnPopup = true;
+
+#define DIRMODE 16384   /* == 004000 in sys/stat.h, etc. */
+
+X11FileSelectDialog instanceMethod updateLabel (String qualPath) {
+  String new labelText;
+  labelText = "Directory:\n" + qualPath;
+  self label multiLine labelText;
+  self resources replaceAt "messageText", labelText;
+  self label draw;
+  self label refresh;
+}
+
+X11FileSelectDialog instanceMethod makeItem (String itemText) {
+  Symbol new itemPtr;
+  Integer new nth, itemWidth;
+
+  returnObjectClass ItemBox;
+
+  self listPane ftFontVar selectFontFromFontConfig self listPane resources at "font";
+  self listPane selectFont;
+
+  *itemPtr = ItemBox basicNew itemText, itemText;
+
+  nth = self listPane items size;
+  itemWidth = self listPane ftFontVar textWidth itemText;
+
+  (*itemPtr) org x = (self listPane resources integerAt "scrollWidth") +
+    (self listPane resources integerAt "leftMargin");
+  (*itemPtr) org y = (nth * self listPane ftFontVar height);
+
+  (*itemPtr) ext x = (*itemPtr) org x + itemWidth;
+  (*itemPtr) ext y = ((nth * self listPane ftFontVar height) + self listPane ftFontVar height);
+
+  (*itemPtr) size x = itemWidth;
+  (*itemPtr) size y = self listPane ftFontVar height;
+
+  return *itemPtr;
+
+}
+
+X11FileSelectDialog instanceMethod getExpandedDir (String dirPattern) {
+  String new qualPath, cwd;
+  SortedList new sortedNames;
+  DIR *d;
+  DirectoryStream new dir;
+  FileStream new f;
+  struct dirent *d_ent;
+  struct stat statbuf;
+  ItemBox new item;
+
+
+  self targetPath = dirPattern asExpandedPath;
   
-  dir sortedDirectoryList qualPath, filesOut;
+  /* Remember to add some sort of check for a real error here, like 
+     initial directory doesn't exist or read error. */
+  if ((d = opendir (self targetPath)) == NULL) {
+    return NULL;
+  }
+
+  cwd = dir getCwd;
+  dir chDir self targetPath;
+  while ((d_ent = readdir (d)) != NULL) {
+    if (d_ent -> d_name[0] == '.')
+      continue;
+    sortedNames pushAscending d_ent -> d_name;
+  }
+  sortedNames shift "..";
+
+  sortedNames map {
+    item = super makeItem self;
+    f statFile self;
+    item fileMode = f streamMode;
+    /* Added a trailing slash to directory items, except for the
+       parent directory item. */
+    if (item name != ".." && item fileMode & DIRMODE)
+      item += "/";
+    super listPane items push item;
+  }
+  dir chDir cwd;
+
+  /* Also check for errors here. */
+  closedir (d);
+
+  self listPane calcThumb;
+
+  self updateLabel self targetPath;
+
+}
+
+X11FileSelectDialog instanceMethod onExpose (Object subPane,
+					     InputEvent event) {
+  subPane draw;
+  subPane refresh;
+}
+
+X11FileSelectDialog instanceMethod refresh (void) {
+  
+  self label refresh;
+  self listPane refresh;
+
+  self lbutton refresh;
+  self rbutton refresh;
+
+}
+
+X11FileSelectDialog instanceMethod draw (void) {
+  
+  self label draw;
+  self listPane draw;
+
+  self lbutton draw;
+  self rbutton draw;
+
+}
+
+X11FileSelectDialog instanceMethod new (String paneName) {
+  Method new buttonPressMethod, exposeMethod;
+  
+  X11FileSelectDialog super new paneName;
+
+  buttonPressMethod definedInstanceMethod "X11FileSelectDialog",
+    "subPaneButton";
+  paneName setMethodHandler "pointerinput", buttonPressMethod;
+
+  exposeMethod definedInstanceMethod "X11FileSelectDialog",
+    "onExpose";
+  paneName setMethodHandler "expose", exposeMethod;
+
+  return paneName;
+}
+
+X11FileSelectDialog instanceMethod chDir (ItemBox item) {
+  String new buf;
+  List new l;
+  Integer new i;
+
+  self useCursor self waitCursor;
+  if (item at (item length - 1) == '/') {
+    buf = item subString 0, (item length) - 1;
+    self targetPath += "/" + buf;
+  } else if (item == "..") {
+    self targetPath split '/', l;
+    for (i = 0; i <= l size - 2; i++) {
+      buf += "/" + *(l + i);
+    }
+    self targetPath = buf;
+  } else {
+    self targetPath += "/" + item;
+  }
+  self listPane items delete;
+  self getExpandedDir self targetPath;
+  last_click_nth = -1;
+  self listPane viewStartY = 0;
+  /* The thumb position is reset in X11ListPane : calcThumb */
+  self listPane draw;
+  self listPane refresh;
+  self defaultCursor;
+}
+
+/* These are from x11defs.h. */
+#define BUTTON1MASK  (1 << 0)
+#define BUTTON2MASK  (1 << 1)
+#define BUTTON3MASK  (1 << 2)  
+
+#define shiftStateShift (1 << 0)
+#define shiftStateCtrl  (1 << 1)
+
+X11FileSelectDialog instanceMethod onListClick (Object subPane, InputEvent event) {
+  ItemBox new item, lastItem;
+  int i;
+  
+  switch (event eventClass)
+    {
+    case BUTTONPRESS:
+      switch (event xEventData4)
+	{
+	case Button1:
+	  subPane listPane buttonState |= BUTTON1MASK;
+	  x_1 = event xEventData1;
+	  y_1 = event xEventData2;
+	  /* Simplifies expressions. */
+	  y_1 += self listPane viewStartY;
+	  if (x_1 > self listPane scrollWidth) {
+	    i = 0;
+	    self listPane items map {
+	      /* Simplifies expressions, too. */
+	      item = self;
+	      if (super listPane shiftState == 0) {
+		if ((y_1 >= item org y) && (y_1 <= item ext y)) {
+		  if (item fileMode & DIRMODE) {
+		    super chDir item;
+		    return NULL;
+		  }
+		  /* Clicking on the same item twice de-selects it. */
+		  if (last_click_nth == -1) {
+		    last_click_nth = i;
+		    item selected = true;
+		  } else {
+		    if (i != last_click_nth) {
+		      lastItem = *(super listPane items + last_click_nth);
+		      lastItem selected = false;
+		      last_click_nth = i;
+		      item selected = true;
+		    } else {
+		      last_click_nth = -1;
+		      item selected = false;
+		    }
+		  }
+		}
+		super listPane draw;
+		super listPane refresh;
+	      } else if (super listPane shiftState & shiftStateShift) {
+		if ((y_1 >= item org y) && (y_1 <= item ext y)) {
+		  if (last_click_nth == i) {
+		    last_click_nth = -1;
+		    item selected = false;
+		  } else {
+		    last_click_nth = i;
+		    item selected = true;
+		  }
+		  super listPane draw;
+		  super listPane refresh;
+		}
+	      } else if (super listPane shiftState & shiftStateCtrl) {
+		if ((y_1 >= item org y) && (y_1 <= item ext y)) {
+		  if (last_click_nth == i) {
+		    last_click_nth = -1;
+		    super listPane unSelectAll;
+		  } else {
+		    last_click_nth = i;
+		    item selected = true;
+		    super listPane selectRange i;
+		  }
+		  super listPane draw;
+		  super listPane refresh;
+		}
+	      }
+	      ++i;
+	    }
+	  }
+	  break;
+	case Button2:
+	  subPane listPane buttonState |= BUTTON2MASK;
+	  break;
+	case Button3:
+	  subPane listPane buttonState |= BUTTON3MASK;
+	  break;
+	}
+      break;
+    case BUTTONRELEASE:
+      switch (event xEventData4)
+	{
+	case Button1:
+	  subPane listPane buttonState &= ~BUTTON1MASK;
+	  y_1 = 0;
+	  break;
+	case Button2:
+	  subPane listPane buttonState &= ~BUTTON2MASK;
+	  break;
+	case Button3:
+	  subPane listPane buttonState &= ~BUTTON3MASK;
+	  break;
+	}
+      break;
+    }
+}
+
+X11FileSelectDialog instanceMethod subPaneButton (Object subPane,
+					  InputEvent __event) {
+
+  switch (__event eventClass)
+    {
+    case BUTTONPRESS:
+      if (__event eventData == subPane lbutton xWindowID) {
+	self lbutton clicked = true;
+	if (!self lbutton clickSet)
+	  self lbutton clickSet = true;
+	self lbutton draw;
+	self lbutton refresh;
+      } else if (__event eventData == subPane rbutton xWindowID) {
+	self rbutton clicked = true;
+	if (!self rbutton clickSet)
+	  self rbutton clickSet = true;
+	self rbutton draw;
+	self rbutton refresh;
+      }
+      break;
+    case BUTTONRELEASE:
+      if (__event eventData == subPane lbutton xWindowID) {
+	self lbutton clicked = false;
+	self lbutton draw;
+	self lbutton refresh;
+	self returnVal = YESNO_LBUTTON;
+	self returnText = self resources at "leftButtonText";
+      } else if (__event eventData == subPane rbutton xWindowID) {
+	self rbutton clicked = false;
+	self rbutton draw;
+	self rbutton refresh;
+	self returnVal = YESNO_RBUTTON;
+	self returnText = self resources at "rightButtonText";
+      }
+      break;
+    }
 }
 
 X11FileSelectDialog instanceMethod initWidgets (void) {
@@ -69,7 +372,7 @@ X11FileSelectDialog instanceMethod initWidgets (void) {
     list_y_px;
   String new geomspec;
   InputEvent new e;
-  SortedList new dirItems;
+  /* SortedList new dirItems; *//***/
 
 
   if (self initialized)
@@ -118,11 +421,6 @@ X11FileSelectDialog instanceMethod initWidgets (void) {
 
   self listPane resources replaceAt "font", (self resources at "listFont");
 
-  self getExpandedDir ".", dirItems;
-  dirItems map {
-    super listPane add self;
-  }
-
   self lbutton become l_button;
   self children push l_button;
   self rbutton become r_button;
@@ -139,239 +437,16 @@ X11FileSelectDialog instanceMethod initWidgets (void) {
   self lbutton label text (self resources at "leftButtonText");
   self rbutton label text (self resources at "rightButtonText");
 
-  self initialized = true;
-
-}
-
-#if 0
-X11ListBox instanceVariable listPane X11ListPane NULL;
-X11ListBox instanceVariable items List NULL "These are the text of the 
-items to be added to the dialog's list when the dialog is first popped 
-up and its listbox constructed";
-
-#define KEY_TAB   1
-#define KEY_ENTER 2
-
-X11ListBox instanceMethod new (String paneName) {
-  Method new exposeMethod, buttonPressMethod, kbdInputMethod,
-    enterMethod, leaveMethod;
-
-  X11ListBox super new paneName;
-  
-  enterMethod definedInstanceMethod "X11ListBox",
-    "subPaneEnter";
-  paneName setMethodHandler "enternotify", enterMethod;
-
-  leaveMethod definedInstanceMethod "X11ListBox",
-    "subPaneLeave";
-  paneName setMethodHandler "leavenotify", leaveMethod;
-
-  paneName resources atPut "listFont", "sans-serif-12";
-
-  /* These are modifications of the resources set in X11YesNoBoxPane : new. */
-  paneName resources replaceAt "leftButtonText", "Cancel";
-  paneName resources replaceAt "rightButtonText", "OK";
-
-  /* This is modified from X11MessageBoxPane : new. */
-  paneName resources replaceAt "titleText", "Select an Item";
-
-  return paneName;
-}
-
-X11ListBox instanceMethod draw (void) {
-  
-  self label draw;
-  self listPane draw;
-  self listPane refresh;
-
-  self lbutton draw;
-  self rbutton draw;
-
-}
-
-X11ListBox instanceMethod initWidgets (void) {
-  "Initialize the entry box's button and label widgets.  The
-   message box defers constructing the new widgets until just
-   before it is displayed, so any modifications to the defaults
-   (colors, dimensions, etc.) can be done here, mainly by
-   subclassing the X11MessageBox class (for the present, at 
-   least, until Ctalk includes some sort of resource manager).
-   However, waiting until now to construct the widgets also
-   has the advantage that all of the other objects and methods
-   in a program have been defined."
-
-  X11ButtonPane new l_button, r_button;
-  X11LabelPane new l_label;
-  X11ListPane new l_list;
-  X11Bitmap new l_icon;
-  Integer new usable_height, usable_width, padInt, label_width_px,
-    label_height_px, label_x_px, label_y_px, button_y_px;
-  Integer new list_height_px, list_width_px, list_x_px,
-    list_y_px;
-  String new geomspec;
-  InputEvent new e;
-
-
-  if (self initialized)
-    return NULL;
-
-  padInt = self resources at "pad";
-
-  usable_height = self size y - (padInt * 2);
-  usable_width = self size x - (padInt * 2);
-  label_width_px = usable_width;
-  l_label selectFont;
-  label_height_px = (l_label ftFontVar height * 3);
-  label_x_px = padInt;
-  label_y_px = padInt;
-
-  geomspec printOn "%dx%d+%d+%d", label_width_px, label_height_px,
-    label_x_px, label_y_px;
-
-  l_label resources replaceAt "backgroundColor",
-    (self resources at "backgroundColor");
-  l_label resources replaceAt "foregroundColor",
-    (self resources at "foregroundColor");
-  l_label multiLine self resources at "messageText";
-  l_label border = false;
-  l_label resources replaceAt "textColor",
-    (self resources at "messageColor");
-  l_label resources replaceAt "ftFont",
-    (self resources at "messageFont");
-  l_label justify = LABEL_LEFT;
-
-  self label become l_label;
-
-  self label attachTo self, geomspec;
-
-  list_height_px = 50;        /* this will be -50 in the geometry string */
-  list_width_px = usable_width;
-  list_x_px = padInt;
-  list_y_px = label_height_px + padInt;
-
-  geomspec printOn "%dx-%d+%d+%d", list_width_px, list_height_px,
-    list_x_px, list_y_px;
-
-  self listPane become l_list;
-  self listPane attachTo self, geomspec;
-  self children push self listPane;
-
-  self listPane resources replaceAt "font", (self resources at "listFont");
-  self items map {
-    super listPane add self;
-  }
-
-  self lbutton become l_button;
-  self children push l_button;
-  self rbutton become r_button;
-  self children push r_button;
-
-  button_y_px = 46;   /* -46 in the geomspecs */
-
-  geomspec printOn "20%%x36+20%%+-%d", button_y_px;
-  self lbutton attachTo self, geomspec;
-
-  geomspec printOn "20%%x36+60%%+-%d", button_y_px;
-  self rbutton attachTo self, geomspec;
-
-  self lbutton label text (self resources at "leftButtonText");
-  self rbutton label text (self resources at "rightButtonText");
+  self waitCursor watch;
 
   self initialized = true;
 
-}
-
-X11ListBox instanceMethod subPaneEnter (Object subPane,
-					  InputEvent __event) {
-  if (__event eventData == subPane lbutton xWindowID) {
-    if (subPane lbutton canFocus) {
-      if (self lbutton clicked) {
-	self lbutton clicked = false;
-      }
-      if (!self lbutton hover) {
-	subPane lbutton label highlight = true;
-	self lbutton hover = true;
-      }
-      if (!self lbutton radius)
-	self lbutton label drawButtonLayout;
-      subPane lbutton draw;
-      subPane lbutton refresh;
-    }
-    return NULL;
-  } else if (__event eventData == subPane rbutton xWindowID) {
-    if (subPane rbutton canFocus) {
-      if (self rbutton clicked) {
-	self rbutton clicked = false;
-      }
-      if (!self lbutton hover) {
-	subPane rbutton label highlight = true;
-	self rbutton hover = true;
-      }
-      if (!self lbutton radius)
-	self rbutton label drawButtonLayout;
-      subPane rbutton draw;
-      subPane rbutton refresh;
-    }
-    return NULL;
-  } else if (__event eventData == subPane listPane xWindowID) {
-    subPane listPane onEnter subPane listPane, __event;
-    return NULL;
-  }
-
-  /* The event comes from any other window. */
-  if (self lbutton clicked) {
-    self lbutton clicked = false;
-    self lbutton hover = false;
-    if (!self lbutton radius)
-      self lbutton label drawButtonLayout;
-    subPane lbutton draw;
-    subPane lbutton refresh;
-  }
-  if (self rbutton clicked) {
-    self rbutton clicked = false;
-    self rbutton hover = false;
-    if (!self rbutton radius)
-      self rbutton label drawButtonLayout;
-    subPane rbutton draw;
-    subPane rbutton refresh;
-  }
-}
-
-X11ListBox instanceMethod subPaneLeave (Object subPane,
-					  InputEvent __event) {
-  if (__event eventData == subPane lbutton xWindowID) {
-    if (subPane lbutton canFocus) {
-      if (self lbutton hover) {
-	subPane lbutton label highlight = false;
-	if (self lbutton clicked)
-	  self lbutton clicked = false;
-	self lbutton label drawButtonLayout;
-	subPane lbutton draw;
-	subPane lbutton refresh;
-	self lbutton hover = false;
-      }
-    }
-  } else if (__event eventData == subPane rbutton xWindowID) {
-    if (subPane rbutton canFocus) {
-      if (self rbutton hover) {
-	subPane rbutton label highlight = false;
-	if (self rbutton clicked)
-	  self rbutton clicked = false;
-	self rbutton label drawButtonLayout;
-	subPane rbutton draw;
-	subPane rbutton refresh;
-	self rbutton hover = false;
-      }
-    }
-  } else if (__event eventData == subPane listPane xWindowID) {
-    subPane listPane onLeave subPane listPane, __event;
-  }
 }
 
 extern Atom wm_delete_dialog;
 extern void __enable_dialog (OBJECT *);
 
-X11ListBox instanceMethod show (void) {
+X11FileSelectDialog instanceMethod show (void) {
   "Displays the pane's window. Note that th method uses raw X
    events. This is because the pane maintains its own connection
    to the display, and the event handler can be contained in
@@ -383,12 +458,14 @@ X11ListBox instanceMethod show (void) {
   X11PaneDispatcher new dispatcher;
   X11Pane new mainWin;
   InputEvent new e;
+  SortedList new dirItems;
 
   dispatcher = *self container;
   mainWin = dispatcher mainWindow;
   
   if (!self initialized) {
 
+    needDirOnPopup = true;
     win_id = __ctalkX11CreateDialogWindow (self);
     self xWindowID = win_id;
     dispatcher modalWin = win_id;
@@ -407,6 +484,7 @@ X11ListBox instanceMethod show (void) {
       self size x, self size y, self depth;
 
     self initWidgets;
+    
   } else {
 
     __enable_dialog (self);
@@ -420,12 +498,16 @@ X11ListBox instanceMethod show (void) {
   XMapSubwindows (display, win_id);
   XRaiseWindow (display, win_id);
 
+  if (needDirOnPopup)
+    self useCursor self waitCursor;
+
   self clearWindow;
   self returnVal = 0;
 
   while (1) {
     if (XPending (display)) {
       XNextEvent (display, &xev);
+
       switch (xev.type)
 	{
 	case ButtonPress:
@@ -439,14 +521,16 @@ X11ListBox instanceMethod show (void) {
 	    e xEventData2 = xev.xbutton.y;
 	    e xEventData3 = xev.xbutton.state;
 	    e xEventData4 = xev.xbutton.button;
-	    self listPane onClick self listPane, e;
+	    /* self listPane onClick self listPane, e; *//***/
+	    self onListClick self, e;
 	  }
 	  break;
 	case ButtonRelease:
 	  if ((xev.xbutton.window == self lbutton xWindowID) ||
 	      (xev.xbutton.window == self rbutton xWindowID)) {
 	    e eventClass = BUTTONRELEASE;
-	    self listPane onClick self listPane, e;
+	    self methodObjectMessage self handlePointerInput, self, e;
+	    /* self listPane onClick self listPane, e; *//***/
 	    self withdraw;
 	    dispatcher modalWin = 0;
 	    dispatcher modalPane = NULL;
@@ -481,16 +565,7 @@ X11ListBox instanceMethod show (void) {
 	case KeyPress:
 	case KeyRelease:
 	  if (xev.xkey.window == self listPane xWindowID) {
-	    /* Here for testing. */
-#if 0
 	    e eventClass = (xev.type == KeyPress) ? KEYPRESS : KEYRELEASE;
-#else	    
-	    if (xev.type == KeyPress) {
-	      e eventClass = KEYPRESS;
-	    } else {
-	      e eventClass = KEYRELEASE;
-	    }
-#endif	    
 	    e eventData = xev.xkey.window;
 	    e xEventData4 = xev.xkey.keycode;
 	    e xEventData5 = __edittext_xk_keysym
@@ -499,8 +574,13 @@ X11ListBox instanceMethod show (void) {
 	  }
 	  break;
 	case Expose:
-	  if (xev.xexpose.count == 0)
-	    self subPaneExpose self, e;
+	  if (xev.xexpose.count == 0) {
+	    self methodObjectMessage self handleExpose, self, e;
+	    if (needDirOnPopup) {
+	      needDirOnPopup = false;
+	      self defaultCursor;
+	    }
+	  }
 	  break;
 	case MotionNotify:
 	  if (xev.xmotion.window == self listPane xWindowID) {
@@ -529,10 +609,153 @@ X11ListBox instanceMethod show (void) {
 	  break;
 	}
     } else {
-      usleep (5000);
+      if (needDirOnPopup) {
+	self draw;
+	self refresh;
+	self getExpandedDir self dirPattern;
+      }
+      usleep (500);
     }
   }
 
 }
 
-#endif
+X11FileSelectDialog instanceMethod sortedDirectoryList (char *__dirName,
+							SortedList __dList) {
+  "This is similar to DirectoryStream : sortedDirectoryList, except
+   that it filters the types of files that we want to list."
+
+  DIR *d;
+  struct dirent *d_ent;
+  bool dotfiles;
+  Array new __dirs;
+  Integer new __nDirs;
+  Integer new __i;
+  String new __dNameInternal;
+  String new __entryString;
+  SystemErrnoException new __e;
+
+  returnObjectClass List;
+
+  dotfiles = self dotFiles;
+  __dNameInternal = __dirName;
+
+#if 0
+  if ((__dirName == self getCwd) ||
+      (__dirName == ".")) {
+    __dNameInternal = self getCwd;
+  }
+  if (__dirName == "~") {
+    __dNameInternal = self getEnv "HOME";
+  }
+  if (__dirName == "..") {
+    __dirName = self getCwd;
+    __nDirs = __dirName split ('/', __dirs);
+    __dNameInternal = "";
+    for (__i = 0; __i < (__nDirs - 1); __i = __i + 1) {
+      __dNameInternal = __dNameInternal + "/";
+      __dNameInternal = __dNameInternal + (__dirs at __i);
+    }
+  }
+#endif  
+
+  if ((d = opendir (__dNameInternal)) == NULL) {
+    __e raiseException __dNameInternal;
+    return NULL;
+  }
+
+  while ((d_ent = readdir (d)) != NULL) {
+    if (!dotfiles && (d_ent -> d_name[0] == '.'))
+      continue;
+    __dList pushAscending d_ent -> d_name;
+  }
+
+  if (closedir (d))
+    __e raiseException __dNameInternal;
+
+  return NULL;
+}
+
+X11FileSelectDialog instanceMethod nItemsSelected (void) {
+  "Returns an Integer with the number of items currently selected.
+   This allows a program to determine whether it can use the
+   selectedItem and selectedItemText methods to return a single item, 
+   or the selectedItems method to return a list of items."
+  ItemBox new item;
+  int i;
+  returnObjectClass Integer;
+  i = 0;
+  self listPane items map {
+    item = self;
+    if (item selected == true) {
+      ++i;
+    }
+  }
+  return i;
+}
+
+X11FileSelectDialog instanceMethod selectedItems (List itemsOut) {
+  "Returns the text of each item currently selected a String
+   and pushed onto the itemsOut list which is given as an
+   argument."
+  ItemBox new item;
+  Symbol new itemTextPtr;
+  String new buf;
+  returnObjectClass List;
+  self listPane items map {
+    item = self;
+    if (item selected == true) {
+      buf = super targetPath + "/" + item value;
+      *itemTextPtr = String basicNew buf, buf;
+      itemsOut push *itemTextPtr;
+    }
+  }
+  return itemsOut;
+}
+
+X11FileSelectDialog instanceMethod selectedItemsN (List itemsOut) {
+  ItemBox new item;
+  Symbol new itemNPtr;
+  int i;
+  returnObjectClass List;
+
+  i = 0;
+  self listPane items map {
+    item = self;
+    if (item selected == true) {
+      *itemNPtr = Integer basicNew i asString, i;
+      itemsOut push *itemNPtr;
+    }
+    ++i;
+  }
+  return itemsOut;
+}
+
+X11FileSelectDialog instanceMethod selectedItemN (void) {
+  returnObjectClass Integer;
+  return last_click_nth;
+}
+
+X11FileSelectDialog instanceMethod selectedItemText (void) {
+  String new s;
+  ItemBox new item;
+  int i;
+  returnObjectClass String;
+  i = 0;
+  s = "";
+  self listPane items map {
+    /*
+     *  Here, too, cast to Object class here so we can copy the full
+     *  object - otherwise, a cast to ItemBox would only resolve to
+     *  String : =, i.e., ItemBox's immediate superclass.
+     */
+    item = (Object *)self;
+    if (i == last_click_nth) {
+      s = super targetPath + "/" + item value;
+    }
+    ++i;
+  }
+  return s;
+}
+
+  

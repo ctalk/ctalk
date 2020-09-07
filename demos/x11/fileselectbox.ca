@@ -1,0 +1,111 @@
+/* fileselectbox.ca, a X11ListBox demonstration. -*-c-*- */
+
+#include <ctalk/ctalkdefs.h>
+
+int main (void) {
+  X11Pane new mainWindow;
+  X11PaneDispatcher new dispatcher;
+  X11ButtonPane new button;
+  X11LabelPane new label;
+  X11FileSelectDialog new fileSelect;
+  InputEvent new e;
+  Integer new i;
+  List new itemTextOut, itemNOut;
+  String new itemText, itemN;
+
+  label textColor = "white";
+  label canFocus = false;
+  label borderWidth = 0;
+
+  label ftFontVar notifyLevel XFT_NOTIFY_NONE;
+
+  mainWindow backgroundColor = "blue";
+  label resources replaceAt "backgroundColor", "blue";
+  button resources replaceAt "backgroundColor", "blue";
+  fileSelect resources replaceAt "backgroundColor", "blue";
+  
+  mainWindow initialize 255, 200;
+  mainWindow inputStream eventMask = 
+    EXPOSE|ENTERWINDOWNOTIFY|LEAVEWINDOWNOTIFY|BUTTONPRESS|BUTTONRELEASE|KEYPRESS|KEYRELEASE|WINDELETE|MOVENOTIFY|MOTIONNOTIFY;
+
+  dispatcher attachTo mainWindow;
+  button attachTo dispatcher, "110x70+73+100";
+  label attachTo dispatcher, "177x80+34+15";
+  fileSelect attachTo dispatcher, "300x400";
+
+  mainWindow map;
+  mainWindow raiseWindow;
+
+  mainWindow openEventStream;
+
+  mainWindow setWMTitle "X11FileSelectDialog Demo";
+
+  label ftFontVar initFontLib;
+
+  label multiLine "X11FileSelectDialog\nDemo";
+  label resources replaceAt "textColor", "lightgray";
+  label resources replaceAt "foregroundColor", "blue";
+  label resources replaceAt "borderColor", "blue";
+
+  button label multiLine "Open\nFile Select\nDialog";
+
+  button label resources replaceAt "highlightForegroundColor", "gray80";
+
+  /* The program uses the "replaceAt" method because the key/value
+     entry for "backgroundColor" the X11MessageBoxPane : new method
+     has alread created an entry for backgroundColor. */
+  fileSelect resources replaceAt "backgroundColor", "blue";
+  fileSelect resources replaceAt "foregroundColor", "blue";
+  fileSelect resources replaceAt "messageColor", "white";
+  fileSelect resources replaceAt "messageText",
+    	       "Directory:\n";
+
+  button draw;
+  button refresh;
+  label draw;
+  label refresh;
+
+  while (TRUE) {
+    mainWindow inputStream queueInput;
+    if (mainWindow inputStream eventPending) {
+      e become mainWindow inputStream inputQueue unshift;
+
+      mainWindow subPaneNotify e;
+
+      switch (e eventClass value)
+	{
+	case EXPOSE:
+	  button subPaneExpose (button, e);
+	  label subPaneExpose (label, e);
+	  break;
+	case BUTTONRELEASE:
+	  fileSelect showManaged button;
+	  if (fileSelect nItemsSelected > 1) {
+	    i = 0;
+	    fileSelect selectedItems itemTextOut;
+	    fileSelect selectedItemsN itemNOut;
+	    itemNOut map {
+	      itemN = self;
+	      /* This is a convenient way to retrieve
+		 the i'th item in the itemTextOut list. */
+	      itemText = *(itemTextOut + i);
+	      printf ("%d: %s\n", itemN, itemText);
+	      ++i;
+	    }
+	  } else {
+	    printf ("%d: %s\n",
+		    fileSelect selectedItemN,
+		    fileSelect selectedItemText);
+	  }
+	  break;
+	case WINDELETE:
+ 	  mainWindow deleteAndClose;
+	  exit (0);
+	  break;
+	}
+    } else {
+      usleep (1000);
+    }
+  }
+
+}
