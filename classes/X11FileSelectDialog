@@ -1,4 +1,4 @@
-/* $Id: X11FileSelectDialog,v 1.35 2020/09/07 14:46:58 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11FileSelectDialog,v 1.38 2020/09/08 17:01:14 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -26,7 +26,9 @@
 
    Resources: 
 
-   listFont       "sans serif-12"
+   useEntryBox             false   # the entryPane instance variable
+                                   # is declared in the X11TextEntryBox
+                                   # superclass.
 
 */
 
@@ -173,6 +175,8 @@ X11FileSelectDialog instanceMethod new (String paneName) {
   exposeMethod definedInstanceMethod "X11FileSelectDialog",
     "onExpose";
   paneName setMethodHandler "expose", exposeMethod;
+
+  paneName resources atPut "useEntryBox", false;
 
   return paneName;
 }
@@ -758,4 +762,27 @@ X11FileSelectDialog instanceMethod selectedItemText (void) {
   return s;
 }
 
-  
+X11FileSelectDialog instanceMethod buttonClick (void) {
+  "The program might need to call X11ButtonPane : clearClick if
+   the dialog is re-opened (i.e., not reinstantiated with the 
+   'new' method)."
+    returnObjectClass Integer;
+  if (self lbutton haveClick) {
+    return FILESELECT_LBUTTON;
+  } else if (self rbutton haveClick) {
+    return FILESELECT_RBUTTON;
+  } else {
+    return FILESELECT_BUTTON_NONE;
+  }
+}
+
+X11FileSelectDialog instanceMethod buttonText (void) {
+  returnObjectClass String;
+  if (self lbutton haveClick) {
+    return self lbutton text;
+  } else if (self rbutton haveClick) {
+    return self rbutton text;
+  } else {
+    return NULL;
+  }
+}

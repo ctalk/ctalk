@@ -1,4 +1,4 @@
-/* $Id: ctalkdefs.h,v 1.2 2020/05/20 21:20:57 rkiesling Exp $ -*-C-*-*/
+/* $Id: ctalkdefs.h,v 1.3 2020/09/08 17:01:14 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -371,6 +371,17 @@ int memcmp(const void *s1, const void *s2, size_t n);
 #ifndef B_RES_PX
 #define B_RES_PX 1
 #endif
+
+#ifndef FILESELECT_LBUTTON
+#define FILESELECT_LBUTTON       -1
+#endif
+#ifndef FILESELECT_BUTTON_NONE
+#define FILESELECT_BUTTON_NONE   0
+#endif
+#ifndef FILESELECT_RBUTTON
+#define FILESELECT_RBUTTON       1
+#endif
+
 
 #define _CTALKDEFS_H_
 #endif /* #ifdef _CTALKDEFS_H_ */
