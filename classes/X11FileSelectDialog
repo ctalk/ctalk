@@ -1,4 +1,4 @@
-/* $Id: X11FileSelectDialog,v 1.38 2020/09/08 17:01:14 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11FileSelectDialog,v 1.51 2020/09/12 16:12:32 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -26,10 +26,22 @@
 
    Resources: 
 
+   pad                     0       # Spacing around inside of dialog window.
+                                   # For now the dialog uses the components'
+				   # padding.
+
    useEntryBox             false   # the entryPane instance variable
                                    # is declared in the X11TextEntryBox
                                    # superclass.
 
+   labelGeom               "%dx%d+%d+%d"
+   listGeom                "%dx-%d+%d+%d"
+   lbuttonGeom             "20%%x36+20%%+-%d"
+   rbuttonGeom             "20%%x36+60%%+-%d"
+
+      # Distance between bottom of listbox and bottom of window:
+   listROPx                50      # Without the text entry
+   listRWPx                70      # With the text entry
 */
 
 X11ListBox class X11FileSelectDialog;
@@ -140,7 +152,9 @@ X11FileSelectDialog instanceMethod getExpandedDir (String dirPattern) {
 X11FileSelectDialog instanceMethod onExpose (Object subPane,
 					     InputEvent event) {
   subPane draw;
+  subPane label draw;
   subPane refresh;
+  subPane label refresh;
 }
 
 X11FileSelectDialog instanceMethod refresh (void) {
@@ -164,7 +178,7 @@ X11FileSelectDialog instanceMethod draw (void) {
 }
 
 X11FileSelectDialog instanceMethod new (String paneName) {
-  Method new buttonPressMethod, exposeMethod;
+  Method new buttonPressMethod, exposeMethod, resizeMethod;
   
   X11FileSelectDialog super new paneName;
 
@@ -176,7 +190,15 @@ X11FileSelectDialog instanceMethod new (String paneName) {
     "onExpose";
   paneName setMethodHandler "expose", exposeMethod;
 
+  resizeMethod definedInstanceMethod "X11FileSelectDialog",
+    "onResize";
+  paneName setMethodHandler "resize", resizeMethod;
+
   paneName resources atPut "useEntryBox", false;
+  paneName resources atPut "listROPx", 50;
+  paneName resources atPut "listRWPx", 100;
+  paneName resources atPut "labelGeom", "%dx%d+%d+%d";
+  paneName resources atPut "pad", 0;
 
   return paneName;
 }
@@ -209,7 +231,61 @@ X11FileSelectDialog instanceMethod chDir (ItemBox item) {
   self defaultCursor;
 }
 
-/* These are from x11defs.h. */
+X11FileSelectDialog instanceMethod onResize (Object subPane, InputEvent event) {
+  int x_out, y_out, width_out, height_out;
+  InputEvent new subPaneEvent;
+  X11Bitmap new paneBuffer, paneBackingStore;
+
+  self size x = event xEventData3;
+  self size y = event xEventData4;
+
+  __ctalkX11WxHGeometry (event xEventData3, event xEventData4,
+			 subPane label subPaneGeometry,
+			 &x_out, &y_out, &width_out, &height_out);
+			 
+  self label size x = width_out;
+  self label size y = height_out;
+  
+  __ctalkX11ResizeWindow (subPane label, width_out, height_out,
+			  subPane label depth);
+
+  self label paneBuffer resize self label xWindowID, self label size x,
+    self label size y;
+  self label paneBackingStore resize self label xWindowID, self label size x,
+    self label size y;
+
+  __ctalkX11WxHGeometry (event xEventData3, event xEventData4,
+			 subPane listPane subPaneGeometry,
+			 &x_out, &y_out, &width_out, &height_out);
+			 
+  self listPane size x = width_out;
+  self listPane size y = height_out;
+  
+  __ctalkX11ResizeWindow (subPane listPane, width_out, height_out,
+			  subPane listPane depth);
+
+  self listPane paneBuffer resize self listPane xWindowID, self listPane size x,
+    self listPane size y;
+  self listPane paneBackingStore resize self listPane xWindowID,
+    self listPane size x, self listPane size y;
+
+  __ctalkX11WxHGeometry (event xEventData3, event xEventData4,
+			 subPane lbutton subPaneGeometry,
+			 &x_out, &y_out, &width_out, &height_out);
+  self lbutton origin x = x_out;
+  self lbutton origin y = y_out;
+  __ctalkX11MoveWindow (subPane lbutton, x_out, y_out);
+  
+  __ctalkX11WxHGeometry (event xEventData3, event xEventData4,
+			 subPane rbutton subPaneGeometry,
+			 &x_out, &y_out, &width_out, &height_out);
+  self rbutton origin x = x_out;
+  self rbutton origin y = y_out;
+  __ctalkX11MoveWindow (subPane rbutton, x_out, y_out);
+  
+}
+
+  /* These are from x11defs.h. */
 #define BUTTON1MASK  (1 << 0)
 #define BUTTON2MASK  (1 << 1)
 #define BUTTON3MASK  (1 << 2)  
@@ -372,17 +448,17 @@ X11FileSelectDialog instanceMethod initWidgets (void) {
   X11Bitmap new l_icon;
   Integer new usable_height, usable_width, padInt, label_width_px,
     label_height_px, label_x_px, label_y_px, button_y_px;
-  Integer new list_height_px, list_width_px, list_x_px,
-    list_y_px;
+  Integer new list_height_px, list_y_px;
+  Integer new useEntryBox, listROPx, listRWPx;
   String new geomspec;
   InputEvent new e;
-  /* SortedList new dirItems; *//***/
-
 
   if (self initialized)
     return NULL;
 
   padInt = self resources at "pad";
+
+  useEntryBox = self resources at "useEntryBox";
 
   usable_height = self size y - (padInt * 2);
   usable_width = self size x - (padInt * 2);
@@ -392,11 +468,13 @@ X11FileSelectDialog instanceMethod initWidgets (void) {
   label_x_px = padInt;
   label_y_px = padInt;
 
-  geomspec printOn "%dx%d+%d+%d", label_width_px, label_height_px,
-    label_x_px, label_y_px;
+
+  geomspec printOn "-%dx%d+%d+%d", padInt, label_height_px, padInt, padInt;
+  l_label subPaneGeometry = geomspec;
 
   l_label resources replaceAt "backgroundColor",
     (self resources at "backgroundColor");
+
   l_label resources replaceAt "foregroundColor",
     (self resources at "foregroundColor");
   l_label multiLine self resources at "messageText";
@@ -411,13 +489,16 @@ X11FileSelectDialog instanceMethod initWidgets (void) {
 
   self label attachTo self, geomspec;
 
-  list_height_px = 50;        /* this will be -50 in the geometry string */
-  list_width_px = usable_width;
-  list_x_px = padInt;
+  if (useEntryBox) {
+    list_height_px = self resources integerAt "listRWPx";
+  } else {
+    list_height_px = self resources integerAt "listROPx";
+  }
+
   list_y_px = label_height_px + padInt;
 
-  geomspec printOn "%dx-%d+%d+%d", list_width_px, list_height_px,
-    list_x_px, list_y_px;
+  geomspec printOn "-%dx-%d+%d+%d", padInt, list_height_px,
+    padInt, list_y_px;
 
   self listPane become l_list;
   self listPane attachTo self, geomspec;
@@ -432,11 +513,19 @@ X11FileSelectDialog instanceMethod initWidgets (void) {
 
   button_y_px = 46;   /* -46 in the geomspecs */
 
+#if 0
   geomspec printOn "20%%x36+20%%+-%d", button_y_px;
   self lbutton attachTo self, geomspec;
 
   geomspec printOn "20%%x36+60%%+-%d", button_y_px;
   self rbutton attachTo self, geomspec;
+#else  
+  geomspec printOn "56x36+20%%+-%d", button_y_px;
+  self lbutton attachTo self, geomspec;
+
+  geomspec printOn "56x36+60%%+-%d", button_y_px;
+  self rbutton attachTo self, geomspec;
+#endif 
 
   self lbutton label text (self resources at "leftButtonText");
   self rbutton label text (self resources at "rightButtonText");
@@ -458,11 +547,12 @@ X11FileSelectDialog instanceMethod show (void) {
   returnObjectClass Integer;
   Display *display;
   Window win_id;
-  XEvent xev;
+  XEvent xev, e_t;
   X11PaneDispatcher new dispatcher;
   X11Pane new mainWin;
   InputEvent new e;
   SortedList new dirItems;
+  bool following_configure = false;
 
   dispatcher = *self container;
   mainWin = dispatcher mainWindow;
@@ -511,6 +601,25 @@ X11FileSelectDialog instanceMethod show (void) {
   while (1) {
     if (XPending (display)) {
       XNextEvent (display, &xev);
+
+      if (xev.type == ConfigureNotify) {
+	/* This helps clear the unneeded events that might follow
+	   a resize event. */
+	if (following_configure) {
+	  while (XCheckTypedWindowEvent 
+		 (display, win_id, ConfigureNotify, &e_t))
+	    ;
+	  following_configure = false;
+	  continue;
+	}
+      } else if (xev.type == Expose && following_configure) {
+	while (XCheckTypedWindowEvent 
+	       (display, win_id, Expose, &e_t))
+	  ;
+	  following_configure = false;
+	  continue;
+      }
+
 
       switch (xev.type)
 	{
@@ -595,6 +704,24 @@ X11FileSelectDialog instanceMethod show (void) {
 	    e xEventData3 = xev.xmotion.state;
 	    e xEventData4 = xev.xmotion.is_hint;
 	    self listPane onMotion self listPane, e;
+	  }
+	  break;
+	case ConfigureNotify:
+	  while (XCheckTypedWindowEvent 
+		 (display, win_id, ConfigureNotify, &e_t))
+	    ;
+	  if (e_t.xconfigure.window == win_id) {
+	    if (e_t.xconfigure.width != self size x ||
+		e_t.xconfigure.height != self size y) {
+	      e eventClass = RESIZENOTIFY;
+	      e xEventData1 = e_t.xconfigure.x;
+	      e xEventData2 = e_t.xconfigure.y;
+	      e xEventData3 = e_t.xconfigure.width;
+	      e xEventData4 = e_t.xconfigure.height;
+	      e xEventData5 = e_t.xconfigure.border_width;
+	      self onResize self, e;
+	      following_configure = true;
+	    }
 	  }
 	  break;
 	case SelectionRequest:
