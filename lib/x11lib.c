@@ -1,4 +1,4 @@
-/* $Id: x11lib.c,v 1.3 2020/09/12 11:40:24 rkiesling Exp $ -*-c-*-*/
+/* $Id: x11lib.c,v 1.4 2020/09/12 15:35:38 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -4143,11 +4143,19 @@ int __ctalkX11MoveWindow (OBJECT *self, int x, int y) {
 
   strcatx (d_buf, ascii[x], ":", ascii[y], ":", NULL);
 
-  make_req (shm_mem,
-	    SYMVAL(displayptr_var -> instancevars -> __o_value),
-	    PANE_MOVE_REQUEST,
-	    INTVAL(win_id_value -> __o_value),
-	    SYMVAL(gc_value -> __o_value), d_buf);
+  if (dialog_dpy ()) {
+    __xlib_move_window ((Display *)SYMVAL(displayptr_var -> instancevars 
+					  -> __o_value),
+			INTVAL(win_id_value -> __o_value),
+			(GC)SYMVAL(gc_value -> __o_value),
+			d_buf);
+  } else {
+    make_req (shm_mem,
+	      SYMVAL(displayptr_var -> instancevars -> __o_value),
+	      PANE_MOVE_REQUEST,
+	      INTVAL(win_id_value -> __o_value),
+	      SYMVAL(gc_value -> __o_value), d_buf);
+  }
 
 #ifdef GRAPHICS_WRITE_SEND_EVENT
   send_event.xgraphicsexpose.type = GraphicsExpose;
