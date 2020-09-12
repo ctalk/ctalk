@@ -1,4 +1,4 @@
-/* $Id: x11lib.c,v 1.12 2020/07/11 16:15:49 rkiesling Exp $ -*-c-*-*/
+/* $Id: x11lib.c,v 1.3 2020/09/12 11:40:24 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -3912,6 +3912,7 @@ static int __x11_resize_request_internal (void *d, int width, int height, int de
 
   char d_buf[MAXMSG], d_buf_2[MAXLABEL], d_buf_3[MAXLABEL];
   int r;
+  Display *l_d;
 #ifdef GRAPHICS_WRITE_SEND_EVENT
   XEvent send_event;
 #endif
@@ -3920,23 +3921,28 @@ static int __x11_resize_request_internal (void *d, int width, int height, int de
 	   ascii[height], ":",
 	   ascii[depth], NULL);
 
-  make_req (shm_mem, d, PANE_RESIZE_REQUEST,
-	    win_id_value, gc_value, d_buf);
+  if ((l_d = dialog_dpy ()) != NULL) {
+    r = __xlib_resize_window (l_d, win_id_value, (GC)gc_value, d_buf);
+  } else {
+
+    make_req (shm_mem, d, PANE_RESIZE_REQUEST,
+	      win_id_value, gc_value, d_buf);
 
 #ifdef GRAPHICS_WRITE_SEND_EVENT
-  send_event.xgraphicsexpose.type = GraphicsExpose;
-  send_event.xgraphicsexpose.send_event = True;
-  send_event.xgraphicsexpose.display = display;
-  send_event.xgraphicsexpose.drawable = atoi(win_id_value);
-  XSendEvent (display, atoi(win_id_value), False, 0L, &send_event);
+    send_event.xgraphicsexpose.type = GraphicsExpose;
+    send_event.xgraphicsexpose.send_event = True;
+    send_event.xgraphicsexpose.display = display;
+    send_event.xgraphicsexpose.drawable = atoi(win_id_value);
+    XSendEvent (display, atoi(win_id_value), False, 0L, &send_event);
 #endif
-  wait_req (shm_mem);
-  errno = 0;
-  r = strtol (&shm_mem[SHM_RETVAL], NULL, 10);
-  if (errno != 0) {
-    strtol_error (errno, "__x11_resize_request_internal",
-		  &shm_mem[SHM_RETVAL]);
-    return ERROR;
+    wait_req (shm_mem);
+    errno = 0;
+    r = strtol (&shm_mem[SHM_RETVAL], NULL, 10);
+    if (errno != 0) {
+      strtol_error (errno, "__x11_resize_request_internal",
+		    &shm_mem[SHM_RETVAL]);
+      return ERROR;
+    }
   }
   return r;
 }
@@ -4036,15 +4042,20 @@ int __ctalkX11ResizePixmap (void *d, int parent_visual,
 	   ascii[new_height], ":",
 	   ascii[depth], ":", NULL);
 
-  make_req (shm_mem, d, PANE_RESIZE_PIXMAP_REQUEST, 
-	    parent_visual, gc, d_buf);
+  if (dialog_dpy ()) {
+    __xlib_resize_pixmap (d, parent_visual, (GC)gc, d_buf);
+    *new_pixmap_return = strtoul (d_buf, 0, 10);
+  } else {
+    make_req (shm_mem, d, PANE_RESIZE_PIXMAP_REQUEST, 
+	      parent_visual, gc, d_buf);
 
-  wait_req (shm_mem);
-  errno = 0;
-  *new_pixmap_return = strtoul (&shm_mem[SHM_RETVAL], NULL, 10);
-  if (errno != 0) {
-    strtol_error (errno, "__ctalkX11ResizePixmap", &shm_mem[SHM_RETVAL]);
-    return ERROR;
+    wait_req (shm_mem);
+    errno = 0;
+    *new_pixmap_return = strtoul (&shm_mem[SHM_RETVAL], NULL, 10);
+    if (errno != 0) {
+      strtol_error (errno, "__ctalkX11ResizePixmap", &shm_mem[SHM_RETVAL]);
+      return ERROR;
+    }
   }
   return SUCCESS;
 }
