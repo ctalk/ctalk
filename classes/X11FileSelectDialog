@@ -1,4 +1,4 @@
-/* $Id: X11FileSelectDialog,v 1.51 2020/09/12 16:12:32 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11FileSelectDialog,v 1.55 2020/09/13 16:07:36 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -51,6 +51,7 @@ X11FileSelectDialog instanceVariable dotFiles Boolean false
 X11FileSelectDialog instanceVariable waitCursor X11Cursor NULL;
 X11FileSelectDialog instanceVariable dirPattern String ".";
 X11FileSelectDialog instanceVariable targetPath String "";
+X11FileSelectDialog instanceVariable useEntryBox Boolean false;
 
 /* When doing something like this, make sure that the program
    instantiates an object in the class library file where the
@@ -445,11 +446,11 @@ X11FileSelectDialog instanceMethod initWidgets (void) {
   X11ButtonPane new l_button, r_button;
   X11LabelPane new l_label;
   X11ListPane new l_list;
-  X11Bitmap new l_icon;
+  X11TextEntryPane new l_entry;
   Integer new usable_height, usable_width, padInt, label_width_px,
     label_height_px, label_x_px, label_y_px, button_y_px;
   Integer new list_height_px, list_y_px;
-  Integer new useEntryBox, listROPx, listRWPx;
+  Integer new listROPx, listRWPx;
   String new geomspec;
   InputEvent new e;
 
@@ -458,7 +459,7 @@ X11FileSelectDialog instanceMethod initWidgets (void) {
 
   padInt = self resources at "pad";
 
-  useEntryBox = self resources at "useEntryBox";
+  self useEntryBox = self resources at "useEntryBox";
 
   usable_height = self size y - (padInt * 2);
   usable_width = self size x - (padInt * 2);
@@ -489,7 +490,7 @@ X11FileSelectDialog instanceMethod initWidgets (void) {
 
   self label attachTo self, geomspec;
 
-  if (useEntryBox) {
+  if (self useEntryBox) {
     list_height_px = self resources integerAt "listRWPx";
   } else {
     list_height_px = self resources integerAt "listROPx";
@@ -506,6 +507,15 @@ X11FileSelectDialog instanceMethod initWidgets (void) {
 
   self listPane resources replaceAt "font", (self resources at "listFont");
 
+  if (self useEntryBox) {
+    self entryPane become l_entry;
+    geomspec printOn "-%dx%d+%d+-%d", padInt, 46 - padInt, padInt,
+      list_height_px - padInt;
+
+    self entryPane attachTo self, geomspec;
+  }
+
+
   self lbutton become l_button;
   self children push l_button;
   self rbutton become r_button;
@@ -513,19 +523,11 @@ X11FileSelectDialog instanceMethod initWidgets (void) {
 
   button_y_px = 46;   /* -46 in the geomspecs */
 
-#if 0
-  geomspec printOn "20%%x36+20%%+-%d", button_y_px;
-  self lbutton attachTo self, geomspec;
-
-  geomspec printOn "20%%x36+60%%+-%d", button_y_px;
-  self rbutton attachTo self, geomspec;
-#else  
   geomspec printOn "56x36+20%%+-%d", button_y_px;
   self lbutton attachTo self, geomspec;
 
   geomspec printOn "56x36+60%%+-%d", button_y_px;
   self rbutton attachTo self, geomspec;
-#endif 
 
   self lbutton label text (self resources at "leftButtonText");
   self rbutton label text (self resources at "rightButtonText");
@@ -658,21 +660,31 @@ X11FileSelectDialog instanceMethod show (void) {
 	  }
 	  break;
 	case EnterNotify:
-	  if ((xev.xbutton.window == self lbutton xWindowID) ||
-	      (xev.xbutton.window == self rbutton xWindowID) ||
-	      (xev.xbutton.window == self listPane xWindowID)) {
+	  if ((xev.xcrossing.window == self lbutton xWindowID) ||
+	      (xev.xcrossing.window == self rbutton xWindowID) ||
+	      (xev.xcrossing.window == self listPane xWindowID)) {
 	    e eventClass = ENTERWINDOWNOTIFY;
-	    e eventData = xev.xbutton.window;
+	    e eventData = xev.xcrossing.window;
 	    self subPaneEnter self, e;
+	  } else if (self useEntryBox) {
+	    if (xev.xcrossing.window == self entryPane xWindowID) {
+	      e eventData = xev.xcrossing.window;
+	      self entryPane subPaneEnter self entryPane, e;
+	    }
 	  }
 	  break;
 	case LeaveNotify:
-	  if ((xev.xbutton.window == self lbutton xWindowID) ||
-	      (xev.xbutton.window == self rbutton xWindowID) ||
-	      (xev.xbutton.window == self listPane xWindowID)) {
+	  if ((xev.xcrossing.window == self lbutton xWindowID) ||
+	      (xev.xcrossing.window == self rbutton xWindowID) ||
+	      (xev.xcrossing.window == self listPane xWindowID)) {
 	    e eventClass = LEAVEWINDOWNOTIFY;
-	    e eventData = xev.xbutton.window;
+	    e eventData = xev.xcrossing.window;
 	    self subPaneLeave self, e;
+	  } else if (self useEntryBox) {
+	    if (xev.xcrossing.window == self entryPane xWindowID) {
+	      e eventData = xev.xcrossing.window;
+	      self entryPane subPaneLeave self entryPane, e;
+	    }
 	  }
 	  break;
 	case KeyPress:
@@ -684,6 +696,13 @@ X11FileSelectDialog instanceMethod show (void) {
 	    e xEventData5 = __edittext_xk_keysym
 	      (xev.xkey.keycode, xev.xkey.state, 0);
 	    self listPane onKey self listPane, e;
+	  } else if (xev.xkey.window = self entryPane xWindowID) {
+	    e eventClass = (xev.type == KeyPress) ? KEYPRESS : KEYRELEASE;
+	    e eventData = xev.xkey.window;
+	    e xEventData4 = xev.xkey.keycode;
+	    e xEventData5 = __edittext_xk_keysym
+	      (xev.xkey.keycode, xev.xkey.state, 0);
+	    self entryPane subPaneKbd self entryPane, e;
 	  }
 	  break;
 	case Expose:
@@ -912,4 +931,34 @@ X11FileSelectDialog instanceMethod buttonText (void) {
   } else {
     return NULL;
   }
+}
+
+X11FileSelectDialog instanceMethod textEntry (void) {
+  String new entry;
+  returnObjectClass String;
+  if (!self useEntryBox) {
+    return "";
+  } else {
+    entry = self entryPane entryText;
+    if (entry length == 0) {
+      return "";
+    } else {
+      return self targetPath + "/" + entry;
+    }
+  }
+  return NULL;
+}
+
+X11FileSelectDialog instanceMethod entryLength (void) {
+  Integer new length;
+  String new entry;
+  returnObjectClass Integer;
+
+  if (!self useEntryBox) {
+    return -1;
+  } else {
+    entry = self entryPane entryText;
+    return entry length;
+  }
+  return 0;
 }
