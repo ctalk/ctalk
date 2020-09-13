@@ -1,4 +1,4 @@
-/* $Id: argexprchk.c,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ */
+/* $Id: argexprchk.c,v 1.1.1.1 2020/09/13 17:14:20 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -34,9 +34,18 @@ OBJECT *arg_expr_object_2 (MESSAGE_STACK messages, int start_idx,
 			   int end_idx) {
   OBJECT *arg_object;
   ARGSTR tmp_argstr;
-  tmp_argstr.arg = collect_tokens (messages, start_idx, end_idx);
+  int expr_end;
+  MSINFO ms;
+
+  ms.messages = messages;
+  ms.tok = start_idx;
+  ms.stack_start = stack_start (messages);
+  ms.stack_ptr = get_stack_top (messages);
+  expr_end = find_expression_limit (&ms);
+  /* tmp_argstr.arg = collect_tokens (messages, start_idx, end_idx); *//***/
+  tmp_argstr.arg = collect_tokens (messages, start_idx, expr_end);
   tmp_argstr.start_idx = start_idx;
-  tmp_argstr.end_idx = end_idx;
+  tmp_argstr.end_idx = expr_end;
   tmp_argstr.m_s = messages;
   arg_object = create_arg_EXPR_object (&tmp_argstr);
   __xfree (MEMADDR(tmp_argstr.arg));

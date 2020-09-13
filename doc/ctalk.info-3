@@ -17,6 +17,154 @@ Texts.  A copy of the license is included in the section entitled, "GNU
 Free Documentation License."
 
 
+File: ctalk.info,  Node: Return values,  Next: Variable arguments,  Prev: Templates,  Up: Methods
+
+Return Values
+-------------
+
+Internally, methods return either an 'OBJECT *' or 'NULL'.  If you write
+a method that returns a C variable, Ctalk normally translates it into an
+equivalent object.
+
+Methods that return arrays declared in C generally assign the C array to
+an equivalent 'Array' object.  The 'Array' object's size is the same as
+the array declaration, regardless of how it the array's members are
+initialized.
+
+The 'Array' allocation only occurs for arrays declared with a subscript;
+that is, a variable declared as 'int *' is not always stored in an
+'Array' object, while a variable declared as 'int[SIZE]' is.
+
+Ctalk treats C arrays declared as 'char[SIZE]' a little differently.  If
+the method's definition says the return class of the method is 'Array',
+then Ctalk returns an 'Array' of 'Character' objects; otherwise, it
+returns a 'String' object.
+
+Because Ctalk does not have equivalent classes for multi-dimensioned
+arrays; that is, arrays with more than one subscript, it does not
+translate the arrays automatically.  In these cases, the method might
+return a multi-dimensioned array by assigning it to a 'Symbol' object.
+
+Occasionally, you might need to return the result of an expression that
+Ctalk can't translate automatically.  In that case, you can use the
+'eval' keyword to evaluate the expression when the program is run, as in
+this example.
+     MyClass instanceMethod myMethod (void) {
+       ...
+       return eval <expression>
+     }
+
+If a method must create an object of its own to return, the object
+should have the scope CREATED_PARAM, which tells the Ctalk libraries
+that the the program only needs the object if it's the result of a
+complete expression; if not, the program cleans up the object
+automatically when it is no longer needed.  *Note
+__ctalkRegisterUserObject::.
+
+
+     return __ctalkCreateObjectInit ("myStringAnswer", "String",
+                                     "Character", CREATED_PARAM,
+                                     "The contents of the String object.");
+
+
+If the program needs to store a return object for longer than the scope
+that the object is called in, the method can save the object in its
+object pool with the library function __ctalkRegisterUserObject, which
+is described below.  *Note __ctalkRegisterUserObject::.
+
+
+     String instanceMethod myMethod (void) {
+
+       OBJECT *return_object;
+
+       _... Do stuff. ..._
+
+       return_object =  __ctalkCreateObjectInit ("myStringAnswer", "String",
+                                     "Character", CREATED_PARAM,
+                                     "The contents of the String object.");
+       __ctalkRegisterUserObject (return_object);
+       return return_object;
+
+     }
+
+
+Another case may be when a method needs to retrieve an object reference.
+In these cases, the method may need to increase the object's reference
+count.  However, such a method can also call
+'__ctalkRegisterExtraObject' to save the object so its memory isn't lost
+later.  The '__ctalkRegisterExtraObject' function does not, itself, set
+the object's reference count, and it saves an object (not copies of
+objects) only once.
+
+Method Return Macros
+....................
+
+Alternatively, if a method needs to return an object of a particular
+class, you can use the following 'methodReturn*' statements.  These are
+macros that implement the statements to store and return objects which
+represent different types or classes, like 'ints' as Integer objects,
+'doubles' as Float objects, and so on.
+
+These macros have been superseded in more recent versions of Ctalk,
+which has the ability to insert the correct return code for any class of
+object, and many C variables, functions, and expressions.  If the
+compiler doesn't recognize some particular expression, however, these
+macros may still be useful.
+
+Remember that these return value functions are implemented as macros and
+contain their own code block, so you can use them in places where normal
+functions would cause a syntax error.
+
+'methodReturnBoolean (int I)'
+     Return a 'Boolean' object that Ctalk can evaluate to 'TRUE' or
+     'FALSE' depending on the value of its argument.  Mostly deprecated;
+     an expression like, '"return TRUE"' is equivalent.
+
+'methodReturnFalse'
+     Return a 'Boolean' object that evaluates to 'FALSE.' Deprecated;
+     using the expression, 'return FALSE;' has the same effect.
+
+'methodReturnInteger(int I)'
+     Return an 'Integer' object with the value I.  Mostly deprecated; an
+     expression like, '"return <int>"' is equivalent.
+
+'methodReturnLongInteger(int L)'
+     Return a 'LongInteger' object with the value L.  Mostly deprecated;
+     an expression like, '"return <longlongint>|<longint>"' is
+     equivalent.
+
+'methodReturnNULL'
+     Returns the C value 'NULL.' Deprecated; simply use the expression,
+     'return NULL;' instead.
+
+'methodReturnObject(OBJECT)'
+     Return OBJECT.  Deprecated; the expression, 'return OBJECT' has the
+     same effect.
+
+'methodReturnObjectName(OBJECTNAME)'
+     Return the object referred to by OBJECTNAME.  Also deprecated; like
+     'methodReturObject', above, the expression, 'return OBJECT' has the
+     same effect.
+
+'methodReturnSelf'
+     Returns the method's receiver, 'self'.  Slightly deprecated; simply
+     using the statement, "'return self'," has the same effect.
+
+'methodReturnString(char *S)'
+     Return a 'String' object with the value S.  Mostly deprecated; an
+     expression like, '"return <char *>|<string constant>"' is
+     equivalent.
+
+'methodReturnTrue'
+     Return a 'Boolean' object that evaluates to 'TRUE.' Deprecated; use
+     the expression, 'return TRUE;' instead.
+
+The macros that return objects use the '__ctalkRegisterUserObject'
+function to keep track of method's return values, and, if necessary,
+other objects that the method creates.  *Note
+__ctalkRegisterUserObject::.
+
+
 File: ctalk.info,  Node: Variable arguments,  Next: Overloading,  Prev: Return values,  Up: Methods
 
 Variable Arguments
@@ -7850,12 +7998,16 @@ Index
                                                              (line   49)
 * button2 instance variable (ANSIYesNoBoxPane class): ANSIYesNoBoxPane.
                                                              (line   50)
+* buttonClick instance method (X11FileSelectDialog class): X11FileSelectDialog.
+                                                             (line  354)
 * buttonPressHandler instance variable (GLXCanvasPane class): GLXCanvasPane.
                                                              (line  170)
 * buttonState instance variable (GLXCanvasPane class): GLXCanvasPane.
                                                              (line  174)
 * buttonState instance variable (X11ListPane class): X11ListPane.
                                                              (line  215)
+* buttonText instance method (X11FileSelectDialog class): X11FileSelectDialog.
+                                                             (line  372)
 * buttonText instance variable (ANSIButtonPane class): ANSIButtonPane.
                                                              (line   14)
 * buttonText resource (X11MessageBoxPane class): X11MessageBoxPane.
@@ -7939,6 +8091,8 @@ Index
 * CHAR_CONSTANT_VALUE macro:             Character.          (line   48)
 * chDir instance method (DirectoryStream class): DirectoryStream.
                                                              (line   87)
+* chDir instance method (X11FileSelectDialog class): X11FileSelectDialog.
+                                                             (line  387)
 * chdir(3) C function:                   CFunction.          (line   56)
 * chdir(3) C function <1>:               chdir.              (line    6)
 * childRefresh instance method (ANSITerminalPane class): ANSITerminalPane.
@@ -7993,6 +8147,8 @@ Index
                                                              (line   51)
 * clearClick instance method (X11ButtonPane class): X11ButtonPane.
                                                              (line  481)
+* clearClick instance method (X11ButtonPane class) <1>: X11FileSelectDialog.
+                                                             (line  376)
 * clearerr(3) C function:                CFunction.          (line   60)
 * clearFocus instance method (X11PaneDispatcher class): X11PaneDispatcher.
                                                              (line  321)
@@ -8232,6 +8388,8 @@ Index
 * directoryList instance method (DirectoryStream class): DirectoryStream.
                                                              (line   90)
 * DirectoryStream class:                 DirectoryStream.    (line    6)
+* dirPattern instance variable (X11FileSelectDialog class): X11FileSelectDialog.
+                                                             (line  328)
 * disableExceptionTrace instance method (Object class): Object.
                                                              (line  334)
 * dismissButton instance variable (ANSITextBoxPane class): ANSITextBoxPane.
@@ -8265,6 +8423,8 @@ Index
 * dodecahedron instance method (GLUTApplication class): GLUTApplication.
                                                              (line  181)
 * dom instance variable (CalendarTime class): CalendarTime.  (line   38)
+* dotFiles instance variable (X11FileSelectDialog class): X11FileSelectDialog.
+                                                             (line  333)
 * dots instance method (X11TextEntryBox class): X11TextEntryBox.
                                                              (line  160)
 * dots instance variable (X11TextEntryPane class): X11TextEntryPane.
@@ -8283,6 +8443,8 @@ Index
 * draw instance method (Point class):    Point.              (line   30)
 * draw instance method (Rectangle class): Rectangle.         (line   95)
 * draw instance method (X11ButtonPane class): X11ButtonPane. (line  485)
+* draw instance method (X11FileSelectDialog class): X11FileSelectDialog.
+                                                             (line  393)
 * draw instance method (X11LabelPane class): X11LabelPane.   (line  302)
 * draw instance method (X11ListBox class): X11ListBox.       (line  245)
 * draw instance method (X11ListPane class): X11ListPane.     (line  307)
@@ -8356,8 +8518,12 @@ Index
 * entryIconEye instance method (X11Bitmap class): X11Bitmap. (line  113)
 * entryIconEyeSlashed instance method (X11Bitmap class): X11Bitmap.
                                                              (line  113)
+* entryLength instance method (X11FileSelectDialog class): X11FileSelectDialog.
+                                                             (line  397)
 * entryPane instance method (X11TextEntryBox class): X11TextEntryBox.
                                                              (line  169)
+* entryPane instance variable (X11TextEntryBox class): X11FileSelectDialog.
+                                                             (line  322)
 * entryText instance method (X11TextEntryPane class): X11TextEntryPane.
                                                              (line  313)
 * envVarExists instance method (String class): String.       (line  285)
@@ -8449,6 +8615,8 @@ Index
 * fgRed instance variable (X11FreeTypeFont class): X11FreeTypeFont.
                                                              (line  120)
 * FILEEOF macro:                         C Macros.           (line   52)
+* fileMode instance variable (X11FileSelectDialog class): X11FileSelectDialog.
+                                                             (line  429)
 * FileStream class:                      FileStream.         (line    6)
 * FILE_ALREADY_OPEN_X exception:         Exception.          (line  118)
 * FILE_IS_DIRECTORY_X exception:         Exception.          (line  118)
@@ -8586,6 +8754,8 @@ Index
 * getEnv instance method (String class): String.             (line  289)
 * getenv(3) C function:                  CFunction.          (line  111)
 * getenv(3) C function <1>:              getenv.             (line    6)
+* getExpandedDir instance method (X11FileSelectDialog class): X11FileSelectDialog.
+                                                             (line  401)
 * getFocusWidgetText instance method (ANSIYesNoBoxPane class): ANSIYesNoBoxPane.
                                                              (line   63)
 * getFontInfo instance method (X11Font class): X11Font.      (line   63)
@@ -8824,6 +8994,10 @@ Index
                                                              (line  199)
 * initialized instance variable (X11YesNoBoxPane class): X11YesNoBoxPane.
                                                              (line  240)
+* initialized instance variable (X11YesNoBoxPane class) <1>: X11FileSelectDialog.
+                                                             (line  415)
+* initWidgets instance method (X11FileSelectDialog class): X11FileSelectDialog.
+                                                             (line  415)
 * initWidgets instance method (X11ListBox class): X11ListBox.
                                                              (line  249)
 * initWidgets instance method (X11MessageBoxPane class): X11MessageBoxPane.
@@ -8967,6 +9141,8 @@ Index
 * IS_OBJECT macro:                       C Macros.           (line   74)
 * IS_VALUE_INSTANCE_VAR macro:           C Macros.           (line   78)
 * is_zero_q function:                    Ctalk library.      (line 2887)
+* ItemBox class:                         X11FileSelectDialog.
+                                                             (line  429)
 * items instance variable (ANSIListBoxPane class): ANSIListBoxPane.
                                                              (line   42)
 * items instance variable (ANSIScrollingListBoxPane class): ANSIScrollingListBoxPane.
@@ -8991,11 +9167,15 @@ Index
                                                              (line  205)
 * label instance variable (X11YesNoBoxPane class): X11YesNoBoxPane.
                                                              (line  246)
+* label instance variable (X11YesNoBoxPane class) <1>: X11FileSelectDialog.
+                                                             (line  322)
 * labs(3) C function:                    labs.               (line    6)
 * lastY instance variable (X11ScrollBarPane class): X11ScrollBarPane.
                                                              (line  139)
 * lbutton instance variable (X11YesNoBoxPane class): X11YesNoBoxPane.
                                                              (line  229)
+* lbutton instance variable (X11YesNoBoxPane class) <1>: X11FileSelectDialog.
+                                                             (line  322)
 * leading instance variable (X11LabelPane class): X11LabelPane.
                                                              (line  268)
 * leading instancevariable (X11TextPane class): X11TextPane. (line   65)
@@ -9024,6 +9204,12 @@ Index
 * listFonts instance method (X11FreeTypeFont class): X11FreeTypeFont.
                                                              (line  211)
 * listPane instance variable (X11ListBox class): X11ListBox. (line  234)
+* listPane instance variable (X11ListBox class) <1>: X11FileSelectDialog.
+                                                             (line  322)
+* listROPx resource (X11FileSelectDialog class): X11FileSelectDialog.
+                                                             (line  303)
+* listRWPx resource (X11FileSelectDialog class): X11FileSelectDialog.
+                                                             (line  303)
 * llabs(3) C function:                   llabs.              (line    6)
 * llrint(3) C function:                  CFunction.          (line  121)
 * llrint(3) C function <1>:              llrint.             (line    6)
@@ -9063,6 +9249,8 @@ Index
                                                              (line  228)
 * mainWindowPtr instance variable (X11YesNoBoxPane class): X11YesNoBoxPane.
                                                              (line  262)
+* makeItem instance method (X11FileSelectDialog class): X11FileSelectDialog.
+                                                             (line  420)
 * makeSibling instance method (TreeNode class): TreeNode.    (line   47)
 * makeSocketPath instance method (UNIXNetworkStream class): UNIXNetworkStream.
                                                              (line   49)
@@ -9234,6 +9422,8 @@ Index
 * new instance method (SignalHandler class): SignalHandler.  (line   81)
 * new instance method (X11ButtonPane class): X11ButtonPane.  (line  515)
 * new instance method (X11CanvasPane class): X11CanvasPane.  (line  409)
+* new instance method (X11FileSelectDialog class): X11FileSelectDialog.
+                                                             (line  425)
 * new instance method (X11LabelPane class): X11LabelPane.    (line  328)
 * new instance method (X11ListBox class): X11ListBox.        (line  253)
 * new instance method (X11ListPane class): X11ListPane.      (line  320)
@@ -9266,6 +9456,8 @@ Index
                                                              (line   33)
 * nIinputEvents instance variable (TerminalStream class): TerminalStream.
                                                              (line   19)
+* nItemsSelected instance method (X11FileSelectDialog class): X11FileSelectDialog.
+                                                             (line  444)
 * nItemsSelected instance method (X11ListPane class): X11ListPane.
                                                              (line  325)
 * nMatches instance method (String class): String.           (line  393)
@@ -9318,6 +9510,8 @@ Index
 * onEnter instance method (X11ListPane class): X11ListPane.  (line  329)
 * onExpose instance method (GLXCanvasPane class): GLXCanvasPane.
                                                              (line  525)
+* onExpose instance method (X11FileSelectDialog class): X11FileSelectDialog.
+                                                             (line  436)
 * onExpose instance method (X11ListPane class): X11ListPane. (line  329)
 * onIdle instance method (GLXCanvasPane class): GLXCanvasPane.
                                                              (line  551)
@@ -9325,11 +9519,15 @@ Index
 * onKeyPress instance method (GLXCanvasPane class): GLXCanvasPane.
                                                              (line  568)
 * onLeave instance method (X11ListPane class): X11ListPane.  (line  329)
+* onListClick instance method (X11FileSelectDialog class): X11FileSelectDialog.
+                                                             (line  437)
 * onMotion instance method (X11ListPane class): X11ListPane. (line  329)
 * onPointerMotion instance method (GLXCanvasPane class): GLXCanvasPane.
                                                              (line  626)
 * onResize instance method (GLXCanvasPane class): GLXCanvasPane.
                                                              (line  644)
+* onResize instance method (X11FileSelectDialog class): X11FileSelectDialog.
+                                                             (line  438)
 * onResize instance method (X11ListPane class): X11ListPane. (line  329)
 * onTimerTick instance method (GLXCanvasPane class): GLXCanvasPane.
                                                              (line  660)
@@ -9371,6 +9569,8 @@ Index
                                                              (line  109)
 * Overloading methods:                   Overloading.        (line    3)
 * Overloading parameters:                Overloading.        (line   32)
+* pad resource (X11FileSelectDialog class): X11FileSelectDialog.
+                                                             (line  311)
 * pad resource (X11MessageBoxPane class): X11MessageBoxPane. (line  177)
 * pad resource (X11YesNoBoxPane class):  X11YesNoBoxPane.    (line  217)
 * padding instance variable (X11LabelPane class): X11LabelPane.
@@ -9409,6 +9609,8 @@ Index
                                                              (line  194)
 * PARSE_ERROR_X exception:               Exception.          (line  118)
 * Pasting text:                          X11TextEditorPane.  (line   45)
+* pathEntry instance method (X11FileSelectDialog class): X11FileSelectDialog.
+                                                             (line  448)
 * Pattern matches, debugging:            String.             (line  943)
 * Pattern strings:                       String.             (line  871)
 * pctLabelMargin instance variable (ANSIProgressBarPane class): ANSIProgressBarPane.
@@ -9545,6 +9747,8 @@ Index
                                                              (line  124)
 * rbutton instance variable (X11YesNoBoxPane class): X11YesNoBoxPane.
                                                              (line  230)
+* rbutton instance variable (X11YesNoBoxPane class) <1>: X11FileSelectDialog.
+                                                             (line  322)
 * rcvrClassObject instance variable (Method class): Method.  (line   57)
 * rcvrFrameTop instance variable (Method class): Method.     (line   83)
 * readAll instance method (ReadFileStream class): ReadFileStream.
@@ -9604,6 +9808,8 @@ Index
                                                              (line   84)
 * refresh instance method (X11CanvasPane class): X11CanvasPane.
                                                              (line  428)
+* refresh instance method (X11FileSelectDialog class): X11FileSelectDialog.
+                                                             (line  455)
 * refresh instance method (X11MessageBoxPane class): X11MessageBoxPane.
                                                              (line  259)
 * refresh instance method (X11TextEntryPane class): X11TextEntryPane.
@@ -9725,12 +9931,20 @@ Index
                                                              (line   91)
 * selectedFont instance method (X11FreeTypeFont class): X11FreeTypeFont.
                                                              (line  296)
+* selectedItemN instance method (X11FileSelectDialog class): X11FileSelectDialog.
+                                                             (line  463)
 * selectedItemN instance method (X11ListPane class): X11ListPane.
                                                              (line  340)
+* selectedItems instance method (X11FileSelectDialog class): X11FileSelectDialog.
+                                                             (line  459)
 * selectedItems instance method (X11ListPane class): X11ListPane.
                                                              (line  349)
+* selectedItemsN instance method (X11FileSelectDialog class): X11FileSelectDialog.
+                                                             (line  467)
 * selectedItemsN instance method (X11ListPane class): X11ListPane.
                                                              (line  353)
+* selectedItemText instance method (X11FileSelectDialog class): X11FileSelectDialog.
+                                                             (line  472)
 * selectedItemText instance method (X11ListPane class): X11ListPane.
                                                              (line  358)
 * selectedLine instance variable (ANSIListBoxPane class): ANSIListBoxPane.
@@ -9885,6 +10099,8 @@ Index
                                                              (line   91)
 * show instance method (ANSIYesNoBoxPane class): ANSIYesNoBoxPane.
                                                              (line  118)
+* show instance method (X11FileSelectDialog class): X11FileSelectDialog.
+                                                             (line  476)
 * show instance method (X11ListBox class): X11ListBox.       (line  258)
 * show instance method (X11MessageBoxPane class): X11MessageBoxPane.
                                                              (line  264)
@@ -10024,6 +10240,8 @@ Index
 * STR_IS_NULL macro <1>:                 C Macros.           (line  115)
 * str_is_zero_q function:                Ctalk library.      (line 2901)
 * Subpane geometry:                      X11CanvasPane.      (line  181)
+* subPaneButton instance method (X11FileSelectDialog class): X11FileSelectDialog.
+                                                             (line  439)
 * subPaneButton instance method (X11MessageBoxPane class): X11MessageBoxPane.
                                                              (line  280)
 * subPaneButton instance method (X11YesNoBoxPane class): X11YesNoBoxPane.
@@ -10161,6 +10379,8 @@ Index
 * tail instance method (Collection class): Collection.       (line  110)
 * tan(3) C function:                     tan.                (line    5)
 * tanh(3) C function:                    tanh.               (line    5)
+* targetPath instance variable (X11FileSelectDialog class): X11FileSelectDialog.
+                                                             (line  337)
 * TCPIPNetworkStream class:              TCPIPNetworkStream. (line    6)
 * TCPIPNetworkStreamReader class:        TCPIPNetworkStreamReader.
                                                              (line    6)
@@ -10210,6 +10430,8 @@ Index
 * textColor resource (X11ListPane class): X11ListPane.       (line  200)
 * textColor resource (X11TextEntryPane class): X11TextEntryPane.
                                                              (line  181)
+* textEntry instance method (X11FileSelectDialog class): X11FileSelectDialog.
+                                                             (line  483)
 * textHeight instance method (X11FreeTypeFont class): X11FreeTypeFont.
                                                              (line  377)
 * textLength instance variable (X11TextEditorPane class): X11TextEditorPane.
@@ -10330,7 +10552,13 @@ Index
                                                              (line  196)
 * unmap method (ANSIWidgetPane class):   ANSIWidgetPane.     (line  119)
 * unshift instance method (List class):  List.               (line  167)
+* updateLabel instance method (X11FileSelectDialog class): X11FileSelectDialog.
+                                                             (line  489)
 * useCursor instance method (X11Pane class): X11Pane.        (line  392)
+* useEntryBox instance variable (X11FileSelectDialog class): X11FileSelectDialog.
+                                                             (line  342)
+* useEntryBox resource (X11FileSelectDialog class): X11FileSelectDialog.
+                                                             (line  315)
 * useFTFont instance method (GLXCanvasPane class): GLXCanvasPane.
                                                              (line  719)
 * userObjects instance variable (Method class): Method.      (line   96)
@@ -10455,6 +10683,8 @@ Index
 * vsnprintf(3) C function:               vsnprintf.          (line    6)
 * vsprintf(3) C function:                vsprintf.           (line    6)
 * vsscanf(3) C function:                 vsscanf.            (line    6)
+* waitCursor instance variable (X11FileSelectDialog class): X11FileSelectDialog.
+                                                             (line  347)
 * waitStatus instance method (SignalHandler class): SignalHandler.
                                                              (line  154)
 * Warnings:                              Errors.             (line    6)

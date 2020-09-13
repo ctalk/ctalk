@@ -1,4 +1,4 @@
-/* $Id: GLXCanvasPane,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ -*-c-*-*/
+/* $Id: GLXCanvasPane,v 1.1.1.1 2020/09/13 17:14:20 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -715,7 +715,7 @@ GLXCanvasPane instanceMethod drawTextFT (Float xOrg, Float yOrg,
 					 String text) {
   "Draw text on the receiver pane at the matrix coordinates
    xOrg, yOrg.  The program must first register the font
-   used for drawing by a previous call to useXFont."
+   used for drawing by a previous call to useFTFont."
     __ctalkGLXDrawTextFT (text, xOrg, yOrg);
   return NULL;
 }
@@ -726,7 +726,7 @@ GLXCanvasPane instanceMethod drawTextFT (Float xOrg, Float yOrg,
 					 String text) {
   "Draw text on the receiver pane at the matrix coordinates
    xOrg, yOrg.  The program must first register the font
-   used for drawing by a previous call to useXFont."
+   used for drawing by a previous call to useFTFont."
    glColor3f (red, green, blue);
    __ctalkGLXAlphaFT (alpha);
    __ctalkGLXDrawTextFT (text, xOrg, yOrg);

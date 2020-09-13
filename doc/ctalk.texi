@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.10 2020/09/08 17:01:14 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.4 2020/09/13 20:17:52 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -18150,18 +18150,32 @@ pointer is over them.
 @cindex @code{X11FileSelectDialog} class
 
 A @code{X11FileSelectDialog} object displays a dialog box with a list
-of files in the current directory, or a directory that a user selects
-by clicking on its list entry.
+of files in the current directory, a preselected target directory, or
+a subdirectory that a user selects from the current directory's
+entries.
 
-The class allows users to select of multiple entries, by holding and either the
-@key{Shift} or @key{Ctrl} keys while selecting items, and provides methods
-to return the full path name of each file that the user selects.
+The class allows users to select multiple entries by holding either
+the @key{Shift} or @key{Ctrl} keys while selecting items.  The class
+provides a number of methods to retrieve the number of items that the
+user selects, the items' text, and text for a new file that the user
+enters, if any.  These methods are described
+below. @xref{Retrieving-Selection-Information}.
+
+The @code{X11FileSelectDialog} class can also display a text entry box
+(from @code{X11TextEntryPane} class) where users can enter new file names.
+
 
 Here is an example program that pops up a @code{X11FileSelectDialog} window.
 
 @example
 
 /* fileselectbox.ca, a X11FileSelectBox demonstration. -*-c-*- */
+
+/*
+ *  Uncomment the following #define if you want to build the dialog
+ *  with a X11TextEntryPane for creating new file paths.
+ */
+/* #define FILENAME_ENTRY_BOX */
 
 #include <ctalk/ctalkdefs.h>
 
@@ -18200,6 +18214,10 @@ int main (void) @{
   mainWindow raiseWindow;
 
   mainWindow openEventStream;
+
+#ifdef FILENAME_ENTRY_BOX
+  fileSelect resources replaceAt "useEntryBox", TRUE;
+#endif  
 
   mainWindow setWMTitle "X11FileSelectDialog Demo";
 
@@ -18248,7 +18266,7 @@ int main (void) @{
 	    /* 
 	       The button's click should be cleared, because in this
 	       program, the dialog can be re-opened here (i.e., not 
-	       reinstantiated with the "new" method. 
+	       reinstantiated with the "new" method). 
 
 	       The, "buttonText," method is equivalent, in this clause, 
 	       to, "fileSelect lbutton text."
@@ -18257,6 +18275,8 @@ int main (void) @{
 	       definitions, are in ctalkdefs.h.
 	    */
 	    fileSelect lbutton clearClick;
+	  @} else if (fileSelect entryLength > 0) @{
+	    printf ("%s\n", fileSelect pathEntry);
 	  @} else if (fileSelect nItemsSelected > 1) @{
 	    i = 0;
 	    fileSelect selectedItems itemTextOut;
@@ -18289,6 +18309,416 @@ int main (void) @{
 @}
 
 @end example
+
+@anchor{Retrieving-Selection-Information}
+@subheading Retrieving Selection Information
+
+The type and number of entries that a @code{X11FileSelectDialog} can
+return can differ depending on whether a user selects a single
+directory entry, multiple directory entries, or enters a new file
+name.
+
+When returning directory entries, the class returns each entry as a
+concatenation of the current directory plus the entry name; for
+example, if the current directory is @samp{/home/bill} and the user
+has selected the file @samp{message.txt}, the dialog returns the
+@code{String}, @samp{/home/bill/message.txt}.
+
+In addition, the dialog can provide information about whether the user
+has clicked the left or right buttons, which are labeled, by default,
+@samp{Cancel} and @code{Ok}.
+
+Generally, when a program displays the file select dialog, the program
+waits until the dialog box returns, that is, when the user presses
+either the @samp{Cancel} or @code{Ok} buttons.  On most desktops, the
+user can also close the dialog using the desktop's close window menu
+item.  In this case, the dialog can return a value indicating that the
+dialog has returned without the user making a selection or cancelling
+the selection.  These values and the method to retrieve them are
+described below.
+
+Here is the section of code from the example above (without the
+comments) that retrieves and displays the user's selection or
+selections.  The file select dialog is defined in the
+@code{X11FileSelectDialog} object, @code{fileSelect}.
+
+@example
+
+if (fileSelect buttonClick == FILESELECT_LBUTTON) @{
+  printf ("\"%s,\" clicked.\n", fileSelect buttonText);
+  fileSelect lbutton clearClick;
+@} else if (fileSelect entryLength > 0) @{
+  printf ("%s\n", fileSelect pathEntry);
+@} else if (fileSelect nItemsSelected > 1) @{
+  i = 0;
+  fileSelect selectedItems itemTextOut;
+  fileSelect selectedItemsN itemNOut;
+  itemNOut map @{
+    itemN = self;
+    itemText = *(itemTextOut + i);
+    printf ("%d: %s\n", itemN, itemText);
+    ++i;
+  @}
+@} else @{
+  printf ("%d: %s\n",
+          fileSelect selectedItemN,
+          fileSelect selectedItemText);
+@}
+fileSelect rbutton clearClick;
+
+@end example
+
+First, the application checks whether the user clicked the @samp{Cancel}
+button with the expresion:
+
+@example
+
+if (fileSelect buttonClick == FILESELECT_LBUTTON) 
+
+@end example
+
+In this class, @code{buttonClick} is a convenience method that checks
+each of the dialog's buttons.  It can return the following values.
+
+@example
+
+FILESELECT_LBUTTON
+FILESELECT_RBUTTON
+FILESELECT_BUTTON_NONE
+
+@end example
+
+These values are defined in the @flnm{ctalkdefs.h} include file, which
+programs can include with a statement like this:
+
+@example
+
+#include <ctalkdefs.h>
+
+@end example
+
+near the start of the file.
+
+Assuming that the user has pressed the @samp{Ok} button, the program
+next checks if the user has entered a new file name, with the statement:
+
+@example
+
+@} else if (fileSelect entryLength > 0) @{
+
+@end example
+
+The @mnm{entryLength} method returns @samp{-1} if the dialog doesn't
+display an entry box, @samp{0} if no text is entered, or the length of
+the text.  If the user has entered text, then the program can retrieve
+it with the @mnm{pathEntry} method, which retrieves and prints the
+entry with this line.
+
+@example
+
+printf ("%s\n", fileSelect pathEntry);
+
+
+@end example
+
+Once again, the dialog returns a @code{String} that is the
+concatenation of the current directory and the filename that the user
+entered.  To retrieve the entry box's text alone, programs can use the
+@mnm{textEntry} method instead of @mnm{pathEntry}.
+
+Finally, the program checks how many items the user selected from the
+directory entries.  The program does this with the @mnm{nItemsSelected}
+method.
+
+@example
+
+@} else if (fileSelect nItemsSelected > 1) @{
+
+@end example
+
+If @mnm{nItemsSelected} returns an @code{Integer} greater than one,
+the program can retrieve all of the entries as a list, with the
+@mnm{selectedItems} method, and their position in the list with the
+@mnm{selectedItemsN} method.
+
+@example
+
+fileSelect selectedItems itemTextOut;
+fileSelect selectedItemsN itemNOut;
+
+@end example
+
+These methods take one argument, a @code{List} object, here
+@code{itemTextOut} and @code{itemNOut}, to which the method adds
+either the list item text or ordinal position of each selected
+directory entry.
+
+In the case where the user has selected only a single directory entry
+(i.e., @mnm{nItemsSelected} returns @samp{1}), the program can use the
+@mnm{selectedItemN} and @mnm{selectedItemText} methods, as in this
+statement, which prints the information about a single entry.
+
+@example
+
+printf ("%d: %s\n",
+        fileSelect selectedItemN,
+        fileSelect selectedItemText);
+
+@end example
+
+@subheading Resources
+
+Further information about modifying resource entries is given in the
+@code{resources} instance variable section. @xref{PaneResources}.
+
+@table @code
+@cindex listROPx resource @idxclscite{X11FileSelectDialog}
+@cindex listRWPx resource @idxclscite{X11FileSelectDialog}
+@item listROPx
+@item listRWPx
+The distance in pixels between the bottom of the file list and the
+bottom of the window, in pixels.  The values determine, respectively
+whether to display the dialog's buttons directly beneath the list, or
+to display a text entry box between the file list and the buttons.
+
+@cindex pad resource @idxclscite{X11FileSelectDialog}
+@item pad
+The amount of space in pixels between the dialog window's edges and the
+component subpane's boundaries.  The default is @samp{0}.
+
+@cindex useEntryBox resource @idxclscite{X11FileSelectDialog}
+@item useEntryBox
+A boolean value that determines whether the dialog box displays a text
+entry box.  The default is @samp{false}.
+
+@end table
+
+@subheading Instance Variables
+
+@cindex rbutton instance variable @idxclscite{X11YesNoBoxPane}
+@cindex lbutton instance variable @idxclscite{X11YesNoBoxPane}
+@cindex label instance variable @idxclscite{X11YesNoBoxPane}
+@cindex entryPane instance variable @idxclscite{X11TextEntryBox}
+@cindex listPane instance variable @idxclscite{X11ListBox}
+In addition to the instance variables defined in superclasses (like
+@code{lbutton, rbutton,} and @code{label}, which are defined in
+@code{X11YesNoBoxPane} class; @code{entryPane}, defined in
+@code{X11TextEntryBox}; and @code{listPane}, which is defined in
+@code{X11ListBox} class), the @code{X11FileSelectDialog} class defines
+the following instance variables.
+
+@table @code
+
+@cindex dirPattern instance variable @idxclscite{X11FileSelectDialog}
+@item dirPattern
+A @code{String} that contains the file glob of the directory that the
+dialog displays initially.  The default is @code{.} (i.e., the current
+directory).
+
+@cindex dotFiles instance variable @idxclscite{X11FileSelectDialog}
+@item dotFiles
+If true, include hidden files (i.e., files whose names begin with
+@samp{.}) in the directory listing.
+
+@cindex targetPath instance variable @idxclscite{X11FileSelectDialog}
+@item targetPath
+A @code{String} that contains the fully qualified path of the
+directory that is being displayed.  The dialog object fills in the
+value whenever it compiles a new list of directory contents.
+
+@cindex useEntryBox instance variable @idxclscite{X11FileSelectDialog}
+@item useEntryBox
+A @code{Boolean} that determines whether the dialog should display an
+entry box or check for text entry operations.  The default is
+@samp{false}.
+
+@cindex waitCursor instance variable @idxclscite{X11FileSelectDialog}
+@item waitCursor
+A @code{X11Cursor} item that defines the wait mouse pointer that the
+dialog can display when building directory lists.
+
+@end table
+
+@subheading Instance Methods
+
+@table @code
+
+@cindex buttonClick instance method @idxclscite{X11FileSelectDialog}
+@item buttonClick (@code{void})
+Returns an @code{Integer} with one of the following values.
+
+@example
+
+FILESELECT_LBUTTON
+FILESELECT_RBUTTON
+FILESELECT_BUTTON_NONE
+
+@end example
+
+These values are defined in @flnm{ctalkdefs.h}.  Programs can include
+the statement:
+
+@example
+
+#include <ctalkdefs.h>
+
+@end example
+
+near the start of the file.
+
+@cindex buttonText instance method @idxclscite{X11FileSelectDialog}
+@item buttonText (@code{void})
+Returns a @code{String} that contains the text of the button
+that the user has clicked, or NULL if no button has been clicked.
+
+@cindex clearClick instance method @idxclscite{X11ButtonPane}
+To reset the button, programs should use the @mnm{clearClick} method,
+which is defined in @code{X11ButtonPane} class; for example:
+
+@example
+
+myDialog lbutton clearClick;
+
+@emph{... or ...}
+
+myDialog rbutton clearClick;
+
+@end example
+
+@cindex chDir instance method @idxclscite{X11FileSelectDialog}
+@item chDir (@code{ItemBox} @var{item})
+Changes the working directory of the dialog (and the program that
+opens it) to the directory whose name is contained in @code{item}.
+If @code{item} contains @samp{..}, the the new directory is the
+parent directory of the current directory.
+
+@cindex draw instance method @idxclscite{X11FileSelectDialog}
+@item draw (@code{void})
+Redraws the dialog's label, list and button subpanes.  Redrawing
+of the text entry pane, if it is displayed, is handled separately.
+
+@cindex entryLength instance method @idxclscite{X11FileSelectDialog}
+@item entryLength (@code{void})
+Returns the length of the text entered in the dialog's entry box, or
+@samp{-1} if the dialog does not display a text entry box.
+
+@cindex getExpandedDir instance method @idxclscite{X11FileSelectDialog}
+@item getExpandedDir (@code{String} @var{dirPattern})
+Retrieves the contents of the directory named in @var{dirPattern},
+which the method qualifies and stores in the @code{targetPath}
+instance variable.
+
+The method then constructs a sorted list of the directory's contents,
+which it stores in @code{listPane's items} instance variable. In order
+to use these items directly, programs could use an expression similar
+to this one.
+
+@example
+
+myFileDialog listPane items
+
+@end example
+
+@cindex initialized instance variable @idxclscite{X11YesNoBoxPane}
+@cindex initWidgets instance method @idxclscite{X11FileSelectDialog}
+@item initWidgets (@code{void})
+Creates the subpane objects and adds them to the dialog's window when
+the dialog is first opened.  Sets the @code{initialized} instance variable
+(defined in @code{X11YesNoBoxPane}) to @samp{true}.
+
+@cindex makeItem instance method @idxclscite{X11FileSelectDialog}
+@item makeItem (@code{String} @var{itemText})
+Creates an @code{ItemBox} object (which is defined in
+@code{X11ListPane} class), with the text of the object, the item's
+boundaries and position in pixels.
+
+@cindex new instance method @idxclscite{X11FileSelectDialog}
+@item new (@code{String} @var{paneName})
+The @code{X11FileSelectDialog} constructor.  The argument, a
+@code{String}, is the name of the new dialog object.
+
+@cindex @code{ItemBox} class
+@cindex fileMode instance variable @idxclscite{X11FileSelectDialog}
+Note: The @code{X11FileSelectDialog} class adds the @code{fileMode}
+instance variable to @code{ItemBox} class, so it's necessary to make
+sure that the @code{ItemBox} class, which is defined in
+@code{X11ListPane}.  In @code{X11FileSelectDialog} class, the
+@code{X11ListPane} class should be loaded automatically when the
+@code{listPane} instance variable is created.
+
+@cindex onExpose instance method @idxclscite{X11FileSelectDialog}
+@item onExpose (@code{Object} @var{subPane}, @code{InputEvent} @var{event})
+@cindex onListClick instance method @idxclscite{X11FileSelectDialog}
+@item onListClick (@code{Object} @var{subPane}, @code{InputEvent} @var{event})
+@cindex onResize instance method @idxclscite{X11FileSelectDialog}
+@item onResize (@code{Object} @var{subPane}, @code{InputEvent} @var{event})
+@cindex subPaneButton instance method @idxclscite{X11FileSelectDialog}
+@item subPaneButton (@code{Object} @var{subPane}, @code{InputEvent} @var{event})
+The @code{X11FileSelectDialog's} event handlers.  If the dialog handles
+events similarly to the operations in superclasses, then Ctalk uses event
+handlers defined in @code{X11FileSelectDialog's} superclasses.
+
+@cindex nItemsSelected instance method @idxclscite{X11FileSelectDialog}
+@item nItemsSelected (@code{void})
+Returns an @code{Integer} with the number of list entries that are currently
+selected.
+
+@cindex pathEntry instance method @idxclscite{X11FileSelectDialog}
+@item pathEntry (@code{void})
+If the dialog displays a text entry box, and the user has entered the
+name of a new file in it, returns the fully qualified path of the
+entry (i.e., the current directory path plus the name of text entry).
+If the dialog does not display an entry box, or the entry box contains
+no text, the method returns an empty string.
+
+@cindex refresh instance method @idxclscite{X11FileSelectDialog}
+@item refresh (@code{void})
+Updates the dialog window with the contents of the dialog's subpanes.
+
+@cindex selectedItems instance method @idxclscite{X11FileSelectDialog}
+@item selectedItems (@code{List} @var{selecteItemsOut})
+Stores the text of each item that the user has selected in
+@var{selectedItemsOut}.
+
+@cindex selectedItemN instance method @idxclscite{X11FileSelectDialog}
+@item selectedItemN (@code{void})
+If the user has selected a single directory entry, returns the ordinal
+position of the item (counting from 0) as an @code{Integer}.
+
+@cindex selectedItemsN instance method @idxclscite{X11FileSelectDialog}
+@item selectedItemsN (@code{List} @var{selecteItemsOut})
+Stores the ordinal position of enach item, counting from zero
+(@samp{0}) that the user has selected in @var{selectedItemsOut}.  Each
+of the elements in in @var{selectedItemsOut} is an @code{Integer}
+object.
+
+@cindex selectedItemText instance method @idxclscite{X11FileSelectDialog}
+@item selectedItemText (@code{void})
+If the user has selected a single directory entry, returns the text of
+that item as a @code{String}.
+
+@cindex show instance method @idxclscite{X11FileSelectDialog}
+@item show (@code{void})
+The main dialog box loop.  This creates the dialog's subpanes and
+attaches them to the main dialog window.  If the dialog has already
+been popped up, maps the dialog on the display.  Contains the event
+loop.  When the dialog is closed, the method returns to the calling
+program.
+
+@cindex textEntry instance method @idxclscite{X11FileSelectDialog}
+@item textEntry (@code{void})
+If the dialog displays a text entry box, and the user has entered a
+file name in it, returns a @code{String} that contains the text of the
+entry.  If the dialog does not display an entry box, or if the entry box
+does not contain any text, returns and empty string.
+
+@cindex updateLabel instance method @idxclscite{X11FileSelectDialog}
+@item updateLabel (@code{String} @var{qualPath})
+Updates the dialog's label with the name of the directory that is
+being displayed in @var{qualPath}.
+
+@end table
+
 
 @node X11TextPane, X11TextEditorPane, X11ListBox, Classes
 @iftex

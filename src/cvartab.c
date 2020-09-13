@@ -1,4 +1,4 @@
-/* $Id: cvartab.c,v 1.2 2020/08/31 16:34:28 rkiesling Exp $ */
+/* $Id: cvartab.c,v 1.1.1.1 2020/09/13 17:14:20 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.

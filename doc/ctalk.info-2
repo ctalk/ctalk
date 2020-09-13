@@ -6006,17 +6006,29 @@ File: ctalk.info,  Node: X11FileSelectDialog,  Next: X11TextPane,  Prev: X11List
 ---------------------------
 
 A 'X11FileSelectDialog' object displays a dialog box with a list of
-files in the current directory, or a directory that a user selects by
-clicking on its list entry.
+files in the current directory, a preselected target directory, or a
+subdirectory that a user selects from the current directory's entries.
 
-The class allows users to select of multiple entries, by holding and
-either the <Shift> or <Ctrl> keys while selecting items, and provides
-methods to return the full path name of each file that the user selects.
+The class allows users to select multiple entries by holding either the
+<Shift> or <Ctrl> keys while selecting items.  The class provides a
+number of methods to retrieve the number of items that the user selects,
+the items' text, and text for a new file that the user enters, if any.
+These methods are described below.  *Note
+Retrieving-Selection-Information::.
+
+The 'X11FileSelectDialog' class can also display a text entry box (from
+'X11TextEntryPane' class) where users can enter new file names.
 
 Here is an example program that pops up a 'X11FileSelectDialog' window.
 
 
      /* fileselectbox.ca, a X11FileSelectBox demonstration. -*-c-*- */
+
+     /*
+      *  Uncomment the following #define if you want to build the dialog
+      *  with a X11TextEntryPane for creating new file paths.
+      */
+     /* #define FILENAME_ENTRY_BOX */
 
      #include <ctalk/ctalkdefs.h>
 
@@ -6055,6 +6067,10 @@ Here is an example program that pops up a 'X11FileSelectDialog' window.
        mainWindow raiseWindow;
 
        mainWindow openEventStream;
+
+     #ifdef FILENAME_ENTRY_BOX
+       fileSelect resources replaceAt "useEntryBox", TRUE;
+     #endif
 
        mainWindow setWMTitle "X11FileSelectDialog Demo";
 
@@ -6103,7 +6119,7 @@ Here is an example program that pops up a 'X11FileSelectDialog' window.
      	    /*
      	       The button's click should be cleared, because in this
      	       program, the dialog can be re-opened here (i.e., not
-     	       reinstantiated with the "new" method.
+     	       reinstantiated with the "new" method).
 
      	       The, "buttonText," method is equivalent, in this clause,
      	       to, "fileSelect lbutton text."
@@ -6112,6 +6128,8 @@ Here is an example program that pops up a 'X11FileSelectDialog' window.
      	       definitions, are in ctalkdefs.h.
      	    */
      	    fileSelect lbutton clearClick;
+     	  } else if (fileSelect entryLength > 0) {
+     	    printf ("%s\n", fileSelect pathEntry);
      	  } else if (fileSelect nItemsSelected > 1) {
      	    i = 0;
      	    fileSelect selectedItems itemTextOut;
@@ -6143,6 +6161,336 @@ Here is an example program that pops up a 'X11FileSelectDialog' window.
 
      }
 
+
+Retrieving Selection Information
+--------------------------------
+
+The type and number of entries that a 'X11FileSelectDialog' can return
+can differ depending on whether a user selects a single directory entry,
+multiple directory entries, or enters a new file name.
+
+When returning directory entries, the class returns each entry as a
+concatenation of the current directory plus the entry name; for example,
+if the current directory is '/home/bill' and the user has selected the
+file 'message.txt', the dialog returns the 'String',
+'/home/bill/message.txt'.
+
+In addition, the dialog can provide information about whether the user
+has clicked the left or right buttons, which are labeled, by default,
+'Cancel' and 'Ok'.
+
+Generally, when a program displays the file select dialog, the program
+waits until the dialog box returns, that is, when the user presses
+either the 'Cancel' or 'Ok' buttons.  On most desktops, the user can
+also close the dialog using the desktop's close window menu item.  In
+this case, the dialog can return a value indicating that the dialog has
+returned without the user making a selection or cancelling the
+selection.  These values and the method to retrieve them are described
+below.
+
+Here is the section of code from the example above (without the
+comments) that retrieves and displays the user's selection or
+selections.  The file select dialog is defined in the
+'X11FileSelectDialog' object, 'fileSelect'.
+
+
+     if (fileSelect buttonClick == FILESELECT_LBUTTON) {
+       printf ("\"%s,\" clicked.\n", fileSelect buttonText);
+       fileSelect lbutton clearClick;
+     } else if (fileSelect entryLength > 0) {
+       printf ("%s\n", fileSelect pathEntry);
+     } else if (fileSelect nItemsSelected > 1) {
+       i = 0;
+       fileSelect selectedItems itemTextOut;
+       fileSelect selectedItemsN itemNOut;
+       itemNOut map {
+         itemN = self;
+         itemText = *(itemTextOut + i);
+         printf ("%d: %s\n", itemN, itemText);
+         ++i;
+       }
+     } else {
+       printf ("%d: %s\n",
+               fileSelect selectedItemN,
+               fileSelect selectedItemText);
+     }
+     fileSelect rbutton clearClick;
+
+
+First, the application checks whether the user clicked the 'Cancel'
+button with the expresion:
+
+
+     if (fileSelect buttonClick == FILESELECT_LBUTTON)
+
+
+In this class, 'buttonClick' is a convenience method that checks each of
+the dialog's buttons.  It can return the following values.
+
+
+     FILESELECT_LBUTTON
+     FILESELECT_RBUTTON
+     FILESELECT_BUTTON_NONE
+
+
+These values are defined in the 'ctalkdefs.h' include file, which
+programs can include with a statement like this:
+
+
+     #include <ctalkdefs.h>
+
+
+near the start of the file.
+
+Assuming that the user has pressed the 'Ok' button, the program next
+checks if the user has entered a new file name, with the statement:
+
+
+     } else if (fileSelect entryLength > 0) {
+
+
+The 'entryLength' method returns '-1' if the dialog doesn't display an
+entry box, '0' if no text is entered, or the length of the text.  If the
+user has entered text, then the program can retrieve it with the
+'pathEntry' method, which retrieves and prints the entry with this line.
+
+
+     printf ("%s\n", fileSelect pathEntry);
+
+
+
+Once again, the dialog returns a 'String' that is the concatenation of
+the current directory and the filename that the user entered.  To
+retrieve the entry box's text alone, programs can use the 'textEntry'
+method instead of 'pathEntry'.
+
+Finally, the program checks how many items the user selected from the
+directory entries.  The program does this with the 'nItemsSelected'
+method.
+
+
+     } else if (fileSelect nItemsSelected > 1) {
+
+
+If 'nItemsSelected' returns an 'Integer' greater than one, the program
+can retrieve all of the entries as a list, with the 'selectedItems'
+method, and their position in the list with the 'selectedItemsN' method.
+
+
+     fileSelect selectedItems itemTextOut;
+     fileSelect selectedItemsN itemNOut;
+
+
+These methods take one argument, a 'List' object, here 'itemTextOut' and
+'itemNOut', to which the method adds either the list item text or
+ordinal position of each selected directory entry.
+
+In the case where the user has selected only a single directory entry
+(i.e., 'nItemsSelected' returns '1'), the program can use the
+'selectedItemN' and 'selectedItemText' methods, as in this statement,
+which prints the information about a single entry.
+
+
+     printf ("%d: %s\n",
+             fileSelect selectedItemN,
+             fileSelect selectedItemText);
+
+
+Resources
+---------
+
+Further information about modifying resource entries is given in the
+'resources' instance variable section.  *Note PaneResources::.
+
+'listROPx'
+'listRWPx'
+     The distance in pixels between the bottom of the file list and the
+     bottom of the window, in pixels.  The values determine,
+     respectively whether to display the dialog's buttons directly
+     beneath the list, or to display a text entry box between the file
+     list and the buttons.
+
+'pad'
+     The amount of space in pixels between the dialog window's edges and
+     the component subpane's boundaries.  The default is '0'.
+
+'useEntryBox'
+     A boolean value that determines whether the dialog box displays a
+     text entry box.  The default is 'false'.
+
+Instance Variables
+------------------
+
+In addition to the instance variables defined in superclasses (like
+'lbutton, rbutton,' and 'label', which are defined in 'X11YesNoBoxPane'
+class; 'entryPane', defined in 'X11TextEntryBox'; and 'listPane', which
+is defined in 'X11ListBox' class), the 'X11FileSelectDialog' class
+defines the following instance variables.
+
+'dirPattern'
+     A 'String' that contains the file glob of the directory that the
+     dialog displays initially.  The default is '.' (i.e., the current
+     directory).
+
+'dotFiles'
+     If true, include hidden files (i.e., files whose names begin with
+     '.') in the directory listing.
+
+'targetPath'
+     A 'String' that contains the fully qualified path of the directory
+     that is being displayed.  The dialog object fills in the value
+     whenever it compiles a new list of directory contents.
+
+'useEntryBox'
+     A 'Boolean' that determines whether the dialog should display an
+     entry box or check for text entry operations.  The default is
+     'false'.
+
+'waitCursor'
+     A 'X11Cursor' item that defines the wait mouse pointer that the
+     dialog can display when building directory lists.
+
+Instance Methods
+----------------
+
+'buttonClick (void)'
+     Returns an 'Integer' with one of the following values.
+
+
+          FILESELECT_LBUTTON
+          FILESELECT_RBUTTON
+          FILESELECT_BUTTON_NONE
+
+
+     These values are defined in 'ctalkdefs.h'.  Programs can include
+     the statement:
+
+
+          #include <ctalkdefs.h>
+
+
+     near the start of the file.
+
+'buttonText (void)'
+     Returns a 'String' that contains the text of the button that the
+     user has clicked, or NULL if no button has been clicked.
+
+     To reset the button, programs should use the 'clearClick' method,
+     which is defined in 'X11ButtonPane' class; for example:
+
+
+          myDialog lbutton clearClick;
+
+          _... or ..._
+
+          myDialog rbutton clearClick;
+
+
+'chDir (ItemBox ITEM)'
+     Changes the working directory of the dialog (and the program that
+     opens it) to the directory whose name is contained in 'item'.  If
+     'item' contains '..', the the new directory is the parent directory
+     of the current directory.
+
+'draw (void)'
+     Redraws the dialog's label, list and button subpanes.  Redrawing of
+     the text entry pane, if it is displayed, is handled separately.
+
+'entryLength (void)'
+     Returns the length of the text entered in the dialog's entry box,
+     or '-1' if the dialog does not display a text entry box.
+
+'getExpandedDir (String DIRPATTERN)'
+     Retrieves the contents of the directory named in DIRPATTERN, which
+     the method qualifies and stores in the 'targetPath' instance
+     variable.
+
+     The method then constructs a sorted list of the directory's
+     contents, which it stores in 'listPane's items' instance variable.
+     In order to use these items directly, programs could use an
+     expression similar to this one.
+
+
+          myFileDialog listPane items
+
+
+'initWidgets (void)'
+     Creates the subpane objects and adds them to the dialog's window
+     when the dialog is first opened.  Sets the 'initialized' instance
+     variable (defined in 'X11YesNoBoxPane') to 'true'.
+
+'makeItem (String ITEMTEXT)'
+     Creates an 'ItemBox' object (which is defined in 'X11ListPane'
+     class), with the text of the object, the item's boundaries and
+     position in pixels.
+
+'new (String PANENAME)'
+     The 'X11FileSelectDialog' constructor.  The argument, a 'String',
+     is the name of the new dialog object.
+
+     Note: The 'X11FileSelectDialog' class adds the 'fileMode' instance
+     variable to 'ItemBox' class, so it's necessary to make sure that
+     the 'ItemBox' class, which is defined in 'X11ListPane'.  In
+     'X11FileSelectDialog' class, the 'X11ListPane' class should be
+     loaded automatically when the 'listPane' instance variable is
+     created.
+
+'onExpose (Object SUBPANE, InputEvent EVENT)'
+'onListClick (Object SUBPANE, InputEvent EVENT)'
+'onResize (Object SUBPANE, InputEvent EVENT)'
+'subPaneButton (Object SUBPANE, InputEvent EVENT)'
+     The 'X11FileSelectDialog's' event handlers.  If the dialog handles
+     events similarly to the operations in superclasses, then Ctalk uses
+     event handlers defined in 'X11FileSelectDialog's' superclasses.
+
+'nItemsSelected (void)'
+     Returns an 'Integer' with the number of list entries that are
+     currently selected.
+
+'pathEntry (void)'
+     If the dialog displays a text entry box, and the user has entered
+     the name of a new file in it, returns the fully qualified path of
+     the entry (i.e., the current directory path plus the name of text
+     entry).  If the dialog does not display an entry box, or the entry
+     box contains no text, the method returns an empty string.
+
+'refresh (void)'
+     Updates the dialog window with the contents of the dialog's
+     subpanes.
+
+'selectedItems (List SELECTEITEMSOUT)'
+     Stores the text of each item that the user has selected in
+     SELECTEDITEMSOUT.
+
+'selectedItemN (void)'
+     If the user has selected a single directory entry, returns the
+     ordinal position of the item (counting from 0) as an 'Integer'.
+
+'selectedItemsN (List SELECTEITEMSOUT)'
+     Stores the ordinal position of enach item, counting from zero ('0')
+     that the user has selected in SELECTEDITEMSOUT.  Each of the
+     elements in in SELECTEDITEMSOUT is an 'Integer' object.
+
+'selectedItemText (void)'
+     If the user has selected a single directory entry, returns the text
+     of that item as a 'String'.
+
+'show (void)'
+     The main dialog box loop.  This creates the dialog's subpanes and
+     attaches them to the main dialog window.  If the dialog has already
+     been popped up, maps the dialog on the display.  Contains the event
+     loop.  When the dialog is closed, the method returns to the calling
+     program.
+
+'textEntry (void)'
+     If the dialog displays a text entry box, and the user has entered a
+     file name in it, returns a 'String' that contains the text of the
+     entry.  If the dialog does not display an entry box, or if the
+     entry box does not contain any text, returns and empty string.
+
+'updateLabel (String QUALPATH)'
+     Updates the dialog's label with the name of the directory that is
+     being displayed in QUALPATH.
 
 
 File: ctalk.info,  Node: X11TextPane,  Next: X11TextEditorPane,  Prev: X11ListBox,  Up: Classes
@@ -8248,152 +8596,4 @@ C library templates do not need a separate registry file.
 The manual page, 'fnnames(5ctalk)' contains more information about the
 'fnnames' file.  The 'templates(5ctalk)' manual page describes the
 format of individual templates.
-
-
-File: ctalk.info,  Node: Return values,  Next: Variable arguments,  Prev: Templates,  Up: Methods
-
-Return Values
--------------
-
-Internally, methods return either an 'OBJECT *' or 'NULL'.  If you write
-a method that returns a C variable, Ctalk normally translates it into an
-equivalent object.
-
-Methods that return arrays declared in C generally assign the C array to
-an equivalent 'Array' object.  The 'Array' object's size is the same as
-the array declaration, regardless of how it the array's members are
-initialized.
-
-The 'Array' allocation only occurs for arrays declared with a subscript;
-that is, a variable declared as 'int *' is not always stored in an
-'Array' object, while a variable declared as 'int[SIZE]' is.
-
-Ctalk treats C arrays declared as 'char[SIZE]' a little differently.  If
-the method's definition says the return class of the method is 'Array',
-then Ctalk returns an 'Array' of 'Character' objects; otherwise, it
-returns a 'String' object.
-
-Because Ctalk does not have equivalent classes for multi-dimensioned
-arrays; that is, arrays with more than one subscript, it does not
-translate the arrays automatically.  In these cases, the method might
-return a multi-dimensioned array by assigning it to a 'Symbol' object.
-
-Occasionally, you might need to return the result of an expression that
-Ctalk can't translate automatically.  In that case, you can use the
-'eval' keyword to evaluate the expression when the program is run, as in
-this example.
-     MyClass instanceMethod myMethod (void) {
-       ...
-       return eval <expression>
-     }
-
-If a method must create an object of its own to return, the object
-should have the scope CREATED_PARAM, which tells the Ctalk libraries
-that the the program only needs the object if it's the result of a
-complete expression; if not, the program cleans up the object
-automatically when it is no longer needed.  *Note
-__ctalkRegisterUserObject::.
-
-
-     return __ctalkCreateObjectInit ("myStringAnswer", "String",
-                                     "Character", CREATED_PARAM,
-                                     "The contents of the String object.");
-
-
-If the program needs to store a return object for longer than the scope
-that the object is called in, the method can save the object in its
-object pool with the library function __ctalkRegisterUserObject, which
-is described below.  *Note __ctalkRegisterUserObject::.
-
-
-     String instanceMethod myMethod (void) {
-
-       OBJECT *return_object;
-
-       _... Do stuff. ..._
-
-       return_object =  __ctalkCreateObjectInit ("myStringAnswer", "String",
-                                     "Character", CREATED_PARAM,
-                                     "The contents of the String object.");
-       __ctalkRegisterUserObject (return_object);
-       return return_object;
-
-     }
-
-
-Another case may be when a method needs to retrieve an object reference.
-In these cases, the method may need to increase the object's reference
-count.  However, such a method can also call
-'__ctalkRegisterExtraObject' to save the object so its memory isn't lost
-later.  The '__ctalkRegisterExtraObject' function does not, itself, set
-the object's reference count, and it saves an object (not copies of
-objects) only once.
-
-Method Return Macros
-....................
-
-Alternatively, if a method needs to return an object of a particular
-class, you can use the following 'methodReturn*' statements.  These are
-macros that implement the statements to store and return objects which
-represent different types or classes, like 'ints' as Integer objects,
-'doubles' as Float objects, and so on.
-
-These macros have been superseded in more recent versions of Ctalk,
-which has the ability to insert the correct return code for any class of
-object, and many C variables, functions, and expressions.  If the
-compiler doesn't recognize some particular expression, however, these
-macros may still be useful.
-
-Remember that these return value functions are implemented as macros and
-contain their own code block, so you can use them in places where normal
-functions would cause a syntax error.
-
-'methodReturnBoolean (int I)'
-     Return a 'Boolean' object that Ctalk can evaluate to 'TRUE' or
-     'FALSE' depending on the value of its argument.  Mostly deprecated;
-     an expression like, '"return TRUE"' is equivalent.
-
-'methodReturnFalse'
-     Return a 'Boolean' object that evaluates to 'FALSE.' Deprecated;
-     using the expression, 'return FALSE;' has the same effect.
-
-'methodReturnInteger(int I)'
-     Return an 'Integer' object with the value I.  Mostly deprecated; an
-     expression like, '"return <int>"' is equivalent.
-
-'methodReturnLongInteger(int L)'
-     Return a 'LongInteger' object with the value L.  Mostly deprecated;
-     an expression like, '"return <longlongint>|<longint>"' is
-     equivalent.
-
-'methodReturnNULL'
-     Returns the C value 'NULL.' Deprecated; simply use the expression,
-     'return NULL;' instead.
-
-'methodReturnObject(OBJECT)'
-     Return OBJECT.  Deprecated; the expression, 'return OBJECT' has the
-     same effect.
-
-'methodReturnObjectName(OBJECTNAME)'
-     Return the object referred to by OBJECTNAME.  Also deprecated; like
-     'methodReturObject', above, the expression, 'return OBJECT' has the
-     same effect.
-
-'methodReturnSelf'
-     Returns the method's receiver, 'self'.  Slightly deprecated; simply
-     using the statement, "'return self'," has the same effect.
-
-'methodReturnString(char *S)'
-     Return a 'String' object with the value S.  Mostly deprecated; an
-     expression like, '"return <char *>|<string constant>"' is
-     equivalent.
-
-'methodReturnTrue'
-     Return a 'Boolean' object that evaluates to 'TRUE.' Deprecated; use
-     the expression, 'return TRUE;' instead.
-
-The macros that return objects use the '__ctalkRegisterUserObject'
-function to keep track of method's return values, and, if necessary,
-other objects that the method creates.  *Note
-__ctalkRegisterUserObject::.
 

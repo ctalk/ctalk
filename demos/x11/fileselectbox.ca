@@ -4,9 +4,9 @@
  *  Uncomment the following #define if you want to build the dialog
  *  with a X11TextEntryPane for creating new file paths.
  */
-/* #define FILENAME_ENTRY_BOX */
+#define FILENAME_ENTRY_BOX
 
-#include <ctalk/ctalkdefs.h>
+/* #include <ctalk/ctalkdefs.h> */
 
 int main (void) {
   X11Pane new mainWindow;
@@ -95,7 +95,7 @@ int main (void) {
 	    /* 
 	       The button's click should be cleared, because in this
 	       program, the dialog can be re-opened here (i.e., not 
-	       reinstantiated with the "new" method. 
+	       reinstantiated with the "new" method). 
 
 	       The, "buttonText," method is equivalent, in this clause, 
 	       to, "fileSelect lbutton text."
@@ -105,7 +105,7 @@ int main (void) {
 	    */
 	    fileSelect lbutton clearClick;
 	  } else if (fileSelect entryLength > 0) {
-	    printf ("%s\n", fileSelect textEntry);
+	    printf ("%s\n", fileSelect pathEntry);
 	  } else if (fileSelect nItemsSelected > 1) {
 	    i = 0;
 	    fileSelect selectedItems itemTextOut;

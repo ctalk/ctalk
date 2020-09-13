@@ -1,4 +1,4 @@
-/* $Id: X11FileSelectDialog,v 1.55 2020/09/13 16:07:36 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11FileSelectDialog,v 1.4 2020/09/13 20:17:52 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -34,12 +34,7 @@
                                    # is declared in the X11TextEntryBox
                                    # superclass.
 
-   labelGeom               "%dx%d+%d+%d"
-   listGeom                "%dx-%d+%d+%d"
-   lbuttonGeom             "20%%x36+20%%+-%d"
-   rbuttonGeom             "20%%x36+60%%+-%d"
-
-      # Distance between bottom of listbox and bottom of window:
+   # Distance between bottom of listbox and bottom of window:
    listROPx                50      # Without the text entry
    listRWPx                70      # With the text entry
 */
@@ -114,8 +109,6 @@ X11FileSelectDialog instanceMethod getExpandedDir (String dirPattern) {
 
   self targetPath = dirPattern asExpandedPath;
   
-  /* Remember to add some sort of check for a real error here, like 
-     initial directory doesn't exist or read error. */
   if ((d = opendir (self targetPath)) == NULL) {
     return NULL;
   }
@@ -198,7 +191,6 @@ X11FileSelectDialog instanceMethod new (String paneName) {
   paneName resources atPut "useEntryBox", false;
   paneName resources atPut "listROPx", 50;
   paneName resources atPut "listRWPx", 100;
-  paneName resources atPut "labelGeom", "%dx%d+%d+%d";
   paneName resources atPut "pad", 0;
 
   return paneName;
@@ -770,62 +762,6 @@ X11FileSelectDialog instanceMethod show (void) {
 
 }
 
-X11FileSelectDialog instanceMethod sortedDirectoryList (char *__dirName,
-							SortedList __dList) {
-  "This is similar to DirectoryStream : sortedDirectoryList, except
-   that it filters the types of files that we want to list."
-
-  DIR *d;
-  struct dirent *d_ent;
-  bool dotfiles;
-  Array new __dirs;
-  Integer new __nDirs;
-  Integer new __i;
-  String new __dNameInternal;
-  String new __entryString;
-  SystemErrnoException new __e;
-
-  returnObjectClass List;
-
-  dotfiles = self dotFiles;
-  __dNameInternal = __dirName;
-
-#if 0
-  if ((__dirName == self getCwd) ||
-      (__dirName == ".")) {
-    __dNameInternal = self getCwd;
-  }
-  if (__dirName == "~") {
-    __dNameInternal = self getEnv "HOME";
-  }
-  if (__dirName == "..") {
-    __dirName = self getCwd;
-    __nDirs = __dirName split ('/', __dirs);
-    __dNameInternal = "";
-    for (__i = 0; __i < (__nDirs - 1); __i = __i + 1) {
-      __dNameInternal = __dNameInternal + "/";
-      __dNameInternal = __dNameInternal + (__dirs at __i);
-    }
-  }
-#endif  
-
-  if ((d = opendir (__dNameInternal)) == NULL) {
-    __e raiseException __dNameInternal;
-    return NULL;
-  }
-
-  while ((d_ent = readdir (d)) != NULL) {
-    if (!dotfiles && (d_ent -> d_name[0] == '.'))
-      continue;
-    __dList pushAscending d_ent -> d_name;
-  }
-
-  if (closedir (d))
-    __e raiseException __dNameInternal;
-
-  return NULL;
-}
-
 X11FileSelectDialog instanceMethod nItemsSelected (void) {
   "Returns an Integer with the number of items currently selected.
    This allows a program to determine whether it can use the
@@ -933,7 +869,7 @@ X11FileSelectDialog instanceMethod buttonText (void) {
   }
 }
 
-X11FileSelectDialog instanceMethod textEntry (void) {
+X11FileSelectDialog instanceMethod pathEntry (void) {
   String new entry;
   returnObjectClass String;
   if (!self useEntryBox) {
@@ -944,6 +880,22 @@ X11FileSelectDialog instanceMethod textEntry (void) {
       return "";
     } else {
       return self targetPath + "/" + entry;
+    }
+  }
+  return NULL;
+}
+
+X11FileSelectDialog instanceMethod textEntry (void) {
+  String new entry;
+  returnObjectClass String;
+  if (!self useEntryBox) {
+    return "";
+  } else {
+    entry = self entryPane entryText;
+    if (entry length == 0) {
+      return "";
+    } else {
+      return entry;
     }
   }
   return NULL;
