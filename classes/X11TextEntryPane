@@ -1,4 +1,4 @@
-/* $Id: X11TextEntryPane,v 1.85 2020/06/22 04:27:07 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11TextEntryPane,v 1.2 2020/09/13 05:38:13 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -342,7 +342,7 @@ X11TextEntryPane instanceMethod draw (void) {
   self ftFontVar saveSelectedFont;
   if (self baselineY == 0) {
     self baselineY = self size y -
-      borderWidth -
+      (self resources integerAt "borderWidth") -
       (self resources integerAt "hPad") - (self ftFontVar descent);
     if (self dots)
       self baselineY -= (self ftFontVar textHeight "T") / 2;

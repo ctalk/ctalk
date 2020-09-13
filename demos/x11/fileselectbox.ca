@@ -1,4 +1,10 @@
-/* fileselectbox.ca, a X11ListBox demonstration. -*-c-*- */
+/* fileselectbox.ca, a X11FileSelectBox demonstration. -*-c-*- */
+
+/*
+ *  Uncomment the following #define if you want to build the dialog
+ *  with a X11TextEntryPane for creating new file paths.
+ */
+#define FILENAME_ENTRY_BOX
 
 #include <ctalk/ctalkdefs.h>
 
@@ -37,6 +43,10 @@ int main (void) {
   mainWindow raiseWindow;
 
   mainWindow openEventStream;
+
+#ifdef FILENAME_ENTRY_BOX
+  fileSelect resources replaceAt "useEntryBox", TRUE;
+#endif  
 
   mainWindow setWMTitle "X11FileSelectDialog Demo";
 
@@ -80,7 +90,21 @@ int main (void) {
 	  break;
 	case BUTTONRELEASE:
 	  fileSelect showManaged button;
-	  if (fileSelect nItemsSelected > 1) {
+	  if (fileSelect buttonClick == FILESELECT_LBUTTON) {
+	    printf ("\"%s,\" clicked.\n", fileSelect buttonText);
+	    /* 
+	       The button's click should be cleared, because in this
+	       program, the dialog can be re-opened here (i.e., not 
+	       reinstantiated with the "new" method. 
+
+	       The, "buttonText," method is equivalent, in this clause, 
+	       to, "fileSelect lbutton text."
+
+	       The FILESELECT_LBUTTON #define and the other button
+	       definitions, are in ctalkdefs.h.
+	    */
+	    fileSelect lbutton clearClick;
+	  } else if (fileSelect nItemsSelected > 1) {
 	    i = 0;
 	    fileSelect selectedItems itemTextOut;
 	    fileSelect selectedItemsN itemNOut;
@@ -97,6 +121,7 @@ int main (void) {
 		    fileSelect selectedItemN,
 		    fileSelect selectedItemText);
 	  }
+	  fileSelect rbutton clearClick;
 	  break;
 	case WINDELETE:
  	  mainWindow deleteAndClose;

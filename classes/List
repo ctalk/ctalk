@@ -1,4 +1,4 @@
-/* $Id: List,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ -*-c-*- */
+/* $Id: List,v 1.3 2020/09/13 14:26:17 rkiesling Exp $ -*-c-*- */
 
 /*
   This file is part of Ctalk.
@@ -560,11 +560,7 @@ List instanceMethod asString (void) {
     returnObjectClass String;
 
     self map {
-      if ((self at 0 == '\'') && (self is Character)) {
-	s += self at 1 asCharacter;
-      } else {
-	s += self value;
-      }
+      s += self value;
     }
     
     return s;
