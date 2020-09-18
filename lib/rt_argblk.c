@@ -1,4 +1,4 @@
-/* $Id: rt_argblk.c,v 1.1.1.1 2020/09/13 17:14:20 rkiesling Exp $ */
+/* $Id: rt_argblk.c,v 1.6 2020/09/16 23:08:19 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -113,10 +113,21 @@ RT_FN *__ctalkBlockCallerFn (void) {
 static void set_conditional_expr_value (EXPR_PARSER *p,
 					int start,
 					int end, OBJECT *result) {
-  int i;
+  int i, i_2;
+  OBJECT *del_obj;
   for (i = start; i >= end; i--) {
       if (!IS_OBJECT(p -> m_s[i] -> obj)) {
 	p -> m_s[i] -> obj = result;
+      }
+      if (IS_OBJECT(p -> m_s[i] -> value_obj)) {
+	/* We might need to take these case-by-case. */
+	if (p -> m_s[i] -> value_obj -> attrs & OBJECT_IS_I_RESULT) {
+	  del_obj = p -> m_s[i] -> value_obj;
+	  for (i_2 = start; i_2 >= end; i_2--) {
+	    p -> m_s[i_2] -> value_obj = NULL;
+	  }
+	  __ctalkDeleteObject (del_obj);
+	}
       }
       p -> m_s[i] -> value_obj = result;
       ++(p -> m_s[i] -> evaled);
@@ -128,7 +139,7 @@ void subexpr_conditional (EXPR_PARSER *p, int subexpr_start,
   int colon_tok_ptr, i;
   int true_result_start, true_result_end;
   int false_result_start, false_result_end;
-  char *s;
+  char *s_true, *s_false;
   OBJECT *true_result, *false_result, *result;
 
   for (i = question_tok_ptr - 1; i >  p -> msg_frame_top; --i) {
@@ -154,41 +165,33 @@ void subexpr_conditional (EXPR_PARSER *p, int subexpr_start,
     false_result_end = p -> msg_frame_top;
   }
   
-  s = collect_tokens (p -> m_s, true_result_start, true_result_end);
+  s_true = collect_tokens (p -> m_s, true_result_start, true_result_end);
 
-  true_result = __ctalkEvalExpr (s);
-
-  __xfree (MEMADDR(s));
-
-  s = collect_tokens (p -> m_s, false_result_start, false_result_end);
-
-  false_result = __ctalkEvalExpr (s);
-
-  __xfree (MEMADDR(s));
+  s_false = collect_tokens (p -> m_s, false_result_start, false_result_end);
 
   if ((p -> m_s[subexpr_start] -> value_obj -> attrs & OBJECT_VALUE_IS_BIN_BOOL) ||
       (p -> m_s[subexpr_start] -> value_obj -> attrs & OBJECT_VALUE_IS_BIN_INT)) {
     if (INTVAL(p -> m_s[subexpr_start] -> value_obj
 	       -> instancevars -> __o_value)) {
-      result = true_result;
+      result = __ctalkEvalExpr (s_true);
     } else {
-      result = false_result;
+      result = __ctalkEvalExpr (s_false);
     }
     set_conditional_expr_value (p, subexpr_start, false_result_end, result);
   } else if (p -> m_s[subexpr_start] -> value_obj -> __o_class ==
 	     rt_defclasses -> p_string_class) {
     if (p -> m_s[subexpr_start] -> value_obj -> instancevars -> __o_value[0]) {
-      result = true_result;
+      result = __ctalkEvalExpr (s_true);
     } else {
-      result = false_result;
+      result = __ctalkEvalExpr (s_false);
     }
     set_conditional_expr_value (p, subexpr_start, false_result_end, result);
   } else if (p -> m_s[subexpr_start] -> value_obj -> __o_class ==
 	     rt_defclasses -> p_character_class) {
     if (p -> m_s[subexpr_start] -> value_obj -> instancevars -> __o_value[0]) {
-      result = true_result;
+      result = __ctalkEvalExpr (s_true);
     } else {
-      result = false_result;
+      result = __ctalkEvalExpr (s_false);
     }
     set_conditional_expr_value (p, subexpr_start, false_result_end, result);
   } else {
@@ -197,6 +200,9 @@ void subexpr_conditional (EXPR_PARSER *p, int subexpr_start,
 	      p -> m_s[subexpr_start] -> value_obj -> __o_class -> __o_name,
 	      p -> expr_str);
   }
+
+  __xfree (MEMADDR(s_true));
+  __xfree (MEMADDR(s_false));
 
 }
 
@@ -284,7 +290,18 @@ void question_conditional (EXPR_PARSER *p, int cond_op_idx) {
   }
 
   for (i = pred_start_idx; i >= false_end; i--) {
-    p -> m_s[i] -> value_obj = result_object;
+    if (i < pred_end_idx && i >= false_end) {
+      if (IS_OBJECT(p -> m_s[i] -> value_obj)) {
+	if (p -> m_s[i] -> value_obj != result_object) {
+	  if (p -> m_s[i] -> value_obj -> attrs & OBJECT_IS_I_RESULT) {
+	    __ctalkDeleteObject (p -> m_s[i] -> value_obj);
+	  }
+	}
+      }
+      p -> m_s[i] -> value_obj = result_object;
+    } else {
+      p -> m_s[i] -> value_obj = result_object;
+    }
     ++(p -> m_s[i]) -> evaled;
   }
 }

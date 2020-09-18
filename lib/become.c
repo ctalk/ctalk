@@ -1,8 +1,8 @@
-/* $Id: become.c,v 1.2 2020/05/27 02:39:06 rkiesling Exp $ */
+/* $Id: become.c,v 1.2 2020/09/17 19:14:05 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
-  Copyright © 2005-2019  Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2005-2020  Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
 
@@ -207,7 +207,6 @@ static OBJECT *__receiver_become (OBJECT *__new) {
 	   /*
 	    *  Or even if it is sometimes... watch this.
 	    */
-	   /***/
 	   if (old -> scope & VAR_REF_OBJECT) {
 	     if (!(old ->scope & METHOD_USER_OBJECT)) {
 	       __ctalkRegisterUserObject (old);

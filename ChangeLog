@@ -1200,5 +1200,22 @@
 2020-09-13
 	- Updated List : asString to remove the unneeded test for a
 	leading opening quote.
+2020-09-14
+	- Updated subexpr_conditional to delete the unused result
+	(rt_argblk.c).
+2020-09-15
+	- Added a check for unused conditional branch object that is
+	an i result and we can delete there, in question_conditional
+	(rt_argblk.c).
+	- Updated subexpr_conditional to evaluate either the true
+	argument or false argument, not both (rt_argblk.c).
+2020-09-16
+	- Delete old i result object in set_conditional_expr_value
+	(rt_argblk.c).
+2020-09-17
+	- Updated __delete_char_ptr_arg to delete an object with
+	CREATED_CVAR_SCOPE if is not otherwise on the argument or
+	receiver stack
+	(lib/objtoc.c).
 
 

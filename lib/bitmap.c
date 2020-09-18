@@ -1,8 +1,8 @@
-/* $Id: bitmap.c,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ -*-c-*-*/
+/* $Id: bitmap.c,v 1.2 2020/09/17 19:14:05 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
-  Copyright © 2005-2012, 2015, 2019  Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2005-2012, 2015, 2019-2020  Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
 
@@ -52,7 +52,6 @@ int __xlib_clear_pixmap (Drawable d, unsigned int width,
   return SUCCESS;
 }
 
-/***/
 int __xlib_clear_rectangle_basic (Display *disp, Drawable d, int x, int y, 
 				  unsigned int width, unsigned int height,
 				  GC gc) {
@@ -250,52 +249,6 @@ int __ctalkX11ResizePaneBuffer (OBJECT *pane,
   XFreePixmap (display, (Pixmap)p_old);
   return SUCCESS;
 }
-
-#if 0 /***/
-/* Used? */
-int __ctalkX11ClearBufferRectangle (OBJECT *pane,
-				    int x, int y,
-				    int width, int height) {
-  OBJECT *pane_object, *paneBuffer_object, *paneBackingStore_object,
-    *xWindowID_object, *xGC_object, *displayptr_var;
-  GC gc;
-  pane_object = (IS_VALUE_INSTANCE_VAR(pane) ? pane -> __o_p_obj :
-		 pane);
-  if ((xGC_object = 
-       __ctalkGetInstanceVariable (pane_object, "xGC", TRUE))
-      == NULL)
-    return ERROR;
-  if ((paneBuffer_object = 
-       __ctalkGetInstanceVariable (pane_object, "paneBuffer", TRUE))
-      == NULL)
-    return ERROR;
-  errno = 0;
-  gc = (GC)strtoul (xGC_object->instancevars->__o_value, NULL, 16);
-  if (errno != 0) {
-    strtol_error (errno, "__ctalkX11CreatePaneBuffer ()", 
-		  xGC_object->instancevars->__o_value);
-  }
-  __xlib_clear_rectangle_basic 
-    (display, atoi(paneBuffer_object->instancevars->__o_value), 
-     x, y, width, height, gc);
-  if ((paneBackingStore_object = 
-	__ctalkGetInstanceVariable (pane_object, "paneBackingStore", TRUE))
-       == NULL)
-    return ERROR;
-  __xlib_clear_rectangle_basic 
-    (display, atoi(paneBackingStore_object->instancevars->__o_value), 
-     x, y, width, height, gc);
-  if ((xWindowID_object = 
-       __ctalkGetInstanceVariable (pane_object, "xWindowID", TRUE))
-      == NULL)
-    return ERROR;
-  __xlib_clear_rectangle_basic 
-    (display, atoi(xWindowID_object->instancevars->__o_value), 
-     x, y, width, height, gc);
-  return SUCCESS;
-
-}
-#endif
 
 int __get_pane_buffers (OBJECT *pane_object, int *panebuffer_xid,
 			int *panebackingstore_xid) {
