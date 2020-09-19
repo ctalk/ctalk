@@ -1222,5 +1222,8 @@
 	canvas-copy.ca.
 	- Updated searchlib language tool to exit with a help
 	message if the program is run with no arguments.
+	- Updated __ctalkX11TextWidth to use a fixed font if
+	the X11Font object's xlfd is uninitialized or the
+	font isn't found (font.c).
 
 
