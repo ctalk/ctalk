@@ -1,4 +1,4 @@
-/* $Id: errmsgs.c,v 1.1.1.1 2020/09/13 17:14:20 rkiesling Exp $ */
+/* $Id: errmsgs.c,v 1.2 2020/09/19 01:08:27 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -941,7 +941,6 @@ void self_instvar_expr_unknown_label (MESSAGE_STACK messages,
 	   errbuf);
 }
 
-/***/
 /* This is still preliminary. */
 void instancevar_wo_rcvr_warning (MESSAGE_STACK messages, int tok_idx,
 				  bool first_label, int main_stack_idx) {
@@ -1079,15 +1078,6 @@ int undefined_label_check (MESSAGE_STACK messages, int idx) {
     is_keyword;
   int prev_tok_idx;
   int next_idx;
-#if 0 /***/
-  /* see below. */
-  CVAR *cvar;
-#endif  
-
-#if 0 /***/
-  if (interpreter_pass == expr_check || interpreter_pass == library_pass)
-    return SUCCESS;
-#endif  
 
   if (interpreter_pass == expr_check)
     return SUCCESS;

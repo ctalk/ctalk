@@ -1,4 +1,4 @@
-/* $Id: glxlib.c,v 1.4 2020/07/08 17:13:30 rkiesling Exp $ -*-c-*-*/
+/* $Id: glxlib.c,v 1.1.1.1 2020/07/17 07:41:39 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.

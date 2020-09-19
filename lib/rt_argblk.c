@@ -1,8 +1,8 @@
-/* $Id: rt_argblk.c,v 1.6 2020/09/16 23:08:19 rkiesling Exp $ */
+/* $Id: rt_argblk.c,v 1.7 2020/09/18 21:25:12 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
-  Copyright © 2005-2012  Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2005-2012, 2020  Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
 
@@ -159,7 +159,6 @@ void subexpr_conditional (EXPR_PARSER *p, int subexpr_start,
 					  false_result_start,
 					  p -> msg_frame_top);
   } else {
-    /***/
     /* TODO - work on rules if there's an unparenthesized expression
        with tokens following it. */
     false_result_end = p -> msg_frame_top;

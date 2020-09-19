@@ -1,8 +1,8 @@
-/* $Id: complexmethd.c,v 1.1.1.1 2020/07/26 05:50:11 rkiesling Exp $ */
+/* $Id: complexmethd.c,v 1.2 2020/09/19 01:08:26 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
-  Copyright © 2005-2019 Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2005-2020 Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
 
@@ -376,24 +376,6 @@ int is_overloaded_aggregate_op (MESSAGE_STACK messages, int idx) {
   return FALSE;
 }
 
-#if 0 /***/
-/* was used only by the function below. */
-static bool objs_in_cvar_term (MESSAGE_STACK messages, int tok_idx) {
-  int next_tok, prev_tok;
-  if ((next_tok = nextlangmsg (messages, tok_idx)) != ERROR) {
-    if (M_TOK(messages[next_tok]) == LABEL) {
-      return true;
-    }
-  }
-  if ((prev_tok = prevlangmsg (messages, tok_idx)) != ERROR) {
-    if (M_TOK(messages[prev_tok]) == LABEL) {
-      return true;
-    }
-  }
-  return false;
-}
-#endif
-
 /* 
  *   Called by super_argblk_rcvr_expr () when simply writing expressions
  *   that start with, "super."
@@ -423,19 +405,9 @@ void register_argblk_c_vars_1 (MESSAGE_STACK messages,
       /* So we don't cause an undefined label exception later on. */
       messages[i] -> attrs |= TOK_IS_RT_EXPR;
 
-#if 0
-      if (objs_in_cvar_term (messages, i)) {
-	fmt_register_argblk_cvar_from_basic_cvar (messages, i,
-						  cvar, buf);
-	buffer_argblk_stmt (buf);
-      } else { /***/
-#endif	
-	fmt_register_argblk_cvar_from_basic_cvar (messages, i,
-						  cvar, buf);
-	buffer_argblk_stmt (buf);
-#if 0
-      }
-#endif      
+      fmt_register_argblk_cvar_from_basic_cvar (messages, i,
+						cvar, buf);
+      buffer_argblk_stmt (buf);
     }
     
   }
@@ -733,7 +705,7 @@ void super_argblk_rcvr_expr (MESSAGE_STACK messages, int super_idx,
     q = strchr (p, '_');
     memset (class, 0, MAXLABEL);
     strncpy (class, p, q - p);
-    /* workaround ***/
+    /* workaround */
     if ((new_methods[new_method_ptr+1] -> method -> rcvr_class_obj = 
 	 get_class_object (class)) == NULL) {
       _error ("\nctalk: Invalid rcvr_class_obj member of the method:\n\n%s : "
@@ -783,7 +755,7 @@ void super_argblk_rcvr_expr (MESSAGE_STACK messages, int super_idx,
     if ((m = get_instance_method_mrco (method_message, tmp_rcvr_obj,
 				  M_NAME(method_message), -1, FALSE)) != NULL) {
 #ifdef MRCO_PRINT
-      printf ("4: %s\n", m -> name); /***/
+      printf ("4: %s\n", m -> name);
 #endif      
       if ((arglist_start_idx = nextlangmsg (messages, method_idx)) 
 	  != ERROR) {
@@ -793,7 +765,7 @@ void super_argblk_rcvr_expr (MESSAGE_STACK messages, int super_idx,
 				    m -> n_params, m -> varargs)) != ERROR) {
 	  rt_expr (messages, super_idx, &arglist_end_idx, expr_out);
 #ifdef MRCO_PRINT
-	  printf ("4a: %s\n", expr_out); /***/
+	  printf ("4a: %s\n", expr_out);
 #endif	  
 	  for (i = super_idx; i >= arglist_end_idx; i--) {
 	    ++messages[i] -> evaled;
@@ -801,7 +773,7 @@ void super_argblk_rcvr_expr (MESSAGE_STACK messages, int super_idx,
 	  }
 	}
       }
-    } else if (is_method_proto (tmp_rcvr_obj, M_NAME(method_message))) { /***/
+    } else if (is_method_proto (tmp_rcvr_obj, M_NAME(method_message))) {
       method_from_prototype_2 (tmp_rcvr_obj, M_NAME(method_message));
       m = get_instance_method_mrco
 	(method_message, tmp_rcvr_obj, M_NAME(method_message), -1, FALSE);
@@ -831,7 +803,7 @@ void super_argblk_rcvr_expr (MESSAGE_STACK messages, int super_idx,
 	      != ERROR) {
 	    rt_expr (messages, super_idx, &arglist_end_idx, expr_out);
 #ifdef MRCO_PRINT
-	    printf ("4b: %s\n", expr_out); /***/
+	    printf ("4b: %s\n", expr_out);
 #endif	    
 	    for (i = super_idx; i >= arglist_end_idx; i--) {
 	      ++messages[i] -> evaled;
@@ -879,7 +851,7 @@ void super_argblk_rcvr_expr (MESSAGE_STACK messages, int super_idx,
     q = strchr (p, '_');
     memset (class, 0, MAXLABEL);
     strncpy (class, p, q - p);
-    /* workaround ***/
+    /* workaround */
     if ((new_methods[512] -> method -> rcvr_class_obj = 
 	 get_class_object (class)) == NULL) {
       _error ("\nctalk: Invalid rcvr_class_obj member of the method:\n\n%s : "

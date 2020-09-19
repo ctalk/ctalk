@@ -1,4 +1,4 @@
-/* $Id: xrender.c,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ -*-c-*-*/
+/* $Id: xrender.c,v 1.2 2020/09/18 21:25:13 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -89,7 +89,6 @@ int __xlib_draw_rectangle (d, Drawable drawable_arg, GC gc, char *data) {
 #else /* X11LIB_FRAME */
 
 /* These are in x11lib.c. */
-/* extern int lookup_pixel (char *); */ /***/
 extern unsigned long lookup_pixel_d (Display *, char *);
 extern int lookup_rgb (char *, unsigned short int *,
 		       unsigned short int *, unsigned short int *);
@@ -140,7 +139,6 @@ void save_color (char *colorname, XftColor *rcolor) {
   ++color_ptr;
 }
 
-/***/
 bool get_color (char *colorname, XftColor *color_out) {
   int i;
   char *p_color_index;
@@ -419,7 +417,6 @@ int __xlib_draw_rectangle (Display *d, Drawable drawable_arg, GC gc, char *data)
 			     DefaultColormap (d, DefaultScreen (d)),
 			     rect.color_name, 
 			     &rcolor)) {
-	/* rcolor.color.alpha = pen_alpha; *//***/
 	rcolor.color.alpha = 0xffff;
 	save_color (rect.color_name, &rcolor);
       } else {
@@ -1233,7 +1230,6 @@ int __xlib_draw_line (Display *d, Drawable drawable_arg, GC gc, char *data) {
   } else { /* if (have_useful_xrender) */
 
     line_gcv.function = GXcopy;
-    /* line_gcv.foreground = lookup_pixel (colorname); *//***/
     line_gcv.foreground = lookup_pixel_d (d, colorname);
     line_gcv.fill_style = FillSolid;
     line_gcv.line_width = pen_width;
@@ -1831,7 +1827,7 @@ int __xlib_draw_line (Display *d, Drawable drawable_arg, GC gc, char *data) {
   }
 
   line_gcv.function = GXcopy;
-  line_gcv.foreground = lookup_pixel_d (d, colorname); /***/
+  line_gcv.foreground = lookup_pixel_d (d, colorname);
   line_gcv.fill_style = FillSolid;
   line_gcv.line_width = pen_width;
   XGetGCValues (d, gc, DEFAULT_GCV_MASK, &old_gcv);

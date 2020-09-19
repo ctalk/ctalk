@@ -1,4 +1,4 @@
-/* $Id: rt_expr.c,v 1.1.1.1 2020/09/13 17:14:20 rkiesling Exp $ */
+/* $Id: rt_expr.c,v 1.2 2020/09/18 21:25:12 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -337,7 +337,7 @@ static bool is_method_of_prev_tok_value (EXPR_PARSER *p, int tok_idx) {
   int lookback;
   OBJECT *src_object, *tgt_rcvr;
   if ((lookback = prev_msg (e_messages, tok_idx)) != ERROR) {
-    if (IS_OBJECT(M_VALUE_OBJ(e_messages[lookback]))) { /***/
+    if (IS_OBJECT(M_VALUE_OBJ(e_messages[lookback]))) {
       if (is_class_or_subclass (M_VALUE_OBJ(e_messages[lookback]),
 				rt_defclasses -> p_symbol_class)) {
 	src_object = M_VALUE_OBJ(e_messages[lookback]);
@@ -2429,7 +2429,6 @@ OBJECT *eval_expr (char *s, OBJECT *recv_class, METHOD *method,
   p -> is_arg_expr = (bool)is_arg_expr;
   p -> expr_str = s;
   p -> m_s = e_messages;
-  /***/
   /* This might not actually be needed. */
   if (eval_subexpr_call) {
     p -> entry_eval_status |= EVAL_STATUS_DIRECT_SUBEXPR;
@@ -4365,9 +4364,8 @@ OBJECT *eval_expr (char *s, OBJECT *recv_class, METHOD *method,
 		  }
 		} else {
 		  fixup_forward_instance_var_of_method_return (p, i);
-		  /***/
 		  if ((m_next_idx =
-		       next_msg (e_messages, i)) != ERROR) { /***/
+		       next_msg (e_messages, i)) != ERROR) {
 		    if (m_next_idx == (p -> msg_frame_top + 1)) {
 		      eval_status |=
 			(EVAL_STATUS_TERMINAL_TOK|EVAL_STATUS_INSTANCE_VAR);
@@ -4447,10 +4445,8 @@ OBJECT *eval_expr (char *s, OBJECT *recv_class, METHOD *method,
 			"or a method.\n", p -> expr_str, M_NAME(m));
 	    }
 	  } else {
-	    /***/
 	    if (IS_OBJECT(m -> obj)) { 
 	      if (m -> obj -> scope == CREATED_PARAM) {
-		/***/
 		if (!str_eq (m -> obj -> __o_name, "super") &&
 		    !(m -> attrs & RT_TOK_OBJ_IS_CREATED_CVAR_ALIAS) &&
 		    !(m -> attrs & RT_OBJ_IS_INSTANCE_VAR) &&
@@ -4461,7 +4457,6 @@ OBJECT *eval_expr (char *s, OBJECT *recv_class, METHOD *method,
 		    /* !strstr (p -> expr_str, "->") */
 		    !is_obj_deref_expr (p) &&
 		    !is_label_in_deref (M_NAME(m)) &&
-		    /***/
 		    /* This lines might need adjusting later on. */
 		    !(M_VALUE_OBJ(m) -> scope & ARG_VAR) &&
 		    !is_method_of_prev_tok_value (p, i) &&
@@ -4530,13 +4525,10 @@ OBJECT *eval_expr (char *s, OBJECT *recv_class, METHOD *method,
 		      i = __expr_close_paren;
 		      continue;
 		    } else if (is_OBJECT_vartab_deref_cast
-			       (e_messages, i, &terminal_mbr_idx)) { /***/
-		      /***/
-#if 1
+			       (e_messages, i, &terminal_mbr_idx)) {
 		      cvar_for_OBJECT_deref_typecast (e_messages, i,
 						      terminal_mbr_idx,
 						      expr_parser_ptr);
-#else
 		      char *__s, s2[MAXMSG], c2[MAXMSG];
 		      CVAR *c, *c_1, *c_prev;
 		      OBJECT *cvar_alias;
@@ -4585,7 +4577,6 @@ OBJECT *eval_expr (char *s, OBJECT *recv_class, METHOD *method,
 			}
 		      }
 		      __xfree (MEMADDR(__s));
-#endif /***/		      
 		      i = terminal_mbr_idx;
 		      continue;
 		    }
@@ -4844,7 +4835,7 @@ OBJECT *eval_expr (char *s, OBJECT *recv_class, METHOD *method,
 	      }
 	      break;
 	    case CONDITIONAL:
-	      question_conditional (p, i); /***/
+	      question_conditional (p, i);
 	      break;
 	    case SIZEOF:
 	      if ((next_msg_ptr = 
@@ -5345,7 +5336,6 @@ OBJECT *_rt_math_op (MESSAGE_STACK messages, int op_ptr, int stack_start,
   char errmsg[MAXMSG];
 
   _rt_operands (C_EXPR_PARSER, op_ptr, &op1_ptr, &op2_ptr);
-  /* if ((op1_ptr == ERROR) || (op2_ptr == ERROR)) { *//***/
   if ((op1_ptr <= 0) || (op2_ptr <= 0)) {
     if ((expr_parser_ptr + 1) <= MAXARGS) {
       if (expr_parsers[expr_parser_ptr+1] -> expr_str) {

@@ -1,8 +1,8 @@
-/* $Id: rt_args.c,v 1.2 2020/06/27 12:43:43 rkiesling Exp $ */
+/* $Id: rt_args.c,v 1.2 2020/09/18 21:25:12 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
-  Copyright © 2005-2019  Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2005-2020  Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
 
@@ -364,7 +364,6 @@ int __ctalk_arg (char *__recv_name, char *__method, int n_params,
 		    OBJECT_IS_MEMBER_OF_PARENT_COLLECTION) {
 	  arg_p_object = arg_object;
 	} else {
-	  /***/
 	  if ((arg_object == (OBJECT *)__arg) &&
 	      (IS_OBJECT(arg_object -> instancevars)) &&
 	      (arg_object -> instancevars -> attrs & OBJECT_IS_VALUE_VAR)) {
@@ -708,7 +707,7 @@ int __ctalk_arg_cleanup (OBJECT *result_obj) {
       }
     } else {
       if (arg_object -> scope & VAR_REF_OBJECT) {
-	save_local_objects_to_extra_b (); /***/
+	save_local_objects_to_extra_b ();
 	return arg_nrefs;
       }
       if (arg_object -> scope == CREATED_PARAM) {
@@ -1610,7 +1609,6 @@ int __rt_method_args(METHOD *method, MESSAGE_STACK messages,
 	  if (M_VALUE_OBJ (messages[j]) != arg_val_obj) {
 	    /* this needs to be the value object, so it doesn't overwrite
 	       the tmp parameter created at this parser level. */
-	    /***/
 	    if (IS_OBJECT(arg_val_obj)) {
 	      messages[j] -> value_obj = arg_val_obj;
 	      if (arg_val_obj -> scope & SUBEXPR_CREATED_RESULT) {
@@ -1622,7 +1620,7 @@ int __rt_method_args(METHOD *method, MESSAGE_STACK messages,
 	  }
 	}
 
-	if (arg_val_obj) { /***/
+	if (arg_val_obj) {
 	  __add_arg_object_entry_frame (method, arg_val_obj);
 	}
 	  
@@ -1763,7 +1761,7 @@ static int __rt_arglist_limit (METHOD *method,
 	   } else {
 	     goto multiple_args;
 	   }
-	 } else if (M_TOK(messages[lookahead]) == LABEL) { /***/
+	 } else if (M_TOK(messages[lookahead]) == LABEL) {
 	   if (arg_separator_count (messages, arglist_start, close_paren_idx,
 				    n_args)) {
 	     return lookahead;
@@ -2110,12 +2108,6 @@ static OBJECT *__ctalk_arg_expr (MESSAGE_STACK messages, int method_ptr,
   OBJECT *rcvr_obj,
     *rcvr_class_obj,
     *result_obj = NULL;
-
-#if 0 /***/
-  if ((messages[arg_start_idx] -> evaled > 1) &&
-      IS_OBJECT (messages[arg_start_idx] -> value_obj))
-    return messages[arg_start_idx] -> value_obj;
-#endif  
 
   stack_start = __rt_get_stack_top (messages);
 
@@ -2680,64 +2672,7 @@ int __rt_method_arglist_n_args (EXPR_PARSER *p, int method_msg_idx,
 	       arglist_internal_method_expr (p, i, arglist_end, m))
 	      > 0)
 	    return n_internal_args;
-#if 0 /***/
-	  { /***/
-	    /*
-	     *  Handle a case like this:
-	     *
-	     *    tokenList push (String basicNew "token", tokenbuf);
-	     *
-	     *  I.e., make sure that the argument list associates
-	     *  with "basicNew" and not "push".  This is easy
-	     *  enough so far if we make it all of the way to
-	     *  the closing paren of the arglist.
-	     */
-	    OBJECT *arg_obj;
-	    METHOD *arg_method;
-	    int i_2, arg_arglist_end, n_arg_parens, n_arg_method_args;
-	    lookahead = next_arg_tok_b (p, i);
-	    if (M_TOK(p -> m_s[lookahead]) == LABEL) {
-	      if ((arg_obj = 
-		   __ctalk_get_object (M_NAME(p -> m_s[i]), NULL)) != NULL) {
-		p -> m_s[i] -> obj = arg_obj;
-		if (__ctalk_isMethod_2 (M_NAME(p -> m_s[lookahead]),
-					p -> m_s, lookahead,
-					p -> msg_frame_start)) {
-
-		  for (i_2 = lookahead - 1, n_arg_parens = 0,
-			 n_arg_method_args = 1;
-		       (i_2 > arglist_end) && (n_arg_parens >= 0);
-		       --i_2) {
-		    switch (M_TOK(p -> m_s[i_2]))
-		      {
-		      case OPENPAREN:
-			++n_arg_parens;
-			break;
-		      case CLOSEPAREN:
-			--n_arg_parens;
-			break;
-		      case ARGSEPARATOR:
-			++n_arg_method_args;
-			break;
-		      }
-		  }
-		}
-		if ((arg_method = __ctalkFindMethodByName
-		     (&arg_obj, M_NAME(p -> m_s[lookahead]),
-		      FALSE, n_arg_method_args)) != NULL) {
-		  /* we've checked all the way to the closing
-		     paren of the primary method's arglist,
-		     so just return the primary method's param
-		     count. */
-		  if (i_2 == arglist_end) {
-		    return m -> n_params;
-		  }
-		}
-	      }
-	    }
-	  }
 	  break;
-#endif	  
 	}
     }
     return n_args;

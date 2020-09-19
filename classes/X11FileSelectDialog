@@ -1,4 +1,4 @@
-/* $Id: X11FileSelectDialog,v 1.4 2020/09/13 20:17:52 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11FileSelectDialog,v 1.5 2020/09/19 01:08:25 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -628,7 +628,6 @@ X11FileSelectDialog instanceMethod show (void) {
 	    e xEventData2 = xev.xbutton.y;
 	    e xEventData3 = xev.xbutton.state;
 	    e xEventData4 = xev.xbutton.button;
-	    /* self listPane onClick self listPane, e; *//***/
 	    self onListClick self, e;
 	  }
 	  break;
@@ -637,7 +636,6 @@ X11FileSelectDialog instanceMethod show (void) {
 	      (xev.xbutton.window == self rbutton xWindowID)) {
 	    e eventClass = BUTTONRELEASE;
 	    self methodObjectMessage self handlePointerInput, self, e;
-	    /* self listPane onClick self listPane, e; *//***/
 	    self withdraw;
 	    dispatcher modalWin = 0;
 	    dispatcher modalPane = NULL;

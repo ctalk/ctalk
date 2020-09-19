@@ -1,4 +1,4 @@
-/* $Id: guidrawpoint.c,v 1.3 2020/06/21 22:37:29 rkiesling Exp $ -*-c-*-*/
+/* $Id: guidrawpoint.c,v 1.1.1.1 2020/07/17 07:41:38 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.

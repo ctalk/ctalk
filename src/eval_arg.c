@@ -1,4 +1,4 @@
-/* $Id: eval_arg.c,v 1.1.1.1 2020/09/13 17:14:20 rkiesling Exp $ */
+/* $Id: eval_arg.c,v 1.2 2020/09/19 01:08:27 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -481,7 +481,6 @@ static OBJECT *eval_constant_arg (int arg_idx) {
   return NULL;
 }
 
-/***/
 /* This can save some calls to tokenize, once we can analyze the
    argument with the preceding method. */
 static OBJECT *resolve_unary_minus_arg_0 (MESSAGE_STACK messages,
@@ -997,9 +996,6 @@ OBJECT *eval_arg (METHOD *method, OBJECT *rcvr_class, ARGSTR *argbuf,
     switch (m_arg -> tokentype)
       {
       case LABEL:
-#if 0 /***/
-	printf ("<<<< resolve_single_token_arg call 1\n");
-#endif	
 	if ((arg_obj = resolve_single_token_arg
 	     (method, m_messages, start_stack, rcvr_class_obj,
 	      main_stack_idx, argbuf))
@@ -1014,7 +1010,6 @@ OBJECT *eval_arg (METHOD *method, OBJECT *rcvr_class, ARGSTR *argbuf,
 						      start_stack,
 						      method);
 						      
-	  /***/
 	  if ((((cvar = get_local_local_cvar (m_arg -> name)) != NULL) ||
 	       ((cvar = get_global_var (m_arg -> name)) != NULL)) &&
 	      IS_CVAR(cvar) &&
@@ -1067,9 +1062,7 @@ OBJECT *eval_arg (METHOD *method, OBJECT *rcvr_class, ARGSTR *argbuf,
 		    /* AssociativeArray keys can be constructed objects. */
 		    !str_eq (rcvr_class -> __o_name,
 			     "AssociativeArray") &&
-		    /***/
 		    !member_of_method_return_class (method, m_arg) &&
-		    /***/
 		    !is_method_parameter (m_messages, start_stack) &&
 		    !get_instance_method (m_main, rcvr_class,
 					  M_NAME(m_arg), ANY_ARGS, FALSE)) {
@@ -1289,7 +1282,7 @@ OBJECT *eval_arg (METHOD *method, OBJECT *rcvr_class, ARGSTR *argbuf,
 	}
 	i = typecast_end;
 	continue;
-      } else if (is_class_typecast_2 (&msi, i)) { /***/
+      } else if (is_class_typecast_2 (&msi, i)) {
 	if ((close_paren_idx = match_paren (msi.messages, i,
 					    msi.stack_ptr)) != ERROR) {
 	  int rcvr_lookahead, class_tok_idx;
@@ -1328,7 +1321,7 @@ OBJECT *eval_arg (METHOD *method, OBJECT *rcvr_class, ARGSTR *argbuf,
 	m_arg -> attrs |= TOK_SELF;
       } else if (str_eq (M_NAME(m_arg), "super")) {
 	m_arg -> attrs |= TOK_SUPER;
-      } else if (is_class_typecast (&msi, i)) { /***/
+      } else if (is_class_typecast (&msi, i)) {
 	int i_2, cast_lookahead;
 	int cast_start_l, cast_end_l = stack_end, i_3;
 	leading_typecast_indexes (main_stack_idx,
@@ -1559,7 +1552,6 @@ OBJECT *eval_arg (METHOD *method, OBJECT *rcvr_class, ARGSTR *argbuf,
 				&agg_var_end_idx);
 		arg_obj = create_arg_EXPR_object (argbuf);
 		if (arg_class != arg_null)  arg_class = arg_c_var_expr;
-		/***/
 		/* As a possible trailing token, this needs more work-up,
 		   when we have code examples. */
 		if (!strchr (argbuf -> arg, '?'))
@@ -2034,34 +2026,9 @@ OBJECT *eval_arg (METHOD *method, OBJECT *rcvr_class, ARGSTR *argbuf,
 		} else {
 		  /* check for instance and class variable typos,
 		     like the var on its own */
-		  /***/
 		  instancevar_wo_rcvr_warning
 		    (m_messages, i, (first_label_idx == -1),
 		     main_stack_idx);
-#if 0 /***/
-		  if (M_TOK(m_arg) == LABEL &&
-		      interpreter_pass != expr_check) {
-		    if (first_label_idx != -1) {
-		      int p = 0;
-		      if ((p = prevlangmsg (m_messages, i)) != -1) {
-			if ((M_TOK(m_messages[p]) != LABEL) &&
-			    (M_TOK(m_messages[p]) != CLOSEPAREN)) {
-			  /* a closing paren as the previous token
-			     can be the end of a receiver expression,
-			     i.e., the label is a method, so don't 
-			     check if the label is defined here */
-			  if (!(m_arg -> attrs & TOK_SELF) &&
-			      !(m_arg -> attrs & TOK_SUPER) &&
-			      !IS_DEFINED_LABEL(M_NAME(m_arg))) {
-			    warning (message_stack_at (main_stack_idx),
-				     "Undefined label, \"%s.\"",
-				     M_NAME(m_arg));
-			  }
-			}
-		      }
-		    }
-		  }
-#endif		
 		}
 	      }  /* if ((method -> n_args == 0) ... */
 	    }
@@ -2144,9 +2111,9 @@ OBJECT *eval_arg (METHOD *method, OBJECT *rcvr_class, ARGSTR *argbuf,
 
 	__xfree (MEMADDR(concat_buf));
       }
-    } else if (M_TOK(m_arg) == OPENPAREN) { /***/
+    } else if (M_TOK(m_arg) == OPENPAREN) {
       /* check for a class cast */
-#if 1
+
       int close_paren_idx, rcvr_idx, deref_prefix_op_idx;
       if ((next_tok_idx = nextlangmsg (m_messages, i)) != ERROR) {
 	if (is_class_typecast (&msi, next_tok_idx)) {
@@ -2170,7 +2137,7 @@ OBJECT *eval_arg (METHOD *method, OBJECT *rcvr_class, ARGSTR *argbuf,
 	  }
 	}
       }
-#endif      
+
     } else if (IS_C_BINARY_MATH_OP (M_TOK(m_arg))) {/* if (M_TOK(m_arg) == OPENPAREN) */
       /* If we have an expression like this:
        *
@@ -2293,7 +2260,7 @@ OBJECT *eval_arg (METHOD *method, OBJECT *rcvr_class, ARGSTR *argbuf,
   } else {
     elide_inc_or_dec_prefix (argbuf);
     elide_inc_or_dec_postfix (argbuf);
-    if (math_subexpr_rewrite) { /***/
+    if (math_subexpr_rewrite) {
       char *argbuf_save = argbuf -> arg;
       argbuf -> arg = math_subexpr_rewrite_expr;
       arg_obj  = create_arg_EXPR_object_2 (argbuf);

@@ -1,6 +1,6 @@
 /*
   This file is part of Ctalk.
-  Copyright © 2015-2019 Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2015-2020 Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
 
@@ -232,7 +232,7 @@ int is_self_expr_as_fn_lvalue (MESSAGE *m_sender,
 	  next_message -> receiver_msg = sender_rcvr_msg;
 	  
 	  prev_object_l = next_instance_var;
-	} else if (str_eq (M_NAME(messages[next_idx]), "super")) { /***/
+	} else if (str_eq (M_NAME(messages[next_idx]), "super")) {
 	  return FALSE;
 	} else {
 	  
@@ -917,7 +917,7 @@ static int fn_return_tab_entry (MESSAGE *m_orig, CFUNC *c_fn) {
 	      strcatx (type_buf, c_fn -> qualifier_type, " ",
 		       c_fn -> return_type, NULL);
 	    } else if (str_eq (c_fn -> return_type, "OBJECT") &&
-		       (c_fn -> return_derefs == 1)) { /***/
+		       (c_fn -> return_derefs == 1)) {
 	      strcatx (type_buf, c_fn -> return_type, NULL);
 	      return TMP_LVAL_OBJECT_PTR;
 	    } else {

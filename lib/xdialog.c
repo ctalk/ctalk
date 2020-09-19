@@ -86,12 +86,10 @@ static void pop_dpyrec (void) {
 
 static Display *open_dialog_display_connection (void) {
   Display *d_l;
-  /* if (dpyrecs[dpyrecs_ptr+1] == NULL || dpyrec -> d_p == NULL) { *//***/
   if ((d_l = XOpenDisplay (getenv ("DISPLAY"))) == NULL) {
     return NULL;
   }
   push_dpyrec (d_l);
-    /* }*/ /***/
   return d_l;
 }
 

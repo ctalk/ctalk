@@ -1,8 +1,8 @@
- /* $Id: pattypes.c,v 1.3 2020/07/18 08:16:53 rkiesling Exp $ */
+ /* $Id: pattypes.c,v 1.2 2020/09/18 21:25:12 rkiesling Exp $ */
 
  /*
    This file is part of Ctalk.
-   Copyright © 2005-2019  Robert Kiesling, rk3314042@gmail.com.
+   Copyright © 2005-2020  Robert Kiesling, rk3314042@gmail.com.
    Permission is granted to copy this software provided that this copyright
    notice is included in all source code modules.
 
@@ -1278,7 +1278,7 @@ int find_leading_tok_idx (MESSAGE_STACK messages, int start_idx,
 	  return start_idx;
 	} 
 	break;
-      case MINUS: /***/
+      case MINUS:
 	if (IS_C_ASSIGNMENT_OP(M_TOK(messages[lookback]))) {
 	  return i;
 	}

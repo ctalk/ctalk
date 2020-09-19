@@ -1,4 +1,4 @@
-/* $Id: rt_expr.c,v 1.1.1.1 2020/09/13 17:14:20 rkiesling Exp $ */
+/* $Id: rt_expr.c,v 1.2 2020/09/19 01:08:28 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -439,7 +439,7 @@ char *rt_expr (MESSAGE_STACK messages, int start_idx, int *end_idx,
 	  }
 	  if (argblk) {
 	    fmt_rt_argblk_expr (messages, start_idx, end_idx, expr_out);
-	  } else if (fn_arg_conditional) { /***/
+	  } else if (fn_arg_conditional) {
 	    for (i = start_idx; i >= *end_idx; i--) {
 	      ++(messages[i] -> evaled);
 	      ++(messages[i] -> output);
@@ -4153,12 +4153,6 @@ int rt_fn_arg_cond_expr (MSINFO *ms) {
 	    break;
 	  }
 	}
-#if 0 /***/
-	if ((M_TOK(ms -> messages[i]) == ARGSEPARATOR) ||
-	    (M_TOK(ms -> messages[i]) == OPENPAREN)) {
-	  break;
-	}
-#endif	  
 	pred_start_idx = i;
       }
     }

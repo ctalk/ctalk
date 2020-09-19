@@ -1,8 +1,8 @@
-/* $Id: mcct.c,v 1.2 2020/07/04 19:08:29 rkiesling Exp $ */
+/* $Id: mcct.c,v 1.2 2020/09/19 01:08:27 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
-  Copyright © 2017-2019 Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2017-2020 Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
 
@@ -220,19 +220,6 @@ MCCT_RESULT mcct_check_token (MESSAGE_STACK messages, int i,
   if (M_ISSPACE(tok))
       return mcct_whitespace;
     if (IS_OBJECT(tok -> obj)) {
-#if 1 /***/
-      if ((lookahead = nextlangmsg (messages, i)) != ERROR) {
-	if ((var = get_instance_variable_series (tok -> obj,
-						 messages[lookahead],
-						 lookahead,
-						 get_stack_top (messages)))
-	    != NULL) {
-	  messages[lookahead] -> obj = var;
-	  messages[lookahead] -> receiver_msg = tok;
-	  messages[lookahead] -> attrs |= OBJ_IS_INSTANCE_VAR;
-	}
-      }
-#endif      
       return mcct_continue;
     } else if ((o = get_object (M_NAME(tok), NULL)) != NULL) {
       tok -> obj = o;
@@ -283,7 +270,6 @@ MCCT_RESULT mcct_check_token (MESSAGE_STACK messages, int i,
 		    lookahead_2,
 		    get_stack_top (messages))) != NULL) {
 		messages[lookahead_2] -> obj = var;
-		/***/
 		messages[lookahead_2] -> receiver_obj = tok -> obj;
 		messages[lookahead_2] -> receiver_msg = tok;
 		messages[lookahead_2] -> attrs |= OBJ_IS_INSTANCE_VAR;

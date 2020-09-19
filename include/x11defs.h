@@ -1,4 +1,4 @@
-/* $Id: x11defs.h,v 1.4 2020/06/08 23:45:33 rkiesling Exp $ -*-c-*-*/
+/* $Id: x11defs.h,v 1.2 2020/09/19 01:08:26 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -54,7 +54,7 @@
 #define SHM_FONT_FT_BLUE 	SHM_FONT_BASE_ADDR + 0x190
 #define SHM_FONT_FT_ALPHA 	SHM_FONT_BASE_ADDR + 0x200
 
-/* needed? */ /***/
+/* needed? */
 /* #define SHM_TEXT_LINES          0x1100 */
 
 #define SHM_EVENT_BASE      0x1100
@@ -199,7 +199,7 @@
 #define LEAVEWINDOWNOTIFY   (1 << 22)
 #define FOCUSIN             (1 << 23)
 #define FOCUSOUT            (1 << 24)
-/***/
+
 /* To be added. */
 /*  #define DESTROYNOTIFY    (1 << 9) */
 /*  #define VISIBILITYCHANGE (1 << 10) */
@@ -207,7 +207,7 @@
 /*  #define MAPREQUEST       (1 << 13) */
 /*  #define CONFIGUREREQUEST (1 << 14) */
 
-/* If changing these, also change in X11TextEditorPane class. */
+/* If changing these, also change in the Pane subclasses. */
 #define BUTTON1MASK  (1 << 0)
 #define BUTTON2MASK  (1 << 1)
 #define BUTTON3MASK  (1 << 2)  

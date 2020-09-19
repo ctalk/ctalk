@@ -1,8 +1,8 @@
-/* $Id: xresource.c,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ -*-c-*-*/
+/* $Id: xresource.c,v 1.2 2020/09/18 21:25:13 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
-  Copyright © 2014 - 2018  Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2014 - 2018, 2020  Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
 
@@ -68,7 +68,6 @@ int __ctalkX11SetResource (void *d, int drawable_id,
   class_hints.res_name = strdup (resource_name);
   class_hints.res_class = strdup (resource_class);
 
-  /* XSetClassHint (display, (Window)drawable_id, &class_hints); *//***/
   XSetClassHint (d, (Window)drawable_id, &class_hints);
 
   XFlush (display);

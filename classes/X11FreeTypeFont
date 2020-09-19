@@ -1,4 +1,4 @@
-/* $Id: X11FreeTypeFont,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11FreeTypeFont,v 1.2 2020/09/19 01:08:25 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -237,7 +237,6 @@ X11FreeTypeFont instanceMethod selectFontFromXLFD (String xlfd) {
   self saveSelectedFont;
   /* __ctalkXftRequestedFamily can cause an extra warning - 
      check it eventually */
-  /* xstrcpy (reqFamily, __ctalkXftRequestedFamily ()); *//***/
   self __loadInfo __ctalkXftRequestedFamily (),
     __ctalkXftRequestedSlant (), __ctalkXftRequestedWeight (),
     __ctalkXftRequestedDPI (), __ctalkXftRequestedPointSize ();;

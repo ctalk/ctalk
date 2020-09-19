@@ -1,8 +1,8 @@
-/* $Id: primitives.c,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ */
+/* $Id: primitives.c,v 1.2 2020/09/19 01:08:28 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
-  Copyright © 2005-2018 Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2005-2018, 2020 Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
 
@@ -527,7 +527,6 @@ OBJECT *new_object (int method_msg_ptr) {
     switch (M_TOK(m))
       {
       case LABEL:
-	/***/
 	if (IS_ARG(method -> args[nth_arg]) &&
 	    IS_OBJECT(method -> args[nth_arg] -> obj)) {
 	  if (nth_arg > 0) {
@@ -705,7 +704,6 @@ OBJECT *new_instance_method (int method_msg_ptr) {
       (m_rcvr -> obj != m_method -> receiver_obj))
     error (m_method, "new_instance_method: receiver mismatch error.");
 
-  /***/
   /* Moved up here from below. */
   if ((n_method = (METHOD *)__xalloc (sizeof (METHOD))) == NULL)
     _error ("new_instance_method: %s.", strerror (errno));

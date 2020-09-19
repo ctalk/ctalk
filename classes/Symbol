@@ -1,8 +1,8 @@
-/* $Id: Symbol,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ -*-c-*-*/
+/* $Id: Symbol,v 1.2 2020/09/19 01:08:25 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
-  Copyright © 2005 - 2016, 2018 - 2019  
+  Copyright © 2005 - 2016, 2018 - 2020
     Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
@@ -178,7 +178,6 @@ Symbol instanceMethod getValue (void) {
       if (IS_OBJECT (value_object)) {
 	return value_object;
       } else {
-	/* return (void *)value_object; *//***//* Fix this, too. */
 	/* And allow void * returns here, too. */
 	generic_return = (char *)value_object;
 	return generic_return;

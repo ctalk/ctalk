@@ -1,8 +1,8 @@
-/* $Id: rexpr.c,v 1.1.1.1 2020/09/13 17:14:20 rkiesling Exp $ */
+/* $Id: rexpr.c,v 1.2 2020/09/19 01:08:28 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
-  Copyright © 2005-2019 Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2005-2020 Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
 
@@ -948,7 +948,6 @@ static bool dm_object_identity (MESSAGE_STACK messages, int obj_ptr) {
   return false;
 }
 
-/***/
 bool is_cond_pred (MSINFO *ms) {
   int i;
   for (i = ms -> tok; i > ms -> stack_ptr; i--) {
@@ -1178,7 +1177,7 @@ int default_method (MSINFO *ms) {
 	    ms -> tok, mcbuf), buf);
 	output_buffer (buf, ms -> tok);
       } else {
-	if (!is_cond_pred (ms)) { /***/
+	if (!is_cond_pred (ms)) {
 	  /* this is specifically for C function calls appearing in
 	     receiver context that need to use a template so they
 	     can handle writeable args */

@@ -1,8 +1,8 @@
-/* $Id: method.c,v 1.1.1.1 2020/09/13 17:14:20 rkiesling Exp $ */
+/* $Id: method.c,v 1.2 2020/09/19 01:08:27 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
-  Copyright © 2005-2019 Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2005-2020 Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
 
@@ -1266,7 +1266,7 @@ int method_args (METHOD *method, int method_msg_ptr) {
 		    (message_stack (), method_msg_ptr,
 		     P_MESSAGES,
 		     get_stack_top (message_stack ()))) {
-		  if (interpreter_pass != expr_check) /***/
+		  if (interpreter_pass != expr_check)
 		    generate_store_arg_call (m_method -> receiver_obj,
 					     method, arg_obj, FRAME_START_IDX);
 		  if ((arg_obj -> scope & CVAR_VAR_ALIAS_COPY) ||
@@ -1435,7 +1435,6 @@ int method_args (METHOD *method, int method_msg_ptr) {
 	OBJECT *return_class_object;
 	METHOD *arg_method;
 	MESSAGE *m_arg_method;
-	/* int _i; *//***/
 	/* Check if the following message is a method with the
 	   receiver of the main method's return class. */
 	m_method = message_stack_at (method_msg_ptr);
@@ -1452,7 +1451,7 @@ int method_args (METHOD *method, int method_msg_ptr) {
 	  make_basic_arglist (message_stack (), arglist_start, arglist_end,
 			      argstrs, &argstrptr);
 	} else if (M_TOK(m_arg_method) == LABEL &&
-		   M_TOK(m_method) == METHODMSGLABEL) { /***/
+		   M_TOK(m_method) == METHODMSGLABEL) {
 	  if (is_instance_variable_message (message_stack (), arglist_start)) {
 	    make_basic_arglist (message_stack (), arglist_start, arglist_end,
 				argstrs, &argstrptr);
@@ -1565,7 +1564,7 @@ int method_args (METHOD *method, int method_msg_ptr) {
 		 method, 
 		 r_expr_object,
 		 frame_at (CURRENT_PARSER -> frame) -> message_frame_top);
-	    } else if (arg_class == arg_c_fn_expr) { /***/
+	    } else if (arg_class == arg_c_fn_expr) {
 	      char translatebuf[MAXMSG];
 	      fmt_c_to_obj_call (message_stack (),
 				 argstrs[i].start_idx,
@@ -2977,7 +2976,6 @@ int method_call (int method_message_ptr) {
     if (interpreter_pass != expr_check) {
       cfunc = method -> cfunc;
       (void)(cfunc) (method_message_ptr);
-    /***/
       if (frame_at (CURRENT_PARSER -> frame - 1)) {
 	cleanup_args (method, message_stack_at(method_message_ptr)->receiver_obj,
 		      (frame_at (CURRENT_PARSER -> frame - 1)) ->
@@ -3471,7 +3469,7 @@ int method_call (int method_message_ptr) {
 		      /* This is like generate_method_call, but we don't
 			 add the semicolonr if the method call is a
 			 function argument or otherwise enclosed in
-			 parens */ /***/
+			 parens */
 		      char _buf[MAXMSG];
 		      if (is_global_frame ())
 			fn_init (fmt_method_call (receiver,

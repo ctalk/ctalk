@@ -1,4 +1,4 @@
-/* $Id: X11ScrollBarPane,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11ScrollBarPane,v 1.2 2020/09/19 01:08:26 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -105,7 +105,6 @@ X11ScrollBarPane instanceMethod makeThumb (void) {
   if (self bevel) {
     self thumbPix create self displayPtr, self xWindowID,
       THUMBPIXMAPWIDTH, self displayHeight, self depth;
-    /* self thumbPix background self thumbBackgroundColor; *//***/
     self thumbPix background "blue";
     self thumbPix clear;
   }
@@ -270,7 +269,6 @@ X11ScrollBarPane instanceMethod subPanePointerInput (Object __subPane,
     }
     if (self dragging)
       self dragging = FALSE;
-    /* self refresh; *//***/
   }
   return NULL;
 }
@@ -311,7 +309,6 @@ X11ScrollBarPane instanceMethod subPanePointerMotion (Object __subPane,
   y = __event xEventData2 value;
 
   if (self dragging) {
-    /* printf ("%u %d\n", t_t++, y); */
     updatedY = THUMBTOPSTARTY + (y - self lastY);
     /* Make adjustments if needed so the thumb doesn't get drawn past
        either end of the pane, or the percent is outside 0-100%. */

@@ -1,4 +1,4 @@
-/* $Id: rt_call.c,v 1.2 2020/06/04 18:56:06 rkiesling Exp $ -*-c-*-*/
+/* $Id: rt_call.c,v 1.2 2020/09/18 21:25:12 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -124,7 +124,7 @@ bool sym_ptr_expr (EXPR_PARSER *p,
     _warning ("In expression, \"(*%s)(),\"  \"%s,\" is NULL.\n",
 	      symbol_obj -> __o_name, symbol_obj -> __o_name);
   }
-  /***/
+
   if (pre_call_stack_ptr > __call_stack_ptr) {
     /* If the function placed an entry on the call stack and didn't
        remove it, remove it here.  TODO - Check for nested calls

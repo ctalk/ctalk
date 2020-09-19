@@ -1,8 +1,8 @@
-/* $Id: ctalklib.in,v 1.1.1.1 2020/09/13 17:14:20 rkiesling Exp $ -*-c-*-*/
+/* $Id: ctalklib.in,v 1.2 2020/09/19 01:08:26 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
-  Copyright © 2005-2019  Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2005-2020  Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
 
@@ -333,13 +333,6 @@ typedef bool _Bool
 # define __bool_true_false_are_defined 1
 # endif
 
-#if 0 /***/
-typedef char bool;
-
-/* TRUE and FALSE are defined above. */
-#define true TRUE
-#define false FALSE
-#endif /* #if 0 */
 #endif
 
 #ifdef __need_param
@@ -1079,8 +1072,6 @@ extern int __ctalkGUISetBackground (OBJECT *, char *);
 extern OBJECT *__ctalkLibcFnWithMethodVarArgs (int (*)(), METHOD *,char *);
 extern void __ctalkLocalTime (long int, int *, int *, int *, int *, int *, int *, int *, int *, int *);
 extern void __ctalkLogMessage (char *, ...);
-/***/
-/* extern int __ctalkX11ClearBufferRectangle (OBJECT *, int, int, int, int);*/
 extern int __ctalkX11CreatePaneBuffer (OBJECT *, int, int, int);
 extern int __ctalkX11FreePaneBuffer (OBJECT *);
 extern int __ctalkX11ResizePaneBuffer (OBJECT *, int, int);

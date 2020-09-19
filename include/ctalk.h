@@ -1,4 +1,4 @@
-/* $Id: ctalk.h,v 1.1.1.1 2020/09/13 17:14:20 rkiesling Exp $ -*-Fundamental-*- */
+/* $Id: ctalk.h,v 1.2 2020/09/19 01:08:26 rkiesling Exp $ -*-Fundamental-*- */
 
 /*
   This file is part of Ctalk.
@@ -2766,10 +2766,6 @@ int __ctalkX11Colormap (void);
 */
 void *__ctalkX11Display (void);
 int __ctalkX11SetWMNameProp (OBJECT *, char *);
-#if 0
-/***/
-int __ctalkX11UseFontBasic (void *, int, unsigned long int, char *);
-#endif
 int __ctalkX11UseCursor (OBJECT *, OBJECT *);
 void *__ctalkX11NextInputEvent (OBJECT *);
 int __ctalkX11InputClient (OBJECT *, int, int, int); 

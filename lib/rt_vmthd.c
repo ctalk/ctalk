@@ -1,4 +1,4 @@
-/* $Id: rt_vmthd.c,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ */
+/* $Id: rt_vmthd.c,v 1.2 2020/09/18 21:25:13 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -233,10 +233,6 @@ static int __method_object_init (OBJECT *rcvr_obj, OBJECT *class_obj,
   if ((isInitialized_instance_var = 
        __ctalkGetInstanceVariable (rcvr_obj, "isInitialized", TRUE)) == NULL)
     return ERROR;
-#if 0 /***/
-  __ctalkSetObjectValueVar (isInitialized_instance_var,
-			    ascii[TRUE]);
-#endif
   INTVAL(isInitialized_instance_var->__o_value) = TRUE;
   INTVAL(isInitialized_instance_var->instancevars->__o_value) = TRUE;
 

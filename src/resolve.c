@@ -1,8 +1,8 @@
-/* $Id: resolve.c,v 1.1.1.1 2020/09/13 17:14:20 rkiesling Exp $ */
+/* $Id: resolve.c,v 1.2 2020/09/19 01:08:28 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
-  Copyright © 2005-2019 Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2005-2020 Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
 
@@ -1207,7 +1207,7 @@ OBJECT *resolve (int message_ptr) {
 					     message_ptr);
       return NULL;
     }
-  } else if (M_TOK(m) == CONDITIONAL) { /***/
+  } else if (M_TOK(m) == CONDITIONAL) {
     if (rt_fn_arg_cond_expr(&ms))
       return NULL;
   } else if (M_TOK(m) == LABEL) {
@@ -1490,13 +1490,10 @@ OBJECT *resolve (int message_ptr) {
      result_object = NULL;
    } /* if (M_TOK(m) == LABEL) */
 
-  /* if (is_expr_obj (m)) return M_VALUE_OBJ (m); *//****/
-
   /*
    *   Check for a method parameter reference and create an
    *   object if necessary.
    */
-  /***/
   if ((M_TOK(m) == LABEL) && (interpreter_pass == method_pass) &&
       !(m -> attrs & TOK_SELF)) {
     int i;
@@ -2319,7 +2316,7 @@ OBJECT *resolve (int message_ptr) {
 		}
 		return NULL;
 	      } else if (interpreter_pass != expr_check &&
-			 interpreter_pass != library_pass) { /***/
+			 interpreter_pass != library_pass) {
 		/* the expression isn't being parsed on its own. */
 		__ctalkExceptionInternal (m_sender, undefined_method_x,
 					  m_sender -> name,0);
@@ -2590,7 +2587,6 @@ OBJECT *resolve (int message_ptr) {
 	  } else if ((cond_pred_start =
 		      arg_is_question_conditional_predicate (&ms)) > 0) {
 	    /* fn args only */
-	    /***/
 	    rt_expr (ms.messages, cond_pred_start,
 		     &cond_pred_end, conditional_expr);
 	    return NULL;
@@ -2871,7 +2867,6 @@ OBJECT *resolve (int message_ptr) {
 		       which looks up actual types */
 		    return NULL;
 		  } else if (_hash_get (declared_method_names, M_NAME(m))) {
-		    /***/
 		    warning (m, "Method, \"%s\" cannot be resolved.  Waiting "
 			     "until run time.", M_NAME(m));
 		  } else {

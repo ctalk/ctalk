@@ -1,8 +1,8 @@
-/* $Id: ifexpr.c,v 1.1.1.1 2020/07/26 05:50:11 rkiesling Exp $ */
+/* $Id: ifexpr.c,v 1.2 2020/09/19 01:08:27 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
-  Copyright © 2005-2019 Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2005-2020 Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
 
@@ -1256,7 +1256,6 @@ int ctrlblk_pred_rt_expr (MESSAGE_STACK messages, int msg_ptr) {
 	      if ((c_1 = ifexpr_is_cvar_not_shadowed (messages, i))
 		  != NULL) {
 		argblk_CVAR_name_to_msg (messages[i], c_1);
-		/***/
 		fileout (fmt_register_argblk_cvar_from_basic_cvar
 			 (messages, i, c_1, expr_buf), false,
 			 C_CTRL_BLK->keyword_ptr+1);
@@ -1533,7 +1532,6 @@ int ctrlblk_pred_rt_expr (MESSAGE_STACK messages, int msg_ptr) {
 	      ++messages[pred_start_idx] -> output;
 	    }
 	  }
-	  /***/
 	  if (cpre_have_cvar_reg) {
 	    fileout 
 	      (fmt_default_ctrlblk_expr 

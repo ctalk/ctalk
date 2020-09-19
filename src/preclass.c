@@ -1,8 +1,8 @@
-/* $Id: preclass.c,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ */
+/* $Id: preclass.c,v 1.2 2020/09/19 01:08:28 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
-  Copyright © 2014-2017 Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2014-2017, 2020 Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
 
@@ -81,7 +81,6 @@ char *class_cache_path_name (char *classname) {
 #define INST_KEYWORD_LEN  14
 #define CLASS_KEYWORD_LEN 11
 
-/***/
 static void pre_class_ln_parse (FILE *fw, char *classname, char *classbuf,
 				int *lineno) {
   int i, i_2, i_3, n_commas, classnamelength, decl_start_line;
@@ -275,7 +274,6 @@ void save_class_init_info (char *classname, char *superclassname,
 	      cache_path, strerror (errno));
 
   /* file_size handles any errors itself. */
-  /***/
   class_length = file_size (library_pathname);
   classbuf = __xalloc (class_length + 1);
   if (read_file (classbuf, library_pathname) < 0) {
@@ -422,7 +420,6 @@ void fill_in_class_info (char *cache_fn) {
 	  if ((rptr2 = strchr (rptr, ':')) != NULL) {
 	    strncpy (class_init_info.classname, 
 		     rptr, rptr2 - rptr);
-	    /***/
 	    strncpy (cinfo -> class, rptr, rptr2 - rptr);
 	    if (method_line_info == NULL) {
 	      method_line_info = method_line_info_head = cinfo;
@@ -521,7 +518,6 @@ void fill_in_class_info (char *cache_fn) {
 	break;
 
 	/* line number info lines */
-	/***/
       case 'n':
 
 	mli = __xalloc (sizeof (struct _method_line_info));

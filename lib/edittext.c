@@ -1,4 +1,4 @@
-/* $Id: edittext.c,v 1.21 2020/06/21 12:09:17 rkiesling Exp $ -*-c-*-*/
+/* $Id: edittext.c,v 1.2 2020/09/18 21:25:11 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -2325,7 +2325,7 @@ int __xlib_render_text (Display *d, Drawable pixmap, GC gc, char *fn) {
     XFlush (d);
     if ((selection_owner = XGetSelectionOwner (d, XA_PRIMARY))
 	!= win_xid) {
-      /* TODO *** Request the selection here, with retries. */
+      /* TODO - Request the selection here, with retries. */
       fprintf (stderr, "ctalk: failed to get X selection owner = %u.\n",
 	       (unsigned int)selection_owner);
     } else {

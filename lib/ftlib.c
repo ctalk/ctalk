@@ -1,8 +1,8 @@
-/* $Id: ftlib.c,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ -*-c-*-*/
+/* $Id: ftlib.c,v 1.2 2020/09/18 21:25:11 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
-  Copyright © 2019 Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2019 - 2020 Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
 
@@ -318,7 +318,6 @@ static void render_text (const char *text, float x, float y,
 
   glActiveTexture(GL_TEXTURE0);
   glEnable(GL_BLEND);
-  /* glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); */ /***/
   glBlendFunc (GL_SRC_ALPHA, GL_DST_ALPHA);
   glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 

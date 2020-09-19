@@ -1,8 +1,9 @@
-/* $Id: X11TerminalStream,v 1.2 2020/05/21 23:25:50 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11TerminalStream,v 1.2 2020/09/19 01:08:26 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
-  Copyright © 2005 - 2012, 2019  Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2005 - 2012, 2019, 2020
+    Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
 
@@ -138,26 +139,7 @@ X11TerminalStream instanceMethod queueInput (void) {
   if (read_event (&event_class, &win, data, event_mask) < 0)
     return NULL;
     
-#if 0 /***/
-  if (event_mask != 0) {
-    if (!(event_mask & event_class)) {
-      goto read_again;
-    }
-  }
-#endif  
-
-#if 1
   save_x_event (clientEvent, event_class, win, data);
-#else 
-  clientEvent eventClass = event_class;
-  clientEvent eventData = win;
-  clientEvent xEventData1 = data[0];
-  clientEvent xEventData2 = data[1];
-  clientEvent xEventData3 = data[2];
-  clientEvent xEventData4 = data[3];
-  clientEvent xEventData5 = data[4];
-  clientEvent xEventData6 = data[5];
-#endif      
 
   switch (event_class)
     {

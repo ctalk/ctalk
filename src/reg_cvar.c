@@ -1,4 +1,4 @@
-/* $Id: reg_cvar.c,v 1.2 2020/07/08 02:47:49 rkiesling Exp $ */
+/* $Id: reg_cvar.c,v 1.1.1.1 2020/07/17 07:41:39 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -323,6 +323,10 @@ int register_c_var (MESSAGE *m_err, MESSAGE_STACK messages, int idx,
   /*
    *  If in an argument block, the CVAR registration should be handled
    *  by fmt_register_argblk_c_vars_* () (complexmethd.c).
+   *  
+   *  Unliess it's a global C variable and we're writing a
+   *  complete argument expression for evaluation at run time -
+   *  see eval_arg.c.
    */
   if (argblk) {
     ms.messages = messages;

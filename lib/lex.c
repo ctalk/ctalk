@@ -1,4 +1,4 @@
-/* $Id: lex.c,v 1.3 2020/07/02 20:06:51 rkiesling Exp $ */
+/* $Id: lex.c,v 1.2 2020/09/18 21:25:12 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -1460,31 +1460,6 @@ int find_expression_limit (MSINFO *ms) {
 		}
 	      }
 	    }
-#if 0 /***/
-	    else {
-	      /***/
-	      /*
-	       *  Check for an expression like this:
-	       *
-	       *    (<complex_expr>) <label>
-	       *
-	       *  Return an a error with a separate status message.
-	       */
-	      if ((lookahead_idx_2 = 
-		   __ctalkNextLangMsg (messages, lookahead_idx, ms -> stack_ptr))
-		  != -1) {
-		if (M_TOK(messages[lookahead_idx_2]) == LABEL) {
-		  int open_paren;
-		  if ((open_paren = __ctalkMatchParenRev (messages,
-							  lookahead_idx,
-							  ms -> stack_ptr))
-		      != ERROR) {
-		    return -1;
-		  }
-		}
-	      }
-	    }
-#endif	    
 	  }
 	  /* If it's the second closing paren in (*fn)(), keep going. */
 	  if (prev_tok != OPENPAREN) {

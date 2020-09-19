@@ -1,4 +1,4 @@
-/* $Id: arg.c,v 1.1.1.1 2020/09/13 17:14:20 rkiesling Exp $ */
+/* $Id: arg.c,v 1.2 2020/09/19 01:08:26 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -116,17 +116,13 @@ int method_arg_limit (MESSAGE_STACK messages, int arg_start) {
 	  return i;
 	  /* break; */   /* Not reached. */
 	case CONDITIONAL:
-	  /***/
 	  stack_top = get_stack_top (messages);
 	  for (i_2 = lookahead; i_2 > stack_top; i_2--) {
 	    if (M_TOK(messages[i_2]) == SEMICOLON) {
 	      return prevlangmsg (messages, i_2);
-	    }
-#if 1 /***/
-	    else if (M_TOK(messages[i_2]) == ARGSEPARATOR) {
+	    } else if (M_TOK(messages[i_2]) == ARGSEPARATOR) {
 	      return prevlangmsg (messages, i_2);
 	    }
-#endif	    
 	  }
 	  break;
 	default:
@@ -291,10 +287,10 @@ static int method_arg_limit_2 (MESSAGE_STACK messages, int arg_start) {
  		return ERROR;
 	      switch (M_TOK(messages[lookahead]))
 		{
-		case OPENPAREN: /***/
+		case OPENPAREN:
 		  ++n_parens;
 		  break;
-		case CLOSEPAREN: /***/
+		case CLOSEPAREN:
 		  if (n_parens == 0)
 		    return i;
 		  else
@@ -761,7 +757,6 @@ static char *fn_arg_expr_param_expr_class (MESSAGE_STACK messages,
 						 messages,
 						 expr_start,
 						 get_stack_top (messages));
-  /***/
   if (IS_OBJECT(M_OBJ(messages[expr_end]))) {
     if (IS_OBJECT(M_OBJ(messages[expr_end]) -> instancevars)) {
       return M_OBJ(messages[expr_end]) -> instancevars -> __o_classname;
@@ -890,7 +885,7 @@ OBJECT *fn_arg_expression (OBJECT *rcvr_class, METHOD *method,
       if (fn_param_cvar)
 	fn_param_cvar = fn_param_cvar -> next;
       continue;
-    } else if (get_function (basename)) { /***/
+    } else if (get_function (basename)) {
       add_arg (expr_buf, argstrs[n_th_arg].arg, n_th_arg, n_args);
       if (fn_param_cvar)
 	fn_param_cvar = fn_param_cvar -> next;

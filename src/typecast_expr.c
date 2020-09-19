@@ -1,8 +1,8 @@
-/* $Id: typecast_expr.c,v 1.3 2020/07/09 20:21:43 rkiesling Exp $ */
+/* $Id: typecast_expr.c,v 1.2 2020/09/19 01:08:28 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
-  Copyright © 2005-2012, 2016, 2018, 2019 Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2005-2012, 2016, 2018 - 2020 Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
 
@@ -474,7 +474,7 @@ bool is_class_typecast (MSINFO *msi, int class_obj_tok) {
       !get_local_var (M_NAME(msi -> messages[rcvr_tok_idx])) &&
       !get_global_var (M_NAME(msi -> messages[rcvr_tok_idx])) &&
       !get_object (M_NAME(msi -> messages[rcvr_tok_idx]), NULL) &&
-      !is_method_parameter (msi -> messages, rcvr_tok_idx)) { /***/
+      !is_method_parameter (msi -> messages, rcvr_tok_idx)) {
 #ifdef CLASS_CAST_WARNINGS
     warning (msi -> messages[close_paren_idx],
 	     "Undefined class cast receiver, \"%s.\"",
@@ -580,7 +580,7 @@ bool is_class_typecast_2 (MSINFO *msi, int open_paren_tok) {
       !get_local_var (M_NAME(msi -> messages[rcvr_tok_idx])) &&
       !get_global_var (M_NAME(msi -> messages[rcvr_tok_idx])) &&
       !get_object (M_NAME(msi -> messages[rcvr_tok_idx]), NULL) &&
-      !is_method_parameter (msi -> messages, rcvr_tok_idx)) { /***/
+      !is_method_parameter (msi -> messages, rcvr_tok_idx)) {
 #ifdef CLASS_CAST_WARNINGS
     warning (msi -> messages[close_paren_idx],
 	     "Undefined class cast receiver, \"%s.\"",

@@ -1,8 +1,8 @@
-/* $Id: objtoc.c,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ */
+/* $Id: objtoc.c,v 1.2 2020/09/19 01:08:28 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
-  Copyright © 2005-2012, 2015-2019 Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2005-2012, 2015-2020 Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright 
   notice is included in all source code modules.
 
@@ -97,7 +97,7 @@ char *fmt_printf_fmt_arg (MESSAGE_STACK messages,
 	unknown_format_conversion_warning (messages, expr_start_idx);
       break;
     }
-  if (ptr_fmt_is_alt_int_fmt) /***/
+  if (ptr_fmt_is_alt_int_fmt)
     ptr_fmt_is_alt_int_fmt = false;
   
   /* any other format should be compatible with OBJECT *'s */

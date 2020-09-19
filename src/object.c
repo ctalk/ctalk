@@ -1,4 +1,4 @@
-/* $Id: object.c,v 1.1.1.1 2020/09/13 17:14:20 rkiesling Exp $ */
+/* $Id: object.c,v 1.2 2020/09/19 01:08:27 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -339,14 +339,6 @@ OBJECT *get_instance_variable (char *name, char *classname, int warn) {
 	   (name, superclass_object -> __o_name, FALSE)) != NULL)
 	return o;
     }
-#if 0 /***/
-    if (class_object -> __o_superclass && 
-	(class_object -> __o_superclass != class_object)) {
-      if ((o = get_instance_variable (name,
-				      class_object -> __o_superclass -> __o_name, FALSE)) != NULL)
-	return o;
-    }
-#endif    
 
   } else {
     for (class_object = classes; class_object; 
@@ -1895,7 +1887,6 @@ void get_new_method_param_instance_variable_series (OBJECT *param_class_object,
       }
 
       if (!have_instance_var) {
-	/***/
 	/* TOK_IS_CLASS_TYPECAST set in fn_arg_expression, so far */
 	if (str_eq (M_OBJ(messages[param_idx]) -> __o_class -> __o_name,
 		    OBJECT_CLASSNAME) &&
@@ -2129,64 +2120,6 @@ OBJECT *create_arg_EXPR_object_2 (ARGSTR *argbuf) {
 
   o -> scope = ARG_VAR;
 
-#if 0 /***/
-  *(o -> __o_name) = 0;
-  for (i = argbuf -> start_idx; i >= argbuf -> end_idx; --i) {
-    m = argbuf -> m_s[i];
-
-    /* the eval keyword has no effect here, so just remove it. */
-    if (i == argbuf -> start_idx) {
-      if (str_eq (M_NAME(m), "eval")) {
-	--i;
-	while (M_ISSPACE(argbuf -> m_s[i]))
-	  --i;
-      }
-      m = argbuf -> m_s[i];
-    }
-
-    switch (M_TOK(m))
-      {
-      case NEWLINE: case CR: case LF:
-	strcat (o -> __o_name, " ");
-	continue;
-	break;
-      case LABEL:
-	if (have_ref (M_NAME(m)) &&
-	    !(m -> attrs & TOK_CVAR_REGISTRY_IS_OUTPUT)) {
-	  strcat (o -> __o_name, fmt_getRef (M_NAME(m), buf_out));
-	  continue;
-	}
-	if (argblk) {
-	  if ((cvar = get_local_var (M_NAME(m))) != NULL) {
-	    scratch_msg = new_message ();
-	    if (!(m -> attrs & TOK_CVAR_REGISTRY_IS_OUTPUT)) {
-	      translate_argblk_cvar_arg_1 (scratch_msg, cvar);
-	      m -> attrs |= TOK_CVAR_REGISTRY_IS_OUTPUT;
-	    } else {
-	      argblk_CVAR_name_to_msg (scratch_msg, cvar);
-	    }
-	    op_precedence_fmt (argbuf -> m_s, i, scratch_msg -> name);
-	    strcat (o -> __o_name, M_NAME(scratch_msg));
-	    __xfree (MEMADDR(scratch_msg));
-	  } else {
-	    strcat (o -> __o_name, M_NAME(m));
-	  }
-	} else {
-	  strcat (o -> __o_name, M_NAME(m));
-	}
-	break;
-      case PATTERN:
-	esc_expr_and_pattern_quotes (M_NAME(m), buf_out);
-	strcat (o -> __o_name, buf_out);
-	continue;
-	break;
-      default:
-	strcat (o -> __o_name, M_NAME(m));
-	break;
-      }
-  }
-  o -> __o_value = strdup (o -> __o_name);
-#endif
   strcpy (o -> __o_name, argbuf -> arg);
   o -> __o_value = strdup (argbuf -> arg);
 

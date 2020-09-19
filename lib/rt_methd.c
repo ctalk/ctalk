@@ -1,8 +1,8 @@
-/* $Id: rt_methd.c,v 1.5 2020/07/14 20:08:39 rkiesling Exp $ */
+/* $Id: rt_methd.c,v 1.2 2020/09/18 21:25:12 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
-  Copyright © 2005-2019  Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2005-2020  Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
 
@@ -635,7 +635,6 @@ OBJECT *__ctalk_method (char *__object_name, OBJECT *(*__cfunc)(),
     /* This is used for Key objects right now. */
     __ctalkCopyObject (OBJREF(__result_obj_), 
 		       OBJREF(__result_obj_post_call));
-    /* __ctalkRegisterUserObject (__result_obj_post_call); *//***/
     __ctalkSetObjectAttr (__result_obj_post_call,
 			   __result_obj_post_call -> attrs |
 			   OBJECT_IS_I_RESULT);
@@ -1567,12 +1566,6 @@ static inline void __delete_local_object_internal (VARENTRY *__v) {
       } else {
 	__objRefCntDec (OBJREF (__v -> var_object));
 	__delete_LOCAL_VAR_scope (__v -> var_object);
-#if 0 /***/
-	__ctalkSetObjectScope 
-	  (__v -> var_object,
-	   __v -> var_object -> scope & ~LOCAL_VAR);
-#endif	
-	/***/
 	if (IS_VARTAG(__v -> var_object -> __o_vartags))
 	  __v -> var_object -> __o_vartags -> tag = NULL;
 	__ctalkRegisterUserObject (__v -> var_object);
@@ -1584,17 +1577,10 @@ static inline void __delete_local_object_internal (VARENTRY *__v) {
 	__ctalkDeleteObject ( __v -> var_object);
       } else {
 	__objRefCntDec (OBJREF (__v -> var_object));
-	/***/
 	__delete_LOCAL_VAR_scope (__v -> var_object);
-#if 0
-	if (!(__v -> var_object -> attrs & OBJECT_HAS_LOCAL_TAG))
-	  __ctalkSetObjectScope 
-	    (__v -> var_object,
-	     __v -> var_object -> scope & ~LOCAL_VAR);
-#endif	
-	  if (IS_VARTAG(__v -> var_object -> __o_vartags) &&
-	      !IS_EMPTY_VARTAG(__v -> var_object -> __o_vartags))
-	    __v -> var_object -> __o_vartags -> tag = NULL;
+	if (IS_VARTAG(__v -> var_object -> __o_vartags) &&
+	    !IS_EMPTY_VARTAG(__v -> var_object -> __o_vartags))
+	  __v -> var_object -> __o_vartags -> tag = NULL;
 	__ctalkRegisterUserObject (__v -> var_object);
       }
     }
@@ -1606,11 +1592,6 @@ static inline void __delete_local_object_internal (VARENTRY *__v) {
 	} else {
 	  __objRefCntDec (OBJREF (__v -> orig_object_rec));
 	  __delete_LOCAL_VAR_scope (__v -> orig_object_rec);
-#if 0 /***/
-	  __ctalkSetObjectScope 
-	    (__v -> orig_object_rec,
-	     __v -> orig_object_rec -> scope & ~LOCAL_VAR);
-#endif	  
 	  if (IS_VARTAG(__v -> orig_object_rec -> __o_vartags) &&
 	      !IS_EMPTY_VARTAG(__v -> orig_object_rec -> __o_vartags))
 	    __v -> orig_object_rec -> __o_vartags -> tag = NULL;

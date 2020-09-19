@@ -1,4 +1,4 @@
-/* $Id: x11lib.c,v 1.1.1.1 2020/09/13 17:14:20 rkiesling Exp $ -*-c-*-*/
+/* $Id: x11lib.c,v 1.2 2020/09/18 21:25:13 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -2119,7 +2119,7 @@ int __ctalkOpenX11InputClient (OBJECT *streamobject) {
 #endif
 
   /*
-   *  *** Handle this error in the method.
+   *  Handle this error in the method.
    */
   if ((frame_pane_sock_fd = __x11_pane_stream_socket_open ()) == ERROR)
     return ERROR;
@@ -2371,7 +2371,7 @@ int read_event (int *ev_type_out, unsigned int *win_out,
 
 #define EV_REUSE_MAX 0xffff
 /* uncomment to print the EV_CH cache levels on a terminal */
-/* #define SHOW_EV_CACHE_USE *//***/
+/* #define SHOW_EV_CACHE_USE */
 
 typedef struct ev_ch {
   struct ev_ch *next;
@@ -4293,13 +4293,6 @@ int __ctalkX11UseCursor (OBJECT *pane_object, OBJECT *cursor_object) {
 int __ctalkX11FontCursor (OBJECT *self, int cursor_id) {
   x_support_error (); return ERROR;
 }
-#if 0
-/***/
-int __ctalkX11UseFontBasic (void *d, int drawable_id, unsigned long int gc_ptr,
-			    char *xlfd) {
-  x_support_error (); return ERROR;
-}
-#endif 
 int __ctalkX11CloseParentPane (OBJECT *self) {
   x_support_error (); return ERROR;
 }

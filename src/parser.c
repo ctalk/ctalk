@@ -1,8 +1,8 @@
-/* $Id: parser.c,v 1.2 2020/06/05 04:53:47 rkiesling Exp $ */
+/* $Id: parser.c,v 1.2 2020/09/19 01:08:28 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
-  Copyright © 2005-2018 Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2005-2018, 2020 Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
 
@@ -772,7 +772,6 @@ int parser_pass (int this_frame_ptr, PARSER *p) {
 	      } else {
 		fn_defined_by_header = FALSE;
 	      }
-	      /***/
 	      if (fn_is_builtin) fn_is_builtin = false;
 	      if (p -> need_main_exit) p -> need_main_exit = FALSE;
  	    }

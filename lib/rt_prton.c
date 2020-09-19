@@ -1,8 +1,8 @@
-/* $Id: rt_prton.c,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ */
+/* $Id: rt_prton.c,v 1.2 2020/09/18 21:25:12 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
-  Copyright © 2005-2012, 2015-2017, 2019  
+  Copyright © 2005-2012, 2015-2017, 2019, 2020  
     Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
@@ -70,7 +70,6 @@ static int __check_printon_args (METHOD *method) {
 #define ARG_VAL_OBJ(__o) ((__o)->instancevars ? \
   (__o)->instancevars : (__o))
 
-/***/
 char *__compress_escs (char *sin, char *sout) {
   int i, j;
   for (i = 0, j = 0; sin[i]; i++, j++) {
@@ -274,7 +273,6 @@ int __ctalkSelfPrintOn (void) {
 	   pointer */
 	ctitoa (*(int *)read_value_obj -> __o_value, ptr_args[ptr_arg_idx++]);
       } else if (read_value_obj -> attrs & OBJECT_VALUE_IS_BIN_LONGLONG) {
-	/***/
 	__ctalkLongLongToDecimalASCII (LLVAL(read_value_obj -> __o_value), 
 				       ptr_args[ptr_arg_idx++]);
       } else if (read_value_obj -> attrs & OBJECT_VALUE_IS_BIN_SYMBOL) {

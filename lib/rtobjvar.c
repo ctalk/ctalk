@@ -1,8 +1,8 @@
-/* $Id: rtobjvar.c,v 1.3 2020/07/10 17:21:16 rkiesling Exp $ -*-c-*-*/
+/* $Id: rtobjvar.c,v 1.2 2020/09/18 21:25:13 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
-  Copyright © 2005-2019  Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2005-2020  Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
 
@@ -627,7 +627,7 @@ OBJECT *__ctalkDefineInstanceVariable (char *classname, char *varname,
 	      var -> __o_value, sizeof (int));
       var -> attrs |= OBJECT_VALUE_IS_BIN_INT;
       var -> instancevars -> attrs |= OBJECT_VALUE_IS_BIN_INT;
-    } else if (var_class_object -> attrs & BOOL_BUF_SIZE_INIT) { /***/
+    } else if (var_class_object -> attrs & BOOL_BUF_SIZE_INIT) {
       int intval;
       __xfree (MEMADDR(var -> __o_value));
       __xfree (MEMADDR(var -> instancevars -> __o_value));
@@ -673,7 +673,7 @@ OBJECT *__ctalkDefineInstanceVariable (char *classname, char *varname,
     var = __var_constructor (varname, constructor_method, class_object,
 			     constructor_class_object, init_expr);
     __ctalkSetObjectValueClass (var, var_class_object);
-    if (constructor_class_object != class_object) { /***/
+    if (constructor_class_object != class_object) {
       /* Make sure we get the class' instance variables defined.
 	 First we set the class of the var to its actual class
 	 so we can use __ctalkInstanceVarsFromClassObject ... */

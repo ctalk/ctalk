@@ -1,8 +1,8 @@
-/* $Id: rt_obj.c,v 1.1.1.1 2020/07/26 05:50:11 rkiesling Exp $ */
+/* $Id: rt_obj.c,v 1.2 2020/09/18 21:25:12 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
-  Copyright © 2005-2019  Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2005-2020  Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
 
@@ -169,7 +169,6 @@ static OBJECT *object_from_argblk_caller_fn (const char *__name,
   return NULL;
 }
 
-/***/
 /* FOR NOW, these two functions deal with just a single-variable 
    varlist, called from save_local_objects_to_extra_b */
 static void cleanup_local_object_cache (void) {
@@ -211,7 +210,6 @@ static OBJECT *obj_from_local_object_cache (const char *name,
   return NULL;
 }
 
-/***/
 OBJECT *__ctalk_get_object_return (const char *name,
 				   const char *classname) {
   RT_INFO *r;

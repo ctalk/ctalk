@@ -1,4 +1,4 @@
-/* $Id: xlibfont.c,v 1.4 2020/07/08 16:57:01 rkiesling Exp $ -*-c-*-*/
+/* $Id: xlibfont.c,v 1.2 2020/09/18 21:25:13 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -143,7 +143,7 @@ int load_xlib_fonts_internal (void *d, char *xlfd) {
     }
   }
   XFreeFontNames (user_font_set);
-  if ((xlibfont.selectedfont = xlibfont.normal) != NULL) { /***/
+  if ((xlibfont.selectedfont = xlibfont.normal) != NULL) {
     xlibfont.selected_xfs = xlibfont.normal_xfs;
     /* there might need to be more of this. */
     ctitoa (xlibfont.selected_xfs -> fid, buf);

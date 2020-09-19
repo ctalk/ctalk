@@ -1,8 +1,8 @@
-/* $Id: cvartab.c,v 1.1.1.1 2020/09/13 17:14:20 rkiesling Exp $ */
+/* $Id: cvartab.c,v 1.2 2020/09/19 01:08:27 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
-  Copyright © 2014-2019 Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2014-2020 Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
 
@@ -373,7 +373,6 @@ void method_cvar_tab_entry (MESSAGE_STACK messages, int idx,
       method_vartab_statement (vartab_entry);
     } else if (c -> attrs == CVAR_ATTR_STRUCT_PTR) {
       struct_type_idx = nextlangmsg (messages, idx);
-      /***/
       /* Skip over asterisks and any whitespace until we get to the 
 	 tag itself. */
       while (M_TOK(messages[struct_type_idx]) == MULT)
@@ -564,7 +563,6 @@ void method_cvar_tab_entry (MESSAGE_STACK messages, int idx,
     } else if (c -> attrs == CVAR_ATTR_STRUCT_PTR) {
       /* This should be expanded to handle any typedef, besides
 	 OBJECT when we get examples in source code. */
-      /***/
       if ((c -> type_attrs & CVAR_TYPE_OBJECT) && (c -> n_derefs == 1)) {
 	strcatx (vartab_init_entry,
 		 new_methods[new_method_ptr+1] -> method -> selector, "_",
@@ -1057,7 +1055,6 @@ void function_param_cvar_tab_entry (MESSAGE_STACK messages, int idx,
 		    ((c -> n_derefs == 0) ? "(unsigned short int *)" : "")))),
 		 "&", c -> name, ";\n", NULL);
       } else {
-	/***/
 	strcatx (vartab_init_entry, 
 		 fn_name, "_", c -> name, " = ",
 		 (((c -> n_derefs == 2) ? "(short int ***)" : 
