@@ -1,4 +1,4 @@
-/* $Id: xgeometry.c,v 1.2 2020/09/18 21:25:13 rkiesling Exp $ -*-c-*-*/
+/* $Id: xgeometry.c,v 1.3 2020/09/19 17:12:33 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -717,7 +717,7 @@ void __ctalkX11SubWindowGeometry (OBJECT *parentpane, char *geomspec,
     x_support_error ();
 }
 
-void __ctalkX11WxHGeometry (int parent_width, parent_height, char *geomspec,
+void __ctalkX11WxHGeometry (int parent_width, int parent_height, char *geomspec,
 				  int *x_out, int *y_out,
 				  int *width_out, int *height_out) {
     x_support_error ();
