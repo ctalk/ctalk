@@ -4,9 +4,9 @@
  *  Uncomment the following #define if you want to build the dialog
  *  with a X11TextEntryPane for creating new file paths.
  */
-#define FILENAME_ENTRY_BOX
+/* #define FILENAME_ENTRY_BOX */
 
-/* #include <ctalk/ctalkdefs.h> */
+#include <ctalk/ctalkdefs.h>
 
 int main (void) {
   X11Pane new mainWindow;
