@@ -1,4 +1,4 @@
-/* $Id: searchlib.ca,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ */
+/* $Id: searchlib.ca,v 1.2 2020/09/19 01:47:27 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -31,6 +31,11 @@ Boolean new findMethod;
 
 void usage_exit (void) {
   printf ("Usage: searchlib [-h] | [-m] [-f <docfile>] <searchterm>\n");
+  printf ("-f <docfile> Perform the search using <docfile> as the library docs.\n");
+  printf ("-h           Print this message and exit.\n");
+  printf ("-m           Search the library documentation for a method.\n");
+  printf ("\nFor further information, refer to the searchlib manual page. "
+  	  "(type, \"man searchlib\").\n");
   printf ("Please report bugs to: rk3314042@gmail.com.\n");
   exit (1);
 }
@@ -84,6 +89,9 @@ int main (int argc, char **argv) {
 
   userFilePath = "";
   findMethod = false;
+
+  if (argc == 1)
+     usage_exit ();
 
   searchApp parseArgs argc, argv;
   searchApp searchOptions;
