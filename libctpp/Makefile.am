@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.2 2019/10/29 20:38:55 rkiesling Exp $
+# $Id: Makefile.am,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $
 
 SUBDIRS = 
 EXTRA_DIST=Makefile.djgpp

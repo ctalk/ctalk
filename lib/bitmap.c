@@ -1,8 +1,8 @@
-/* $Id: bitmap.c,v 1.1.1.1 2019/10/26 23:40:50 rkiesling Exp $ -*-c-*-*/
+/* $Id: bitmap.c,v 1.2 2020/09/17 19:14:05 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
-  Copyright © 2005-2012, 2015, 2019  Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2005-2012, 2015, 2019-2020  Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
 
@@ -52,43 +52,45 @@ int __xlib_clear_pixmap (Drawable d, unsigned int width,
   return SUCCESS;
 }
 
-int __xlib_clear_rectangle_basic (Drawable d, int x, int y, 
+int __xlib_clear_rectangle_basic (Display *disp, Drawable d, int x, int y, 
 				  unsigned int width, unsigned int height,
 				  GC gc) {
   XGCValues rectangle_gcv, old_gcv;
-  XGetGCValues (display, gc, DEFAULT_GCV_MASK, &old_gcv);
+  XGetGCValues (disp, gc, DEFAULT_GCV_MASK, &old_gcv);
   rectangle_gcv.function = GXset;
   rectangle_gcv.fill_style = FillSolid;
   rectangle_gcv.background = old_gcv.background;
   rectangle_gcv.foreground = old_gcv.background;
-  XChangeGC (display, gc, RECTANGLE_GCV_MASK, &rectangle_gcv);
-  XFillRectangle (display, d, gc,
+  XChangeGC (disp, gc, RECTANGLE_GCV_MASK, &rectangle_gcv);
+  XFillRectangle (disp, d, gc,
  		  x, y, width, height);
-  XChangeGC (display, gc, DEFAULT_GCV_MASK, &old_gcv);
+  XChangeGC (disp, gc, DEFAULT_GCV_MASK, &old_gcv);
   return SUCCESS;
 }
 
-int __ctalkX11CreatePixmap (int parent,
+int __ctalkX11CreatePixmap (void *d,
+			    int parent,
 			    int width,
 			    int height, 
 			    int depth) {
   Pixmap p;
   GC gc;
   XGCValues v;
-  p = XCreatePixmap (display, 
-		     (Drawable)parent, width, height, depth);
+  p = XCreatePixmap ((Display *)d, (Drawable)parent, width, height, depth);
   v.function = GXcopy;
   v.fill_style = FillSolid;
   v.background = v.foreground = 
-    BlackPixel (display, DefaultScreen (display));
-  gc = XCreateGC (display, p, 
+    BlackPixel ((Display *)d, DefaultScreen (display));
+  v.graphics_exposures = false;
+  gc = XCreateGC ((Display *)d, p, 
 		  GCForeground|\
 		  GCBackground|\
 		  GCFunction|\
+		  GCGraphicsExposures|\
 		  GCFillStyle, &v);
-  XFillRectangle (display, p, gc,
+  XFillRectangle ((Display *)d, p, gc,
 		  0, 0, width, height);
-  XFreeGC (display, gc);
+  XFreeGC ((Display *)d, gc);
   return (int)p;
 }
 
@@ -100,10 +102,16 @@ void __ctalkX11FreeGC (unsigned long int gc_ptr) {
   XFreeGC (display, (GC)gc_ptr);
 }
 
-void * __ctalkX11CreateGC (int drawable) {
+void * __ctalkX11CreateGC (void *d, int drawable) {
   GC gc;
   XGCValues v;
-  gc = XCreateGC (display, (Drawable)drawable, 0, &v);
+  v.function = GXcopy;
+  v.foreground = WhitePixel (d, DefaultScreen (d));
+  v.background = BlackPixel (d, DefaultScreen (d));
+  v.fill_style = FillSolid;
+  v.font = XLoadFont (d, "fixed");
+  gc = XCreateGC ((Display *)d, (Drawable)drawable,
+		  DEFAULT_GCV_MASK, &v);
   return (void *)gc;
 }
 
@@ -242,49 +250,6 @@ int __ctalkX11ResizePaneBuffer (OBJECT *pane,
   return SUCCESS;
 }
 
-int __ctalkX11ClearBufferRectangle (OBJECT *pane,
-				    int x, int y,
-				    int width, int height) {
-  OBJECT *pane_object, *paneBuffer_object, *paneBackingStore_object,
-    *xWindowID_object, *xGC_object;
-  GC gc;
-  pane_object = (IS_VALUE_INSTANCE_VAR(pane) ? pane -> __o_p_obj :
-		 pane);
-  if ((xGC_object = 
-       __ctalkGetInstanceVariable (pane_object, "xGC", TRUE))
-      == NULL)
-    return ERROR;
-  if ((paneBuffer_object = 
-       __ctalkGetInstanceVariable (pane_object, "paneBuffer", TRUE))
-      == NULL)
-    return ERROR;
-  errno = 0;
-  gc = (GC)strtoul (xGC_object->instancevars->__o_value, NULL, 16);
-  if (errno != 0) {
-    strtol_error (errno, "__ctalkX11CreatePaneBuffer ()", 
-		  xGC_object->instancevars->__o_value);
-  }
-  __xlib_clear_rectangle_basic 
-    (atoi(paneBuffer_object->instancevars->__o_value), 
-     x, y, width, height, gc);
-  if ((paneBackingStore_object = 
-	__ctalkGetInstanceVariable (pane_object, "paneBackingStore", TRUE))
-       == NULL)
-    return ERROR;
-  __xlib_clear_rectangle_basic 
-    (atoi(paneBackingStore_object->instancevars->__o_value), 
-     x, y, width, height, gc);
-  if ((xWindowID_object = 
-       __ctalkGetInstanceVariable (pane_object, "xWindowID", TRUE))
-      == NULL)
-    return ERROR;
-  __xlib_clear_rectangle_basic 
-    (atoi(xWindowID_object->instancevars->__o_value), 
-     x, y, width, height, gc);
-  return SUCCESS;
-
-}
-
 int __get_pane_buffers (OBJECT *pane_object, int *panebuffer_xid,
 			int *panebackingstore_xid) {
   OBJECT *paneBuffer_instance_var,
@@ -370,10 +335,11 @@ void __ctalkX11FreeGC (unsigned long int gc_ptr) {
   x_support_error ();
 }
 
-void *__ctalkX11CreateGC (int drawable) {  
+void *__ctalkX11CreateGC (void *d, int drawable) {  
   x_support_error (); return NULL;
 }
-int __ctalkX11CreatePixmap (int parent,
+int __ctalkX11CreatePixmap (void *d,
+			    int parent,
 			    int width,
 			    int height, 
 			    int depth) {

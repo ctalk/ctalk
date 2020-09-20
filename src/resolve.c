@@ -1,8 +1,8 @@
-/* $Id: resolve.c,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ */
+/* $Id: resolve.c,v 1.2 2020/09/19 01:08:28 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
-  Copyright © 2005-2019 Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2005-2020 Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
 
@@ -58,6 +58,8 @@ extern OBJECT *rcvr_class_obj;         /* declared in lib/rtnwmthd.c       */
 extern int nolinemarker_opt;           /* declared in main.c.              */
 extern OBJECT *classes;       /* Class dictionary, declared in cclasses.c */
 extern int fn_defined_by_header;  /* declared in fnbuf.c */
+
+extern HASHTAB declared_method_names;       /* Initialized from init_method_stack*/
 
 static inline bool is_method_or_proto_name (OBJECT *class_object,
 					    char *name) {
@@ -972,7 +974,7 @@ static void undefined_receiver_exception (int message_ptr,
 					  int actual_method_idx) {
   OBJECT_CONTEXT error_context;
   MESSAGE *m, *m_actual_method;
-  char e[MAXMSG];
+  char e[MAXMSG], *e_ptr;
   int visible_line;
   m = message_stack_at (message_ptr);
   m_actual_method = message_stack_at (actual_method_idx);
@@ -991,30 +993,41 @@ static void undefined_receiver_exception (int message_ptr,
 	  return;
 	} else {
 	  if (!NON_METHOD_CONTEXT(message_stack_at (actual_method_idx))) {
-	  sprintf 
-	    (e, "\"%s,\" is either not defined as a method, "
-	    "or prototyped as a function", 
-	    M_NAME(m_actual_method));
-	  __ctalkExceptionInternal 
-	    (m, ambiguous_operand_x, e,0);
-	} else {
-	  return;
+	    sprintf 
+	      (e, "\"%s,\" is either not defined as a method, "
+	       "or prototyped as a function", 
+	       M_NAME(m_actual_method));
+	    __ctalkExceptionInternal 
+	      (m, ambiguous_operand_x, e,0);
+	  } else {
+	    return;
+	  }
 	}
-	}
-	} else if (interpreter_pass == method_pass) {
+      } else if (interpreter_pass == method_pass) {
 	if (!NON_METHOD_CONTEXT(message_stack_at (actual_method_idx))) {
+	  e_ptr = collect_errmsg_expr (message_stack (), message_ptr);
 	  sprintf 
 	    (e, "In method, \"%s:\"\n"
-	     "Undefined receiver or variable argument, \"%s\"",
+	     "Undefined receiver or variable argument, \"%s\".\n\n\t %s\n\n",
 	     new_methods[new_method_ptr + 1] -> method -> name,
-	     M_NAME(m_actual_method));
+	     M_NAME(m_actual_method), e_ptr);
+	  __xfree (MEMADDR(e_ptr));
 	} else {
 	  return;
 	}
       } else {
 	if (!NON_METHOD_CONTEXT(message_stack_at (actual_method_idx))) {
-	  sprintf (e, "Undefined receiver or variable argument, \"%s\"",
-	     M_NAME(m_actual_method));
+	  if (interpreter_pass == parsing_pass) {
+	    e_ptr = collect_errmsg_expr (message_stack (), message_ptr);
+	    sprintf 
+	      (e, "Undefined receiver or variable argument, "
+	       "\"%s\".\n\n\t%s\n\n",
+	       M_NAME(m_actual_method), e_ptr);
+	    __xfree (MEMADDR(e_ptr));
+	  } else {
+	    sprintf (e, "Undefined receiver or variable argument, \"%s\"",
+		     M_NAME(m_actual_method));
+	  }
 	} else {
 	  return;
 	}
@@ -1152,7 +1165,10 @@ OBJECT *resolve (int message_ptr) {
   int fn_idx;
   int t;
   int expr_close_paren,
-    expr_open_paren;
+    expr_open_paren,
+    cond_pred_start,
+    cond_pred_end;
+  char conditional_expr[MAXMSG];
   int rcvr_expr_start,
     rcvr_expr_end;
   CVAR *cvar = NULL;
@@ -1191,6 +1207,9 @@ OBJECT *resolve (int message_ptr) {
 					     message_ptr);
       return NULL;
     }
+  } else if (M_TOK(m) == CONDITIONAL) {
+    if (rt_fn_arg_cond_expr(&ms))
+      return NULL;
   } else if (M_TOK(m) == LABEL) {
 
     if (str_eq (M_NAME(m), "enum")) {
@@ -1261,7 +1280,6 @@ OBJECT *resolve (int message_ptr) {
 		   m_next_label -> receiver_msg = m;
 		   m_next_label -> receiver_obj = m -> obj;
 		   m_next_label -> tokentype = METHODMSGLABEL;
-		   cvar -> scope |= LVAL_OBJECT_ALIAS;
 		   if (ctrlblk_pred) {
 		     ctrlblk_pred_rt_expr (ms.messages, message_ptr);
 		     return NULL;
@@ -1447,9 +1465,17 @@ OBJECT *resolve (int message_ptr) {
 
 	 if (!function_shadows_class_warning_1 (ms.messages, message_ptr))
 	   return NULL;
-       }
+       } else if ((class_result = class_object_search (m -> name, TRUE)) !=
+		  NULL) {
+	 m -> obj = class_result;
+	 if (!is_class_typecast (&ms, message_ptr))
+	   default_method (&ms);
+	 return class_result;
+       } /* if (!get_method_param_obj (ms.messages, message_ptr) */
+
      } /* if (!IS_OBJECT(result_object)) */
      
+#if 0
      /* Look for a class object. */
 
      if ((class_result = class_object_search (m -> name, TRUE)) != NULL) {
@@ -1458,17 +1484,18 @@ OBJECT *resolve (int message_ptr) {
 	 default_method (&ms);
        return class_result;
      }
+#endif
+     
    } else { /* if (M_TOK(m) == LABEL) */
      result_object = NULL;
    } /* if (M_TOK(m) == LABEL) */
-
-  if (is_expr_obj (m)) return M_VALUE_OBJ (m);
 
   /*
    *   Check for a method parameter reference and create an
    *   object if necessary.
    */
-  if (interpreter_pass == method_pass) {
+  if ((M_TOK(m) == LABEL) && (interpreter_pass == method_pass) &&
+      !(m -> attrs & TOK_SELF)) {
     int i;
     METHOD *method;
     method = new_methods[new_method_ptr + 1] -> method;
@@ -1565,7 +1592,7 @@ OBJECT *resolve (int message_ptr) {
 		      format_method_arg_accessor
 			(max_param - i,
 			 M_NAME(ms.messages[ms.tok]),
-			 param_buf);
+			 method -> varargs, param_buf);
 		      if (is_fmt_arg_2 (&ms)) {
 			// If it's a printf argument, use the format
 			// string character to provide the translation.
@@ -2288,7 +2315,8 @@ OBJECT *resolve (int message_ptr) {
 		  undefined_method_follows_class_object (m_sender);
 		}
 		return NULL;
-	      } else if (interpreter_pass != expr_check) {
+	      } else if (interpreter_pass != expr_check &&
+			 interpreter_pass != library_pass) {
 		/* the expression isn't being parsed on its own. */
 		__ctalkExceptionInternal (m_sender, undefined_method_x,
 					  m_sender -> name,0);
@@ -2555,6 +2583,12 @@ OBJECT *resolve (int message_ptr) {
 	      resolve_method_tok_method = method;
 	      ctrlblk_pred_rt_expr (ms.messages, prev_label_ptr);
 	    }
+	    return NULL;
+	  } else if ((cond_pred_start =
+		      arg_is_question_conditional_predicate (&ms)) > 0) {
+	    /* fn args only */
+	    rt_expr (ms.messages, cond_pred_start,
+		     &cond_pred_end, conditional_expr);
 	    return NULL;
 	  } else {
 	    method_call (sender_idx); 
@@ -2832,6 +2866,9 @@ OBJECT *resolve (int message_ptr) {
 		    /* might need to be upgraded to is_typecast_expr,
 		       which looks up actual types */
 		    return NULL;
+		  } else if (_hash_get (declared_method_names, M_NAME(m))) {
+		    warning (m, "Method, \"%s\" cannot be resolved.  Waiting "
+			     "until run time.", M_NAME(m));
 		  } else {
 #if defined(__APPLE__) && defined (__x86_64)
 		    if (!strstr (m -> name, "__builtin_"))
@@ -3011,14 +3048,7 @@ OBJECT *resolve (int message_ptr) {
       if (TOK_HAS_CLASS_TYPECAST (m_prev_label)) {
 	return NULL;
       } else {
-#if defined(__APPLE__) && defined (__x86_64)
-	  /* And we need to check for secure osx lib replacements,
-	     and we'll skip them in parser pass. */
-	if (!strstr (m -> name, "__builtin_")) 
-	    return NULL;
-#else	  
-	return M_VALUE_OBJ (m_prev_label);
-#endif	
+	return resolve_rcvr_is_undefined (m_prev_label, m);
       }
     }
 

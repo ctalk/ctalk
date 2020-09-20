@@ -1,5 +1,5 @@
 \input style.tex @c -*-texinfo-*-
-@c $Id: tutorial.texi,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $
+@c $Id: tutorial.texi,v 1.1.1.1 2020/09/13 17:14:20 rkiesling Exp $
 @c %**start of header  
 @setfilename tutorial.info
 @settitle Ctalk Tutorial
@@ -1806,9 +1806,11 @@ variables of each class, and the return classes of methods.
 If you enclose a simple expression in parentheses, then
 Ctalk can treat the complete expression as a receiver.  This 
 expression provides an example.
+
 @example
 ("Hello, " + "world!") length;
 @end example
+
 This expression returns the result @code{13}, because the
 expression @code{"Hello, " + "world!"} returns a
 @code{String} object containing the result, the complete
@@ -1817,6 +1819,7 @@ of the @mnm{length} message.
 
 C variables and objects work equivalently in receiver
 expressions.  So the following example,
+
 @example
 String new s1;
 String new s2;
@@ -1836,9 +1839,11 @@ strcpy (s2, "world!);
 
 (s1 + s2) length;
 @end example
+
 Method parameters and @code{self} also work normally within
 simple receiver expressions.  The following example does
 exactly what you would expect it to do.
+
 @c test/expect/constrcvr17.c
 @example
 String instanceMethod catLengthArg (String sArg) @{
@@ -1862,6 +1867,7 @@ math operators; that is, they have a higher precedence.
 
 So an expression like the following doesn't do what you
 expect.
+
 @example
 ("Hello, " + "world ") + ("again" + "!") length;
 @end example
@@ -1876,9 +1882,54 @@ receiver of the second @code{+} message is a @code{String}.
 
 To get @code{length} to evaluate the complete expression,
 enclose the expression in parentheses.
+
 @example
 (("Hello, " + "world ") + ("again" + "!")) length;
 @end example 
+
+Here's another example of an expresison where it's necessary to add
+parentheses.
+
+@example
+
+(*itemPtr) org x = self resources integerAt "scrollWidth" +
+  self resources integerAt "leftMargin";
+
+@end example
+
+This expression is ambiguous because the @samp{+} operator in the
+argument list is overloaded in both @code{String} and @code{Integer}
+classes.  So if Ctalk is to interpret the argument list, it
+might consider the first @code{integerAt} token to use the rest of the
+expression as its single argument, in which case Ctalk would interpret
+the argument expression like this, and try to perform an increment of
+the "scrollWidth" token, which isn't (as yet) supported, and would
+(probably) make no sense, because "scrollWidth" is a key in the
+@code{AssociativeArray,} "resources".
+
+@example
+
+(*itemPtr) org x = self resources integerAt ("scrollWidth" +
+  self resources integerAt "leftMargin");
+
+@end example
+
+Instead, what we really want is to interpret the complete argument
+expression to the @samp{=} operator as this.
+
+@example
+
+(*itemPtr) org x = (self resources integerAt "scrollWidth") +
+  (self resources integerAt "leftMargin");
+
+@end example
+
+This causes Ctalk to first evaluate each operand of the @samp{+}
+operator, which results in @code{Integer} operands, so Ctalk evaluates
+the entire expression as an integer addition, and it uses the
+@code{Integer: +} method, and returns the addition of the two
+@code{Integer} values that are stored in the "resources"
+@code{AssociativeArray}.
 
 @anchor{Variable Promotion and Type Conversion}
 @iftex
@@ -4126,7 +4177,19 @@ beyond the scope of this tutorial, but Ctalk internally can support a range
 of conventions when mapping over @code{List} and other @code{Collection}
 objects.
 
+@iftex
+@subsection Initializing Lists
+@end iftex
+@ifnottex
+@subsubheading Initializing Lists
+@end ifnottex
+@cindex @code{List,} initialization
+@cindex Initializing @code{List} objects
+
 @cindex @mnm{=} instance method @idxclscite{List}
+@cindex @mnm{+=} instance method @idxclscite{List}
+@cindex @mnm{init} instance method @idxclscite{List}
+@cindex @mnm{append} instance method @idxclscite{List}
 When initializing @code{Lists}, you can also use the @mnm{=} method
 to add items to the @code{List}, which you may find more convenient.
 You could replace the @mnm{push} methods in the example above with
@@ -4263,6 +4326,58 @@ myAssociativeArray atPut "keyName", myObject;
 To retrieve an object, use the method @mnm{at}.
 @example
 myObjectFromBefore = myAssociativeArray at "keyName";
+@end example
+
+@iftex
+@subsection Initializing AssociativeArrays
+@end iftex
+@ifnottex
+@subsubheading Initializing AssociativeArrays
+@end ifnottex
+@cindex @code{AssociativeArray,} initialization
+@cindex Initializing @code{AssociativeArray} objects
+
+@cindex @mnm{=} instance method @idxclscite{AssociativeArray}
+@cindex @mnm{+=} instance method @idxclscite{AssociativeArray}
+@cindex @mnm{init} instance method @idxclscite{AssociativeArray}
+@cindex @mnm{append} instance method @idxclscite{AssociativeArray}
+@code{AssociativeArray} is another class, like @code{List,} that
+allows you to set multiple elements with one expression.  The methods,
+@mnm{=}, and @mnm{+=}, @mnm{init} and @mnm{append} can take a variable
+number of keys and values as their arguments.
+
+Ctalk interprets the argument list to contain any number of
+@emph{key,value} pairs following either the method @mnm{=}, or
+@mnm{init}.  The two are interchangeable.  Here is an example.
+
+@example
+
+myAssocArray init "key1", "value1", "key2", "value2", "key3", "value3";
+
+@emph{... or ...}
+
+myAssocArray = "key1", "value1", "key2", "value2", "key3", "value3";
+
+@end example
+
+The @mnm{+=} and @mnm{append} methods add the @emph{key,value} pairs
+given as the arguments to the end of the reciever
+@code{AssociativeArray}, as in this example.
+
+@example
+
+myAssocArray init "key1", "first", "key2", "second", "key3", "third", 
+  "key4", "fourth";
+myAssocArray append "key5", "fifth", "key6", "sixth", "key7", "seventh", 
+  "key8", "eigth";
+
+@emph{... or ...}
+
+myAssocArray = "key1", "first", "key2", "second", "key3", "third", 
+  "key4", "fourth";
+myAssocArray += "key5", "fifth", "key6", "sixth", "key7", "seventh", 
+  "key8", "eigth";
+
 @end example
 
 @cindex @mnm{map} method @idxclscite{AssociativeArray}
@@ -4885,6 +5000,168 @@ left-hand side of an assignment.  If you only want to iterate
   @}
 
 @end example
+
+Here's example of how dereferencing works when using a numerical offset
+to retrieve a @code{List} element.
+
+@c test/expect/listoffset2.c
+@example
+
+Object class ListWrapper;
+
+ListWrapper instanceVariable items List NULL;
+
+int n = 1;
+
+
+ListWrapper instanceMethod prOffset (void) @{
+  String new item;
+  
+  self items map @{
+    item = *(super items + n);
+    printf ("%s\n", item);
+  @}
+@}
+
+int main () @{
+  ListWrapper new lw;
+
+  lw items push "Item 0";
+  lw items push "Item 1";
+  lw items push "Item 2";
+  lw items push "Item 3";
+  lw items push "Item 4";
+
+  lw prOffset;
+@}
+
+@end example
+
+The main action in this case occurs in the @code{prOffset} method.
+Here, we want to retrieve only the @emph{n'th} element in the receiver
+list.  We've placed it inside an argument block, so the keyword
+@code{super} refers to @code{prOffset's} receiver while the program is
+executing in the argument block's scope.
+
+The important thing to note is the dereference operator in this
+expression.
+
+@example
+
+item = *(super items + n);
+
+@end example
+
+Here, @code{item} is a @code{String} object.  When we want to
+set its value, we need to get the list element's content.
+
+The result of the right-hand side of the expression,
+
+@example
+
+super items + n
+
+@end example
+
+is a @code{Key} object.  That's why the @samp{*} dereference operator
+is there - it retrieves the object that the @emph{nth} position in the
+list refers to.
+
+Internally, the organization of a @code{Collection} object, or an
+instance of one of its subclasses (like @code{List} in this example)
+is this: a sequence of keys that comprise instance variables in
+addition to the @code{value} instance variable (internally, it's a C
+list also).  This is what an expression like @code{super items + n}
+would retrieve: the @emph{n'th} key (counting from zero) from the
+entire set of the collection's keys.
+
+However, each key doesn't itself contain the collection's contents;
+each of the keys contains a @emph{reference} another object, which may
+be declared anywhere else in the program.  From the perspective of a
+Ctalk expression, all of the target objects together comprise the
+contents of the collection.
+
+When you use a statement like @code{*(super items + n)} in a situation
+like this, it instructs the class to return the object that the
+@emph{n'th} key refers to.
+
+@example
+
+                               (super items + n)
+                              n = 0         n = 1          ... etc.
+ -------       -------       -------       -------
+|       |     | value |     |       |     |       |
+| aList | --> | inst. | --> |  Key  | --> |  Key  | -->    ...
+|       |     |  var. |     |       |     |       |
+ -------       -------       -------       -------
+
+                                |             |
+                                |             |
+
+                              *(super items + n)                                
+                             -------       -------
+                            |       |     |       |
+                            |Content|     |Content|
+                            |       |     |       |
+                             -------       -------
+                             
+@end example
+
+Here is another, less compact way to write the @code{prOffset} method.
+
+@example
+
+ListWrapper instanceMethod prOffset (void) @{
+  Key new item;
+  String new content;
+  
+  self items map @{
+    item = super items + l_offset;
+    content = *item;
+    printf ("%s\n", content);
+  @}
+@}
+
+@end example
+
+The main difference is where the dereference operator, @samp{*}, occurs
+within the method.
+
+And here is yet a third way that we can retrieve the content of the
+@emph{n'th} list element.
+
+@example
+
+ListWrapper instanceMethod prOffset (void) @{
+  Key new item;
+  
+  self items map @{
+    item = super items + n;
+    printf ("%s\n", *item);
+  @}
+@}
+
+@end example
+
+Here, the retrieval of the list's @code{String} element occurs when
+the @cite{printf} statement is executed.
+
+It's probably worth mentioning in passing that the actual @emph{names}
+of the @code{Key} objects in a @code{List} aren't significant.  The
+methods in @code{List} class treat each key in the collection by
+referring to the object that comprises the list's contents in
+succession (generally, this is referred to as each element's
+@emph{value}), whether the key/value item is at the beginning or end
+of the list, or by the key/value's position in the list.
+
+However, collections like @code{AssociativeArray} and @code{Array} do
+use key names that are significant.  An example is the
+@code{AssociativeArray} classes' method, @code{mapKeys}, that doesn't
+directly retrieve the collection's values; that is, in an argument
+block that uses @code{mapKeys}, @code{self} refers to a @code{Key}
+object, in addition to the more common @code{map} method.  There are
+examples of this and other expressions that use collections in the
+@cite{Ctalk Language Reference}.
 
 @iftex
 @section Class Casting

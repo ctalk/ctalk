@@ -1,8 +1,8 @@
-/* $Id: errmsgs.c,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ */
+/* $Id: errmsgs.c,v 1.2 2020/09/19 01:08:27 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
-  Copyright © 2014-2019 Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2014-2020 Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
 
@@ -49,7 +49,9 @@ extern int m_message_ptr;
 extern CTRLBLK *ctrlblks[MAXARGS + 1];  /* Declared in control.c. */
 extern int ctrlblk_ptr;
 
-bool argblk;                            /* Declared in argblk.c. */
+extern bool argblk;                            /* Declared in argblk.c. */
+
+extern HASHTAB defined_instancevars;    /* Declared in primitives.c. */
 
 void method_args_wrong_number_of_arguments_1 (MESSAGE_STACK messages,
 					      int err_idx,
@@ -907,3 +909,303 @@ void unknown_format_conversion_warning_ms (MSINFO *ms) {
   return unknown_format_conversion_warning (ms -> messages, ms -> tok);
 }
 
+/* also checks for a method label as the final label before a '=' */
+void self_instvar_expr_unknown_label (MESSAGE_STACK messages,
+				      int self_idx, int unknown_tok_idx) {
+  char *s, errbuf[MAXMSG];
+  int next_idx;
+
+  if (is_instance_method (messages, unknown_tok_idx) ||
+      is_proto_selector (M_NAME(messages[unknown_tok_idx]))) {
+    if ((next_idx = nextlangmsg (messages, unknown_tok_idx)) != ERROR) {
+      if (IS_C_ASSIGNMENT_OP(M_TOK(messages[next_idx]))) {
+	s = collect_tokens (messages, self_idx, next_idx);
+	strcpy (errbuf, s);
+	__xfree (MEMADDR(s));
+	error (messages[unknown_tok_idx], "Lvalue required:\n\n\t%s\n\n",
+	       errbuf);
+      } else {
+	return;
+      }
+    } else {
+      return;
+    }
+  }
+
+  s = collect_tokens (messages, self_idx, unknown_tok_idx);
+  strcpy (errbuf, s);
+  __xfree (MEMADDR(s));
+
+  error (messages[unknown_tok_idx], "Undefined label, \"%s,\" in "
+	   "expression.\n\n\t%s\n\n", M_NAME(messages[unknown_tok_idx]),
+	   errbuf);
+}
+
+/* This is still preliminary. */
+void instancevar_wo_rcvr_warning (MESSAGE_STACK messages, int tok_idx,
+				  bool first_label, int main_stack_idx) {
+
+  MESSAGE *m_tok;
+  int prev_tok;
+
+  m_tok = messages[tok_idx];
+
+  if (M_TOK(m_tok) == LABEL &&
+      interpreter_pass != expr_check) {
+    if (!first_label) {
+      if ((prev_tok = prevlangmsg (messages, tok_idx)) != -1) {
+	if ((M_TOK(messages[prev_tok]) != LABEL) &&
+	    (M_TOK(messages[prev_tok]) != CLOSEPAREN) &&
+	    (M_TOK(messages[prev_tok]) != ARRAYCLOSE) &&
+	    !IS_CONSTANT_TOK(M_TOK(messages[prev_tok]))) {
+	  /* a closing paren as the previous token
+	     can be the end of a receiver constant,
+	     subscripted constant, or expression;
+	     i.e., the label is a method, so don't 
+	     check if the label is defined here */
+	  if (!(m_tok -> attrs & TOK_SELF) &&
+	      !(m_tok -> attrs & TOK_SUPER) &&
+	      !IS_DEFINED_LABEL(M_NAME(m_tok))) {
+	    if (_hash_get (defined_instancevars, M_NAME(m_tok)))
+	      warning (message_stack_at (main_stack_idx),
+		       "Instance variable, \"%s,\" used without a receiver.",
+		       M_NAME(m_tok));
+	    else
+	      warning (message_stack_at (main_stack_idx),
+		       "Undefined label, \"%s.\"",
+		       M_NAME(m_tok));
+	  }
+	}
+      }
+    }
+  }
+}
+
+char *collect_errmsg_expr (MESSAGE_STACK messages, int tok_idx) {
+  int last_sep_semicolon, last_sep_closeblock;
+  int next_sep;
+  char *expr = NULL;
+  last_sep_semicolon = scanback (message_stack (), tok_idx,
+				  stack_start (message_stack ()), SEMICOLON);
+  last_sep_closeblock = scanback (message_stack (), tok_idx,
+				  stack_start (message_stack ()), CLOSEBLOCK);
+  next_sep = scanforward (message_stack (), tok_idx,
+			  get_stack_top (message_stack ()), SEMICOLON);
+  
+  if (last_sep_closeblock < last_sep_semicolon) {
+    for (;last_sep_closeblock > next_sep; last_sep_closeblock--) {
+      if ((M_TOK(messages[last_sep_closeblock]) != CLOSEBLOCK) &&
+	  !M_ISSPACE(messages[last_sep_closeblock])) {
+	expr = collect_tokens (messages, last_sep_closeblock,
+			       next_sep);
+	break;
+      }
+    }
+  } else {
+    for (;last_sep_semicolon > next_sep; last_sep_semicolon--) {
+      if ((M_TOK(messages[last_sep_semicolon]) != SEMICOLON) &&
+	  !M_ISSPACE(messages[last_sep_semicolon])) {
+	expr = collect_tokens (messages, last_sep_semicolon,
+			       next_sep);
+	break;
+      }
+    }
+    expr = collect_tokens (messages, last_sep_semicolon, next_sep);
+  }
+  return expr;
+}
+
+void undefined_blk_method_warning (MESSAGE *m_orig,
+				   MESSAGE *m_rcvr,
+				   MESSAGE *m_method) {
+  if (IS_OBJECT (m_rcvr->obj)) {
+    if (IS_OBJECT (m_rcvr -> obj -> instancevars)) {
+      warning (m_orig, "Undefined method, \"%s.\" Receiver, \"%s.\""
+	       " (class %s).\n",
+	       M_NAME(m_method), M_NAME(m_rcvr),
+	       m_rcvr -> obj -> instancevars -> __o_class -> __o_name);
+    } else {
+      warning (m_orig, "Undefined method, \"%s.\" Receiver, \"%s.\""
+	       " (class %s).\n,",
+	       M_NAME(m_method), M_NAME(m_rcvr),
+	       m_rcvr -> obj -> __o_class -> __o_name);
+    }
+  } else {
+    warning (m_orig, "Undefined method, \"%s.\" Receiver, \"%s.\"",
+	     M_NAME(m_method), M_NAME(m_rcvr));
+  }
+}
+
+OBJECT *resolve_rcvr_is_undefined (MESSAGE *m_rcvr, MESSAGE *m_method) {
+  /* And we need to check for secure osx lib replacements,
+     and we'll skip them in parser pass. */
+#if defined __APPLE__ && defined _x86_64
+  if (!strstr (m_method -> name, "__builtin_")) {
+    return NULL;
+  } else if (str_eq (M_NAME(m_method), "instanceVariable") ||
+	     str_eq (M_NAME(m_method), "classVariable")) {
+    if (m_method -> receiver_obj == NULL) {
+      error (m_method, "Method \"%s:\" Undefined receiver, \"%s.\"",
+	     M_NAME(m_method), M_NAME(m_rcvr));
+    }
+  } else {
+    return NULL;
+  }
+#else	  
+  if (str_eq (M_NAME(m_method), "instanceVariable") ||
+      str_eq (M_NAME(m_method), "classVariable")) {
+    /* we have to look for bad receiver names here ... */
+    if (m_method -> receiver_obj == NULL) {
+      error (m_method, "Method \"%s:\" Undefined receiver, \"%s.\"",
+	     M_NAME(m_method), M_NAME(m_rcvr));
+    }
+  } else {
+    return M_VALUE_OBJ (m_rcvr);
+  }
+#endif	
+  return NULL;
+}
+
+extern OBJECT *rcvr_class_obj;
+
+extern I_PASS interpreter_pass;
+
+
+int undefined_label_check (MESSAGE_STACK messages, int idx) {
+  METHOD *method;
+  int param_n;
+  int is_method_param, is_defined_object, is_method, is_message,
+    is_keyword;
+  int prev_tok_idx;
+  int next_idx;
+
+  if (interpreter_pass == expr_check)
+    return SUCCESS;
+
+  if (interpreter_pass == library_pass) {
+    if ((next_idx = nextlangmsg (messages, idx)) != ERROR) {
+      if (str_eq (M_NAME(messages[next_idx]), "instanceMethod") ||
+	  str_eq (M_NAME(messages[next_idx]), "classMethod")) {
+	if (!get_class_object (M_NAME(messages[idx]))) {
+	  char *e, expr_buf[MAXMSG];
+	  int arglist_start, decl_end;
+	  if ((arglist_start = scanforward (messages, idx,
+					    get_stack_top (messages),
+					    OPENPAREN)) != ERROR) {
+	    decl_end = prevlangmsg (messages, arglist_start);
+	    e = collect_tokens (messages, idx, decl_end);
+	    strcpy (expr_buf, e);
+	    __xfree (MEMADDR(e));
+	    error (messages[idx],
+		   "In the expression:"
+		   "\n\n\t%s\n\nClass name, \"%s,\" is not defined.\n",
+		   expr_buf, M_NAME(messages[idx]));
+	  }
+	}
+      }
+    }
+  }
+
+
+  /*
+   *  Check if a label is a method argument.
+   */
+  is_defined_object = is_method_param = is_method = is_message = 
+    is_keyword = FALSE;
+
+  if (is_ctalk_keyword (M_NAME(messages[idx])) ||
+      is_c_keyword (M_NAME(messages[idx])))
+    return FALSE;
+#ifdef __GNUC__
+  if (is_gnu_extension_keyword (M_NAME(messages[idx])))
+    return FALSE;
+#endif
+  
+  if (interpreter_pass == method_pass) {
+    method = new_methods[new_method_ptr + 1] -> method;
+    is_method_param = FALSE;
+    for (param_n = 0; param_n < method -> n_params; param_n++) {
+      if (!strcmp (M_NAME(messages[idx]), 
+		   method -> params[param_n] -> name)) {
+	is_method_param = TRUE;
+      }
+    }
+  }
+  if (get_instance_method (messages[idx], rcvr_class_obj, 
+			   M_NAME(messages[idx]), 
+			   ERROR, FALSE) ||
+      get_class_method (messages[idx], rcvr_class_obj, 
+			M_NAME(messages[idx]), ERROR, FALSE))
+    is_method = TRUE;
+  if (get_object (M_NAME(messages[idx]), NULL) ||
+      get_class_object (M_NAME(messages[idx])) ||
+      (messages[idx] -> attrs & TOK_SELF))
+    is_defined_object = TRUE;
+  if (is_pending_class (M_NAME(messages[idx])))
+    is_defined_object = TRUE;
+  /*
+   *  Anything that isn't accounted for is either an instance
+   *  or class variable message, or an undefined label.
+   *  TODO - For now, just do a syntax check for instance or
+   *  class variable messages - leave until run time
+   *  when the receiver is actually determined, or until the
+   *  parser can account for constructed objects and actual 
+   *  parameter objects, and so on ....
+   */
+  if (IS_OBJECT(messages[idx]->receiver_obj))
+    is_defined_object = TRUE;
+  if ((prev_tok_idx = prevlangmsg (messages, idx)) != ERROR) {
+    if (M_TOK(messages[prev_tok_idx]) == LABEL)
+      is_message = TRUE;
+  }
+  if (!is_method_param && !is_defined_object && !is_method && !is_message
+      && !is_keyword) {
+    if ((next_idx = nextlangmsg (messages, idx)) != ERROR) {
+      if (M_TOK(messages[next_idx]) == COLON) {
+	/* A goto : label.  Output and return. */
+	fileout (M_NAME(messages[idx]), FALSE, idx);
+	fileout (M_NAME(messages[next_idx]), FALSE, next_idx);
+	++messages[idx] -> output;
+	++messages[idx] -> evaled;
+	++messages[next_idx] -> evaled;
+	++messages[next_idx] -> output;
+	return SUCCESS;
+      }
+    }
+    /* It's not necessary to be processing an argblk to check
+       an argblk var. */
+    if (interpreter_pass == method_pass) {
+      __ctalkExceptionInternal 
+	(messages[idx], 
+	 undefined_label_x, 
+	 M_NAME(messages[idx]), 
+	 new_methods[new_method_ptr+1] -> source_line + 
+	 messages[idx]->error_line);
+    } else {
+      /* Try to find a little context for the label. */
+      if (next_idx != ERROR) {
+	switch (M_TOK(messages[next_idx]))
+	  {
+	  case LABEL:
+	  case METHODMSGLABEL:
+	    if (is_method_name (M_NAME(messages[next_idx]))) {
+	      __ctalkExceptionInternal (messages[idx], 
+					undefined_class_or_receiver_x, 
+					M_NAME(messages[idx]), 0);
+	    }
+	    break;
+	  case OPENBLOCK: /* a struct tag */
+	    break;
+	  default:
+	    __ctalkExceptionInternal (messages[idx], 
+				      undefined_class_or_receiver_x, 
+				      M_NAME(messages[idx]), 0);
+	  }
+      } else {
+	__ctalkExceptionInternal (messages[idx], undefined_label_x, 
+				  M_NAME(messages[idx]), 0);
+      }
+    }
+  }
+  return SUCCESS;
+}

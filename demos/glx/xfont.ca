@@ -118,14 +118,9 @@ GLXCanvasPane instanceMethod initGL (void) {
   self useXFont "fixed";
 }
 
-int t_int = 0;
-
 GLXCanvasPane instanceMethod myTimerTickHandler (void) {
   angle += 1.0;
   self draw;
-  printf ("%d\n", t_int);
-  if (++t_int > 500)
-    exit (0);
 }
 
 /* This definition comes from the machine's X11/keysymdef.h file. */

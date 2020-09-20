@@ -1,7 +1,7 @@
-.\" $Id: ctalkmethods.1,v 1.8 2019/11/20 15:50:58 rkiesling Exp $
+.\" $Id: ctalkmethods.1,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $
 .\"
 .\" This file is part of ctalk.
-.\" Copyright © 2019 Robert Kiesling, rk3314042@gmail.com.
+.\" Copyright © 2019, 2020 Robert Kiesling, rk3314042@gmail.com.
 .\" Permission is granted to copy this software provided that this copyright
 .\" notice is included in all source code modules.
 .\" 
@@ -18,8 +18,19 @@
 .\" You should have received a copy of the GNU General Public License
 .\" along with this program; if not, write to the Free Software Foundation, 
 .\" Inc., 51 Franklin St., Fifth Floor, Boston, MA 02110-1301 USA.
+.\"
+.\" Macros from Perl's pod2man preamble
+.de Vb \" Begin verbatim text
+.ft CW
+.nf
+.ne \\$1
+..
+.de Ve \" End verbatim text
+.ft R
+.fi
+..
 
-.TH CTALKMETHODS 1 "2019-11-20"
+.TH CTALKMETHODS 1 "2020-02-23"
 .SH NAME
 ctalkmethods \- How to use objects in Ctalk methods.
 .SH DESCRIPTION
@@ -40,13 +51,12 @@ Methods in
 .B Ctalk
 are similar to C functions, but they have a couple of significant additions.
 
+.Vb 4
 \&     - They are grouped by class, which means that any class can
-.br
 \&       have its own version of a method.  This also means that methods
-.br
 \&       can be inherited from a classes' superclass.
-.br
 \&     - Methods can overload math operators and parameter lists.
+.Ve
 
 \fIThe Ctalk Tutorial\fP contains an introduction which describes how
 methods use these features to work with objects within a class
@@ -83,59 +93,39 @@ methods function similarly.
 This method is written completely in
 .B Ctalk.
 
-.in +5
-Integer instanceMethod + add (Magnitude i) {
-.br
-  "Return the sum of the receiver and the argument."
-.br
-
-  if (i is Integer) {
-.br
-    return self + i;
-.br
-  } else {
-.br
-    return self + i asInteger;
-.br
-  }
-.br
-}
-.in -5
+.Vb 4
+\&    Integer instanceMethod + add (Magnitude i) {
+\&      "Return the sum of the receiver and the argument."
+\&      if (i is Integer) {
+\&        return self + i;
+\&      } else {
+\&        return self + i asInteger;
+\&      }
+\&    }
+.Ve
 
 The following example shows the method translated into
 .B Ctalk's
 low-level C API, which can use the C addition operator
 directly.
 
-.in +5
-Integer instanceMethod + add (Magnitude i) {
-.br
-  "Return the sum of the receiver and argument."
-.br
-
-  int a, result;
-.br
-
-  if (i is Integer) {
-.br
-    return INTVAL(__ctalk_self_internal_value () -> __o_value)
-.br
-      + INTVAL(ARG(0) -> __o_value);
-.br
-  } else {
-.br
-    a = i asInteger;
-.br
-    result = INTVAL(__ctalk_self_internal_value () -> __o_value)
-.br
-      + a;
-.br
-    return result;
-.br
-  }
-.br
-}
-.in -5
+.Vb 4
+\&    Integer instanceMethod + add (Magnitude i) {
+\&      "Return the sum of the receiver and argument."
+\&
+\&      int a, result;
+\&
+\&      if (i is Integer) {
+\&        return INTVAL(__ctalk_self_internal_value () -> __o_value)
+\&          + INTVAL(ARG(0) -> __o_value);
+\&      } else {
+\&        a = i asInteger;
+\&        result = INTVAL(__ctalk_self_internal_value () -> __o_value)
+\&          + a;
+\&        return result;
+\&      }
+\&    }
+.Ve
 
 .B Ctalk
 is still a work in progress.  There could be many tasks for which you
@@ -267,6 +257,122 @@ provides the \fIObjectInspector\fP class to view object's values
 when a program is run.  Refer to the
 .BR inspect "(3ctalk)"
 manual page.
+
+.SH CONSTRUCTORS
+
+Like many other object oriented languages,
+.B Ctalk
+uses \fIconstructor methods\fP\(emthe method \fInew\fP\(emwhen
+declaring objects.  For example:
+
+.Vb 4
+\&    Integer new myInt;
+.Ve
+
+Declarations can construct multiple objects.
+
+.Vb 4
+\&    String new mySubStr1, mySubStr2;
+.Ve
+
+In each case, the statements create the new objects, and add any instance
+variables that the class and its superclasses declare to the new objects.
+
+There is another type of constructor method, which uses the selector
+\fIbasicNew,\fP to construct objects on the fly.  The \fIbasicNew\fP
+constructors are needed when constructing collections of objects, like
+\fILists\fP and \fIAssociativeArrays,\fP whose size isn't known
+beforehand.
+
+Programs that use the class \fITreeNode,\fP for example, use
+\fIbasicNew\fP methods when constructing its member lists.  Here's an
+example, from the class, \fIClassLibraryTree,\fP which constructs a
+list of subnodes on the fly.
+
+.Vb 4
+\&    TreeNode instanceMethod addSubClasses (AssociativeArray subclassesArg) {
+\&      "Called recursively to add classes to the tree after a
+\&       node's parent has been added."
+\&      Symbol new superclassPtr;
+\&      TreeNode new node;
+\&      TreeNode new tree;
+\&      AssociativeArray new subclasses;
+\&      String new superclassName;
+\&      String new superclassLabel;
+\&    
+\&      if (subclassesArg size <= 1)
+\&        return NULL;
+\&    
+\&      tree = self;
+\&    
+\&      subclassesArg mapKeys {
+\&        tree search *self;
+\&        *superclassPtr = tree searchResult;
+\&        if (*superclassPtr) {
+\&          node = TreeNode basicNew self name, self name;
+\&          node setContent self name;
+\&          (*superclassPtr) addChild node;
+\&        } else {
+\&          superclassName = String basicNew (*self), (*self);
+\&          subclasses atPut (self name), superclassName;
+\&        }
+\&      }
+\&    
+\&      eval tree addSubClasses subclasses;
+\&    }
+.Ve
+
+The method is called recursively for each set of subclasses that haven't been added below a particular superclass (the object \fIsuperclassPtr).
+
+The \fIbasicNew\fP methods are declared in \fIObject\fP and
+\fIVector\fP classes.  Typing the command,
+
+.Vb 4
+\&    $ methodsource Object basicNew
+.Ve
+
+displays the \fIbasicNew\fP methods declared in \fIObject\fP class.
+There are several of them, depending on how many arguments it's necessary
+to give when creating the new objects.
+
+For some reference, Here's the source of the 2-argument version of
+\fIbasicNew.\fP The method is written mainly in C.  The basics of the
+C language API are discussed below.  The functions that the method
+uses are described in the \fICtalk Language Reference.\fP
+
+.Vb 4
+\&    Object instanceMethod basicNew (char *name, char *value_expr) {
+\&      "Return a new object with the name and value given by
+\&      the arguments.  The new object has all of the
+\&      instance variables defined by the class object.  Also
+\&      set the object's value explicitly to make sure that
+\&      an instance variable didn't replace it.  The new
+\&      object has the scope LOCAL_VAR and has a reference
+\&      count of 1."
+\&      Exception new ex;
+\&      OBJECT *s;
+\&      returnObjectClass Any;
+\&    
+\&      if (self className != "Class") {
+\&        ex raiseException INVALID_RECEIVER_X, "\"basicNew\" with 2 arguments requires a class object as the receiver.";
+\&          return NULL;
+\&      }
+\&      
+\&    
+\&      s = __ctalkCreateObjectInit (name, self name, 
+\&                                   self superclassName,
+\&                                   LOCAL_VAR, value_expr);
+\&    
+\&      __ctalkInstanceVarsFromClassObject (s);
+\&      __ctalkAddBasicNewTag (s);
+\&      __objRefCntSet (&s, 1);
+\&    
+\&      return s;
+\&    }
+.Ve
+
+
+
 
 .SH TRANSLATING BETWEEN CTALK AND C
 
@@ -669,6 +775,138 @@ struct _object {
 Since it's important to be familiar with OBJECT *'s when working
 in C, many of the following examples describe the OBJECT typedef's
 members in detail.
+
+.SH OBJECT SCOPES AND ATTRIBUTES
+
+In order to help insure that an object is usable at any point in a
+program,
+.B Ctalk
+uses scopes and attributes.  There are the usual method- and
+function-local scopes, and global scope, and there are also a number
+of scopes that
+.B Ctalk
+uses internally.  The classes may be combined.  They are defined in
+\fIinclude/object.h\fP and the \fIctalklib\fP runtimes.  These are
+their names and functions.
+
+.Vb 4
+\&    GLOBAL_VAR                - An object declared with a \fInew\fP
+\&                                method outside of any function or
+\&                                method, and class objects.
+\&    LOCAL_VAR                 - Objects declared with a \fInew\fP
+\&                                or \fIbasicNew\fP method within a
+\&                                method or function.
+\&    ARG_VAR                   - Objects defined in a method's
+\&                                parameter list.
+\&    RECEIVER_VAR              - Used in some cases to identify
+\&                                receiver objects that are created from
+\&                                constant expressions.
+\&    PROTOTYPE_VAR             - Objects created when parsing
+\&                                prototypes.
+\&    CREATED_PARAM             - Created for symbols in partially
+\&                                evaluated expressions, and/or symbols
+\&                                that can't be resolved at some stage
+\&                                of evaluation.
+\&    CVAR_VAR_ALIAS_COPY       - A copy of a C variable.  The object's
+\&                                value is taken from the variable.
+\&    SUBEXPR_CREATED_RESULT    - The temporary result when evaluating
+\&                                a subexpression; may become the result
+\&                                of a complete expression.
+\&    VAR_REF_OBJECT            - An object that is referred to by
+\&                                another object; generally the object
+\&                                that contains the reference is a
+\&                                Symbol or Key object.
+\&    METHOD_USER_OBJECT        - Objects that have gone out of scope
+\&                                but may still be referred to, and
+\&                                are stored in a method's object pool.
+\&    TYPECAST_OBJECT           - Objects that are created when parsing
+\&                                type casts.
+\&    SUBSCRIPT_OBJECT_ALIAS    - Objects that are created when parsing
+\&                                and evaluating subscripts.
+.Ve
+
+Methods generally do not need to set the scope of objects, unless they
+create objects using the C library.  Here's an example.
+
+.Vb 4
+\&myObject = __ctalkCreateObjectInit (name, classname, superclassname,
+\&                                    LOCAL_VAR, value_exxpr);
+.Ve
+
+Objects' scopes are stored, as you might expect, in the \fIscope\fP
+member of the C OBJECT * type.  When setting an object's scope, it is
+always necessary to make sure that a parent object and all of its
+instance variables have the same scope.
+
+.B Ctalk
+provides a function to do this, \fI__ctalkSetObjectScope.\fP  Here
+is an example of how to use it to add an additional scope to an object.
+
+.Vb 4
+\&OBJECT *myObjectAlias;
+\&
+\&myObjectAlias = someObject;
+\&
+\&__ctalkSetObjectScope(myObjectAlias,
+\&                      myObjectAlias -> scope | VAR_REF_OBJECT);
+\&
+.Ve
+
+.SH OBJECT ATTRIBUTES
+
+In addition to scopes, objects may also have attributes, which can
+indicate the context that the object appears in, or other
+characteristics.  Many are used only internally by
+.B Ctalk;
+but some of them are also used in methods.
+
+Generally, the safest way to set an object's attribute is with the
+\fI__ctalkSetObjectAttr\fP library function, as in this example.
+
+.Vb 4
+\&__ctalkSetObjectAttr(myObject, OBJECT_IS_DEREF_RESULT);
+.Ve
+
+Here is a list of the object attributes definitions that
+.B Ctalk
+uses.  Should you need to check them when debugging, the
+attribute values are stored in the \fIattr\fP member of the
+OBJECT * typedef.
+
+.Vb 4
+\&    OBJECT_IS_VALUE_VAR                     (1 << 0)
+\&    OBJECT_VALUE_IS_C_CHAR_PTR_PTR          (1 << 1)
+\&    OBJECT_IS_NULL_RESULT_OBJECT            (1 << 2)
+\&    OBJECT_HAS_PTR_CX                       (1 << 3)
+\&    OBJECT_IS_GLOBAL_COPY                   (1 << 4)
+\&    OBJECT_IS_I_RESULT                      (1 << 5)
+\&    OBJECT_IS_STRING_LITERAL                (1 << 6)
+\&    OBJECT_IS_MEMBER_OF_PARENT_COLLECTION   (1 << 7)
+\&    OBJECT_HAS_LOCAL_TAG                    (1 << 8)
+\&    OBJECT_IS_LITERAL_CHAR                  (1 <<  9)
+\&    OBJECT_IS_CONSTANT_INT_OR_LONG          (1 << 10)
+\&    OBJECT_IS_CONSTANT_LONGLONG             (1 << 11)
+\&    OBJECT_IS_CONSTANT_FLOAT                (1 << 12)
+\&    OBJECT_VALUE_IS_MEMORY_VECTOR           (1 << 13)
+\&    OBJECT_IS_DEREF_RESULT                  (1 << 14)
+\&    OBJECT_IS_FN_ARG_OBJECT                 (1 << 15)
+\&    OBJECT_REF_IS_CVAR_PTR_TGT              (1 << 16)
+\&    ZERO_LENGTH_STR_INIT                    (1 << 17)
+\&    INT_BUF_SIZE_INIT                       (1 << 18)
+\&    BOOL_BUF_SIZE_INIT                      (1 << 19)
+\&    CHAR_BUF_SIZE_INIT                      (1 << 20)
+\&    LONGLONG_BUF_SIZE_INIT                  (1 << 21)
+\&    SYMBOL_BUF_SIZE_INIT                    (1 << 22)  
+\&    OBJECT_VALUE_IS_BIN_INT                 (1 << 23)
+\&    OBJECT_VALUE_IS_BIN_BOOL                (1 << 24)
+\&    OBJECT_VALUE_IS_BIN_LONGLONG            (1 << 25)
+\&    OBJECT_VALUE_IS_BIN_SYMBOL              (1 << 26)  
+\&    OBJECT_IS_BEING_CLEANED_UP              (1 << 27)
+.Ve
+
+The definitions of the object attributes are maintained in the source
+files \fIinclude/object.h\fP and \fIclasses/ctalklib.in.\fP
+
 
 .SH A METHOD WRITTEN IN C
 
@@ -1338,9 +1576,12 @@ or
 .B Ctalk 
 is written and maintained by Robert Kiesling,
 .br
-rk3314042@gmail.com.  The
+rk3314042@gmail.com.
 .B Ctalk
-Web site is at
-.br
-http://sourceforge.net/projects/ctalk/.
+is downloadable at:
+.Vb 4
+\&
+\&http://sourceforge.net/projects/ctalk/
+\&https://github.com/ctalk/ctalk
+.Ve
 

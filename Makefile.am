@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.7 2019/11/20 20:50:43 rkiesling Exp $
+# $Id: Makefile.am,v 1.2 2020/06/26 17:44:22 rkiesling Exp $
 
 SUBDIRS=classes doc libctpp ctpp lib src 
 HOST_OS=@host_os@
@@ -7,7 +7,7 @@ ACLOCAL_AMFLAGS=-I m4
 BINDIR=@bindir@
 SU=@su_path@
 
-noinst_HEADERS=$(top_builddir)/include/*.h
+noinst_HEADERS=$(top_builddir)/include/*.h $(top_builddir)/include/xpms/*.xpm
 
 EXTRA_DIST=$(top_builddir)/build/gccincdir.sh \
 	$(top_builddir)/test/* \
@@ -35,6 +35,8 @@ EXTRA_DIST=$(top_builddir)/build/gccincdir.sh \
 	$(top_builddir)/build/conftest.c \
 	$(top_builddir)/build/glh.sh \
 	$(top_builddir)/build/have_llvm.sh \
+	$(top_builddir)/build/fn_decl.pl \
+	$(top_builddir)/build/confcttest.sh \
 	$(top_builddir)/m4/* \
 	$(top_builddir)/ChangeLog \
 	$(top_builddir)/tools/langtools \
@@ -42,7 +44,6 @@ EXTRA_DIST=$(top_builddir)/build/gccincdir.sh \
 	$(top_builddir)/tools/methods/Makefile \
 	$(top_builddir)/tools/ctxlogo/ctxlogo.ca \
 	$(top_builddir)/tools/ctxlogo/Makefile \
-	$(top_builddir)/tools/ctxlogo/ctalk-logo.xpm \
 	$(top_builddir)/tools/classes/Makefile \
 	$(top_builddir)/tools/classes/classes.ca \
 	$(top_builddir)/tools/methodsource/methodsource.ca \
@@ -55,6 +56,7 @@ EXTRA_DIST=$(top_builddir)/build/gccincdir.sh \
 	$(top_builddir)/tools/template/Makefile \
 	$(top_builddir)/tools/searchlib/searchlib.ca \
 	$(top_builddir)/tools/searchlib/Makefile \
+	$(top_builddir)/include/xpms/*.xpm \
 	$(top_builddir)/doc/libdoc \
 	$(top_builddir)/doc/classlibdoc \
 	$(top_builddir)/doc/doctools/*
@@ -91,6 +93,10 @@ distclean-local:
 	  $(top_builddir)/build/.pthread_gcc_option \
           $(top_builddir)/build/.gccdonthavenoformatoverflowopt \
           $(top_builddir)/build/.gcchavenoformatoverflowopt \
+	  $(top_builddir)/build/.cttest_no_pointer_to_int_cast \
+	  $(top_builddir)/build/.cttest_no_stringop_overflow \
+	  $(top_builddir)/build/.cttest_no_address_of_packed_member \
+	  $(top_builldir)/build/.cttest_no_format_overflow \
 	  $(top_builddir)/build/.no_gl_h \
 	  $(top_builddir)/build/.no_glx_h \
           $(top_builddir)/build/.no_glew_h \

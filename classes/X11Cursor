@@ -1,4 +1,4 @@
-/* $Id: X11Cursor,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11Cursor,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -32,6 +32,7 @@ in addition to the window's default cursor.";
 #define CURSOR_SCROLL_ARROW 2
 #define CURSOR_WATCH 3
 #define CURSOR_ARROW 4
+#define CURSOR_XTERM 5
 
 X11Cursor instanceMethod grabMove (void) {
   "Set the window's cursor to a grab cursor."
@@ -54,5 +55,11 @@ X11Cursor instanceMethod watch (void) {
 X11Cursor instanceMethod arrow (void) {
   "Set the window's cursor an upward-left pointing arrow."
   __ctalkX11FontCursor (self, CURSOR_ARROW);
+  return self;
+}
+
+X11Cursor instanceMethod xterm (void) {
+  "Set the window's cursor an upward-left pointing arrow."
+  __ctalkX11FontCursor (self, CURSOR_XTERM);
   return self;
 }

@@ -1,8 +1,8 @@
-/* $Id: rt_expr.c,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ */
+/* $Id: rt_expr.c,v 1.2 2020/09/18 21:25:12 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
-  Copyright © 2005-2019  Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2005-2020  Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
 
@@ -37,14 +37,19 @@ extern DEFAULTCLASSCACHE *rt_defclasses; /* Defined in rtclslib.c. */
 
 #define CAN_CACHE_METHOD(mthd, msg_prev) \
   ((!(msg_prev -> attrs & RT_OBJ_IS_INSTANCE_VAR) &&	\
-   !(msg_prev -> attrs & RT_OBJ_IS_CLASS_VAR)) && \
+    !str_eq (msg_prev -> name, "super") &&		\
+    !(msg_prev -> attrs & RT_OBJ_IS_CLASS_VAR)) &&	\
    (mthd -> varargs == 0))
 
 /*
  *  The expression parser stack.
  */
 
+static OBJECT *null_result_obj_2 (METHOD *, OBJECT *, int);
+
 static int expr_parser_lvl = 0;
+
+static bool eval_subexpr_call = false;
 
 EXPR_PARSER *expr_parsers[MAXARGS+1];
 int expr_parser_ptr = MAXARGS + 1;
@@ -77,7 +82,7 @@ int __get_expr_parser_level (void) {
 int expr_n_occurrences (METHOD *m) {
   int i, n;
   n = 0;
-  if (C_EXPR_PARSER)
+  if (expr_parser_ptr <= MAXARGS)
     for (i = 0; i < C_EXPR_PARSER -> e_method_ptr; ++i) {
       if (C_EXPR_PARSER -> e_methods[i] == m)
 	++n;
@@ -87,6 +92,8 @@ int expr_n_occurrences (METHOD *m) {
 
 static OBJECT *reffed_arg_obj (OBJECT *arg_object) {
   OBJECT *r;
+  if (!IS_OBJECT(arg_object))
+    return NULL;
   if (arg_object -> attrs == OBJECT_VALUE_IS_BIN_SYMBOL) {
     if (IS_OBJECT(arg_object -> instancevars)) {
       if (arg_object -> instancevars -> __o_value) {
@@ -254,6 +261,111 @@ static inline int next_msg (MESSAGE_STACK messages, int this_msg) {
   return ERROR;
 }
 
+/* Check whether a label is a function call in a user template argument.
+   See test/expect/fn_param2.c for an example. */
+static bool is_fn_for_template (int fn_label_tok, EXPR_PARSER *p) {
+  int next_tok;
+  if ((next_tok = next_msg (e_messages, fn_label_tok)) != ERROR) {
+    if (M_TOK(e_messages[next_tok]) == OPENPAREN) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+}
+
+static bool is_obj_deref_expr (EXPR_PARSER *p) {
+  int i, next;
+  for (i = p -> msg_frame_start; i > p -> msg_frame_top + 1; i--) {
+    if (M_TOK(e_messages[i]) == DEREF) {
+      if ((next = next_msg (e_messages, i)) != ERROR) {
+	if (IS_MESSAGE(e_messages[next])) {
+	  if (is_OBJECT_member (M_NAME(e_messages[next]))) {
+	    return true;
+	  }
+	}
+      }
+    } else if (M_TOK(e_messages[i]) == METHODMSGLABEL) {
+      if (str_eq (M_NAME(e_messages[i]), "->")) {
+	if ((next = next_msg (e_messages, i)) != ERROR) {
+	  if (IS_MESSAGE(e_messages[next])) {
+	    if (is_OBJECT_member (M_NAME(e_messages[next]))) {
+	      return true;
+	    }
+	  }
+	}
+      }
+    }
+  }
+  return false;
+}
+
+
+/*
+ *  Check if the label is a fragment of a registered aggegate
+ *  var; e.g.,
+ *
+ *    mySuff_s
+ *
+ *  which is part of ((OBJECT *)*myStuff_s)-> __o_value
+ */
+static bool is_label_in_deref (char *label) {
+  METHOD *m = __ctalkRtGetMethod ();
+  CVAR *c;
+  if (IS_METHOD(m)) {
+    for (c = m -> local_cvars; c; c = c -> next) {
+      if (strstr (c -> name, "->") && strstr (c -> name, label)) {
+	return true;
+      }
+    }
+  }
+  return false;
+}
+
+static inline int prev_msg (MESSAGE_STACK messages, int this_msg) {
+  int i = this_msg + 1;
+
+  while ( i <= C_EXPR_PARSER -> msg_frame_start) {
+    if (!M_ISSPACE(messages[i]))
+      return i;
+    ++i;
+  }
+  return ERROR;
+}
+
+static bool is_method_of_prev_tok_value (EXPR_PARSER *p, int tok_idx) {
+  int lookback;
+  OBJECT *src_object, *tgt_rcvr;
+  if ((lookback = prev_msg (e_messages, tok_idx)) != ERROR) {
+    if (IS_OBJECT(M_VALUE_OBJ(e_messages[lookback]))) {
+      if (is_class_or_subclass (M_VALUE_OBJ(e_messages[lookback]),
+				rt_defclasses -> p_symbol_class)) {
+	src_object = M_VALUE_OBJ(e_messages[lookback]);
+	if (IS_OBJECT(src_object -> instancevars)) {
+	  tgt_rcvr = SYMTOOBJ(src_object -> instancevars -> __o_value);
+	} else {
+	  tgt_rcvr = SYMTOOBJ(src_object -> __o_value);
+	}
+	if (IS_OBJECT (tgt_rcvr)) {
+	  if (__ctalkGetInstanceMethodByName (tgt_rcvr,
+					      M_NAME(e_messages[tok_idx]),
+					      FALSE, ANY_ARGS)) {
+	    return true;
+	  }
+	}
+      } else if (M_VALUE_OBJ(e_messages[lookback]) -> scope &
+		 VAR_REF_OBJECT) {
+	if (__ctalkGetInstanceMethodByName
+	    (M_VALUE_OBJ(e_messages[lookback]),
+	     M_NAME(e_messages[tok_idx]), FALSE, ANY_ARGS)) {
+	  return true;
+	}
+      }
+    }
+  }
+  return false;
+}
+
 static inline bool method_label_is_arg (int i) {
   int next_tok_idx;
   for (i = i - 1; e_messages[i]; --i) {
@@ -362,12 +474,6 @@ static void find_prefixed_CVAR_for_write (int op_idx, METHOD *method) {
   }
 }
 
-#if 0
-#ifdef __GNUC__
-bool have_unevaled (MESSAGE_STACK, int, int) __attribute__((noinline));
-#endif
-#endif
-
 bool have_unevaled (MESSAGE_STACK messages, int this_method_token) {
   int i;
 #if 0
@@ -442,17 +548,6 @@ static inline void cleanup_created_param_arg (MESSAGE_STACK messages,
       }
     }
   }
-}
-
-static inline int prev_msg (MESSAGE_STACK messages, int this_msg) {
-  int i = this_msg + 1;
-
-  while ( i <= C_EXPR_PARSER -> msg_frame_start) {
-    if (!M_ISSPACE(messages[i]))
-      return i;
-    ++i;
-  }
-  return ERROR;
 }
 
 static bool method_is_instancevar_deref (EXPR_PARSER *p, int idx) {
@@ -532,6 +627,12 @@ static OBJECT *expr_result_object (void) {
 	       (eval_status & EVAL_STATUS_CLASS_VAR)) {
       return M_VALUE_OBJ(e_messages[p -> msg_frame_top]);
     }
+  } else if ((m_term -> attrs & RT_VALUE_OBJ_IS_INSTANCE_VAR) &&
+	     ((m_term -> value_obj  && m_term -> value_obj -> instancevars) ? 
+	      (m_term -> value_obj -> instancevars -> attrs &
+	       OBJECT_IS_VALUE_VAR) : 0)) {
+    eval_status |= (EVAL_STATUS_TERMINAL_TOK|EVAL_STATUS_INSTANCE_VAR);
+    return M_VALUE_OBJ(e_messages[p -> msg_frame_top]);
   } else {
     /*
      *  Typecast alone not part of an expression.
@@ -872,6 +973,7 @@ static inline int eval_op_precedence (int precedence,
 	default:
 	  break;
 	}
+      break;
     case 12:
       switch (messages[op_ptr] -> tokentype)
 	{
@@ -1346,6 +1448,37 @@ static void fixup_forward_receiver_obj (EXPR_PARSER *p, int idx,
 	      p -> m_s[next_tok_idx] -> attrs &= ~RT_DATA_IS_NR_ARGS_DECLARED;
 	  }
 	}
+      } else if (__ctalk_isMethod_2 (M_NAME(p -> m_s[next_tok_idx]),
+				     p -> m_s, next_tok_idx,
+				     p -> msg_frame_start)) {
+	OBJECT *rcvr_p;
+	METHOD *method_fixup;
+	int i_2;
+	/* probably should fix up the args too, if this method wasn't
+	   resolved in the first pass, then the labels following it
+	   weren't either... this isn't needed much yet, so for now,
+	   just remove the created params... and/or add a clause in
+	   __rt_method_args */
+	M_TOK(p -> m_s[next_tok_idx]) = METHODMSGLABEL;
+	/* Make sure we have a receiver object before proceeding. */
+	if ((rcvr_p = p -> m_s[next_tok_idx] -> receiver_obj) != NULL) {
+	  if ((method_fixup = __ctalkFindMethodByName
+	       (&rcvr_p, M_NAME(p -> m_s[next_tok_idx]), FALSE, ANY_ARGS))
+	      != NULL) {
+	    if (method_fixup -> n_params > 0) {
+	      for (i_2 = next_tok_idx - 1; i_2 >= p -> msg_frame_top;
+		   --i_2) {
+		if (IS_OBJECT(p -> m_s[i_2] -> obj)) {
+		  if ((p -> m_s[i_2] -> obj -> scope == CREATED_PARAM) &&
+		      (p -> m_s[i_2] -> obj -> nrefs == 0)) {
+		    __ctalkDeleteObject (p -> m_s[i_2] -> obj);
+		    p -> m_s[i_2] -> obj = NULL;
+		  }
+		}
+	      }
+	    }
+	  }
+	}
       }
     } else {
       if (p -> m_s[next_tok_idx] -> obj &&
@@ -1545,6 +1678,55 @@ static inline void set_receiver_msg_and_obj
     m -> receiver_msg = 
       ((m_prev_msg -> receiver_msg) ?
        m_prev_msg -> receiver_msg : m_prev_msg);
+  }
+}
+
+/*
+ *  For cases where we need to deal with a Symbol-class instance var
+ *  and use the semantics in Symbol : =.  If an expression looks like this:
+ *
+ *    *myObj mySymInstVar = someObj;
+ *
+ *  we change it to the following, and let Symbol : = handle
+ *  the semantics.
+ *
+ *    myObj mySymInstVar = someObj
+ */
+static inline void set_receiver_msg_and_obj_fixup (int tok_idx,
+						   MESSAGE *m,
+						   MESSAGE *m_prev_msg) {
+  int i, lookahead;
+  EXPR_PARSER *p;
+  if (m && m_prev_msg) {
+    if ((m_prev_msg -> attrs & RT_OBJ_IS_INSTANCE_VAR) ||
+	(m_prev_msg -> attrs & RT_OBJ_IS_CLASS_VAR)) {
+      m -> receiver_obj = m_prev_msg -> receiver_obj;
+    } else {
+      m -> receiver_obj = M_VALUE_OBJ(m_prev_msg);
+    }
+    m -> receiver_msg = 
+      ((m_prev_msg -> receiver_msg) ?
+       m_prev_msg -> receiver_msg : m_prev_msg);
+    if ((lookahead = next_msg (e_messages, tok_idx)) != ERROR) {
+      if (IS_C_ASSIGNMENT_OP(M_TOK(e_messages[lookahead]))) {
+	p = expr_parsers[expr_parser_ptr];
+	if (IS_OBJECT(m -> obj -> instancevars) &&
+	    (m -> obj -> instancevars -> __o_class ==
+	     rt_defclasses -> p_symbol_class)) {
+	  for (i = tok_idx; i <= p -> msg_frame_start; ++i) {
+	    if (M_ISSPACE(e_messages[i]))
+	      continue;
+	    if (M_TOK(e_messages[i]) == LABEL)
+	      continue;
+	    if (e_messages[i] -> attrs & RT_TOK_IS_PREFIX_OPERATOR) {
+	      e_messages[i] -> name[0] = ' '; e_messages[i] -> name[1] = '\0';
+	      e_messages[i] -> tokentype = WHITESPACE;
+	      e_messages[i] -> attrs = 0;
+	    }
+	  }
+	}
+      }
+    }
   }
 }
 
@@ -2046,19 +2228,37 @@ static OBJECT *eval_label_token (char *name, bool is_arg_expr) {
   }
 }
 
+/* resolve a single object, but only if the the message doesn't
+   already have an object resolved for it */
+static inline bool resolve_single_object (MESSAGE *m, char *name) {
+  if (!IS_OBJECT(m -> obj)) {
+    if ((m -> obj = __ctalk_get_object (name, NULL)) != NULL) {
+      return true;
+    } else {
+      return false;
+    }
+  } else {
+    return true;
+  }
+  return false;
+}
+
 /* be sure that have_instance_var and have_class_var are initialized
    before calling this fn.  Doesn't (yet) handle class names. */
-static bool non_method_label (OBJECT *prev_msg_obj, char *prev_msg_name,
+static bool non_method_label (MESSAGE *prev_msg,
+			      char *msg_name,
 			      char *pname,
 			      OBJECT **instance_var_tmp,
 			      OBJECT **class_var_tmp) {
+  bool inline_call_or_body;
+  int argblk_enclosing_offset;
   if ((*instance_var_tmp = __ctalkGetInstanceVariable
-       (prev_msg_obj, prev_msg_name, FALSE)) != NULL) {
-  } else if (IS_OBJECT(prev_msg_obj) &&
-	     str_eq (pname, prev_msg_obj -> __o_name) &&
-	     IS_OBJECT(prev_msg_obj -> __o_p_obj) &&
+       (prev_msg -> obj, msg_name, FALSE)) != NULL) {
+  } else if (IS_OBJECT(prev_msg -> obj) &&
+	     str_eq (pname, prev_msg -> obj -> __o_name) &&
+	     IS_OBJECT(prev_msg -> obj -> __o_p_obj) &&
 	     ((*instance_var_tmp =
-	       __ctalkGetInstanceVariable (prev_msg_obj -> __o_p_obj,
+	       __ctalkGetInstanceVariable (prev_msg -> obj -> __o_p_obj,
 					   pname, FALSE)) != NULL)) {
     /* this situation can occur if we have an instance or class
        var expression as an argument - the entire expression
@@ -2067,7 +2267,36 @@ static bool non_method_label (OBJECT *prev_msg_obj, char *prev_msg_name,
   } else {
     *class_var_tmp = __ctalkFindClassVariable (pname, FALSE);
   }
+
+  if (__call_stack_ptr < (MAXARGS - 1)) {
+    inline_call_or_body =
+      ((__call_stack[__call_stack_ptr + 1] -> inline_call ||
+	__call_stack[__call_stack_ptr + 2] -> inline_call) ? true : false);
+    argblk_enclosing_offset = 3;
+  } else {
+    inline_call_or_body =
+      ((__call_stack[__call_stack_ptr + 1] -> inline_call) ? true : false);
+    argblk_enclosing_offset = 2;
+  }
   
+  
+  if ((*instance_var_tmp == NULL && *class_var_tmp == NULL) &&
+      inline_call_or_body &&
+      (prev_msg -> attrs & RT_TOK_IS_SELF_KEYWORD)) {
+    /* If we haven't found an instance var or a method, 
+       and the preceding token is "self" and we're in an
+       argument block, then check for the message in the
+       receiver's superclass, and warn the user if that's
+       the case. */
+    OBJECT *encl_rcvr_class = __call_stack[__call_stack_ptr +
+					   argblk_enclosing_offset]
+      -> rcvr_class_obj;
+    self_enclosing_class_message_warning
+      (__call_stack[__call_stack_ptr+2] -> rcvr_class_obj,
+       expr_parsers[expr_parser_ptr] -> expr_str,
+       msg_name);
+  }
+
   return !(*instance_var_tmp || *class_var_tmp);
 }
 
@@ -2139,7 +2368,8 @@ OBJECT *eval_expr (char *s, OBJECT *recv_class, METHOD *method,
     prefix_expr_start,
     max_params;
   OBJECT *class_var_tmp, *instance_var_tmp,
-    *e_class, *m_prev_value_obj, *m_prev_super_obj, *n_result, *e_result_dup;
+    *e_class, *m_prev_value_obj, *m_prev_super_obj, *n_result, *e_result_dup,
+    *obj;
   MESSAGE *m = NULL,      /* These must be initialized.        */
     *m_prev_msg = NULL,
     *n;
@@ -2163,6 +2393,9 @@ OBJECT *eval_expr (char *s, OBJECT *recv_class, METHOD *method,
   bool typecast_is_ptr, is_arg_value;
   METHOD *m_set[MAXARGS];
   int n_m_set;
+
+  if (*s == '\0')
+    return null_result_obj (method, scope);
 
   /* Deleting the leading whitespace saves unnecessary backtracking. */
   if (isspace ((int)*s)) {
@@ -2196,6 +2429,11 @@ OBJECT *eval_expr (char *s, OBJECT *recv_class, METHOD *method,
   p -> is_arg_expr = (bool)is_arg_expr;
   p -> expr_str = s;
   p -> m_s = e_messages;
+  /* This might not actually be needed. */
+  if (eval_subexpr_call) {
+    p -> entry_eval_status |= EVAL_STATUS_DIRECT_SUBEXPR;
+    eval_subexpr_call = false;
+  }
   expr_parsers[--expr_parser_ptr] = p;
 
   p -> msg_frame_top = tokenize_no_error (e_message_push, pname);
@@ -2305,7 +2543,7 @@ OBJECT *eval_expr (char *s, OBJECT *recv_class, METHOD *method,
 	    METHOD *test_mthd;
 	    if ((aggregate_type_end == -2) ||
 		((m_prev_msg && 
-		  non_method_label (m_prev_msg -> obj, m -> name,
+		  non_method_label (m_prev_msg, m -> name,
 				    pname, &instance_var_tmp,
 				    &class_var_tmp) &&
 		  ((test_mthd =
@@ -2334,7 +2572,8 @@ OBJECT *eval_expr (char *s, OBJECT *recv_class, METHOD *method,
 			   2. The receiver object and message
 			   are the same as saved just above.
 			   (There is no separate value_obj
-			   set in the receiver_msg).
+			   set in the receiver_msg, or a super
+			   keyword.)
 			   3. The previous message is an
 			   instance or class variable and
 			   c_rcvr_idx points to a token to
@@ -2364,7 +2603,10 @@ OBJECT *eval_expr (char *s, OBJECT *recv_class, METHOD *method,
 			  }
 			have_method_fit:
 			  if (!(m -> attrs & RT_DATA_IS_CACHED_METHOD)) {
-			    _error ("method mismatch!\n");
+			    __warning_trace ();
+			    _error ("method mismatch: Method \"%s\":\n\n\t%s\n\n",
+				    M_NAME(m),
+				    expr_parsers[expr_parser_ptr] -> expr_str);
 			  }
 			}
 		      } else {
@@ -2430,7 +2672,7 @@ OBJECT *eval_expr (char *s, OBJECT *recv_class, METHOD *method,
 	      } else if (m_prev_msg && IS_OBJECT(M_VALUE_OBJ(m_prev_msg)) &&
 			 ((m -> obj = instance_var_tmp) != NULL)) {
 		m -> attrs = RT_OBJ_IS_INSTANCE_VAR;
-		set_receiver_msg_and_obj (m, m_prev_msg);
+		set_receiver_msg_and_obj_fixup (i, m, m_prev_msg);
 		if ((c_rcvr_idx = 
 		     set_c_rcvr_idx (m_prev_msg, prev_msg_ptr,
 				     c_rcvr_idx)) != ERROR) {
@@ -2497,7 +2739,9 @@ OBJECT *eval_expr (char *s, OBJECT *recv_class, METHOD *method,
 			(m -> obj, m -> obj -> scope | CREATED_PARAM);
 		    }
 		  }
-		} else {
+		  /* Try to resolve an object that isn't already resolved
+		     if it appears later in a compound expression. */
+		} else if (!resolve_single_object (m, pname)) {
 		  if ((c = get_method_arg_cvars_not_evaled (pname,
 							    expr_parser_ptr))
 		      != NULL) {
@@ -2651,6 +2895,10 @@ OBJECT *eval_expr (char *s, OBJECT *recv_class, METHOD *method,
 			goto done;
 		      }
 		    } else {
+		      unresolved_instance_variable_warning
+			(e_messages, i, prev_msg_ptr,
+			 p -> msg_frame_start,
+			 p -> expr_str);
 		      if ((m -> obj = create_param (pname, 
 						    method,
 						    recv_class,
@@ -2759,8 +3007,7 @@ OBJECT *eval_expr (char *s, OBJECT *recv_class, METHOD *method,
 	  */
 	  if (m_prev_msg && (m_prev_msg -> attrs & RT_TOK_IS_PREFIX_OPERATOR)) {
 	    if (tok_precedes_assignment_op (p, i)) {
-	      __ctalkSetObjectAttr (m -> obj, 
-				    m -> obj -> attrs | OBJECT_HAS_PTR_CX);
+	      __ctalkObjectAttrOr (m -> obj, OBJECT_HAS_PTR_CX);
 	      m -> attrs |= RT_TOK_HAS_LVAL_PTR_CX;
 	    }
 	  }
@@ -4117,6 +4364,17 @@ OBJECT *eval_expr (char *s, OBJECT *recv_class, METHOD *method,
 		  }
 		} else {
 		  fixup_forward_instance_var_of_method_return (p, i);
+		  if ((m_next_idx =
+		       next_msg (e_messages, i)) != ERROR) {
+		    if (m_next_idx == (p -> msg_frame_top + 1)) {
+		      eval_status |=
+			(EVAL_STATUS_TERMINAL_TOK|EVAL_STATUS_INSTANCE_VAR);
+		      result_obj =
+			M_VALUE_OBJ(e_messages[p -> msg_frame_top + 1]);
+		      e_messages[m_next_idx] -> attrs |= RT_OBJ_IS_INSTANCE_VAR;
+		      goto done;
+		    }
+		  }
 		}
 	      } else { /* if (__is_instvar_of_method_return ... */
 
@@ -4161,11 +4419,54 @@ OBJECT *eval_expr (char *s, OBJECT *recv_class, METHOD *method,
 					  p -> msg_frame_start) &&
 		     !rcvr_has_ptr_cx (p, i, c_rcvr_idx) &&
 		     !prev_tok_is_symbol (e_messages, i)) {
+	    /* If we've resolved a self token here, it might be helpful. 
+	       Any more complex and this should go in rt_error.c */
+	    int j_2, j_self = -1;
 	    if (__ctalkGetExceptionTrace ())
 	      __warning_trace ();
-	    _warning ("Warning: In the expression:\n\n\t%s\n\n"
-		      "Label, \"%s,\" is not resolved as an object "
-		      "or a method.\n", p -> expr_str, M_NAME(m));
+	    for (j_2 = i; j_2 <= expr_parsers[expr_parser_ptr] -> msg_frame_start;
+		 ++j_2) {
+	      if (e_messages[j_2] -> attrs & RT_TOK_IS_SELF_KEYWORD) {
+		j_self = j_2;
+	      }
+	    }
+	    if (j_self > 0) {
+	      _warning ("Warning: In the expression:\n\n\t%s\n\n"
+			"Label, \"%s,\" is not resolved as an object "
+			"or a method.  (Receiver \"self,\" class, \"%s.\")\n",
+			p -> expr_str, M_NAME(m),
+			(IS_OBJECT(e_messages[j_self] -> obj -> instancevars) ?
+			 e_messages[j_self] -> obj -> instancevars -> 
+			 __o_class -> __o_name :
+			 e_messages[j_self] -> obj -> __o_class -> __o_name));
+	    } else {
+	      _warning ("Warning: In the expression:\n\n\t%s\n\n"
+			"Label, \"%s,\" is not resolved as an object "
+			"or a method.\n", p -> expr_str, M_NAME(m));
+	    }
+	  } else {
+	    if (IS_OBJECT(m -> obj)) { 
+	      if (m -> obj -> scope == CREATED_PARAM) {
+		if (!str_eq (m -> obj -> __o_name, "super") &&
+		    !(m -> attrs & RT_TOK_OBJ_IS_CREATED_CVAR_ALIAS) &&
+		    !(m -> attrs & RT_OBJ_IS_INSTANCE_VAR) &&
+		    !(m -> attrs & RT_VALUE_OBJ_IS_INSTANCE_VAR) &&
+		    !is_fn_for_template (i, p) &&
+		    /* This might be temporary, due to re-eval of
+		       tokens. */
+		    /* !strstr (p -> expr_str, "->") */
+		    !is_obj_deref_expr (p) &&
+		    !is_label_in_deref (M_NAME(m)) &&
+		    /* This lines might need adjusting later on. */
+		    !(M_VALUE_OBJ(m) -> scope & ARG_VAR) &&
+		    !is_method_of_prev_tok_value (p, i) &&
+		    !is_method_param (M_NAME(m))) {
+		  _warning ("Warning: In the expression:\n\n\t%s\n\n"
+			    "Label, \"%s,\" is not resolved as an object "
+			    "or a method.\n", p -> expr_str, M_NAME(m));
+		}
+	      }
+	    }
 	  }
 	  ++m -> evaled;
 	}
@@ -4183,8 +4484,12 @@ OBJECT *eval_expr (char *s, OBJECT *recv_class, METHOD *method,
 	       */
 	      if ((matching_paren_ptr = 
 		   expr_match_paren (p, i)) == ERROR) {
-		__ctalkExceptionInternal (m, mismatched_paren_x, "",0);
-		goto cleanup;
+		sprintf (namebuf, "\n\n\t%s\n\n",
+			 expr_parsers[expr_parser_ptr] -> expr_str);
+		__ctalkExceptionInternal (m, mismatched_paren_x, namebuf,0);
+		__ctalkHandleRunTimeExceptionInternal ();
+		printf ("%s", namebuf);
+		exit (1);
 	      }
 	      fn_tok_ptr = prev_msg (e_messages, i);
 	      if (__rt_is_typecast_expr (p, i)) {
@@ -4213,10 +4518,66 @@ OBJECT *eval_expr (char *s, OBJECT *recv_class, METHOD *method,
 		    }
 		    i = close_param_list_idx;
 		  } else {
-		    int __expr_close_paren;
+		    int __expr_close_paren,
+		      terminal_mbr_idx;
 		    /* See the comment in pattypes.c. */
 		    if (is_single_token_cast (p, i, &__expr_close_paren)) {
 		      i = __expr_close_paren;
+		      continue;
+		    } else if (is_OBJECT_vartab_deref_cast
+			       (e_messages, i, &terminal_mbr_idx)) {
+		      cvar_for_OBJECT_deref_typecast (e_messages, i,
+						      terminal_mbr_idx,
+						      expr_parser_ptr);
+		      char *__s, s2[MAXMSG], c2[MAXMSG];
+		      CVAR *c, *c_1, *c_prev;
+		      OBJECT *cvar_alias;
+		      int cvar_object_is_created, i_2;
+		      METHOD *m;
+		      __s = collect_tokens (e_messages, i, terminal_mbr_idx);
+		      remove_whitespace (__s, s2);
+		      if ((method = __ctalkRtGetMethod ()) != NULL) {
+			c_1 = NULL;
+			for (c = method -> local_cvars; c && c -> next;
+			     c = c -> next)
+			  ;
+			while (1) {
+			  if (c -> evaled &&
+			      (expr_parser_ptr >= c -> attr_data)) {
+			    if (c -> prev == NULL) {
+			      break;
+			    } else {
+			      c = c -> prev;
+			      continue;
+			    }
+			  }
+			  c_prev = c -> prev;
+			  remove_whitespace (c -> name, c2);
+			  if (str_eq (c2, s2)) {
+			    c_1 = c;
+			    break;
+			  } else {
+			    c = c_prev;
+			  }
+			}
+
+			if (c_1) {
+			  cvar_alias = cvar_object_mark_evaled
+			    (c_1, &cvar_object_is_created, expr_parser_ptr);
+			  __objRefCntInc (OBJREF(cvar_alias));
+			  for (i_2 = i; i_2 >= terminal_mbr_idx; --i_2) {
+			    if (!IS_OBJECT(e_messages[i_2] -> obj)) {
+			      e_messages[i_2] -> obj = cvar_alias;
+			      e_messages[i_2] -> attrs |=
+				RT_TOK_OBJ_IS_CREATED_CVAR_ALIAS;
+			    }
+			    e_messages[i_2] -> value_obj = cvar_alias;
+			    e_messages[i_2] -> evaled += 1;
+			  }
+			}
+		      }
+		      __xfree (MEMADDR(__s));
+		      i = terminal_mbr_idx;
 		      continue;
 		    }
 
@@ -4473,8 +4834,8 @@ OBJECT *eval_expr (char *s, OBJECT *recv_class, METHOD *method,
 		}
 	      }
 	      break;
-	    case CONDITIONAL:     /* Gets re-arranged in the parser, so
-				     this is a no-op here. */
+	    case CONDITIONAL:
+	      question_conditional (p, i);
 	      break;
 	    case SIZEOF:
 	      if ((next_msg_ptr = 
@@ -4873,8 +5234,7 @@ OBJECT *eval_expr (char *s, OBJECT *recv_class, METHOD *method,
       continue;
     if (n -> attrs & RT_TOK_HAS_LVAL_PTR_CX) {
       if (IS_OBJECT (n -> obj)) 
-	__ctalkSetObjectAttr (n -> obj,
-			      n -> obj -> attrs & ~OBJECT_HAS_PTR_CX);
+	__ctalkObjectAttrAnd (n -> obj, (unsigned)~OBJECT_HAS_PTR_CX);
     }
     if (IS_OBJECT (n -> obj)) {
       clean_up_message_objects (e_messages, n, n -> obj,
@@ -4976,8 +5336,8 @@ OBJECT *_rt_math_op (MESSAGE_STACK messages, int op_ptr, int stack_start,
   char errmsg[MAXMSG];
 
   _rt_operands (C_EXPR_PARSER, op_ptr, &op1_ptr, &op2_ptr);
-  if ((op1_ptr == ERROR) || (op2_ptr == ERROR)) {
-    if (expr_parsers[expr_parser_ptr+1]) {
+  if ((op1_ptr <= 0) || (op2_ptr <= 0)) {
+    if ((expr_parser_ptr + 1) <= MAXARGS) {
       if (expr_parsers[expr_parser_ptr+1] -> expr_str) {
 	_warning ("Warning: rt_math_op (): Invalid operand.\n");
 	_warning ("Warning: In expression:\n");
@@ -4992,13 +5352,29 @@ OBJECT *_rt_math_op (MESSAGE_STACK messages, int op_ptr, int stack_start,
       _warning ("\t%s\n", M_NAME(messages[op_ptr]));
       __warning_trace ();
     }
+    
     return NULL;
   }
 
   if (!IS_OBJECT(messages[op1_ptr] -> obj)) {
     if (!IS_OBJECT(messages[op1_ptr] -> value_obj)) {
-      _warning ("rt_math_op (): Invalid operand object.\n");
-      return NULL;
+      if (M_TOK(messages[op1_ptr]) == CLOSEPAREN) {
+	int prev;
+	/* If an operand result is NULL, this may not be filled in,
+	   so we'll do a fixup. */
+	prev = prev_msg (messages, op1_ptr);
+	while (M_TOK(messages[prev]) == CLOSEPAREN)
+	  --prev;
+	if (IS_OBJECT(messages[prev] -> obj)) {
+	  messages[op1_ptr] -> obj = messages[prev] -> obj;
+	} else {
+	  _warning ("rt_math_op (): Invalid operand object.\n");
+	  return NULL;
+	}
+      } else {
+	_warning ("rt_math_op (): Invalid operand object.\n");
+	return NULL;
+      }
     }
   }
   /*
@@ -5147,7 +5523,7 @@ int _set_expr_value (MESSAGE_STACK messages, int stack_start, int stack_end,
   _rt_operands (C_EXPR_PARSER, op_ptr, &op1_ptr, &op2_ptr);
   
   if ((op1_ptr == ERROR) || (op2_ptr == ERROR)) {
-    if (expr_parsers[expr_parser_ptr+1]) {
+    if (expr_parser_ptr + 1 <= MAXARGS) {
       if (expr_parsers[expr_parser_ptr+1] -> expr_str) {
 	_warning ("Warning: __set_expr_value (): Invalid operand.\n");
 	_warning ("Warning: In expression:\n");
@@ -5480,6 +5856,38 @@ OBJECT *null_result_obj (METHOD *m, int scope) {
   return o;
 }
 
+/* As above, but it takes the object's class from the receiver
+   object. */
+static OBJECT *null_result_obj_2 (METHOD *m, OBJECT *rcvr, int scope) {
+
+  OBJECT *o, *return_class;
+
+  o = create_object_init_internal (NULLSTR, rcvr -> __o_class,
+				   scope, "0x0");
+#if 0
+  if (!m || !strcmp (m -> returnclass, "Any")) {
+    o = create_object_init_internal
+      (NULLSTR, rt_defclasses -> p_integer_class, scope, "0x0");
+  } else {
+    if ((return_class = __ctalkGetClass (m -> returnclass)) == NULL) {
+      _warning ("Undefined return class %s.\n",
+		m -> returnclass);
+      o = create_object_init_internal
+	(NULLSTR, rt_defclasses -> p_integer_class, scope, "0x0");
+    } else {
+      o = __ctalkCreateObjectInit (NULLSTR, return_class -> __o_name,
+				   _SUPERCLASSNAME(return_class),
+				   scope, "0x0");
+    }
+  }
+#endif  
+
+  o -> attrs |= OBJECT_IS_NULL_RESULT_OBJECT;
+  o -> instancevars -> attrs |= OBJECT_IS_NULL_RESULT_OBJECT;
+
+  return o;
+}
+
 
 /*
  *  When called by eval_expr (), we can be reasonably certain
@@ -5690,6 +6098,7 @@ OBJECT *eval_subexpr (MESSAGE_STACK messages, int idx, int is_arg_expr) {
   subexpr_rcvr = get_subexpr_rcvr (messages, idx, matching_paren_ptr,
 				   &subexpr_scope);
 
+  eval_subexpr_call = true;
   if (subexpr_rcvr) {
     subexpr_result = eval_expr (token_buf, subexpr_rcvr -> __o_class, 
 				method, subexpr_rcvr, subexpr_scope,
@@ -5778,6 +6187,42 @@ OBJECT *eval_subexpr (MESSAGE_STACK messages, int idx, int is_arg_expr) {
 	m_next -> receiver_obj =
 	  M_VALUE_OBJ(messages[matching_paren_ptr]);
       }
+    } else if (M_TOK(m_next) == EQ) {
+      /*
+       *  In this case we do a fixup if we have an expression like:
+       *
+       *    (*self instVar) = argVar;
+       *
+       *  And instVar is a Symbol.  That's because the semantics
+       *  of Symbol : = require that we evaluate the expression 
+       *  as if it were this:
+       *
+       *    self instVar = argVar;
+       *
+       *  That is, Symbol : = automatically does the assignment
+       *  if the operand is not another Symbol.
+       */
+      if (M_TOK(messages[subexpr_start]) == MULT) {
+	if (messages[subexpr_end] -> attrs & RT_OBJ_IS_INSTANCE_VAR) {
+	  if (IS_OBJECT(messages[subexpr_end] -> obj)) {
+	    if (IS_OBJECT(messages[subexpr_end] -> obj -> instancevars)) {
+	      if (messages[subexpr_end] -> obj -> instancevars -> __o_class
+		  == rt_defclasses -> p_symbol_class) {
+		if (subexpr_rcvr) {
+		  subexpr_start = next_msg (e_messages, subexpr_start);
+		  toks2str (messages, subexpr_start, subexpr_end, token_buf);
+		  subexpr_result = eval_expr (token_buf, subexpr_rcvr -> __o_class, 
+					      method, subexpr_rcvr, subexpr_scope,
+					      is_arg_expr);
+		}
+	      }
+	    }
+	  }
+	}
+      }
+    } else if (M_TOK(m_next) == CONDITIONAL) {
+      subexpr_conditional
+	(expr_parsers[expr_parser_ptr], idx, matching_paren_ptr, post_expr_ptr);
     }
   }
 

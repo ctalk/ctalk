@@ -1,4 +1,4 @@
-/* $Id: panelib.c,v 1.1.1.1 2019/10/26 23:40:50 rkiesling Exp $ -*-c-*-*/
+/* $Id: panelib.c,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -100,6 +100,17 @@ int __ctalkDeleteWinBuffer (OBJECT *symbol_instancevar_object) {
     for (q = p; *q; q++)
       free (*q);
     free (p);
+  } else if ((xid_instvar = __ctalkGetInstanceVariable
+	      (symbol_instancevar_object , "xID", FALSE)) != NULL) {
+    id = INTVAL(xid_instvar -> instancevars ?
+		xid_instvar -> instancevars -> __o_value :
+		xid_instvar -> __o_value);
+    INTVAL(xid_instvar -> __o_value) = 0;
+    if (IS_OBJECT(xid_instvar -> instancevars)) {
+      INTVAL(xid_instvar -> instancevars -> __o_value) = 0;
+    }
+    __ctalkX11DeletePixmap (id);
+    
   }
   return SUCCESS;
 }

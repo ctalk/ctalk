@@ -1,8 +1,8 @@
-/* $Id: guidrawpoint.c,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-c-*-*/
+/* $Id: guidrawpoint.c,v 1.1.1.1 2020/07/17 07:41:38 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
-  Copyright © 2005-2012, 2016, 2018-2019  
+  Copyright © 2005-2012, 2016, 2018-2020
     Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
@@ -51,7 +51,7 @@ int __ctalkX11PaneDrawPoint (OBJECT *self, OBJECT *pane, OBJECT *pen) {
 int __ctalkGUIPaneDrawPoint (OBJECT *self, OBJECT *pane, OBJECT *pen) {
   return SUCCESS;
 }
-int __ctalkX11PaneDrawPointBasic (int drawable_id,
+int __ctalkX11PaneDrawPointBasic (void *, dint drawable_id,
 				  unsigned long int gc_ptr,
 				   int x_center, int y_center,
 				   int pen_width,
@@ -60,7 +60,10 @@ int __ctalkX11PaneDrawPointBasic (int drawable_id,
   return SUCCESS;
 }
 #else /* X11LIB_FRAME */
-int __ctalkX11PaneDrawPointBasic (int drawable_id,
+
+int __xlib_draw_point (Display *, Drawable, GC, char *);
+
+int __ctalkX11PaneDrawPointBasic (void *d, int drawable_id,
 				  unsigned long int gc_ptr,
 				  int x_center, int y_center,
 				  int pen_width,
@@ -85,8 +88,12 @@ int __ctalkX11PaneDrawPointBasic (int drawable_id,
 	   ":", pen_color,
 	   NULL);
   
-  make_req (shm_mem, PANE_DRAW_POINT_REQUEST,
-   	    drawable_id, gc_ptr, d_buf);
+  if (dialog_dpy ()) {
+    __xlib_draw_point (d, drawable_id, (GC)gc_ptr, d_buf);
+  } else {
+    make_req (shm_mem, d, PANE_DRAW_POINT_REQUEST,
+	      drawable_id, gc_ptr, d_buf);
+  }
 #ifdef GRAPHICS_WRITE_SEND_EVENT
   send_event.xgraphicsexpose.type = GraphicsExpose;
   send_event.xgraphicsexpose.send_event = True;
@@ -107,7 +114,7 @@ int __ctalkGUIPaneDrawPoint (OBJECT *self, OBJECT *point, OBJECT *pen) {
     *point_x_var, *point_y_var, *pen_color_object, *pen_alpha_object,
     *parentDrawable_object;
   int panebuffer_xid, panebackingstore_xid;
-  OBJECT *win_id_value, *gc_value;
+  OBJECT *win_id_value, *gc_value, *displayPtr_var;
   char d_buf[MAXLABEL], intbuf1[MAXLABEL], intbuf2[MAXLABEL],
     intbuf3[MAXLABEL];
 #ifdef GRAPHICS_WRITE_SEND_EVENT
@@ -122,6 +129,7 @@ int __ctalkGUIPaneDrawPoint (OBJECT *self, OBJECT *point, OBJECT *pen) {
   win_id_value = __x11_pane_win_id_value_object (self_object);
   parentDrawable_object = __ctalkGetInstanceVariable
     (self_object, "parentDrawable", FALSE);
+  displayPtr_var = __ctalkGetInstanceVariable (self_object, "displayPtr", TRUE);
   gc_value = __x11_pane_win_gc_value_object (self_object);
   pen_object = (IS_VALUE_INSTANCE_VAR (pen) ? pen->__o_p_obj : pen);
   point_object = (IS_VALUE_INSTANCE_VAR (point) ? point->__o_p_obj : point);
@@ -158,11 +166,15 @@ int __ctalkGUIPaneDrawPoint (OBJECT *self, OBJECT *point, OBJECT *pen) {
 	   
   if (IS_OBJECT(parentDrawable_object)) {
     /* Again, the receiver is a X11Bitmap object. */
-    make_req (shm_mem, PANE_DRAW_POINT_REQUEST,
+    make_req (shm_mem,
+	      SYMVAL(displayPtr_var -> instancevars -> __o_value),
+	      PANE_DRAW_POINT_REQUEST,
 	      INTVAL(parentDrawable_object -> __o_value),
 	      SYMVAL(gc_value -> __o_value), d_buf);
   } else  {
-    make_req (shm_mem, PANE_DRAW_POINT_REQUEST,
+    make_req (shm_mem,
+	      SYMVAL(displayPtr_var -> instancevars -> __o_value),
+	      PANE_DRAW_POINT_REQUEST,
 	      INTVAL(win_id_value -> __o_value),
 	      SYMVAL(gc_value -> __o_value), d_buf);
   }
@@ -186,7 +198,7 @@ int __ctalkX11PaneDrawPoint (OBJECT *self, OBJECT *pane, OBJECT *pen) {
 int __ctalkGUIPaneDrawPoint (OBJECT *self, OBJECT *pane, OBJECT *pen) {
   x_support_error (); return ERROR;
 }
-int __ctalkX11PaneDrawPointBasic (int drawable_id,
+int __ctalkX11PaneDrawPointBasic (void *d, int drawable_id,
 				  unsigned long int gc_ptr,
 				   int x_center, int y_center,
 				   int pen_width,

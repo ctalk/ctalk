@@ -1,8 +1,8 @@
-/* $Id: reg_cvar.c,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ */
+/* $Id: reg_cvar.c,v 1.1.1.1 2020/07/17 07:41:39 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
-  Copyright © 2005-2019 Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2005-2020 Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
 
@@ -33,8 +33,8 @@
 extern bool argblk;          /* Declared in argblk.c.                    */
 
 extern bool ctrlblk_pred;    /* From control.c. */
-CTRLBLK *ctrlblks[MAXARGS + 1];
-int ctrlblk_ptr;
+extern CTRLBLK *ctrlblks[MAXARGS + 1];
+extern int ctrlblk_ptr;
 
 extern SUBSCRIPT subscripts[MAXARGS];       /* Declared in subscr.c. */
 extern int subscript_ptr;
@@ -323,6 +323,10 @@ int register_c_var (MESSAGE *m_err, MESSAGE_STACK messages, int idx,
   /*
    *  If in an argument block, the CVAR registration should be handled
    *  by fmt_register_argblk_c_vars_* () (complexmethd.c).
+   *  
+   *  Unliess it's a global C variable and we're writing a
+   *  complete argument expression for evaluation at run time -
+   *  see eval_arg.c.
    */
   if (argblk) {
     ms.messages = messages;

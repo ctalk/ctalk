@@ -1,8 +1,8 @@
-/* $Id: primitives.c,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ */
+/* $Id: primitives.c,v 1.2 2020/09/19 01:08:28 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
-  Copyright © 2005-2018 Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2005-2018, 2020 Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
 
@@ -242,7 +242,8 @@ OBJECT *define_class (int method_msg_ptr) {
     generate_primitive_class_definition_call (m_receiver -> obj, method);
 
     save_class_init_info (arg_object -> __o_name, 
-			  arg_object -> __o_superclassname);
+			  arg_object -> __o_superclassname,
+			  library_pathname ());
   } /* if (file_exists (cache_fn)) */
 
   next_frame_top_ptr = message_frame_top_n (parser_frame_ptr () - 1);
@@ -526,12 +527,15 @@ OBJECT *new_object (int method_msg_ptr) {
     switch (M_TOK(m))
       {
       case LABEL:
-	if (nth_arg > 0) {
-	  copy_arg_class (method -> args[0] -> obj,
-			  method -> args[nth_arg] -> obj);
+	if (IS_ARG(method -> args[nth_arg]) &&
+	    IS_OBJECT(method -> args[nth_arg] -> obj)) {
+	  if (nth_arg > 0) {
+	    copy_arg_class (method -> args[0] -> obj,
+			    method -> args[nth_arg] -> obj);
+	  }
+	  __new_object_internal (method_msg_ptr, i, nth_arg);
+	  ++nth_arg;
 	}
-	__new_object_internal (method_msg_ptr, i, nth_arg);
-	++nth_arg;
 	break;
       case  SEMICOLON:
 	goto new_object_done;
@@ -583,6 +587,11 @@ OBJECT *get_rcvr_class_obj (void) {
 
 void set_rcvr_class_obj (OBJECT *o) {
   rcvr_class_obj = o;
+}
+
+static void set_rcvr_class_obj_new_method_2 (OBJECT *o, METHOD *m) {
+  rcvr_class_obj = o;
+  m -> rcvr_class_obj = o;
 }
 
 /*
@@ -695,7 +704,12 @@ OBJECT *new_instance_method (int method_msg_ptr) {
       (m_rcvr -> obj != m_method -> receiver_obj))
     error (m_method, "new_instance_method: receiver mismatch error.");
 
-  set_rcvr_class_obj (m_rcvr -> obj);
+  /* Moved up here from below. */
+  if ((n_method = (METHOD *)__xalloc (sizeof (METHOD))) == NULL)
+    _error ("new_instance_method: %s.", strerror (errno));
+  n_method -> sig = METHOD_SIG;
+
+  set_rcvr_class_obj_new_method_2 (m_rcvr -> obj, n_method);
 
   if (!IS_CLASS_OBJECT(rcvr_class_obj))
     error (m_method, "new_instance_method: Receiver %s is not a class object.",
@@ -750,15 +764,20 @@ OBJECT *new_instance_method (int method_msg_ptr) {
   }
 
 
+#if 0 /* Moved up to before set_rcvr_class_obj. */
   if ((n_method = (METHOD *)__xalloc (sizeof (METHOD))) == NULL)
     _error ("new_instance_method: %s.", strerror (errno));
   n_method -> sig = METHOD_SIG;
-
+#endif
+  
   new_methods[new_method_ptr--] = create_newmethod_init (n_method);
   new_methods[new_method_ptr+1] -> n_param_newlines = 
     param_newline_count (param_start_ptr, param_end_ptr);
 
-  n_method -> rcvr_class_obj = rcvr_class_obj;
+  /* NOTE! - This line seems not to be executed sometimes with 
+     optimization .  Shows up in super_argblk_rcvr_expr. 
+     See set_rcvr_class_obj, above, for possible fix. */
+  /* n_method -> rcvr_class_obj = rcvr_class_obj; */
 
   if (method_contains_argblk (message_stack (), method_start_ptr,
 			      method_end_ptr)) {
@@ -1776,7 +1795,6 @@ static OBJECT *var_definition (MESSAGE_STACK messages, int idx) {
     _warning ("Undefined class in var_definition ().\n");
     return NULL;
   }
-  strcpy (var_definition_args.classobjname, M_NAME(messages[class_ptr]));
   var_definition_idx.class_obj_name_idx = class_ptr;
 
   if (((arg_ptr = nextlangmsg (messages, idx)) == ERROR) ||
@@ -1920,8 +1938,9 @@ static OBJECT *var_definition (MESSAGE_STACK messages, int idx) {
        class_object_search 
        (M_NAME(messages[var_definition_idx.class_obj_name_idx]),
 	FALSE)) == NULL) {
-    __ctalkExceptionInternal (messages[idx], undefined_class_x, 
-			      var_definition_args.classobjname,0);
+    __ctalkExceptionInternal
+      (messages[idx], undefined_class_x, 
+       M_NAME(messages[var_definition_idx.class_obj_name_idx]),0);
     return NULL;
   }
 

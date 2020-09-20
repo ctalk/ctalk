@@ -1,8 +1,8 @@
-/* $Id: bufmthd.h,v 1.1.1.1 2019/10/26 23:40:50 rkiesling Exp $ */
+/* $Id: bufmthd.h,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
-  Copyright © 2005-2012 Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2005-2012, 2020 Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
 
@@ -24,14 +24,22 @@
 #ifndef __BUFMTHD_H
 #define __BUFMTHD_H
 
+struct _mb_list {
+  int sig;
+  struct _mb_list *next;
+  char data[MAXMSG - 8]; /* sizeof (int) + sizeof (void *) */
+};
+
+typedef struct _mb_list MBLIST;
+
 typedef struct {
   METHOD *method;
-  LIST *src;
-  LIST *src_head;
-  LIST *init;
-  LIST *init_head;
-  LIST *cvar_tab_init, *cvar_tab_init_head;
-  LIST *cvar_tab_members, *cvar_tab_members_head;
+  MBLIST *src;
+  MBLIST *src_head;
+  MBLIST *init;
+  MBLIST *init_head;
+  MBLIST *cvar_tab_init, *cvar_tab_init_head;
+  MBLIST *cvar_tab_members, *cvar_tab_members_head;
 } BUFFERED_METHOD;
 
 #endif 

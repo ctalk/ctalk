@@ -1,8 +1,8 @@
-/* $Id: fn_tmpl.c,v 1.4 2019/11/17 15:29:00 rkiesling Exp $ */
+/* $Id: fn_tmpl.c,v 1.2 2020/09/19 01:08:27 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
-  Copyright © 2005-2012, 2015-2018 Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2005-2012, 2015-2020 Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
 
@@ -498,13 +498,14 @@ static int tmpl_method_arg_accessor_fn (MESSAGE_STACK messages, int idx,
 	fmt_arg_char_ptr) {
     strcatx (expr_buf, STRING_TRANS_FN, "(",
 	     format_method_arg_accessor (arg_n, M_NAME(messages[idx]),
-						       expr_tmp),
+					 false, expr_tmp),
 	     "1,)", NULL);
     __set_arg_message_name_tmpl (messages[idx], expr_buf);
   } else {
     __set_arg_message_name_tmpl (messages[idx], 
 			    format_method_arg_accessor 
-			    (arg_n, M_NAME(messages[idx]), expr_tmp));
+				 (arg_n, M_NAME(messages[idx]), false,
+				  expr_tmp));
   }
 
   return SUCCESS;
@@ -528,7 +529,7 @@ char *template_params (char *template, char *template_name) {
   MESSAGE *m;
   bool is_param;
 
-  stack_end = tokenize_reuse (tmpl_message_push, template);
+  stack_end = tokenize (tmpl_message_push, template);
 
   for (method_name_ptr = N_MESSAGES; 
        method_name_ptr >= stack_end; 
@@ -686,13 +687,16 @@ int c_tmpl_fn_args (MESSAGE_STACK messages, OBJECT *arg_object,
 	++tmpl_argstrptr;
 	break;
       default:
-	strcatx2 (arg_buf, m_tok -> name, NULL);
-	if (arg_start_ptr == -1)
-	  arg_start_ptr = i;
+	if (!(M_TOK(m_tok) == WHITESPACE && arg_start_ptr == -1)) {
+	  /* don't save leading whitespace */
+	  strcatx2 (arg_buf, m_tok -> name, NULL);
+	  if (arg_start_ptr == -1)
+	    arg_start_ptr = i;
+	}
       }
   }
 
-  template_info_method.n_args = 0; /***/
+  template_info_method.n_args = 0;
 
   if (!template_info_method.varargs &&
       (tmpl_argstrptr != template_info_method.n_params)) {
@@ -737,7 +741,7 @@ char *find_tmpmethodname (char *template) {
 
   memset ((void *)name, 0, MAXLABEL);
 
-  stack_end_ptr = tokenize_reuse (tmpl_message_push, template);
+  stack_end_ptr = tokenize (tmpl_message_push, template);
 
   for (i = N_MESSAGES; i >= stack_end_ptr; i--) {
 
@@ -769,7 +773,7 @@ int add_method_return (char *template, char *buf) {
   bool have_name;
   MESSAGE *m;
 
-  stack_end_ptr = tokenize_reuse (tmpl_message_push, template);
+  stack_end_ptr = tokenize (tmpl_message_push, template);
 
   for (i = N_MESSAGES, have_name = False; i >= stack_end_ptr; i--) {
 

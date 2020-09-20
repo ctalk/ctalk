@@ -1,4 +1,4 @@
-/* $Id: TCPIPNetworkStreamWriter,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-c-*-*/
+/* $Id: TCPIPNetworkStreamWriter,v 1.2 2020/07/10 01:52:55 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -92,7 +92,7 @@ TCPIPNetworkStreamWriter instanceMethod __openOnInternal (String hostname,
     r = getaddrinfo (hostname, NULL, &hints, &res);
     if (r != 0) {
       shutdown(self sock, SHUT_RDWR);
-      errText printOn "Host, \"%s:\" ", hostName;
+      errText printOn "Host, \"%s:\" ", hostname;
       errText += gai_strerror (r);
       ex raiseException INVALID_OPERAND_X, errText;
       return 0;

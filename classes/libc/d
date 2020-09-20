@@ -1,4 +1,4 @@
-/* $Id: d,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-c-*-**/
+/* $Id: d,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ -*-c-*-**/
 
 /*
   This file is part of Ctalk.
@@ -29,8 +29,7 @@
 cDiffTime (int time1, int time2) { \n\
   char buf[MAXLABEL]; \n\
   if (__ctalkIsObject(ARG(1))) {\n\
-    sprintf (buf, "%f", difftime (__ctalk_to_c_int (ARG(1)),  \n\
-				__ctalk_to_c_int (ARG(0)))); \n\
+    __ctalkDoubleToASCII (difftime (__ctalk_to_c_int (ARG(1)), __ctalk_to_c_int (ARG(0))), buf); \n\
   } else { \n\
     strcpy (buf, "0.0"); \n\
   } \n\

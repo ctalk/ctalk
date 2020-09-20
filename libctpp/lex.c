@@ -1,4 +1,4 @@
-/* $Id: lex.c,v 1.1.1.1 2019/10/26 23:40:50 rkiesling Exp $ */
+/* $Id: lex.c,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -88,12 +88,6 @@ static int preprocess_line = FALSE;  /* Used to determine statement endings -
 int comment = 0;                      /* Level of comment nesting. */
 
 int str_term_err_loc;
-
-#ifndef WITHOUT_SIGNED_HEX_OCTAL_CONSTANT_WARNINGS
-static void about_signed_hex_octal_constant_warning (void) {
-  _warning ("(To get rid of this warning, use the --without-signed-hex-octal-constant-warnings option with configure.)\n");
-}
-#endif
 
 static inline int __is_sign (char c, const char *buf, int idx,
 			     bool *have_sign) {
@@ -690,12 +684,10 @@ int lexical (char *buf, long long *idx, MESSAGE *m) {
       if (need_signed_hexadecimal_constant_warning) {
 	_warning ("%s:%d: Signed hexadecimal constant %s.\n", 
 		  INCLUDE_SOURCE_NAME, error_line, m -> name);
-	about_signed_hex_octal_constant_warning ();
       }
       if (need_signed_octal_constant_warning) {
 	_warning ("%s:%d: Signed octal constant %s.\n", 
 		  INCLUDE_SOURCE_NAME, error_line, m -> name);
-	about_signed_hex_octal_constant_warning ();
       }
     }
 #endif

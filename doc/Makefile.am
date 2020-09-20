@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $
+# $Id: Makefile.am,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $
 SUBDIRS = 
 info_TEXINFOS=ctpp.texi ctalk.texi tutorial.texi ctalktools.texi
 man_MANS=ctpp.1 ctalk.1 ctcc.1 ctdb.1 methods.1 ctxlogo.1 ctalkintro.1 \

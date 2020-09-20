@@ -1,8 +1,8 @@
-/* $Id: rt_prton.c,v 1.3 2019/10/30 02:10:37 rkiesling Exp $ */
+/* $Id: rt_prton.c,v 1.2 2020/09/18 21:25:12 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
-  Copyright © 2005-2012, 2015-2017, 2019  
+  Copyright © 2005-2012, 2015-2017, 2019, 2020  
     Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
@@ -49,10 +49,18 @@ extern int __ctalk_arg_ptr;
 static char tmparg0buf[0xFFFF];
 
 static int __check_printon_args (METHOD *method) {
-  int n, n_th_conv_arg;
+  int i, n, n_th_conv_arg;
+  char *r;
   for (n = 0, n_th_conv_arg = 0; n < fmt_tok_idx; n++) {
-    if (strchr (fmt_tokens[n], '%'))
-      ++n_th_conv_arg;
+    for (i = 0; fmt_tokens[n][i]; ++i) {
+      if (fmt_tokens[n][i] == '%') {
+	if (fmt_tokens[n][i+1] == '%') {
+	  i += 2;
+	} else {
+	  ++n_th_conv_arg;
+	}
+      }
+    }
   }
   if (n_th_conv_arg != ptr_arg_idx)
     return ERROR;
@@ -62,13 +70,24 @@ static int __check_printon_args (METHOD *method) {
 #define ARG_VAL_OBJ(__o) ((__o)->instancevars ? \
   (__o)->instancevars : (__o))
 
+char *__compress_escs (char *sin, char *sout) {
+  int i, j;
+  for (i = 0, j = 0; sin[i]; i++, j++) {
+    if (sin[i] == '%' && sin[i + 1] == '%')
+      ++i;
+    sout[j] = sin[i];
+  }
+  return sout;
+}
+
 int __call_printon_fn_w_args (OBJECT *arg0_obj, char *fmt, METHOD *method, 
 			      STDARG_CALL_INFO *stdarg_call_info) {
 
   int i, j, k, retval;
   int fmtsize;
   int bufsize = MAXMSG;
-  char *arg0_buf;
+  char *arg0_buf, buf[MAXMSG];
+
 
   retval = 0;
 
@@ -83,26 +102,35 @@ int __call_printon_fn_w_args (OBJECT *arg0_obj, char *fmt, METHOD *method,
       memset (tmparg0buf, 0, 0xffff);
 
     if (strstr (fmt_tokens[i], "%%")) {
-      /* For lack of anything better.... */
-      strncat (tmparg0buf, fmt_tokens[i], 1);
+      /*
+       *  It _should_ not occur that there will be both a '%%'
+       *  string and a '%' beginning a format sequence in the
+       *  same token, due to the way that tokenize_fmt works...
+       */
+      __compress_escs (fmt_tokens[i], tmparg0buf);
     } else {
       if (strchr (fmt_tokens[i], '%')) {
-	strcatx2 (tmparg0buf, 
-		__scalar_fmt_conv (fmt_tokens[i], 
-				   ptr_args[j++],
-				   method -> args[k++] -> obj), NULL);
-	++retval;
+	if (IS_ARG(method -> args[k])) {
+	  strcatx2 (tmparg0buf, 
+		    __scalar_fmt_conv (fmt_tokens[i], 
+				       ptr_args[j++],
+				       method -> args[k++] -> obj), NULL);
+	  ++retval;
+	} else {
+	  _warning ("ctalk: Missing format argument for \"%s\".\n",
+		    fmt);
+	}
       } else {
 	strcatx2 (tmparg0buf, fmt_tokens[i], NULL);
       }
     }
-      fmtsize += strlen (tmparg0buf);
-      if (fmtsize >= bufsize) {
-	while (fmtsize > bufsize)
-	  bufsize *= 2;
-	arg0_buf = realloc (arg0_buf, bufsize);
-      }
-      strcatx2 (arg0_buf, tmparg0buf, NULL);
+    fmtsize += strlen (tmparg0buf);
+    if (fmtsize >= bufsize) {
+      while (fmtsize > bufsize)
+	bufsize *= 2;
+      arg0_buf = realloc (arg0_buf, bufsize);
+    }
+    strcatx2 (arg0_buf, tmparg0buf, NULL);
     }
     __ctalkSetObjectValueVar(arg0_obj, arg0_buf);
     __xfree (MEMADDR(arg0_buf));
@@ -245,7 +273,8 @@ int __ctalkSelfPrintOn (void) {
 	   pointer */
 	ctitoa (*(int *)read_value_obj -> __o_value, ptr_args[ptr_arg_idx++]);
       } else if (read_value_obj -> attrs & OBJECT_VALUE_IS_BIN_LONGLONG) {
-	ctitoa (LLVAL(read_value_obj -> __o_value), ptr_args[ptr_arg_idx++]);
+	__ctalkLongLongToDecimalASCII (LLVAL(read_value_obj -> __o_value), 
+				       ptr_args[ptr_arg_idx++]);
       } else if (read_value_obj -> attrs & OBJECT_VALUE_IS_BIN_SYMBOL) {
 	htoa (ptr_args[ptr_arg_idx++], SYMVAL(read_value_obj -> __o_value));
       } else {

@@ -1,8 +1,8 @@
-/* $Id: glxchaserft.ca,v 1.18 2019/11/21 21:57:35 rkiesling Exp $ */
+/* $Id: glxchaserft.ca,v 1.1.1.1 2020/09/13 17:14:20 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
-  Copyright © 2019  Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2019 - 2020  Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
 
@@ -35,7 +35,7 @@
  *    terminal.
  */
 
-#define SYNC_SWAP
+/* #define SYNC_SWAP */
 
 /*
  *  The Freetype libraries require the path to the font file.
@@ -136,7 +136,7 @@ GLXCanvasPane instanceMethod initGL (void) {
   fgcolor[0] = r; fgcolor[1] = g; fgcolor[2] = b;
 
   glViewport (0, 0, glxchaser winWidth, glxchaser winHeight);
-  glClearColor(0.0, 0.0, 0.0, 1.0);
+  glClearColor(bgcolor[0], bgcolor[1], bgcolor[2], 1.0);
   glLineWidth (1.0);
   glClear(GL_COLOR_BUFFER_BIT);
   glEnable (GL_LINE_SMOOTH);
@@ -161,7 +161,7 @@ GLXCanvasPane instanceMethod initGL (void) {
      exit (1);
 
   self pixelHeightFT 18;
-  glColor3f (0.0, 0.0, 1.0);
+  glColor3f (fgcolor[0], fgcolor[1], fgcolor[2]);
   x = 0.0; y = 0.0;
   textwidth = self textWidthFT text;
 

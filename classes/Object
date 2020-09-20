@@ -1,8 +1,8 @@
-/* $Id: Object,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-C-*-*/
+/* $Id: Object,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
-  Copyright © 2005-2019  Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2005-2020  Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
 
@@ -837,37 +837,22 @@ Object instanceMethod methods (Boolean findClassMethods) {
       }
       continue;
     }
-
+   
     inputLine tokenize lineTokens;
 
     if (lineTokens size == 0)
       continue;
 
     tok = *lineTokens;
-    ++tok;
 
-    while (tok) {
+    while (++tok) {
 
       if (*tok == keywordPattern)
 	haveKeyword = True;
 
       if (haveClassName && haveKeyword) {
-	while (++tok) {
-	  c = (*tok) at 0;
-	  if (c isAlpha || (c == '_')) {
-	    if (!overloadedOp) {
-	      outputLine += *tok;
-	    } else {
-	      overloadedOp = False;
-	    }
-	    break;
-	  } else  {
-	    // Collect an overloaded operator if the
-	    // next token isn't a label.
-	    outputLine += *tok;
-	    overloadedOp = True;
-	  }
-	}
+	++tok;
+	outputLine += *tok;
 	outputLine += "\n";
 	haveClassName = False;
 	haveKeyword = False;
@@ -956,10 +941,8 @@ Object instanceMethod basicNew (char *name, char *classname,
   "Return a new object with the name, class, superclass,
   and value given by the arguments.  The new object has
   all of the instance variables defined by the class
-  object.  Also set the object's value explicitly to
-  make sure that an instance variable didn't replace
-  it.  The new object has the scope LOCAL_VAR and has a
-  reference count of 1."
+  object.  The new object has the scope LOCAL_VAR and
+  has a reference count of 1."
   OBJECT *s;
   returnObjectClass Any;
 
@@ -975,12 +958,9 @@ Object instanceMethod basicNew (char *name, char *classname,
 
 Object instanceMethod basicNew (char *name, char *value_expr) {
   "Return a new object with the name and value given by
-  the arguments.  The new object has all of the
-  instance variables defined by the class object.  Also
-  set the object's value explicitly to make sure that
-  an instance variable didn't replace it.  The new
-  object has the scope LOCAL_VAR and has a reference
-  count of 1."
+  the arguments.  The new object has all of the instance variables
+  defined by the class object.  The new object has the scope
+  LOCAL_VAR and has a reference count of 1."
   Exception new ex;
   OBJECT *s;
   returnObjectClass Any;
@@ -1005,9 +985,7 @@ Object instanceMethod basicNew (char *name, char *value_expr) {
 Object instanceMethod basicNew (char *name) {
   "Return a new object with the name given by the
   argument.  The new object has all of the instance
-  variables defined by the class object.  Also set the
-  object's value explicitly to make sure that an
-  instance variable didn't replace it.  The new object
+  variables defined by the class object.  The new object
   has the scope LOCAL_VAR and has a reference count of
   1."
   Exception new ex;

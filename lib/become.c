@@ -1,8 +1,8 @@
-/* $Id: become.c,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ */
+/* $Id: become.c,v 1.2 2020/09/17 19:14:05 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
-  Copyright © 2005-2019  Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2005-2020  Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
 
@@ -157,7 +157,7 @@ extern bool is_constant_arg;  /* declared in rt_expr.c */
    return NULL;
  }
 
- static OBJECT *__receiver_become (OBJECT *__new) {
+static OBJECT *__receiver_become (OBJECT *__new) {
    OBJECT *old_rcvr;
    object_become_delete = TRUE;
    old_rcvr = __ctalk_receiver_pop_deref ();
@@ -207,7 +207,13 @@ extern bool is_constant_arg;  /* declared in rt_expr.c */
 	   /*
 	    *  Or even if it is sometimes... watch this.
 	    */
-	   __ctalkDeleteObject (old);
+	   if (old -> scope & VAR_REF_OBJECT) {
+	     if (!(old ->scope & METHOD_USER_OBJECT)) {
+	       __ctalkRegisterUserObject (old);
+	     }
+	   } else {
+	     __ctalkDeleteObject (old);
+	   }
 	 }
        }
      } else {

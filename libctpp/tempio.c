@@ -1,8 +1,8 @@
-/* $Id: tempio.c,v 1.1.1.1 2019/10/26 23:40:50 rkiesling Exp $ */
+/* $Id: tempio.c,v 1.3 2020/07/08 02:02:01 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
-  Copyright © 2005-2014  Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2005-2014, 2020  Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
 
@@ -245,7 +245,7 @@ void copy_file (char *oldname, char *newname) {
 void cleanup (int unlink_output) {
 
   char tmpdir[FILENAME_MAX];
-  char tmpname[FILENAME_MAX];
+  char tmpname[FILENAME_MAX + 11]; /* FILENAME_MAX + P_tmpdir */
   char pidbuf[64];
   DIR *dir;
   struct dirent *d;

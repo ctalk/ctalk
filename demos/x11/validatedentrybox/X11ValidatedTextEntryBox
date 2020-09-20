@@ -1,0 +1,733 @@
+/* $Id: X11ValidatedTextEntryBox,v 1.10 2020/06/25 18:51:34 rkiesling Exp $ -*-C-*-*/
+
+/*
+  This file is part of Ctalk.
+  Copyright © 2020  Robert Kiesling, rk3314042@gmail.com.
+  Permission is granted to copy this software provided that this copyright
+  notice is included in all source code modules.
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+*/
+
+/* 
+   X11ValidatedTextEntryBox Class - Text Entry with character validation
+   demo.
+
+   In this example, the method subPaneKbd checks for input that
+   is not a punctuation or space character - programs can replace
+   this check with any character check that is necessary.
+
+   The main thing that we need to do is replace the keyboard input
+   handler with one that checks the input and pops up an error
+   message if needed.
+
+   Note that X11ValidatedTextEntryBox : subPaneKbd is very similar to
+   the X11TextEntryPane : kbdInput method, except that the entry pane
+   is an instance variable of the popup window: it's declared as,
+   "entryPane," in the X11TextEntryBox class.
+
+   So we need to modify all of the expressions that use, "self," and,
+   "subPane," to refer to the entryPane instance variable.  For
+   example, this expression,
+
+     self reflow;
+
+   (where "reflow" is an instance method defined in X11TextEntryPane class)
+   becomes:
+
+     self entryPane reflow;
+
+
+   The same is true of instance variables, which are almost all
+   declared in X11TextEntryPane class. So this expression, from the
+   X11TextEntryPane class,
+
+     self center
+
+   becomes, in this class,
+
+     self entryPane center
+
+*/
+
+#include <ctalk/ctalkdefs.h>
+
+X11TextEntryBox class X11ValidatedTextEntryBox;
+
+X11ValidatedTextEntryBox instanceVariable errorBox X11MessageBoxPane NULL;
+
+extern Atom wm_delete_dialog;
+extern void __enable_dialog (OBJECT *);
+
+X11ValidatedTextEntryBox instanceMethod new (String paneName) {
+  Method new kbdMethod, leaveMethod, enterMethod, buttonMethod;
+
+  X11ValidatedTextEntryBox super new paneName;
+  
+  kbdMethod definedInstanceMethod "X11ValidatedTextEntryBox", "subPaneKbd";
+  paneName setMethodHandler "kbdinput", kbdMethod;
+
+  leaveMethod definedInstanceMethod "X11ValidatedTextEntryBox",
+    "subPaneLeave";
+  paneName setMethodHandler "leavenotify", leaveMethod;
+    
+  enterMethod definedInstanceMethod "X11ValidatedTextEntryBox",
+    "subPaneEnter";
+  paneName setMethodHandler "enternotify", enterMethod;
+    
+  enterMethod definedInstanceMethod "X11ValidatedTextEntryBox",
+    "subPaneEnter";
+  paneName setMethodHandler "enternotify", enterMethod;
+    
+  buttonMethod definedInstanceMethod "X11ValidatedTextEntryBox",
+    "subPaneButton";
+  paneName setMethodHandler "pointerinput", enterMethod;
+    
+  return paneName;
+}
+
+/* Some of these are also defined in X11TextEditorPane class and edittext.c. */
+#define shiftStateShift     (1 << 0)
+#define shiftStateCtrl      (1 << 1)
+#define shiftStateCapsLock  (1 << 2)
+
+/* From X11/keysymdef.h, in case your machine defines these differently. */
+#ifndef XK_Control_L
+#define XK_Control_L  0xffe3
+#endif
+#ifndef XK_Control_R
+#define XK_Control_R  0xffe4
+#endif
+#ifndef XK_Shift_L
+#define XK_Shift_L 0xffe1
+#endif
+#ifndef XK_Shift_R
+#define XK_Shift_R 0xffe2
+#endif
+#ifndef XK_Caps_Lock
+#define XK_Caps_Lock 0xffe5
+#endif
+#ifndef XK_Backspace
+#define XK_Backspace 0xff08
+#endif
+#ifndef XK_Right
+#define XK_Right     0xff53
+#endif
+#ifndef XK_Left
+#define XK_Left      0xff51
+#endif
+#ifndef XK_Home
+#define XK_Home      0xff50
+#endif
+#ifndef XK_End
+#define XK_End       0xff57
+#endif
+#ifndef XK_Delete
+#define XK_Delete    0xffff
+#endif
+
+X11ValidatedTextEntryBox instanceMethod initErrorBox (void) {
+  X11MessageBoxPane new l_msgBox;
+
+  if (!self initialized) {
+    /* initialized gets set to true in initWidgets */
+
+    l_msgBox resources replaceAt "backgroundColor", "blue";
+    l_msgBox resources replaceAt "foregroundColor", "blue";
+    l_msgBox resources replaceAt "messageColor", "white";
+    l_msgBox resources replaceAt "titleText", "Input Error";
+    l_msgBox resources replaceAt "messageText",
+      "Invalid Character\nPlease Re-Enter";
+    l_msgBox resources replaceAt "iconID", ICON_STOP;
+
+    self errorBox become l_msgBox;
+    self errorBox attachTo self, "250x250";
+    self errorBox label justify = LABEL_CENTER;
+
+  }
+}
+
+X11ValidatedTextEntryBox instanceMethod subPaneKbd (Object subPane,
+						     InputEvent event) {
+  char c;
+  CharCell new cc, cm;
+  String new s1, s2;
+  Integer new w1, w2;
+
+  if (event eventData == subPane xWindowID) {
+
+    if (event eventClass == KEYPRESS) {
+      switch (event xEventData5)
+	{
+	case XK_Shift_L:
+	case XK_Shift_R:
+	  subPane entryPane shiftState |= shiftStateShift;
+	  break;
+	case XK_Control_L:
+	case XK_Control_R:
+	  subPane entryPane shiftState |= shiftStateCtrl;
+	  break;
+	case XK_Caps_Lock:
+	  /* sticky key */
+	  if (subPane entryPane shiftState & shiftStateCapsLock) {
+	    subPane entryPane shiftState &= ~shiftStateCapsLock;
+	  } else {
+	    subPane entryPane shiftState |= shiftStateCapsLock;
+	  }
+	  break;
+	case XK_Backspace:
+	  if (self entryPane chars size > 0) {
+	    if (self entryPane sStart != 0 || self entryPane sEnd != 0) {
+	      if (self entryPane sStart > self entryPane sEnd) {
+		while (self entryPane sStart >= self entryPane sEnd) {
+		  cc = self deleteAt self entryPane sStart;
+		  self entryPane sStart--;
+		}
+		self entryPane point = self entryPane sEnd;
+	      } else {
+		while (self entryPane sEnd >= self entryPane sStart) {
+		  cc = self deleteAt self entryPane sEnd;
+		  self entryPane sEnd --;
+		}
+		self entryPane point = self entryPane sStart;
+	      }
+	      self entryPane reflow;
+	      cc = self charCellAt (self entryPane point - 1);
+	      self entryPane cursorX = cc boxExt x;
+	      self entryPane sStart = 0;
+	      self entryPane sEnd = 0;
+	      if (self entryPane selecting)
+		self entryPane selecting = false;
+	      self draw;
+	      self refresh;
+	    } else {
+	      if (self entryPane point == self entryPane chars size) {
+		cc = self entryPane chars pop;
+		self entryPane point -= 1;
+		self draw;
+		self refresh;
+	      } else {
+		cc = self deleteAt self entryPane point;
+		self entryPane point -= 1;
+		self entryPane reflow;
+		self draw;
+		self refresh;
+	      }
+	    }
+	  }
+	  break;
+	case XK_Delete:
+	  self entryPane deleteForward;
+	  break;
+	case XK_Right:
+	  self entryPane center = true;
+	  if (self entryPane point < self entryPane chars size) {
+	    self entryPane point += 1;
+	    self draw;
+	    self refresh;
+	  }
+	  break;
+	case XK_Left:
+	  self entryPane center = true;
+	  if (self entryPane point > 0) {
+	    self entryPane point -= 1;
+	    self draw;
+	    self refresh;
+	  }
+	  break;
+	case XK_Home:
+	  self entryPane center = true;
+	  self entryPane point = 0;
+	  self draw;
+	  self refresh;
+	  return NULL;
+	  break;
+	case XK_End:
+	  self entryPane center = true;
+	  self entryPane point = self entryPane chars size;
+	  self draw;
+	  self refresh;
+	  return NULL;
+	  break;
+	default:
+	  c = __edittext_xk_keysym (event xEventData4, self entryPane shiftState,
+				    event xEventData5);
+	  /* Some pointer buttons can return weird values.  Try to
+	     catch them here. */
+	  if (!isprint (c))
+	    return NULL;
+	  /*
+	   *  This checks for valid characters in this example.
+	   *  Specific programs can replace this with a function
+	   *  or method that performs the validation.
+	   */
+	  if (isspace (c) || ispunct (c)) {
+	    self errorBox show;
+	    return NULL;
+	  }
+	  if ((subPane entryPane shiftState & shiftStateShift) ||
+	      (subPane entryPane shiftState & shiftStateCapsLock)) {
+	    /* We're just gonna do the shifted keys here. */
+	    switch (c)
+	      {
+	      case '0':	c = ')'; break;
+	      case '1': c = '!'; break;
+	      case '2': c = '@'; break;
+	      case '3': c = '#'; break;
+	      case '4': c = '$'; break;
+	      case '5': c = '%'; break;
+	      case '6': c = '^'; break;
+	      case '7': c = '&'; break;
+	      case '8': c = '*'; break;
+	      case '9': c = '('; break;
+	      case '-': c = '_'; break;
+	      case '=':	c = '+'; break;
+	      case '\\':c = '|'; break;
+	      case '`':	c = '~'; break;
+	      case '[': c = '{'; break;
+	      case ']':	c = '}'; break;
+	      case ';':	c = ':'; break;
+	      case '\'':c = '\"';break;
+	      case ',': c = '<'; break;
+	      case '.':	c = '>'; break;
+	      case '/': c = '?'; break;
+	      default: c &= ~32; break;
+	      }
+	  } else if (c == 127) {  /* Delete on some keyboards. */
+	    self entryPane deleteForward;
+	    return NULL;
+	  } else if (subPane entryPane shiftState & shiftStateCtrl){
+	    switch (c)
+	      {
+	      case 'f':
+		if (self entryPane point < self entryPane chars size) {
+		  self entryPane center = true;
+		  self entryPane point += 1;
+		  self draw;
+		  self refresh;
+		  return NULL;
+		}
+		break;
+	      case 'b':
+		self entryPane center = true;
+		if (self entryPane point > 0) {
+		  self entryPane point -= 1;
+		  self draw;
+		  self refresh;
+		  return NULL;
+		}
+		break;
+	      case 'a':
+		self entryPane center = true;
+		self entryPane point = 0;
+		self draw;
+		self refresh;
+		return NULL;
+		break;
+	      case 'e':
+		self entryPane center = true;
+		self entryPane point = self entryPane chars size;
+		self draw;
+		self refresh;
+		return NULL;
+		break;
+	      case 'd':
+		self entryPane deleteForward;
+		return NULL;
+		break;
+	      }
+	  }
+	  s1 = self entryPane chars asString;
+	  w1 = self ftFontVar textWidth s1;
+	  cc become CharCell basicNew c asString, c;
+	  if (c == ' ') {
+	    /* Use the width of an 'e' for a space. */
+	    cc width = self ftFontVar textWidth "e";
+	  } else {
+	    cc width = self ftFontVar textWidth cc asString;
+	  }
+	  cc boxOrg x = self entryPane inputWidth self entryPane chars, 0;
+	  cc boxOrg y = self entryPane baselineY - self ftFontVar ascent;
+	  cc boxExt x = cc boxOrg x + cc width;
+	  cc boxExt y = cc boxOrg y + self ftFontVar height;
+	  if (self entryPane point == self entryPane chars size) {
+	    self entryPane chars push cc;
+	    s2 = self entryPane chars asString;
+	    w2 = self ftFontVar textWidth s2;
+	    cc width = (w2 - w1 + self entryPane spacingHint);
+	    if (c_prev == ' ') {
+	      self entryPane calculateSpaceAppend;
+	      self entryPane reflow;
+	    }
+	  } else if (self entryPane point == 0) {
+	    self entryPane chars shift cc;
+	    s2 = self entryPane chars asString;
+	    w2 = self ftFontVar textWidth s2;
+	    cc width = (w2 - w1 + self spacingHint);
+	    self entryPane reflow;
+	  } else {
+	    self entryPane insertAt cc, self entryPane point;
+	    s2 = self entryPane chars asString;
+	    w2 = self ftFontVar textWidth s2;
+	    cc width = (w2 - w1 + self spacingHint);
+	    self entryPane reflow;
+	  }
+	  self entryPane point += 1;
+	  self draw;
+	  self refresh;
+	  c_prev = c;
+	  break;
+	}
+    } else if (event eventClass == KEYRELEASE) {
+      switch (event xEventData5)
+	{
+	case XK_Shift_L:
+	case XK_Shift_R:
+	  subPane entryPane shiftState &= ~shiftStateShift;
+	  break;
+	case XK_Control_L:
+	case XK_Control_R:
+	  subPane entryPane shiftState &= ~shiftStateCtrl;
+	  break;
+	default:
+	  break;
+	}
+    }
+  }
+}
+
+X11ValidatedTextEntryBox instanceMethod subPaneButton (Object subPane,
+					  InputEvent __event) {
+  switch (__event eventClass)
+    {
+    case BUTTONPRESS:
+      if (__event eventData == self lbutton xWindowID) {
+	self lbutton clicked = true;
+	if (!self lbutton clickSet)
+	  self lbutton clickSet = true;
+	self lbutton draw;
+	self lbutton refresh;
+      } else if (__event eventData == self rbutton xWindowID) {
+	self rbutton clicked = true;
+	if (!self rbutton clickSet)
+	  self rbutton clickSet = true;
+	self rbutton draw;
+	self rbutton refresh;
+      }
+      break;
+    case BUTTONRELEASE:
+      if (__event eventData == self lbutton xWindowID) {
+	self lbutton clicked = false;
+	self lbutton draw;
+	self lbutton refresh;
+	self returnVal = YESNO_LBUTTON;
+	self returnText = self resources at "leftButtonText";
+      } else if (__event eventData == self rbutton xWindowID) {
+	self rbutton clicked = false;
+	self rbutton draw;
+	self rbutton refresh;
+	self returnVal = YESNO_RBUTTON;
+	self returnText = self resources at "rightButtonText";
+      }
+      break;
+    }
+}
+
+X11ValidatedTextEntryBox instanceMethod subPaneEnter (Object subPane,
+						      InputEvent __event) {
+  if (__event eventData == self lbutton xWindowID) {
+    if (self lbutton canFocus) {
+      if (self lbutton clicked) {
+	self lbutton clicked = false;
+      }
+      if (!self lbutton hover) {
+	self lbutton label highlight = true;
+	self lbutton hover = true;
+      }
+      if (!self lbutton radius)
+	self lbutton label drawButtonLayout;
+      self lbutton draw;
+      self lbutton refresh;
+    }
+    return NULL;
+  } else if (__event eventData == self rbutton xWindowID) {
+    if (self rbutton canFocus) {
+      if (self rbutton clicked) {
+	self rbutton clicked = false;
+      }
+      if (!self lbutton hover) {
+	self rbutton label highlight = true;
+	self rbutton hover = true;
+      }
+      if (!self lbutton radius)
+	self rbutton label drawButtonLayout;
+      self rbutton draw;
+      self rbutton refresh;
+    }
+    return NULL;
+  } else if (__event eventData == self entryPane xWindowID) {
+    self entryPane useCursor self entryPane cursor;
+    self entryPane hover = true;
+    self entryPane draw;
+    self entryPane refresh;
+    return NULL;
+  }
+
+  /* The event comes from any other window. */
+  if (self lbutton clicked) {
+    self lbutton clicked = false;
+    self lbutton hover = false;
+    if (!self lbutton radius)
+      self lbutton label drawButtonLayout;
+    self lbutton draw;
+    self lbutton refresh;
+  }
+  if (self rbutton clicked) {
+    self rbutton clicked = false;
+    self rbutton hover = false;
+    if (!self rbutton radius)
+      self rbutton label drawButtonLayout;
+    self rbutton draw;
+    self rbutton refresh;
+  }
+}
+
+X11ValidatedTextEntryBox instanceMethod subPaneLeave (Object subPane,
+						      InputEvent __event) {
+  if (__event eventData == subPane lbutton xWindowID) {
+    if (self lbutton canFocus) {
+      if (self lbutton hover) {
+	self lbutton label highlight = false;
+	if (self lbutton clicked)
+	  self lbutton clicked = false;
+	self lbutton label drawButtonLayout;
+	self lbutton draw;
+	self lbutton refresh;
+	self lbutton hover = false;
+      }
+    }
+  } else if (__event eventData == subPane rbutton xWindowID) {
+    if (self rbutton canFocus) {
+      if (self rbutton hover) {
+	self rbutton label highlight = false;
+	if (self rbutton clicked)
+	  self rbutton clicked = false;
+	self rbutton label drawButtonLayout;
+	self rbutton draw;
+	self rbutton refresh;
+	self rbutton hover = false;
+      }
+    }
+  } else if (__event eventData == subPane entryPane xWindowID) {
+    self defaultCursor;
+    self entryPane hover = false;
+    self entryPane draw;
+    self entryPane refresh;
+  }
+}
+
+#define KEY_TAB   1
+#define KEY_ENTER 2
+
+X11ValidatedTextEntryBox instanceMethod show (void) {
+  "Displays the pane's window. Note that th method uses raw X
+   events. This is because the pane maintains its own connection
+   to the display, and the event handler can be contained in
+   this method."
+  returnObjectClass Integer;
+  Display *display;
+  Window win_id;
+  XEvent xev;
+  X11PaneDispatcher new dispatcher;
+  X11Pane new mainWin;
+  InputEvent new e;
+
+  dispatcher = *self container;
+  mainWin = dispatcher mainWindow;
+  
+  if (!self initialized) {
+
+    win_id = __ctalkX11CreateDialogWindow (self);
+    self xWindowID = win_id;
+    dispatcher modalWin = win_id;
+    dispatcher modalPane = self;
+
+    display = self displayPtr;
+  
+    (X11Bitmap *)self paneBuffer create self displayPtr, self xWindowID, 
+      self size x, self size y, self depth;
+    (X11Bitmap *)self paneBuffer background
+      (self resources at "backgroundColor");
+    self paneBuffer backgroundColor = self resources at "backgroundColor";
+    (X11Bitmap *)self paneBuffer foreground
+      (self resources at "foregroundColor");
+    (X11Bitmap *)self paneBackingStore create self displayPtr, self xWindowID,
+      self size x, self size y, self depth;
+
+    self initErrorBox;
+    self initWidgets;
+  } else {
+
+    __enable_dialog (self);
+
+    win_id = self xWindowID;
+    display = self displayPtr;
+
+  }
+
+  XMapWindow (display, win_id);
+  XMapSubwindows (display, win_id);
+  XRaiseWindow (display, win_id);
+
+  self clearWindow;
+  self returnVal = 0;
+
+  while (1) {
+    if (XPending (display)) {
+      XNextEvent (display, &xev);
+      switch (xev.type)
+	{
+	case ButtonPress:
+	  if ((xev.xbutton.window == self lbutton xWindowID) ||
+	      (xev.xbutton.window == self rbutton xWindowID)) {
+	    e eventClass = BUTTONPRESS;
+	    self methodObjectMessage self handlePointerInput, self, e;
+	  } else if (xev.xbutton.window == self entryPane xWindowID) {
+	    e eventClass = BUTTONPRESS;
+	    e xEventData1 = xev.xbutton.x;
+	    e xEventData2 = xev.xbutton.y;
+	    e xEventData3 = xev.xbutton.state;
+	    e xEventData4 = xev.xbutton.button;
+	    self entryPane methodObjectMessage
+	      self entryPane handlePointerInput, self entryPane, e;
+	  }
+	  break;
+	case ButtonRelease:
+	  if ((xev.xbutton.window == self lbutton xWindowID) ||
+	      (xev.xbutton.window == self rbutton xWindowID)) {
+	    e eventClass = BUTTONRELEASE;
+	    self methodObjectMessage self handlePointerInput, self, e;
+	    self withdraw;
+	    dispatcher modalWin = 0;
+	    dispatcher modalPane = NULL;
+	    return self returnVal;
+	  } else if (xev.xbutton.window == self entryPane xWindowID) {
+	    e eventClass = BUTTONRELEASE;
+	    e xEventData1 = xev.xbutton.x;
+	    e xEventData2 = xev.xbutton.y;
+	    e xEventData3 = xev.xbutton.state;
+	    e xEventData4 = xev.xbutton.button;
+	    self entryPane methodObjectMessage
+	      self entryPane handlePointerInput, self entryPane, e;
+	    if (xev.xbutton.button == Button2) {
+	      /* We've pasted the primary selection into the 
+		 entryPane - get the updated contents. */
+	      self entryContents = self entryPane entryText;
+	    }
+	  }
+	  break;
+	case EnterNotify:
+	  if ((xev.xbutton.window == self lbutton xWindowID) ||
+	      (xev.xbutton.window == self rbutton xWindowID) ||
+	      (xev.xbutton.window == self entryPane xWindowID)) {
+	    e eventClass = ENTERWINDOWNOTIFY;
+	    e eventData = xev.xbutton.window;
+	    self methodObjectMessage self handleEnterNotify, self, e;
+	  }
+	  break;
+	case LeaveNotify:
+	  if ((xev.xbutton.window == self lbutton xWindowID) ||
+	      (xev.xbutton.window == self rbutton xWindowID) ||
+	      (xev.xbutton.window == self entryPane xWindowID)) {
+	    e eventClass = LEAVEWINDOWNOTIFY;
+	    e eventData = xev.xbutton.window;
+	    self methodObjectMessage self handleLeaveNotify, self, e;
+	  }
+	  break;
+	case KeyPress:
+	  if (xev.xkey.window == self entryPane xWindowID) {
+	    e eventClass = KEYPRESS;
+	    e xEventData4 = xev.xkey.keycode;
+	    e xEventData5 = __edittext_xk_keysym
+	      (xev.xkey.keycode, xev.xkey.state, 0);
+	    /* self entryPane subPaneKbd self entryPane, e; *//***/
+	    self subPaneKbd self entryPane, e;
+	    self entryPane draw;
+	    self entryPane refresh;
+	    self entryContents = self entryPane entryText;
+	  } else {
+	    /* For the Tab and Enter keys, we don't need to worry
+	       about the shift keys */
+	    e eventClass = KEYPRESS;
+	    e xEventData4 = __edittext_xk_keysym
+	      (xev.xkey.keycode, xev.xkey.state, 0);
+	    self methodObjectMessage self handleKbdInput, self, e;
+	    if (self keyState == KEY_ENTER) {
+	      self withdraw;
+	      dispatcher modalWin = 0;
+	      dispatcher modalPane = NULL;
+	      self entryContents = self entryPane entryText;
+	      return self returnVal;
+	    }
+	  }
+	  break;
+	case KeyRelease:
+	  if (xev.xkey.window == self entryPane xWindowID) {
+	    e eventClass = KEYRELEASE;
+	    e xEventData4 = xev.xkey.keycode;
+	    e xEventData5 = __edittext_xk_keysym
+	      (xev.xkey.keycode, xev.xkey.state, 0);
+	    /* self entryPane subPaneKbd self entryPane, e; *//***/
+	    self subPaneKbd self entryPane, e;
+	    self entryPane draw;
+	    self entryPane refresh;
+	    self entryContents = self entryPane entryText;
+	  }
+	  break;
+	case Expose:
+	  self methodObjectMessage self handleExpose, self, e;
+	  break;
+	case MotionNotify:
+	  if (xev.xkey.window == self entryPane xWindowID) {
+	    e eventClass = MOTIONNOTIFY;
+	    e xEventData1 = xev.xmotion.x;
+	    e xEventData2 = xev.xmotion.y;
+	    e xEventData3 = xev.xmotion.state;
+	    e xEventData4 = xev.xmotion.is_hint;
+	    self entryPane subPanePointerMotion
+	      self entryPane, e;
+	  }
+	  break;
+	case SelectionRequest:
+	  __entrytext_send_selection (self displayPtr, &xev);
+	  break;
+	case ClientMessage:
+	  if(xev.xclient.data.l[0] == wm_delete_dialog) {
+	    self withdraw;
+	    dispatcher modalWin = 0;
+	    dispatcher modalPane = NULL;
+	    self returnVal = YESNO_NONE;
+	    self returnText = "";
+	    self entryContents = self entryPane entryText;
+	    return self returnVal;
+	  }
+	  break;
+	}
+    } else {
+      usleep (5000);
+    }
+  }
+
+}

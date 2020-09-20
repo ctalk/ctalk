@@ -12,7 +12,8 @@ Installing and Using Ctalk
 7. Building a Basic Version of Ctalk
 8. Installing GCC on MacOS
 9. Learning about Ctalk
-10. Bug Reports, Feedback, and Support
+10. The Ctalk Source Repository on Github
+11. Bug Reports, Feedback, and Support
 
 
 1. Quick Start
@@ -198,6 +199,10 @@ Ctalk adds these options.
   --without-signed-hex-octal-constant-warnings
                         Don't print warnings when encountering 
                         a signed octal or hexadecimal constant.
+			Note that because the option begins with,
+			"--without-," the default is to disable
+			the warnings.  To enable them, use,
+			"--with-signed-hex-octal-constant-warnings."
 
   --without-preload-installation
                         Don't try to preload base classes and
@@ -782,7 +787,33 @@ Typing, "ctalk -h," (or, "ctcc -h," or, "ctdb -h") displays the command
 line options.
 
 
-10. Bug Reports, Feedback, and Support
+10. The Ctalk Source Repository on Github
+
+The Ctalk source code is available on Github.  To download
+the repository to your machine use:
+
+  git clone http://github.com/ctalk/ctalk
+
+If you don't have the git(1) program, you can retrieve the
+repository using HTTP.
+
+https://github.com/ctalk/ctalk.git
+
+The source of most recent Ctalk package is on the, "release," branch.
+To use it, type,
+
+  git pull origin release
+
+Proposed changes for the next release are on the, "proposed," branch.
+Type:
+
+  git pull origin proposed
+
+That means changes for new releases should be available within a few
+days of committing the changes on the development machines.
+
+
+11. Bug Reports, Feedback, and Support
 
 Please contact the author(s), at rk3314042@gmail.com.  For updates,
 Ctalk apps, and other information, refer to the Ctalk Web site, 

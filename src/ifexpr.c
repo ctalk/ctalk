@@ -1,8 +1,8 @@
-/* $Id: ifexpr.c,v 1.3 2019/11/11 20:21:52 rkiesling Exp $ */
+/* $Id: ifexpr.c,v 1.2 2020/09/19 01:08:27 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
-  Copyright © 2005-2019 Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2005-2020 Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
 
@@ -1256,8 +1256,9 @@ int ctrlblk_pred_rt_expr (MESSAGE_STACK messages, int msg_ptr) {
 	      if ((c_1 = ifexpr_is_cvar_not_shadowed (messages, i))
 		  != NULL) {
 		argblk_CVAR_name_to_msg (messages[i], c_1);
-		fmt_register_argblk_cvar_from_basic_cvar
-		  (messages, i, c_1, expr_buf);
+		fileout (fmt_register_argblk_cvar_from_basic_cvar
+			 (messages, i, c_1, expr_buf), false,
+			 C_CTRL_BLK->keyword_ptr+1);
 		cpre_have_cvar_reg = true;
 		buffer_argblk_stmt (expr_buf);
 	      }
@@ -1266,8 +1267,7 @@ int ctrlblk_pred_rt_expr (MESSAGE_STACK messages, int msg_ptr) {
 	} else {
 	  for (i = pred_start_idx; i >= pred_end_idx; i--) {
 	    if (M_TOK(messages[i]) == LABEL) {
-	      if (((c_1 = get_local_var (M_NAME(messages[i]))) != NULL) ||
-		  ((c_1 = get_global_var (M_NAME(messages[i]))) != NULL)) {
+	      if ((c_1 = get_local_var (M_NAME(messages[i]))) != NULL) {
 		argblk_CVAR_name_to_msg (messages[i], c_1);
 	      }
 	    }
@@ -1532,19 +1532,42 @@ int ctrlblk_pred_rt_expr (MESSAGE_STACK messages, int msg_ptr) {
 	      ++messages[pred_start_idx] -> output;
 	    }
 	  }
-	  fileout 
-	    (fmt_default_ctrlblk_expr 
-	     (messages, pred_start_idx, 
-	      pred_end_idx, 
-	      (((messages[msg_ptr]-> attrs & TOK_IS_METHOD_ARG)|| 
-		(messages[msg_ptr] -> receiver_obj && 
-		 get_local_object 
-		 (messages[msg_ptr] -> receiver_obj -> __o_name,
-		  messages[msg_ptr] -> receiver_obj -> __o_classname))||
-		messages[msg_ptr] -> attrs & TOK_SELF) ?
-	       TRUE:FALSE), _t), 
-	     FALSE, 
-	     pred_start_idx);
+	  if (cpre_have_cvar_reg) {
+	    fileout 
+	      (fmt_default_ctrlblk_expr 
+	       (messages, pred_start_idx, 
+		pred_end_idx, 
+		(((messages[msg_ptr]-> attrs & TOK_IS_METHOD_ARG)|| 
+		  (messages[msg_ptr] -> receiver_obj && 
+		   get_local_object 
+		   (messages[msg_ptr] -> receiver_obj -> __o_name,
+		    messages[msg_ptr] -> receiver_obj -> __o_classname))||
+		  messages[msg_ptr] -> attrs & TOK_SELF) ?
+		 TRUE:FALSE), _t), 
+	       FALSE, 
+	       pred_start_idx);
+	    if (C_CTRL_BLK -> else_end_ptr > 0) {
+	      fileout (DELETE_CVARS_CALL, 0,
+		       C_CTRL_BLK -> else_end_ptr - 1);
+	    } else if (C_CTRL_BLK -> blk_end_ptr > 0) {
+	      fileout (DELETE_CVARS_CALL, 0,
+		       C_CTRL_BLK -> blk_end_ptr - 1);
+	    }
+	  } else {
+	    fileout 
+	      (fmt_default_ctrlblk_expr 
+	       (messages, pred_start_idx, 
+		pred_end_idx, 
+		(((messages[msg_ptr]-> attrs & TOK_IS_METHOD_ARG)|| 
+		  (messages[msg_ptr] -> receiver_obj && 
+		   get_local_object 
+		   (messages[msg_ptr] -> receiver_obj -> __o_name,
+		    messages[msg_ptr] -> receiver_obj -> __o_classname))||
+		  messages[msg_ptr] -> attrs & TOK_SELF) ?
+		 TRUE:FALSE), _t), 
+	       FALSE, 
+	       pred_start_idx);
+	  }
 	  break;
 	}
       /*

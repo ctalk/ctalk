@@ -1,8 +1,8 @@
-/* $Id: m,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-c-*-**/
+/* $Id: m,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ -*-c-*-**/
 
 /*
   This file is part of Ctalk.
-  Copyright © 2005-2012, 2015 Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2005-2012, 2015, 2019 Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
 
@@ -30,11 +30,10 @@
 
 #define mkdir \n\
 cMkdir (char *__d, int __m) { \n\
-  int r; \n\
   char buf[MAXLABEL]; \n\
-  r = mkdir (__ctalk_to_c_char_ptr(ARG(1)), CTALK_DIRECTORY_MODE); \n\
-  sprintf (buf, "%d", r); \n\
-  return __ctalkCreateObjectInit ("result", "Integer", \n\
+  __ctalkDecimalIntegerToASCII (mkdir (__ctalk_to_c_char_ptr(ARG(1)), \
+				       CTALK_DIRECTORY_MODE), buf);\n\
+ return __ctalkCreateObjectInit ("result", "Integer", \n \
      "Magnitude", LOCAL_VAR, buf); \n\
 }
 

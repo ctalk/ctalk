@@ -1,4 +1,4 @@
-/* $Id: uproto.h,v 1.1.1.1 2019/10/26 23:40:50 rkiesling Exp $ */
+/* $Id: uproto.h,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ */
 /*
   Copyright © 2005-2015 Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright

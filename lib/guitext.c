@@ -1,4 +1,4 @@
-/* $Id: guitext.c,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-c-*-*/
+/* $Id: guitext.c,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -75,7 +75,7 @@ static char *__write_text_data (char *data) {
   return handle_path;
 }
 
-int __ctalkX11TextFromData (int drawable_id,
+int __ctalkX11TextFromData (void *d, int drawable_id,
 			    unsigned long int gc_ptr, char *data) {
   char *h;
   int r;
@@ -89,7 +89,7 @@ int __ctalkX11TextFromData (int drawable_id,
   if (!shm_mem)
     return ERROR;
   memset ((void *)shm_mem, 0, SHM_BLKSIZE);
-  make_req (shm_mem, PANE_TEXT_FROM_DATA_REQUEST,
+  make_req (shm_mem, d, PANE_TEXT_FROM_DATA_REQUEST,
    	    drawable_id, gc_ptr, h);
   
 #ifdef GRAPHICS_WRITE_SEND_EVENT
@@ -111,7 +111,7 @@ int __ctalkX11TextFromData (int drawable_id,
 
 #endif /* X11LIB_FRAME */
 #else /* ! defined (DJGPP) && ! defined (WITHOUT_X11) */
-int __ctalkX11TextFromData (int drawable_id,
+int __ctalkX11TextFromData (void *d, int drawable_id,
 			    unsigned long int gc_ptr, 
 			   char *data) {
   x_support_error (); return ERROR;

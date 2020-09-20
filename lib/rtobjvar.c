@@ -1,8 +1,8 @@
-/* $Id: rtobjvar.c,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-c-*-*/
+/* $Id: rtobjvar.c,v 1.2 2020/09/18 21:25:13 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
-  Copyright © 2005-2019  Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2005-2020  Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
 
@@ -591,7 +591,7 @@ OBJECT *__ctalkDefineInstanceVariable (char *classname, char *varname,
   if (!IS_OBJECT(var_class_object -> __o_superclass)) {
     constructor_class_object = var_class_object;
   } else {
-    for (o_t = var_class_object -> __o_superclass;
+    for (o_t = var_class_object;
 	 o_t && !constructor_method; o_t = o_t -> __o_superclass) {
       method_hash_key (o_t -> __o_name, "new", hash_key);
       if (_hash_get (instancemethodhash, hash_key)) {
@@ -627,6 +627,19 @@ OBJECT *__ctalkDefineInstanceVariable (char *classname, char *varname,
 	      var -> __o_value, sizeof (int));
       var -> attrs |= OBJECT_VALUE_IS_BIN_INT;
       var -> instancevars -> attrs |= OBJECT_VALUE_IS_BIN_INT;
+    } else if (var_class_object -> attrs & BOOL_BUF_SIZE_INIT) {
+      int intval;
+      __xfree (MEMADDR(var -> __o_value));
+      __xfree (MEMADDR(var -> instancevars -> __o_value));
+      var -> __o_value = __xalloc (INTBUFSIZE);
+      var -> instancevars -> __o_value = __xalloc (INTBUFSIZE);
+      intval = atoi (init_expr);
+      intval = (intval) ? 1 : 0;
+      memcpy (var -> __o_value, &intval, sizeof (int));
+      memcpy (var -> instancevars -> __o_value,
+	      var -> __o_value, sizeof (int));
+      var -> attrs |= OBJECT_VALUE_IS_BIN_BOOL;
+      var -> instancevars -> attrs |= OBJECT_VALUE_IS_BIN_BOOL;
     } else if (var_class_object -> attrs & LONGLONG_BUF_SIZE_INIT) {
       long long int llval;
       __xfree (MEMADDR(var -> __o_value));
@@ -660,6 +673,17 @@ OBJECT *__ctalkDefineInstanceVariable (char *classname, char *varname,
     var = __var_constructor (varname, constructor_method, class_object,
 			     constructor_class_object, init_expr);
     __ctalkSetObjectValueClass (var, var_class_object);
+    if (constructor_class_object != class_object) {
+      /* Make sure we get the class' instance variables defined.
+	 First we set the class of the var to its actual class
+	 so we can use __ctalkInstanceVarsFromClassObject ... */
+      var -> __o_class = var_class_object;
+      var -> __o_superclass = var_class_object -> __o_superclass;
+      __ctalkInstanceVarsFromClassObject (var);
+      /* ... then we set it to the member class before finishing. */
+      var -> __o_class = class_object;
+      var -> __o_superclass = class_object -> __o_superclass;
+    }
   }
 
   __objRefCntSet (OBJREF(var), class_object -> nrefs);
@@ -780,6 +804,7 @@ OBJECT *__ctalkDefineClassVariable (char *classname, char *varname,
     }
     var -> attrs |= OBJECT_VALUE_IS_BIN_INT;
     var -> instancevars -> attrs |= OBJECT_VALUE_IS_BIN_INT;
+    __ctalkSetObjectValueClass (var, var_class_object);
   } else if (var_class_object -> attrs & LONGLONG_BUF_SIZE_INIT) {
     __xfree (MEMADDR(var -> __o_value));
     __xfree (MEMADDR(var -> instancevars -> __o_value));
@@ -797,6 +822,7 @@ OBJECT *__ctalkDefineClassVariable (char *classname, char *varname,
     }
     var -> attrs |= OBJECT_VALUE_IS_BIN_LONGLONG;
     var -> instancevars -> attrs |= OBJECT_VALUE_IS_BIN_LONGLONG;
+    __ctalkSetObjectValueClass (var, var_class_object);
   } else if (var -> __o_class -> attrs & CHAR_BUF_SIZE_INIT) {
     /* E.g., Character class - This needs to be initialized
        like a binary int value buffer, so we can treat them
@@ -809,6 +835,7 @@ OBJECT *__ctalkDefineClassVariable (char *classname, char *varname,
       strcpy (var -> __o_value, init_expr);
       strcpy (var -> instancevars -> __o_value, init_expr);
     }
+    __ctalkSetObjectValueClass (var, var_class_object);
   } else if (var -> __o_class -> attrs & BOOL_BUF_SIZE_INIT) {
     /* We'll just use an int-size buf here too, so we can
        just use ints */
@@ -832,6 +859,7 @@ OBJECT *__ctalkDefineClassVariable (char *classname, char *varname,
 	  *var -> instancevars -> __o_value = 1;
       }
     }
+    /* NOTE: We do not need to call  __ctalkSetObjectValueClass here. */
   } else if (var -> __o_class -> attrs & SYMBOL_BUF_SIZE_INIT) {
     __xfree (MEMADDR(var -> __o_value));
     __xfree (MEMADDR(var -> instancevars -> __o_value));
@@ -849,9 +877,10 @@ OBJECT *__ctalkDefineClassVariable (char *classname, char *varname,
       *(unsigned long *)var -> instancevars -> __o_value = symbol_value;
       *(unsigned long *)var -> __o_value = symbol_value;
     }
+    __ctalkSetObjectValueClass (var, var_class_object);
+  } else {
+    __ctalkSetObjectValueClass (var, var_class_object);
   }
-
-  __ctalkSetObjectValueClass (var, var_class_object);
   __ctalkSetObjectScope (var, class_object -> scope);
 
   /*
@@ -914,6 +943,18 @@ static void copy_instance_vars_from_class (OBJECT *class, OBJECT *o) {
       new_var -> attrs = var -> attrs;
       if (var -> instancevars -> __o_class -> attrs & INT_BUF_SIZE_INIT) {
 	var -> instancevars -> attrs |= OBJECT_VALUE_IS_BIN_INT;
+	new_var -> instancevars -> attrs |= OBJECT_VALUE_IS_BIN_INT;
+      } else if (var -> instancevars -> __o_class -> attrs & BOOL_BUF_SIZE_INIT) {
+	var -> instancevars -> attrs |= OBJECT_VALUE_IS_BIN_BOOL;
+	new_var -> instancevars -> attrs |= OBJECT_VALUE_IS_BIN_BOOL;
+	__xfree (MEMADDR(new_var -> __o_value));
+	new_var->__o_value = __xalloc (BOOLBUFSIZE);
+	memcpy ((void *)new_var -> __o_value,
+		(void *)var -> instancevars -> __o_value, BOOLBUFSIZE);
+	__xfree (MEMADDR(new_var -> instancevars -> __o_value));
+	new_var->instancevars->__o_value = __xalloc (BOOLBUFSIZE);
+	memcpy ((void *)new_var -> instancevars -> __o_value,
+		(void *)var -> instancevars -> __o_value, BOOLBUFSIZE);
       }
 
       t -> next = new_var;
@@ -1036,17 +1077,19 @@ static bool object_is_not_derived (OBJECT *obj) {
 static bool string_return_needs_mutation (void) {
   EXPR_PARSER *expr_parser;
   METHOD *method, *prev_method;
-  if ((expr_parser = C_EXPR_PARSER) != NULL) {
-    if (expr_parser -> call_stack_level == __current_call_stack_idx () + 1) {
-      if ((method = __ctalkRtGetMethod ()) != NULL) {
-	if (method == expr_parser -> e_methods[expr_parser -> e_method_ptr-1]) {
-	  /* We should just be able to check the previous method's return
-	     class. First check that there is a previous method. */
-	  if (expr_parser -> e_method_ptr >= 2) {
-	    prev_method = 
-	      expr_parser -> e_methods [expr_parser -> e_method_ptr - 2];
-	    if (!str_eq (prev_method -> returnclass, STRING_CLASSNAME))
-	      return true;
+  if (expr_parser_ptr <= MAXARGS) {
+    if ((expr_parser = C_EXPR_PARSER) != NULL) {
+      if (expr_parser -> call_stack_level == __current_call_stack_idx () + 1) {
+	if ((method = __ctalkRtGetMethod ()) != NULL) {
+	  if (method == expr_parser -> e_methods[expr_parser -> e_method_ptr-1]) {
+	    /* We should just be able to check the previous method's return
+	       class. First check that there is a previous method. */
+	    if (expr_parser -> e_method_ptr >= 2) {
+	      prev_method = 
+		expr_parser -> e_methods [expr_parser -> e_method_ptr - 2];
+	      if (!str_eq (prev_method -> returnclass, STRING_CLASSNAME))
+		return true;
+	    }
 	  }
 	}
       }

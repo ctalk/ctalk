@@ -1,4 +1,4 @@
-/* $Id: rtclslib.c,v 1.1.1.1 2019/10/26 23:40:50 rkiesling Exp $ -*-c-*-*/
+/* $Id: rtclslib.c,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -335,7 +335,13 @@ OBJECT *__ctalk_define_class (ARG **args) {
 			     ZERO_LENGTH_STR_INIT);
     } else if (str_eq (ARG_OBJECT(args[0]) -> __o_name, INTEGER_CLASSNAME)) {
       __ctalkSetObjectAttr (ARG_OBJECT(args[0]), INT_BUF_SIZE_INIT);
-    } else if (str_eq (ARG_OBJECT(args[0]) -> __o_name, CHARACTER_CLASSNAME)) {
+    } else if (str_eq (ARG_OBJECT(args[0]) -> __o_name, CHARACTER_CLASSNAME) ||
+	       (is_class_or_subclass (ARG_OBJECT(args[0]),
+				      rt_defclasses -> p_character_class) &&
+		!is_class_or_subclass (ARG_OBJECT(args[0]),
+				       rt_defclasses -> p_string_class))) {
+      /* String class (as a subclass of Character) overrides the 
+	 Character value format.... */
       __ctalkSetObjectAttr (ARG_OBJECT(args[0]), CHAR_BUF_SIZE_INIT);
     } else if (str_eq (ARG_OBJECT(args[0]) -> __o_name, BOOLEAN_CLASSNAME) ||
 	       is_class_or_subclass (ARG_OBJECT(args[0]),

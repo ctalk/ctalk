@@ -1,4 +1,4 @@
-/* $Id: xfthello.c,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ */
+/* $Id: xhello.ca,v 1.1 2020/09/19 06:49:20 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -22,12 +22,7 @@
 */
 
 /*
- *  xfthello.c  - FreeType2 version of xhello.c. 
- *
- *  If you build Ctalk with support for libxft (which is the default), 
- *  then you'll also need to configure the font libraries if you haven't
- *  already.  The X11FreeTypeFont section of the Ctalk Language Reference 
- *  contains information about how to enable FreeType font support.
+ *  xhello.c  - "Hello, world!" in a X Window
  */
 
 X11Pane instanceMethod putCenteredText (String text, Integer strWidth,
@@ -53,13 +48,14 @@ int main (int argc, char **argv) {
   Boolean new verbose;
   String new defaultFont;
 
+  xPane backgroundColor = "white";
   xPane initialize 200, 100;
   xPane inputStream eventMask = WINDELETE|EXPOSE|MOVENOTIFY|RESIZENOTIFY;
   xPane map;
   xPane raiseWindow;
 
   xPane ftFontVar initFontLib;
-  xPane ftFont "Nimbus Sans L", 0, 0, 0, 14.0;
+  xPane ftFont "sans-serif", 0, 0, 0, 12.0;
 
   xPane openEventStream;
 

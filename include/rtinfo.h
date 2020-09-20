@@ -1,4 +1,4 @@
-/* $Id: rtinfo.h,v 1.1.1.1 2019/10/26 23:40:50 rkiesling Exp $ */
+/* $Id: rtinfo.h,v 1.1.1.1 2020/09/13 17:14:20 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -51,6 +51,7 @@ typedef struct _rtfn {
   LIST *user_objects,
     *user_object_ptr;
   int n_user_objs;
+  void *db;
   struct _rtfn *next;
   struct _rtfn *prev;
 } RT_FN;
@@ -84,6 +85,7 @@ typedef struct _rtinfo {
 #define EVAL_STATUS_ASSIGN_ARG           (1 << 5)
 /* single token, set by __ctalk_get_object. */
 #define EVAL_STATUS_NAMED_PARAMETER      (1 << 6)
+#define EVAL_STATUS_DIRECT_SUBEXPR       (1 << 7)
 /*
   This tells us to remove the extra '*' from the 
    start of an expression because it's faster if

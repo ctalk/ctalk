@@ -1,8 +1,8 @@
-/* $Id: typecast_expr.c,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ */
+/* $Id: typecast_expr.c,v 1.2 2020/09/19 01:08:28 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
-  Copyright © 2005-2012, 2016, 2018, 2019 Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2005-2012, 2016, 2018 - 2020 Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
 
@@ -363,11 +363,11 @@ char *basic_class_from_typecast (MESSAGE_STACK messages, int start,
 
 /* #define CLASS_CAST_WARNINGS */
 
-static int class_cast_receiver_scan (MESSAGE_STACK messages,
-				     int stack_top_idx,
-				     int cast_end_idx,
-				     int *receiver_label_idx,
-				     int *deref_prefix_op_idx) {
+int class_cast_receiver_scan (MESSAGE_STACK messages,
+			      int stack_top_idx,
+			      int cast_end_idx,
+			      int *receiver_label_idx,
+			      int *deref_prefix_op_idx) {
   int i;
 
   for (i = cast_end_idx - 1, *receiver_label_idx = -1;
@@ -473,7 +473,8 @@ bool is_class_typecast (MSINFO *msi, int class_obj_tok) {
       !str_eq (M_NAME(msi -> messages[rcvr_tok_idx]), "super") &&
       !get_local_var (M_NAME(msi -> messages[rcvr_tok_idx])) &&
       !get_global_var (M_NAME(msi -> messages[rcvr_tok_idx])) &&
-      !get_object (M_NAME(msi -> messages[rcvr_tok_idx]), NULL)) {
+      !get_object (M_NAME(msi -> messages[rcvr_tok_idx]), NULL) &&
+      !is_method_parameter (msi -> messages, rcvr_tok_idx)) {
 #ifdef CLASS_CAST_WARNINGS
     warning (msi -> messages[close_paren_idx],
 	     "Undefined class cast receiver, \"%s.\"",
@@ -487,6 +488,112 @@ bool is_class_typecast (MSINFO *msi, int class_obj_tok) {
     msi -> messages[class_obj_tok];
 
   for (i = open_paren_idx; i >= close_paren_idx; i--) {
+    ++msi -> messages[i] -> evaled;
+    ++msi -> messages[i] -> output;
+  }
+
+  return true;
+
+}
+
+/* As above, but scans from the opening paren. Used by eval_arg. */
+bool is_class_typecast_2 (MSINFO *msi, int open_paren_tok) {
+  int i;
+  int class_obj_idx,
+    close_paren_idx;
+  int rcvr_tok_idx;
+  int deref_idx;
+  OBJECT *c;
+  bool have_class = false;
+  
+  if ((close_paren_idx = match_paren (msi -> messages, open_paren_tok,
+				      msi -> stack_ptr)) == ERROR) {
+    return false;
+  }
+
+  if ((class_obj_idx = nextlangmsg (msi -> messages, open_paren_tok))
+      ==ERROR) {
+    return false;
+  }
+
+  for (c = classes; c; c = c -> next) {
+    if (str_eq (c -> __o_name, M_NAME(msi -> messages[class_obj_idx]))) {
+      have_class = true;
+      break;
+    }
+  }
+  if (!have_class)
+    return false;
+
+#if 0
+  for (i = class_obj_idx + 1; i <= msi -> stack_start; i++) {
+    switch (M_TOK(msi -> messages[i]))
+      {
+      case WHITESPACE:
+      case NEWLINE:
+	continue;
+	break;
+      case OPENPAREN:
+	open_paren_idx = i;
+	goto cast_open_paren_done;
+	break;
+      default:
+	return false;
+	break;
+      }
+  }
+ cast_open_paren_done:
+#endif  
+
+  for (i = class_obj_idx - 1; i >= msi -> stack_ptr; i--) {
+    switch (M_TOK(msi -> messages[i]))
+      {
+      case WHITESPACE:
+      case NEWLINE:
+      case ASTERISK:
+	continue;
+	break;
+      case CLOSEPAREN:
+	close_paren_idx = i;
+	goto cast_close_paren_done;
+	break;
+      default:
+	return false;
+	break;
+      }
+  }
+
+ cast_close_paren_done:
+  if (class_cast_receiver_scan (msi -> messages,
+				msi -> stack_ptr,
+				close_paren_idx,
+				&rcvr_tok_idx, &deref_idx) == ERROR) {
+    return false;
+  }
+
+  
+  /* The self and super check needs to be a string comparison
+     because this function looks ahead of eval_arg setting the
+     TOK_SELF and TOK_SUPER attributes on the m_message stack. */
+  if (!str_eq (M_NAME(msi -> messages[rcvr_tok_idx]), "self") &&
+      !str_eq (M_NAME(msi -> messages[rcvr_tok_idx]), "super") &&
+      !get_local_var (M_NAME(msi -> messages[rcvr_tok_idx])) &&
+      !get_global_var (M_NAME(msi -> messages[rcvr_tok_idx])) &&
+      !get_object (M_NAME(msi -> messages[rcvr_tok_idx]), NULL) &&
+      !is_method_parameter (msi -> messages, rcvr_tok_idx)) {
+#ifdef CLASS_CAST_WARNINGS
+    warning (msi -> messages[close_paren_idx],
+	     "Undefined class cast receiver, \"%s.\"",
+	     M_NAME(msi -> messages[rcvr_tok_idx]));
+#endif
+    return false;
+  }
+
+  msi -> messages[class_obj_idx] -> attrs |= TOK_IS_CLASS_TYPECAST;
+  msi -> messages[rcvr_tok_idx] -> receiver_msg =
+    msi -> messages[class_obj_idx];
+
+  for (i = open_paren_tok; i >= close_paren_idx; i--) {
     ++msi -> messages[i] -> evaled;
     ++msi -> messages[i] -> output;
   }

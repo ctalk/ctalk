@@ -1,4 +1,4 @@
-/* $Id: Collection,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-c-*-*/
+/* $Id: Collection,v 1.3 2020/06/12 04:50:31 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -105,6 +105,33 @@ Collection instanceMethod at (char *__keyString) {
     item_object = *(OBJECT **) (key_object -> instancevars -> __o_value);
     return item_object;
   } else {
+    _warning ("ctalk: Key, \"%s,\" not found in collection,"
+	      " \"%s\" (class %s).\n",
+	      __keyString, self name, self className);
+    __warning_trace ();
+    return NULLSTR;
+  }
+}
+
+Collection instanceMethod integerAt (char *__keyString) {
+  "Return the receiver element with the key given by the
+  argument, a String."
+  OBJECT *key_object, *item_object;
+  Integer new r;
+  
+  returnObjectClass Integer;
+
+  key_object = __ctalkGetInstanceVariable (self, __keyString, FALSE);
+  if (key_object) {
+    item_object = *(OBJECT **) (key_object -> instancevars -> __o_value);
+    /* This is the quickest way to cast to an Integer */
+    r = item_object;
+    return r;
+  } else {
+    _warning ("ctalk: Key, \"%s,\" not found in collection,"
+	      " \"%s\" (class %s).\n",
+	      __keyString, self name, self className);
+    __warning_trace ();
     return NULLSTR;
   }
 }
@@ -175,7 +202,10 @@ Collection instanceMethod size (void) {
 }
 
 Collection instanceMethod removeAt (String keyName) {
-
+  "Remove the key/value entry named by the argument from
+   the receiver collection.  Returns the value object
+   or NULL if the entry isn't present."
+  
   OBJECT *rcvr_obj, *t, *value_obj;
 
   if (self isEmpty)
@@ -186,7 +216,7 @@ Collection instanceMethod removeAt (String keyName) {
   for (t = __LIST_HEAD(rcvr_obj); t; t = t -> next) {
     if (!strcmp (t -> __o_name, keyName name)) {
       if (t -> next) t -> next -> prev = t -> prev;
-      if (t -> prev) t -> prev = t -> prev -> next;
+      if (t -> prev) t -> prev -> next = t -> next;
       if (t == __LIST_HEAD(rcvr_obj)) __LIST_HEAD(rcvr_obj) = t -> next;
       value_obj = SYMTOOBJ(t -> instancevars -> __o_value);
       __objRefCntSet (OBJREF(value_obj), value_obj -> nrefs - 1);
@@ -198,15 +228,47 @@ Collection instanceMethod removeAt (String keyName) {
   return NULL;
 }
 
+Collection instanceMethod replaceAt (String keyName, Object *new_value) {
+  "Replace the value at the entry named by the first argument.  Returns
+   the old value object, or NULL, if the key isn't present in the
+   receiver collection."
+
+  OBJECT *rcvr_obj, *t, *old_value = NULL;
+
+  if (self isEmpty)
+    return NULL;
+
+  rcvr_obj = __ctalk_self_internal ();
+
+  for (t = __LIST_HEAD(rcvr_obj); t; t = t -> next) {
+    if (!strcmp (t -> __o_name, keyName name)) {
+      old_value = SYMTOOBJ(t -> instancevars -> __o_value);
+      __objRefCntSet (OBJREF(old_value), old_value -> nrefs - 1);
+      __ctalkReferenceObject (t, new_value);
+
+    }
+  }
+
+  return old_value;
+}
+
 Collection instanceMethod head (void) {
   "Return the first item in the collection."
     OBJECT *self_value, *head_object;
   returnObjectClass Key;
 
-  if ((head_object =__LIST_HEAD(self)) != NULL)
-    return head_object;
-  else
-    return NULL;
+  self_value = self;
+  if (!self_value -> instancevars) {
+    if ((head_object =__LIST_HEAD(self_value -> __o_p_obj)) != NULL)
+      return head_object;
+    else
+      return NULL;
+  } else {
+    if ((head_object =__LIST_HEAD(self_value)) != NULL)
+      return head_object;
+    else
+      return NULL;
+  }    
 }
 
 Collection instanceMethod tail (void) {
@@ -292,4 +354,69 @@ Collection instanceMethod + nth (Integer n) {
   k = *self;
   k += n;
   return k;
+}
+
+Collection instanceMethod mapKeys (OBJECT *(*methodfn)()) {
+  "Execute the argument, a method or code block, with each
+  key/value pair of the receiver AssociativeArray. 
+  When <methodName> is executed, each receiver of
+  <methodName> is a Key object with the parent object
+  class of AssociativeArray."
+    OBJECT *rcvr_obj, *rcvr_value_obj, *(*fn)(), *t, *have_break;
+  int arg_n;
+#ifdef DJGPP
+  OBJECT *result_object;
+#endif
+  METHOD *self_method, *arg_method;
+  Integer new i;
+
+  fn = (OBJECT *(*)())__ctalkRtGetMethodFn ();
+  rcvr_obj = __ctalkRtReceiverObject ();
+
+  if ((rcvr_value_obj = 
+       __ctalkGetInstanceVariable (rcvr_obj, "value", 0)) == NULL) 
+    rcvr_value_obj = rcvr_obj;
+
+  if (((self_method = __ctalkFindInstanceMethodByFn (&rcvr_value_obj, fn, 0))
+      == NULL) &&
+      ((self_method = __ctalkFindClassMethodByFn (&rcvr_value_obj, fn, 0))
+       == NULL)) {
+    __ctalkCriticalExceptionInternal (NULL, undefined_method_x, 
+				      "from map (Class AssociativeArray)");
+    return NULL;
+  }
+
+  for (arg_n = 0, have_break = NULL; self_method -> args[arg_n+1]; arg_n++)
+    ;
+  if (((arg_method = __ctalkFindInstanceMethodByName 
+	(&rcvr_value_obj, ARG_NAME(self_method->args[arg_n]), 0, -1))
+      == NULL) &&
+      ((arg_method = __ctalkFindClassMethodByName 
+	(&rcvr_value_obj, ARG_NAME(self_method->args[arg_n]), 0, -1))
+       == NULL)) {
+    __ctalkCriticalExceptionInternal (NULL, undefined_method_x, 
+				      "from map (Class AssociativeArray)");
+    return NULL;
+  }
+
+  for (t = __LIST_HEAD(rcvr_obj); t; t = t -> next) {
+#ifdef DJGPP
+    if ((result_object = __ctalkInlineMethod (t, arg_method, 0)) != NULL) {
+      if (atoll (result_object -> __o_value) != 0)
+	break;
+      if (result_object) __ctalkDeleteObject (result_object);
+      result_object = NULL;
+    }
+#else
+    if ((have_break = __ctalkInlineMethod (t, arg_method, 0)) != NULL)
+      break;
+#endif
+  }
+  __ctalkArgBlkSetCallerReturn (have_break);
+
+#ifdef DJGPP
+  if (result_object) __ctalkDeleteObject (result_object);
+#endif
+
+  return NULL;
 }

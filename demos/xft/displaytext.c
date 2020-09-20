@@ -1,4 +1,4 @@
-/* $Id: displaytext.c,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ */
+/* $Id: displaytext.c,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.

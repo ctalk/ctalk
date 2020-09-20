@@ -1,8 +1,8 @@
-/* $Id: objtoc.c,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ */
+/* $Id: objtoc.c,v 1.4 2020/09/18 21:25:12 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
-  Copyright © 2005-2019 Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2005-2020 Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright 
   notice is included in all source code modules.
 
@@ -529,6 +529,9 @@ long int __ctalkToCLongInteger (OBJECT *o, int keep) {
   if (o_value -> attrs & OBJECT_VALUE_IS_BIN_SYMBOL) {
     i = *(long int *)o_value -> __o_value;
     return i;
+  } else if (o_value -> attrs & OBJECT_VALUE_IS_BIN_INT) {
+    i = INTVAL(o_value -> __o_value);
+    return i;
   }
 
   /* Anything that has instance variables that ends up here
@@ -782,7 +785,11 @@ static void __delete_char_ptr_arg (OBJECT *__o, int keep) {
   }
 
   if (__o -> attrs == OBJECT_IS_I_RESULT) {
-    if (!(__o -> scope & METHOD_USER_OBJECT)) {
+    if (!(__o -> scope & METHOD_USER_OBJECT) && !is_arg (__o)) { 
+      __ctalkDeleteObject (__o);
+    }
+  } else if (__o -> scope == CREATED_CVAR_SCOPE) {
+    if (!IS_OBJECT(__o -> __o_p_obj) && !is_arg (__o) && !is_receiver (__o)) {
       __ctalkDeleteObject (__o);
     }
   }
@@ -803,7 +810,7 @@ static void __delete_char_ptr_arg (OBJECT *__o, int keep) {
  
 char *__ctalkToCCharPtr (OBJECT *o, int keep) {
   OBJECT *o_value, *o_return;
-  char *v, *c;
+  char *v, *c, *i_obj;
   char ibuf[64];
 
   c = (char *)I_UNDEF;
@@ -853,7 +860,11 @@ char *__ctalkToCCharPtr (OBJECT *o, int keep) {
 	      if (o_value -> __o_value == NULL) {
 		buffer_return_string (NULLSTR);
 	      } else {
-		buffer_return_string (o_value -> __o_value);
+		if ((i_obj = (char *)active_i (o)) != (char *)I_UNDEF) {
+		  buffer_return_string (i_obj);
+		} else {
+		  buffer_return_string (o_value -> __o_value);
+		}
 	      }
 	      __delete_char_ptr_arg (o, keep);
 	      return &return_buf[return_buf_ptr];
@@ -970,6 +981,8 @@ void *__ctalk_to_c_ptr (OBJECT *o) {
     } else {
       return (void *) SYMVAL(o_value -> __o_value);
     }
+  } else if (o -> attrs & OBJECT_IS_NULL_RESULT_OBJECT) {
+    return NULL;
   }
 
   radix = radix_of (o_value -> __o_value);
@@ -982,6 +995,8 @@ void *__ctalk_to_c_ptr (OBJECT *o) {
       return (void *)(*(uintptr_t *)o_value -> __o_value);
     } else if (str_eq (o_value -> __o_value, NULLSTR)) {
       return NULL;
+    } else if (o -> scope & LOCAL_VAR) {
+      return o;
     } else {
       _error ("ctalk: Unrecognized numeric value in radix_of: %s.\n",
 	      o_value -> __o_value);

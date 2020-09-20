@@ -275,12 +275,6 @@ method arguments, it is necessary to alias the argument to an object.
 See at (class Array) and atPut (class
 AssociativeArray) for examples.
 
->>>__ctalkCPrintFmtToCtalkFmt (char *c_fmt, char *ctalk_fmt)
-Translate a C printf(3) type format string to a Ctalk
-compatible format string.  The function translates the
-format characters [diouxXeEfFgGaAcsp], but it does
-not perform translations of field widths or precisions.
-
 >>>__ctalkCreateArgEntry (void)
 Used internally to create an ARG type, which maintains a method's
 argument entries.
@@ -323,21 +317,59 @@ by self_object.
 
 Called by the initialize methods (class X11Pane) to
 create a X window.  Returns the window system's ID for the window, an
-int. 
+int.
+
+If a program doesn't specify a window size, then default size is
+250x250 pixels.  If the program doesn't specify a location for the
+window, then this function sets the window's X,Y origin to 0,
+although the actual window placement depends on the machine's window
+manager.  
+
+Application programs can provide a window geometry specification which
+is used to set the window's size and placement
+
+
+If x11pane_object contains a background or
+backgroundColor instance variable or resource, the function
+sets the window's background color to the X11 color named in that
+value.
+
+If a program doesn't specify a foreground and background color,
+the window's background is set to white and the foreground is set to
+black.
+
+Refer also to the __ctalkCreateX11MainWindowTitle and
+__ctalkCreanteX11SubWindow functions. 
 
 char *title)
 Similar to __ctalkCreateX11MainWindow, except that if title
 is non-null, the function uses it to set the new window's title.  Returns
 the X resource ID of the new window, an int.  
 
-Application programs can provide a window geometry specification which
-is used to set the window's size and placement
+Creates an X subwindow that has the parent window defined by
+parentpane_object's xWindowID instance variable.  The
+dimensions of the subwindow within the parent window are determined by
+the subpane_object's origin and size instance
+variables.  Creates a new graphics context for the window and saves
+its address in the subpane_object's xGC instance
+variable.
 
+If x11pane_object contains a background or
+backgroundColor instance variable or resource, the function
+sets the window's background color to the X11 color named in that
+value.
 
-If a program doesn't specify a window size, then default size is
-250x250 pixels.  If the program doesn't specify a location for the
-window, then this function tries to do something intelligent with the
-initial window placement.  
+If a program doesn't specify a foreground and background color,
+the window's background is set to white and the foreground is set to
+black.
+
+Then the function initiazes and clears the window to the value of
+the backgroundColor instance variable.  Otherwise, the function
+sets the window's color to black and clears the window.
+
+Also sets the display depth in the depth instance
+variable, and the ID of the subwindow in the xWindowID instance
+variable.
 
 >>>__ctalkCriticalExceptionInternal (MESSAGE *orig, EXCEPTION ex, char *text)
 Raise a critical exception at run time.  The argument orig
@@ -367,9 +399,14 @@ formatted character (char)(n & 255).
 >>>__ctalkDecimalIntegerToASCII (int i, char *s)
 Format an ASCII representation of i, a decimal integer, in s.
 
->>>__ctalkDecimalLongLongToASCII (long long int l, char *s)
-Format an ASCII representation of l, a decimal long long
-integer, in s.
+>>>__ctalkLongLongToDecimalASCII (long long int l, char *buf):__ctalkLongLongToHexASCII (long long int l, char *buf, bool uppercase):__ctalkLongToDecimalASCII (long int l, char *buf):__ctalkLongToHexASCII (long int l, char *buf, bool uppercase)
+Format a decimal or hexadecimal ASCII representation of l, a
+long long int, in buf, and return buf.
+
+When using __ctalkLongLongToHexASCII, or
+__ctalkLongToHexASCII, if uppercase is true,
+format the number using uppercase letters; e.g., 0XFFFF;
+otherwise format the number using lowercase letters: 0xffff.
 
 >>>__ctalkDefaultSignalHandler (int signo)
 Set the handler of signal signo to the system's
@@ -482,8 +519,8 @@ Returns a char * that contains the path where the
 Ctalk-specific documentation is installed on the system (i.e.,
 documentation other than man pages and Texinfo manuals).
 
->>>__ctalkDoubleToASCII (double d, char *s)
-Format an ASCII representation of d, a double, in s.  Returns
+>>>__ctalkDoubleToASCII (double d, char *s):__ctalkFloatToASCII (float f, char *s):__ctalkLongDoubleToASCII (long double f, char *s)
+Format an ASCII representation of the first argument in s.  Returns
 s.
 
 >>>__ctalkEnterArgBlockScope (void)
@@ -491,6 +528,29 @@ Ctalk inserts this call at the beginning of argument blocks.  Checks
 that the block call is the result of an inline method call and sets
 the run-time stack's RTINFO structure to indicate a block call with
 the correct stack frame for the block's scope.
+
+>>>__ctalkEntryIconXPM (int iconID)
+Returns a char ** with the contents of an eye
+or slashed eye icon used when X11TextEntryPane objects echo
+dots.  The argument, iconID, may be one of the following.
+
+---------------------------------------------------------
+
+#define ENTRY_ICON_EYE_NON       0
+#define ENTRY_ICON_EYE_OK        1
+#define ENTRY_ICON_EYE_SLASHED   2
+
+---------------------------------------------------------
+
+The definitions are included in x11defs.h and
+ctalkdefs.h, which should be included in classes or programs
+with a statement like this.
+
+---------------------------------------------------------
+
+#include <ctalk/ctalkdefs.h>
+
+---------------------------------------------------------
 
 >>>__ctalkExec(char *cmdline, OBJECT *strObject)
 Executes the command line given as the argument and waits for the
@@ -512,6 +572,10 @@ library function.
 >>>__ctalkExitArgBlockScope (void)
 Ctalk inserts this function, which is currenly a no-op, as the last
 function call in an argument block.
+
+>>>__ctalkEpandPath (char *dirGlobPattern, char *expandedPathOut)
+Expands dirGlobPattern into the full path name, and stores it in
+expanedPathOut.  Returns the value of expandedPathOut.
 
 >>>__ctalkErrorExit (void)
 Cleans up the program's immediate object environment before a call
@@ -791,7 +855,8 @@ their use, refer to the methods in GLUTApplication class.
 
 >>>__ctalkGLXAlpha (float alpha)
 Sets the alpha (opacity) channel for outline text rendering.
-The default is 1.0.
+Values should be between 0.0 (transparent) and 1.0 (opaque).
+The Ctalk library's default value is 1.0 (opaque).
 
 >>>__ctalkGLXDrawText (char *text)
 This is another convenience function that draws text on a
@@ -899,7 +964,7 @@ methods that call it), prints an error message and exits.
 These functions return an int with the window's current origin
 and size.
 
->>>__ctalkGUIPaneDrawCircleBasic (int window_id, int gc, int center_x, int center_y, int radius, int fill, int pen_width, int alpha char *fg_color_name, char *bg_color_name)
+>>>__ctalkGUIPaneDrawCircleBasic (void *display, int window_id, int gc, int center_x, int center_y, int radius, int fill, int pen_width, int alpha char *fg_color_name, char *bg_color_name)
 Draws a circle centered at center_x,center_y with radius
 radius. The dimensions are given in pixels.  If filled is
 true, then the function draws a filled circle; otherwise, the circle's
@@ -919,7 +984,7 @@ Draw a line specified by line_object (an instance of
 Line class) using pen_object (an instance of Pen
 class).
 
->>>__ctalkX11PaneDrawLineBasic (int drawable_id, int gc_ptr, int x_start, int y_start, int x_end, int y_end, int pen_width, int alpha, char *pen_color)
+>>>__ctalkGUIPaneDrawLineBasic (void *display, int drawable_id, int gc_ptr, int x_start, int y_start, int x_end, int y_end, int pen_width, int alpha, char *pen_color):__ctalkX11PaneDrawLineBasic (void *display, int drawable_id, int gc_ptr, int x_start, int y_start, int x_end, int y_end, int pen_width, int alpha, char *pen_color)
 Draw a line between the points (x_start,y_start) and (x_end, y_end)
 with the color, and transparency using the drawable ID, graphics
 context, and pen color, width, and transparency given as arguments.
@@ -934,6 +999,9 @@ point_object using pen_object.
 Draw a rectangle on pane_object specified by
 rectangle_object using pen_object.  If
 fill is non-zero, draw a filled rectangle.
+
+>>>__ctalkGUIPaneDrawRoundedRectangle (OBJECT *pane_object, OBJECT *rectangle_object, OBJECT *pen_object, int fill, int radius)
+This is similar to __ctalkGUIPaneDrawRectangle, except that it takes an extra argument, radius, which specifies the radius of the arcs that are used to draw the corners.
 
 >>>__ctalkGUIPanePutStr (OBJECT *pane_object, int x, int y, char *string)
 Display String object string at coordinates
@@ -956,7 +1024,30 @@ an actual window; e.g., X11Pane objects.  For all
 other visual types, like pixmaps, use
 __ctalkX11SetBackgroundBasic.
 
->>>__ctalkX11TextFromData (int drawable_id, int GD_ptr, char *text)
+>>>__ctalkX11SubWindowGeometry (OBJECT * parentpane, char * geomstr, int *x_out, int *y_out, int *width_out, int *height_out)
+Parses a string that contains the geometry specification of a
+subwindow, and returns the width and height of the subwindow and its
+X,Y position within the parent pane's window.
+
+A geometry specification has the form:
+
+---------------------------------------------------------
+
+width[%]xheight[%][+x_org[%]+y_org[%]]
+
+---------------------------------------------------------
+
+The x, y, width, and height parameters are interpreted as the
+actual origin and size of the subwindow, unless a parameter is
+followed by a percent sign (%).  In that case, the dimension is
+interpreted as a fraction of the parent window's corresponding
+vertical or horizontal dimension.
+
+For some Pane classes, like dialog windows, if x_org and
+y_org are missing, then the class positions the dialog window
+centered over the parent window.
+
+>>>__ctalkX11TextFromData (void *display, int drawable_id, int GD_ptr, char *text)
 Displays text on drawable_id.
 
 >>>__ctalkX11TextWidth (char *fontDesc, char *text)
@@ -964,6 +1055,14 @@ Returns an int with the width in screen pixels of the
 text argument when rendered in the font named by fontDesc.
 There is more information about how to use fonts in the sections
 that discuss the X graphics classes. 
+
+>>>__ctalkX11WxHGeometry (int parentWidth, int parenthHeight, char *geomspec, int xOut, int yOut, int widthOut, int heightOut)
+Calculate the dimensions specified by geomspec within
+parentWidth and parentHeight, and return the results in
+xOut, yOut, widthOut, and heightOut.  For
+information about the format of geomspec, refer to the
+Window Geometry subsection of the X11PaneDispatcher
+class. 
 
 >>>__ctalkHandleRunTimeException (void)
 Execute the exception handler for a pending exception.  The
@@ -989,6 +1088,19 @@ On 64-bit machines, the prototype is:
 ---------------------------------------------------------
 
 char *__ctalkHexIntegerToASCII (unsigned long long int ptr, char *buf)
+
+---------------------------------------------------------
+
+>>>__ctalkIconXPM (int iconID)
+Returns a char ** with the XPM data for the dialog icon given
+by iconID.  The library defines the following icon IDs.
+
+---------------------------------------------------------
+
+ICON_NONE
+ICON_STOP
+ICON_CAUTION
+ICON_INFO
 
 ---------------------------------------------------------
 
@@ -1180,19 +1292,6 @@ issues a warning and returns NULL.
 Formats the message given as the argument and writes the
 message to the system's syslog facility.
 
->>>__ctalkLongLongRadixToDecimal (char *s)
-Convert the radix of the formatted long long int in s to 
-decimal and return a string containing the formatted @code{long long
-int.}  Note: Do not use this function in new code.  It's been
-replaced by __ctalkLongLongToDecimalASCII, below.
-
->>>__ctalkLongLongToDecimalASCII (char *number_in, char * decimal_out)
-Convert the radix of the ASCII formatted long long int in
-number_in to decimal and format the decimal integer in
-decimal_out.  The radix of number_in may be decimal,
-octal, hexadecimal, or binary.  The function also returns a @code{char
-*} to decimal_out.
-
 >>>__ctalkMatchAt (Integer n):__ctalkMatchIndexAt (Integer n)
 Returns, respectively, the text, or the character index matched by the
 n'th parenthesized subexpression during a previous call to
@@ -1221,7 +1320,8 @@ instance variable.
 
 >>>__ctalkMapX11Window (OBJECT *x11pane_object)
 The X library interface of the map (class X11Pane)
-method. 
+method  This function is a wrapper for the XMapWindow and
+XMapSubwindows Xlib functions.
 
 >>>__ctalkMethodObjectMessage (OBJECT *rcvr, OBJECT *method_instance)
 Perform a method call by sending rcvr the message defined by
@@ -1277,6 +1377,12 @@ executed a return statement.
 
 >>>__ctalkObjValPtr (OBJECT *o, void *ptr)
 Set the value of the object o to ptr.
+
+>>>__ctalkPaneResource (OBJECT *paneObject, char *resourceName, bool warn)
+Returns an OBJECT * with the value corresponding to
+resourceName from paneObject's resource instance
+variable.  If warn is true, displays a warning if the resource
+isn't found.
 
 >>>__ctalkPeekExceptionTrace (void)
 Returns a char * with the text of the most recent exception and
@@ -1357,7 +1463,7 @@ int main () {
     if (self == 'o') {
       break;
     }
-    printf (" ", self);
+    printf ("%c", self);
   }
   printf ("\n");
 
@@ -1376,7 +1482,7 @@ int main () {
 	break;                /* the argument block's direct caller,    */
       }                      /* contains a __ctalkArgBlkSetCallerReturn*/
     (Character *)self -= 32;  /* function call.                         */
-    printf (" ", self);
+    printf ("%c", self);
   }
   printf ("\n");
 }
@@ -1504,7 +1610,7 @@ Returns the class object of the currently executing method.
 Finds all occurrences of pattern in buffer, and
 returns the positions of the matches in offsets, terminated by -1.
 
->>>__ctalkSelectXFontFace (int drawable_id, int gc_ptr, int face)
+>>>__ctalkSelectXFontFace (void *display, int drawable_id, int gc_ptr, int face)
 Selects the typeface of the currently selected font, if available,
 which should have been loaded with a call like
 __ctalkX11UseFontBasic, or the equivalent calls for
@@ -1521,6 +1627,11 @@ X_FACE_BOLD_ITALIC
 
 ---------------------------------------------------------
 
+Because these functions use shared memory to manage each X typeface's
+metrics, it is generally necessary to call this function after calling
+__ctalkOpenX11InputClient in order to display multiple faces
+with the correct character spacing.
+
 >>>__ctalkSelfPrintOn (void)
 Print the calling method's arguments to the receiver.  This 
 function is called directly by printOn (class String)
@@ -1529,6 +1640,64 @@ and similar methods.
 >>>__ctalkSetExceptionTrace (int val)
 Enable or disable exception method traces in handle (class
 Exception) and other methods. 
+
+>>>__ctalkSetObjectAttr (OBJECT *object, unsigned intattribute):__ctalkObjectAttrAnd (OBJECT *object, unsigned intattribute):__ctalkObjectAttrOr (OBJECT *object, unsigned intattribute)
+These methods sets the attr member of object to attribute.
+
+Note that when setting or clearing attributes on complex objects, it is better to
+use __ctalkObjectAttrAnd or __ctalkObjectAttrOr, because complex
+objects can contain instance variables that use different attributes.
+
+For
+example, an instance variable that is a Symbol would have the additional
+attribute OBJECT_VALUE_IS_BIN_SYMBOL, so if a method or function contained
+an expression like this:
+
+---------------------------------------------------------
+
+__ctalkSetObjectAttr (myObj, myObj -> attrs | OBJ_HAS_PTR_CX);
+
+---------------------------------------------------------
+
+This would have the effect of setting the parent object's attributes
+as well as the instance variables, which would clear any additional
+attributes that the instance variables have.
+
+What would actually happen is that the parent object myObj, and its
+instance variables would have their attributes set like this.
+
+---------------------------------------------------------
+
+<obj> -> attrs = (myObj -> attrs | OBJ_HAS_PTR_CX);
+
+---------------------------------------------------------
+
+so it is better to use an expression like this one.
+
+---------------------------------------------------------
+
+__ctalkObjectAttrOr (myObj, OBJ_HAS_PTR_CX);
+
+---------------------------------------------------------
+
+This has the effect of applying the following to the parent object and
+each instance variable:
+
+---------------------------------------------------------
+
+<obj> -> attrs |= OBJ_HAS_PTR_CX);
+
+---------------------------------------------------------
+
+Conversely, to clear a single attribute, a function or method would
+contain an expression like this.
+
+---------------------------------------------------------
+
+__ctalkObjectAttrAnd (myObj, ~OBJ_HAS_PTR_CX);
+
+---------------------------------------------------------
+
 
 >>>__ctalkSetObjectName (OBJECT *object, char *name)
 Sets the name of object to name.
@@ -1824,15 +1993,16 @@ and other data.  Does not delete subpanes - see __ctalkCloseX11Pane ()
 closing and deleting the main window.  For an example of the functions'
 use, refer to the method X11Pane : deleteAndClose. 
 
+@c /***/
 >>>__ctalkClearBufferRectangle (OBJECT *pane_object, int x, int y, int width height)
-Clear a rectangle in pane_object's pane buffer starting at
-X,Y, with width width and height height.  Note that
-this function is being phased out in favor of
-__ctalkX11ClearRectangleBasic, which does not rely on
-hard-coded instance variable names.
+@c Clear a rectangle in pane_object's pane buffer starting at
+@c X,Y, with width width and height height.  Note that
+@c this function is being phased out in favor of
+@c __ctalkX11ClearRectangleBasic, which does not rely on
+@c hard-coded instance variable names.
 
 
->>>__ctalkX11ClearRectangleBasic (int visual_id, int gc_ptr, int x, int y, int width, int height)
+>>>__ctalkX11ClearRectangleBasic (void *display, int visual_id, int gc_ptr, int x, int y, int width, int height)
 Clear a rectangle of a visual type like a pixmap to the
 background color.
 
@@ -1843,7 +2013,7 @@ the X headers define some of the DefaultColormap's
 dependent macros after DefaultColormap, which is not 
 compatible with the ctpp preprocessor.
 
->>>__ctalkX11CopyPixmapBasic (int dest_drawable_id, int dest_gc_ptr, int src_drawable_id, int src_x_org, int src_y_org, int src_width, int src_height, int dest_x_org, int dest_y_org)
+>>>__ctalkX11CopyPixmapBasic (void *display, int dest_drawable_id, int dest_gc_ptr, int src_drawable_id, int src_x_org, int src_y_org, int src_width, int src_height, int dest_x_org, int dest_y_org)
 Copies the drawable src_drawable_id to dest_drawable_id,
 with the dimensions of the source graphic given by src_x_org,
 src_y_org, src_width, and src_height.  The image is
@@ -1854,10 +2024,22 @@ This function is called by X11CanvasPane : copy.  For
 an example, refer the X11CanvasPane classes' description.
 
 
->>>__ctalkX11CreateGC (int drawable)
-Create a X GC and return its address as a void *.
+>>>__ctalkX11CreateGC (void *display, int drawable)
+Create a X Graphics Context and return its address as a void *.
+The GC is created with the following values:
 
->>>__ctalkX11CreatePixmap (int x_drawable, int width, int height, int depth)
+---------------------------------------------------------
+
+foreground     white
+background     black
+fill_style     FillSolid
+function       GXcopy
+font           fixed
+
+---------------------------------------------------------
+
+
+>>>__ctalkX11CreatePixmap (void *display, int x_drawable, int width, int height, int depth)
 reate a X pixmap and return its X resource ID as an unsigned int.
 
 >>>__ctalkX11CreatePaneBuffer (OBJECT *pane_object, int width, int height, int depth)
@@ -1929,11 +2111,21 @@ Parses a X11 geometry string and returns the values specified in the x, y, width
 For information about the format of a X11 geometry specification, refer to the
 XParseGeometry(3) manual page.
 
->>>__ctalkX11PaneDrawCircleBasic (int window_id, int gc, int center_x, int center_y, int radius, int fill, int pen_width, int alpha, char *fg_color_name, char * bg_color_name)
+>>>__ctalkX11PaneDrawCircleBasic (void *display, int window_id, int gc, int center_x, int center_y, int radius, int fill, int pen_width, int alpha, char *fg_color_name, char * bg_color_name)
 Draws a circle centered at center_x,center_y with radius radius. The dimensions are given in pixels.  If filled is true, then the function
 draws a filled circle; otherwise, the circle's edge has the width pen_width.
 
 This function is a synonym for __ctalkGUIPaneDrawCircleBasic.
+
+>>>__ctalkX11PaneDrawRectangleBasic (void *display, int drawable_id, unsigned long intgc_ptr, int xOrg, int yOrg, int xSize, int ySize, int fill, int pen_width, char *pen_color, int corner_radius)
+Draw a rectangle on the drawable with the ID drawable_id, with
+the dimensions givent in the arguments.  If fill is non-zero,
+draws a filled rectangle; otherwise uses the line width given by the
+pen_width argument.  If corner_radius is non-zero, draws a
+rectangle with rounded corners with the radius in pixels given by
+corner_radius.
+
+This function is a synonym for __ctalkGUIPaneDrawRectangleBasic.
 
 >>>__ctalkX11PanePutStr (OBJECT *pane_object, int x, int y, char *str)
 Displays str at window coordinates x,y on
@@ -1962,18 +2154,15 @@ Resize pane_object's buffers to width width and height
 height.  New programs should use __ctalkX11ResizePixmap,
 which does not rely on hard-coded instance variable names.
 
->>>__ctalkX11ResizePixmap (int, parent_visual_id, int self_xid, int gc, int old_width, int old_height, int new_width, int new_height, int depth, int *new_pixmap_return)
+>>>__ctalkX11ResizePixmap (void *display, int, parent_drawable_id, int self_xid, int gc, int old_width, int old_height, int new_width, int new_height, int depth, int *new_pixmap_return)
 Create a new Pixmap with the dimensions new_width and
 new_height that contains the contents of the original
-pixmap.  Return the X ID of the new pixmap in new_pixmap_return.
+pixmap.  Returns the X ID of the new pixmap in new_pixmap_return.
 
 >>>__ctalkX11ResizeWindow (OBJECT *pane_object, int width, int height, int depth)
-Resize a pane object's X window.  This function adjusts the object's width and
-height instance variables and buffers if the object defines
-them. @emph{Note: Do not use this function with windows that
-use X11Bitmap objects for buffers.  This function will
-eventually be phased out.  Use the methods in X11Bitmap
-class instead.} 
+Resize a pane object's X window.  Returns 1 on success,
+0 if the window's new size is <= its current size, and
+-1 if there is an error.
 
 >>>__ctalkX11PaneClearRectangle (OBJECT *pane_object, int  x, int y, int width, int height)
 Clears a rectangle in pane_object's window.  Note that this
@@ -2000,7 +2189,7 @@ Draw a point on the drawable id given in pane_object
   This function is a synonym for __ctalkGUIPaneDrawPoint
 on systems that use the X Window system.
 
->>>__ctalkX11PaneDrawPointBasic (int drawable_id, int gc_ptr, int x, int y, int pen_width, int alpha, char *pen_color)
+>>>__ctalkX11PaneDrawPointBasic (void *display, int drawable_id, int gc_ptr, int x, int y, int pen_width, int alpha, char *pen_color)
 Draw a point of the size, position, color, and transparency using the
 drawable ID, graphics context, and Pen color, transparency, and width
 given as arguments.
@@ -2017,7 +2206,7 @@ Draw a rectangle on the drawable identified by pane_object
 pen_object   If fill is true, draw a filled
 rectangle.
 
->>>__ctalkX11PanePutStrBasic (int visual_id,int gc_ptr, int x, int y, char *text)
+>>>__ctalkX11PanePutStrBasic (void *display, int visual_id,int gc_ptr, int x, int y, char *text)
 Write the string text on the drawable named by visual_id at
 X,Y using the graphics context pointed to by gc_ptr.  If the
 drawable is a X11CanvasPane buffer, the text will not be visible
@@ -2041,15 +2230,15 @@ function is being phased out because it uses named instance variables
 of pane_object.  Programs should use
 __ctalkX11SetBackgroundBasic (), below, instead.
 
->>>__ctalkX11SetBackgroundBasic (int visual_xid, int gc_ptr, char *color)
+>>>__ctalkX11SetBackgroundBasic (void *display, int visual_xid, int gc_ptr, char *color)
 Sets the background color of any class with a X11 visual and 
 graphics context.
 
->>>__ctalkX11SetForegroundBasic (int visual_xid, int gc_ptr, char *color)
-Sets the foreground color of any class with a X11 visual and 
+>>>__ctalkX11SetForegroundBasic (void *display, int visual_xid, int gc_ptr, char *color)
+Sets the foreground color of any class with a X11 drawable and 
 graphics context.
 
->>>__ctalkX11SetResource (int drawable_id, char *resource_name, char *resource_value)
+>>>__ctalkX11SetResource (void *display, int drawable_id, char *resource_name, char *resource_value)
 Sets the X11 resource resource_name to resource_value for
 the drawable identified by drawable_id.
 
@@ -2062,16 +2251,12 @@ frame's title.
 Sets the X11 cursor of pane_object to
 cursor_object. 
 
->>>__ctalkX11UseFont ()
-Do not use this function - it relies on specific instance
-variable names.  Use __ctalkX11UseFontBasic, below, instead.
-
 >>>__ctalkX11UseXRender (bool b)
 If b is true, draw using the X Render entension if it
 is available.  If b is false, use Xlib for drawing
 even if X Render is available.
 
->>>__ctalkX11UseFontBasic (int drawable_id, int gc_ptr, char *font_desc)
+>>>__ctalkX11UseFontBasic (void *display, int drawable_id, int gc_ptr, char *font_desc)
 Sets the font of the graphics context gc_ptr and
 drawable drawable_id for further string printing
 operations.  See use in X11Bitmap class, where the
@@ -2086,12 +2271,12 @@ available when the Ctalk libraries are built, and the program has not
 changed the default setting, normally via __ctalkX11UseRender,
 above.
 
->>>__ctalkX11XPMFromData (int drawable_id, int gc_ptr, int x_org, int y_org, char **xpm_data)
+>>>__ctalkX11XPMFromData (void *display, int drawable_id, int gc_ptr, int x_org, int y_org, char **xpm_data)
 Draw a X pixmap at the x,y position on the drawable named by
 drawable_id.  The xpm_data argument is the declaration of
 the data given in a XPM file, and has the C data type char **.
 
->>>__ctalkX11XPMInfo (char **xpm_data, int *width_ret, int *height_ret, int *n_colors_ret, int *chars_per_color_ret)
+>>>__ctalkX11XPMInfo (void *display, char **xpm_data, int *width_ret, int *height_ret, int *n_colors_ret, int *chars_per_color_ret)
 Returns the width, height, number of colors, and characters per color of the
 XPM data referred to by xpm_data
 
@@ -2145,6 +2330,15 @@ machines.
 Returns an int with the currently selected font's height
 in pixels above the baseline.
 
+>>>__ctalkXftDescStr (void)
+Returns a string with the font descriptor of the currently selected
+font that containing the attributes that the Ctalk Xft library uses:
+family, point size, slant, and weight.
+
+For the complete descriptor string that the Freetype library derives
+from the selected font's pattern, refer to the
+__ctalkXftSelectedFontDescriptor function.
+
 >>>__ctalkXftAscent (void)
 Returns an int with the currently selected font's height
 in pixels below the baseline.
@@ -2166,15 +2360,14 @@ the first path of all the fonts that are available to the library.
 Return a string containing the path of the next font file that matches
 the pattern given to __ctalkXftFontPathFirst (), above.
 
->>>__ctalkXftSelectedFontDescriptor (void)
-Return the font descriptor of the selected font as a char *.
-
->>>__ctalkXftGetStringDimensions (char *str, int *x, int *y, int *width, int *height)
+>>>__ctalkXftGetStringDimensions (char *str, int *x, int *y, int *width, int *height, int * rbearing)
 Return the x and y origin, and width and height of str in the
 currently selected FreeType font.  Because the dimensions are
 absolute, x and y are normally 0.  If the Xft library is
 not initialized or not available, the function returns 0 for all of
-the dimensions.
+the dimensions.  If the library is initialized but the application
+hasn't yet specified a font, then the value returned for rbearing
+is 0.
 
 >>>__ctalkXftHeight (void)
 Returns an int with the font's height above and below
@@ -2182,13 +2375,26 @@ the baseline in pixels, and including any additional vertical
 spacing.
 
 >>>__ctalkXftInitLib (void)
-Initializes the Freetype outline font library.  If the system is not
+Initializes the Freetype outline font library.  If Ctalk isn't
+built with libXft or Fontconfig support, this function returns
+ERROR (-1.  This is the only Xft-related function
+to return silently; all other functions exit with an error message.
+However applications can check the X11Pane : haveXft instance
+variable to determine if the libraries were initialized. 
+
+If the system is not
 configured to use outline fonts  then the
-function prints a message and exits the program.
+function prints a message and exits the program.  If the library is
+already initialized, then this function returns SUCCESS
+0.
 
 >>>__ctalkXftInitialized (void)
 Returns TRUE if the FreeType font library is available and
 initialized, FALSE otherwise.
+
+>>>__ctalkXftIsMonospace (void)
+A read-only function that returns true if the program's
+selected font is monospace, false otherwise.
 
 >>>__ctalkXftListFontsFirst (char *xftpattern)
 Initializes the FreeType library to list fonts and returns a
@@ -2207,6 +2413,9 @@ Cleans up after a series of list fonts function calls.
 
 >>>__ctalkXftMajorVersion (void)
 Returns an int with the Xft library's major version number.
+Like all libXft library functions, __ctalkXftMajorVersion
+causes the program to exit with an error if Ctalk is built without
+libXft support.
 
 >>>__ctalkXftMaxAdvance (void)
 Returns an int with the maximum horizontal dimension in pixels
@@ -2214,12 +2423,47 @@ of any of the selected font's characters.
 
 >>>__ctalkXftMinorVersion (void)
 Returns an int with the Xft library's minor version number.
+Returns an int with the Xft library's major version number.
+Like all libXft library functions, __ctalkXftMinorVersion
+causes the program to exit with an error if Ctalk is built without
+libXft support.
 
 >>>__ctalkXftQualifyFontName (char *pattern)
 Return the qualified font name string for pattern.
 
+>>>__ctalkXftRequestedFamily (void):__ctalkXftRequestedPointSize (void):__ctalkXftRequestedSlant (void):__ctalkXftRequestedWeight (void):__ctalkXftRequestedDPI (void)
+Returns the font attributes requested after parsing a Fontconfig
+string by __ctalkXftSelectFontFromFontConfig and
+__ctalkXftSelectFontFromXLFD.
+
 >>>__ctalkXftRevision (void)
 Returns an int with the Xft library's revision number.
+Returns an int with the Xft library's major version number.
+Like all libXft library functions, __ctalkXftRevision
+causes the program to exit with an error if Ctalk is built without
+libXft support.
+
+>>>__ctalkXftShowFontLoad (int warningLevel)
+Enables or disables the display on standard output of fonts that the
+library is loading.  The Ctalk library defines the following
+constants.
+
+---------------------------------------------------------
+
+XFT_NOTIFY_NONE
+XFT_NOTIFY_ERRORS
+XFT_NOTIFY_LOAD
+XFT_NOTIFY_VERBOSE
+
+---------------------------------------------------------
+
+See also __ctalkXftVerbosity.
+
+Note that programs should call this function before launching any
+processes.  Generally, this is before the program calls the
+X11Pane : openEventStream method.  Otherwise, the program
+will only display message for the process that this function was
+called from.
 
 >>>__ctalkXftSelectedFamily (void)
 Returns a char * string that contains family of the selected
@@ -2269,8 +2513,8 @@ font families - the font libraries pick the closest match to the font
 metrics given in the XLFD, regardless of type style.
 
 Also, the outline font libraries use a single dpi metric for both the
-vertical and horizontal resolution, so only the resx field of
-the XLFD is actually used.
+vertical and horizontal dot pitch of the display, so only the
+resx field of the XLFD is actually used.
 
 >>>__ctalkXftSetForegrounc (int red, int green, int blue, int alpha)
 Sets the red, green, blue, and alpha values for the selected font.  The
@@ -2279,6 +2523,24 @@ values are ints and have a range of 0-0xffff.
 >>>__ctalkXftSetForegroundFromNamedColor (String colorName)
 Sets the selected outline font's red, green, and blue values from
 the named X11 color given as the argument.
+
+>>>__ctalkXftSelectedFontDescriptor (void)
+Return the font descriptor of the selected font as a char *.
+
+>>>__ctalkXftVerbosity (void)
+Returns the current Xft message reporting level.  The values that
+are defined in ctalk/ctalkdefs.h are:
+
+---------------------------------------------------------
+
+XFT_NOTIFY_NONE
+XFT_NOTIFY_ERRORS
+XFT_NOTIFY_LOAD
+XFT_NOTIFY_VERBOSE
+
+---------------------------------------------------------
+
+See also __ctalkXftShowFontLoad.
 
 >>>__ctalkXftVersion (void)
 Returns an int with the Xft library's version number,
@@ -2341,9 +2603,15 @@ name.
 Called during method or function initialization to delete
 old local objects before creating new objects.
 
->>>__ctalk_get_object (char *name, char *classname)
+>>>__ctalk_get_object (char *name, char *classname):__ctalk_get_object_return (char *name, char *classname)
 Retrieves the object name.  If classname is non-null,
 retrieves the object by name and class.
+
+The __ctalk_get_object_return function is similar, but it is
+used only as an operand to a return keyword.  The function checks
+the call stack's local object cache, in case an expression cleanup removed
+the most recent call's local variable list during recursive or successive
+calls of the same method.
 
 >>>__ctalk_init (char *program_name)
 Initialize the Ctalk class libraries when the program starts.  The argument,
@@ -2462,10 +2730,18 @@ NULLs in C expressions without the generating compiler warnings.
 
 @idxclscite {X11TextEditorPane}
 
->>>__edittext_delete_char (OBJECT *x11texteditorpane_object):__edittext_insert_at_point (OBJECT *x11texteditorpane_object, int keycode, int shift_state, int keypress):__edittext_line_end (OBJECT *x11texteditorpane_object):__edittext_line_start (OBJECT *x11texteditorpane_object):__edittext_next_char (OBJECT *x11texteditorpane_object):__edittext_next_line (OBJECT *x11texteditorpane_object):__edittext_next_page (OBJECT *x11texteditorpane_object):__edittext_prev_char (OBJECT *x11texteditorpane_object):__edittext_prev_line (OBJECT *x11texteditorpane_object):__edittext_prev_page (OBJECT *x11texteditorpane_object):__edittext_text_start (OBJECT *x11texteditorpane_object):__edittext_text_end (OBJECT *x11texteditorpane_object):__edittext_point_to_click (OBJECT *x11texteditorpane_object, int pointer_x, int pointer_y):__edittext_index_from_pointer (OBJECT *x11texteditorpane_object, int pointer_x, int pointer_y):__edittext_insert_str_at_point (OBJECT *x11texteditorpan_object, char *):__edittext_get_primary_selection (OBJECT *x11texteditorpan_object, void **buf_out, int *size_out):__edittext_set_selection_owner (OBJECT *x11texteditorpane_object)
+>>>__edittext_delete_char (OBJECT *x11texteditorpane_object):__edittext_insert_at_point (OBJECT *x11texteditorpane_object, int keycode, int shift_state, int keypress):__edittext_line_end (OBJECT *x11texteditorpane_object):__edittext_line_start (OBJECT *x11texteditorpane_object):__edittext_xk_keysym (int keycode, int shift_state, int keypress):__edittext_next_char (OBJECT *x11texteditorpane_object):__edittext_next_line (OBJECT *x11texteditorpane_object):__edittext_next_page (OBJECT *x11texteditorpane_object):__edittext_prev_char (OBJECT *x11texteditorpane_object):__edittext_prev_line (OBJECT *x11texteditorpane_object):__edittext_prev_page (OBJECT *x11texteditorpane_object):__edittext_scroll_down (OBJECT *x11texteditorpane_object):__edittext_scroll_up (OBJECT *x11texteditorpane_object):__edittext_text_start (OBJECT *x11texteditorpane_object):__edittext_text_end (OBJECT *x11texteditorpane_object):__edittext_point_to_click (OBJECT *x11texteditorpane_object, int pointer_x, int pointer_y):__edittext_index_from_pointer (OBJECT *x11texteditorpane_object, int pointer_x, int pointer_y):__edittext_insert_str_at_click (OBJECT *x11texteditorpane_object, int click_x, int click_y, char *):__edittext_insert_str_at_point (OBJECT *x11texteditorpane_object, char *):__edittext_get_primary_selection (OBJECT *x11texteditorpan_eobject, void **buf_out, int *size_out):__edittext_set_selection_owner (OBJECT *x11texteditorpane_object):__edittext_recenter (OBJECT *x11texteditorpane_object)
 Text editing functions used by X11TextEditorPane objects.
-For more information, refer to the X11TextEditorPane section.
+For more information, refer to X11TextEditorPane class..
 
+
+>>>__entrytext_set_selection_owner (void *displayPtr, unsigned int win_id unsigned long int gc_ptr):__entrytext_get_primary_selection (OBJECT *entrypane_object):__entrytext_update_selection (void *displayPtr, unsigned int win_id, unsigned long int gc_ptr):__entrytext_send_selection (void *displayPtr, void * xEvent)
+These functions handle requesting ownership of the X display's primary
+selection, storing current values of the selection text that might be
+requested by other programs, and requesting the contents of the
+primary selection when another X application owns the selection.  The
+functions are normally called by methods in X11TextEntryPane
+class that handle X events.
 
 >>>_error (char *fmt, ...)
 Display an error message and exit the program.
@@ -2691,7 +2967,7 @@ A macro that trims nested single quotes from a literal character.
 TRIM_CHAR_BUF also checks whether a single quote (') is
 the actual character.
 
->>>xfopen (const char *path, const char *mode):xmemcpy (void *s, const void *s, size_t):xmemmove (void *s, const void *s, size_t):xmemset (void *s, int c, size_t n):xsprintf (char *s, const char *fmt, ...):xstrcat (char *d, const char *s):xstrncat (char *d, const char *s, size_t):xstrcpy (char *d, const char *s):xstrncpy (char *d, const char *, size_t)
+>>>xfopen (const char *path, const char *mode):xfprintf (FILE *stream, const char *fmt, ...):xfscanf (FILE *stream, const char *fmt, ...):xmemcpy (void *s, const void *s, size_t):xmemmove (void *s, const void *s, size_t):xmemset (void *s, int c, size_t n):xsprintf (char *s, const char *fmt, ...):xstrcat (char *d, const char *s):xstrncat (char *d, const char *s, size_t):xstrcpy (char *d, const char *s):xstrncpy (char *d, const char *, size_t)
 These are portable wrappers for systems that #define their own
 (possibly more secure) versions of library functions.  For the exact
 prototype and definition, you should consult the system's manual page

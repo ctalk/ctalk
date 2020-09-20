@@ -1,8 +1,8 @@
-/* $Id: object.h,v 1.1.1.1 2019/10/26 23:40:50 rkiesling Exp $ */
+/* $Id: object.h,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
-  Copyright © 2005-2015, 2017-2019 Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2005-2015, 2017-2020 Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
 
@@ -50,7 +50,6 @@
 #define VAR_REF_OBJECT              (1 << 9)
 #define METHOD_USER_OBJECT          (1 << 10)
 #define TYPECAST_OBJECT             (1 << 11)
-#define LVAL_OBJECT_ALIAS           (1 << 12)
 #define SUBSCRIPT_OBJECT_ALIAS      (1 << 13)
 
 #define CREATED_CVAR_SCOPE (LOCAL_VAR | CVAR_VAR_ALIAS_COPY)
@@ -278,6 +277,7 @@ struct _method {
     *user_object_ptr;
   int n_user_objs;
   CVAR *local_cvars;
+  void *db;    /* reserved for future debug data */
   struct _method *next;
   struct _method *prev;
 };
@@ -289,6 +289,7 @@ struct _method {
 
 /* if changing, also change in classes/ctalklib.in */
 #define INTVAL(x) *(int *)(x)
+#define UINTVAL(x) *(unsigned int *)(x)
 #define SETINTVARS(x, i) (*(int *)(x) -> __o_value) =	\
     (*(int *)(x) -> instancevars -> __o_value) = (i)
 #define BOOLVAL(x) *(int *)(x)

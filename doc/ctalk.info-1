@@ -5,7 +5,7 @@ START-INFO-DIR-ENTRY
 * ctalk: (ctalk).	The Ctalk language reference manual.
 END-INFO-DIR-ENTRY
 
-This file documents Ctalk version 0.0.65.
+This file documents Ctalk version 0.0.66.
 
 Copyright (C) 2007-2015 Robert Kiesling
 
@@ -22,7 +22,7 @@ File: ctalk.info,  Node: Top,  Prev: (dir),  Up: (dir)
 Ctalk Language Reference
 ************************
 
-This document describes the Ctalk programming language, version 0.0.65.
+This document describes the Ctalk programming language, version 0.0.66.
 
 * Menu:
 
@@ -284,7 +284,16 @@ program is built.
 *    GLXCanvasPane::
 *    X11PaneDispatcher::
 *     X11CanvasPane::
-*     X11ScrollBarPane::
+*      X11ButtonPane::
+*      X11LabelPane::
+*      X11ListPane::
+*      X11MessageBoxPane::
+*      X11ScrollBarPane::
+*      X11TextEntryPane::
+*      X11YesNoBoxPane::
+*       X11TextEntryBox::
+*        X11ListBox::
+*         X11FileSelectDialog::
 *     X11TextPane::
 *      X11TextEditorPane::
 *  Symbol::
@@ -834,6 +843,9 @@ Instance Methods
             childPID =
               procRcvr backgroundMethodObjectMessage timeServerInit;
 
+            sleep (1); /* Wait a sec while the reader process creates the
+          		socket. This interval might be system dependent. */
+
             client openOn gSocketPath;
             if (ex pending) {
               ex handle;
@@ -1056,6 +1068,10 @@ Instance Methods
 'watch (void)'
      Creates a cursor that displays a small watch.
 
+'xterm (void)'
+     Creates a xterm cursor.  That is, the vertical bar used for editing
+     text.
+
 
 File: ctalk.info,  Node: X11FreeTypeFont,  Next: X11Bitmap,  Prev: X11Cursor,  Up: Classes
 
@@ -1063,13 +1079,77 @@ File: ctalk.info,  Node: X11FreeTypeFont,  Next: X11Bitmap,  Prev: X11Cursor,  U
 -----------------------
 
 This class contains the methods that handle FreeType fonts using the Xft
-library specifically.  In classes and methods that use fonts, FreeType
-fonts take priority if available and the program has initialized the
-library with the 'initFontLib' method.  Otherwise, applications use the
-fonts provided by the window system's normal libraries.
+and Fontconfig libraries.  In classes and methods that use fonts,
+FreeType fonts take priority if they are available and the program has
+initialized the library with the 'initFontLib' method, which is
+described in further detail below.  Otherwise, applications use the X
+Window System's builtin bitmap fonts.
 
-When looking for the machine's font configuration, Ctalk checks for the
-following files.
+Internally Ctalk uses the Fontconfig library to locate the system's
+'fonts.conf' file.  The 'fonts.conf' file's default location is
+configured when the library is built.  Generally, the 'font.conf' file's
+path is '/etc/fonts/fonts.conf' or '/usr/local/etc/fonts/fonts.conf.'
+
+However, an alternate 'fonts.conf' pathname may be set in the
+environment with the 'FONTCONFIG_FILE' environment variable.  If its
+value begins with a '~', the path is relative to the user's 'HOME'
+directory.  If the name doesn't start with a '/', then the pathname is
+relative to the fontconfig libraries' default installation directory.
+This directory can be changed by setting the 'FONTCONFIG_PATH'
+environment variable to an alternate directory.
+
+Classes that use X Window System graphics (that is, 'X11Pane' and its
+subclasses) can use either the X libraries' built-in bitmap fonts (via
+the pane's 'fontVar' instance variable), or the scalable Freetype fonts
+(via the pane's 'ftFontVar' instance variable).
+
+The default is to use X's built in bitmap fonts.  These fonts are
+initialized when the program connects to the display server.
+
+However, to enable drawing with scalable fonts, programs need to call
+the 'initFontLib' method during program initialization, with a line
+similar to this one.
+
+
+     myMainWindow ftFontVar initFontLib;
+
+
+Fontconfig Font Selection
+.........................
+
+Fontconfig font descriptions have their own syntax.  A Fontconfig
+pattern has the following elements.
+
+
+     <fontfamily>[-<fontsize>][:[[<name>=]<value>] ...]
+
+
+Here are a few examples.
+
+
+     DejaVu Sans Mono
+     Nimbus Sans L-12
+     Ubuntu Mono-10.0:italic
+     FreeMono-10:slant=italic:weight=bold
+
+
+These font descriptors work with the 'selectFontFromFontConfig' method.
+The receiver, of course, must be a 'X11FreetypeFont' object, or the pane
+object's 'ftFontVar' instance variable.  Here is an example
+
+
+     myWindow ftFontVar selectFontFromFontConfig "DejaVu Sans Mono-12"
+
+
+The Fontconfig user guide describes the library's font selection syntax.
+The documentation is available from many software package archives and
+also on the web at <http://freedesktop.org/fontconfig>.
+
+Basic 'fonts.conf' Files
+........................
+
+Ctalk also uses a subset of the 'fonts.conf' tag syntax and the older
+style of finding a system's or users' 'fonts.conf' file:
 
 1.
      The file path named by the '$XFT_CONFIG' environment variable.
@@ -1082,10 +1162,11 @@ following files.
 5.
      The file '/usr/X11R6/lib/X11/XftConfig'
 
-If you want to write your own font config file, the 'X11FreeTypeFont'
-class is mainly concerned with the directories where TrueType and Type 1
-fonts reside.  The directories need to be listed in the 'XftConfig' file
-with the 'dir' directive.  For example:
+If you want to write your own font config file, the Ctalk libraries can
+use a subset of the 'fonts.conf' markup.
+
+In this case, the entries simply cause the libraries to add the fonts in
+the directories to the internal font database.
 
 
      <fontconfig>
@@ -1095,18 +1176,16 @@ with the 'dir' directive.  For example:
      </fontconfig>
 
 
-There is a more complete 'XftConfig' sample file in the Ctalk source
-distribution, 'doc/XftConfig.sample'.  The 'fonts.conf (5)' manual page
-and the Xft user and developer documentation provide even more
-information.
+There is a sample 'XftConfig' file in the Ctalk source distribution,
+'doc/XftConfig.sample'.  The 'fonts.conf (5)' manual page and the Xft
+user and developer documentation provide even more information.
 
-Classes like 'X11TextPane' can use the FreeType fonts transparently
-instead of the normal Xlib application programming interface, as long as
-the Xft library is available and initialized.  Unlike the Xlib font
-resources, which need their Pane objects initialized before the font
-resources, the Xft library works best when the application initializes
-it as early as possible.  The example program for the 'X11TextPane'
-class shows how this can be accomplished.  *Note X11TextPane::.
+Further Information Qbout Fontconfig and libXft
+...............................................
+
+For further information about the the Fontconfig libraries, refer to:
+<https://freedesktop.org/fontconfig>.  Information about Xft is
+available at <http://freedesktop.org/wiki/Software/Xft>.
 
 Instance Variables
 ..................
@@ -1161,6 +1240,26 @@ Instance Methods
      VALUE must be an unsigned short int; i.e., in the range 0 - 65535
      (0xffff hex).
 
+'currentDescStr (void)'
+     Returns a 'String' containing a font descriptor for the currently
+     selected font.  The descriptor contains the attributes that the
+     Ctalk libraries use to select fonts: family, point size, slant, and
+     weight.
+
+     For the complete descriptor that the Freetype library derives from
+     the selected font's pattern, refer to the 'X11FreeTypeFont :
+     selectedFont' method.
+
+'errors (void)'
+     This is a shortcut for
+
+
+          myFont notifyLevel XFT_NOTIFY_ERRORS
+
+
+     Refer the the 'X11FreeTypeFont : notifyLevel' method for more
+     information.
+
 'green (Integer VALUE)'
      Set the current Xft font's foreground green channel.  The argument
      VALUE must be an unsigned short int; i.e., in the range 0 - 65535
@@ -1173,7 +1272,12 @@ Instance Methods
 
      If the system is not configured to use outline fonts then the
      library prints a message and exits the program with a non-zero
-     value.  *Note ctalkXftInitLib::.
+     value.  *Note ctalkXftInitLib::.  If the library is already
+     initialized, then the method returns '0'.
+
+'isMonospace (void)'
+     Returns a read-only 'Boolean' value of true if the application's
+     selected font is monospace, false otherwise.
 
 'libIsInitialized (void)'
      Returns a non-zero 'Integer' value if the Xft libraries are
@@ -1184,6 +1288,24 @@ Instance Methods
      PATTERN.  If PATTERN is an empty string '""' or a '*', match every
      font descriptor.
 
+'loadNotify (void)'
+     This is a shortcut for
+
+
+          myFont notifyLevel XFT_NOTIFY_LOAD
+
+
+     This causes methods like 'selectFont' to display the family and
+     size given to them, and a brief font descriptor that contains the
+     font parameters that Ctalk uses to select fonts: family, point
+     size, slant, and weight.
+
+     Refer to the 'X11FreeTypeFont : notifyLevel' method for a
+     description of information and error message levels.  To return a
+     string containing the font descriptor that the Freetype libraries
+     derive from the selected font's pattern, refer to the
+     'X11FreeTypeFont : selectedFont' method.
+
 'namedX11Color (String COLORNAME)'
      Sets the selected font's red, green, and blue values from the X11
      color name given as the argument.
@@ -1192,9 +1314,50 @@ Instance Methods
      recognizes, consult the file 'rgb.txt', which is often stored with
      the server's configuration files when the GUI is installed.
 
+'notifyLevel (Integer LEVEL)'
+     Set the Xft libraries' notification level to LEVEL.  Ctalk defines
+     the following constants in '/ctalk/ctalkdefs.h'.
+
+
+          XFT_NOTIFY_NONE
+          XFT_NOTIFY_ERRORS
+          XFT_NOTIFY_LOAD
+          XFT_NOTIFY_VERBOSE
+
+
+     These definitions produce the following information and warning
+     messages.
+
+     'XFT_NOTIFY_NONE'
+          The font libraries produce no output when the program is run.
+     'XFT_NOTIFY_ERRORS'
+          The font libraries display a warning if the library's selected
+          font does not match the user or appication defined font
+          specification.
+     'XFT_NOTIFY_LOAD'
+          The font library displays a message containing information
+          about the requested font, and a brief font descriptor that
+          contains the attributes that the Ctalk libraries use to select
+          fonts: family, point size, slant, and weight.
+     'XFT_NOTIFY_VERBOSE'
+          The font library displays a message that contains information
+          about the requested font, and the complete font descriptor
+          that the font libraries derive from the selected font's
+          patterm.
+
+     Note: programs should call this method before launching any
+     processes.  Generally this is before the 'X11Pane :
+     openInputStream' method.  Otherwise, the program only displays font
+     loads for the process it was called from.
+
 'qualifyName (String XFTPATTERN)'
      Returns a fully qualified 'String' containing a fully qualified Xft
      font descriptor that matches XFTPATTERN.
+
+'quiet (void)'
+     Sets the font libraries' reporting level to XFT_NOTIFY_NONE. For a
+     description of the libraries' notification levels, refer to the
+     'notifyLevel' method.
 
 'red (Integer VALUE)'
      Set the current Xft font's foreground red channel.  The argument
@@ -1249,6 +1412,12 @@ Instance Methods
      font specification as its argument.  *Note
      selectFontFromFontConfig::.
 
+     Refer to the 'X11FreeTypeFont : notifyLevel' method for a
+     description of information and error message levels.  To return a
+     string containing the font descriptor that the Freetype libraries
+     derive from the selected font's pattern, refer to the
+     'X11FreeTypeFont : selectedFont' method.
+
 'selectFontFromXLFD (String XLFD)'
      Similar to 'selectFont', above, except that its argument is a
      string in XLFD format.  That is, the method translates the XLFD
@@ -1259,19 +1428,62 @@ Instance Methods
           -*-DejaVu Sans-medium-r-*-*-12-72-72-*-*-*-*-*
 
 
+     As with all of the 'selectFont*' methods, refer to the
+     'X11FreeTypeFont : notifyLevel' method for a description of
+     information and error message levels.  To return a string
+     containing the font descriptor that the Freetype libraries derive
+     from the selected font's pattern, refer to the 'X11FreeTypeFont :
+     selectedFont' method.
+
 'selectFontFromFontConfig (String FONT_CONFIG_STRING)'
      Selects a font using the FontConfig specification given as its
      argument.
+
+     Refer to the beginning of the 'X11FreeTypeFont' section for a
+     description of Fontconfig descriptors.
+
+     Again, as with all of the 'selectFont*' methods, refer to the
+     'X11FreeTypeFont : notifyLevel' method for a description of
+     information and error message levels.  To return a string
+     containing the font descriptor that the Freetype libraries derive
+     from the selected font's pattern, refer to the 'X11FreeTypeFont :
+     selectedFont' method.
 
 'textHeight (String TEXT)'
      Return an 'Integer' with the height in pixels of TEXT in the
      currently selected FreeType font.  If the Xft library is not
      available or not initialized, the method returns 0.
 
+'textRBearing (String TEXT)'
+     Return an 'Integer' with the right bearing (the distance between
+     the rightmost segment of a character glyph and the right edge of
+     its character box) in pixels of TEXT in the currently selected
+     FreeType font.  If the Xft library is not available or not
+     initialized, or the application has not selected a font, the method
+     returns 0.
+
 'textWidth (String TEXT)'
      Return an 'Integer' with the width in pixels of TEXT in the
      currently selected FreeType font.  If the Xft library is not
      available or not initialized, the method returns 0.
+
+'verbose'
+     Causes the Ctalk libraries to output verbose information about font
+     selection and loading, like the complete font descriptor that the
+     Freetype libraries derive from the currently selected font's
+     pattern.  Refer to the 'X11FreeTypeFont : notifyLevel' method for
+     more information about this class' notification levels..
+
+'verbosity (void)'
+     Returns an 'Integer' with the Xft libraries' reporting level.  The
+     possible values, which are defined in 'ctalk/ctalkders.h', are:
+
+
+          XFT_NOTIFY_NONE
+          XFT_NOTIFY_ERRORS
+          XFT_NOTIFY_LOAD
+          XFT_NOTIFY_VERBOSE
+
 
 
 File: ctalk.info,  Node: X11Bitmap,  Next: Boolean,  Prev: X11FreeTypeFont,  Up: Classes
@@ -1286,18 +1498,41 @@ its own X11 graphics context for graphics operations.
 Instance Variables
 ..................
 
+'backgroundColor'
+     A 'String' that contains the name of a X color.  Setting this
+     variable does not affect the color of a displayed bitmap - programs
+     should call the 'X11Bitmap : background' method, which also sets
+     this variable.
+
 'depth'
      An 'Integer' that contains the depth of the bitmap.
+
+'displayPtr'
+     A 'Symbol' that contains the address of the connection to the X
+     server that was returned by a call to 'XOpenDisplay'.  This is
+     generally the address of the main window pane's 'displayPtr'
+     instance variable, and in this class, it is expressly set in the
+     'create' method.
+
 'height'
      An 'Integer' that contains the height of the bitmap.
+
+'modal'
+     A 'Boolean' that helps determine how Ctalk draws graphics on the
+     X11Bitmap.  True for X11Bitmap objects that are displayed in popup
+     windows, false otherwise.
+
 'parentDrawable'
      An 'Integer' that contains the window ID of the bitmap's parent
      drawable.  Normally this is set by the 'create' method, below.
+
 'width'
      An 'Integer' that contains the width of the bitmap.
+
 'xGC'
      A 'Symbol' object that contains the address of the X11 graphics
      context.
+
 'xID'
      The X resource ID of the Pixmap associated with this object.
 
@@ -1315,11 +1550,28 @@ Instance Methods
 'clearRectangle (Integer X, Integer Y, Integer WIDTH, Integer HEIGHT)'
      Clear the specified area to the background color.
 
-'initialize (int PARENTWINDOW, int WIDTH, int HEIGHT, int DEPTH)'
+     Copies the contents of SRCBITMAP to the receiver's drawing surface.
+     The source dimensions are determined by SRCX, SRCY, SRCWIDTH, and
+     SRCHEIGHT.  The method draws the source bitmap's contents with the
+     source's upper left-hand corner at DESTX, DESTY.
+
+'initialize (void *displayPtr, int PARENTWINDOW, int WIDTH, int HEIGHT, int DEPTH)'
      Create a X11Bitmap object and its graphics data.
 
 'delete (void)'
      Delete a pixmap and its graphics data.
+
+'drawCircle (Circle ACIRCLE, Integer FILLED, String BGCOLOR)'
+'drawCircle (Circle ACIRCLE, Pen APEN, Integer FILLED, String BGCOLOR)'
+     Draw the circle defined by ACIRCLE in the receiver's paneBuffer.
+     If FILLED is true, draws a filled circle.  If the APEN argument is
+     given, draws the circle with the color and the line width defined
+     by the 'aPen', and fills the interior of the circle with BGCOLOR.
+
+'drawFilledRectangle (Rectangle ARECT, Pen APEN)'
+     Draw a filled rectangle with the dimensions given in ARECT, using
+     the color given by APEN.  For other variations on this method refer
+     to 'drawRectangle'.
 
 'drawLine (Integer XSTART, Integer YSTART, Integer XEND, Integer YEND, Pen APEN)'
 'drawLine (Line ALINE, Pen APEN)'
@@ -1334,6 +1586,42 @@ Instance Methods
      Draw a point on the receiver's drawing surface at X,Y using the
      color, width, and transparency defined by the argument APEN.  *Note
      Pen::.
+
+'drawFilledRectangle (Rectangle ARECT, Pen APEN)'
+'drawFilledRectangle (Rectangle ARECT, Pen APEN,'
+     'Integer' FILL, 'Integer' CORNER_RADIUS)
+'drawFilledRectangle (Integer XORG, Integer YORG, Integer XSIZE, Integer YSIZE, Ineter FILL,'
+     'Integer' LINE_WIDTH, 'String' COLOR, 'Integer' CORNER_RADIUS) Draw
+     a rectangle on the receiver bitmap.  The FILL argument, if given,
+     draws a filled rectangle if the argument is true.  If FILL is
+     false, use the PEN_WIDTH argument to determine the line width.  If
+     RADIUS is non-zero, draw the rectangle with rounded corners with
+     the radius in pixels given by the argument.
+
+'entryIcon (int ICONID)'
+'entryIconEye (void)'
+'entryIconEyeSlashed (void)'
+     Draws an eye or slashed eye icon on the receiver bitmap.  The
+     bitmap should already be created with a call to the 'X11Bitmap :
+     create' method, and should have the dimensions
+     'ENTRY_ICON_WIDTH_PX' by 'ENTRY_ICON_HEIGHT_PX'.  These values are
+     defined in 'ctalkdefs.h', which can be included in programs and
+     classes with the line:
+
+
+          #include <ctalk/ctalkdefs.h>
+
+
+     In the case of the 'entryIcon' method, the ICONID argument should
+     have one of the following values.
+
+
+          ENTRY_ICON_EYE_NONE
+          ENTRY_ICON_EYE_OK
+          ENTRY_ICON_EYE_SLASHED
+
+
+     These constants are also defined in 'ctalkdefs.h'.
 
 'faceRegular (void)'
 'faceBold (void)'
@@ -1353,13 +1641,65 @@ Instance Methods
      is receiving and processing events, using the 'openEventStream'
      method in class 'X11Pane'.
 
+'icon (int ICONID)'
+'iconStop (void)'
+'iconCaution (void)'
+'iconInfo (void)'
+     These methods draw a 64x64 dialog icon on the receiver's drawing
+     surface.  In the case of the 'icon' method, the ICONID argument can
+     be one of the following.
+
+
+          ICON_NONE
+          ICON_STOP
+          ICON_CAUTION
+          ICON_INFO
+
+
+     Before calling any of these methods, a program must have created
+     the pane's drawing surface with the 'create' method.  It is also
+     generally necessary to set the pane's background color to that of
+     the surrounding window.  Here is an example.
+
+
+          myIcon create aPane displayPtr, aPane paneBuffer xID,
+            ICON_WIDTH_PX, ICON_HEIGHT_PX, pPane paneBuffer depth;
+          myIcon background "blue";
+
+
+     Because icons are generally rendered off-screen, the program should
+     use the parent pane's display connection, 'paneBuffer xID,' and
+     depth.  Then the program can use the 'X11Bitmap : copy' method to
+     draw the bitmap on the surround pane's buffer.  Here's another
+     example.
+
+          aPane paneBuffer copy myIcon, 0, 0, ICON_WIDTH_PX, ICON_HEIGHT_PX,
+                iconLeftOrigin, iconTopOrigin;
+
+
+     The constants 'ICON_WIDTH_PX' and 'ICON_HEIGHT_PX' are defined in
+     'ctalkdefs.h', so programs and classes that use icons should add
+     this line near the top of the source module.
+
+
+          #include <ctalk/ctalkdefs.h>
+
+
 'putStr (Integer X, Integer Y, String TEXT)'
 'putStr (Integer X, Integer Y, String TEXT, String FONT_DESC)'
 'putStr (Integer X, Integer Y, String TEXT, String FONT_DESC, String COLORNAME)'
-     Print TEXT on the receiver's drawable X resource, at X,Y.  If
-     FONT_DESC, a, X logical font descriptor, is given, use that font to
-     display the text.  If COLORNAME is also given, render the text
-     using that color.
+     Print TEXT on the receiver's drawable X resource, at X,Y.
+
+     If FONT_DESC, (which is either a X Logical Font Descriptor if using
+     X bitmap fonts or a Fontconfig descriptor if using Freetype fonts),
+     is given, use that font to display the text.
+
+     For information about Fontconfig descriptors, refer to the
+     'X11FreeTypeFont' section *Note X11FreeTypeFont::.  For information
+     about X Logical Font Descriptors, refer to the 'X11Font' section
+     *Note X11Font::.
+
+     If COLORNAME is also given, render the text using that color.
 
 'pixmapFromData (int X_ORG, int Y_ORG, char *XPM_DATA[])'
      Draw the X pixmap defined by XPM_DATA with the upper left corner at
@@ -1388,21 +1728,22 @@ Instance Methods
             "Resize the receiver pane.  This is the resize event
             handler called by the parent window's pane
             dispatcher."
-            if (__subPane container containerMode == "full") {
-              (X11Bitmap *)self paneBuffer resize self xWindowID, __event xEventData3,
-                __event xEventData4;
-              (X11Bitmap *)self paneBackingStore resize self xWindowID, __event xEventData3,
-                __event xEventData4;
 
+            if (__ctalkX11ResizeWindow (__subPane, __event xEventData3,
+          			      __event xEventData4,
+          			      __subPane depth) > 0) {
+              /* refreshReframe uses viewWidth and viewHeight, refresh uses size x
+                 and size y */
               __subPane viewWidth = __event xEventData3;
               __subPane viewHeight = __event xEventData4;
               __subPane size x = __event xEventData3;
               __subPane size y = __event xEventData4;
-              __subPane refresh;
-            } else {
-              fprintf (stderr,
-               "Error: subPaneResize (class X11CanvasPane): unknown container mode!\n");
+              (X11Bitmap *)self paneBuffer resize self xWindowID,
+                __event xEventData3, __event xEventData4;
+              (X11Bitmap *)self paneBackingStore resize self xWindowID,
+                __event xEventData3, __event xEventData4;
             }
+
             return NULL;
           }
 
@@ -1554,6 +1895,13 @@ Instance Methods
 'getValue (void)'
      Return the value of the receiver, a 'Key' object.
 
+'integerAt (String KEYNAME)'
+     Returns the value for KEYSTRING as an 'Integer'.  The method does
+     not do any checking to make sure that the value is a valid
+     'Integer' object; the program should ensure that the collection
+     element is either an 'Integer' object or is validly translatable to
+     an 'Integer'.
+
 'isEmtpy (void)'
      Return 'TRUE' if the receiver collection is emtpy, 'FALSE'
      otherwise.
@@ -1566,9 +1914,24 @@ Instance Methods
      Return an 'Integer' value of True if the key given as the argument
      is present in the receiver collection, False otherwise.
 
+'map (OBJECT *(*METHOD)())'
+     Execute METHOD, an instance method of class 'AssociativeArray,' for
+     each key/value pair of the receiver array.  The receiver of METHOD
+     is a 'Key' object with the parent class of 'AssociativeArray'.  The
+     return value of 'mapKeys' is NULL.
+
 'removeAt (String KEY_NAME)'
      Remove the object stored at KEY_NAME from the receiver collection
-     and return it.
+     and return it.  Returns NULL if the entry isn't present in the
+     receiver collection.  In that case, the method does not create a
+     new entry, so programs should then call the 'atPut' method.
+
+'replaceAt (String KEY_NAME, Object NEW_VALUE)'
+     Replace the value at KEY_NAME in the receiver collection.  Returns
+     the old value object, or NULL if the key doesn't exist.  In that
+     case, the method does not create a new entry, so in that case it's
+     necessary to add the key/value entry to the receiver collection
+     using 'atPut'.
 
 'size (void)'
      Return an 'Integer' with the number of items in the receiver
@@ -1910,8 +2273,42 @@ Instance Methods
 'at (char *KEY)'
      Retrieve the element of the receiver array stored at KEY.
 
+'init (...)'
+'= (...)'
+     Append the arguments to the receiver 'AssociativeArray'.  The
+     argument list may be any number of _key,value_ pairs.  Here is an
+     example.
+
+
+          myAssocArray init "key1", "first", "key2", "second", "key3", "third",
+            "key4", "fourth";
+          myAssocArray append "key5", "fifth", "key6", "sixth", "key7", "seventh",
+            "key8", "eigth";
+
+          _... or ... _
+
+          myAssocArray = "key1", "first", "key2", "second", "key3", "third",
+            "key4", "fourth";
+          myAssocArray += "key5", "fifth", "key6", "sixth", "key7", "seventh",
+            "key8", "eigth";
+
+
 'atPut (char *KEY, OBJECT *ITEM)'
      Add ITEM to the receiver at KEY.
+
+'init (...)'
+'= (...)'
+     Initializes the receiver 'AssociativeArray' to the values given as
+     the arguments, which may be composed of any number of _key,value_
+     pairs.  Here is an example.
+
+
+          myAssocArray init "key1", "value1", key2", "value2", "key3", "value3";
+
+          _... or ... _
+
+          myAssocArray = "key1", "value1", key2", "value2", "key3", "value3";
+
 
 'keyAt (String KEYNAME)'
      Returns the 'Key' object named by KEYNAME.
@@ -1921,12 +2318,6 @@ Instance Methods
      each member of the receiver array.  Each time METHOD is executed,
      'self' refers to the object stored in the associativeArray.  This
      method returns NULL.
-
-'map (OBJECT *(*METHOD)())'
-     Execute METHOD, an instance method of class 'AssociativeArray,' for
-     each key/value pair of the receiver array.  The receiver of METHOD
-     is a 'Key' object with the parent class of 'AssociativeArray'.  The
-     return value of 'mapKeys' is NULL.
 
 'setValue (void)'
      A wrapper method for 'getValue' in class 'Key.' If received by an
@@ -4768,8 +5159,14 @@ Instance Variables
           KBDCHAR        # ASCII Characters
           KBDCUR         # Cursor Keys.
 'eventData'
-     An 'Integer' that contains the data specific to an input event; for
-     example, the ASCII value of a keypress.
+     An 'Integer' that contains the data specific to an input event.
+
+     For example, when used with subclasses of 'ANSITerminalPane,'
+     'eventData' holds the ASCII value of a keypress.
+
+     When used with subclasses of X11Pane (actually, any subclass or
+     program that uses X11TerminalStream : queueInput), 'eventData'
+     generally holds the ID of the window that received the event.
 
 'xEventData1'
 'xEventData2'
@@ -5646,6 +6043,10 @@ Instance Methods
      Like the other methods that decrement the reference to the
      receiver's value, the program must first have incremented it
      further than the start of the string.
+
+'asExpanded (void)'
+     Return the expanded directory path for a directory glob pattern
+     contained in the receiver.
 
 'asInteger (void)'
      Return an 'Integer' object with the value of the receiver.
@@ -8564,428 +8965,4 @@ Instance Methods
      left-hand corner of the display, or if the receiver is to be
      displayed over a parent pane, it is mapped to the parent pane with
      the origin relative the the parent pane's upper left-hand corner.
-
-
-File: ctalk.info,  Node: ANSIProgressBarPane,  Next: ANSIScrollingListBoxPane,  Prev: ANSIMessageBoxPane,  Up: Classes
-
-'ANSIProgressBarPane' Class
----------------------------
-
-An 'ANSIProgressBarPane' object displays a horizontal progress bar on a
-serial terminal or xterm.  If you display a progress bar pane
-independently (using the 'show' method), you can close the pane by
-pressing 'Enter' or 'Esc'.
-
-The 'progress' instance variable specifies how much of the progress bar
-is highlighted.  It's better to use the 'percent' method, though, which
-calculates the progress bar's hightlighted area and sets the percent
-legend.
-
-As with all other ANSI pane widgets, you either display or omit the
-border and shadow decorations.  Progress bars can also display a title
-string, which you can set using the 'title' method, implemented in
-'ANSIWidgetPane' class.  *Note ANSIWidgetPane::.
-
-Here is an example program that displays an 'ANSIProgressBarPane'
-object.
-
-
-     int main () {
-       ANSIProgressBarPane new progressBar;
-
-
-       progressBar shadow = 1;
-       progressBar border = 1;
-
-       progressBar title "Progress";
-
-       progressBar percent 65.0;
-
-       progressBar show 2, 2;
-
-       progressBar cleanup;
-     }
-
-
-You can set the size of a progres bar using the 'dimension' method.  In
-that case, setting the progress bar using the 'percent' method adjusts
-for the pane's width.  The widget's display area is always drawn as one
-character row tall, however.
-
-If you display the progress bar as a widget in an application, then you
-can update the progress bar on the screen using the 'display' method
-instead of 'show', because 'display' does not wait for user input before
-returning.
-
-Instance Variables
-------------------
-
-'pctLabelMargin'
-     An 'Integer' that specifies where to draw the percent legend in the
-     progress bar's content area.
-
-'percentInt'
-     An 'Integer' that specifies percent of the progress bar's internal
-     area that is highlighted.  Setting this using the 'percent' method,
-     below, also adjusts the hightlight's dimensions for the progress
-     bar's width.  This variable is also used to display the text of the
-     percent logo in the widget's content area.
-
-'progress'
-     An 'Integer' that specifies the number of character columns to
-     highlight in the progress bar's viewable area.
-
-'viewHeight'
-     An 'Integer' that specifies the height in character rows of the
-     widget's viewable area.  The progress bar highlight is always drawn
-     as one character row in height.
-
-'viewWidth'
-     An 'Integer' that specifies the width in character rows of the
-     widget's viewable area.
-
-Instance Methods
-................
-
-'dimension (Integer WIDTH, Integer HEIGHT)'
-     Set the width and height of the pane in character columns.
-
-'show (Integer X, Integer Y)'
-     Display the pane at row and column X,Y, and return immediately.
-
-'handleInput (void)'
-     Wait for the user's input.  Pressing 'Esc' or 'Enter' closes the
-     pane.  and returns.
-
-'new (String PANENAME)'
-     Create new 'ANSIProgressBarPane' objects, one for each label given
-     in the method's argument list.
-
-'percent (Float PERCENT)'
-     Set the percent of the progress bar's highlighted area.  This
-     method adjusts for the width of the progress bar and sets the text
-     for the percent logo.
-
-'refresh (void)'
-     Redraw the progress bar on the terminal.
-
-'show (Integer X, Integer Y)'
-     Display the pane at row and column X,Y, and wait for the user's
-     input.
-
-
-File: ctalk.info,  Node: ANSIScrollingListBoxPane,  Next: ANSIScrollPane,  Prev: ANSIProgressBarPane,  Up: Classes
-
-'ANSIScrollingListBoxPane' Class
---------------------------------
-
-An 'ANSIScrollingListBoxPane' object is similar to an 'ANSIListBoxPane';
-it displays a list of items in a text mode terminal or 'xterm' and
-allows the user to use the terminal's 'Cursor-Up'/'Cursor-Down' keys,
-Emacs compatible 'C-n'/'C-p' keys, or vi compatible 'j'/'k' keys to
-select an item in the list.
-
-Pressing 'Enter' or 'Escape' closes the widget.  An application can
-retrieve the selected item's text with the 'selectedText' method, which
-is described below.
-
-In addition, an 'ANSIScrollingListBoxPane' object can scroll the list if
-the number of items is greater than the height of the widget's viewable
-area, in order to keep the selected item visible.  The widget also
-displays a read-only scroll bar that indicates which portion of the list
-is visible.
-
-
-     int main () {
-       ANSIScrollingListBoxPane new sListBox;
-
-       sListBox enableExceptionTrace;
-
-       sListBox withShadow;
-       sListBox noBorder;    /* Not all terminals support line
-                                drawing characters.            */
-
-       sListBox appendLine "Item 1";
-       sListBox appendLine "Item 2";
-       sListBox appendLine "Item 3";
-       sListBox appendLine "Item 4";
-       sListBox appendLine "Item 5";
-       sListBox appendLine "Item 6";
-       sListBox appendLine "Item 7";
-       sListBox appendLine "Item 8";
-       sListBox appendLine "Item 9";
-       sListBox appendLine "Item 10";
-       sListBox appendLine "Item 11";
-       sListBox appendLine "Item 12";
-       sListBox appendLine "Item 13";
-       sListBox appendLine "Item 14";
-       sListBox appendLine "Item 15";
-       sListBox appendLine "Item 16";
-       sListBox appendLine "Item 17";
-       sListBox appendLine "Item 18";
-       sListBox appendLine "Item 19";
-       sListBox appendLine "Item 20";
-       sListBox appendLine "Item 21";
-       sListBox appendLine "Item 22";
-       sListBox appendLine "Item 23";
-       sListBox appendLine "Item 24";
-       sListBox appendLine "Item 25";
-       sListBox appendLine "Item 26";
-       sListBox appendLine "Item 27";
-       sListBox appendLine "Item 28";
-       sListBox appendLine "Item 29";
-       sListBox appendLine "Item 30";
-       sListBox appendLine "Item 31";
-       sListBox appendLine "Item 32";
-
-       sListBox show 5, 6;
-
-       printf ("%s\n", sListBox selectedText);
-
-       sListBox cleanup;
-     }
-
-
-Instance Variables
-------------------
-
-'items'
-     A 'List' of the items that the receiver displays.  *Note List::.
-
-'oldSelectedContent'
-     An 'ANSILabelPane' object that contains previously selected item.
-     *Note ANSILabelPane::.
-
-'prevSelectedLine'
-     An 'Integer' that contains the index of the previously selected
-     item.  *Note Integer::.
-
-'selectedContent'
-     An 'ANSIScrollPane' object that draws the widget's scroll bar.
-     *Note ANSIScrollPane::.
-
-'selectedContent'
-     An 'ANSILabelPane' object that contains selected item.  *Note
-     ANSILabelPane::.
-
-'selectedLine'
-     An 'Integer' that contains the index of the selected item.  *Note
-     Integer::.
-
-'totalLines'
-     An 'Integer' that contains total number of list items.  *Note
-     Integer::.
-
-'viewStartLine'
-     An 'Integer' that specifies which item begins the list's viewable
-     portion.  *Note Integer::.
-
-'viewHeight'
-     An 'Integer' that contains the height in text lines of the widget's
-     visible area.  *Note Integer::.
-
-'viewWidth'
-     An 'Integer' that contains the height in character columns of the
-     widget's visible area.  *Note Integer::.
-
-Instance Methods
-................
-
-'appendLine (String ITEM_TEXT)'
-     Adds ITEM_TEXT to the list's contents.
-
-'cleanup (void)'
-     Deletes the display buffers associated with the list box and scroll
-     bar.
-
-'handleInput (void)'
-     Waits for the user's input.  Changes the selected item when the
-     user cursors through the list using the terminal's cursor keys,
-     Emacs compatible 'C-n'/'C-p', or vi compatible 'j'/'k'.  Restores
-     the terminal and returns when the user presses 'Enter' or 'Escape'.
-
-'noBorder (void)'
-'withBorder (void)'
-     Set or unset the border for the main scroll pane and the scroll
-     bar.  These methods are equivalent to the following expressions.
-
-
-            /* To display borders. */
-            listPane border = 1;
-            listPane scrollBar border = 1;
-
-            /* To hide the borders. */
-            listPane border = 0;
-            listPane scrollBar border = 0;
-
-
-     Note that not all terninals support line drawing characters.
-
-'noBorder (void)'
-'withBorder (void)'
-     Set or unset the shadow for the main scroll pane and the scroll
-     bar.  The methods are a shortcut for these statements.
-
-
-            /* To display shadows. */
-            listPane shadow = 1;
-            listPane scrollBar shadow = 1;
-
-            /* To hide the shadows. */
-            listPane shadow = 0;
-            listPane scrollBar shadow = 0;
-
-
-'new (String OBJECT_NAME)'
-     Constructs a new 'ANSIScrollingListBoxPane' for each label given in
-     the argument list.  Sets the dimensions for the viewable areas,
-     decorations, and creates the display buffers for the list box and
-     the scroll bar.
-
-'refresh (void)'
-     Redraws the list box.
-
-'refreshSelection (void)'
-     Un-highlights the previously selected item and highlights the
-     currently selected item.
-
-'refreshSelectionFirst (void)'
-     Highlights the currently selected item, which is normally the first
-     item in the list when first drawing the widget-i.e., when there is
-     no previously selected item.
-
-'scrollThumbSize (void)'
-     Sets the 'scrollBar' instance variable's 'thumbHeight' instance
-     variable based on which portion of the list is visible.  *Note
-     ANSIScrollPane::.
-
-'scrollThumbStart (void)'
-     Sets the 'scrollBar' instance variable's 'thumbStartLine' instance
-     variable based on which portion of the list is visible.  *Note
-     ANSIScrollPane::.
-
-'selectedText (void)'
-     Returns a 'String' containing the text of the selected item.  *Note
-     String::.
-
-'selectNext (void)'
-     Sets the next 'selectedLine' and 'selectedContent' instance
-     variables to the next item in the list.  If the selected item is
-     already the last item in the list, the method does nothing.
-
-'selectPrev (void)'
-     Sets the next 'selectedLine' and 'selectedContent' instance
-     variables to the previous item in the list.  If the selected item
-     is already the first item in the list, the method does nothing.
-
-'show (Integer X, Integer Y)'
-     Displays the widget an character row and column X,Y on the terminal
-     display, then calls the 'handleInput' method to process user input.
-
-
-File: ctalk.info,  Node: ANSIScrollPane,  Next: ANSITextBoxPane,  Prev: ANSIScrollingListBoxPane,  Up: Classes
-
-'ANSIScrollPane' Class
-----------------------
-
-An 'ANSIScrollPane' object draws a vertical scroll box on a text-mode
-terminal or X terminal.  Applications can use the pane's instance
-variables to set the position and height of the scroll thumb, and the
-border and shadow decorations.
-
-The class provides a 'handleInput' method that allows users to move the
-scroll thumb independently if the pane is used by itself.
-
-This app draws a scroll pane independently.
-
-
-     int main () {
-       ANSIScrollPane new scrollBox;
-
-       scrollBox shadow = 0;
-       scrollBox border = 1;
-
-       scrollBox thumbHeight = 3;    // Sets the position and height
-       scrollBox thumbStartLine = 1; // of the scroll thumb.
-
-       scrollBox show 2, 2;          // The Up and Down arrow keys
-                                     // move the scroll thumb while
-                                     // the pane is displayed.
-
-       scrollBox cleanup;
-     }
-
-
-
-When used to indicate the position of other panes, applications should
-set and read the scroll thumb's using the 'thumbHeight' and
-'thumbStartLine' instance variables.  If the application wants to use
-the 'ANSIScrollPane' object to set another pane's position, it needs to
-handle the Up and Down cursor motion keys in the app's 'handleInput'
-method,
-
-In that case, the app should use the classes' 'display' method instead
-of 'show' to display the 'ANSIScrollPane' object, because 'display'
-doesn't wait for user input on its own.
-
-There's no terminal independent way, however, to indicate that the
-'ANSIScrollPane' object has the input focus.  An app might do this by
-either setting or omitting the pane's shadow, but that can occupy an
-extra line of terminal space.
-
-The class is simplified by keeping the width of the scroll thumb at one
-column.  Apps can draw a wider scroll pane, but that does not affect the
-scroll thumb's width.
-
-Instance Variables
-..................
-
-'viewHeight'
-     An 'Integer' that specifies the height of the scroll channel in
-     character rows.
-
-'viewWidth'
-     An 'Integer' that specifies the width of the scroll channel in
-     character columns.
-
-'thumbHeight'
-     An 'Integer' that specifies the height of the scroll thumb in
-     character rows.
-
-'thumbStartLine'
-     An 'Integer' that specifies the row of the top of the scroll thumb.
-     This should be less than the 'viewHeight' instance variable for the
-     thumb to be visible.
-
-Instance Methods
-................
-
-'cleanup (void)'
-     Delete the buffers associated with the pane object.
-
-'dimension (Integer WIDTH, Integer HEIGHT)'
-     Set the width and height of the receiver pane.  Also adjusts the
-     width of the 'viewWidth' and 'viewHeight' instance variables.
-
-'display (Integer X, Integer Y)'
-     Draw the pane on the terminal at row and column X,Y, and return
-     immediately.
-
-'handleInput (void)'
-     Waits for user input from the pane's 'ANSITerminalStream' object.
-     Pressing Enter or Escape withdraws the pane from the display and
-     returns.  Pressing the Up or Down arrow keys moves the scroll
-     thumb.
-
-'new (String PANENAME)'
-     Create a new 'ANSIScrollPane' object, with the name PANENAME.  If
-     more than one name is given in the argument list, create new
-     'ANSIScrollPane' objects with the arguments' names.
-
-'refresh (void)'
-     Draw the pane on the terminal.
-
-'show (Integer X, Integer Y)'
-     Draw the pane on the terminal at row and column X,Y, and wait for
-     the user's input.
 

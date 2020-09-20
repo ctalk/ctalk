@@ -1,4 +1,4 @@
-/* $Id: font.c,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-c-*-*/
+/* $Id: font.c,v 1.2 2020/09/19 02:21:15 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -163,7 +163,13 @@ int __ctalkX11TextWidth (char *xlfd, char *text) {
   	      getenv ("DISPLAY"));
     return ERROR;
   }
-  font_info = XLoadQueryFont (display, xlfd);
+  if (xlfd == NULL || str_eq (xlfd, NULLSTR)) {
+    font_info = XLoadQueryFont (display, fixed_fonts[0]);
+  } else {
+    if ((font_info = XLoadQueryFont (display, xlfd)) == NULL) {
+      font_info = XLoadQueryFont (display, fixed_fonts[0]);
+    }
+  }
   text_width = XTextWidth (font_info, text, strlen (text));
   XFreeFont (display, font_info);
   XCloseDisplay (display);

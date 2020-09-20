@@ -1,8 +1,8 @@
-/* $Id: ccompat.c,v 1.1.1.1 2019/10/26 23:40:50 rkiesling Exp $ */
+/* $Id: ccompat.c,v 1.2 2020/07/08 02:02:01 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
-  Copyright © 2005-2011 Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2005-2011, 2020 Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
 
@@ -45,7 +45,7 @@ char cc_path[FILENAME_MAX];
 char gcc_target[MAXLABEL];             /* GNU C target and version.         */
 char gcc_version[MAXLABEL];
 
-char cpp_subdir[FILENAME_MAX];
+char cpp_subdir[FILENAME_MAX * 2];
 
 extern char *host_os;                 /* Defined in builtins.c.             */
 extern char *host_cpu;
@@ -214,8 +214,8 @@ void find_gpp_subdir (void) {
 
 #ifdef __GNUC__
   char include_dir[FILENAME_MAX + 8], /* strlen ("include")  + 1 */
-    gpp_subdir[FILENAME_MAX * 2],
-    s[FILENAME_MAX * 3 + 10], /* strlen ("/iostream") + 1 */
+    gpp_subdir[FILENAME_MAX * 3],
+    s[FILENAME_MAX * 4 + 10], /* strlen ("/iostream") + 1 */
     *subdir_sig_ptr;
   struct dirent *d;
   DIR *dir;

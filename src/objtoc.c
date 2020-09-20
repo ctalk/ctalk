@@ -1,8 +1,8 @@
-/* $Id: objtoc.c,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ */
+/* $Id: objtoc.c,v 1.2 2020/09/19 01:08:28 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
-  Copyright © 2005-2012, 2015-2019 Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2005-2012, 2015-2020 Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright 
   notice is included in all source code modules.
 
@@ -58,6 +58,9 @@ extern DEFAULTCLASSCACHE *ct_defclasses; /* Declared in cclasses.c.       */
 
 extern bool missing_fmt_arg_specifier;  /* Declared in fmtargtype.c. */
 
+/* Tells us whether a pointer format is "%p" or "%#x" */
+extern bool ptr_fmt_is_alt_int_fmt;
+
 char *fmt_printf_fmt_arg (MESSAGE_STACK messages, 
 			  int expr_start_idx,
 			  int stack_start_idx,
@@ -94,7 +97,9 @@ char *fmt_printf_fmt_arg (MESSAGE_STACK messages,
 	unknown_format_conversion_warning (messages, expr_start_idx);
       break;
     }
-
+  if (ptr_fmt_is_alt_int_fmt)
+    ptr_fmt_is_alt_int_fmt = false;
+  
   /* any other format should be compatible with OBJECT *'s */
   if (*expr_out)
     return expr_out;
@@ -651,8 +656,6 @@ char *fmt_rt_return_chk_fn_arg (char *exprbuf, char *returnclassname,
   return fmt_rt_return (exprbuf, returnclassname, keep, expr_out);
 }
 
-/* Tells us whether a pointer format is "%p" or "%#x" */
-extern bool ptr_fmt_is_alt_int_fmt;
 
 #ifdef __x86_64
 /* So we can use __ctalkToCLong for pointers instead of

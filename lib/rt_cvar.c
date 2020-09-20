@@ -1,8 +1,8 @@
-/* $Id: rt_cvar.c,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ */
+/* $Id: rt_cvar.c,v 1.2 2020/09/18 21:25:12 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
-  Copyright © 2005-2019  Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2005-2020  Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
 
@@ -229,7 +229,7 @@ static inline void longdouble_conv (CVAR *c, void *var,
     case 0:
       c -> val.__type = LONGDOUBLE_T;
     
-#ifndef __APPLE__
+#if !(defined(__APPLE__) && defined(__ppc__))
       if (var != NULL)
 	c -> val.__value.__ld = *(long double *)var;
       else
@@ -487,8 +487,9 @@ int __ctalk_register_c_method_arg (char *decl, char *type,
     short_int_conv (c, var, have_array_member);
     add_method_arg_cvar (c);
     return SUCCESS;
-  } else if ((c -> type_attrs & CVAR_TYPE_INT) ||
-	     (c -> type_attrs & CVAR_TYPE_LONG)) {
+  } else if (((c -> type_attrs & CVAR_TYPE_INT) ||
+	      (c -> type_attrs & CVAR_TYPE_LONG)) &&
+	     !(c -> type_attrs & CVAR_TYPE_DOUBLE)) {
     int_conv (c, var, have_array_member);
     add_method_arg_cvar (c);
     return SUCCESS;
@@ -498,7 +499,9 @@ int __ctalk_register_c_method_arg (char *decl, char *type,
     return SUCCESS;
   }
 
-  if (c -> type_attrs & CVAR_TYPE_LONGDOUBLE) {
+  if ((c -> type_attrs & CVAR_TYPE_LONGDOUBLE) ||
+      ((c -> type_attrs & CVAR_TYPE_LONG) &&
+       (c -> type_attrs & CVAR_TYPE_DOUBLE))){
     longdouble_conv (c, var, have_array_member);
   } else if (c -> type_attrs & CVAR_TYPE_DOUBLE) {
     double_conv (c, var, have_array_member);
@@ -572,8 +575,10 @@ int __ctalk_register_c_method_arg_b (char *decl, char *type,
     longlong_int_conv (c, var, have_array_member);
     add_method_arg_cvar (c);
     return SUCCESS;
-  } else if ((c -> type_attrs & CVAR_TYPE_INT) ||
-	     (c -> type_attrs & CVAR_TYPE_LONG)) {
+  } else if (((c -> type_attrs & CVAR_TYPE_INT) ||
+	      (c -> type_attrs & CVAR_TYPE_LONG)) &&
+	     !(c -> type_attrs & CVAR_TYPE_DOUBLE)) {
+    /* CVAR_TYPE_LONG|CVAR_TYPE_DOUBLE == long double, handled below. */
     int_conv (c, var, have_array_member);
     add_method_arg_cvar (c);
     return SUCCESS;
@@ -583,7 +588,9 @@ int __ctalk_register_c_method_arg_b (char *decl, char *type,
     return SUCCESS;
   }
 
-  if (c -> type_attrs & CVAR_TYPE_LONGDOUBLE) {
+  if ((c -> type_attrs & CVAR_TYPE_LONGDOUBLE) ||
+      ((c -> type_attrs & CVAR_TYPE_LONG) &&
+       (c -> type_attrs & CVAR_TYPE_DOUBLE))){
     longdouble_conv (c, var, have_array_member);
   } else if (c -> type_attrs & CVAR_TYPE_DOUBLE) {
     double_conv (c, var, have_array_member);
@@ -652,8 +659,9 @@ int __ctalk_register_c_method_arg_c (char *decl, char *type,
     longlong_int_conv (c, var, have_array_member);
     add_method_arg_cvar (c);
     return SUCCESS;
-  } else if ((c -> type_attrs & CVAR_TYPE_INT) ||
-	     (c -> type_attrs & CVAR_TYPE_LONG)) {
+  } else if (((c -> type_attrs & CVAR_TYPE_INT) ||
+	      (c -> type_attrs & CVAR_TYPE_LONG)) &&
+	     !(c -> type_attrs & CVAR_TYPE_DOUBLE)) {
     int_conv (c, var, have_array_member);
     add_method_arg_cvar (c);
     return SUCCESS;
@@ -663,7 +671,9 @@ int __ctalk_register_c_method_arg_c (char *decl, char *type,
     return SUCCESS;
   }
 
-  if (c -> type_attrs & CVAR_TYPE_LONGDOUBLE) {
+  if ((c -> type_attrs & CVAR_TYPE_LONGDOUBLE) ||
+      ((c -> type_attrs & CVAR_TYPE_LONG) &&
+       (c -> type_attrs & CVAR_TYPE_DOUBLE))){
     longdouble_conv (c, var, have_array_member);
   } else if (c -> type_attrs & CVAR_TYPE_DOUBLE) {
     double_conv (c, var, have_array_member);
@@ -730,8 +740,9 @@ int __ctalk_register_c_method_arg_d (char *type,
     longlong_int_conv (c, var, have_array_member);
     add_method_arg_cvar (c);
     return SUCCESS;
-  } else if ((c -> type_attrs & CVAR_TYPE_INT) ||
-	     (c -> type_attrs & CVAR_TYPE_LONG)) {
+  } else if (((c -> type_attrs & CVAR_TYPE_INT) ||
+	      (c -> type_attrs & CVAR_TYPE_LONG)) &&
+	     !(c -> type_attrs & CVAR_TYPE_DOUBLE)) {
     int_conv (c, var, have_array_member);
     add_method_arg_cvar (c);
     return SUCCESS;
@@ -741,7 +752,9 @@ int __ctalk_register_c_method_arg_d (char *type,
     return SUCCESS;
   }
 
-  if (c -> type_attrs & CVAR_TYPE_LONGDOUBLE) {
+  if ((c -> type_attrs & CVAR_TYPE_LONGDOUBLE) ||
+      ((c -> type_attrs & CVAR_TYPE_LONG) &&
+       (c -> type_attrs & CVAR_TYPE_DOUBLE))){
     longdouble_conv (c, var, have_array_member);
   } else if (c -> type_attrs & CVAR_TYPE_DOUBLE) {
     double_conv (c, var, have_array_member);
@@ -1845,7 +1858,7 @@ static OBJECT *object_from_int_CVAR (CVAR *c, int *obj_is_created,
 	 completely during the method pool cleaning.
       */
       o_ref -> attrs |= OBJECT_REF_IS_CVAR_PTR_TGT;
-      /* *** Do this separately... */
+      /* Do this separately... */
 #ifdef __x86_64
       li = (long long int)((long long int **)c -> val.__value.__ptr)[0];
       i_2 = (uintptr_t)li;
@@ -1853,36 +1866,6 @@ static OBJECT *object_from_int_CVAR (CVAR *c, int *obj_is_created,
       i_2 = (uintptr_t)((uintptr_t **)c -> val.__value.__ptr)[0];
 #endif
  
-      /*  __ctalkDecimalIntegerToASCII (i_2, buf); *//***/
-      if (c -> initializer_size > 0) {
-#if 0 /***/
-	o = __ctalkCreateObjectInit (c -> name, 
-				     INTEGER_CLASSNAME,
-				     INTEGER_SUPERCLASSNAME,
-				     d_scope,
-				     buf);
-#endif	
-      } else {
-#if 0 /***/
-	o_ref = __ctalkCreateObjectInit (c -> name, 
-					 INTEGER_CLASSNAME,
-					 INTEGER_SUPERCLASSNAME,
-					 d_scope|VAR_REF_OBJECT,
-					 buf);
-	CVHTOA(buf,o_ref);
-	o_ref2 = __ctalkCreateObjectInit (c -> name, 
-					  SYMBOL_CLASSNAME,
-					  SYMBOL_SUPERCLASSNAME,
-					  d_scope,
-					  buf);
-	CVHTOA(buf,o_ref2);
-	o = __ctalkCreateObjectInit (c -> name, 
-				     SYMBOL_CLASSNAME,
-				     SYMBOL_SUPERCLASSNAME,
-				     d_scope,
-				     buf);
-#endif	
-      }
       *obj_is_created = TRUE;
       break;
     }
@@ -2025,6 +2008,23 @@ OBJECT *cvar_object (CVAR *c, int *obj_is_created) {
 	(c -> name, rt_defclasses -> p_float_class, d_scope, buf);
       *obj_is_created = TRUE;
       break;
+#if !(defined(__APPLE__) && defined(__ppc__))
+    case LONGDOUBLE_T:
+      if (c -> n_derefs && c -> initializer_size) {
+	/* untested for now */
+#if defined (__GNUC__) && defined (__x86_64) && defined (__amd64__)
+	sprintf (buf, "%#lx", (unsigned long int)c -> val.__deref_ptr);
+#else
+	(void)htoa (buf, (unsigned int)c -> val.__deref_ptr);
+#endif
+      } else {
+	snprintf (buf, MAXLABEL, "%Lf", c -> val.__value.__ld);
+      }
+      o = create_object_init_internal
+	(c -> name, rt_defclasses -> p_float_class, d_scope, buf);
+      *obj_is_created = TRUE;
+      break;
+#endif      /* !(defined(__APPLE__) && defined(__ppc__)) */
     case OBJECT_T:
       return object_from_CVAR (c, &o, obj_is_created);
       break;
@@ -2092,7 +2092,7 @@ OBJECT *cvar_object (CVAR *c, int *obj_is_created) {
 	      break;
 	    case 2:
 	      if ((c -> attrs & CVAR_ATTR_CVARTAB_ENTRY) ||
-		  /* We still need this for now. *** TODO - remove ? */
+		  /* We still need this for now. TODO - remove ? */
 		  is_cvartab_entry (c)) {
 		/* the extra deref is just that -
 		   attach to a Symbol object. */
@@ -2177,14 +2177,6 @@ OBJECT *cvar_object (CVAR *c, int *obj_is_created) {
 		    _warning ("void variable, \"%s,\" is not a pointer. Handling by reference anyway.\n", c -> name);
 		    /* Fall through */
 		  default:
-#if 0 /***/
-# if defined (__GNUC__) && defined (__x86_64) && defined (__amd64__)
-		    sprintf (buf, "%#lx", 
-			     (unsigned long int)c -> val.__value.__ptr);
-#else
-		    (void)htoa (buf, (unsigned int)c -> val.__value.__ptr);
-#endif /***/
-#endif		    
 		    o = create_object_init_internal
 		      (c -> name, rt_defclasses -> p_symbol_class,
 		       d_scope, "");
@@ -2242,6 +2234,8 @@ OBJECT *cvar_object (CVAR *c, int *obj_is_created) {
 			 an array start, treat it the same
 			 as a long int *. */
 		      i_2 = ((uintptr_t *)c -> val.__value.__ptr)[0];
+		      /* causes an intermittent leak - try to fix
+			 when not optimizing */
 		      o_ref = create_object_init_internal
 			(c -> name, rt_defclasses -> p_integer_class,
 			 d_scope|VAR_REF_OBJECT, "");
@@ -3036,3 +3030,57 @@ void unref_vartab_var (int *idx, CVAR *c, OBJECT *m_obj) {
 			  
 }
 
+void cvar_for_OBJECT_deref_typecast (MESSAGE_STACK messages,
+				     int open_paren_idx,
+				     int terminal_mbr_idx,
+				     int expr_parser_lvl) {
+  char *__s, s2[MAXMSG], c2[MAXMSG];
+  CVAR *c, *c_1, *c_prev;
+  OBJECT *cvar_alias;
+  int cvar_object_is_created, i_2;
+  METHOD *m;
+  __s = collect_tokens (e_messages, open_paren_idx, terminal_mbr_idx);
+  remove_whitespace (__s, s2);
+  if ((m = __ctalkRtGetMethod ()) != NULL) {
+    c_1 = NULL;
+    for (c = m -> local_cvars; c && c -> next;
+	 c = c -> next)
+      ;
+    while (1) {
+      if (c -> evaled &&
+	  (expr_parser_ptr >= c -> attr_data)) {
+	if (c -> prev == NULL) {
+	  break;
+	} else {
+	  c = c -> prev;
+	  continue;
+	}
+      }
+      c_prev = c -> prev;
+      remove_whitespace (c -> name, c2);
+      if (str_eq (c2, s2)) {
+	c_1 = c;
+	break;
+      } else {
+	c = c_prev;
+      }
+    }
+    
+    if (c_1) {
+      cvar_alias = cvar_object_mark_evaled
+	(c_1, &cvar_object_is_created, expr_parser_ptr);
+      __objRefCntInc (OBJREF(cvar_alias));
+      for (i_2 = open_paren_idx; i_2 >= terminal_mbr_idx; --i_2) {
+	if (!IS_OBJECT(e_messages[i_2] -> obj)) {
+	  e_messages[i_2] -> obj = cvar_alias;
+	  e_messages[i_2] -> attrs |=
+	    RT_TOK_OBJ_IS_CREATED_CVAR_ALIAS;
+	}
+	e_messages[i_2] -> value_obj = cvar_alias;
+	e_messages[i_2] -> evaled += 1;
+      }
+    }
+  }
+  __xfree (MEMADDR(__s));
+}
+				     

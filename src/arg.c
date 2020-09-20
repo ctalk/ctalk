@@ -1,8 +1,8 @@
-/* $Id: arg.c,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ */
+/* $Id: arg.c,v 1.2 2020/09/19 01:08:26 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
-  Copyright © 2005-2019 Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2005-2020 Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
 
@@ -84,9 +84,10 @@ int paren_expr (MESSAGE_STACK messages, int open_paren_idx) {
 
 int method_arg_limit (MESSAGE_STACK messages, int arg_start) {
 
-  int n_parens, n_subscripts, i, stack_end_idx, lookahead;
+  int n_parens, n_subscripts, i, i_2, stack_end_idx, lookahead;
   int arg_arglist_limit;
   int typecast_open_idx, typecast_close_idx;
+  int stack_top;
 
   n_parens = n_subscripts = i = stack_end_idx = 0;
 
@@ -96,9 +97,8 @@ int method_arg_limit (MESSAGE_STACK messages, int arg_start) {
       if ((i = paren_expr (messages, arg_start)) == ERROR)
 	return ERROR;
       if (interpreter_pass == expr_check) {
-	int __stack_top;
-	__stack_top = get_stack_top (messages);
-	if (i == (__stack_top + 1))
+	stack_top = get_stack_top (messages);
+	if (i == (stack_top + 1))
 	  return i;
       }
       if ((lookahead = nextlangmsg (messages, i)) == ERROR)
@@ -115,6 +115,16 @@ int method_arg_limit (MESSAGE_STACK messages, int arg_start) {
 	case ARGSEPARATOR:
 	  return i;
 	  /* break; */   /* Not reached. */
+	case CONDITIONAL:
+	  stack_top = get_stack_top (messages);
+	  for (i_2 = lookahead; i_2 > stack_top; i_2--) {
+	    if (M_TOK(messages[i_2]) == SEMICOLON) {
+	      return prevlangmsg (messages, i_2);
+	    } else if (M_TOK(messages[i_2]) == ARGSEPARATOR) {
+	      return prevlangmsg (messages, i_2);
+	    }
+	  }
+	  break;
 	default:
 	  /*
 	   *  The function also needs to handle cases like 
@@ -277,7 +287,15 @@ static int method_arg_limit_2 (MESSAGE_STACK messages, int arg_start) {
  		return ERROR;
 	      switch (M_TOK(messages[lookahead]))
 		{
+		case OPENPAREN:
+		  ++n_parens;
+		  break;
 		case CLOSEPAREN:
+		  if (n_parens == 0)
+		    return i;
+		  else
+		    --n_parens;
+		  break;
 		case SEMICOLON:
 		case ARGSEPARATOR:
 		  return i;
@@ -720,7 +738,10 @@ static char *arg_var_basename (MESSAGE_STACK messages,
   for (i = args[n_th_arg].start_idx; i >= args[n_th_arg].end_idx;
        --i) {
     if (M_TOK(messages[i]) == LABEL) {
-      return M_NAME(messages[i]);
+      if (!is_c_data_type(M_NAME(messages[i])) &&
+	  !is_c_derived_type (M_NAME(messages[i]))) { /* skip a typecast */
+	return M_NAME(messages[i]);
+      }
     }
   }
   return NULL;
@@ -736,7 +757,18 @@ static char *fn_arg_expr_param_expr_class (MESSAGE_STACK messages,
 						 messages,
 						 expr_start,
 						 get_stack_top (messages));
-  return M_OBJ(messages[expr_end]) -> instancevars -> __o_classname;
+  if (IS_OBJECT(M_OBJ(messages[expr_end]))) {
+    if (IS_OBJECT(M_OBJ(messages[expr_end]) -> instancevars)) {
+      return M_OBJ(messages[expr_end]) -> instancevars -> __o_classname;
+    } else {
+      return M_OBJ(messages[expr_end]) -> __o_classname;
+    }
+  } else {
+    /* This is what the instance variable series that is parsed
+       above should default to, and it should have also printed a
+       warning if it can't resolve the instance variable series. */
+    return OBJECT_CLASSNAME; 
+  }
 }
 
 int fn_arg_expression_call = 0;
@@ -753,7 +785,8 @@ OBJECT *fn_arg_expression (OBJECT *rcvr_class, METHOD *method,
   int n_params = 0;  /* Avoid a warning. */
   int stack_start_idx, expr_end;
   ARGSTR argstrs[MAXARGS];
-  char expr_buf[MAXMSG], expr_buf_tmp[MAXMSG], expr_buf_tmp_2[MAXMSG];
+  char expr_buf[MAXMSG], expr_buf_tmp[MAXMSG], expr_buf_tmp_2[MAXMSG],
+    expr_buf_tmp_3[MAXMSG];
   char constant_arg[MAXMSG], *basename = NULL;
   char __argbuf[FN_ARG_EVAL_EXPR_MAX];
   OBJECT *arg_object;
@@ -813,6 +846,34 @@ OBJECT *fn_arg_expression (OBJECT *rcvr_class, METHOD *method,
 
   for (n_th_arg = 0; n_th_arg < n_args; n_th_arg++) {
 
+    /* check for a class cast, set the object's class and skip
+       the leading cast tokens - set the attributes ourselves,
+       in case resolve started with a lot of tokens before these
+       tokens */
+    if (M_TOK(messages[argstrs[n_th_arg].start_idx]) == OPENPAREN) {
+      int l, l_2, l_3, l_4;
+      OBJECT *ccobj;
+      l = nextlangmsg (messages, argstrs[n_th_arg].start_idx);
+      if (M_TOK(messages[l]) == LABEL) {
+	if ((ccobj = get_class_object (M_NAME(messages[l]))) != NULL) {
+	  l_2 = nextlangmsg (messages, l);
+	  if (M_TOK(messages[l_2]) == MULT) {
+	    l_3 = nextlangmsg (messages, l_2);
+	    if (M_TOK(messages[l_3]) == CLOSEPAREN) {
+	      l_4 = nextlangmsg (messages, l_3);
+	      if (M_TOK(messages[l_4]) == LABEL) {
+		if (is_object_or_param (M_NAME(messages[l_4]), NULL)) {
+		  messages[l_4] -> obj = ccobj;
+		  messages[l_4] -> attrs |= TOK_IS_CLASS_TYPECAST;
+		  argstrs[n_th_arg].start_idx = l_4;
+		}
+	      }
+	    }
+	  }
+	}
+      }
+    }
+
     if ((basename = arg_var_basename (messages, argstrs, n_th_arg))
 	== NULL) {
       basename = argstrs[n_th_arg].arg;
@@ -820,6 +881,11 @@ OBJECT *fn_arg_expression (OBJECT *rcvr_class, METHOD *method,
 
     if (((arg_cvar = get_local_var (basename)) != NULL) ||
 	((arg_cvar = get_global_var (basename)) != NULL)) {
+      add_arg (expr_buf, argstrs[n_th_arg].arg, n_th_arg, n_args);
+      if (fn_param_cvar)
+	fn_param_cvar = fn_param_cvar -> next;
+      continue;
+    } else if (get_function (basename)) {
       add_arg (expr_buf, argstrs[n_th_arg].arg, n_th_arg, n_args);
       if (fn_param_cvar)
 	fn_param_cvar = fn_param_cvar -> next;
@@ -853,7 +919,7 @@ OBJECT *fn_arg_expression (OBJECT *rcvr_class, METHOD *method,
 			     &expr_end, expr_buf_tmp),
 		basic_class_from_cvar
 		(messages[argstrs[n_th_arg].start_idx], fn_param_cvar, 0),
-		true, expr_buf), NULL);
+		true, expr_buf_tmp_3), NULL);
       add_arg (expr_buf, expr_buf_tmp_2, n_th_arg, n_args);
       if (fn_param_cvar)
 	fn_param_cvar = fn_param_cvar -> next;
@@ -920,7 +986,7 @@ OBJECT *fn_arg_expression (OBJECT *rcvr_class, METHOD *method,
 			(format_method_arg_accessor 
 			 (__n_method -> n_params - __n_th_param - 1,
 			  __n_method -> params[__n_th_param] -> name,
-			  expr_buf_tmp_2),
+			  __n_method -> varargs, expr_buf_tmp_2),
 			 basic_class_from_cvar (messages[n_th_arg * 2],
 						fn_param_cvar, 0), 
 			 TRUE, expr_buf_tmp),
@@ -1508,7 +1574,7 @@ char *fmt_c_fn_obj_args_expr (MESSAGE_STACK messages, int fn_idx,
   return expr_buf;
 }
 
-MESSAGE *var_messages[N_VAR_MESSAGES + 1];
+extern MESSAGE *var_messages[N_VAR_MESSAGES + 1];
 extern int var_messageptr;
 
 int resolve_arg2 (MESSAGE_STACK messages, int idx) {
@@ -2339,8 +2405,9 @@ int compound_method_limit (MESSAGE_STACK messages,
   return ERROR;
 }
 
-char *format_method_arg_accessor (int param_idx, char *tok, char *expr_out) {
-  if (argblk) {
+char *format_method_arg_accessor (int param_idx, char *tok, bool varargs,
+				  char *expr_out) {
+  if (argblk || varargs) {
     return fmt_eval_expr_str (tok, expr_out);
   } else {
     strcatx (expr_out, METHOD_ARG_ACCESSOR_FN, "(", 

@@ -1,8 +1,8 @@
-/* $Id: output.c,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ */
+/* $Id: output.c,v 1.2 2020/09/19 01:08:28 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
-  Copyright © 2005-2019 Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2005-2020 Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
 
@@ -196,6 +196,22 @@ char *fmt_method_call (OBJECT *rcvr, char *method_selector,
   return buf_out;
 }
 
+/* As above, but with a semicolon at the end */
+char *fmt_method_call_term (OBJECT *rcvr, char *method_selector,
+		       char *method_name, char *buf_out) {
+
+  char namebuf[MAXLABEL], namebuf_out[MAXLABEL];
+
+  strcpy (namebuf, rcvr -> __o_name);
+
+  strcatx (buf_out, "__ctalk_method (\"", 
+	   (lextype_is_LITERAL_T (namebuf) ?
+	    escape_str (namebuf, namebuf_out) : namebuf), "\", ", 
+	   method_selector, ", ", "\"", method_name, "\");", NULL);
+
+  return buf_out;
+}
+
 /* 
  *  Output a __ctalk_method() function call at the
  *  source token index given by the parameter, "when."
@@ -208,7 +224,7 @@ int generate_method_call (OBJECT *rcvr, char *method,
   if (is_global_frame ())
     fn_init (fmt_method_call (rcvr, method, method_name, buf), FALSE);
   else
-    fileout (fmt_method_call (rcvr, method, method_name, buf), 0, when);
+    fileout (fmt_method_call_term (rcvr, method, method_name, buf), 0, when);
 
   return SUCCESS;
 }
@@ -223,7 +239,7 @@ void output_delete_cvars_call (MESSAGE_STACK messages, int expr_idx,
 
   if ((term_idx = scanforward (messages, expr_idx, stack_end_idx,
 			       SEMICOLON)) != ERROR) {
-    fileout ("\ndelete_method_arg_cvars ();\n", 0, term_idx - 1);
+    fileout (DELETE_CVARS_CALL, 0, term_idx - 1);
   }
 }
 

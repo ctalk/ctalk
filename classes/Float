@@ -1,4 +1,4 @@
-/* $Id: Float,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-C-*-*/
+/* $Id: Float,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -150,7 +150,6 @@ Float instanceMethod asInteger (void) {
   int d;
   returnObjectClass Integer;
   sscanf (self value -> __o_value, "%d", &d);
-  _warning ("asInteger (class Float): %lf truncated to Integer.\n", self);
   return d;
 }
 

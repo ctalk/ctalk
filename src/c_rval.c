@@ -1,6 +1,6 @@
 /*
   This file is part of Ctalk.
-  Copyright © 2015-2019 Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2015-2020 Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
 
@@ -45,6 +45,8 @@ extern int subscript_ptr;
 extern char *ascii[8193];             /* from intascii.h */
 
 static int tmp_fn_block_id = 0;
+
+extern HASHTAB defined_instancevars; /* declared in primitives.c. */
 
 /* This function does not return on an error. */
 static void check_extra_fn_expr_tokens (MESSAGE_STACK messages, 
@@ -208,6 +210,11 @@ int is_self_expr_as_fn_lvalue (MESSAGE *m_sender,
 	next_message -> receiver_msg = sender_rcvr_msg;
 
 	prev_object_l = next_instance_var;
+      } else if (_hash_get (defined_instancevars,
+			    M_NAME(next_message))) {
+	next_message -> attrs |= OBJ_IS_INSTANCE_VAR;
+	next_message -> receiver_obj = prev_object_l;
+	next_message -> receiver_msg = sender_rcvr_msg;
 
       } else {
 
@@ -225,6 +232,8 @@ int is_self_expr_as_fn_lvalue (MESSAGE *m_sender,
 	  next_message -> receiver_msg = sender_rcvr_msg;
 	  
 	  prev_object_l = next_instance_var;
+	} else if (str_eq (M_NAME(messages[next_idx]), "super")) {
+	  return FALSE;
 	} else {
 	  
 	  if (M_TOK(messages[next_idx]) == EQ) {
@@ -265,11 +274,18 @@ int is_self_expr_as_fn_lvalue (MESSAGE *m_sender,
 		  }
 		  return FALSE;
 		}
+	      } else {
+		return FALSE;
 	      }
 	    } else {
 	      return FALSE;
 	    }
 	  } else {
+	    if (M_TOK(messages[next_idx]) == LABEL) {
+	      self_instvar_expr_unknown_label (message_stack (),
+					       self_idx, next_idx);
+	      /* doesn't return if error */
+	    }
 	    return FALSE;
 	  }
 
@@ -900,6 +916,10 @@ static int fn_return_tab_entry (MESSAGE *m_orig, CFUNC *c_fn) {
 	    } else if (*c_fn -> qualifier_type) {
 	      strcatx (type_buf, c_fn -> qualifier_type, " ",
 		       c_fn -> return_type, NULL);
+	    } else if (str_eq (c_fn -> return_type, "OBJECT") &&
+		       (c_fn -> return_derefs == 1)) {
+	      strcatx (type_buf, c_fn -> return_type, NULL);
+	      return TMP_LVAL_OBJECT_PTR;
 	    } else {
 	      strcatx (type_buf, c_fn -> return_type, NULL);
 	    }
@@ -1575,6 +1595,64 @@ int format_obj_lval_fn_expr (MESSAGE_STACK messages, int rcvr_tok_idx) {
 char *format_fn_call_method_expr_block (MESSAGE_STACK messages,
 					int fn_idx, int *fn_end_idx_out,
 					char *tmp_var_out) {
+  int open_paren_idx, tmp_lval_tab_idx;
+  CFUNC *fn;
+  char outbuf[0x4000], /* MAXMSG * 2 */
+    *fn_pre_seg, fn_expr_buf[MAXMSG],
+    tmp_cvar_register_buf[MAXMSG],
+    param_buf[MAXMSG]; 
+
+  open_paren_idx = nextlangmsgstack (messages, fn_idx);
+  if (M_TOK(messages[open_paren_idx]) != OPENPAREN) {
+    error (messages[fn_idx], "Back function call syntax for function, \"%s\".",
+	   M_NAME(messages[fn_idx])) ;
+  }
+  *fn_end_idx_out = match_paren (messages, open_paren_idx,
+				 get_stack_top (messages));
+  if (*fn_end_idx_out == ERROR) {
+    error (messages[fn_idx], "Back function call syntax for function, \"%s\".",
+	   M_NAME(messages[fn_idx])) ;
+  }
+  if ((fn = get_function (M_NAME(messages[fn_idx]))) == NULL) {
+    error (messages[fn_idx], "Undefined function, \"%s\".",
+	   M_NAME(messages[fn_idx]));
+  }
+
+  tmp_lval_tab_idx = fn_return_tab_entry (messages[fn_idx], fn);
+  make_tmp_fn_block_name (tmp_lval_cvar_tab[tmp_lval_tab_idx].name);
+
+  /* these need to be two different buffers */
+  make_tmp_fn_block_name (tmp_var_out);
+  strcpy (tmp_lval_cvar_tab[tmp_lval_tab_idx].name, tmp_var_out);
+
+  eval_params_inline (messages, fn_idx, open_paren_idx,
+		      *fn_end_idx_out, fn, param_buf);
+  /* the post-arglist part of the function expression is just a closing
+     paren */
+  fn_pre_seg = collect_tokens (messages, fn_idx, open_paren_idx);
+  strcatx (fn_expr_buf, fn_pre_seg, param_buf, ")", NULL);
+  __xfree (MEMADDR(fn_pre_seg));
+
+  sprintf (outbuf, SELF_LVAL_FN_EXPR_TEMPLATE, 
+	   tmp_lval_decl_tab[tmp_lval_tab_idx].decl_str, 
+	   tmp_var_out,
+	   fn_expr_buf,
+	   fmt_register_c_method_arg_call 
+	   (&tmp_lval_cvar_tab[tmp_lval_tab_idx],
+	   tmp_var_out, LOCAL_VAR, tmp_cvar_register_buf), "");
+
+  if (argblk)
+    buffer_argblk_stmt (outbuf);
+  else
+    fileout (outbuf, TRUE, 0);
+
+  return tmp_var_out;
+}
+
+/* this is called by rt_expr. */
+char *format_fn_call_method_expr_block_cond (MESSAGE_STACK messages,
+					     int fn_idx, int *fn_end_idx_out,
+					     char *tmp_var_out) {
   int open_paren_idx, tmp_lval_tab_idx;
   CFUNC *fn;
   char outbuf[0x4000], /* MAXMSG * 2 */

@@ -1,8 +1,8 @@
-/* $Id: sformat.c,v 1.1.1.1 2019/10/26 23:40:50 rkiesling Exp $ -*-c-*-*/
+/* $Id: sformat.c,v 1.2 2020/09/18 21:25:13 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
-  Copyright © 2005-2012, 2015-2017, 2019  Robert Kiesling, 
+  Copyright © 2005-2012, 2015-2017, 2019, 2020  Robert Kiesling, 
     rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
@@ -35,24 +35,6 @@
 #include "defcls.h"
 
 extern DEFAULTCLASSCACHE *rt_defclasses; /* Declared in rtclslib.c. */
-
-char *__ctalkCPrintFmtToCtalkFmt (char *c_fmt, char *ctalk_fmt) {
-
-  int i, j;
-
-  for (i = 0, j = 0; c_fmt[i];) {
-    if (c_fmt[i] == '%') {
-      ctalk_fmt[j++] = c_fmt[i++];
-      while (!strpbrk(&c_fmt[i++], "diouxXeEfFgGaAcsp"))
-	;
-      ctalk_fmt[j++] = 's';
-    } else {
-      ctalk_fmt[j++] = c_fmt[i++];
-    }
-  }
-  ctalk_fmt[j] = '\0';
-  return ctalk_fmt;
-}
 
 static char __fmtbuf[0xFFFF];
 static char __tmpbuf[0xFFFF];
@@ -135,7 +117,7 @@ char *__scalar_fmt_conv (char *fmt, char *arg, OBJECT *arg_obj) {
      *  Solaris workaround for what seems  to be a bug in  sprintf, 
      *  below.
      *  TODO - Could use a truncation warning.
-     *  *** Also seems to be a bug in Linux on SPARC -- 
+     *  Also seems to be a bug in Linux on SPARC -- 
      *  Needs further testing.
      */
 #if defined(__sparc__)

@@ -1,8 +1,8 @@
-/* $Id: preclass.c,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ */
+/* $Id: preclass.c,v 1.2 2020/09/19 01:08:28 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
-  Copyright © 2014-2017 Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2014-2017, 2020 Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
 
@@ -46,6 +46,23 @@ void init_pre_classes (void) {
   _new_hash (&classes_output);
 }
 
+typedef struct _method_line_info {
+  char selector[MAXLABEL];
+  int line;
+  bool prefix, varargs, class_method;
+  int n_params;
+  struct _method_line_info *next;
+} MLI;
+
+typedef struct _class_line_info {
+  char class[MAXLABEL];
+  MLI *methods, *methods_head;
+  struct _class_line_info *next;
+} CLSLI;
+
+CLSLI *method_line_info = NULL, *method_line_info_head = NULL;
+
+
 int pre_class_is_output (char *classname) {
   if (_hash_get (classes_output, classname))
     return TRUE;
@@ -61,11 +78,180 @@ char *class_cache_path_name (char *classname) {
   return path;
 }
 
-void save_class_init_info (char *classname, char *superclassname) {
+#define INST_KEYWORD_LEN  14
+#define CLASS_KEYWORD_LEN 11
+
+static void pre_class_ln_parse (FILE *fw, char *classname, char *classbuf,
+				int *lineno) {
+  int i, i_2, i_3, n_commas, classnamelength, decl_start_line;
+  int selector_start, selector_end, paramlist_start, paramlist_end,
+    n_parens, n_params = 0;
+  char c, lastprint = '\0',
+    entrybuf[MAXLABEL], selectorbuf[MAXLABEL], paramlist_buf[MAXMSG],
+    ln_buf[64], n_param_buf[64];
+  bool class_method = false;
+  bool varargs = false;
+  bool prefix = false;
+
+  if (method_line_info == NULL) {
+    method_line_info = method_line_info_head =
+      __xalloc (sizeof (struct _class_line_info));
+  } else {
+    method_line_info_head -> next =
+      __xalloc (sizeof (struct _class_line_info));
+    method_line_info_head = method_line_info_head -> next;
+  }
+  strcpy (method_line_info_head -> class, classname);
+  
+  *lineno = 1;
+  classnamelength = strlen (classname);
+  for (i = 0; classbuf[i]; i++) {
+    c = classbuf[i];
+    if (c == '\n') {
+      ++(*lineno);
+    } else if (c == ' ' || c == '\t') {
+      continue;
+    } else if (c == *classname) {
+      if (!strncmp (&classbuf[i], classname, classnamelength)) {
+	if (lastprint == ';' || lastprint == '}' || lastprint == '/') {
+	  /* ie, preceded by an expression terminator, or method body end, 
+	     or comment end */
+	  i_2 = i + classnamelength + 1;
+	  while (isspace ((int)classbuf[i_2]))
+	    ++i_2;
+	  
+	  if (!strncmp (&classbuf[i_2], "instanceMethod", INST_KEYWORD_LEN)) {
+	    i_2 += INST_KEYWORD_LEN;
+	    class_method = false;
+	  } else if (!strncmp (&classbuf[i_2], "instanceMethod",
+			       CLASS_KEYWORD_LEN)) {
+	    i_2 += CLASS_KEYWORD_LEN;
+	    class_method = true;
+	  } else {
+	    i += classnamelength;
+	    continue;
+	  }
+
+	  decl_start_line = *lineno;
+	  while (isspace ((int)classbuf[i_2]))
+	    ++i_2;
+
+	  selector_start = i_2;
+
+	  while (!isspace ((int)classbuf[i_2]))
+	    ++i_2;
+
+	  selector_end = i_2;
+	  
+	  memset (selectorbuf, 0, MAXLABEL);
+	  strncpy (selectorbuf, &classbuf[selector_start],
+		   selector_end - selector_start);
+
+	  /* Find limits of parameter list */
+	  while (classbuf[i_2] != '(')
+	    ++i_2;
+
+	  paramlist_start = i_2++;
+	  n_parens = 1;
+
+	  while (classbuf[i_2]) {
+	    if (classbuf[i_2] == '(')
+	      ++n_parens;
+	    if (classbuf[i_2] == ')')
+	      --n_parens;
+	    ++i_2;
+	    if (n_parens == 0)
+	      break;
+	  }
+	  paramlist_end = i_2;
+
+	  n_commas = 0;
+	  for (i_3 = paramlist_start; i_3 > paramlist_end; i_3++) {
+	    if (classbuf[i_3] == ',')
+	      ++n_commas;
+	  }
+
+	  memset (paramlist_buf, 0, MAXMSG);
+	  strncpy (paramlist_buf, &classbuf[paramlist_start],
+		   paramlist_end - paramlist_start);
+	  if (n_commas == 0) {
+	    /* if the paramlist is "void" then n_params == 0,
+	       if the paramlist is "__prefix__" tnen prefix = true
+	       otherwise n_params == 1 */
+	    if (strstr (paramlist_buf, "void")) {
+	      n_params = 0;
+	    } else if (strstr (paramlist_buf, "__prefix__")) {
+	      prefix = true;
+	    } else {
+	      n_params = 1;
+	    }
+	  } else {
+	    if (strstr (paramlist_buf, "...")) {
+	      varargs = true;
+	    } else {
+	      n_params = n_commas - 1;
+	    }
+	  }
+
+	  ctitoa (decl_start_line, ln_buf);
+	  if (varargs) {
+	    n_param_buf[0] = 'v', n_param_buf[1] = '\0';
+	  } else if (prefix) {
+	    n_param_buf[0] = 'p', n_param_buf[1] = '\0';
+	  } else {
+	    ctitoa (n_params, n_param_buf);
+	  }
+	  
+	  strcatx (entrybuf, "n:", ln_buf, ":",
+		   (class_method ? "c" : "i"), ":",
+		   selectorbuf, ":", n_param_buf, "\n", NULL);
+	  fwrite ((void *)entrybuf, sizeof (char), strlen (entrybuf), fw);
+
+	  if (method_line_info_head -> methods == NULL) {
+	    method_line_info_head -> methods =
+	      method_line_info_head -> methods_head =
+	      __xalloc (sizeof (struct _method_line_info));
+	  } else {
+	    method_line_info_head -> methods_head -> next =
+	      __xalloc (sizeof (struct _method_line_info));
+	    method_line_info_head -> methods_head =
+	      method_line_info_head -> methods_head -> next;
+	  }
+	  strcpy (method_line_info_head -> methods_head -> selector,
+		  selectorbuf);
+	  method_line_info_head -> methods_head -> line =
+	    decl_start_line;
+	  if (class_method)
+	    method_line_info_head -> methods_head -> class_method =
+	      true;
+	  if (prefix) {
+	    method_line_info_head -> methods_head -> prefix =
+	      true;
+	  } else if (varargs) {
+	    method_line_info_head -> methods_head -> varargs =
+	      true;
+	  } else {
+	    method_line_info_head -> methods_head -> n_params = 
+	      n_params;
+	  }
+
+	  varargs = prefix = false;
+	  i += classnamelength;
+	}
+      }
+    } else {
+      lastprint = c;
+    }
+  }
+
+}
+
+void save_class_init_info (char *classname, char *superclassname,
+			   char *library_pathname) {
 
   FILE *fp;
-  int length, bytes_written, r;
-  char buf[MAXMSG];
+  int length, bytes_written, r, class_length, lineno;
+  char buf[MAXMSG], *classbuf;
   char cache_path[FILENAME_MAX];
 
   if (!class_deps_updated (classname))
@@ -87,9 +273,21 @@ void save_class_init_info (char *classname, char *superclassname) {
       _error ("save_class_init_info (fwrite (c:)): %s: %s.\n",
 	      cache_path, strerror (errno));
 
-    if ((r = fclose (fp)) != 0)
-      _error ("save_class_init_info (fclose): %s: %s.\n",
-	      cache_path, strerror (errno));
+  /* file_size handles any errors itself. */
+  class_length = file_size (library_pathname);
+  classbuf = __xalloc (class_length + 1);
+  if (read_file (classbuf, library_pathname) < 0) {
+    _error ("ctalk: %s: %s.\n", library_pathname, strerror (errno));
+  }
+
+  pre_class_ln_parse (fp, classname, classbuf, &lineno);
+  
+  __xfree (MEMADDR(classbuf));
+
+
+  if ((r = fclose (fp)) != 0)
+    _error ("save_class_init_info (fclose (fp)): %s: %s.\n",
+	    cache_path, strerror (errno));
 
 }
 
@@ -188,7 +386,9 @@ void fill_in_class_info (char *cache_fn) {
 
   struct stat statbuf;
   char *lptr, *rptr, *rptr2, *eptr, *buf;
-
+  MLI *mli;
+  CLSLI *cinfo;
+  
   stat (cache_fn, &statbuf);
 
   if ((buf = (char *)malloc (statbuf.st_size + 1)) == NULL)
@@ -202,9 +402,13 @@ void fill_in_class_info (char *cache_fn) {
   
   var_ptr = 0;
 
+  cinfo = __xalloc (sizeof (struct _class_line_info));
+  
   eptr = strchr (buf, '\0');
   lptr = buf;
   rptr2 = NULL;
+
+  
 
   do {
     
@@ -216,6 +420,13 @@ void fill_in_class_info (char *cache_fn) {
 	  if ((rptr2 = strchr (rptr, ':')) != NULL) {
 	    strncpy (class_init_info.classname, 
 		     rptr, rptr2 - rptr);
+	    strncpy (cinfo -> class, rptr, rptr2 - rptr);
+	    if (method_line_info == NULL) {
+	      method_line_info = method_line_info_head = cinfo;
+	    } else {
+	      method_line_info_head -> next = cinfo;
+	      method_line_info_head = cinfo;
+	    }
 	    rptr = rptr2 + 1;
 	  }
 	}
@@ -297,11 +508,57 @@ void fill_in_class_info (char *cache_fn) {
 	  rptr = rptr2 + 1;
 	}
 
+	
 	class_init_info.vars[var_ptr].vartype = var_type_class_var;
 
 	lptr = rptr2 + 1;
 
 	++var_ptr;
+
+	break;
+
+	/* line number info lines */
+      case 'n':
+
+	mli = __xalloc (sizeof (struct _method_line_info));
+
+	if ((rptr = strchr (lptr, ':')) != NULL) {
+	  ++rptr;
+	  if ((rptr2 = strchr (rptr, ':')) != NULL) {
+	    mli -> line = strtol (rptr, &rptr2, 10);
+	    rptr = rptr2 + 1;
+	  }
+	}
+	if ((rptr2 = strchr (rptr, ':')) != NULL) {
+	  if (*rptr == 'i') {
+	    mli -> class_method = false;
+	  } else if (*rptr == 'c') {
+	    mli -> class_method = true;
+	  }
+	  rptr = rptr2 + 1;
+	}
+	if ((rptr2 = strchr (rptr, ':')) != NULL) {
+	  strncpy (mli -> selector, rptr, rptr2 - rptr);
+	  rptr = rptr2 + 1;
+	}
+	if ((rptr2 = strchr (rptr, '\n')) != NULL) {
+	  if (*rptr == 'p') {
+	    mli -> prefix = true;
+	  } else if (*rptr == 'v') {
+	    mli -> varargs = true;
+	  } else {
+	    mli -> n_params = strtol (rptr, &rptr2, 10);
+	  }
+	}
+	lptr = rptr2 + 1;
+
+	if (method_line_info_head -> methods == NULL) {
+	  method_line_info_head -> methods =
+	    method_line_info_head -> methods_head = mli;
+	} else {
+	  method_line_info_head -> methods_head -> next = mli;
+	  method_line_info_head -> methods_head = mli;
+	}
 
 	break;
       }

@@ -1,8 +1,8 @@
-/* $Id: eval_arg.c,v 1.3 2019/11/11 02:56:14 rkiesling Exp $ */
+/* $Id: eval_arg.c,v 1.2 2020/09/19 01:08:27 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
-  Copyright © 2005-2019 Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2005-2020
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
 
@@ -81,6 +81,23 @@ extern bool fn_tmpl_eval_arg;
 
 ARG_TERM arg_c_fn_terms[MAXARGS] = {{NULL, 0, 0},};
 int arg_c_fn_term_ptr = 0;
+
+/* For single-token args. Looks only for a method in the
+   return class at the moment. */
+static bool member_of_method_return_class (METHOD *method,
+					   MESSAGE *m_arg) {
+  OBJECT *returnclass_object;
+  METHOD *m;
+  if ((returnclass_object = get_class_object (method -> returnclass))
+      != NULL) {
+    for (m = returnclass_object -> instance_methods; m; m = m -> next) {
+      if (str_eq (m -> name, M_NAME(m_arg))) {
+	return true;
+      }
+    }
+  }
+  return false;
+}
 
 static bool c_first_operand (MESSAGE_STACK messages, int
 			     idx, int *end_idx_ret,
@@ -454,12 +471,48 @@ static OBJECT *eval_constant_arg (int arg_idx) {
     case LONG:
     case FLOAT:
     case LONGLONG:
+    case PATTERN:
       arg_obj = constant_token_object (m_arg);
       save_method_object (arg_obj);
       arg_class = arg_const_tok;
       return arg_obj;
       break;
     }
+  return NULL;
+}
+
+/* This can save some calls to tokenize, once we can analyze the
+   argument with the preceding method. */
+static OBJECT *resolve_unary_minus_arg_0 (MESSAGE_STACK messages,
+					  int arg_start_idx,
+					  int arg_end_idx) {
+  int lookahead;
+  MESSAGE *m_sign, *m_n; /* ? */
+  char tokbuf[MAXLABEL];  /* needed because buffers would overlap. */
+  OBJECT *arg_obj;
+  if (messages[arg_start_idx] -> tokentype != MINUS)
+    return NULL;
+  if ((lookahead = nextlangmsg (message_stack (), arg_end_idx))
+      != ERROR) {
+    switch (M_TOK(messages[lookahead]))
+      {
+      case SEMICOLON:
+      case ARGSEPARATOR:
+	m_sign = messages[arg_start_idx];
+	m_n = messages[arg_end_idx];
+	strcatx (tokbuf, M_NAME(m_sign), M_NAME(m_n), NULL);
+	resize_message (m_sign, strlen (tokbuf));
+	strcpy (m_sign -> name, tokbuf);
+	m_sign -> tokentype = m_n -> tokentype;
+	m_n -> name[0] = ' '; m_n -> name[1] = '\0';
+	m_n -> tokentype = WHITESPACE;
+	arg_obj = constant_token_object (m_sign);
+	save_method_object (arg_obj);
+	arg_class = arg_const_tok;
+	return arg_obj;
+	break;
+      }
+  }
   return NULL;
 }
 
@@ -580,7 +633,7 @@ static OBJECT *resolve_single_token_arg (METHOD *rcvr_method,
 	     */
 	    method_arg_accessor_fn (messages, message_ptr, 
 				    method -> n_params - i - 1,
-				    null_context);
+				    null_context, method -> varargs);
 	    message_stack_at (argbuf -> start_idx) -> attrs |=
 	      OBJ_IS_SINGLE_TOK_ARG_ACCESSOR;
 	    message_stack_at (argbuf -> start_idx) -> attr_data =
@@ -861,14 +914,15 @@ bool eval_arg_cvar_reg = false;
 
 OBJECT *eval_arg (METHOD *method, OBJECT *rcvr_class, ARGSTR *argbuf,
 		  int main_stack_idx) {
-  int i, j,
+  int i, i_2, j,
     start_stack,
     stack_end,
     n_brackets,
     parent_error_line = 0,   /* Avoid warnings.                      */
     parent_error_column = 0,
     prev_tok_idx,
-    next_tok_idx;
+    next_tok_idx,
+    close_paren_idx;
   int arg_has_leading_unary = FALSE,  /* Avoid warnings.             */
     leading_unary_idx;
   int lookahead, lookback;
@@ -893,9 +947,20 @@ OBJECT *eval_arg (METHOD *method, OBJECT *rcvr_class, ARGSTR *argbuf,
   bool have_struct_op = false;
   MSINFO msi;
   char buf[MAXMSG];
+  bool math_subexpr_rewrite = false;
+  char *ptr_math_subexpr_rewrite_expr, math_subexpr_rewrite_expr[MAXMSG];
 
   if (argbuf -> start_idx == argbuf -> end_idx) {
     if ((arg_obj = eval_constant_arg (argbuf -> start_idx)) != NULL) {
+      return arg_obj;
+    }
+  } else if ((argbuf -> start_idx == argbuf -> end_idx + 1) &&
+	     (method -> n_params > 0)) {
+    /* The argument start is a unary minus, not a subtraction. */
+    if ((arg_obj = resolve_unary_minus_arg_0 (message_stack (),
+					      argbuf -> start_idx,
+					      argbuf -> end_idx))
+	!= NULL) {
       return arg_obj;
     }
   }
@@ -930,30 +995,6 @@ OBJECT *eval_arg (METHOD *method, OBJECT *rcvr_class, ARGSTR *argbuf,
 
     switch (m_arg -> tokentype)
       {
-	/* We still need these here in case the parser interprets a
-	   statement like, "myMethod -1" as having a binary '-'
-	   operator; i.e. two tokens, before we have determined that
-	   the label, "myMethod," is actually a method.  When the
-	   lexer interprets it now, as a method argument, it will
-	   interpret the '-' as a unary op; i.e., as a single token. */
-      case INTEGER:
-      case LONG:
-      case FLOAT:
-      case LONGLONG:
-      case LITERAL:
-      case LITERAL_CHAR:
-	arg_obj = constant_token_object (m_arg);
-	save_method_object (arg_obj);
-	arg_class = arg_const_tok;
-	return arg_obj;
-	break;
-	/* The same with patterns - the tokens will get interpreted
-	   as a single constant argument. */
-      case PATTERN:
-	arg_obj = constant_token_object (m_arg);
-	save_method_object (arg_obj);
-	arg_class = arg_const_tok;
-	return arg_obj;
       case LABEL:
 	if ((arg_obj = resolve_single_token_arg
 	     (method, m_messages, start_stack, rcvr_class_obj,
@@ -969,7 +1010,7 @@ OBJECT *eval_arg (METHOD *method, OBJECT *rcvr_class, ARGSTR *argbuf,
 						      start_stack,
 						      method);
 						      
-	if ((((cvar = get_local_local_cvar (m_arg -> name)) != NULL) ||
+	  if ((((cvar = get_local_local_cvar (m_arg -> name)) != NULL) ||
 	       ((cvar = get_global_var (m_arg -> name)) != NULL)) &&
 	      IS_CVAR(cvar) &&
 	      !IS_CONSTRUCTOR (method)) {
@@ -1009,6 +1050,27 @@ OBJECT *eval_arg (METHOD *method, OBJECT *rcvr_class, ARGSTR *argbuf,
 	      arg_obj = create_arg_CFUNCTION_object (argbuf -> arg);
 	      arg_obj -> attrs |= OBJECT_IS_FN_ARG_OBJECT;
 	      goto arg_evaled;
+	    }
+	    if (!IS_DEFINED_LABEL(M_NAME(m_arg))) {
+	      if ((prev_tok_idx = prevlangmsg (message_stack (),
+					       main_stack_idx))
+		  != ERROR) {
+		MESSAGE *m_main_prev = message_stack_at (prev_tok_idx);
+		MESSAGE *m_main = message_stack_at (main_stack_idx);
+		if (!IS_CONSTRUCTOR_LABEL(M_NAME(m_main_prev)) &&
+		    !IS_CONSTRUCTOR_LABEL(M_NAME(m_main)) &&
+		    /* AssociativeArray keys can be constructed objects. */
+		    !str_eq (rcvr_class -> __o_name,
+			     "AssociativeArray") &&
+		    !member_of_method_return_class (method, m_arg) &&
+		    !is_method_parameter (m_messages, start_stack) &&
+		    !get_instance_method (m_main, rcvr_class,
+					  M_NAME(m_arg), ANY_ARGS, FALSE)) {
+		  warning (m_main,
+			   "Identifier, \"%s\" not resolved.", M_NAME(m_arg));
+		  
+		}
+	      }
 	    }
 	    /*
 	     * Undefined object and not a C variable.  If the method
@@ -1096,7 +1158,7 @@ OBJECT *eval_arg (METHOD *method, OBJECT *rcvr_class, ARGSTR *argbuf,
 		} /* if (strcmp (method -> returnclass, "Any")) ... */
 	      }
 	    }
-	  }
+	}
 	}
 	break;
       default:
@@ -1220,6 +1282,30 @@ OBJECT *eval_arg (METHOD *method, OBJECT *rcvr_class, ARGSTR *argbuf,
 	}
 	i = typecast_end;
 	continue;
+      } else if (is_class_typecast_2 (&msi, i)) {
+	if ((close_paren_idx = match_paren (msi.messages, i,
+					    msi.stack_ptr)) != ERROR) {
+	  int rcvr_lookahead, class_tok_idx;
+	  if ((rcvr_lookahead = nextlangmsg (m_messages, close_paren_idx))
+	      != ERROR) {
+	    if ((class_tok_idx = nextlangmsg (m_messages, i))
+		!= ERROR) {
+	      m_messages[class_tok_idx] -> obj =
+		get_class_object (M_NAME(m_messages[class_tok_idx]));
+	      m_messages[rcvr_lookahead] -> receiver_msg =
+		m_messages[class_tok_idx];
+	      m_messages[class_tok_idx] -> attrs |=
+		TOK_IS_TYPECAST_EXPR;
+	      argbuf -> class_typecast = true;
+	      argbuf -> class_typecast_start_idx =
+		argbuf -> start_idx - (msi.stack_start - i);
+	      argbuf -> class_typecast_end_idx = argbuf -> start_idx -
+		(msi.stack_start - close_paren_idx);
+	      i = close_paren_idx;
+	      continue;
+	    }
+	  }
+	}
       }
     }
     
@@ -1235,6 +1321,55 @@ OBJECT *eval_arg (METHOD *method, OBJECT *rcvr_class, ARGSTR *argbuf,
 	m_arg -> attrs |= TOK_SELF;
       } else if (str_eq (M_NAME(m_arg), "super")) {
 	m_arg -> attrs |= TOK_SUPER;
+      } else if (is_class_typecast (&msi, i)) {
+	int i_2, cast_lookahead;
+	int cast_start_l, cast_end_l = stack_end, i_3;
+	leading_typecast_indexes (main_stack_idx,
+				  &argbuf -> typecast_start_idx,
+				  &argbuf -> typecast_end_idx);
+	argbuf -> leading_typecast = true;
+	argbuf -> typecast_expr =
+	  collect_tokens (message_stack (), argbuf -> typecast_start_idx,
+			  argbuf -> typecast_end_idx);
+	for (i_2 = i - 1; i_2 > stack_end; i_2--) {
+	  if (M_TOK(m_messages[i_2]) == CLOSEPAREN) {
+	    cast_end_l = i_2;
+	    cast_lookahead = nextlangmsg (m_messages, i_2);
+	    m_messages[cast_lookahead] -> receiver_msg = m_arg;
+	    m_messages[cast_lookahead] -> receiver_msg -> obj =
+	      get_class_object (M_NAME(m_messages[i]));
+	    break;
+	  }
+	}
+	if (m_messages[start_stack] -> attrs & TOK_IS_PREFIX_OPERATOR) {
+	  /* 
+	     Handle a case where we have a class typecast preceded
+	     by a prefix operator; i.e.,
+
+	       *(Integer *)myInt myInstanceVar;
+
+	     We do this my setting the cast expression tokens
+	     to spaces (on the main stack!), but keeping the 
+	     cast attributes and objects.
+
+	   */
+	  cast_start_l = prevlangmsg (m_messages, i);
+	  for (i_2 = argbuf -> typecast_start_idx,
+		 i_3 = cast_start_l;
+	       (i_2 >= argbuf -> typecast_end_idx) &&
+		 (i_3 >= cast_end_l); i_2 --, i_3--) {
+	    message_stack_at (i_2) -> name[0] = ' ';
+	    message_stack_at (i_2) -> name[1] = '\0';
+	    message_stack_at (i_2) -> tokentype = WHITESPACE;
+	    m_messages[i_3] -> name[0] = ' ';
+	    m_messages[i_3] -> name[1] = '\0';
+	    m_messages[i_3] -> tokentype = WHITESPACE;
+	  }
+	  argbuf -> start_idx = prevlangmsg (message_stack (),
+					     argbuf -> typecast_start_idx);
+	  argbuf -> leading_typecast = false;
+	}
+	continue;
       }
     } else if (IS_C_UNARY_MATH_OP (M_TOK(m_arg)) || M_TOK(m_arg) == MINUS) {
       if (prefix_method_attr (m_messages, i)) {
@@ -1334,6 +1469,18 @@ OBJECT *eval_arg (METHOD *method, OBJECT *rcvr_class, ARGSTR *argbuf,
 	    arg_class = arg_c_writable_fn_expr;
 	    goto arg_evaled;
 	  } else {
+	    /* for now, just check if we need to register C variables
+	       for trailing tokens */
+	    for (i_2 = i - 1; i_2 > stack_end; i_2 --) {
+	      if (M_TOK(m_messages[i_2]) == LABEL) {
+		if (((cvar = get_global_var (m_messages[i_2] -> name)) != NULL) ||
+		    ((cvar = get_local_var (m_messages[i_2] -> name)) != NULL)) {
+		  register_c_var (message_stack_at (main_stack_idx),
+				  m_messages, i_2,
+				  &agg_var_end_idx);
+		}
+	      }
+	    }
 	    arg_class = arg_c_fn_expr;
 	    save_method_object (fn_arg_obj);
 	    goto arg_evaled;
@@ -1405,7 +1552,10 @@ OBJECT *eval_arg (METHOD *method, OBJECT *rcvr_class, ARGSTR *argbuf,
 				&agg_var_end_idx);
 		arg_obj = create_arg_EXPR_object (argbuf);
 		if (arg_class != arg_null)  arg_class = arg_c_var_expr;
-		goto arg_evaled;
+		/* As a possible trailing token, this needs more work-up,
+		   when we have code examples. */
+		if (!strchr (argbuf -> arg, '?'))
+		  goto arg_evaled;
 	      }
 	      break;
 	    case DEREF:
@@ -1502,8 +1652,19 @@ OBJECT *eval_arg (METHOD *method, OBJECT *rcvr_class, ARGSTR *argbuf,
 		      continue;
 		    }
 		  } else {
-		    register_c_var (message_stack_at (main_stack_idx),
-				    m_messages, i, &agg_var_end_idx);
+		    if (argblk) {
+		      if (cvar && cvar -> scope & GLOBAL_VAR) {
+			/* See the comment below, in the next
+			   clause */
+			argblk = false;
+			register_c_var (message_stack_at (main_stack_idx),
+					m_messages, i, &agg_var_end_idx);
+			argblk = true;
+		      }
+		    } else {
+		      register_c_var (message_stack_at (main_stack_idx),
+				      m_messages, i, &agg_var_end_idx);
+		    }
 		    eval_arg_cvar_reg = true;
 		  }
 		}
@@ -1521,9 +1682,24 @@ OBJECT *eval_arg (METHOD *method, OBJECT *rcvr_class, ARGSTR *argbuf,
 	    if ((M_TOK(m_messages[_p]) != PERIOD) && (M_TOK(m_messages[_p]) != DEREF)) {
 	      if (interpreter_pass != expr_check &&  !ctrlblk_pred)
 		/* CVARs in control structures get registered at
-		   various places from control.c and ifexpr.c. */
+		   various places from control.c and ifexpr.c, 
+		   and fmt_register_argblk_c_vars_* ...  */
 		register_c_var (message_stack_at (main_stack_idx),
 				m_messages, i, &agg_var_end_idx);
+	      if (cvar && cvar -> scope & GLOBAL_VAR) {
+		if (argblk) {
+		  /* ... unless it's a global var, so here we still
+		     need to write the CVAR because it's included in the
+		     complete expression, but we don't need to work it 
+		     into the block's CVARTAB, so we just work around the 
+		     CVARTAB entry stuff. */
+		  argblk = false;
+		  register_c_var (message_stack_at (main_stack_idx),
+				  m_messages, i, &agg_var_end_idx);
+		  argblk = true;
+		}
+	      }
+	      eval_arg_cvar_reg = true;
 	      if (arg_class != arg_null) arg_class = arg_c_var_expr;
 	    }
 	  }
@@ -1536,16 +1712,19 @@ OBJECT *eval_arg (METHOD *method, OBJECT *rcvr_class, ARGSTR *argbuf,
 	    m_arg -> obj = instantiate_self_object_from_class
 	      (m_arg -> receiver_msg -> obj);
 	  }
-	  leading_typecast_indexes (main_stack_idx,
-				    &(argbuf -> typecast_start_idx),
-				    &(argbuf -> typecast_end_idx));
-	  if ((_a_s = nextlangmsg (message_stack (),
-				   argbuf -> typecast_end_idx)) != ERROR)
-	    argbuf -> start_idx = _a_s;
-	  for (_i_2 = argbuf -> typecast_start_idx; 
-	       _i_2 >= argbuf -> typecast_end_idx; --_i_2) {
-	    ++message_stack_at (_i_2) -> evaled;
-	    ++message_stack_at (_i_2) -> output;
+	  if (!(m_messages[start_stack] -> attrs & TOK_IS_PREFIX_OPERATOR)) {
+	    /* handled above - see comments there */
+	    leading_typecast_indexes (main_stack_idx,
+				      &(argbuf -> typecast_start_idx),
+				      &(argbuf -> typecast_end_idx));
+	    if ((_a_s = nextlangmsg (message_stack (),
+				     argbuf -> typecast_end_idx)) != ERROR)
+	      argbuf -> start_idx = _a_s;
+	    for (_i_2 = argbuf -> typecast_start_idx; 
+		 _i_2 >= argbuf -> typecast_end_idx; --_i_2) {
+	      ++message_stack_at (_i_2) -> evaled;
+	      ++message_stack_at (_i_2) -> output;
+	    }
 	  }
 	}
 
@@ -1844,6 +2023,12 @@ OBJECT *eval_arg (METHOD *method, OBJECT *rcvr_class, ARGSTR *argbuf,
 		if (str_eq (method -> name, "->")) {
 		  if (is_OBJECT_member (M_NAME(m_messages[i])))
 		    continue;
+		} else {
+		  /* check for instance and class variable typos,
+		     like the var on its own */
+		  instancevar_wo_rcvr_warning
+		    (m_messages, i, (first_label_idx == -1),
+		     main_stack_idx);
 		}
 	      }  /* if ((method -> n_args == 0) ... */
 	    }
@@ -1926,8 +2111,96 @@ OBJECT *eval_arg (METHOD *method, OBJECT *rcvr_class, ARGSTR *argbuf,
 
 	__xfree (MEMADDR(concat_buf));
       }
-      
-    } /* if (M_TOK(m_arg) == LABEL) */
+    } else if (M_TOK(m_arg) == OPENPAREN) {
+      /* check for a class cast */
+
+      int close_paren_idx, rcvr_idx, deref_prefix_op_idx;
+      if ((next_tok_idx = nextlangmsg (m_messages, i)) != ERROR) {
+	if (is_class_typecast (&msi, next_tok_idx)) {
+	  if ((close_paren_idx = match_paren (m_messages,
+					      i, stack_end)) != ERROR) {
+	    class_cast_receiver_scan (m_messages, stack_end, i,
+				      &rcvr_idx, &deref_prefix_op_idx);
+	    if ((m_messages[rcvr_idx] -> obj =
+		 get_class_object (M_NAME(m_messages[next_tok_idx])))
+		!= NULL) {
+	      m_arg -> receiver_msg = m_messages[next_tok_idx];
+	      m_messages[next_tok_idx] -> obj =
+		m_messages[rcvr_idx] -> obj;
+	      m_messages[next_tok_idx] -> attrs |= TOK_IS_CLASS_TYPECAST;
+	    } else if (is_cached_class (M_NAME(m_messages[next_tok_idx]))) {
+		/* what? */
+	    }
+	    prev_tok_idx = i;
+	    i = rcvr_idx;
+	    continue;
+	  }
+	}
+      }
+
+    } else if (IS_C_BINARY_MATH_OP (M_TOK(m_arg))) {/* if (M_TOK(m_arg) == OPENPAREN) */
+      /* If we have an expression like this:
+       *
+       *   (<operand 1 expr>) / (<operand 2 expr>)
+       *
+       * enclosed in parens and consisting only of label tokens, 
+       * rewrite to this.
+       *
+       *   <operand 1 expr> / <operand 2 expr>
+       *
+       *
+       * This is because subexprs enclosed in parentheses get only
+       * one result value in eval_arg, and in this case there would be
+       * two subexpr results, so we remove the parens, and evaluate
+       * the expression by operator precedence only. Aargh.
+       */
+      if (((prev_tok_idx = prevlangmsg (m_messages, i)) != ERROR) &&
+	  ((next_tok_idx = nextlangmsg (m_messages, i)) != ERROR)) {
+	if (M_TOK(m_messages[prev_tok_idx]) == CLOSEPAREN &&
+	    M_TOK(m_messages[next_tok_idx]) == OPENPAREN) {
+	  int op1_start_idx, op2_end_idx, i_2;
+	  op1_start_idx = match_paren_rev (m_messages, prev_tok_idx,
+					   msi.stack_start);
+	  op2_end_idx = match_paren (m_messages, next_tok_idx,
+				     stack_end);
+	  if (M_TOK(m_messages[op1_start_idx]) == OPENPAREN &&
+	      M_TOK(m_messages[op2_end_idx]) == CLOSEPAREN) {
+	    if (op1_start_idx == msi.stack_start &&
+		op2_end_idx == (msi.stack_ptr + 1)) {
+	      for (i_2 = op1_start_idx - 1; i_2 > prev_tok_idx; i_2--) {
+		if (!M_ISSPACE(m_messages[i_2]) &&
+		    M_TOK(m_messages[i_2]) != LABEL &&
+		    M_TOK(m_messages[i_2]) != METHODMSGLABEL) {
+		  goto subexpr_rewrite_done;
+		}
+	      }
+	      for (i_2 = next_tok_idx - 1; i_2 > op2_end_idx; i_2--) {
+		if (!M_ISSPACE(m_messages[i_2]) &&
+		    M_TOK(m_messages[i_2]) != LABEL &&
+		    M_TOK(m_messages[i_2]) != METHODMSGLABEL) {
+		  goto subexpr_rewrite_done;
+		}
+	      }
+	      math_subexpr_rewrite = true;
+	      ptr_math_subexpr_rewrite_expr =
+		collect_tokens (m_messages, msi.stack_start,
+				msi.stack_ptr);
+	      for (i_2 = 0; ptr_math_subexpr_rewrite_expr[i_2]; i_2++) {
+		if (ptr_math_subexpr_rewrite_expr[i_2] == '(' ||
+		    ptr_math_subexpr_rewrite_expr[i_2] == ')') {
+		  ptr_math_subexpr_rewrite_expr[i_2] = ' ';
+		}
+	      }
+	      trim_leading_whitespace (ptr_math_subexpr_rewrite_expr,
+				       math_subexpr_rewrite_expr);
+	      __xfree (MEMADDR(ptr_math_subexpr_rewrite_expr));
+	    }
+	  }
+	}
+      }
+    subexpr_rewrite_done:
+      prev_tok_idx = i;
+    } /* if (M_TOK(m_arg) == OPENPAREN) */
     prev_tok_idx = i;
 
     if (i == start_stack) {
@@ -1987,7 +2260,14 @@ OBJECT *eval_arg (METHOD *method, OBJECT *rcvr_class, ARGSTR *argbuf,
   } else {
     elide_inc_or_dec_prefix (argbuf);
     elide_inc_or_dec_postfix (argbuf);
-    arg_obj  = create_arg_EXPR_object (argbuf);
+    if (math_subexpr_rewrite) {
+      char *argbuf_save = argbuf -> arg;
+      argbuf -> arg = math_subexpr_rewrite_expr;
+      arg_obj  = create_arg_EXPR_object_2 (argbuf);
+      argbuf -> arg = argbuf_save;
+    } else {
+      arg_obj  = create_arg_EXPR_object (argbuf);
+    }
     save_method_object (arg_obj);
   }
 

@@ -1,4 +1,4 @@
-/* $Id: cclasses.c,v 1.1.1.1 2019/10/26 23:40:50 rkiesling Exp $ */
+/* $Id: cclasses.c,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -107,11 +107,22 @@ OBJECT *get_class_object (char *name) {
   if ((interpreter_pass == preprocessing_pass) ||
       (interpreter_pass == var_pass))
     return NULL;
+#if 0
+  if (interpreter_pass == run_time_pass) {
+    classes = last_class = NULL;
+    return NULL;
+  }
+#endif  
 
   if (!classes) return NULL;
   if (!name) return NULL;
 
-  for (o = classes; ; o = o -> next) {
+  for (o = classes; IS_OBJECT(o); o = o -> next) {
+#if 0
+    if (!IS_OBJECT(o)) {
+      return NULL;
+    }
+#endif    
     if (str_eq (o -> __o_name, name))
       return o;
     if (!o || !o -> next)

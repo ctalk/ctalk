@@ -1,4 +1,4 @@
-/* $Id: String,v 1.3 2019/10/30 02:10:14 rkiesling Exp $ -*-c-*- */
+/* $Id: String,v 1.1.1.1 2020/09/13 17:14:20 rkiesling Exp $ -*-c-*- */
 
 /*
   This file is part of Ctalk.
@@ -151,12 +151,16 @@ String instanceMethod += concatRcvr (Object sArg) {
   Object : asString to convert the argument to a String
   object if necessary."
   Exception new e;
-  char *buf, *end_ptr_1, *end_ptr_2;
+  char *end_ptr_1, *end_ptr_2;
   int l1, l2;
   OBJECT *op1, *op2;
 
   op1 = self value;
-  op2 = sArg value;
+  if (!sArg is String) {
+    op2 = sArg value asString;
+  } else {
+    op2 = sArg value;
+  }
 
   if (sArg is Integer) {
     __ctalkIncStringRef (self, sArg, TAG_REF_PREFIX);
@@ -166,39 +170,19 @@ String instanceMethod += concatRcvr (Object sArg) {
     return self;
   }
 
-  if (!sArg is String) {
-    op2 = sArg value asString;
+  if (!strcmp (op1 -> __o_value, NULLSTR)) {
+    op1 -> __o_value[0] = '\0';
   }
-  if (!strcmp (((op1 -> instancevars) ? 
-		op1 -> instancevars -> __o_value :
-		op1 -> __o_value), NULLSTR)) {
-    if (op1 -> instancevars) {
-      op1 -> instancevars -> __o_value[0] = '\0';
-    } else {
-      op1 -> __o_value[0] = '\0';
-    }
-  }
-  end_ptr_1 = 
-    index ((op1->instancevars) ? 
-	   op1->instancevars->__o_value :
-	   op1->__o_value, '\0');
-  end_ptr_2 = 
-    index ((op2->instancevars) ? 
-	   op2->instancevars->__o_value :
-	   op2->__o_value, '\0');
-  l1 = end_ptr_1 - ((op1->instancevars) ? op1->instancevars->__o_value :
-	op1->__o_value);
-  l2 = end_ptr_2 - ((op2->instancevars) ? op2->instancevars->__o_value :
-	op2->__o_value);
-  buf = __xalloc (l1 + l2 + 1);
-  xstrcpy (buf, (op1->instancevars) ? 
-	  op1->instancevars->__o_value :
-	  op1->__o_value);
-  xstrcat (buf, (op2->instancevars) ? 
-	  op2->instancevars->__o_value :
-	  op2->__o_value);
-  __ctalkSetObjectValue (op1, buf);
-  __ctalkFree (buf);
+
+  end_ptr_1 = index (op1 -> __o_value, '\0');
+  end_ptr_2 = index (op2 -> __o_value, '\0');
+  l1 = end_ptr_1 - op1 -> __o_value;
+  l2 = end_ptr_2 - op2 -> __o_value;
+
+  __xrealloc ((void **)&(op1 -> __o_value), l1 + l2 + 1);
+
+  xstrcat (op1 -> __o_value, op2 -> __o_value);
+
   return self;
 }
 
@@ -431,6 +415,8 @@ String instanceMethod split (char delimiter, char **resultArray) {
     }
 
     if (start < rcvr_length) {
+      /* This also takes care of the case where the receiver
+	 doesn't contain the delimiter. */
       substrcpy (elem_buf, buf, start, idx - start);
       resultArray atPut nItems, elem_buf;
       ++nItems;
@@ -448,7 +434,11 @@ String instanceMethod split (char delimiter, char **resultArray) {
     (void)__ctalkMatchText (delimiter value, self value, matches);
 
     matchlength = __ctalkLastMatchLength ();
-    if (matches[0] != 0) {
+    if (matches[0] == -1) {
+      /* The String receiver doesn't contain the delimeter. */
+      resultArray atPut 0, self;
+      nItems = 1;
+    } else if (matches[0] != 0) {
       substrcpy (buf, self_object -> __o_value, 0, matches[0]);
       resultArray atPut 0, buf;
       nItems = 1;
@@ -497,12 +487,12 @@ String instanceMethod writeFormat (char *fmt, ...) {
   "Print the formatted arguments on the receiver String."
   Exception new __e_app;
   SystemErrnoException new __e_system;
+  Integer new fmtRetVal;
   METHOD *self_method;
-  OBJECT *__fmt_arg_value,*result_object;
-  ARG *__save_fmt_arg, *__tmp_fmt_arg, *__tmp_stream_arg;
+  ARG *__tmp_stream_arg;
   char *__streambuf;
-  char __ctalk_fmt[MAXMSG];
   int __i_arg;
+
   if ((self_method = 
        __ctalkGetInstanceMethodByFn (__ctalkRtReceiverObject (),
 				     __ctalkRtGetMethodFn (),
@@ -512,19 +502,6 @@ String instanceMethod writeFormat (char *fmt, ...) {
     return NULL;
   }
   
-  __fmt_arg_value = fmt value;
-
-  __ctalkCPrintFmtToCtalkFmt (__fmt_arg_value -> __o_value, __ctalk_fmt);
-
-  __save_fmt_arg = self_method->args[0];
-
-  __tmp_fmt_arg = 
-    __ctalkCreateArgEntryInit
-    (__ctalkCreateObjectInit ("fmt", "String", "Character",
-			      LOCAL_VAR, __ctalk_fmt));
-  __objRefCntSet (&(__tmp_fmt_arg->obj), __save_fmt_arg->obj->nrefs);
-  self_method -> args[0] = __tmp_fmt_arg;
-
   if ((__streambuf = (char *)calloc (MAXMSG, sizeof(char))) == NULL) {
     __e_system raiseException "in writeFormat (class String)";
     return NULL;
@@ -542,24 +519,23 @@ String instanceMethod writeFormat (char *fmt, ...) {
 
   self_method -> args[0] = __tmp_stream_arg;
   ++self_method -> n_args;
-
-  result_object = __ctalkLibcFnWithMethodVarArgs ((int (*)())xsprintf, self_method, "Integer");
+  
+  fmtRetVal = __ctalkLibcFnWithMethodVarArgs
+    ((int (*)())xsprintf, self_method, "Integer");
+  __ctalkDeleteObject (fmtRetVal);
 
   --self_method -> n_args;
   for (__i_arg = 1; __i_arg <= self_method -> n_args; __i_arg++) {
     self_method -> args[__i_arg-1] = self_method -> args[__i_arg];
   }
   self_method -> args[self_method -> n_args] = NULL;
-  self_method -> args[0] = __save_fmt_arg;
+
   __ctalkSetObjectValueVar (self, __tmp_stream_arg -> obj
 			    -> instancevars -> __o_value);
   __objRefCntSet (&(__tmp_stream_arg->obj), 0);
   __ctalkDeleteObject(__tmp_stream_arg->obj);
   __ctalkDeleteArgEntry (__tmp_stream_arg);
-  __objRefCntSet (&(__tmp_fmt_arg->obj), 0);
-  __ctalkDeleteObject(__tmp_fmt_arg->obj);
-  __ctalkDeleteArgEntry (__tmp_fmt_arg);
-  __ctalkDeleteObject(result_object);
+
   return self;
 }
 
@@ -571,7 +547,6 @@ String instanceMethod readFormat (char *fmt, ...) {
   OBJECT *__fmt_arg_value, *result_object;
   ARG *__save_fmt_arg, *__tmp_fmt_arg, *__tmp_stream_arg;
   char *__argbuf;
-  char __ctalk_fmt[MAXMSG];
   int __i_arg;
   if ((self_method = 
        __ctalkGetInstanceMethodByFn (__ctalkRtReceiverObject (),
@@ -584,15 +559,12 @@ String instanceMethod readFormat (char *fmt, ...) {
   
   __fmt_arg_value = fmt value;
 
-  __ctalkCPrintFmtToCtalkFmt (__fmt_arg_value -> __o_value, __ctalk_fmt);
-
   __save_fmt_arg = self_method->args[0];
 
   __tmp_fmt_arg = 
     __ctalkCreateArgEntryInit 
     (__ctalkCreateObjectInit ("fmt", "String", "Character",
-			      LOCAL_VAR, __ctalk_fmt));
-
+			      LOCAL_VAR, __fmt_arg_value -> __o_value));
   __objRefCntSet (&(__tmp_fmt_arg->obj), __save_fmt_arg->obj->nrefs);
   self_method -> args[0] = __tmp_fmt_arg;
 
@@ -903,6 +875,14 @@ String instanceMethod consoleReadLine (String promptStrArg) {
   return self;
 }
 
+/* the characters that can be concatenated to form multi-character 
+   math operators */
+#define IS_MATH_OP_CHAR(c) ((c == '=') || (c == '>') ||		      \
+			    (c == '<') || (c == '+') || (c == '-') || \
+			    (c == '*') || (c == '/') || (c == '&') || \
+			    (c == '~') || (c == '!') ||	(c == '^') || \
+			    (c == '%'))
+
 String instanceMethod tokenize (List tokenList) {
   "A reasonably quick method that splits a string at each whitespace
    character or characters (spaces, horizontal or vertical tabs, or
@@ -911,8 +891,8 @@ String instanceMethod tokenize (List tokenList) {
    C's ispunct () function to determine punctuation, except for, '_',
    which the method treats as a label character."
   OBJECT *self_value;
-  char *end_ptr;
-  int i, j = 0, k, inword, length;
+  char *end_ptr, c;
+  int i, j = 0, inword, length;
   char tokbuf[MAXMSG];
   Symbol new tokSym;
 
@@ -925,30 +905,34 @@ String instanceMethod tokenize (List tokenList) {
   inword = FALSE;
 
   for (i = 0; i < length; i++) {
-    if (self_value -> __o_value[i] == '\n' ||
-	self_value -> __o_value[i] == ' ' ||	
-	self_value -> __o_value[i] == '\t' ||	
-	self_value -> __o_value[i] == '\v') {
+    c = self_value -> __o_value[i];
+    if (c == '\n' || c == ' ' || c == '\t' || c == '\v') {
       if (inword) {
 	inword = FALSE;
-	k = i;
-	substrcpy (tokbuf, self_value -> __o_value, j, k - j);
-	*tokSym = String basicNew "token", tokbuf;
-	tokenList push *tokSym;
+	substrcpy (tokbuf, self_value -> __o_value, j, i - j);
+	/* we check a few variations of this expression below...*/
+	tokenList push (String basicNew ("token", tokbuf));
       }
     } else  {
-      if (ispunct ((int)self_value -> __o_value[i]) &&
-	  self_value -> __o_value[i] != '_') {
+      if (ispunct ((int)c) && (c != '_')) {
 	if (inword) {
 	  inword = FALSE;
-	  k = i;
-	  substrcpy (tokbuf, self_value -> __o_value, j, k - j);
-	  *tokSym = String basicNew "token", tokbuf;
-	  tokenList push *tokSym;
+	  substrcpy (tokbuf, self_value -> __o_value, j, i - j);
+	  tokenList push String basicNew "token", tokbuf;
 	}
-	tokbuf[0] = self_value -> __o_value[i]; tokbuf[1] = '\0';
-	*tokSym = String basicNew "token", tokbuf;
-	tokenList push *tokSym;
+	if (IS_MATH_OP_CHAR(c)) {
+	  j = 0;
+	  do {
+	    tokbuf[j++] = self_value -> __o_value[i];
+	    if (!IS_MATH_OP_CHAR(self_value -> __o_value[i + 1]))
+	      break;
+	    ++i;
+	  } while (self_value -> __o_value[i]);
+	  tokbuf[j] = '\0';
+	} else if (ispunct((int)c)) {
+	  tokbuf[0] = c; tokbuf[1] = '\0';
+	}
+	tokenList push (String basicNew "token", tokbuf);
       } else {
 	if (!inword) {
 	  inword = TRUE;
@@ -979,7 +963,7 @@ String instanceMethod tokenizeLine (List tokenList) {
    C's ispunct () function to determine punctuation, except for, '_',
    which the method treats as a label character."
   OBJECT *self_value;
-  char *end_ptr;
+  char *end_ptr, c;
   int i, j = 0, k, inword, length;
   char tokbuf[MAXMSG];
   Symbol new tokSym;
@@ -993,9 +977,8 @@ String instanceMethod tokenizeLine (List tokenList) {
   inword = FALSE;
 
   for (i = 0; i < length; i++) {
-    if (self_value -> __o_value[i] == ' ' ||	
-	self_value -> __o_value[i] == '\t' ||	
-	self_value -> __o_value[i] == '\v') {
+    c = self_value -> __o_value[i];
+    if (c == ' ' || c == '\t' || c == '\v') {
       if (inword) {
 	inword = FALSE;
 	k = i;
@@ -1004,9 +987,8 @@ String instanceMethod tokenizeLine (List tokenList) {
 	tokenList push *tokSym;
       }
     } else  {
-      if ((ispunct ((int)self_value -> __o_value[i]) &&
-	   self_value -> __o_value[i] != '_') ||
-	  self_value -> __o_value[i] == '\n') {
+      if ((ispunct ((int)c) && (c != '_')) ||
+	  (c == '\n')) {
 	if (inword) {
 	  inword = FALSE;
 	  k = i;
@@ -1014,7 +996,7 @@ String instanceMethod tokenizeLine (List tokenList) {
 	  *tokSym = String basicNew "token", tokbuf;
 	  tokenList push *tokSym;
 	}
-	tokbuf[0] = self_value -> __o_value[i]; tokbuf[1] = '\0';
+	tokbuf[0] = c; tokbuf[1] = '\0';
 	*tokSym = String basicNew "token", tokbuf;
 	tokenList push *tokSym;
       } else {
@@ -1284,6 +1266,9 @@ String instanceMethod nMatches (void) {
 }
 
 String instanceMethod printMatchToks (Integer yesNo) {
+  "If the argument is non-zero, print the tokens of regular
+   expression tokens and the matching text.  This can be
+   useful when debugging regular expressions."
   __ctalkMatchPrintToks (yesNo);
 }
 
@@ -1292,4 +1277,10 @@ String instanceMethod systemErrnoStr (void) {
    (the value of the global C variable, errno)."
   __ctalkSetObjectValueVar (self, strerror (errno));
   return self;
+}
+
+String instanceMethod asExpandedPath (void) {
+  char expanded_path[FILENAME_MAX];
+  __ctalkExpandPath (self, expanded_path);
+  return expanded_path;
 }

@@ -1,4 +1,4 @@
-/* $Id: guiputxstr.c,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-c-*-*/
+/* $Id: guiputxstr.c,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -60,7 +60,7 @@ int __ctalkX11PanePutTransformedStr (OBJECT *self, int x, int y, char *s) {
 
 int __ctalkGUIPanePutTransformedStr (OBJECT *self, int x, int y, char *s) {
   OBJECT *self_object, *win_id_value, *gc_value, *font_id_value;
-  OBJECT *fontDesc_var, *fontDesc_value_var;
+  OBJECT *fontDesc_var, *fontDesc_value_var, *displayptr_var;
   int panebuffer_xid, panebackingstore_xid;
   char d_buf[MAXMSG], f_buf[MAXLABEL], fname_buf[MAXLABEL],
     /* w_buf[MAXLABEL],*/ pat_buf[MAXMSG], *pat;
@@ -70,6 +70,8 @@ int __ctalkGUIPanePutTransformedStr (OBJECT *self, int x, int y, char *s) {
   self_object = (IS_VALUE_INSTANCE_VAR (self) ? self->__o_p_obj : self);
   win_id_value = __x11_pane_win_id_value_object (self_object);
   font_id_value = __x11_pane_font_id_value_object (self_object);
+  displayptr_var = __ctalkGetInstanceVariable (self_object, "displayPtr",
+					       TRUE);
   if ((fontDesc_var = 
        __ctalkGetInstanceVariable (self_object, "fontDescStr", TRUE)) 
       == NULL)
@@ -96,11 +98,15 @@ int __ctalkGUIPanePutTransformedStr (OBJECT *self, int x, int y, char *s) {
     __get_pane_buffers (self_object, &panebuffer_xid, 
 			&panebackingstore_xid);
     if (panebuffer_xid) {
-      make_req (shm_mem, PANE_PUT_STR_REQUEST_FT,
+      make_req (shm_mem,
+		SYMVAL(displayptr_var -> instancevars -> __o_value),
+		PANE_PUT_STR_REQUEST_FT,
 		panebuffer_xid,
 		SYMVAL(gc_value -> __o_value), d_buf);
     } else {
-      make_req (shm_mem, PANE_PUT_STR_REQUEST_FT,
+      make_req (shm_mem,
+		SYMVAL(displayptr_var -> instancevars -> __o_value),
+		PANE_PUT_STR_REQUEST_FT,
 		INTVAL(win_id_value -> __o_value),
 		SYMVAL(gc_value -> __o_value), d_buf);
     }
@@ -114,10 +120,14 @@ int __ctalkGUIPanePutTransformedStr (OBJECT *self, int x, int y, char *s) {
     __get_pane_buffers (self_object, &panebuffer_xid, 
 			&panebackingstore_xid);
     if (panebuffer_xid) {
-      make_req (shm_mem, PANE_PUT_STR_REQUEST, panebuffer_xid,
+      make_req (shm_mem,
+		SYMVAL(displayptr_var -> instancevars -> __o_value),
+		PANE_PUT_STR_REQUEST, panebuffer_xid,
 		SYMVAL(gc_value -> __o_value), d_buf);
     } else {
-      make_req (shm_mem, PANE_PUT_STR_REQUEST,
+      make_req (shm_mem,
+		SYMVAL(displayptr_var -> instancevars -> __o_value),
+		PANE_PUT_STR_REQUEST,
 		INTVAL(win_id_value -> __o_value),
 		SYMVAL(gc_value -> __o_value), d_buf);
     }
@@ -143,7 +153,8 @@ int __ctalkGUIPanePutTransformedStr (OBJECT *self, int x, int y, char *s) {
 #else /* #ifdef HAVE_XFT_H */
 
 int __ctalkGUIPanePutTransformedStr (OBJECT *self, int x, int y, char *s) {
-  OBJECT *self_object, *win_id_value, *gc_value, *font_id_value;
+  OBJECT *self_object, *win_id_value, *gc_value, *font_id_value,
+    *displayptr_var;
   OBJECT *fontDesc_var, *fontDesc_value_var;
   int panebuffer_xid, panebackingstore_xid;
   char d_buf[MAXLABEL], f_buf[MAXLABEL], fname_buf[MAXLABEL],
@@ -154,6 +165,8 @@ int __ctalkGUIPanePutTransformedStr (OBJECT *self, int x, int y, char *s) {
   self_object = (IS_VALUE_INSTANCE_VAR (self) ? self->__o_p_obj : self);
   win_id_value = __x11_pane_win_id_value_object (self_object);
   font_id_value = __x11_pane_font_id_value_object (self_object);
+  displayptr_var = __ctalkGetInstanceVariable (self_object, "displayPtr",
+					       TRUE);
   if ((fontDesc_var = 
        __ctalkGetInstanceVariable (self_object, "fontDescStr", TRUE)) 
       == NULL)
@@ -175,10 +188,14 @@ int __ctalkGUIPanePutTransformedStr (OBJECT *self, int x, int y, char *s) {
   __get_pane_buffers (self_object, &panebuffer_xid, 
 		      &panebackingstore_xid);
   if (panebuffer_xid) {
-    make_req (shm_mem, PANE_PUT_STR_REQUEST, panebuffer_xid,
+    make_req (shm_mem,
+	      SYMVAL(displayptr_var -> instancevars -> __o_value),
+	      PANE_PUT_STR_REQUEST, panebuffer_xid,
 	      SYMVAL(gc_value -> __o_value), d_buf);
   } else {
-    make_req (shm_mem, PANE_PUT_STR_REQUEST,
+    make_req (shm_mem,
+	      SYMVAL(displayptr_var -> instancevars -> __o_value),
+	      PANE_PUT_STR_REQUEST,
 	      INTVAL(win_id_value -> __o_value),
 	      SYMVAL(gc_value -> __o_value), d_buf);
   }

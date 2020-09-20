@@ -1,4 +1,4 @@
-/* $Id: re_lex.c,v 1.1.1.1 2019/10/26 23:40:50 rkiesling Exp $ */
+/* $Id: re_lex.c,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -102,12 +102,6 @@ static void ascii_escape_chr (MESSAGE *m, char lit_char) {
     case '0':	m -> name[0] = '\0'; break;
     }
 }
-
-#ifndef WITHOUT_SIGNED_HEX_OCTAL_CONSTANT_WARNINGS
-static void about_signed_hex_octal_constant_warning (void) {
-  _warning ("(To get rid of this warning, use the --without-signed-hex-octal-constant-warnings option with configure.)\n");
-}
-#endif
 
 /* an unescaped open or close paren signals the start or end
    of a backreference. */

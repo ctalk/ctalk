@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.3 2019/10/29 20:30:43 rkiesling Exp $
+# $Id: Makefile.am,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $
 
 SUBDIRS = 
 
@@ -6,8 +6,8 @@ EXTRA_DIST=Makefile.djgpp
 
 libctalk_la_SOURCES=ansitime.c become.c bintodec.c bitmap.c bnamecmp.c \
 	cclasses.c \
-	chash.c clibtmpl.c ctatoll.c ctdtoa.c ctitoa.c ctlltoa.c ctoobj.c \
-	ctsleep.c cttmpl.c dblib.c edittext.c errorloc.c error_out.c \
+	chash.c clibtmpl.c ctatoll.c ctdtoa.c ctitoa.c ctlltoa.c ctltoa.c \
+	ctoobj.c ctsleep.c cttmpl.c dblib.c edittext.c errorloc.c error_out.c \
 	escstr.c event.c except.c exec_bin.c fileglob.c fmtargtype.c \
 	font.c fsecure.c ftlib.c glewlib.c glutlib.c glxlib.c \
 	guiclearrectangle.c guiclearwindow.c \
@@ -27,17 +27,18 @@ libctalk_la_SOURCES=ansitime.c become.c bintodec.c bitmap.c bnamecmp.c \
 	strdupx.c streq.c strsecure.c substrcpy.c tag.c \
 	tempio.c tempname.c termsize.c textcx.c trimstr.c typecast.c \
 	unixsock.c val.c \
-	wregex.c x11ksym.c x11lib.c xcircle.c xcopypixmap.c xftlib.c \
-	xgeometry.c xlibfont.c xrender.c xresource.c
+	wregex.c x11ksym.c x11lib.c xcircle.c xcopypixmap.c xdialog.c \
+	xftlib.c xgeometry.c xlibfont.c xrender.c xresource.c
 
 
 libctalk_la_LTLIBOBJS=ansitime.lo become.lo bintodec.lo bitmap.lo \
 	bnamecmp.lo cclasses.lo \
 	chash.lo clibtmpl.lo ctatoll.lo ctdtoa.lo ctitoa.lo ctlltoa.lo \
-	ctoobj.lo ctsleep.lo cttmpl.lo dblib.lo edittext.lo errorloc.lo \		error_out.lo escstr.lo event.lo except.lo exec_bin.lo fileglob.lo \
-	fmtargtype.lo font.lo fsecure.lo ftlib.lo glewlib.lo glutlib.lo \
-	glxlib.lo guiclearrectangle.lo guiclearwindow.lo guidrawline.lo \
-	guidrawpoint.lo guidrawrectangle.lo \
+	ctltoa.lo ctoobj.lo ctsleep.lo cttmpl.lo dblib.lo edittext.lo \
+	errorloc.lo error_out.lo escstr.lo event.lo except.lo exec_bin.lo \
+	fileglob.lo fmtargtype.lo font.lo fsecure.lo ftlib.lo glewlib.lo \
+	glutlib.lo glxlib.lo guiclearrectangle.lo guiclearwindow.lo \
+	guidrawline.lo guidrawpoint.lo guidrawrectangle.lo \
 	guiputstr.lo guiputxstr.lo guirefresh.lo guisetbackground.lo \
 	guisetforeground.lo guitext.lo guixpm.lo htoa.lo infiles.lo \
 	ismethd.lo keyword.lo lex.lo lextype.lo lineinfo.lo \
@@ -54,8 +55,8 @@ libctalk_la_LTLIBOBJS=ansitime.lo become.lo bintodec.lo bitmap.lo \
 	strsecure.lo substrcpy.lo tempio.lo tag.lo tempname.lo termsize.lo \
 	textcx.lo trimstr.lo typecast.lo unixsock.lo val.lo wregex.lo \
 	x11ksym.lo \
-	x11lib.lo xcircle.lo xcopypixmap.lo xftlib.lo xgeometry.lo \
-	xlibfont.lo xrender.lo xresource.lo
+	x11lib.lo xcircle.lo xcopypixmap.lo xftlib.lo xdialog.lo \
+	xgeometry.lo xlibfont.lo xrender.lo xresource.lo
 
 lib_LTLIBRARIES=libctalk.la
 

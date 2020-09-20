@@ -1,8 +1,8 @@
-/* $Id: object.c,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ */
+/* $Id: object.c,v 1.2 2020/09/19 01:08:27 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
-  Copyright © 2005-2019 Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2005-2020 Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
 
@@ -317,7 +317,7 @@ OBJECT *get_local_object (char *name, char *classname) {
 
 OBJECT *get_instance_variable (char *name, char *classname, int warn) {
   OBJECT *o,
-    *class_object;
+    *class_object, *superclass_object;
 
   if (classname) {
     if ((class_object = get_class_object (classname)) == NULL) {
@@ -332,9 +332,11 @@ OBJECT *get_instance_variable (char *name, char *classname, int warn) {
 	return o;
     }
 
-    if (class_object -> __o_superclass && 
-	(class_object -> __o_superclass != class_object)) {
-      if ((o = get_instance_variable (name, class_object -> __o_superclass -> __o_name, FALSE)) != NULL)
+    for (superclass_object = class_object -> __o_superclass;
+	 superclass_object;
+	 superclass_object = superclass_object -> __o_superclass) {
+      if ((o = get_instance_variable
+	   (name, superclass_object -> __o_name, FALSE)) != NULL)
 	return o;
     }
 
@@ -1084,6 +1086,12 @@ OBJECT *constant_token_object (MESSAGE *m_tok) {
 			    OBJECT_SUPERCLASSNAME,
 			    m_tok -> name, m_tok -> name);
       break;
+    case LABEL:
+      arg_obj = 
+	create_object_init (OBJECT_CLASSNAME, 
+			    OBJECT_SUPERCLASSNAME,
+			    m_tok -> name, m_tok -> name);
+      break;
     default:
       _warning ("Unknown token type in constant_token_object.\n");
       arg_obj = NULL;
@@ -1286,6 +1294,8 @@ int is_instance_variable_message (MESSAGE_STACK messages, int idx) {
   MESSAGE *m_prev_tok;
   OBJECT *prev_tok_obj;
   METHOD *m;
+  int rcvr_ptr;
+  OBJECT *return_class_obj, *var;
 
   if ((prev_tok_idx = prevlangmsgstack (messages, idx)) != ERROR) {
     m_prev_tok = messages[prev_tok_idx];
@@ -1344,6 +1354,27 @@ int is_instance_variable_message (MESSAGE_STACK messages, int idx) {
 	} else if (is_self_or_super_instance_var_series (messages, idx)) {
 	  return TRUE;
 	}
+      }
+    } else if (M_TOK(m_prev_tok) == METHODMSGLABEL) {
+      rcvr_ptr = prevlangmsg (messages, prev_tok_idx);
+      if (IS_OBJECT(messages[rcvr_ptr] -> obj)) {
+	if (((m = get_instance_method (messages[rcvr_ptr],
+				       messages[rcvr_ptr] -> obj,
+				       m_prev_tok -> name,
+				       ANY_ARGS, FALSE)) != NULL) ||
+	    ((m = get_class_method (messages[rcvr_ptr],
+				    messages[rcvr_ptr] -> obj,
+				    m_prev_tok -> name,
+				    ANY_ARGS, FALSE)) != NULL)) {
+	  if ((return_class_obj = get_class_object (m -> returnclass))
+	      != NULL) {
+            for (var = return_class_obj -> instancevars; var; var = var -> next) {
+	      if (str_eq (M_NAME(messages[idx]), var -> __o_name)) {
+		return TRUE;
+	      }
+            }
+          }
+        }
       }
     }
   }
@@ -1855,8 +1886,21 @@ void get_new_method_param_instance_variable_series (OBJECT *param_class_object,
 	}
       }
 
-      if (!have_instance_var)
+      if (!have_instance_var) {
+	/* TOK_IS_CLASS_TYPECAST set in fn_arg_expression, so far */
+	if (str_eq (M_OBJ(messages[param_idx]) -> __o_class -> __o_name,
+		    OBJECT_CLASSNAME) &&
+	    !(messages[param_idx] -> attrs & TOK_IS_CLASS_TYPECAST)) {
+	  warning (messages[param_idx], "Instance variable expression begins "
+		   "with parameter \"%s,\" which is declared as an Object.",
+		   M_NAME(messages[param_idx]));
+	  messages[i] -> obj = prev_tok_object;
+	  messages[i] -> attrs |= OBJ_IS_INSTANCE_VAR;
+	  messages[i] -> receiver_msg = messages[param_idx];
+	  messages[i] -> receiver_obj = messages[param_idx] -> obj;
+	}
 	break;
+      }
 
     } else {
 
@@ -1991,6 +2035,12 @@ OBJECT *create_arg_EXPR_object (ARGSTR *argbuf) {
       m = argbuf -> m_s[i];
     }
 
+    if (argbuf -> class_typecast &&
+	(i <= argbuf -> class_typecast_start_idx &&
+	 i >= argbuf -> class_typecast_end_idx)) {
+      continue;
+    }
+
     switch (M_TOK(m))
       {
       case NEWLINE: case CR: case LF:
@@ -2033,6 +2083,45 @@ OBJECT *create_arg_EXPR_object (ARGSTR *argbuf) {
       }
   }
   o -> __o_value = strdup (o -> __o_name);
+
+  return o;
+}
+
+/* Like create_arg_EXPR_object, but it uses rewritten argbufs
+   directly */
+OBJECT *create_arg_EXPR_object_2 (ARGSTR *argbuf) {
+
+  OBJECT *o;
+
+  if ((o = (OBJECT *)__xalloc (object_size)) == NULL) {
+    printf ("create_arg_EXPR_object: %s\n", strerror (errno));
+    exit (EXIT_FAILURE);
+  }
+
+#ifndef __sparc__
+  o -> sig = 0xd3d3d3;
+#else
+  strcpy (o -> sig, "OBJECT");
+#endif
+
+  strcpy (o -> __o_classname, EXPR_CLASSNAME);
+  if (!EXPR_class_obj) {
+    o -> __o_class = EXPR_class_obj = get_class_object (EXPR_CLASSNAME);
+  } else {
+    o -> __o_class = EXPR_class_obj;
+  }
+  strcpy (o -> __o_superclassname, EXPR_SUPERCLASSNAME);
+  if (!EXPR_superclass_obj) {
+    o -> __o_superclass = EXPR_superclass_obj = 
+      get_class_object (EXPR_SUPERCLASSNAME);
+  } else {
+    o -> __o_superclass = EXPR_superclass_obj;
+  }
+
+  o -> scope = ARG_VAR;
+
+  strcpy (o -> __o_name, argbuf -> arg);
+  o -> __o_value = strdup (argbuf -> arg);
 
   return o;
 }
@@ -2085,4 +2174,83 @@ OBJECT *create_arg_CFUNCTION_object (char *name_value) {
   strcpy (o -> __o_value, name_value);
 
   return o;
+}
+
+/* Declared in rt_expr.c. */
+extern bool fn_arg_conditional;
+extern int fn_cond_arg_fn_label_idx;
+
+/* 
+ * Returns the stack index of the opening parenthesis of a question
+ * conditional's predicate, or the index of the first token of a
+ * predicate that is unparenthesized.  
+ * 
+ *   On entry, ms -> messages[ms -> tok] points to the '?' operator.
+ *
+ * Returns -1 if the expression is not an inline conditional
+ * expression.
+ */
+int arg_is_question_conditional_predicate (MSINFO *ms) {
+  int i, pred_end_tok,
+    pred_start_tok = ms -> tok, /* avoid a warning message */
+    fn_idx;
+  int i_2, n_parens;
+  
+  for (i = ms -> tok; i > ms -> stack_ptr; --i) {
+    if (M_TOK(ms -> messages[i]) == OPENBLOCK ||
+	M_TOK(ms -> messages[i]) == CLOSEBLOCK ||
+	M_TOK(ms -> messages[i]) == SEMICOLON) {
+      return ERROR;
+    } else if (M_TOK(ms -> messages[i]) == CONDITIONAL) {
+      if ((pred_end_tok = prevlangmsg (ms -> messages, i))
+	  != ERROR) {
+	if (M_TOK(ms -> messages[pred_end_tok]) == CLOSEPAREN) {
+	  if ((pred_start_tok = match_paren_rev (ms -> messages,
+						 pred_end_tok,
+						 ms -> stack_start))
+	      != ERROR) {
+	    if (obj_expr_is_arg_ms (ms, &fn_idx) >= 0) {
+	      /* cleared by rt_expr */
+	      fn_arg_conditional = true;
+	      fn_cond_arg_fn_label_idx = fn_idx;
+	      return pred_start_tok;
+	    }
+	  }
+	} else {
+	  n_parens = 0;
+	  for (i_2 = i + 1; i_2 <= ms -> stack_start; i_2++) {
+	    if (M_ISSPACE(ms -> messages[i_2]))
+	      continue;
+	    switch (M_TOK(ms -> messages[i_2]))
+	      {
+	      case OPENPAREN:
+		--n_parens;
+		if (n_parens < 0) {
+		  goto cond_expr_start;
+		}
+		break;
+	      case CLOSEPAREN:
+		++n_parens;
+		break;
+	      case ARGSEPARATOR:
+		goto cond_expr_start;
+		break;
+	      case SEMICOLON:
+	      case CLOSEBLOCK:
+		return ERROR;
+		break;
+	      }
+	    pred_start_tok = i_2;
+	  }
+	cond_expr_start:
+	  if (obj_expr_is_arg_ms (ms, &fn_idx) >= 0) {
+	    fn_arg_conditional = true;
+	    fn_cond_arg_fn_label_idx = fn_idx;
+	    return pred_start_tok;
+	  }
+	}
+      }
+    }
+  }
+  return ERROR;
 }

@@ -1,0 +1,698 @@
+/* $Id: X11YesNoBoxPane,v 1.1.1.1 2020/09/13 17:14:20 rkiesling Exp $ -*-C-*-*/
+
+/*
+  This file is part of Ctalk.
+  Copyright © 2020  Robert Kiesling, rk3314042@gmail.com.
+  Permission is granted to copy this software provided that this copyright
+  notice is included in all source code modules.
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+*/
+
+/* 
+   X11YesNoBoxPane Class
+
+   This class uses the following resources:
+
+   backgroundColor      String    "gray"
+   foregroundColor      String    "gray"
+   pad                  Integer   10
+   messageColor         String    "black"
+   messageFont          String    "sans serif-12"
+   messageText          String    "Sample message text."
+   leftButtonText       String    "Yes"
+   rightButtonText      String    "No"
+   geometry             String    <w>x<h>+<x>+<y>
+   iconID               Integer   1
+   titleText            String    "Message"
+   
+*/
+
+X11PaneDispatcher class X11YesNoBoxPane;
+
+X11YesNoBoxPane instanceVariable lbutton X11ButtonPane NULL;
+X11YesNoBoxPane instanceVariable rbutton X11ButtonPane NULL;
+X11YesNoBoxPane instanceVariable label  X11LabelPane NULL;
+X11YesNoBoxPane instanceVariable icon X11Bitmap NULL;
+X11YesNoBoxPane instanceVariable initialized Boolean false;
+X11YesNoBoxPane instanceVariable mainWindowPtr Symbol NULL;
+X11YesNoBoxPane instanceVariable keyState Integer 0;
+X11YesNoBoxPane instanceVariable returnVal Integer 0
+"The show and showManaged methods return either YESNO_NONE, 
+YESNO_LBUTTON, or YESNO_RBUTTON, which are saved here.  The
+values are defined in ctalkdefs.h.";
+X11YesNoBoxPane instanceVariable returnText String ""
+"Contains the text of the button that the user pressed, or an
+empty string if the user or program closed the window some 
+other way.";
+X11YesNoBoxPane instanceVariable focusButton Integer 0;
+
+/* We only need this to handle Tab and Enter keyboard 
+   equivalents. */
+#define KEY_TAB   1
+#define KEY_ENTER 2
+
+#include <ctalk/ctalkdefs.h>
+
+X11YesNoBoxPane instanceMethod new (String paneName) {
+  Method new exposeMethod, buttonPressMethod, kbdInputMethod,
+    enterMethod, leaveMethod;
+
+  X11YesNoBoxPane super new paneName;
+  
+  exposeMethod definedInstanceMethod "X11YesNoBoxPane", "subPaneExpose";
+  paneName setMethodHandler "expose", exposeMethod;
+
+  buttonPressMethod definedInstanceMethod "X11YesNoBoxPane",
+    "subPaneButton";
+  paneName setMethodHandler "pointerinput", buttonPressMethod;
+  
+  kbdInputMethod definedInstanceMethod "X11YesNoBoxPane",
+    "subPaneKbdInput";
+  paneName setMethodHandler "kbdinput", kbdInputMethod;
+
+  enterMethod definedInstanceMethod "X11YesNoBoxPane",
+    "subPaneEnter";
+  paneName setMethodHandler "enternotify", enterMethod;
+  leaveMethod definedInstanceMethod "X11YesNoBoxPane",
+    "subPaneLeave";
+  paneName setMethodHandler "leavenotify", leaveMethod;
+
+  paneName resources atPut "backgroundColor", "gray";
+  paneName resources atPut "foregroundColor", "gray";
+  paneName resources atPut "pad", 10;
+  paneName resources atPut "messageText", "Hello, messageBox!\nSample message text.";
+
+  paneName resources atPut "leftButtonText", "Yes";
+  paneName resources atPut "rightButtonText", "No";
+  /* ICON_QUESTION, from ctalkdefs.h */
+  paneName resources atPut "iconID", 4;
+  paneName resources atPut "titleText", "Message";
+  paneName resources atPut "messageColor", "black";
+  paneName resources atPut "messageFont", "sans serif-12";
+
+  return paneName;
+}
+
+/* These are from X11/keysymdef.h if your machine defines them
+   differently. */
+#ifndef XK_Tab
+#define XK_Tab  0xff09
+#endif
+#ifndef XK_Return
+#define XK_Return  0xff0d
+#endif
+
+/* from ctalkdefs.h */
+#ifndef YESNO_NONE
+#define YESNO_NONE 0
+#endif
+#ifndef YESNO_LBUTTON
+#define YESNO_LBUTTON 1
+#endif
+#ifndef YESNO_RBUTTON
+#define YESNO_RBUTTON 2
+#endif
+
+X11YesNoBoxPane instanceMethod subPaneKbdInput (Object subPane,
+						  InputEvent event) {
+  switch (event xEventData4)
+    {
+    case XK_Tab:
+      self keyState = KEY_TAB;
+      switch (self focusButton)
+	{
+	case YESNO_NONE:
+	  self focusButton = YESNO_LBUTTON;
+	  if (self lbutton label resources at "borderWidth" > 0) {
+	    self lbutton label resources replaceAt "highlightBorderWidth",
+	      (self lbutton label resources at "borderWidth") * 2;
+	  } else {
+	    self lbutton label resources replaceAt "highlightBorderWidth",
+	      2;
+	  }
+	  if (subPane lbutton canFocus) {
+	    if (self lbutton clicked) {
+	      self lbutton clicked = false;
+	    }
+	    if (!self lbutton hover) {
+	      subPane lbutton label highlight = true;
+	      self lbutton hover = true;
+	    }
+	    if (!self lbutton radius)
+	      self lbutton label drawButtonLayout;
+	    subPane lbutton draw;
+	    subPane lbutton refresh;
+	  }
+	  break;
+	case YESNO_LBUTTON:
+	  self focusButton = YESNO_RBUTTON;
+	  self lbutton label highlight = false;
+	  self lbutton hover = false;
+	  if (!self lbutton radius)
+	    self lbutton label drawButtonLayout;
+	  subPane lbutton draw;
+	  subPane lbutton refresh;
+	  if (self rbutton label resources at "borderWidth" > 0) {
+	    self rbutton label resources replaceAt"highlightBorderWidth",
+	      (self rbutton label resources at "borderWidth") * 2;
+	  } else {
+	    self rbutton label resources replaceAt "highlightBorderWidth",
+	      2;
+	  }
+	  if (subPane rbutton canFocus) {
+	    if (self rbutton clicked) {
+	      self rbutton clicked = false;
+	    }
+	    if (!self rbutton hover) {
+	      subPane rbutton label highlight = true;
+	      self rbutton hover = true;
+	    }
+	    if (!self rbutton radius)
+	      self rbutton label drawButtonLayout;
+	    subPane rbutton draw;
+	    subPane rbutton refresh;
+	  }
+	  break;
+	case YESNO_RBUTTON:
+	  self focusButton = YESNO_LBUTTON;
+	  self rbutton label highlight = false;
+	  self rbutton hover = false;
+	  if (!self rbutton radius)
+	    self rbutton label drawButtonLayout;
+	  subPane rbutton draw;
+	  subPane rbutton refresh;
+	  if (self lbutton label resources at "borderWidth" > 0) {
+	    self lbutton label resources replaceAt"highlightBorderWidth",
+	      (self lbutton label resources at "borderWidth") * 2;
+	  } else {
+	    self lbutton label resources replaceAt "highlightBorderWidth",
+	      2;
+	  }
+	  if (subPane lbutton canFocus) {
+	    if (self lbutton clicked) {
+	      self lbutton clicked = false;
+	    }
+	    if (!self lbutton hover) {
+	      subPane lbutton label highlight = true;
+	      self lbutton hover = true;
+	    }
+	    if (!self lbutton radius)
+	      self lbutton label drawButtonLayout;
+	    subPane lbutton draw;
+	    subPane lbutton refresh;
+	  }
+	  break;
+	}
+      break;
+    case XK_Return:
+      if (self keyState == KEY_TAB) {
+	self keyState = KEY_ENTER;
+	switch (self focusButton)
+	  {
+	  case YESNO_LBUTTON:
+	    self returnVal = YESNO_LBUTTON;
+	    self returnText = self resources at "leftButtonText";
+	    break;
+	  case YESNO_RBUTTON:
+	    self returnVal = YESNO_RBUTTON;
+	    self returnText = self resources at "rightButtonText";
+	    break;
+	  }
+      }
+      break;
+    }
+}
+
+X11YesNoBoxPane instanceMethod subPaneExpose (Object __subPane,
+					  InputEvent __event) {
+  "Handle an Expose event by redrawing the pane's contents
+  on the parent window."
+    __subPane draw;
+    __subPane refresh;
+}
+
+X11YesNoBoxPane instanceMethod subPaneButton (Object subPane,
+					  InputEvent __event) {
+  switch (__event eventClass)
+    {
+    case BUTTONPRESS:
+      if (__event eventData == subPane lbutton xWindowID) {
+	self lbutton clicked = true;
+	if (!self lbutton clickSet)
+	  self lbutton clickSet = true;
+	self lbutton draw;
+	self lbutton refresh;
+      } else if (__event eventData == subPane rbutton xWindowID) {
+	self rbutton clicked = true;
+	if (!self rbutton clickSet)
+	  self rbutton clickSet = true;
+	self rbutton draw;
+	self rbutton refresh;
+      }
+      break;
+    case BUTTONRELEASE:
+      if (__event eventData == subPane lbutton xWindowID) {
+	self lbutton clicked = false;
+	self lbutton draw;
+	self lbutton refresh;
+	self returnVal = YESNO_LBUTTON;
+	self returnText = self resources at "leftButtonText";
+      } else if (__event eventData == subPane rbutton xWindowID) {
+	self rbutton clicked = false;
+	self rbutton draw;
+	self rbutton refresh;
+	self returnVal = YESNO_RBUTTON;
+	self returnText = self resources at "rightButtonText";
+      }
+      break;
+    }
+}
+
+X11YesNoBoxPane instanceMethod subPaneEnter (Object subPane,
+					  InputEvent __event) {
+  if (__event eventData == subPane lbutton xWindowID) {
+    if (subPane lbutton canFocus) {
+      if (self lbutton clicked) {
+	self lbutton clicked = false;
+      }
+      if (!self lbutton hover) {
+	subPane lbutton label highlight = true;
+	self lbutton hover = true;
+      }
+      if (!self lbutton radius)
+	self lbutton label drawButtonLayout;
+      subPane lbutton draw;
+      subPane lbutton refresh;
+    }
+    return NULL;
+  } else if (__event eventData == subPane rbutton xWindowID) {
+    if (subPane rbutton canFocus) {
+      if (self rbutton clicked) {
+	self rbutton clicked = false;
+      }
+      if (!self lbutton hover) {
+	subPane rbutton label highlight = true;
+	self rbutton hover = true;
+      }
+      if (!self lbutton radius)
+	self rbutton label drawButtonLayout;
+      subPane rbutton draw;
+      subPane rbutton refresh;
+    }
+    return NULL;
+  }
+  /* The event comes from any other window. */
+  if (self lbutton clicked) {
+    self lbutton clicked = false;
+    self lbutton hover = false;
+    if (!self lbutton radius)
+      self lbutton label drawButtonLayout;
+    subPane lbutton draw;
+    subPane lbutton refresh;
+  }
+  if (self rbutton clicked) {
+    self rbutton clicked = false;
+    self rbutton hover = false;
+    if (!self rbutton radius)
+      self rbutton label drawButtonLayout;
+    subPane rbutton draw;
+    subPane rbutton refresh;
+  }
+}
+
+X11YesNoBoxPane instanceMethod subPaneLeave (Object subPane,
+					  InputEvent __event) {
+  if (__event eventData == subPane lbutton xWindowID) {
+    if (subPane lbutton canFocus) {
+      if (self lbutton hover) {
+	subPane lbutton label highlight = false;
+	if (self lbutton clicked)
+	  self lbutton clicked = false;
+	self lbutton label drawButtonLayout;
+	subPane lbutton draw;
+	subPane lbutton refresh;
+	self lbutton hover = false;
+      }
+    }
+  } else if (__event eventData == subPane rbutton xWindowID) {
+    if (subPane rbutton canFocus) {
+      if (self rbutton hover) {
+	subPane rbutton label highlight = false;
+	if (self rbutton clicked)
+	  self rbutton clicked = false;
+	self rbutton label drawButtonLayout;
+	subPane rbutton draw;
+	subPane rbutton refresh;
+	self rbutton hover = false;
+      }
+    }
+  }
+}
+
+X11YesNoBoxPane instanceMethod attachTo (X11Pane parentPane,
+					   String geomspec) {
+  "Register the receiver pane as a subpane of the X11Pane
+  given as the argument.  Generally parent pane should
+  be a X11PaneDispatcher object.  At this time, a geometry
+  specification like, '300x200', i.e., without the x and
+  y origins, is okay - the Ctalk libraries center the
+  message box above the parent window."
+  X11Bitmap new xPaneBuffer;
+  X11Bitmap new xPaneBackingStore;
+  String new parentGeometry;
+  int x, y, width, height;
+  unsigned int mainWinID;
+  
+  self displayPtr = self mainWindow displayPtr;
+
+  self container = parentPane;
+  self paneBuffer become xPaneBuffer;
+  self paneBackingStore become xPaneBackingStore;
+
+  __ctalkX11SubWindowGeometry (parentPane, geomspec,
+			       &x, &y, &width, &height);
+
+  self size x = width;
+  self size y = height;
+  self origin x = x;
+  self origin y = y;
+
+  self resources atPut "geometry", geomspec;
+
+  self mainWindowPtr = parentPane mainWindow;
+
+  return NULL;
+}
+
+X11YesNoBoxPane instanceMethod fill (String colorName) {
+  "Sets the message box's background color to the argument and 
+   fills the messagebox's area with that color.  Temporarily
+   sets the pane's foreground to the background color so the 
+   color change is visible without drawing anything else."
+    String new saveFgColor;
+
+
+  saveFgColor = self foregroundColor;
+  self paneBuffer background colorName;
+  self paneBuffer foreground colorName;
+  XFillRectangle (self displayPtr, self paneBuffer xID, self paneBuffer xGC,
+		  0, 0, self size x, self size y);
+  self paneBuffer foreground saveFgColor;
+}
+
+X11YesNoBoxPane instanceMethod draw (void) {
+  
+  self fill self resources at "backgroundColor";
+
+  self label draw;
+  self lbutton draw;
+  self rbutton draw;
+
+  if (self resources at "iconID" > 0) {
+    self paneBuffer copy self icon, 0, 0, ICON_WIDTH_PX, ICON_HEIGHT_PX,
+      ((self resources at "pad") * 2),
+      ((self resources at "pad") + (self label size y / 2) -
+       (ICON_HEIGHT_PX / 2));
+  }
+}
+
+X11YesNoBoxPane instanceMethod refresh (void) {
+  __ctalkGUIPaneRefresh (self, 0, 0,
+   			 self size x,
+   			 self size y,
+   			 0, 0);
+  self label refresh;
+  self lbutton refresh;
+  self rbutton refresh;
+}
+
+X11YesNoBoxPane instanceMethod withdraw (void) {
+  __ctalkCloseX11DialogPane (self);
+  XUnmapSubwindows (self displayPtr, self xWindowID);
+  XUnmapWindow (self displayPtr, self xWindowID);
+  XFlush (self displayPtr);
+}
+
+X11YesNoBoxPane instanceMethod drawIcon (void) {
+
+  switch (self resources at "iconID")
+    {
+    case ICON_STOP:
+      self icon iconStop;
+      break;
+    case ICON_CAUTION:
+      self icon iconCaution;
+      break;
+    case ICON_INFO:
+      self icon iconInfo;
+      break;
+    case ICON_QUESTION:
+      self icon iconQuestion;
+      break;
+    }
+}
+
+X11YesNoBoxPane instanceMethod initWidgets (void) {
+  "Initialize the message box's button and label widgets.  The
+   message box defers constructing the new widgets until just
+   before it is displayed, so any modifications to the defaults
+   (colors, dimensions, etc.) can be done here, mainly by
+   subclassing the X11MessageBox class (for the present, at 
+   least, until Ctalk includes some sort of resource manager).
+   However, waiting until now to construct the widgets also
+   has the advantage that all of the other objects and methods
+   in a program have been defined."
+
+  X11ButtonPane new l_button, r_button;
+  X11LabelPane new l_label;
+  X11Bitmap new l_icon;
+  Integer new usable_height, usable_width, padInt, label_width_px,
+    label_height_px, label_x_px, label_y_px, button_y_px;
+  String new geomspec;
+
+  if (self initialized)
+    return NULL;
+
+  padInt = self resources at "pad";
+
+  usable_height = self size y - (padInt * 2);
+  usable_width = self size x - (padInt * 2);
+  label_width_px = usable_width;
+  label_height_px = usable_height * .8 - (padInt / 2);
+  label_x_px = padInt;
+  label_y_px = padInt;
+
+  if (self resources at "iconID" > 0) {
+    label_x_px += ICON_WIDTH_PX + (padInt * 2);
+    label_width_px -= (ICON_WIDTH_PX + (padInt * 2));
+  }
+
+  geomspec printOn "%dx%d+%d+%d", label_width_px, label_height_px,
+    label_x_px, label_y_px;
+
+  l_label resources replaceAt "backgroundColor",
+    (self resources at "backgroundColor");
+  l_label resources replaceAt "foregroundColor",
+    (self resources at "foregroundColor");
+  l_label multiLine self resources at "messageText";
+  l_label border = false;
+  l_label resources replaceAt "textColor",
+    (self resources at "messageColor");
+  l_label resources replaceAt "ftFont",
+    (self resources at "messageFont");
+  l_label justify = LABEL_LEFT;
+
+  self label become l_label;
+
+  self label attachTo self, geomspec;
+
+  self lbutton become l_button;
+  self children push l_button;
+  self rbutton become r_button;
+  self children push r_button;
+
+  button_y_px = label_height_px + padInt;
+
+  geomspec printOn "20%%x36+20%%+%d", button_y_px;
+  self lbutton attachTo self, geomspec;
+
+  geomspec printOn "20%%x36+60%%+%d", button_y_px;
+  self rbutton attachTo self, geomspec;
+
+  self lbutton label text (self resources at "leftButtonText");
+  self rbutton label text (self resources at "rightButtonText");
+
+  if (self resources at "iconID" > 0) {
+    l_icon create self displayPtr, self paneBuffer xID,
+      ICON_WIDTH_PX, ICON_HEIGHT_PX, self paneBuffer depth;
+    l_icon background self resources at "foregroundColor";
+    self icon become l_icon;
+    self drawIcon;
+  }
+
+  self initialized = true;
+
+}
+
+extern Atom wm_delete_dialog;
+extern void __enable_dialog (OBJECT *);
+
+X11YesNoBoxPane instanceMethod show (void) {
+  "Displays the pane's window. Note that th method uses raw X
+   events. This is because the pane maintains its own connection
+   to the display, and the event handler can be contained in
+   this method."
+  returnObjectClass Integer;
+  Display *display;
+  Window win_id;
+  XEvent xev;
+  X11PaneDispatcher new dispatcher;
+  X11Pane new mainWin;
+  InputEvent new e;
+
+  dispatcher = *self container;
+  mainWin = dispatcher mainWindow;
+  
+  if (!self initialized) {
+
+    win_id = __ctalkX11CreateDialogWindow (self);
+    self xWindowID = win_id;
+    dispatcher modalWin = win_id;
+    dispatcher modalPane = self;
+
+    display = self displayPtr;
+  
+    (X11Bitmap *)self paneBuffer create self displayPtr, self xWindowID, 
+      self size x, self size y, self depth;
+    (X11Bitmap *)self paneBuffer background
+      (self resources at "backgroundColor");
+    self paneBuffer backgroundColor = self resources at "backgroundColor";
+    (X11Bitmap *)self paneBuffer foreground
+      (self resources at "foregroundColor");
+    (X11Bitmap *)self paneBackingStore create self displayPtr, self xWindowID,
+      self size x, self size y, self depth;
+
+    self initWidgets;
+  } else {
+
+    __enable_dialog (self);
+
+    win_id = self xWindowID;
+    display = self displayPtr;
+
+  }
+
+  XMapWindow (display, win_id);
+  XMapSubwindows (display, win_id);
+  XRaiseWindow (display, win_id);
+
+  self clearWindow;
+  self returnVal = 0;
+
+  while (1) {
+    if (XPending (display)) {
+      XNextEvent (display, &xev);
+      switch (xev.type)
+	{
+	case ButtonPress:
+	  if ((xev.xbutton.window == self lbutton xWindowID) ||
+	      (xev.xbutton.window == self rbutton xWindowID)) {
+	    e eventClass = BUTTONPRESS;
+	    self methodObjectMessage self handlePointerInput, self, e;
+	  }
+	  break;
+	case ButtonRelease:
+	  if ((xev.xbutton.window == self lbutton xWindowID) ||
+	      (xev.xbutton.window == self rbutton xWindowID)) {
+	    e eventClass = BUTTONRELEASE;
+	    self methodObjectMessage self handlePointerInput, self, e;
+	    self withdraw;
+	    dispatcher modalWin = 0;
+	    dispatcher modalPane = NULL;
+	    return self returnVal;
+	  }
+	  break;
+	case EnterNotify:
+	  if ((xev.xbutton.window == self lbutton xWindowID) ||
+	      (xev.xbutton.window == self rbutton xWindowID)) {
+	    e eventClass = ENTERWINDOWNOTIFY;
+	    e eventData = xev.xbutton.window;
+	    self methodObjectMessage self handleEnterNotify, self, e;
+	  }
+	  break;
+	case LeaveNotify:
+	  if ((xev.xbutton.window == self lbutton xWindowID) ||
+	      (xev.xbutton.window == self rbutton xWindowID)) {
+	    e eventClass = LEAVEWINDOWNOTIFY;
+	    e eventData = xev.xbutton.window;
+	    self methodObjectMessage self handleLeaveNotify, self, e;
+	  }
+	  break;
+	case KeyPress:
+	  e eventClass = KEYPRESS;
+	  /* For the Tab and Enter keys, we don't need to worry
+	     about the shift keys */
+	  e xEventData4 = __edittext_xk_keysym
+	    (xev.xkey.keycode, xev.xkey.state, 0);
+	  self methodObjectMessage self handleKbdInput, self, e;
+	  if (self keyState == KEY_ENTER) {
+	    self withdraw;
+	    dispatcher modalWin = 0;
+	    dispatcher modalPane = NULL;
+	    return self returnVal;
+	  }
+	  break;
+	case Expose:
+	  self methodObjectMessage self handleExpose, self, e;
+	  break;
+	case ClientMessage:
+	  if(xev.xclient.data.l[0] == wm_delete_dialog) {
+	    self withdraw;
+	    dispatcher modalWin = 0;
+	    dispatcher modalPane = NULL;
+	    self returnVal = YESNO_NONE;
+	    self returnText = "";
+	    return self returnVal;
+	  }
+	  break;
+	}
+    } else {
+      usleep (5000);
+    }
+  }
+
+}
+
+X11YesNoBoxPane instanceMethod showManaged (X11ButtonPane buttonPane) {
+  "Similar to the show method, but this method takes as it
+   argument the pane that caused the message box to open;
+   for example, if pressing a X11ButtonPane opened the 
+   message window, this method unclicks and unhighlights
+   the button that opened the message box.  This method can
+   be subclassed to manage any X11Pane subclass."
+  returnObjectClass Integer;
+  Integer new returnVal;
+
+  XUnmapWindow (buttonPane displayPtr, buttonPane xWindowID);
+  buttonPane hover = false;
+  buttonPane highlight = false;
+  buttonPane clicked = false;
+  buttonPane draw;
+  buttonPane refresh;
+  returnVal = self show;
+  XMapWindow (buttonPane displayPtr, buttonPane xWindowID);
+  return returnVal;
+}

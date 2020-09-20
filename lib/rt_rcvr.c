@@ -1,4 +1,4 @@
-/* $Id: rt_rcvr.c,v 1.3 2019/11/11 20:21:52 rkiesling Exp $ */
+/* $Id: rt_rcvr.c,v 1.1.1.1 2020/07/17 07:41:39 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -208,6 +208,9 @@ OBJECT *resolve_self (bool is_constant_rcvr, bool is_arg_expr) {
 
   if (__call_stack[__call_stack_ptr + 1] -> inline_call) {
     self_obj = rtinfo.rcvr_obj;
+    if (!IS_OBJECT(self_obj)) {
+      printf ("hi!\n");
+    }
   } else if ((is_constant_rcvr == True) || (is_arg_expr == True)) {
     self_obj = self_expr (NULL, is_arg_expr);
   } else {

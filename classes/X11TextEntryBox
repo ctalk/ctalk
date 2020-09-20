@@ -1,0 +1,468 @@
+/* $Id: X11TextEntryBox,v 1.1.1.1 2020/07/26 05:50:11 rkiesling Exp $ -*-C-*-*/
+
+/*
+  This file is part of Ctalk.
+  Copyright © 2020  Robert Kiesling, rk3314042@gmail.com.
+  Permission is granted to copy this software provided that this copyright
+  notice is included in all source code modules.
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+*/
+
+/* 
+   X11TextEntryBox Class - Text Entry Dialog
+
+*/
+
+X11YesNoBoxPane class X11TextEntryBox;
+
+X11TextEntryBox instanceVariable entryPane X11TextEntryPane NULL;
+X11TextEntryBox instanceVariable entryContents String NULL;
+X11TextEntryBox instanceVariable dots Boolean false;
+
+#define KEY_TAB   1
+#define KEY_ENTER 2
+
+X11TextEntryBox instanceMethod new (String paneName) {
+  Method new exposeMethod, buttonPressMethod, kbdInputMethod,
+    enterMethod, leaveMethod;
+
+  X11TextEntryBox super new paneName;
+  
+  enterMethod definedInstanceMethod "X11TextEntryBox",
+    "subPaneEnter";
+  paneName setMethodHandler "enternotify", enterMethod;
+
+  leaveMethod definedInstanceMethod "X11TextEntryBox",
+    "subPaneLeave";
+  paneName setMethodHandler "leavenotify", leaveMethod;
+
+  /* These are modifications of the resources set in X11YesNoBoxPane : new. */
+  paneName resources replaceAt "leftButtonText", "Cancel";
+  paneName resources replaceAt "rightButtonText", "OK";
+
+  return paneName;
+}
+
+X11TextEntryBox instanceMethod draw (void) {
+  
+#if 0
+  self fill self resources at "backgroundColor";
+#endif  
+
+  self label draw;
+  self entryPane draw;
+
+  self lbutton draw;
+  self rbutton draw;
+
+  if (self resources at "iconID" > 0) {
+    self paneBuffer copy self icon, 0, 0, ICON_WIDTH_PX, ICON_HEIGHT_PX,
+      ((self resources at "pad") * 2),
+      ((self resources at "pad") +
+       ((self label size y / 2) + (self entryPane size y / 2))  -
+       (ICON_HEIGHT_PX / 2));
+  }
+}
+
+X11TextEntryBox instanceMethod initWidgets (void) {
+  "Initialize the entry box's button and label widgets.  The
+   message box defers constructing the new widgets until just
+   before it is displayed, so any modifications to the defaults
+   (colors, dimensions, etc.) can be done here, mainly by
+   subclassing the X11MessageBox class (for the present, at 
+   least, until Ctalk includes some sort of resource manager).
+   However, waiting until now to construct the widgets also
+   has the advantage that all of the other objects and methods
+   in a program have been defined."
+
+  X11ButtonPane new l_button, r_button;
+  X11LabelPane new l_label;
+  X11TextEntryPane new l_entry;
+  X11Bitmap new l_icon;
+  Integer new usable_height, usable_width, padInt, label_width_px,
+    label_height_px, label_x_px, label_y_px, button_y_px;
+  Integer new entry_height_px, entry_width_px, entry_x_px,
+    entry_y_px;
+  String new geomspec;
+
+  if (self initialized)
+    return NULL;
+
+  padInt = self resources at "pad";
+
+  usable_height = self size y - (padInt * 2);
+  usable_width = self size x - (padInt * 2);
+  label_width_px = usable_width;
+  label_height_px = usable_height * .4 - (padInt / 2);
+  label_x_px = padInt;
+  label_y_px = padInt;
+
+  if (self resources at "iconID" > 0) {
+    label_x_px += ICON_WIDTH_PX + (padInt * 2);
+    label_width_px -= (ICON_WIDTH_PX + (padInt * 2));
+  }
+
+  geomspec printOn "%dx%d+%d+%d", label_width_px, label_height_px,
+    label_x_px, label_y_px;
+
+  l_label resources replaceAt "backgroundColor",
+    (self resources at "backgroundColor");
+  l_label resources replaceAt "foregroundColor",
+    (self resources at "foregroundColor");
+  l_label multiLine self resources at "messageText";
+  l_label border = false;
+  l_label resources replaceAt "textColor",
+    (self resources at "messageColor");
+  l_label resources replaceAt "ftFont",
+    (self resources at "messageFont");
+  l_label justify = LABEL_LEFT;
+
+  self label become l_label;
+
+  self label attachTo self, geomspec;
+
+  entry_height_px = 32;
+  entry_width_px = usable_width;
+  entry_x_px = padInt;
+  entry_y_px = label_height_px + padInt;
+
+  if (self resources at "iconID" > 0) {
+    entry_x_px += ICON_WIDTH_PX + (padInt * 2);
+    entry_width_px -= (ICON_WIDTH_PX + (padInt * 2));
+  }
+  
+  geomspec printOn "%dx%d+%d+%d", entry_width_px, entry_height_px,
+    entry_x_px, entry_y_px;
+
+  if (self dots)
+    l_entry dots = true;
+
+  self entryPane become l_entry;
+  self entryPane attachTo self, geomspec;
+  self children push self entryPane;
+
+  self lbutton become l_button;
+  self children push l_button;
+  self rbutton become r_button;
+  self children push r_button;
+
+  button_y_px = label_height_px + entry_height_px + (padInt * 4);
+
+  geomspec printOn "20%%x36+20%%+%d", button_y_px;
+  self lbutton attachTo self, geomspec;
+
+  geomspec printOn "20%%x36+60%%+%d", button_y_px;
+  self rbutton attachTo self, geomspec;
+
+  self lbutton label text (self resources at "leftButtonText");
+  self rbutton label text (self resources at "rightButtonText");
+
+  if (self resources at "iconID" > 0) {
+    l_icon create self displayPtr, self paneBuffer xID,
+      ICON_WIDTH_PX, ICON_HEIGHT_PX, self paneBuffer depth;
+    l_icon background self resources at "foregroundColor";
+    self icon become l_icon;
+    self drawIcon;
+  }
+
+  self initialized = true;
+
+}
+
+X11TextEntryBox instanceMethod subPaneEnter (Object subPane,
+					  InputEvent __event) {
+  if (__event eventData == subPane lbutton xWindowID) {
+    if (subPane lbutton canFocus) {
+      if (self lbutton clicked) {
+	self lbutton clicked = false;
+      }
+      if (!self lbutton hover) {
+	subPane lbutton label highlight = true;
+	self lbutton hover = true;
+      }
+      if (!self lbutton radius)
+	self lbutton label drawButtonLayout;
+      subPane lbutton draw;
+      subPane lbutton refresh;
+    }
+    return NULL;
+  } else if (__event eventData == subPane rbutton xWindowID) {
+    if (subPane rbutton canFocus) {
+      if (self rbutton clicked) {
+	self rbutton clicked = false;
+      }
+      if (!self lbutton hover) {
+	subPane rbutton label highlight = true;
+	self rbutton hover = true;
+      }
+      if (!self lbutton radius)
+	self rbutton label drawButtonLayout;
+      subPane rbutton draw;
+      subPane rbutton refresh;
+    }
+    return NULL;
+  } else if (__event eventData == subPane entryPane xWindowID) {
+    subPane entryPane useCursor subPane entryPane cursor;
+    subPane entryPane hover = true;
+    subPane entryPane draw;
+    subPane entryPane refresh;
+    return NULL;
+  }
+
+  /* The event comes from any other window. */
+  if (self lbutton clicked) {
+    self lbutton clicked = false;
+    self lbutton hover = false;
+    if (!self lbutton radius)
+      self lbutton label drawButtonLayout;
+    subPane lbutton draw;
+    subPane lbutton refresh;
+  }
+  if (self rbutton clicked) {
+    self rbutton clicked = false;
+    self rbutton hover = false;
+    if (!self rbutton radius)
+      self rbutton label drawButtonLayout;
+    subPane rbutton draw;
+    subPane rbutton refresh;
+  }
+}
+
+X11TextEntryBox instanceMethod subPaneLeave (Object subPane,
+					  InputEvent __event) {
+  if (__event eventData == subPane lbutton xWindowID) {
+    if (subPane lbutton canFocus) {
+      if (self lbutton hover) {
+	subPane lbutton label highlight = false;
+	if (self lbutton clicked)
+	  self lbutton clicked = false;
+	self lbutton label drawButtonLayout;
+	subPane lbutton draw;
+	subPane lbutton refresh;
+	self lbutton hover = false;
+      }
+    }
+  } else if (__event eventData == subPane rbutton xWindowID) {
+    if (subPane rbutton canFocus) {
+      if (self rbutton hover) {
+	subPane rbutton label highlight = false;
+	if (self rbutton clicked)
+	  self rbutton clicked = false;
+	self rbutton label drawButtonLayout;
+	subPane rbutton draw;
+	subPane rbutton refresh;
+	self rbutton hover = false;
+      }
+    }
+  } else if (__event eventData == subPane entryPane xWindowID) {
+    subPane defaultCursor;
+    subPane entryPane hover = false;
+    subPane entryPane draw;
+    subPane entryPane refresh;
+  }
+}
+
+extern Atom wm_delete_dialog;
+extern void __enable_dialog (OBJECT *);
+
+X11TextEntryBox instanceMethod show (void) {
+  "Displays the pane's window. Note that th method uses raw X
+   events. This is because the pane maintains its own connection
+   to the display, and the event handler can be contained in
+   this method."
+  returnObjectClass Integer;
+  Display *display;
+  Window win_id;
+  XEvent xev;
+  X11PaneDispatcher new dispatcher;
+  X11Pane new mainWin;
+  InputEvent new e;
+
+  dispatcher = *self container;
+  mainWin = dispatcher mainWindow;
+  
+  if (!self initialized) {
+
+    win_id = __ctalkX11CreateDialogWindow (self);
+    self xWindowID = win_id;
+    dispatcher modalWin = win_id;
+    dispatcher modalPane = self;
+
+    display = self displayPtr;
+  
+    (X11Bitmap *)self paneBuffer create self displayPtr, self xWindowID, 
+      self size x, self size y, self depth;
+    (X11Bitmap *)self paneBuffer background
+      (self resources at "backgroundColor");
+    self paneBuffer backgroundColor = self resources at "backgroundColor";
+    (X11Bitmap *)self paneBuffer foreground
+      (self resources at "foregroundColor");
+    (X11Bitmap *)self paneBackingStore create self displayPtr, self xWindowID,
+      self size x, self size y, self depth;
+
+    self initWidgets;
+  } else {
+
+    __enable_dialog (self);
+
+    win_id = self xWindowID;
+    display = self displayPtr;
+
+  }
+
+  XMapWindow (display, win_id);
+  XMapSubwindows (display, win_id);
+  XRaiseWindow (display, win_id);
+
+  self clearWindow;
+  self returnVal = 0;
+
+  while (1) {
+    if (XPending (display)) {
+      XNextEvent (display, &xev);
+      switch (xev.type)
+	{
+	case ButtonPress:
+	  if ((xev.xbutton.window == self lbutton xWindowID) ||
+	      (xev.xbutton.window == self rbutton xWindowID)) {
+	    e eventClass = BUTTONPRESS;
+	    self methodObjectMessage self handlePointerInput, self, e;
+	  } else if (xev.xbutton.window == self entryPane xWindowID) {
+	    e eventClass = BUTTONPRESS;
+	    e xEventData1 = xev.xbutton.x;
+	    e xEventData2 = xev.xbutton.y;
+	    e xEventData3 = xev.xbutton.state;
+	    e xEventData4 = xev.xbutton.button;
+	    self entryPane methodObjectMessage
+	      self entryPane handlePointerInput, self entryPane, e;
+	  }
+	  break;
+	case ButtonRelease:
+	  if ((xev.xbutton.window == self lbutton xWindowID) ||
+	      (xev.xbutton.window == self rbutton xWindowID)) {
+	    e eventClass = BUTTONRELEASE;
+	    self methodObjectMessage self handlePointerInput, self, e;
+	    self withdraw;
+	    dispatcher modalWin = 0;
+	    dispatcher modalPane = NULL;
+	    return self returnVal;
+	  } else if (xev.xbutton.window == self entryPane xWindowID) {
+	    e eventClass = BUTTONRELEASE;
+	    e xEventData1 = xev.xbutton.x;
+	    e xEventData2 = xev.xbutton.y;
+	    e xEventData3 = xev.xbutton.state;
+	    e xEventData4 = xev.xbutton.button;
+	    self entryPane methodObjectMessage
+	      self entryPane handlePointerInput, self entryPane, e;
+	    if (xev.xbutton.button == Button2) {
+	      /* We've pasted the primary selection into the 
+		 entryPane - get the updated contents. */
+	      self entryContents = self entryPane entryText;
+	    }
+	  }
+	  break;
+	case EnterNotify:
+	  if ((xev.xbutton.window == self lbutton xWindowID) ||
+	      (xev.xbutton.window == self rbutton xWindowID) ||
+	      (xev.xbutton.window == self entryPane xWindowID)) {
+	    e eventClass = ENTERWINDOWNOTIFY;
+	    e eventData = xev.xbutton.window;
+	    self methodObjectMessage self handleEnterNotify, self, e;
+	  }
+	  break;
+	case LeaveNotify:
+	  if ((xev.xbutton.window == self lbutton xWindowID) ||
+	      (xev.xbutton.window == self rbutton xWindowID) ||
+	      (xev.xbutton.window == self entryPane xWindowID)) {
+	    e eventClass = LEAVEWINDOWNOTIFY;
+	    e eventData = xev.xbutton.window;
+	    self methodObjectMessage self handleLeaveNotify, self, e;
+	  }
+	  break;
+	case KeyPress:
+	  if (xev.xkey.window == self entryPane xWindowID) {
+	    e eventClass = KEYPRESS;
+	    e xEventData4 = xev.xkey.keycode;
+	    e xEventData5 = __edittext_xk_keysym
+	      (xev.xkey.keycode, xev.xkey.state, 0);
+	    self entryPane subPaneKbd self entryPane, e;
+	    self entryPane draw;
+	    self entryPane refresh;
+	    self entryContents = self entryPane entryText;
+	  } else {
+	    /* For the Tab and Enter keys, we don't need to worry
+	       about the shift keys */
+	    e eventClass = KEYPRESS;
+	    e xEventData4 = __edittext_xk_keysym
+	      (xev.xkey.keycode, xev.xkey.state, 0);
+	    self methodObjectMessage self handleKbdInput, self, e;
+	    if (self keyState == KEY_ENTER) {
+	      self withdraw;
+	      dispatcher modalWin = 0;
+	      dispatcher modalPane = NULL;
+	      self entryContents = self entryPane entryText;
+	      return self returnVal;
+	    }
+	  }
+	  break;
+	case KeyRelease:
+	  if (xev.xkey.window == self entryPane xWindowID) {
+	    e eventClass = KEYRELEASE;
+	    e xEventData4 = xev.xkey.keycode;
+	    e xEventData5 = __edittext_xk_keysym
+	      (xev.xkey.keycode, xev.xkey.state, 0);
+	    self entryPane subPaneKbd self entryPane, e;
+	    self entryPane draw;
+	    self entryPane refresh;
+	    self entryContents = self entryPane entryText;
+	  }
+	  break;
+	case Expose:
+	  self methodObjectMessage self handleExpose, self, e;
+	  break;
+	case MotionNotify:
+	  if (xev.xmotion.window == self entryPane xWindowID) {
+	    e eventClass = MOTIONNOTIFY;
+	    e xEventData1 = xev.xmotion.x;
+	    e xEventData2 = xev.xmotion.y;
+	    e xEventData3 = xev.xmotion.state;
+	    e xEventData4 = xev.xmotion.is_hint;
+	    self entryPane subPanePointerMotion
+	      self entryPane, e;
+	  }
+	  break;
+	case SelectionRequest:
+	  __entrytext_send_selection (self displayPtr, &xev);
+	  break;
+	case ClientMessage:
+	  if(xev.xclient.data.l[0] == wm_delete_dialog) {
+	    self withdraw;
+	    dispatcher modalWin = 0;
+	    dispatcher modalPane = NULL;
+	    self returnVal = YESNO_NONE;
+	    self returnText = "";
+	    self entryContents = self entryPane entryText;
+	    return self returnVal;
+	  }
+	  break;
+	}
+    } else {
+      usleep (5000);
+    }
+  }
+
+}
+

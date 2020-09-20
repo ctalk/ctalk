@@ -1,4 +1,4 @@
-/* $Id: mthdrf.c,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ */
+/* $Id: mthdrf.c,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -530,6 +530,9 @@ int is_method_proto (OBJECT* class_object, char *selector) {
   int i;
   char instancemethod_tag[MAXMSG], classmethod_tag[MAXMSG];
   int instancemethod_tag_length, classmethod_tag_length;
+
+  if (!IS_OBJECT(class_object))
+    return FALSE;
 
   class_name = IS_CLASS_OBJECT(class_object) ? class_object -> __o_name :
     class_object -> __o_class -> __o_name;
@@ -1626,3 +1629,12 @@ static void make_preload_proto_tag (char *class, char *i_or_c_keywd,
   }
 }
 
+bool is_method_proto_name (char *name) {
+  int i;
+
+  for (i = lib_includes_ptr + 1; i <= MAXARGS; ++i) {
+    if (is_method_proto (get_class_object (lib_includes[i] -> name), name))
+      return true;
+  }
+  return false;
+}

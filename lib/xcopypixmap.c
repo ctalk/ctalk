@@ -1,8 +1,8 @@
-/* $Id: xcopypixmap.c,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-c-*-*/
+/* $Id: xcopypixmap.c,v 1.1.1.1 2020/07/17 07:41:39 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
-  Copyright © 2014 - 2019  Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2014 - 2020  Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
 
@@ -35,11 +35,16 @@
 #include <X11/Xutil.h>
 
 extern Display *display;   /* Defined in x11lib.c. */
+
 extern char *shm_mem;
 extern int mem_id;
 
+extern int __xlib_copy_pixmap (Display *, Drawable, GC,	char *);
+
+extern char *ascii[8193];             /* from intascii.h */
+
 #if X11LIB_FRAME
-int __ctalkX11CopyPixmapBasic (int dest_drawable_id,
+int __ctalkX11CopyPixmapBasic (void *d, int dest_drawable_id,
 			       unsigned long int dest_gc_ptr,
 			       int src_drawable_id, 
 			       int src_x_org, int src_y_org,
@@ -49,7 +54,7 @@ int __ctalkX11CopyPixmapBasic (int dest_drawable_id,
 }
 #else /* X11LIB_FRAME */
 
-int __ctalkX11CopyPixmapBasic (int dest_drawable_id,
+int __ctalkX11CopyPixmapBasic (void *d, int dest_drawable_id,
 			       unsigned long int dest_gc_ptr,
 			       int src_drawable_id, 
 			       int src_x_org, int src_y_org,
@@ -57,9 +62,7 @@ int __ctalkX11CopyPixmapBasic (int dest_drawable_id,
 			       int dest_x_org, int dest_y_org) {
 
   char d_buf[MAXLABEL];
-  char intbuf1[MAXLABEL], intbuf2[MAXLABEL], intbuf3[MAXLABEL],
-    intbuf4[MAXLABEL], intbuf5[MAXLABEL], intbuf6[MAXLABEL],
-  intbuf7[MAXLABEL];
+  char intbuf1[MAXLABEL];
 
 #ifdef GRAPHICS_WRITE_SEND_EVENT
   XEvent send_event;
@@ -69,24 +72,26 @@ int __ctalkX11CopyPixmapBasic (int dest_drawable_id,
     return ERROR;
 
   strcatx (d_buf, ctitoa ((unsigned int)src_drawable_id, intbuf1),
-	   ":", ctitoa ((unsigned int)src_x_org, intbuf2),
-	   ":", ctitoa ((unsigned int)src_y_org, intbuf3),
-	   ":", ctitoa ((unsigned int)src_width, intbuf4),
-	   ":", ctitoa ((unsigned int)src_height, intbuf5),
-	   ":", ctitoa ((unsigned int)dest_x_org, intbuf6),
-	   ":", ctitoa ((unsigned int)dest_y_org, intbuf7), 
+	   ":", ascii[src_x_org], ":", ascii[src_y_org], 
+	   ":", ascii[src_width], ":", ascii[src_height], 
+	   ":", ascii[dest_x_org], ":", ascii[dest_y_org], 
 	   ":", NULL);
 
-  make_req (shm_mem, PANE_COPY_PIXMAP_REQUEST,
-   	    dest_drawable_id, dest_gc_ptr, d_buf);
+  if (dialog_dpy ()) {
+    __xlib_copy_pixmap (d, dest_drawable_id, (GC)dest_gc_ptr, d_buf);
+  } else {
+    make_req (shm_mem, d, PANE_COPY_PIXMAP_REQUEST,
+	      dest_drawable_id, dest_gc_ptr, d_buf);
+
 #ifdef GRAPHICS_WRITE_SEND_EVENT
-  send_event.xgraphicsexpose.type = GraphicsExpose;
-  send_event.xgraphicsexpose.send_event = True;
-  send_event.xgraphicsexpose.display = display;
-  send_event.xgraphicsexpose.drawable = dest_drawable_id;
-  XSendEvent (display, dest_drawable_id, False, 0L, &send_event);
+    send_event.xgraphicsexpose.type = GraphicsExpose;
+    send_event.xgraphicsexpose.send_event = True;
+    send_event.xgraphicsexpose.display = display;
+    send_event.xgraphicsexpose.drawable = dest_drawable_id;
+    XSendEvent (display, dest_drawable_id, False, 0L, &send_event);
 #endif
-  wait_req (shm_mem);
+    wait_req (shm_mem);
+  }
 
   return SUCCESS;
 }
@@ -95,7 +100,7 @@ int __ctalkX11CopyPixmapBasic (int dest_drawable_id,
 static void __gui_support_error (void) {
   _error ("__ctalkGUI ... () functions require Graphical User Interface support.\n");
 }
-int __ctalkX11CopyPixmapBasic (int dest_drawable_id,
+int __ctalkX11CopyPixmapBasic (void * d, int dest_drawable_id,
 			       unsigned long int dest_gc_ptr,
 			       int src_drawable_id, 
 			       int src_x_org, int src_y_org,

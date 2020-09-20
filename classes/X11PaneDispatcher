@@ -1,8 +1,8 @@
-/* $Id: X11PaneDispatcher,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11PaneDispatcher,v 1.2 2020/09/19 01:08:26 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
-  Copyright © 2005 - 2019  Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2005 - 2020  Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
 
@@ -69,6 +69,8 @@ each event.";
  *
  */
 X11PaneDispatcher instanceVariable hasFocus Integer 0;
+X11PaneDispatcher instanceVariable canFocus Boolean true;
+X11PaneDispatcher instanceVariable focusPanePtr Symbol NULL;
 X11PaneDispatcher instanceVariable handleMove Method NULL;
 X11PaneDispatcher instanceVariable handleResize Method NULL;
 X11PaneDispatcher instanceVariable handleKbdInput Method NULL;
@@ -78,8 +80,20 @@ X11PaneDispatcher instanceVariable handleDestroy Method NULL;
 X11PaneDispatcher instanceVariable handleExpose Method NULL;
 X11PaneDispatcher instanceVariable handleSelectionRequest Method NULL;
 X11PaneDispatcher instanceVariable handleSelectionClear Method NULL;
-X11PaneDispatcher instanceVariable containerMode String NULL;
-X11PaneDispatcher instanceVariable subPaneInfo List NULL;
+X11PaneDispatcher instanceVariable handleWMFocusChange Method NULL;
+X11PaneDispatcher instanceVariable handleFocusIn Method NULL;
+X11PaneDispatcher instanceVariable handleFocusOut Method NULL;
+X11PaneDispatcher instanceVariable handleEnterNotify Method NULL;
+X11PaneDispatcher instanceVariable handleLeaveNotify Method NULL;
+X11PaneDispatcher instanceVariable handleMap Method NULL;
+X11PaneDispatcher instanceVariable subPaneGeometry String "";
+X11PaneDispatcher instanceVariable highlight Boolean false;
+X11PaneDispatcher instanceVariable tabFocus Boolean true;
+X11PaneDispatcher instanceVariable modalWin Integer 0;
+X11PaneDispatcher instanceVariable modalPane Symbol NULL;
+
+static unsigned long g_ptr_t = 0;
+static unsigned long g_kbd_t = 0;
 
 X11PaneDispatcher instanceMethod setMethodHandler (String __handlerType,
 						 Method __handlerMethod) {
@@ -127,10 +141,34 @@ X11PaneDispatcher instanceMethod setMethodHandler (String __handlerType,
     xstrcpy (method_arg->__o_name, "handleSelectionClear");
     __ctalkAddInstanceVariable (self, "handleSelectionClear",
 				method_arg);
+  } else if (__handlerType == "wmfocuschange") {
+    xstrcpy (method_arg->__o_name, "handleWMFocusChange");
+    __ctalkAddInstanceVariable (self, "handleWMFocusChange",
+				method_arg);
+  } else if (__handlerType == "focusin") {
+    xstrcpy (method_arg->__o_name, "handleFocusIn");
+    __ctalkAddInstanceVariable (self, "handleFocusIn",
+				method_arg);
+  } else if (__handlerType == "focusout") {
+    xstrcpy (method_arg->__o_name, "handleFocusOut");
+    __ctalkAddInstanceVariable (self, "handleFocusOut",
+				method_arg);
+  } else if (__handlerType == "enternotify") {
+    __ctalkAddInstanceVariable (self, "handleEnterNotify",
+				method_arg);
+  } else if (__handlerType == "leavenotify") {
+    __ctalkAddInstanceVariable (self, "handleLeaveNotify",
+				method_arg);
+  } else if (__handlerType == "map") {
+    __ctalkAddInstanceVariable (self, "handleMap",
+				method_arg);
   } else {
-    errorStr printOn "Undefined handler type, \"%s\"";
+    errorStr printOn "Undefined handler type, \"%s\"",
+      __handlerType;
     unknownHandlerTypeException raiseCriticalException
       INVALID_OPERAND_X, errorStr;
+    unknownHandlerTypeException handle;
+    exit (1);
   }
 }
 
@@ -154,12 +192,12 @@ receiver pane."
 X11PaneDispatcher instanceMethod subPaneResize (Object __subPane, 
 					      InputEvent __event) {
   "Dispatch an Resize event to the subpanes of the
-receiver pane."
-    X11Pane new containerPane;
+   receiver pane."
+  X11Pane new containerPane;
   self size x = __event xEventData3;
   self size y = __event xEventData4;
   containerPane = *self container;
-  XResizeWindow (containerPane xDisplay, containerPane xWindowID,
+  XResizeWindow (containerPane displayPtr, containerPane xWindowID,
 		 self size x, self size y);
   if (__subPane isInstanceMethod "subPaneResize") {
     __subPane methodObjectMessage __subPane handleResize, __subPane,
@@ -200,28 +238,17 @@ receiver pane."
 
 X11PaneDispatcher instanceMethod subPaneMove (Object __subPane, 
 					      InputEvent __event) {
-  "Dispatch a move event to the subpanes of the receiver
-   pane."
-  self origin x += __event xEventData1;
-  self origin y += __event xEventData2;
+  "Save the new X,Y origin in the receiver's main window."
+    X11Pane new mw;
 
-  (X11Pane *)(*self container) origin x = self origin x;
-  (X11Pane *)(*self container) origin y = self origin y;
+  mw = self mainWindow;
+  
+  mw origin x = __event xEventData1;
+  mw origin y = __event xEventData2;
 
-  XMoveWindow ((X11Pane *)(*self container) xDisplay,
-	       (X11Pane *)(*self container) xWindowID,
-		 self origin x, self origin y);
+  XMoveWindow (mw displayPtr, mw xWindowID,
+	       mw origin x, mw origin y);
 
-  if (self containerMode == "full") {
-    if (__subPane isInstanceMethod "subPaneMove") {
-      fprintf (stderr, "subPaneMove subPane handler!\n");
-    } else {
-      __subPane origin x = 0;
-      __subPane origin y = 0;
-    }
-  } else {
-    fprintf (stderr, "unknown container mode!\n");
-  }
   return NULL;
 }
 
@@ -274,7 +301,6 @@ X11PaneDispatcher instanceMethod new (String __paneName) {
   Method new destroyMethod;
   Method new exposeMethod;
   Method new selectionClearMethod;
-  __paneName containerMode = "full";
 
   resizeMethod definedInstanceMethod "X11PaneDispatcher", "subPaneResize";
   moveMethod definedInstanceMethod "X11PaneDispatcher", "subPaneMove";
@@ -307,67 +333,139 @@ X11PaneDispatcher instanceMethod new (String __paneName) {
 
 X11PaneDispatcher instanceMethod attachTo (Object parentPane) {
   "Attach the receiver pane to the parent pane given as
-  the argument.  This parent pane should be a X11Pane
-  object."
-  if (!self value is X11PaneDispatcher) {
-    if (parentPane is X11PaneDispatcher) {
-      __ctalkCreateX11SubWindow (parentPane container, self);
-    } else {
-      __ctalkCreateX11SubWindow (parentPane, self);
-    }
-  }
+  the argument."
+
   self container = parentPane;
-  self xWindowID = parentPane xWindowID;
   self origin x = 0;
   self origin y = 0;
   self size x = parentPane size x;
   self size y = parentPane size y;
+
+  if (!self value is X11PaneDispatcher) {
+    if (parentPane is X11PaneDispatcher) {
+      self xWindowID = __ctalkCreateX11SubWindow
+	((X11PaneDispatcher *)parentPane container, self);
+    } else {
+      self xWindowID =
+	__ctalkCreateX11SubWindow (parentPane, self);
+    }
+  } else {
+    self xWindowID = parentPane xWindowID;
+  }
   parentPane children pushItemRef self;
   return NULL;
 }
 
-/*
- *  These parameters can be written into a subPaneInfo record,
- *  a String, as:
- *
- *  object  - a reference to the subpane object.
- *  orgX    - If given as percentages, then set propX and propY
- *  orgY
- *  sizeX
- *  sizeY
- *  propX    - Is proportional to horizontal parent size
- *  propY    - Is proportional to vertical parent size.
- *  extendX  - Can stretch horizontally.
- *  extendY  - Can stretch vertically.
- *  border   - draw a border around the subpane.
- *  anchor   - n, s, e, w, nw, ne, se, sw, or none.
- *  canfocus - From the subPane's canTakeFocus instance variable.
- */
-X11PaneDispatcher instanceMethod attachToGrid (Object parentPane,
-					       String orgX,
-					       String orgY,
-					       String sizeX,
-					       String sizeY,
-					       Boolean extendX,
-					       Boolean extendY,
-					       Boolean border,
-					       String anchor) {
-  "Attach the receiver subpane to the parent pane given as
-  an argument with the coordinates given as arguments.
-  This method is still under construction."
+X11PaneDispatcher instanceMethod attachTo (Object parentPane,
+					   String geomspec) {
+  "Attach the receiver pane to the parent pane given as
+  the argument."
+    int x, y, width, height;
+
+  self container = parentPane;
+
+  __ctalkX11SubWindowGeometry (parentPane, geomspec,
+			       &x, &y, &width, &height);
+
   if (!self value is X11PaneDispatcher) {
-    if (self parentPane is X11PaneDispatcher) {
-      __ctalkCreateX11SubWindow (parentPane container, self);
+    self origin x = x;
+    self origin y = y;
+    self size x = width;
+    self size y = height;
+    self subPaneGeometry = geomspec;
+    if (parentPane is X11PaneDispatcher) {
+      self xWindowID = __ctalkCreateX11SubWindow
+	((X11PaneDispatcher *)parentPane container, self);
     } else {
-      __ctalkCreateX11SubWindow (parentPane, self);
+      self xWindowID =
+	__ctalkCreateX11SubWindow (parentPane, self);
     }
+  } else {
+    /* One X11PaneDispatcher per X11Pane */
+    self container = parentPane;
+    self origin x = 0;
+    self origin y = 0;
+    self size x = parentPane size x;
+    self size y = parentPane size y;
+    self xWindowID = parentPane xWindowID;
+    /* A single pane dispatcher covers the entire X11Pane window. */
+    self subPaneGeometry = "100%x100%+0+0";
   }
-  self container become parentPane;
-  self size x = parentPane size x;
-  self size y = parentPane size y;
-  parentPane subPane = self;
+  parentPane children pushItemRef self;
   return NULL;
 }
+
+X11PaneDispatcher instanceMethod clearHighlight (void) {
+  "Called before shifting the focus highlight to a new pane
+   to insure that only one pane indicates that it should 
+   receive focus, including the synthetic focus that is
+   assigned when shifting focus using the Tab key."
+  InputEvent new e;
+  self children map {
+    if (self highlight) {
+      self methodObjectMessage self handleLeaveNotify, self ,e;
+    }
+  }
+}
+
+X11PaneDispatcher instanceMethod shiftFocus (void) {
+  "Shifts the focus between successive subpanes.  This is called
+   by handleSubPaneEvent when the user presses the Tab key.  Subpanes
+   that set the canFocus instance variable to true, which is the
+   default, should also include handlers for focus in and focus out
+   events."
+  X11PaneDispatcher new subPane;
+  X11PaneDispatcher new focusPane;
+
+  if ((*self focusPanePtr) == NULL) {
+    *self focusPanePtr become **self children;
+    subPane become *self focusPanePtr;
+    if (subPane canFocus) {
+      subPane methodObjectMessage subPane handleFocusIn;
+      return;
+    }
+  }
+
+  focusPane become *self focusPanePtr;
+  focusPane methodObjectMessage focusPane handleFocusOut;
+  self children mapKeys {
+    subPane become *self;
+    if (subPane name == focusPane name) {
+      if (self + 1) {
+	focusPane become *(self + 1);
+	(Symbol *)super focusPanePtr = focusPane;
+	if (focusPane canFocus) {
+	  focusPane methodObjectMessage focusPane handleFocusIn;
+	  return NULL;
+	} else {
+	  focusPane become *(self + 1);
+	  (Symbol *)super focusPanePtr = focusPane;
+	}
+      } else {
+	focusPane become **(super children);
+	(Symbol *)super focusPanePtr  = **(super children);
+	if (focusPane canFocus) {
+	  focusPane methodObjectMessage focusPane handleFocusIn;
+	  return NULL;
+	} else {
+	  focusPane become *(super children + 1);
+	  (Symbol *)super focusPanePtr  = focusPane;
+	}
+      }
+    }
+  }
+  
+}
+
+/* defined in the system's X11/keysymdef.h file, in case some machines
+   define it differently and it needs be changed here */
+#ifndef XK_Tab
+#define XK_Tab  0xff09
+#endif
+
+/* Uncomment this if you want a program to print a lot of
+   event information on a xterm. */
+/* #define TRACK_EVENTS */
 
 X11PaneDispatcher instanceMethod handleSubPaneEvent (InputEvent __e) {
   "Handle a X Window System event provided by the
@@ -379,11 +477,19 @@ X11PaneDispatcher instanceMethod handleSubPaneEvent (InputEvent __e) {
   switch (__e eventClass)
     {
     case RESIZENOTIFY:
+#ifdef TRACK_EVENTS
+      printf ("----- RESIZENOTIFY\n");
+#endif      
       self children map {
 	self methodObjectMessage self handleResize, self, __e;
       }
       break;
     case MOVENOTIFY:
+#ifdef TRACK_EVENTS
+      printf ("----- MOVENOTIFY\n");
+#endif      
+      /* Needs better error description */
+      /* self handleMove self, __e; */
       self children map {
 	if (self handleMove value) {
 	  self methodObjectMessage self handleMove, self, __e;
@@ -391,35 +497,83 @@ X11PaneDispatcher instanceMethod handleSubPaneEvent (InputEvent __e) {
       }
       break;
     case EXPOSE:
+#ifdef TRACK_EVENTS
+      printf ("----- EXPOSE\n");
+#endif      
       self children map {
-	self methodObjectMessage self handleExpose, self, __e;
+	if (__e eventData == self xWindowID) 
+	  self methodObjectMessage self handleExpose, self, __e;
       }
       break;
     case MAPNOTIFY:
+#ifdef TRACK_EVENTS
+      printf ("----- MAPNOTIFY\n");
+#endif      
+      self children map {
+	self methodObjectMessage self handleMap, self, __e;
+      }
       break;
     case CONFIGURENOTIFY:
+#ifdef TRACK_EVENTS
+      printf ("----- CONFIGURENOTIFY\n");
+#endif      
       self children map {
 	self methodObjectMessage self handleExpose, self, __e;
       }
       break;
     case KEYRELEASE:
+#ifdef TRACK_EVENTS
+      if (__e eventClass == KEYRELEASE) 
+	printf ("----- KEYRELEASE\n");
+#endif      
     case KEYPRESS:
-      self children map {
-	self methodObjectMessage self handleKbdInput, self, __e;
+#ifdef TRACK_EVENTS
+      if (__e eventClass == KEYPRESS) 
+	printf ("----- KEYPRESS\n");
+#endif      
+      if (self tabFocus && __e xEventData5 == XK_Tab &&
+	  __e eventClass == KEYPRESS) {
+	self clearHighlight;
+	g_kbd_t = __e xEventData6;
+	self shiftFocus;
+      } else {
+	self children map {
+	  self methodObjectMessage self handleKbdInput, self, __e;
+	}
       }
       break;
     case BUTTONPRESS:
-    case BUTTONRELEASE:
+#ifdef TRACK_EVENTS
+      if (__e eventClass == BUTTONPRESS) 
+	printf ("----- BUTTONPRESS\n");
+#endif      
       self children map {
-	self methodObjectMessage self handlePointerInput, self, __e;
+	if (__e eventData == self xWindowID) 
+	  self methodObjectMessage self handlePointerInput, self, __e;
+      }
+      break;
+    case BUTTONRELEASE:
+#ifdef TRACK_EVENTS
+      if (__e eventClass == BUTTONRELEASE) 
+	printf ("----- BUTTONRELEASE\n");
+#endif      
+      self children map {
+	if (__e eventData == self xWindowID) 
+	  self methodObjectMessage self handlePointerInput, self, __e;
       }
       break;
     case MOTIONNOTIFY:
+#ifdef TRACK_EVENTS
+      printf ("----- MOTIONNOTIFY\n");
+#endif      
       self children map {
 	self methodObjectMessage self handlePointerMotion, self, __e;
       }
       break;
     case WINDELETE:
+#ifdef TRACK_EVENTS
+      printf ("----- WINDELETE\n");
+#endif      
       self children map {
 	self methodObjectMessage self handleDestroy, self, __e;
       }
@@ -435,15 +589,55 @@ X11PaneDispatcher instanceMethod handleSubPaneEvent (InputEvent __e) {
        */
       break;
     case SELECTIONREQUEST:
+#ifdef TRACK_EVENTS
+      printf ("----- SELECTIONREQUEST\n");
+#endif      
       /* This is all handled internally for now, and only in the
 	 edittext.c library. */
       break;
     case SELECTIONCLEAR:
+#ifdef TRACK_EVENTS
+      printf ("----- SELECTIONCLEAR\n");
+#endif      
       self children map {
 	self methodObjectMessage self handleSelectionClear, self, __e;
       }
       break;
+    case WMFOCUSCHANGENOTIFY:
+#ifdef TRACK_EVENTS
+      printf ("----- WMFOCUSCHANGENOTIFY\n");
+#endif      
+      self children map {
+	self methodObjectMessage self handleWMFocusChange, self, __e;
+      }
+      break;
+    case ENTERWINDOWNOTIFY:
+#ifdef TRACK_EVENTS
+      printf ("----- ENTERWINDOWNOTIFY\n");
+#endif      
+      self clearHighlight;
+      self children map {
+	if (__e eventData == self xWindowID) {
+	  g_ptr_t = __e xEventData4;
+	  self methodObjectMessage self handleEnterNotify, self, __e;
+	}
+      }
+      break;
+    case LEAVEWINDOWNOTIFY:
+#ifdef TRACK_EVENTS
+      printf ("----- LEAVEWINDOWNOTIFY\n");
+#endif      
+      self children map {
+	if (__e eventData == self xWindowID) {
+	  g_ptr_t = __e xEventData4;
+	  self methodObjectMessage self handleLeaveNotify, self, __e;
+	}
+      }
+      break;
     default:
+#ifdef TRACK_EVENTS
+      printf ("----- default: %d\n", __e eventClass);
+#endif      
       errorStr printOn "Undefined event class %d", __e eventClass value;
       undefinedEventClassException raiseCriticalException 
  	INVALID_OPERAND_X, errorStr;

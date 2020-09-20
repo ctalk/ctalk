@@ -1,4 +1,4 @@
-/* $Id: ufntmpl.c,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ */
+/* $Id: ufntmpl.c,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -98,6 +98,13 @@ int register_user_args (char **args, int n_args, CFUNC *fn,
   for (n_th_arg = 0, param_cvar = fn -> params; 
        n_th_arg < n_args; 
        n_th_arg++, param_cvar = param_cvar -> next) {
+
+    if (param_cvar == NULL) {
+      _error ("ctalk: %s: argument mismatch. "
+	      "(If the function uses variable arguments, they are not "
+	      "(yet) supported in user templates.)\n",
+	      fn -> decl);
+    }
 
     if (get_local_object (args[n_th_arg], NULL) ||
 	get_global_object (args[n_th_arg], NULL)) {

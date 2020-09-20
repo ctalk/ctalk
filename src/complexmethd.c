@@ -1,8 +1,8 @@
-/* $Id: complexmethd.c,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ */
+/* $Id: complexmethd.c,v 1.2 2020/09/19 01:08:26 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
-  Copyright © 2005-2019 Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2005-2020 Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
 
@@ -376,21 +376,6 @@ int is_overloaded_aggregate_op (MESSAGE_STACK messages, int idx) {
   return FALSE;
 }
 
-static bool objs_in_cvar_term (MESSAGE_STACK messages, int tok_idx) {
-  int next_tok, prev_tok;
-  if ((next_tok = nextlangmsg (messages, tok_idx)) != ERROR) {
-    if (M_TOK(messages[next_tok]) == LABEL) {
-      return true;
-    }
-  }
-  if ((prev_tok = prevlangmsg (messages, tok_idx)) != ERROR) {
-    if (M_TOK(messages[prev_tok]) == LABEL) {
-      return true;
-    }
-  }
-  return false;
-}
-
 /* 
  *   Called by super_argblk_rcvr_expr () when simply writing expressions
  *   that start with, "super."
@@ -420,11 +405,9 @@ void register_argblk_c_vars_1 (MESSAGE_STACK messages,
       /* So we don't cause an undefined label exception later on. */
       messages[i] -> attrs |= TOK_IS_RT_EXPR;
 
-      if (objs_in_cvar_term (messages, i)) {
-	fmt_register_argblk_cvar_from_basic_cvar (messages, i,
-						  cvar, buf);
-	buffer_argblk_stmt (buf);
-      }
+      fmt_register_argblk_cvar_from_basic_cvar (messages, i,
+						cvar, buf);
+      buffer_argblk_stmt (buf);
     }
     
   }
@@ -526,6 +509,186 @@ char *fmt_register_argblk_c_vars_2 (MESSAGE *m_tok, CVAR *cvar,
 /*
  * super in an argument block.  Simple expressions only for now.
  */
+/* Workaround for Missing Receiver Class Object */
+#define MRCO
+
+#ifdef MRCO
+/* #define MRCO_PRINT */
+static int super_method_lookup_mrco;
+extern int method_from_proto; /* Declared in mthdref.c */
+
+static OBJECT *super_orig_rcvr_mrco;
+
+static inline int match_method_mrco (METHOD *m, char *name, int n_params_wanted) {
+
+#define GET_METHOD_WITH_PARAM_COUNT
+
+#ifdef GET_METHOD_WITH_PARAM_COUNT
+  if (n_params_wanted < 0) {
+
+    if (str_eq (m -> name, name) && !m -> prefix)
+      return TRUE;
+
+  } else {
+
+    if (m -> varargs) {
+
+      if (str_eq (m -> name, name))
+   	return TRUE;
+
+    } else {
+
+      if (str_eq (m -> name, name) && 
+   	  (m -> n_params == n_params_wanted) && 
+   	  !m -> prefix)
+   	return TRUE;
+
+    }
+  }
+
+#else
+
+    if (str_eq (m -> name, name) && !m -> prefix)
+      return TRUE;
+
+#endif /* GET_METHOD_WITH_PARAM_COUNT */
+
+  return FALSE;
+}
+
+static inline OBJECT *class_from_object_mrco (OBJECT *o) {
+  if (IS_OBJECT(o -> __o_class))
+    return o -> __o_class;
+  else
+    return class_object_search (o ->  __o_classname, FALSE);
+}
+
+METHOD *get_instance_method_mrco (MESSAGE *m_org, OBJECT *o, char *name, 
+				  int n_params_wanted, int warn) {
+
+  OBJECT *class;
+  METHOD *m, *requested_method = NULL;
+
+  if (!IS_OBJECT(o)) return NULL;
+  if (!IS_CLASS_OBJECT (o)) 
+    class = class_from_object_mrco (o);
+  else 
+    class = o;
+
+#ifdef MRCO_PRINT
+  printf ("11: %s\n", class -> __o_name);
+#endif  
+
+  if (!IS_OBJECT(class)) return NULL;
+
+  for (m = class -> instance_methods; m; m = m -> next) {
+#ifdef MRCO_PRINT
+    printf ("12: %s\n", m -> name);
+#endif    
+    if (match_method_mrco (m, name, n_params_wanted)) {
+      requested_method = m;
+      queue_method_for_output (class, m);
+      break;
+    }
+
+    if (!m -> next)
+      break;
+  }
+  
+  if (requested_method)
+    return requested_method;
+
+  if (o->__o_superclass) {
+    if ((requested_method = 
+	 get_instance_method_mrco (((m_org) ? m_org : NULL), 
+			      o->__o_superclass, name, 
+			      n_params_wanted, warn)) != NULL) 
+      /*
+       *  Here the function must check for a method of the 
+       *  same class that is forward declared, but also has
+       *  a method of the same name in a superclass.  
+       *  Note that this case should not apply to methods
+       *  that are part of a superclass lookup, and should
+       *  not apply to recursive calls, which should be 
+       *  handled above.
+       */
+      if (is_method_proto (class, name) &&
+	  !method_proto_is_output (name) &&
+	  !method_from_proto &&
+	  !super_method_lookup_mrco && 
+	  (strcmp (name, new_methods[new_method_ptr+1]->method->name))) {
+
+	/* Create the method from its prototype, then check again. */
+	method_from_prototype_2 (class, name);
+
+	for (m = class -> instance_methods; m; m = m -> next) {
+	  if (match_method_mrco (m, name, n_params_wanted)) {
+	    requested_method = m;
+	    queue_method_for_output (class, m);
+	    break;
+	  }
+
+	  if (!m -> next)
+	    break;
+	}
+
+      }
+    return requested_method;
+  } else {
+    OBJECT *__t;
+    if (!IS_OBJECT(class -> __o_superclass)) {
+      __t = class_object_search (class -> __o_superclassname, FALSE);
+    } else {
+      __t = class -> __o_superclass;
+    }
+    if (IS_OBJECT(__t)) {
+      if ((requested_method = 
+	   get_instance_method_mrco (((m_org) ? m_org : NULL), 
+				__t, name, n_params_wanted, warn)) != NULL) 
+	return requested_method;
+    }
+  }
+
+  /* If the method still isn't found, try to find a prototype, then
+     look in the class library once more. */
+  if (requested_method) {
+    return requested_method;
+  } else {
+    library_search (class -> __o_name, FALSE);
+    for (m = class -> instance_methods; m; m = m -> next) {
+      if (match_method_mrco (m, name, n_params_wanted)) {
+	requested_method = m;
+	queue_method_for_output (class, m);
+	break;
+      }
+
+      if (!m -> next)
+	break;
+    }
+  }
+
+  if (requested_method) {
+    return requested_method;
+  } else {
+    if (warn) {
+      if (super_method_lookup_mrco) {
+	warning (m_org, "Label %s (Receiver %s, Class %s) not found.\n", 
+		 name, 
+		 (IS_OBJECT(super_orig_rcvr_mrco) ? 
+		  super_orig_rcvr_mrco -> __o_name : NULLSTR),
+		 (IS_OBJECT(super_orig_rcvr_mrco) ? 
+		  super_orig_rcvr_mrco -> __o_classname: class -> __o_name));
+      } else {
+	warning (m_org, "Label %s (Class %s) not found.\n", 
+		 name, class -> __o_name);
+      }
+    }
+  }
+
+  return NULL;
+
+}
+
 void super_argblk_rcvr_expr (MESSAGE_STACK messages, int super_idx, 
 			OBJECT *rcvr_class_object) {
   int method_idx, arglist_start_idx, arglist_end_idx,
@@ -534,6 +697,171 @@ void super_argblk_rcvr_expr (MESSAGE_STACK messages, int super_idx,
   static char expr_out[MAXMSG];
   METHOD *m;
   OBJECT *var_object = NULL;
+  OBJECT *tmp_rcvr_obj = NULL;
+
+  if (!IS_OBJECT(rcvr_class_object)) {
+    char *p, *q, class[MAXLABEL];
+    p = new_methods[new_method_ptr+1] -> method -> selector;
+    q = strchr (p, '_');
+    memset (class, 0, MAXLABEL);
+    strncpy (class, p, q - p);
+    /* workaround */
+    if ((new_methods[new_method_ptr+1] -> method -> rcvr_class_obj = 
+	 get_class_object (class)) == NULL) {
+      _error ("\nctalk: Invalid rcvr_class_obj member of the method:\n\n%s : "
+	      "%s.\n\nPlease contact the authors at rk3314042@gmail.com if "
+	      "you see this error.\n\n",
+	      class, 
+	      new_methods[new_method_ptr+1] -> method -> name);
+      return; /* Notreached */
+    } else {
+      /* Uncomment if you want the issue to provide a notice. */
+#ifdef MRCO_PRINT
+      printf ("<<<<< FOUND rcvr_class_obj!\n");
+#endif      
+      tmp_rcvr_obj = new_methods[new_method_ptr+1] -> method -> rcvr_class_obj;
+#ifdef MRCO_PRINT
+      printf ("1. %p: %s\n", tmp_rcvr_obj, tmp_rcvr_obj -> __o_name);
+#endif      
+      method_idx = nextlangmsg (messages, super_idx);
+      method_message = messages[method_idx];
+#if 0
+      m = get_instance_method_mrco (method_message, tmp_rcvr_obj,
+				    M_NAME(method_message), -1, TRUE);
+#ifdef MRCO_PRINT
+      printf ("1a: %s\n", m -> name);
+#endif      
+#endif      
+    }
+  } else {
+      /* This is the same test for a new method as we use in
+	 argblk.c. */
+    if (interpreter_pass == method_pass) {
+      tmp_rcvr_obj = new_methods[new_method_ptr+1] -> method ->
+	rcvr_class_obj;
+#ifdef MRCO_PRINT
+      printf ("2. %p: %s\n", tmp_rcvr_obj, tmp_rcvr_obj -> __o_name);
+#endif
+    } else {
+      tmp_rcvr_obj = argblk_rcvr_object (messages, super_idx);
+    }
+  }
+
+  if ((method_idx = nextlangmsg (messages, super_idx)) != ERROR) {
+    method_message = messages[method_idx];
+#ifdef MRCO_PRINT
+    printf ("3. %s\n", M_NAME(method_message));
+#endif    
+    if ((m = get_instance_method_mrco (method_message, tmp_rcvr_obj,
+				  M_NAME(method_message), -1, FALSE)) != NULL) {
+#ifdef MRCO_PRINT
+      printf ("4: %s\n", m -> name);
+#endif      
+      if ((arglist_start_idx = nextlangmsg (messages, method_idx)) 
+	  != ERROR) {
+	if ((arglist_end_idx = 
+	    method_arglist_limit_2 (messages, method_idx,
+				    arglist_start_idx,
+				    m -> n_params, m -> varargs)) != ERROR) {
+	  rt_expr (messages, super_idx, &arglist_end_idx, expr_out);
+#ifdef MRCO_PRINT
+	  printf ("4a: %s\n", expr_out);
+#endif	  
+	  for (i = super_idx; i >= arglist_end_idx; i--) {
+	    ++messages[i] -> evaled;
+	    ++messages[i] -> output;
+	  }
+	}
+      }
+    } else if (is_method_proto (tmp_rcvr_obj, M_NAME(method_message))) {
+      method_from_prototype_2 (tmp_rcvr_obj, M_NAME(method_message));
+      m = get_instance_method_mrco
+	(method_message, tmp_rcvr_obj, M_NAME(method_message), -1, FALSE);
+      if ((arglist_start_idx = nextlangmsg (messages, method_idx)) 
+	  != ERROR) {
+	if ((arglist_end_idx = 
+	    method_arglist_limit_2 (messages, method_idx,
+				    arglist_start_idx,
+				    m -> n_params, m -> varargs)) != ERROR) {
+	  rt_expr (messages, super_idx, &arglist_end_idx, expr_out);
+	  for (i = super_idx; i >= arglist_end_idx; i--) {
+	    ++messages[i] -> evaled;
+	    ++messages[i] -> output;
+	  }
+	}
+      }
+    } else {
+      if ((var_object = get_instance_variable 
+	   (M_NAME(method_message), 
+	    tmp_rcvr_obj -> __o_name,
+	    FALSE)) != NULL) {
+	if ((arglist_start_idx = nextlangmsg (messages, method_idx)) 
+	    != ERROR) {
+	  stack_end_idx = get_stack_top (messages);
+	  if ((arglist_end_idx = scanforward (messages, method_idx,
+					      stack_end_idx, SEMICOLON))
+	      != ERROR) {
+	    rt_expr (messages, super_idx, &arglist_end_idx, expr_out);
+#ifdef MRCO_PRINT
+	    printf ("4b: %s\n", expr_out);
+#endif	    
+	    for (i = super_idx; i >= arglist_end_idx; i--) {
+	      ++messages[i] -> evaled;
+	      ++messages[i] -> output;
+	    }
+	  }
+	}
+      }
+    }
+
+    if (!m && !var_object && !(interpreter_pass == expr_check)) {
+      warning (method_message, "Undefined label, \"%s\" (Class %s).", 
+	       M_NAME(method_message), tmp_rcvr_obj -> __o_name);
+    }
+
+    if (arglist_end_idx == -1) {
+      char *_ebuf;
+      int next_newline_idx;
+      
+      stack_end_idx = get_stack_top (messages);
+      next_newline_idx = scanforward (messages, super_idx, stack_end_idx,
+				      NEWLINE);
+
+      _ebuf  = collect_tokens (messages, super_idx, next_newline_idx);
+      warning (method_message, "Could not parse expression %s.",
+	       _ebuf);
+      __xfree (MEMADDR(_ebuf));
+
+    }
+  }
+}
+#else
+void super_argblk_rcvr_expr (MESSAGE_STACK messages, int super_idx, 
+			OBJECT *rcvr_class_object) {
+  int method_idx, arglist_start_idx, arglist_end_idx,
+    stack_end_idx, i;
+  MESSAGE *method_message;
+  static char expr_out[MAXMSG];
+  METHOD *m;
+  OBJECT *var_object = NULL;
+
+  if (!IS_OBJECT(rcvr_class_object)) {
+    char *p, *q, class[MAXLABEL];
+    p = new_methods[new_method_ptr+1] -> method -> selector;
+    q = strchr (p, '_');
+    memset (class, 0, MAXLABEL);
+    strncpy (class, p, q - p);
+    /* workaround */
+    if ((new_methods[512] -> method -> rcvr_class_obj = 
+	 get_class_object (class)) == NULL) {
+      _error ("\nctalk: Invalid rcvr_class_obj member of the method:\n\n%s : "
+	      "%s.\n\nPlease contact the authors at rk3314042@gmail.com if "
+	      "you see this error.\n\n",
+	      class, 
+	      new_methods[new_method_ptr+1] -> method -> name);
+      return; /* Notreached */
+    }
+  }
 
   if ((method_idx = nextlangmsg (messages, super_idx)) != ERROR) {
     method_message = messages[method_idx];
@@ -594,4 +922,5 @@ void super_argblk_rcvr_expr (MESSAGE_STACK messages, int super_idx,
     }
   }
 }
-
+#endif  /* #ifdef MRCO */
+    

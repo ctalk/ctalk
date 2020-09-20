@@ -1,4 +1,4 @@
-/* $Id: xrender.h,v 1.2 2019/11/05 20:19:28 rkiesling Exp $ -*-c-*-*/
+/* $Id: xrender.h,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -49,6 +49,24 @@ struct _xrnamedcolor {
   XRenderColor xrcolor;
   unsigned long int pixel;
 };
+
+#else
+
+#ifdef HAVE_XFT_H
+
+typedef struct _xrenderdrawrec XRENDERDRAWREC;
+
+struct _xrenderdrawrec {
+  Drawable drawable;
+  XftDraw *draw;
+  Picture picture;
+  Picture fill_picture;
+  XRenderPictFormat  *mask_format;
+  struct _xrenderdrawrec *next;
+  struct _xrenderdrawrec *prev;
+};
+
+#endif /* HAVE_XFT_H */
 
 #endif /* HAVE_XFT_H && HAVE_XRENDER_H */
 #define _XRENDER_H

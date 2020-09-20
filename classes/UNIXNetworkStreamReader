@@ -1,4 +1,4 @@
-/* $Id: UNIXNetworkStreamReader,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-c-*-*/
+/* $Id: UNIXNetworkStreamReader,v 1.2 2020/07/10 00:34:48 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -37,7 +37,7 @@ UNIXNetworkStreamReader instanceMethod open (void) {
    error occured, returns -1 and raises a
    SystemErrnoException."
   returnObjectClass Integer;
-  SystemErrorNumberException new ex;
+  SystemErrnoException new ex;
   int s;
 
 

@@ -1,8 +1,8 @@
-/* $Id: rexpr.c,v 1.2 2019/11/18 21:26:00 rkiesling Exp $ */
+/* $Id: rexpr.c,v 1.2 2020/09/19 01:08:28 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
-  Copyright © 2005-2019 Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2005-2020 Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
 
@@ -948,6 +948,20 @@ static bool dm_object_identity (MESSAGE_STACK messages, int obj_ptr) {
   return false;
 }
 
+bool is_cond_pred (MSINFO *ms) {
+  int i;
+  for (i = ms -> tok; i > ms -> stack_ptr; i--) {
+    if (M_TOK(ms -> messages[i]) == SEMICOLON ||
+	M_TOK(ms -> messages[i]) == CLOSEBLOCK ||
+	M_TOK(ms -> messages[i]) == OPENBLOCK) {
+      return false;
+    } else if (M_TOK(ms -> messages[i]) == CONDITIONAL) {
+      return true;
+    }
+  }
+  return false;
+}
+
 int default_method (MSINFO *ms) {
 
   MESSAGE *m_obj,
@@ -1163,32 +1177,36 @@ int default_method (MSINFO *ms) {
 	    ms -> tok, mcbuf), buf);
 	output_buffer (buf, ms -> tok);
       } else {
-	/* this is specifically for C function calls appearing in
-	   receiver context that need to use a template so they
-	   can handle writeable args */
-	if ((arg_idx =
-	     obj_expr_is_arg (ms -> messages, ms -> tok,
-			      ms -> stack_start, &fn_idx)) != ERROR) {
-	  if (libc_fn_needs_writable_args (M_NAME(ms -> messages[fn_idx]))) {
-	    template_call_from_CFunction_receiver 
-	      (ms -> messages, fn_idx);
-	    fn_arg_start_idx = nextlangmsg (ms -> messages, fn_idx);
-	    fn_arg_end_idx = match_paren (ms -> messages, fn_arg_start_idx,
-					  ms -> stack_ptr);
-	    for (i = fn_idx; i >= fn_arg_end_idx; i--) {
-	      ++ms -> messages[i] -> evaled;
-	      ++ms -> messages[i] -> output;
+	if (!is_cond_pred (ms)) {
+	  /* this is specifically for C function calls appearing in
+	     receiver context that need to use a template so they
+	     can handle writeable args */
+	  if ((arg_idx =
+	       obj_expr_is_arg (ms -> messages, ms -> tok,
+				ms -> stack_start, &fn_idx)) != ERROR) {
+	    if (libc_fn_needs_writable_args (M_NAME(ms -> messages[fn_idx]))) {
+	      template_call_from_CFunction_receiver 
+		(ms -> messages, fn_idx);
+	      fn_arg_start_idx = nextlangmsg (ms -> messages, fn_idx);
+	      fn_arg_end_idx = match_paren (ms -> messages, fn_arg_start_idx,
+					    ms -> stack_ptr);
+	      for (i = fn_idx; i >= fn_arg_end_idx; i--) {
+		++ms -> messages[i] -> evaled;
+		++ms -> messages[i] -> output;
+	      }
+	      return SUCCESS;
 	    }
-	    return SUCCESS;
 	  }
+	  strcpy (buf, 
+		  obj_2_c_wrapper_trans 
+		  (ms -> messages, ms -> tok, m_obj, m_obj -> obj, m, 
+		   rt_library_method_call (m_obj -> obj, m,
+					   ms -> messages, ms -> tok, mcbuf),
+		   TRUE));
+	  output_buffer (buf, ms -> tok);
+	} else {
+	  return ERROR;
 	}
-	strcpy (buf, 
-		obj_2_c_wrapper_trans 
-		(ms -> messages, ms -> tok, m_obj, m_obj -> obj, m, 
-		 rt_library_method_call (m_obj -> obj, m,
-					 ms -> messages, ms -> tok, mcbuf),
-		 TRUE));
-	output_buffer (buf, ms -> tok);
       } /* if (for_term) { */
       break;
     case argument_context:
@@ -1948,13 +1966,6 @@ int fn_output_context (MESSAGE_STACK messages, int method_msg_ptr,
   }
 
   return SUCCESS;
-}
-
-int is_expr_obj (MESSAGE *m) {
-  if (m && m -> obj && !strcmp (M_VALUE_OBJ(m) -> __o_classname, EXPR_CLASSNAME))
-    return TRUE;
-  else
-    return FALSE;
 }
 
 int expr_has_objects (MESSAGE_STACK messages, int start_idx, int end_idx) {

@@ -1,4 +1,4 @@
-/* $Id: strcatx.c,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ */
+/* $Id: strcatx.c,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -53,7 +53,7 @@ int strcatx (char *destbuf, ...) {
   return (int) (t - destbuf);
 }
 
-/* Like strcatx, but does not overwrite the existing contents of destbuf. */
+/* Like strcatx, but concatenates to the existing contents of destbuf. */
 #ifdef __GNUC__
 inline int strcatx2 (char *destbuf, ...) {
 #else

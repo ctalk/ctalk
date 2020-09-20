@@ -1,4 +1,4 @@
-/* $Id: ctldjgpp,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-c-*-*/
+/* $Id: ctldjgpp,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -1015,7 +1015,7 @@ require ArgumentList;
 				 __ctalkRegisterUserObject(__o); return __o;;;}
 
 #define methodReturnLongInteger(__l) { char __b[MAXMSG]; OBJECT *__o; \
-                                 __ctalkDecimalLongLongToASCII((__l),__b); \
+                                 __ctalkLongLongToDecimalASCII((__l),__b); \
                                  __o = __ctalkCreateObjectInit ("result", \
                                 "LongInteger", "Magnitude", LOCAL_VAR, __b); \
 				 __ctalkRegisterUserObject(__o); return __o;;;}

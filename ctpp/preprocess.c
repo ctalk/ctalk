@@ -1,4 +1,4 @@
-/* $Id: preprocess.c,v 1.1.1.1 2019/10/26 23:40:50 rkiesling Exp $ */
+/* $Id: preprocess.c,v 1.2 2020/07/08 02:34:28 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -474,7 +474,7 @@ DEFINITION *add_symbol (char *name, char *value, MACRO_ARG **m_args) {
   return macro_symbol;
 }
 
-INCLUDE *includes[MAXARGS + 1] = {NULL,};
+extern INCLUDE *includes[MAXARGS + 1];
 					  
 extern int include_ptr;
 
@@ -1988,6 +1988,7 @@ int define_symbol (MESSAGE_STACK message_stack, int keyword_ptr) {
 
   int i, label_ptr, line_end_ptr, end_ptr;
   int next_tok;
+  int param_list_start = -1, param_list_end = -1;
   int leading_whitespace;
   bool param_list = False;     /* True if within a param list. */
   bool comment = False;
@@ -2041,20 +2042,30 @@ int define_symbol (MESSAGE_STACK message_stack, int keyword_ptr) {
 	if (warnunused_opt) p_hash_loc (message_stack[i]);
 	break;
       case OPENPAREN:
+	if (!param_list && (param_list_end > -1))
+	  goto label_done;
 	if (n_parens == 0) {
-	  m_args[n_args] = new_arg ();
+	  if (param_list_start == -1) {
+	    m_args[n_args] = new_arg ();
+	  }
 	}
 	++n_parens;
 	if (param_list) {
 	  strcat (m_args[n_args] -> name, message_stack[i] -> name);
 	}
 	strcat (name, message_stack[i] -> name);
-	param_list = True;
+	if (param_list_start == -1) {
+	  param_list_start = i;
+	  param_list = True;
+	}
 	break;
       case CLOSEPAREN:
 	--n_parens;
 	if (n_parens == 0) {
-	  param_list = False;
+	  if (param_list_end == -1) {
+	    param_list = False;
+	    param_list_end = i;
+	  }
 	} else {
 	  strcat (m_args[n_args] -> name, message_stack[i] -> name);
 	}

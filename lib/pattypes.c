@@ -1,8 +1,8 @@
- /* $Id: pattypes.c,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ */
+ /* $Id: pattypes.c,v 1.2 2020/09/18 21:25:12 rkiesling Exp $ */
 
  /*
    This file is part of Ctalk.
-   Copyright © 2005-2019  Robert Kiesling, rk3314042@gmail.com.
+   Copyright © 2005-2020  Robert Kiesling, rk3314042@gmail.com.
    Permission is granted to copy this software provided that this copyright
    notice is included in all source code modules.
 
@@ -112,7 +112,7 @@ bool is_fmt_arg (MESSAGE_STACK messages, int expr_start_idx,
 	 break;
        case LITERAL:
 	 if (state == ptr_fmt_arg_separator) {
-	   if ((fmt_str_length = is_printf_fmt (M_NAME(m))) != 0) {
+	   if ((fmt_str_length = is_printf_fmt (M_NAME(m), M_NAME(m))) != 0) {
 	     return TRUE;
 	   }
 	 } else {
@@ -209,7 +209,7 @@ bool is_fmt_arg_2 (MSINFO *ms) {
 	 break;
        case LITERAL:
 	 if (state == ptr_fmt_arg_separator) {
-	   if ((fmt_str_length = is_printf_fmt (M_NAME(m))) != 0) {
+	   if ((fmt_str_length = is_printf_fmt (M_NAME(m), M_NAME(m))) != 0) {
 	     return TRUE;
 	   }
 	 } else {
@@ -264,7 +264,8 @@ bool is_fmt_arg_2 (MSINFO *ms) {
 
 int is_printf_fmt_msg (MESSAGE_STACK messages, int fmt_tok_idx,
 		       int stack_start_idx, int stack_end_idx) {
-  return is_printf_fmt (M_NAME(messages[fmt_tok_idx]));
+  return is_printf_fmt (M_NAME(messages[fmt_tok_idx]),
+			M_NAME(messages[fmt_tok_idx]));
 }
 
 int is_function_call (MESSAGE_STACK messages, int fn_label_idx,
@@ -560,7 +561,7 @@ int obj_expr_is_arg (MESSAGE_STACK messages, int expr_start_idx,
 	return ERROR;
 	break;
       case LITERAL:
-	if (is_printf_fmt (M_NAME(messages[i])))
+	if (is_printf_fmt (M_NAME(messages[i]), M_NAME(messages[i])))
 	  return ERROR;
 	break;
       }
@@ -665,7 +666,7 @@ int obj_expr_is_arg_ms (MSINFO *ms, int *fn_label_idx) {
 	return ERROR;
 	break;
       case LITERAL:
-	if (is_printf_fmt (M_NAME(ms -> messages[i])))
+	if (is_printf_fmt (M_NAME(ms -> messages[i]), M_NAME(ms -> messages[i])))
 	  return ERROR;
 	break;
       }
@@ -1068,6 +1069,11 @@ bool op_is_prefix_op (EXPR_PARSER *p, int op_ptr) {
 
   if ((prev_msg_ptr = __ctalkPrevLangMsg (p -> m_s, op_ptr,
 					  p -> msg_frame_start)) != ERROR) {
+
+    if (p -> m_s[prev_msg_ptr] -> attrs & RT_TOK_IS_TYPECAST_EXPR) {
+      return true;
+    }
+
     if (IS_C_OP_TOKEN_NOEVAL (M_TOK(p -> m_s[prev_msg_ptr]))) {
       if (M_TOK(p -> m_s[prev_msg_ptr]) == M_TOK(p -> m_s[op_ptr])) {
 	if (!(p -> m_s[prev_msg_ptr] -> attrs & RT_TOK_IS_PREFIX_OPERATOR)) {
@@ -1271,6 +1277,11 @@ int find_leading_tok_idx (MESSAGE_STACK messages, int start_idx,
 	} else {
 	  return start_idx;
 	} 
+	break;
+      case MINUS:
+	if (IS_C_ASSIGNMENT_OP(M_TOK(messages[lookback]))) {
+	  return i;
+	}
 	break;
       case OPENPAREN:
 	if (lookback == ERROR)
@@ -1875,3 +1886,35 @@ bool prev_tok_is_symbol (MESSAGE_STACK messages, int tok_idx) {
   }
 }
 #endif
+
+/*
+ *   Returns true and sets terminal_mbr_idx to the last token for
+ *   expressions like this.
+ *
+ *    ((OBJECT *)*<myOBJECT>) -> <OBJECT_mbr>
+ *
+ *   These are templated when the compiler adds OBJECT *'s to vartabs,
+ *   so this pattern should always work.
+ */
+bool is_OBJECT_vartab_deref_cast (MESSAGE_STACK messages, int open_paren_idx,
+				  int *terminal_mbr_idx) {
+  if (M_TOK(messages[open_paren_idx]) == OPENPAREN &&
+      M_TOK(messages[open_paren_idx-1]) == OPENPAREN &&
+      M_TOK(messages[open_paren_idx-2]) == LABEL &&
+      M_TOK(messages[open_paren_idx-3]) == WHITESPACE &&
+      M_TOK(messages[open_paren_idx-4]) == ASTERISK &&
+      M_TOK(messages[open_paren_idx-5]) == CLOSEPAREN &&
+      M_TOK(messages[open_paren_idx-6]) == ASTERISK &&
+      M_TOK(messages[open_paren_idx-7]) == LABEL &&
+      M_TOK(messages[open_paren_idx-8]) == CLOSEPAREN &&
+      M_TOK(messages[open_paren_idx-9]) == WHITESPACE &&
+      M_TOK(messages[open_paren_idx-10]) == DEREF &&
+      M_TOK(messages[open_paren_idx-11]) == WHITESPACE &&
+      M_TOK(messages[open_paren_idx-12]) == LABEL) {
+    *terminal_mbr_idx = open_paren_idx-12;
+    return true;
+  } else {
+    *terminal_mbr_idx = -1;
+    return false;
+  }
+}

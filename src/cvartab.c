@@ -1,8 +1,8 @@
-/* $Id: cvartab.c,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ */
+/* $Id: cvartab.c,v 1.2 2020/09/19 01:08:27 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
-  Copyright © 2014-2019 Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2014-2020 Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
 
@@ -373,7 +373,17 @@ void method_cvar_tab_entry (MESSAGE_STACK messages, int idx,
       method_vartab_statement (vartab_entry);
     } else if (c -> attrs == CVAR_ATTR_STRUCT_PTR) {
       struct_type_idx = nextlangmsg (messages, idx);
-      struct_type_tag (c, M_NAME(messages[struct_type_idx]), struct_type_buf);
+      /* Skip over asterisks and any whitespace until we get to the 
+	 tag itself. */
+      while (M_TOK(messages[struct_type_idx]) == MULT)
+	++struct_type_idx;
+      if (M_ISSPACE(messages[struct_type_idx]))
+	struct_type_idx = prevlangmsg (messages, struct_type_idx);
+      if ((c -> type_attrs & CVAR_TYPE_OBJECT) && (c -> n_derefs == 1)) {
+	strcpy (struct_type_buf, c -> type);
+      } else {
+	struct_type_tag (c, M_NAME(messages[struct_type_idx]), struct_type_buf);
+      }
       strcatx (vartab_entry, c -> qualifier, " ", struct_type_buf, tab_pfx,
 	       new_methods[new_method_ptr+1] -> method -> selector,
 	       "_", c -> name, ";\n", NULL);
@@ -551,11 +561,21 @@ void method_cvar_tab_entry (MESSAGE_STACK messages, int idx,
 	       c -> name, ";\n", NULL);
       method_vartab_init_statement (vartab_init_entry);
     } else if (c -> attrs == CVAR_ATTR_STRUCT_PTR) {
-      strcatx (vartab_init_entry,
-	       new_methods[new_method_ptr+1] -> method -> selector, "_",
-	       c -> name,
-	       " = (struct ", struct_type_buf, " **)&",
-	       c -> name, ";\n", NULL);
+      /* This should be expanded to handle any typedef, besides
+	 OBJECT when we get examples in source code. */
+      if ((c -> type_attrs & CVAR_TYPE_OBJECT) && (c -> n_derefs == 1)) {
+	strcatx (vartab_init_entry,
+		 new_methods[new_method_ptr+1] -> method -> selector, "_",
+		 c -> name,
+		 " = (", struct_type_buf, " **)&",
+		 c -> name, ";\n", NULL);
+      } else {
+	strcatx (vartab_init_entry,
+		 new_methods[new_method_ptr+1] -> method -> selector, "_",
+		 c -> name,
+		 " = (struct ", struct_type_buf, " **)&",
+		 c -> name, ";\n", NULL);
+      }
       method_vartab_init_statement (vartab_init_entry);
     } else {
       strcatx (vartab_init_entry,
@@ -1027,7 +1047,7 @@ void function_param_cvar_tab_entry (MESSAGE_STACK messages, int idx,
       }
       function_vartab_init_statement (vartab_init_entry);
     } else if (c -> type_attrs & CVAR_TYPE_SHORT) {
-      if (c -> type_attrs & CVAR_TYPE_SHORT) {
+      if (c -> is_unsigned || (c -> type_attrs & CVAR_TYPE_UNSIGNED)) {
 	strcatx (vartab_init_entry, 
 		 fn_name, "_", c -> name, " = ",
 		 (((c -> n_derefs == 2) ? "(unsigned short int ***)" : 
@@ -1039,8 +1059,8 @@ void function_param_cvar_tab_entry (MESSAGE_STACK messages, int idx,
 		 fn_name, "_", c -> name, " = ",
 		 (((c -> n_derefs == 2) ? "(short int ***)" : 
 		   ((c -> n_derefs == 1) ? "(short int **)" : 
-		    ((c -> n_derefs == 0) ? "(short int *)" : "")))), "&",
-		 c -> name, ";\n", NULL);
+		    ((c -> n_derefs == 0) ? "(short int *)" : "")))),
+		 "&", c -> name, ";\n", NULL);
       }
       function_vartab_init_statement (vartab_init_entry);
     } else if (c -> type_attrs & CVAR_TYPE_INT) {
@@ -1305,6 +1325,21 @@ OBJECT *handle_cvar_argblk_translation (MESSAGE_STACK messages,
       case ARRAYOPEN:
 	if (!subscripted_int_in_code_block_error (messages, message_ptr,
 						  cvar)) {
+	  if (cvar -> type_attrs & CVAR_TYPE_CHAR &&
+	      cvar -> n_derefs > 0) {
+	    int lookahead2;
+	    char *s, errexpr[64];
+	    lookahead2 = scanforward (messages, next_label_ptr,
+				      get_stack_top (messages),
+				      ARRAYCLOSE);
+	    s = collect_tokens (messages, message_ptr, lookahead2);
+	    strcpy (errexpr, s);
+	    __xfree (MEMADDR(s));
+	    error (messages[message_ptr],
+		   "Subscripted char array expressions like:\n\n\t%s\n\n"
+		   "are not allowed in argument blocks.  You should "
+		   "consider using a String object.", errexpr);
+	  }
 	  fmt_cvar_tab_ref (cvar, m -> name);
 #ifdef SYMBOL_SIZE_CHECK
 	  check_symbol_size (m -> name);

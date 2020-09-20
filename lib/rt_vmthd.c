@@ -1,8 +1,8 @@
-/* $Id: rt_vmthd.c,v 1.1.1.1 2019/10/26 23:40:50 rkiesling Exp $ */
+/* $Id: rt_vmthd.c,v 1.2 2020/09/18 21:25:13 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
-  Copyright © 2005-2012, 2015-2019  Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2005-2012, 2015-2020  Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
 
@@ -233,8 +233,8 @@ static int __method_object_init (OBJECT *rcvr_obj, OBJECT *class_obj,
   if ((isInitialized_instance_var = 
        __ctalkGetInstanceVariable (rcvr_obj, "isInitialized", TRUE)) == NULL)
     return ERROR;
-  __ctalkSetObjectValueVar (isInitialized_instance_var,
-			    ascii[TRUE]);
+  INTVAL(isInitialized_instance_var->__o_value) = TRUE;
+  INTVAL(isInitialized_instance_var->instancevars->__o_value) = TRUE;
 
   return SUCCESS;
 }
@@ -488,17 +488,12 @@ int method_object_msg_internal_2_args (OBJECT *rcvr, OBJECT *method_instance,
 				       OBJECT *arg1, OBJECT *arg2,
 				       int background) {
 
-  VMETHOD *v;
+  VMETHOD v;
   OBJECT *rcvr_obj, *method_obj,
-    *t, *t_prev, *arg_ref, *rcvr_obj_tmp,
-    *(*fn)(), *t_start, *arg_head;
-  OBJECT *result_object, *__arg_object_tmp;
-  int i, n_args, n_params, varargs, n_th_arg,
-    retval, nrefs_tmp;
+    *rcvr_obj_tmp, *(*fn)();
+  OBJECT *result_object;
+  int retval;
   METHOD *target_method;
-  char buf[MAXLABEL];
-
-  v = (VMETHOD *)__xalloc (sizeof (VMETHOD));
 
   if (rcvr == NULL) {
     fprintf (stderr, "__ctalkMethodObjectMessage: Receiver is NULL.\n");
@@ -510,14 +505,14 @@ int method_object_msg_internal_2_args (OBJECT *rcvr, OBJECT *method_instance,
     method_instance->__o_p_obj :
     method_instance;
 
-  v -> methodName_instance_var = method_obj -> instancevars -> next;
-  v -> methodFn_instance_var = v -> methodName_instance_var -> next -> next;
+  v.methodName_instance_var = method_obj -> instancevars -> next;
+  v.methodFn_instance_var = v.methodName_instance_var -> next -> next;
     
   rcvr_obj_tmp = rcvr_obj;
   if ((target_method = __ctalkFindInstanceMethodByName 
        (&rcvr_obj_tmp,
-	v -> methodName_instance_var->instancevars->__o_value,
-	TRUE, ANY_ARGS)) == NULL)
+	v.methodName_instance_var->instancevars->__o_value,
+	FALSE, ANY_ARGS)) == NULL)
     return ERROR;
 
   __add_arg_object_entry_frame (target_method, arg1);
@@ -525,7 +520,7 @@ int method_object_msg_internal_2_args (OBJECT *rcvr, OBJECT *method_instance,
   __add_arg_object_entry_frame (target_method, arg2);
   __ctalk_arg_push_ref (arg2);
 
-  fn = (OBJECT *(*)())SYMVAL(v -> methodFn_instance_var -> instancevars ->
+  fn = (OBJECT *(*)())SYMVAL(v.methodFn_instance_var -> instancevars ->
 			     __o_value);
 
   method_object_message_call = TRUE;
@@ -534,16 +529,10 @@ int method_object_msg_internal_2_args (OBJECT *rcvr, OBJECT *method_instance,
 					      &retval);
   method_object_message_call = FALSE;
 
+  (void)__ctalk_arg_cleanup (result_object);
+  (void)__ctalk_arg_cleanup (result_object);
 
-  __arg_object_tmp = __ctalk_arg_pop ();
-  __ctalk_arg_push (__arg_object_tmp);
-  nrefs_tmp = __ctalk_arg_cleanup (result_object);
-  __arg_object_tmp = __ctalk_arg_pop ();
-  __ctalk_arg_push (__arg_object_tmp);
-  nrefs_tmp = __ctalk_arg_cleanup (result_object);
-
-  __xfree (MEMADDR(v));
- return retval;
+  return retval;
 }
 
 void init_ctalk_process (OBJECT *, METHOD *);

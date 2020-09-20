@@ -1,8 +1,8 @@
-/* $Id: rt_methd.c,v 1.1.1.1 2019/10/26 23:40:50 rkiesling Exp $ */
+/* $Id: rt_methd.c,v 1.2 2020/09/18 21:25:12 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
-  Copyright © 2005-2019  Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2005-2020  Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
 
@@ -155,7 +155,14 @@ static METHOD *__ctalk_method_find_method_by_fn (METHODSRCHINFO *msi) {
 						msi -> cfunc, FALSE))
 		   == NULL)) {
 		if ((method = assign_method_orig_obj (msi)) == NULL) {
-		  _warning ("__ctalk_method: Undefined method.\n");
+		  _warning ("__ctalk_method: Undefined method, \"%s.\"\n"
+			    "Receiver, \"%s,\" (Class \"%s\").\n",
+			    msi -> method_name,
+			    msi -> rcvr_obj -> __o_name,
+			    IS_OBJECT(msi -> rcvr_obj -> instancevars) ?
+			    msi -> rcvr_obj -> instancevars -> __o_class
+			    -> __o_name :
+			    msi -> rcvr_obj -> __o_class -> __o_name);
 		  return NULL;
 		} else {
 		  return method;
@@ -249,7 +256,7 @@ OBJECT *__ctalk_method (char *__object_name, OBJECT *(*__cfunc)(),
 
   OBJECT *__receiver_obj, *__method_rcvr_obj_, *__receiver_obj_post_call;
   OBJECT *__class_obj_;
-  OBJECT *__result_obj_ = NULL;
+  OBJECT *__result_obj_ = NULL, *__result_obj_post_call = NULL;
   OBJECT *derived_rcvr, *const_rcvr_class = NULL;
   METHOD *method, *rcvr_class_method;
   CVAR *c_rcvr = NULL;
@@ -624,8 +631,21 @@ OBJECT *__ctalk_method (char *__object_name, OBJECT *(*__cfunc)(),
   if (need_rcvr_mod_catch ())
     clear_rcvr_mod_catch ();
 
-  if (need_postfix_fetch_update ()) {
+  if (need_postfix_fetch_update () && IS_OBJECT(__result_obj_)) {
     /* This is used for Key objects right now. */
+    __ctalkCopyObject (OBJREF(__result_obj_), 
+		       OBJREF(__result_obj_post_call));
+    __ctalkSetObjectAttr (__result_obj_post_call,
+			   __result_obj_post_call -> attrs |
+			   OBJECT_IS_I_RESULT);
+    /* If the result is a method user object already, make sure
+       we can register this one separately, or just delete it. */
+    if (__result_obj_post_call -> scope & METHOD_USER_OBJECT) {
+      __ctalkSetObjectScope (__result_obj_post_call,
+			     __result_obj_post_call -> scope &
+			     ~METHOD_USER_OBJECT);
+    }
+    __ctalkRegisterUserObject (__result_obj_post_call);
     make_postfix_current (__result_obj_);
     clear_postfix_fetch_update ();
   }
@@ -642,7 +662,10 @@ OBJECT *__ctalk_method (char *__object_name, OBJECT *(*__cfunc)(),
     delete_method_arg_cvars ();
   }
 
-  return __result_obj_;
+  if (IS_OBJECT(__result_obj_post_call))
+    return __result_obj_post_call;
+  else
+    return __result_obj_;
 }
 
 #define ARG(m,obj) {if ((obj) -> nrefs == 0)  \
@@ -1520,6 +1543,12 @@ static int is_declared_outside_method_2 (OBJECT *tgt) {
     is_arg (tgt);
 }
 
+static inline void __delete_LOCAL_VAR_scope (OBJECT *o) {
+  if (!(o -> attrs & OBJECT_HAS_LOCAL_TAG)) {
+    __ctalkSetObjectScope (o, o -> scope & ~LOCAL_VAR);
+  }
+}
+
 static inline void __delete_local_object_internal (VARENTRY *__v) {
 
   if (!IS_OBJECT (__v -> var_object))
@@ -1536,10 +1565,9 @@ static inline void __delete_local_object_internal (VARENTRY *__v) {
 	__ctalkDeleteObject ( __v -> var_object);
       } else {
 	__objRefCntDec (OBJREF (__v -> var_object));
-	__ctalkSetObjectScope 
-	  (__v -> var_object,
-	   __v -> var_object -> scope & ~LOCAL_VAR);
-	__v -> var_object -> __o_vartags -> tag = NULL;
+	__delete_LOCAL_VAR_scope (__v -> var_object);
+	if (IS_VARTAG(__v -> var_object -> __o_vartags))
+	  __v -> var_object -> __o_vartags -> tag = NULL;
 	__ctalkRegisterUserObject (__v -> var_object);
       }
     }
@@ -1549,12 +1577,10 @@ static inline void __delete_local_object_internal (VARENTRY *__v) {
 	__ctalkDeleteObject ( __v -> var_object);
       } else {
 	__objRefCntDec (OBJREF (__v -> var_object));
-	__ctalkSetObjectScope 
-	  (__v -> var_object,
-	   __v -> var_object -> scope & ~LOCAL_VAR);
-	  if (IS_VARTAG(__v -> var_object -> __o_vartags) &&
-	      !IS_EMPTY_VARTAG(__v -> var_object -> __o_vartags))
-	    __v -> var_object -> __o_vartags -> tag = NULL;
+	__delete_LOCAL_VAR_scope (__v -> var_object);
+	if (IS_VARTAG(__v -> var_object -> __o_vartags) &&
+	    !IS_EMPTY_VARTAG(__v -> var_object -> __o_vartags))
+	  __v -> var_object -> __o_vartags -> tag = NULL;
 	__ctalkRegisterUserObject (__v -> var_object);
       }
     }
@@ -1565,9 +1591,7 @@ static inline void __delete_local_object_internal (VARENTRY *__v) {
 	  __ctalkDeleteObject ( __v -> orig_object_rec);
 	} else {
 	  __objRefCntDec (OBJREF (__v -> orig_object_rec));
-	  __ctalkSetObjectScope 
-	    (__v -> orig_object_rec,
-	     __v -> orig_object_rec -> scope & ~LOCAL_VAR);
+	  __delete_LOCAL_VAR_scope (__v -> orig_object_rec);
 	  if (IS_VARTAG(__v -> orig_object_rec -> __o_vartags) &&
 	      !IS_EMPTY_VARTAG(__v -> orig_object_rec -> __o_vartags))
 	    __v -> orig_object_rec -> __o_vartags -> tag = NULL;

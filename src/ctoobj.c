@@ -1,4 +1,4 @@
-/* $Id: ctoobj.c,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ */
+/* $Id: ctoobj.c,v 1.1.1.1 2020/09/13 17:14:20 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -37,8 +37,21 @@
  *  a C function call.
  */
 
-extern MESSAGE *c_messages[N_MESSAGES + 1];  /* Declared in cparse.c.  */
-extern int c_message_ptr;                   
+MESSAGE *c_messages[N_MESSAGES + 1];  /* Declared in cparse.c.  */
+int c_message_ptr;                   
+
+MESSAGE_STACK c_message_stack (void) {
+  return c_messages;
+}
+
+static int c_message_push (MESSAGE *m) {
+  if (c_message_ptr == 0) {
+    warning (m, "c_message_push: stack overflow.");
+    return ERROR;
+  }
+  c_messages[c_message_ptr--] = m;
+  return c_message_ptr;
+}
 
 extern CFUNC *functions;                     /* Declared in rt_cvar.c. */
 
@@ -206,6 +219,14 @@ char *fmt_c_to_obj_call (MESSAGE_STACK messages, int fn_ptr,
 	  strcatx (buf_out, "__ctalkCIntToObj (",
 		   arg_object -> __o_name, ")", NULL);
 	  break;
+	case 1: /***/
+	  /* This should have a clause of its own above if
+	     it gets any more complicated. */
+	  if (fn_cfunc -> return_type_attrs & CVAR_TYPE_CHAR) {
+	    strcatx (buf_out, "__ctalkCCharPtrToObj (",
+		     arg_object -> __o_name, ")", NULL);
+	  }
+	  break;
 	default:
 	  /* nothing should be needed for pointers */
 	  strcpy (buf_out, arg_object -> __o_name);
@@ -252,6 +273,7 @@ static int mixed_c_to_obj_call_id = 0;
 
 static char obj_arg_int_decl[] = "int";
 static char obj_arg_long_int_decl[] = "long int";
+static char obj_arg_unsigned_long_int_decl[] = "unsigned long int";
 static char obj_arg_long_long_int_decl[] = "long long int";
 static char obj_arg_float_decl[] = "float";
 static char obj_arg_double_decl[] = "double";
@@ -440,6 +462,29 @@ void output_mixed_c_to_obj_arg_block (MESSAGE_STACK messages,
 	  strcpy (tmp_cvar.qualifier, "long");
 	  strcpy (tmp_cvar.qualifier2, "long");
 	  tmp_cvar.type_attrs = CVAR_TYPE_INT | CVAR_TYPE_LONGLONG;
+	  tmp_cvar.n_derefs = 0;
+	  break;
+	default:
+	  warning (messages[arg_c_fn_terms[i].start],
+		   "Unsupported return derefs for function, \"%s\".",
+		   M_NAME(messages[arg_c_fn_terms[i].start]));
+	  break;
+	}
+    } else if (str_eq (fn -> return_type, "size_t")) { /***/
+      /* handle like an unsigned long int */
+      /* TODO - should have return type attributes derived 
+	 from size_t */
+      switch (fn -> return_derefs)
+	{
+	case 0:
+	  strcatx (tmp_label, 
+		   "arg_c_fn_", ascii[mixed_c_to_obj_call_id++],
+		   NULL);
+	  tmp_var_decl = obj_arg_unsigned_long_int_decl;
+	  strcpy (tmp_cvar.name, tmp_label);
+	  strcpy (tmp_cvar.type, "int");
+	  strcpy (tmp_cvar.qualifier, "long");
+	  tmp_cvar.type_attrs = CVAR_TYPE_INT | CVAR_TYPE_LONG | CVAR_TYPE_UNSIGNED;
 	  tmp_cvar.n_derefs = 0;
 	  break;
 	default:

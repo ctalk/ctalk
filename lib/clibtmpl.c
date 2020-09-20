@@ -1,4 +1,4 @@
-/* $Id: clibtmpl.c,v 1.2 2019/11/18 21:26:00 rkiesling Exp $ */
+/* $Id: clibtmpl.c,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -118,6 +118,8 @@ static struct _c99_names {
   {"strncmp",  "strncmp"},
   {"strncpy",  "strncpy"},
   {"time",     "time"},
+  {"xfprintf",   "xfprintf"},
+  {"xfscanf",    "xfscanf"},
   {"xsprintf",     "xsprintf"},
   {"xstrcat",  "xstrcat"},
   {"xstrcpy",  "xstrcpy"},
@@ -243,6 +245,7 @@ static struct _c99_writable_args {
   {"strcat",   "strcat"},
   {"strncpy",  "strncpy"},
   {"strncat",  "strncat"},
+  {"xfprintf", "xfprintf"},
   {"xstrcpy",  "xstrcpy"},
   {"xstrcat",  "xstrcat"},
   {"xstrncpy", "xstrncpy"},

@@ -1,8 +1,8 @@
-/* $Id: WriteFileStream,v 1.2 2019/10/27 00:06:11 rkiesling Exp $ -*-c-*-*/
+/* $Id: WriteFileStream,v 1.2 2020/09/19 01:08:25 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
-  Copyright © 2005 - 2014, 2019  Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2005 - 2014, 2019, 2020  Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
 
@@ -165,8 +165,7 @@ WriteFileStream instanceMethod writeChar (char inChar) {
   if (r == EOF) {
     __errnoException raiseException NULL;
   } else {
-    __ctalkDecimalLongLongToASCII((long long int)ftell (self_stream), 
-				  self_pos -> __o_value);
+    LLVAL(self_pos -> __o_value) = (long long)ftell (self_stream);
   }
   return NULL;
 }
@@ -191,8 +190,7 @@ WriteFileStream instanceMethod writeStream (char *str) {
   if (r == EOF) {
     __errnoException raiseException NULL;
   } else {
-    __ctalkDecimalLongLongToASCII((long long int)ftell (self_stream), 
-				  self_pos -> __o_value);
+    LLVAL(self_pos -> __o_value) = (long long)ftell (self_stream);
   }
   return NULL;
 }
@@ -222,8 +220,7 @@ WriteFileStream instanceMethod writeVec (Vector vec) {
   if (r == EOF) {
     __errnoException raiseException NULL;
   } else {
-    __ctalkDecimalLongLongToASCII((long long int)ftell (self_stream), 
-				  self_pos -> __o_value);
+    LLVAL(self_pos -> __o_value) = (long long)ftell (self_stream);
   }
   return NULL;
 }
@@ -233,10 +230,9 @@ WriteFileStream instanceMethod writeFormat (char *fmt, ...) {
   This is probably redundant with the printOn method."
   Exception new __e_app;
   METHOD *self_method;
-  OBJECT *result_object, *__fmt_arg_value; 
-  ARG *__save_fmt_arg, *__tmp_fmt_arg;
-  char __ctalk_fmt[MAXMSG];
+  Integer new fmtRetVal;
   int __i_arg;
+
   if ((self_method = 
        __ctalkGetInstanceMethodByFn (__ctalkRtReceiverObject (),
 				     __ctalkRtGetMethodFn (),
@@ -246,38 +242,21 @@ WriteFileStream instanceMethod writeFormat (char *fmt, ...) {
     return NULL;
   }
 
-  __fmt_arg_value = fmt value;
-
-  __ctalkCPrintFmtToCtalkFmt (__fmt_arg_value -> __o_value, __ctalk_fmt);
-
-  __save_fmt_arg = self_method->args[0];
-
-  __tmp_fmt_arg = 
-    __ctalkCreateArgEntryInit
-    (__ctalkCreateObjectInit ("fmt", "String", "Character",
-			      LOCAL_VAR, __ctalk_fmt));
-  __objRefCntSet (&(__tmp_fmt_arg->obj), __save_fmt_arg->obj->nrefs);
-  self_method -> args[0] = __tmp_fmt_arg;
-
   for (__i_arg = self_method -> n_args; __i_arg > 0; __i_arg--) {
     self_method -> args[__i_arg] = self_method -> args[__i_arg - 1];
   }
   self_method->args[0] = __ctalkCreateArgEntryInit (self value);
   ++self_method -> n_args;
 
-  result_object = __ctalkLibcFnWithMethodVarArgs ((int (*)())fprintf, self_method, "Integer");
+  fmtRetVal = __ctalkLibcFnWithMethodVarArgs
+    ((int (*)())fprintf, self_method, "Integer");
+  __ctalkDeleteObject (fmtRetVal);
 
   --self_method -> n_args;
   __ctalkDeleteArgEntry (self_method->args[0]);
   for (__i_arg = 1; __i_arg <= self_method -> n_args; __i_arg++) {
     self_method -> args[__i_arg-1] = self_method -> args[__i_arg];
   }
-  self_method -> args[self_method -> n_args] = NULL;
-  self_method -> args[0] = __save_fmt_arg;
-  __objRefCntZero (&(__tmp_fmt_arg->obj));
-  __ctalkDeleteObject(__tmp_fmt_arg->obj);
-  __ctalkDeleteArgEntry(__tmp_fmt_arg);
-  __ctalkDeleteObject(result_object);
   return self;
 }
 

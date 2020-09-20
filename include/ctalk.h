@@ -1,8 +1,8 @@
-/* $Id: ctalk.h,v 1.21 2019/11/11 20:21:51 rkiesling Exp $ -*-Fundamental-*- */
+/* $Id: ctalk.h,v 1.2 2020/09/19 01:08:26 rkiesling Exp $ -*-Fundamental-*- */
 
 /*
   This file is part of Ctalk.
-  Copyright © 2005-2019 Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2005-2020 Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
 
@@ -179,6 +179,7 @@
 #warning __SIZEOF_INT__ not defined.  You might need to check your compiler documentation.
 #define INTBUFSIZE 5
 #endif
+#define BOOLBUFSIZE INTBUFSIZE
 
 #ifdef __SIZEOF_LONG_LONG__
 #define LLBUFSIZE __SIZEOF_LONG_LONG__ + 1
@@ -517,6 +518,7 @@ typedef MESSAGE ** MESSAGE_STACK;
                        is_struct_member(s) || \
                        is_gnuc_builtin_type (s) || \
                        is_apple_ppc_math_builtin (s) || \
+		       is_darwin_ctype_fn (s) || \
                        is_fn_param(s))
 #  else /* __ppc__ */    /* (i.e., __i386__) */
 #  define IS_DEFINED_LABEL(s) (is_c_keyword(s) || \
@@ -531,6 +533,7 @@ typedef MESSAGE ** MESSAGE_STACK;
                        is_struct_member(s) || \
                        is_gnuc_builtin_type (s) || \
                        is_apple_i386_math_builtin (s) || \
+		       is_darwin_ctype_fn (s) || \
                        is_fn_param(s))
 #  endif
 # else /* __APPLE__ */
@@ -619,7 +622,7 @@ typedef MESSAGE ** MESSAGE_STACK;
 #define CHAR_CONSTANT_RETURN_FN "__ctalkRegisterCharReturn"
 #define FLOAT_CONSTANT_RETURN_FN "__ctalkRegisterFloatReturn"
 #define LLINT_CONSTANT_RETURN_FN "__ctalkRegisterLongLongIntReturn"
-#define OBJECT_TOK_RETURN_FN	 "__ctalk_get_object"
+#define OBJECT_TOK_RETURN_FN	 "__ctalk_get_object_return"
 #define CVAR_TOK_RETURN_FN	 "__ctalkSaveCVARResource"
 #define CVAR_ARRAY_TOK_RETURN_FN "__ctalkSaveCVARArrayResource"
 #define OBJECT_MBR_RETURN_FN	 "__ctalkSaveOBJECTMemberResource"
@@ -640,6 +643,7 @@ typedef MESSAGE ** MESSAGE_STACK;
 #define TMPL_CVAR_ACCESSOR_FN "__ctalkGetTemplateCallerCVAR"
 #define TMPL_CVAR_CLEANUP_FN  "__ctalkTemplateCallerCVARCleanup"
 #define ARGBLK_LABEL "__ctblk"
+#define DELETE_CVARS_CALL "\ndelete_method_arg_cvars ();\n"
 
 #define DELETE_MESSAGES(__s,__i,__l) \
    while (++__i <= __l) {\
@@ -873,7 +877,7 @@ int split_args_argstr (MESSAGE_STACK, int, int, ARGSTR [], int *);
 int split_args_idx (MESSAGE_STACK, int, int, int *, int *);
 char *stdarg_fmt_arg_expr (MESSAGE_STACK, int, METHOD *, char *);
 char *writable_arg_rt_arg_expr (MESSAGE_STACK, int, int, char *);
-char *format_method_arg_accessor (int, char *, char *);
+char *format_method_arg_accessor (int, char *, bool, char *);
 
 /* argblk.c */
 int argblk_end (MESSAGE_STACK, int);
@@ -1014,8 +1018,6 @@ int goto_stmt (MESSAGE_STACK, int);
 char *handle_rt_prefix_rexpr (MESSAGE_STACK, int, int, int, char *);
 
 /* cparse.c */
-MESSAGE *c_message_at (int);
-int c_message_push (MESSAGE *);
 MESSAGE_STACK c_message_stack (void);
 int escaped_line_end (MESSAGE **, int, int);
 int eval_constant_expr (MESSAGE_STACK, int, int *, VAL *);
@@ -1032,7 +1034,6 @@ int fn_has_gnu_attribute (MESSAGE_STACK, int);
 int fn_is_declaration (MESSAGE_STACK, int);
 int fn_param_cvars (MESSAGE_STACK, int, int);
 int fn_params (MESSAGE_STACK, int, int);
-int get_c_message_ptr (void);
 int get_cvar_attrs (void);
 PARAMCVAR get_param_n (int );
 int get_param_ptr (void);
@@ -1159,6 +1160,7 @@ int cvar_struct_ptr_is_arg_expr_rcvr (MESSAGE_STACK, int);
 char *format_fn_call_method_expr_block (MESSAGE_STACK, int, int *, char *);
 void eval_params_inline (MESSAGE_STACK, int, int, int, CFUNC *,
      char *);
+char *format_fn_call_method_expr_block_cond (MESSAGE_STACK, int, int *, char *);
 
 /* enum.c */
 CVAR *enum_decl (MESSAGE_STACK, int);
@@ -1209,6 +1211,12 @@ void self_outside_method_error (MESSAGE_STACK, int);
 void object_follows_a_constant_warning (MESSAGE_STACK, int, int);
 void unknown_format_conversion_warning_ms (MSINFO *);
 void unknown_format_conversion_warning (MESSAGE_STACK, int);
+void self_instvar_expr_unknown_label (MESSAGE_STACK, int, int);
+void instancevar_wo_rcvr_warning (MESSAGE_STACK, int, bool, int);
+char *collect_errmsg_expr (MESSAGE_STACK, int);
+void undefined_blk_method_warning (MESSAGE *, MESSAGE *, MESSAGE *);
+OBJECT *resolve_rcvr_is_undefined (MESSAGE *, MESSAGE *);
+
 
 /* error.c */
 #ifdef DEBUG_CODE
@@ -1359,14 +1367,13 @@ int __ctalkAliasReceiver (OBJECT *, OBJECT *);
 int ascii_bin_to_dec (char *);
 
 /* lib/bitmap.c */
-void *__ctalkX11CreateGC (int);
+void *__ctalkX11CreateGC (void *, int);
 int __ctalkX11CreatePaneBuffer (OBJECT *, int, int, int);
-int __ctalkX11CreatePixmap (int, int, int, int);
+int __ctalkX11CreatePixmap (void *, int, int, int, int);
 void __ctalkX11DeletePixmap (int id);
 void __ctalkX11FreeGC (unsigned long int ptr);
 int __ctalkX11FreePaneBuffer (OBJECT *);
 int __ctalkX11ResizePaneBuffer (OBJECT *, int, int);
-int __ctalkX11ClearBufferRectangle (OBJECT *, int, int, int, int);
 int __get_pane_buffers (OBJECT *, int *, int *);
 
 /* lib/bnamecmp.c */
@@ -1418,6 +1425,8 @@ long long int atoll (const char *);
 
 /* lib/ctdtoa.c */
 char *__ctalkDoubleToASCII (double, char *);
+char *__ctalkFloatToASCII (float , char *);
+char* __ctalkLongDoubleToASCII (long double, char *);
 
 /* lib/ctitoa.c */
 void __reverse(char *);
@@ -1426,7 +1435,12 @@ char *ctitoa (int, char *);
 char __ctalkDecimalIntegerToChar (int, char *);
 
 /* lib/ctlltoa.c */
-void __ctalkDecimalLongLongToASCII (long long int, char *);
+char *__ctalkLongLongToDecimalASCII (long long int, char *);
+char *__ctalkLongLongToHexASCII (long long int, char *, bool);
+
+/* lib/ctltoa.c */
+char *__ctalkLongToDecimalASCII (long int, char *);
+char *__ctalkLongToHexASCII (long int, char *, bool);
 
 /* lib/ctoobj.c */
 OBJECT *__ctalkCCharPtrToObj (char *);
@@ -1477,6 +1491,17 @@ int __edittext_insert_at_point (OBJECT *, int, int, int);
 int __edittext_get_primary_selection (OBJECT *, void **, int *);
 int __edittext_insert_str_at_point (OBJECT *, char *);
 int __edittext_set_selection_owner (OBJECT *);
+int __edittext_insert_str_at_click (OBJECT *, int, int, char *);
+int __edittext_row_col_from_mark (OBJECT *, int, int, int *, int *);
+int __edittext_scroll_down (OBJECT *);
+int __edittext_scroll_up (OBJECT *);
+int __edittext_recenter (OBJECT *);
+unsigned int __edittext_xk_keysym (int, int, int);
+int __entrytext_get_primary_selection (OBJECT *, void **, int *);
+int __entrytext_set_selection_owner (void *, unsigned int, unsigned long int);
+int __entrytext_update_selection (void *, unsigned int, unsigned long int,
+    				  char *);
+int __entrytext_send_selection (void *, void *);				  
 
 /* lib/err_out.c */
 void _error_out (char *);
@@ -1552,6 +1577,8 @@ int __ctalkX11TextWidth (char *xlfd, char *text);
 
 /* lib/fsecure.c */
 FILE *xfopen (const char *, const char *);
+int xfprintf (FILE *, const char *, ...);
+int xfscanf (FILE *, const char *, ...);
 
 /* lib/ftlib.c */
 int __ctalkGLXUseFTFont (char *);
@@ -1561,7 +1588,7 @@ void __ctalkGLXPixelHeightFT (int);
 void __ctalkGLXNamedColor (char *, float *, float *, float *);
 bool __ctalkUsingFtFont (void);
 double __ctalkGLXTextWidthFT (char *);
-void __ctalkGLXalphaFT (float);
+void __ctalkGLXAlphaFT (float);
 
 /* lib/glewlib.c */
 int __ctalkInitGLEW (void);
@@ -1642,7 +1669,7 @@ int __ctalkGLXSwapControl (int);
 float __ctalkGLXFrameRate (void);
 
 /* lib/guiclearrectangle.c */
-int __ctalkX11ClearRectangleBasic (int, unsigned long int, int, int, int, int);
+int __ctalkX11ClearRectangleBasic (void *, int, unsigned long int, int, int, int, int);
 int __ctalkX11PaneClearRectangle (OBJECT *self_object, int x, int y,
 				   int width, int height);
 int __ctalkGUIPaneClearRectangle (OBJECT *self_object, int x, int y,
@@ -1654,27 +1681,33 @@ int __ctalkGUIPaneClearWindow (OBJECT *);
 /* lib/guidrawline.c */
 int __ctalkGUIPaneDrawLine (OBJECT *, OBJECT *, OBJECT *);
 int __ctalkX11PaneDrawLine (OBJECT *, OBJECT *, OBJECT *);
-int __ctalkGUIPaneDrawLineBasic (int, unsigned long int, int, int, int, int,
+int __ctalkGUIPaneDrawLineBasic (void *, int, unsigned long int, int, int, int, int,
 				 int, int, char *);
-int __ctalkX11PaneDrawLineBasic (int, unsigned long int, int, int, int, int,
+int __ctalkX11PaneDrawLineBasic (void *, int, unsigned long int, int, int, int, int,
 				 int, int, char *);
 
 
 /* lib/guidrawpoint.c */
 int __ctalkGUIPaneDrawPoint (OBJECT *, OBJECT *, OBJECT *);
 int __ctalkX11PaneDrawPoint (OBJECT *, OBJECT *, OBJECT *);
-int __ctalkX11PaneDrawPointBasic (int, unsigned long int, int, int, int, int,
+int __ctalkX11PaneDrawPointBasic (void *, int, unsigned long int, int, int, int, int,
 				  char *);
 
 
 /* lib/guidrawrectangle.c */
 int __ctalkGUIPaneDrawRectangle (OBJECT *, OBJECT *, OBJECT *, int);
 int __ctalkX11PaneDrawRectangle (OBJECT *, OBJECT *, OBJECT *, int);
+int __ctalkGUIPaneDrawRoundedRectangle (OBJECT *, OBJECT *, OBJECT *, int, int);
+int __ctalkX11PaneDrawRoundedRectangle (OBJECT *, OBJECT *, OBJECT *, int, int);
+int __ctalkX11PaneDrawRectangleBasic (void *, int, unsigned long int,
+				  int, int, int, int, int, int, char *, int);
+int __ctalkGUIPaneDrawRectangleBasic (void *, int, unsigned long int,
+				  int, int, int, int, int, int, char *, int);
 
 /* lib/guiputstr.c */
 int __ctalkX11PanePutStr (OBJECT *, int, int, char *);
 int __ctalkGUIPanePutStr (OBJECT *, int, int, char *);
-int __ctalkX11PanePutStrBasic (int, unsigned long int, int, int, char *);
+int __ctalkX11PanePutStrBasic (void *, int, unsigned long int, int, int, char *);
 
 /* lib/guiputxstr.c */
 int __ctalkX11PanePutTransformedStr (OBJECT *, int, int, char *);
@@ -1687,17 +1720,17 @@ int __ctalkGUIPaneRefresh (OBJECT *,
 /* lib/guisetbackground.c */
 int __ctalkX11SetBackground (OBJECT *, char *);
 int __ctalkGUISetBackground (OBJECT *, char *);
-int __ctalkX11SetBackgroundBasic (int, unsigned long int, char *);
+int __ctalkX11SetBackgroundBasic (void *, int, unsigned long int, char *);
 
-/* lib/guisetbackground.c */
-int __ctalkX11SetForegroundBasic (int, unsigned long int, char *);
+/* lib/guisetforeground.c */
+int __ctalkX11SetForegroundBasic (void *,int, unsigned long int, char *);
 
 /* lib/guitext.c */
-int __ctalkX11TextFromData (int, unsigned long int, char *);
+int __ctalkX11TextFromData (void *, int, unsigned long int, char *);
 
 /* lib/guixpm.c */
-int __ctalkX11XPMFromData (int, unsigned long int, int, int, char **);
-int __ctalkX11XPMInfo (char **, int *, int *, int *, int *);
+int __ctalkX11XPMFromData (void *, int, unsigned long int, int, int, char **);
+int __ctalkX11XPMInfo (void *, char **, int *, int *, int *, int *);
 
 /* lib/infiles.c */
 int is_input_file (char *);
@@ -1774,6 +1807,9 @@ int is_gnu_extension_keyword (const char *);
 int is_gnuc_builtin_type (const char *);
 int is_macro_keyword (const char *);
 int is_OBJECT_member (const char *);
+#ifdef __APPLE__
+bool is_darwin_ctype_fn (const char *);
+#endif
 
 /* lib/message.c */
 MESSAGE *dup_message (MESSAGE *);
@@ -1881,7 +1917,7 @@ PARAM *new_param (void);
 TAGPARAM *new_tagparam (void);
 
 /* lib/pattern.c */
-int is_printf_fmt (char *);
+int is_printf_fmt (char *, char *);
 
 /* lib/pattypes.c */
 int is_first_ctrlblk_pred_tok (MESSAGE_STACK, int, int);
@@ -1932,14 +1968,13 @@ char *elide_cvartab_struct_alias_2 (char *, char *);
 #ifdef __APPLE__
 bool is_apple_inline_chk (MSINFO *ms);
 #endif
+bool is_OBJECT_vartab_deref_cast (MESSAGE_STACK, int, int *);
 
 /* lib/radixof.c */
 RADIX radix_of (char *);
 int __ctalkCharRadixToDecimal (char *);
 char *__ctalkCharRadixToDecimalASCII (char *);
 char *__ctalkIntRadixToDecimalASCII (char *);
-char *__ctalkLongLongRadixToDecimal (char *);
-char *__ctalkLongLongToDecimalASCII (char *, char *);
 char   *__ctalkCharRadixToCharASCII (char *);
 char   __ctalkCharRadixToChar (char *);
 int __ctalkIntRadixToDecimal (char *);
@@ -2002,6 +2037,8 @@ int __ctalkBlockCallerFrame (void);
 METHOD *__ctalkBlockCallerMethod (void);
 RT_FN *__ctalkBlockCallerFn (void);
 OBJECT *argblk_rcvr_object (MESSAGE_STACK, int);
+void subexpr_conditional (EXPR_PARSER *, int, int, int);
+void question_conditional (EXPR_PARSER *, int);
 
 /* lib/rt_args.c */
 int __add_arg_object_entry_frame (METHOD *, OBJECT *);
@@ -2076,6 +2113,7 @@ bool is_cvar (char *);
 void write_val_CVAR (OBJECT *, METHOD *);
 void unref_vartab_var (int *, CVAR *, OBJECT *);
 OBJECT *OBJECT_mbr_class (OBJECT *, char *);
+void cvar_for_OBJECT_deref_typecast (MESSAGE_STACK, int, int, int);
 
 /* lib/rt_expr.c */
 int __ctalkMatchParen (MESSAGE_STACK, int, int);
@@ -2148,6 +2186,9 @@ char *math_op_does_not_understand_error (MESSAGE_STACK, int, int, int, int);
 void strtol_error (int, char *, char *);
 char *vartab_var_basename (char *);
 void __ctalkRegisterUserFunctionName (char *);
+void self_enclosing_class_message_warning (OBJECT *, char *, char *);
+void unresolved_instance_variable_warning (MESSAGE_STACK, int, int,
+					   int, char *);
 
 /* lib/sconvchk.c */
 int chkatoi (const char *);
@@ -2171,7 +2212,6 @@ OBJECT *__ctalkLibcFnWithMethodVarArgs (int (*)(), METHOD *, char *);
 int __call_fn_w_args_fmtarg0 (char *, METHOD *, STDARG_CALL_INFO *);
 int __call_fn_w_args_fmtarg1 (char *, METHOD *, STDARG_CALL_INFO *);
 void args_to_method_args (METHOD *, STDARG_CALL_INFO *);
-int __rt_check_stdargs (void);
 int tokenize_fmt (char *);
 
 /* lib/rtinfo.c */
@@ -2287,7 +2327,9 @@ int __ctalkRegisterExtraObjectInternal (OBJECT *, METHOD *m);
 int __ctalkRegisterUserObject (OBJECT *);
 OBJECT *__ctalkReplaceVarEntry (VARENTRY *, OBJECT *);
 void __ctalkSetObjectScope (OBJECT *, int);
-void __ctalkSetObjectAttr (OBJECT *__o, int attr);
+void __ctalkSetObjectAttr (OBJECT *__o, unsigned int attr);
+void __ctalkObjectAttrAnd (OBJECT *__o, unsigned int attr);
+void __ctalkObjectAttrOr (OBJECT *__o, unsigned int attr);
 int __ctalk_remove_object (OBJECT *o);
 OBJECT *__ctalk_self_internal (void);
 OBJECT *__ctalk_self_internal_value (void);
@@ -2296,6 +2338,7 @@ void __ctalk_set_local (OBJECT *);
 void __delete_operand_result (OBJREF_T, OBJREF_T);
 void delete_extra_local_objects (EXPR_PARSER *);
 void save_local_objects_to_extra (void);
+void save_local_objects_to_extra_b (void);
 void delete_varentry (VARENTRY *);
 void reset_varentry_i (VARENTRY *);
 OBJECT *match_instancevar (OBJECT *, OBJECT *);
@@ -2371,6 +2414,8 @@ int __ctalkBackgroundMethodObjectMessage2Args (OBJECT *, OBJECT *, OBJECT *,
        					      OBJECT *);
 OBJECT *__ctalk_method_from_object (OBJECT *, OBJECT *(*)(), METHOD *, int,
        				   	   int *);
+OBJECT *__ctalk_method_from_object_2_args (OBJECT *, OBJECT *(*)(),
+       METHOD *, int, int *);
 void delete_processes (void);
 int __ctalkProcessWait (int, int *, int *, int *);
 
@@ -2449,7 +2494,6 @@ void *__xrealloc (void **, int);
 void __ctalkFree(void *);
 
 /* lib/sformat.c */
-char *__ctalkCFmtToCtalkFmt (char *, char *);
 void __ctalkObjValPtr (OBJECT *, void *);
 void *__ctalkStrToPtr (char *);
 char *__scalar_fmt_conv (char *, char *, OBJECT *);
@@ -2474,6 +2518,7 @@ char *which (char *);
 int __ctalkIsDir (char *);
 bool is_shell_script (char *);
 bool file_has_exec_permissions (char *);
+char *__ctalkExpandPath (char *, char *);
 
 /* lib/strcatx.c */
 int strcatx (char *, ...);
@@ -2598,11 +2643,11 @@ int __ctalkNMatches (void);
 void __ctalkMatchPrintToks (bool);
 
 /* lib/xcircle.c */
-int __ctalkX11PaneDrawCircleBasic (int, unsigned long int, int, int, int, int, int, int, char *, char *);
-int __ctalkGUIPaneDrawCircleBasic (int, unsigned long int, int, int, int, int, int, int, char *, char *);
+int __ctalkX11PaneDrawCircleBasic (void *, int, unsigned long int, int, int, int, int, int, int, char *, char *);
+int __ctalkGUIPaneDrawCircleBasic (void *, int, unsigned long int, int, int, int, int, int, int, char *, char *);
 
 /* lib/xcopypixmap.c */
-int __ctalkX11CopyPixmapBasic (int, unsigned long int,
+int __ctalkX11CopyPixmapBasic (void *, int, unsigned long int,
                                int, int, int, int, int,
 			       int, int);
 
@@ -2612,18 +2657,24 @@ int __ctalkX11ParseGeometry (char *, int *, int *, int *, int *);
 int __ctalkX11SetSizeHints (int, int, int, int, int);
 void __ctalkX11GetSizeHints (int, int *, int *, int *, int *, int *, int *);
 void __ctalkX11FreeSizeHints (void);
+void __ctalkX11SubWindowGeometry (OBJECT *, char *, int *, int *, int *, int *);
+void __ctalkX11WxHGeometry (int, int, char *, int *, int *, int *, int *);
 
 /* lib/xlibfont.c */
-int load_xlib_fonts_internal (char *);
-void clear_font_descriptors (void);
-int __ctalkSelectXFontFace (int, unsigned long int, int);
+int load_xlib_fonts_internal (void *, char *);
+int load_xlib_fonts_internal_1t (void *, char *);
+void clear_font_descriptors (void *);
+int __ctalkSelectXFontFace (void *, int, unsigned long int, int);
+int __ctalkX11UseFontBasic (void *, int, unsigned long int, char *);
+int __ctalkX11UseFontBasic (void *, int, unsigned long int, char *);
 
 /* lib/xrender.c */
 void __ctalkX11UseXRender (bool);
 bool __ctalkX11UsingXRender (void);
 
 /* lib/xresource.c */
-int __ctalkX11SetResource (int, char *, char *);
+int __ctalkX11SetResource (void *, int, char *, char *);
+OBJECT *__ctalkPaneResource (OBJECT *, char *, bool);
 
 /* lib/xftlib.c */
 int __ctalkXftInitLib (void);
@@ -2638,7 +2689,7 @@ int __ctalkXftRevision (void);
 int __ctalkXftInitialized (void);
 char *__ctalkXftSelectedFontDescriptor (void);
 char *__xft_selected_pattern_internal (void);
-int __ctalkXftGetStringDimensions (char *, int *, int *, int *, int *);
+int __ctalkXftGetStringDimensions (char *, int *, int *, int *, int *, int *);
 void __ctalkXftSelectFont (char *, int, int, int, double);
 void __ctalkXftSelectFontFromXLFD (char *);
 void __ctalkXftSelectFontFromFontConfig (char *font_config_str);
@@ -2668,11 +2719,21 @@ int load_ft_font_faces_internal (char *, double,
                                  unsigned short int,
 				 unsigned short int,
                                  unsigned short int);
+void __ctalkXftShowFontLoad (int lvl);
+int __ctalkXftVerbosity (void);
+char *__ctalkXftDescStr (void);
+char *__ctalkXftRequestedFamily (void);
+int __ctalkXftRequestedPointSize (void);
+int __ctalkXftRequestedSlant (void);
+int __ctalkXftRequestedWeight (void);
+int __ctalkXftRequestedDPI (void);
+bool __ctalkXftIsMonospace (void);
+
 
 /* lib/x11ksym.c */
 int ascii_shift_keysym (unsigned long int);
 int ascii_ctrl_keysym (unsigned long int);
-int get_x11_keysym (int, int, int);
+int get_x11_keysym (int, int, bool);
 int get_x11_keysym_2 (void *, int, int, int);
 int __ctalkGetX11KeySym (int, int, int);
 
@@ -2685,7 +2746,7 @@ int __ctalkCreateX11MainWindow (OBJECT *);
 int __ctalkCreateX11SubWindow (OBJECT *, OBJECT *);
 int __ctalkMapX11Window (OBJECT *);
 int __ctalkOpenX11InputClient (OBJECT *);
-int __ctalkX11ResizePixmap (int, int, unsigned long int, int, int, int, int, int, 
+int __ctalkX11ResizePixmap (void *, int, int, unsigned long int, int, int, int, int, int, 
     int *);
 int __ctalkX11ResizeWindow (OBJECT *, int, int, int);
 int __ctalkX11SetBackground (OBJECT *, char *);
@@ -2705,8 +2766,6 @@ int __ctalkX11Colormap (void);
 */
 void *__ctalkX11Display (void);
 int __ctalkX11SetWMNameProp (OBJECT *, char *);
-int __ctalkX11UseFont (OBJECT *);
-int __ctalkX11UseFontBasic (int, unsigned long int, char *);
 int __ctalkX11UseCursor (OBJECT *, OBJECT *);
 void *__ctalkX11NextInputEvent (OBJECT *);
 int __ctalkX11InputClient (OBJECT *, int, int, int); 
@@ -2716,6 +2775,7 @@ OBJECT *__x11_pane_win_id_value_object (OBJECT *);
 int __ctalkX11MakeEvent (OBJECT *, OBJECT *);
 int __ctalkX11DisplayHeight (void);
 int __ctalkX11DisplayWidth (void);
+int __client_pid (void);
 #ifdef HAVE_XRENDER_H
 bool xrender_version_check (void);
 #endif /* #ifdef HAVE_XRENDER_H */
@@ -2725,6 +2785,19 @@ int sizeof_int (void);
 #else  /* #if ! defined (DJGPP) && ! defined (WITHOUT_X11) */
 void x_support_error (void);
 #endif /* #if ! defined (DJGPP) && ! defined (WITHOUT_X11) */
+int read_event (int *, unsigned int *, unsigned int [], int);
+
+/* lib/xdialog.c */
+int __ctalkX11CreateDialogWindow (OBJECT *);
+int __ctalkCloseX11DialogPane (OBJECT *);
+extern char **__ctalkIconXPM (int);
+extern char **__ctalkEntryIconXPM (int);
+extern void __enable_dialog (OBJECT *);
+#if ! defined (DJGPP) && ! defined (WITHOUT_X11)
+Display *dialog_dpy (void);
+#else
+void *dialog_dpy (void);
+#endif
 
 /* libdeps.c */
 int cache_ctpp_output_file (char *);
@@ -2820,7 +2893,7 @@ void save_method_object (OBJECT *);
 void save_method_local_objects (void);
 void save_method_local_cvars (void);
 int store_arg_object (METHOD *, OBJECT *);
-int method_arg_accessor_fn (MESSAGE_STACK, int, int, OBJECT_CONTEXT);
+int method_arg_accessor_fn (MESSAGE_STACK, int, int, OBJECT_CONTEXT, bool);
 int method_arg_accessor_fn_c (MESSAGE_STACK, int, int);
 int method_arg_rt_expr (MESSAGE_STACK, int);
 int method_fn_arg_rt_expr (MESSAGE_STACK, int);
@@ -2890,6 +2963,7 @@ void add_user_prototype (MESSAGE_STACK, int, int, int, int);
 void cleanup_user_prototypes (void);
 void init_method_proto (void);
 bool is_proto_selector (char *);
+bool is_method_proto_name (char *);
 
 /* objderef.c */
 bool objderef_check_expr (MESSAGE_STACK, int, int *, int);
@@ -2941,6 +3015,7 @@ int primitive_arg_shadows_c_symbol (char *);
 int is_self_expr_as_fn_lvalue (MESSAGE *, int, int, int);
 int is_self_expr_as_C_expr_lvalue (MESSAGE *, int, int, int);
 OBJECT *create_arg_EXPR_object (ARGSTR *);
+OBJECT *create_arg_EXPR_object_2 (ARGSTR *);
 OBJECT *create_arg_CFUNCTION_object (char *);
 bool primitive_arg_shadows_method_parameter (char *);
 
@@ -2963,6 +3038,7 @@ int match_c_type (CVAR *, CVAR *);
 char *basic_class_from_fmt_arg (MESSAGE_STACK, int);
 char *c_lval_class (MESSAGE_STACK, int);
 bool have_unknown_c_type (void);
+int arg_is_question_conditional_predicate (MSINFO *ms);
 
 /* op.c */
 OP_CONTEXT op_context (MESSAGE_STACK, int);
@@ -3092,7 +3168,7 @@ int sizeof_arg_needs_rt_eval (MESSAGE_STACK, int);
 int unary_op_attributes (MESSAGE_STACK, int, int *, int *);
 
 /* preclass.c */
-void save_class_init_info (char *, char *);
+void save_class_init_info (char *, char *, char *);
 void save_instance_var_init_info (char *, char *, char *, char *);
 void save_class_var_init_info (char *, char *, char *, char *);
 void load_cached_class (char *);
@@ -3174,7 +3250,6 @@ int class_variable_expression (MESSAGE_STACK, int);
 int default_method (MSINFO *);
 int expr_has_objects (MESSAGE_STACK, int, int);
 int fn_output_context (MESSAGE_STACK, int, OBJECT *, METHOD *, int, int);
-int is_expr_obj (MESSAGE *);
 OBJECT_CONTEXT object_context (MESSAGE_STACK, int);
 OBJECT_CONTEXT object_context_ms (MSINFO *);
 int self_class_or_instance_variable_lookahead (MESSAGE_STACK, int);
@@ -3188,9 +3263,10 @@ int terminal_printf_arg (MESSAGE_STACK, int);
 int is_single_token_method_param (MESSAGE_STACK, int, METHOD *);
 int lval_idx_from_arg_start (MESSAGE_STACK, int);
 int rval_ptr_context_translate (MSINFO *, int);
-
 int postfix_method_expr_a (MESSAGE_STACK, int);
 bool obj_rcvr_after_opening_parens (MESSAGE_STACK, int);
+bool is_cond_pred (MSINFO *ms);
+
 
 /* rt_expr.c */
 void cleanup_expr_parser (void);
@@ -3226,6 +3302,8 @@ void handle_self_conditional_fmt_arg (MSINFO *);
 int is_method_param_name (char *);
 int rte_expr_contains_c_fn_arg_call (MESSAGE_STACK messages,
 					    int start, int end);
+int rt_fn_arg_cond_expr (MSINFO *);
+
 
 /* rt_time.c */
 int __ctalkUTCTime (void);
@@ -3296,7 +3374,10 @@ void delete_symbol (SYMBOL *);
 int is_typecast_expr (MESSAGE_STACK, int, int *);
 char *basic_class_from_typecast (MESSAGE_STACK, int, int);
 bool is_class_typecast (MSINFO *, int);
+bool is_class_typecast_2 (MSINFO *, int);
 bool has_typecast_form (MSINFO *ms, int);
+int class_cast_receiver_scan (MESSAGE_STACK messages, int, int, int *,
+			      int *deref_prefix_op_idx);
 
 /* typecheck.c */
 bool is_unary_minus (MESSAGE_STACK, int);

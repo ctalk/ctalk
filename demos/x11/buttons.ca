@@ -1,0 +1,145 @@
+/* -*-c-*- */
+
+/*
+ *  buttons.ca - X11ButtonPane demonstration.
+ *
+ *    To build, use this command line:
+ *
+ *      ctcc -x buttons.ca -o buttons
+ *
+ *    There are several options that control the buttons' appearance.
+ *    Some of them use the #defines below.  Consult the X11ButtonPane
+ *    section in the Ctalk language reference for a full description
+ *    of the X11ButtonPane class.
+ */
+
+
+#include <ctalk/ctalkdefs.h>
+
+/* Uncomment this #define to use X bitmap fonts. */
+/* #define XFONTS */
+
+/* Also, uncomment this to draw a multiline label. */
+/* #define MULTILINE */
+
+/* Uncomment if you want the buttons to be highlighted with wider
+   borders and a bold label (if the font supports it). */
+/* #define BOLD_HILITE */
+
+/* See the X11FreeTypeFont section of the the Ctalk reference. */
+#define FTFONT_BOLD   200
+#define FTFONT_MEDIUM 100
+
+int main (void) {
+  X11Pane new mainWindow;
+  X11PaneDispatcher new dispatcher;
+  X11ButtonPane new lbutton;
+  X11ButtonPane new rbutton;
+  X11LabelPane new label;
+  InputEvent new e;
+
+  mainWindow backgroundColor = "blue";
+
+  label canFocus = false;
+  label resources replaceAt "borderWidth", 0;
+
+  label resources replaceAt "backgroundColor", "blue";
+  label resources replaceAt "foregroundColor", "blue";
+  label resources replaceAt "textColor", "white";
+  lbutton resources replaceAt "backgroundColor", "blue";
+  rbutton resources replaceAt "backgroundColor", "blue";
+  lbutton resources replaceAt "ftFont", "sans serif-10";
+  rbutton resources replaceAt "ftFont", "sans serif-10";
+
+  mainWindow initialize 255, 200;
+  mainWindow inputStream eventMask = 
+    EXPOSE|ENTERWINDOWNOTIFY|LEAVEWINDOWNOTIFY|BUTTONPRESS|BUTTONRELEASE|KEYPRESS|KEYRELEASE|WINDELETE|MOTIONNOTIFY;
+  dispatcher attachTo mainWindow;
+  lbutton attachTo dispatcher, "90x50+25+100";
+  rbutton attachTo dispatcher, "90x50+135+100";
+  label attachTo dispatcher, "147x80+44+15";
+
+  mainWindow map;
+  mainWindow raiseWindow;
+
+  mainWindow openEventStream;
+
+  mainWindow setWMTitle "X11ButtonPane Demo";
+
+#ifndef XFONTS
+  /*
+   * This is the recommended way to set up fonts for each widget.
+   */
+  label ftFontVar initFontLib;
+  label ftFont "DejaVu Sans", 0, FTFONT_BOLD, 0, 12.0;
+  label ftFontVar saveSelectedFont;
+  lbutton ftFont "DejaVu Sans", 0, FTFONT_MEDIUM, 0, 10.0;
+  lbutton ftFontVar saveSelectedFont;
+  rbutton ftFont "DejaVu Sans", 0, FTFONT_MEDIUM, 0, 10.0;
+  rbutton ftFontVar saveSelectedFont;
+#else
+  lbutton label font "fixed";
+#endif  
+
+  label multiLine "X11ButtonPane\nDemo";
+
+#ifndef MULTILINE
+  lbutton label text "Left";
+  rbutton label text "Right";
+#else
+  lbutton label multiLine "Click\nHere";
+  rbutton label multiLine "Click\nHere, Too";
+#endif
+
+#ifdef BOLD_HILITE
+  lbutton label resources replaceAt "highlightForegroundColor",
+    (lbutton resources at "foregroundColor");
+  rbutton label resources replaceAt "highlightForegroundColor",
+    (rbutton resources at "foregroundColor");
+  lbutton label resources replaceAt "highlightBorderWidth", 2;
+  rbutton label resources replaceAt "highlightBorderWidth", 2;
+  rbutton label resources replaceAt "highlightTextBold", true;
+  lbutton label resources replaceAt "highlightTextBold", true;
+#endif  
+
+  lbutton draw;
+  lbutton refresh;
+  rbutton draw;
+  rbutton refresh;
+  label draw;
+  label refresh;
+
+  while (TRUE) {
+    mainWindow inputStream queueInput;
+    if (mainWindow inputStream eventPending) {
+      e become mainWindow inputStream inputQueue unshift;
+
+      mainWindow subPaneNotify e;
+
+      switch (e eventClass value)
+	{
+	case EXPOSE:
+	  lbutton subPaneExpose (lbutton, e);
+	  rbutton subPaneExpose (rbutton, e);
+	  label subPaneExpose (label, e);
+	  break;
+	case WINDELETE:
+ 	  mainWindow deleteAndClose;
+	  exit (0);
+	  break;
+	default:
+	  if (lbutton haveClick) {
+	    printf ("left button!\n");
+	    lbutton clearClick;
+	  } else if (rbutton haveClick) {
+	    printf ("right button!\n");
+	    rbutton clearClick;
+	  }
+	  break;
+	}
+    } else {
+      usleep (1000);
+    }
+  }
+
+}

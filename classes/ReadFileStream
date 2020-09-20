@@ -1,8 +1,8 @@
-/* $Id: ReadFileStream,v 1.2 2019/10/27 00:06:11 rkiesling Exp $ -*-c-*-*/
+/* $Id: ReadFileStream,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
-  Copyright © 2005 - 2018  Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2005 - 2019  Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
 
@@ -121,8 +121,7 @@ ReadFileStream instanceMethod readChar (void) {
   if (c == EOF && !self streamEof) {
     readCharException raiseException NULL;
   } else {
-    __ctalkDecimalLongLongToASCII((long long int)ftell (self_stream), 
-				  self_pos -> __o_value);
+    LLVAL(self_pos -> __o_value) = (long long int)ftell (self_stream);
   }
   return c;
 }
@@ -162,8 +161,7 @@ ReadFileStream instanceMethod readLine (void) {
   if ((r = fgets (buf, MAXMSG, self_stream)) == NULL) {
     if (self streamEof) {
       FILEEOF(buf);
-      __ctalkDecimalLongLongToASCII((long long int)ftell (self_stream), 
-				    self_pos -> __o_value);
+      LLVAL(self_pos -> __o_value) = (long long int)ftell (self_stream);
     } else {
       readLineException raiseException NULL;
     }
@@ -223,8 +221,7 @@ ReadFileStream instanceMethod readAll (void) {
 	!= input_size) {
       readAllException raiseException NULL;
     } else {
-      __ctalkDecimalLongLongToASCII((long long int)ftell (self_stream), 
-				    self_pos -> __o_value);
+      LLVAL(self_pos -> __o_value) = (long long)ftell (self_stream);
     }
 #endif
   }
@@ -273,8 +270,7 @@ ReadFileStream instanceMethod readRec (Integer __recLength) {
       != input_size) {
     readRecException raiseException NULL;
   } else {
-    __ctalkDecimalLongLongToASCII((long long int)ftell (self_stream), 
-				  self_pos -> __o_value);
+    LLVAL(self_pos -> __o_value) = (long long)ftell (self_stream);
   }
 #endif
   
@@ -327,8 +323,7 @@ ReadFileStream instanceMethod readVec (LongInteger __recLength) {
       != input_size) {
     readRecException raiseException NULL;
   } else {
-    __ctalkDecimalLongLongToASCII((long long int)ftell (self_stream), 
-				  self_pos -> __o_value);
+    LLVAL(self_pos -> __o_value) = (long long)ftell (self_stream);
   }
 #endif
   
@@ -379,7 +374,6 @@ ReadFileStream instanceMethod readFormat (char *fmt, ...) {
   OBJECT *__fmt_arg_value, *result_object;
   ARG *__save_fmt_arg, *__tmp_fmt_arg, *__tmp_stream_arg;
   char *__argbuf;
-  char __ctalk_fmt[MAXMSG];
   int __i_arg;
   if ((self_method = 
        __ctalkGetInstanceMethodByFn (__ctalkRtReceiverObject (),
@@ -392,14 +386,12 @@ ReadFileStream instanceMethod readFormat (char *fmt, ...) {
   
   __fmt_arg_value = fmt value;
 
-  __ctalkCPrintFmtToCtalkFmt (__fmt_arg_value -> __o_value, __ctalk_fmt);
-
   __save_fmt_arg = self_method->args[0];
 
   __tmp_fmt_arg = 
     __ctalkCreateArgEntryInit 
     (__ctalkCreateObjectInit ("fmt", "String", "Character",
-			      LOCAL_VAR, __ctalk_fmt));
+			      LOCAL_VAR, __fmt_arg_value -> __o_value));
   __objRefCntSet (&(__tmp_fmt_arg->obj), ARG_NREFS(__save_fmt_arg));
   self_method -> args[0] = __tmp_fmt_arg;
 

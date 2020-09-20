@@ -1,8 +1,8 @@
-/* $Id: rtinfo.c,v 1.9 2019/11/17 15:29:00 rkiesling Exp $ */
+/* $Id: rtinfo.c,v 1.2 2020/09/18 21:25:13 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
-  Copyright © 2005-2019  Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2005-2020  Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
 
@@ -274,7 +274,7 @@ static void __delete_fn_local_objs (RT_FN *r) {
 	  if (IS_OBJECT(v_ptr -> orig_object_rec)
 	      && (v_ptr -> orig_object_rec != v_ptr -> var_object)) {
 	    __ctalkDeleteObject (v_ptr -> orig_object_rec);
-	    v_ptr -> orig_object_rec = NULL; /***/
+	    v_ptr -> orig_object_rec = NULL;
 	  } 
 	  cleanup_unlink_method_user_object (v_ptr);
 	  cleanup_non_local_object (v_ptr -> var_object, v_ptr);
@@ -288,11 +288,6 @@ static void __delete_fn_local_objs (RT_FN *r) {
 	  __ctalkDeleteObject (v_ptr -> orig_object_rec);
 	}
 	v_ptr -> orig_object_rec = NULL;
-#if 0 /***/
-	else {
-	  v_ptr -> orig_object_rec = NULL;
-	}
-#endif	
       }
       delete_varentry (v_ptr);
       v_ptr = v_ptr_prev;
@@ -445,7 +440,7 @@ int __save_rt_info (OBJECT *__rcvr_obj, OBJECT *__rcvr_class_obj,
   r -> method_fn = rtinfo.method_fn = fn;
   r -> _arg_frame_top = __ctalk_arg_ptr + 1;
   strcpy (r -> arg_text, ctalk_arg_text ());
-  if (is_recursive_method_call (r -> method)) { /***/
+  if (is_recursive_method_call (r -> method)) {
     r -> local_object_cache[r -> local_obj_cache_ptr] = 
       M_LOCAL_VAR_LIST(r -> method);
     M_LOCAL_VAR_LIST(r -> method) = NULL;
@@ -616,9 +611,8 @@ int is_recursive_method_call (METHOD *m) {
 }
 
 /*
- *  The *successive_call* functions are called only from
- *  __ctalkInitLocalObjects at the moment.  Local objects are restored
- *  in __restore_rt_info (), above.
+ *  A "successive call" also gets registered when a method is 
+ *  called multiple times in a single argument list.
  *
  *  See the notes for last_eval_result () in rt_expr.c. 
  */
@@ -662,7 +656,8 @@ void clear_arg_active_varentry (void) {
  *  the arg is pushed is the method call's RTINFO entry + 1.
  */
 VARENTRY *arg_active_varentry (void) {
-  if (__call_stack_ptr < (MAXARGS - 1))
+  if ((__call_stack_ptr < (MAXARGS - 1)) &&
+      IS_VARENTRY(__call_stack[__call_stack_ptr + 2] -> arg_active_tag))
     return __call_stack[__call_stack_ptr + 2] -> arg_active_tag;
   else
     return NULL;

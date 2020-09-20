@@ -1,8 +1,8 @@
-/* $Id: g,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-c-*-**/
+/* $Id: g,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ -*-c-*-**/
 
 /*
   This file is part of ctalk.
-  Copyright © 2005-2012, 2015 Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2005-2012, 2015, 2019 Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
 
@@ -37,7 +37,7 @@ cGetchar (void) { \n\
   OBJECT *result; \n\
   char buf[2]; \n\
 \n\
-  sprintf (buf, "%d", getchar ()); \n\
+  __ctalkDecimalIntegerToASCII (getchar (), buf); \n\
 \n\
   result = __ctalkCreateObjectInit ("result", "Integer", \n\
 		       "Magnitude", LOCAL_VAR, buf); \n\
@@ -50,7 +50,7 @@ cGetPID (void) { \n\
   OBJECT *result; \n\
   char buf[MAXLABEL]; \n\
 \n\
-  sprintf (buf, "%d", getpid ()); \n\
+  __ctalkDecimalIntegerToASCII (getpid (), buf); \n\
 \n\
   result = __ctalkCreateObjectInit ("result", "Integer", \n\
 		       "Magnitude", ARG_VAR, buf); \n\
@@ -63,7 +63,7 @@ cGetEnv (char *s) { \n\
   OBJECT *result; \n\
   char buf[MAXLABEL]; \n\
 \n\
-  strcpy (buf, (getenv (__ctalk_to_c_char_ptr(__ctalk_arg_internal(0))) ? \
+  xstrcpy (buf, (getenv (__ctalk_to_c_char_ptr(__ctalk_arg_internal(0))) ? \
     getenv(__ctalk_to_c_char_ptr(__ctalk_arg_internal(0))) : NULLSTR)); \n\
 \n\
   result = __ctalkCreateObjectInit ("result", "String", \n\

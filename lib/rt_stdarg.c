@@ -1,4 +1,4 @@
-/* $Id: rt_stdarg.c,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ */
+/* $Id: rt_stdarg.c,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -317,18 +317,6 @@ void args_to_method_args (METHOD *method, STDARG_CALL_INFO *stdarg_call_info) {
 
 }
 
-int __rt_check_stdargs (void) {
-  int i = 0;
-  while (i < fmt_tok_idx) {
-    if (!strpbrk (fmt_tokens[i], "cs")) {
-      _warning ("__call_fn_w_args: Only c and s format characters are allowed in variable argument formats.\n");
-      return ERROR;
-    }
-    ++i;
-  }
-  return SUCCESS;
-}
-
 int tokenize_fmt (char *fmt) {
 
   int src_idx, dst_idx, fmt_length;
@@ -340,7 +328,10 @@ int tokenize_fmt (char *fmt) {
       switch (fmt[src_idx])
 	{
 	case '%':
-	  if ((fmt_length = is_printf_fmt (&fmt[src_idx])) != 0) {
+	  if ((src_idx > 0) && (fmt[src_idx - 1] == '%')) {
+	    fmt_tokens[fmt_tok_idx][dst_idx++] = fmt[src_idx++]; 
+	    fmt_tokens[fmt_tok_idx][dst_idx] = 0;
+	  } else if ((fmt_length = is_printf_fmt (fmt, &fmt[src_idx])) != 0) {
 	    substrcpy (fmt_tokens[fmt_tok_idx++], fmt, src_idx, fmt_length);
 	    src_idx += fmt_length;
 	  } else {
@@ -351,7 +342,9 @@ int tokenize_fmt (char *fmt) {
 	default:
 	  fmt_tokens[fmt_tok_idx][dst_idx++] = fmt[src_idx++]; 
 	  fmt_tokens[fmt_tok_idx][dst_idx] = 0;
-	  if (fmt[src_idx] == '%') {  /* lookahead */
+	  if ((fmt[src_idx] == '%') &&
+	      ((fmt[src_idx+1] != '%') && (fmt[src_idx-1] != '%'))) { 
+	    /* lookahead */
 	    ++fmt_tok_idx;
 	    dst_idx = 0;
 	  }

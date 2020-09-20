@@ -1,8 +1,8 @@
-/* $Id: main.c,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ */
+/* $Id: main.c,v 1.1.1.1 2020/07/17 07:41:39 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
-  Copyright © 2005-2018 Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2005-2018, 2020 Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright 
   notice is included in all source code modules.
 
@@ -47,7 +47,7 @@ extern char *classlibdir;                /* Declared in rtinfo.c.           */
 extern char *pkgname;
 
 char libcachedir[FILENAME_MAX];
-char ctalkuserhomedir[FILENAME_MAX];
+extern char ctalkuserhomedir[FILENAME_MAX];
 char usertemplatedir[FILENAME_MAX];
 
 static int preprocess_only_opt = FALSE;  /* Preprocess only.                */

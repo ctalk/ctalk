@@ -1,8 +1,8 @@
-/* $Id: s,v 1.4 2019/11/17 18:35:41 rkiesling Exp $ -*-c-*-**/
+/* $Id: s,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ -*-c-*-**/
 
 /*
   This file is part of Ctalk.
-  Copyright © 2005-2012, 2015 Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2005-2012, 2015, 2019 Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
 
@@ -131,15 +131,6 @@ cStrcpy (char *__s1, char *__s2) { \n\
   return ARG(1);\n\
 }
 
-#if 0 /***/
-#define strncat \n				\
-cStrncat (char *__s1, char *__s2, int __n) { \n\
-  if (__ctalkIsObject (ARG(0))) \n\
-    strncat (__ctalk_to_c_char_ptr(ARG(2)),__ctalk_to_c_char_ptr (ARG(1)), __ctalk_to_c_int(ARG(0))); \n\
-  return ARG(2);\n\
-}
-#endif
-
 #define strncat \n\
 cStrncat (char *__s1, char *__s2, int lenp) { \n\
   int len; \n\
@@ -182,15 +173,6 @@ cStrncmp (char *__s1, char *__s2, int __n) { \n\
   return result_object; \n\
 }
 
-#if 0 /***/
-#define strncpy \n				\
-cStrncpy (char *__s1, char *__s2, int __n) { \n\
-  if (__ctalkIsObject (ARG(0))) \n\
-    strncpy (__ctalk_to_c_char_ptr(ARG(2)),__ctalk_to_c_char_ptr (ARG(1)), __ctalk_to_c_int(ARG(0))); \n\
-  return ARG(2);\n\
-}
-#endif
-
 #define strncpy \n\
 cStrncpy (char *__s1, char *__s2, int lenp) { \n\
   int len; \n\
@@ -208,9 +190,9 @@ cStrncpy (char *__s1, char *__s2, int lenp) { \n\
 cStrlen (void *__s) {\n\
   char buf[255]; \n\
   if (__ctalkIsObject (ARG(0))) \n\
-    sprintf (buf, "%d", strlen (__ctalk_to_c_char_ptr (ARG(0)))); \n\
+    __ctalkDecimalIntegerToASCII ((int)strlen (__ctalk_to_c_char_ptr (ARG(0))), buf); \n\
   else \n\
-    sprintf (buf, "%d", strlen ((char *)ARG(0))); \n\
+     __ctalkDecimalIntegerToASCII ((int)strlen ((char *)ARG(0)), buf); \n\
   return __ctalkCreateObjectInit ("result", "Integer", \n\
 		       "Magnitude", LOCAL_VAR, buf); \n\
 } \n\
@@ -219,7 +201,7 @@ cStrlen (void *__s) {\n\
 #define sin \n\
 cSin (double __d) { \n\
   char buf[255]; \n\
-  sprintf (buf, "%f", sin (__ctalk_to_c_double (ARG(0)))); \n\
+  __ctalkDoubleToASCII (sin (__ctalk_to_c_double (ARG(0))), buf); \n\
   return __ctalkCreateObjectInit ("result", "Float", \n\
 		       "Magnitude", LOCAL_VAR, buf); \n\
 }
@@ -227,7 +209,7 @@ cSin (double __d) { \n\
 #define sqrt \n\
 cSqrt (double __d) { \n\
   char buf[0xff]; \n\
-  sprintf (buf, "%f", sqrt (__ctalk_to_c_double (ARG(0)))); \n\
+  __ctalkDoubleToASCII (sqrt (__ctalk_to_c_double (ARG(0))), buf); \n\
   return __ctalkCreateObjectInit ("result", "Float", \n\
 		       "Magnitude", LOCAL_VAR, buf); \n\
 }

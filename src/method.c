@@ -1,8 +1,8 @@
-/* $Id: method.c,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ */
+/* $Id: method.c,v 1.2 2020/09/19 01:08:27 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
-  Copyright © 2005-2019 Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2005-2020 Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
 
@@ -444,13 +444,15 @@ OBJECT *resolve_arg (METHOD *rcvr_method, MESSAGE_STACK messages,
 	      } else {
 		method_arg_accessor_fn (messages, message_ptr, 
 					method -> n_params - i - 1,
-					param_context);
+					param_context,
+					method -> varargs);
 	      }
 	      break;
 	    case argument_context:
 	      method_arg_accessor_fn (messages, message_ptr,
 				      method -> n_params - i - 1,
-				      param_context);
+				      param_context,
+				      method -> varargs);
 	      break;
 	    default:
 	      if (!IS_OBJECT (m -> obj)) {
@@ -911,6 +913,20 @@ static void ma_add_arg (MESSAGE_STACK messages, int tok_idx,
   ++messages[tok_idx] -> output;
 }
 
+static void make_basic_arglist (MESSAGE_STACK messages,
+				int arglist_start, int arglist_end,
+				ARGSTR *argstrs, int *argstrptr) {
+  int i;
+  for (i = 0; i < *argstrptr; i++)
+    __xfree (MEMADDR(argstrs[i].arg));
+  argstrs[0].arg = collect_tokens (message_stack (),
+				   arglist_start, arglist_end);
+  argstrs[0].start_idx = arglist_start;
+  argstrs[0].end_idx = arglist_end;
+  argstrs[0].m_s = message_stack ();
+  *argstrptr = 1;
+}
+
 /*
  *  Split the argument list in separate arguments, then 
  *  evaluate each argument.
@@ -1250,8 +1266,9 @@ int method_args (METHOD *method, int method_msg_ptr) {
 		    (message_stack (), method_msg_ptr,
 		     P_MESSAGES,
 		     get_stack_top (message_stack ()))) {
- 		  generate_store_arg_call (m_method -> receiver_obj,
- 					   method, arg_obj, FRAME_START_IDX);
+		  if (interpreter_pass != expr_check)
+		    generate_store_arg_call (m_method -> receiver_obj,
+					     method, arg_obj, FRAME_START_IDX);
 		  if ((arg_obj -> scope & CVAR_VAR_ALIAS_COPY) ||
 		      (eval_arg_cvar_reg == true)) {
 		    /* set in eval_arg */
@@ -1418,7 +1435,6 @@ int method_args (METHOD *method, int method_msg_ptr) {
 	OBJECT *return_class_object;
 	METHOD *arg_method;
 	MESSAGE *m_arg_method;
-	int _i;
 	/* Check if the following message is a method with the
 	   receiver of the main method's return class. */
 	m_method = message_stack_at (method_msg_ptr);
@@ -1432,16 +1448,14 @@ int method_args (METHOD *method, int method_msg_ptr) {
 	      (m_method, return_class_object, M_NAME(m_arg_method), 
 	       ERROR, FALSE)) 
 	     != NULL)) {
-	  for (_i = 0; i < argstrptr; i++)
-	    __xfree (MEMADDR(argstrs[_i].arg));
-
-	  argstrs[0].arg = collect_tokens (message_stack (),
-					   arglist_start, arglist_end);
-	  argstrs[0].start_idx = arglist_start;
-	  argstrs[0].end_idx = arglist_end;
-	  argstrs[0].m_s = message_stack ();
-	  argstrptr = 1;
-
+	  make_basic_arglist (message_stack (), arglist_start, arglist_end,
+			      argstrs, &argstrptr);
+	} else if (M_TOK(m_arg_method) == LABEL &&
+		   M_TOK(m_method) == METHODMSGLABEL) {
+	  if (is_instance_variable_message (message_stack (), arglist_start)) {
+	    make_basic_arglist (message_stack (), arglist_start, arglist_end,
+				argstrs, &argstrptr);
+	  }
 	} else {
 	  method_args_wrong_number_of_arguments_1 
 	    (message_stack (),
@@ -1550,6 +1564,20 @@ int method_args (METHOD *method, int method_msg_ptr) {
 		 method, 
 		 r_expr_object,
 		 frame_at (CURRENT_PARSER -> frame) -> message_frame_top);
+	    } else if (arg_class == arg_c_fn_expr) {
+	      char translatebuf[MAXMSG];
+	      fmt_c_to_obj_call (message_stack (),
+				 argstrs[i].start_idx,
+				 rcvr_class_obj, method,
+				 arg_obj, translatebuf,
+				 &argstrs[i]);
+	      __xfree (MEMADDR(argstrs[i].arg));
+	      argstrs[i].arg = strdup (translatebuf);
+	      generate_c_expr_store_arg_call
+		(m_method -> receiver_obj,
+		 method, arg_obj,
+		 M_NAME(message_stack_at (argstrs[i].start_idx)),
+		 FRAME_START_IDX, &argstrs[i]);
 	    } else {
 	      warning (message_stack_at(argstrs[i].start_idx),
 		       "Function %s used as method argument without template.",
@@ -2408,7 +2436,8 @@ int method_call (int method_message_ptr) {
     rcvr_ptr = 0,             /* Avoid a warning */
     stmt_end_ptr,
     m_super_idx,
-    expr_end_idx = -1;
+    expr_end_idx = -1,
+    lookahead;
   int i_2, _expr_end;
   int n_args_declared;
   char *_expr_class_buf, _expr_buf[MAXMSG];
@@ -2944,11 +2973,19 @@ int method_call (int method_message_ptr) {
     /* Check_args () gets called by the primitive functions,
        or method_args () in the case of define_method ().
     */
-    cfunc = method -> cfunc;
-    (void)(cfunc) (method_message_ptr);
-    cleanup_args (method, message_stack_at(method_message_ptr)->receiver_obj,
-		  (frame_at (CURRENT_PARSER -> frame - 1)) ->
-		   message_frame_top + 1);
+    if (interpreter_pass != expr_check) {
+      cfunc = method -> cfunc;
+      (void)(cfunc) (method_message_ptr);
+      if (frame_at (CURRENT_PARSER -> frame - 1)) {
+	cleanup_args (method, message_stack_at(method_message_ptr)->receiver_obj,
+		      (frame_at (CURRENT_PARSER -> frame - 1)) ->
+		      message_frame_top + 1);
+      } else {
+	cleanup_args (method,
+		      message_stack_at(method_message_ptr)->receiver_obj,
+		      get_messageptr ());
+      }
+    }
   } else {
     char output_buf[MAXMSG];
     OBJECT_CONTEXT context;
@@ -3425,9 +3462,30 @@ int method_call (int method_message_ptr) {
 			 method_message_ptr)) 
 		      rcvr_cvar_registration = true;
 		  }
-		  generate_method_call (receiver, method -> selector,
-					method -> name,
-					  method_message_ptr);
+		  if ((lookahead = nextlangmsg (message_stack (),
+						method_message_ptr)) != ERROR) {
+		    if ((M_TOK(message_stack_at (lookahead)) == CLOSEPAREN) ||
+			(M_TOK(message_stack_at (lookahead)) == ARGSEPARATOR)) {
+		      /* This is like generate_method_call, but we don't
+			 add the semicolonr if the method call is a
+			 function argument or otherwise enclosed in
+			 parens */
+		      char _buf[MAXMSG];
+		      if (is_global_frame ())
+			fn_init (fmt_method_call (receiver,
+						  method -> selector,
+						  method -> name, _buf), FALSE);
+		      else
+			fileout (fmt_method_call (receiver,
+						  method -> selector,
+						  method -> name, _buf),
+				 0, method_message_ptr);
+		    } else {
+		      generate_method_call (receiver, method -> selector,
+					    method -> name,
+					    method_message_ptr);
+		    }
+		  }
 		  if (rcvr_cvar_registration) {
 		    if (method -> n_params == 0) {
 		      output_delete_cvars_call
@@ -4155,7 +4213,7 @@ static inline void __set_arg_message_name (MESSAGE *m, char *s) {
  */
 
 int method_arg_accessor_fn (MESSAGE_STACK messages, int idx, int arg_n,
-			    OBJECT_CONTEXT context) {
+			    OBJECT_CONTEXT context, bool varargs) {
 
   char expr_tmp[MAXMSG];
   switch (context)
@@ -4166,18 +4224,20 @@ int method_arg_accessor_fn (MESSAGE_STACK messages, int idx, int arg_n,
 	  fmt_arg_char_ptr) {
 	strcatx (messages[idx] -> name, STRING_TRANS_FN, "(",
 		 format_method_arg_accessor
-		 (arg_n, M_NAME(messages[idx]),
-		  expr_tmp), "1,)", NULL);
+		 (arg_n, M_NAME(messages[idx]), false,expr_tmp),
+		 "1,)", NULL);
       } else {
 	__set_arg_message_name (messages[idx], 
 				format_method_arg_accessor 
-				(arg_n, M_NAME(messages[idx]), expr_tmp));
+				(arg_n, M_NAME(messages[idx]),
+				 varargs, expr_tmp));
       }
       break;
     default:
       __set_arg_message_name (messages[idx], 
 			      format_method_arg_accessor 
-			      (arg_n, M_NAME(messages[idx]), expr_tmp));
+			      (arg_n, M_NAME(messages[idx]),
+			       varargs, expr_tmp));
       break;
     }
 
@@ -4208,7 +4268,7 @@ int method_arg_accessor_fn_c (MESSAGE_STACK messages, int idx,
     strcatx (messages[idx]->name, STRING_TRANS_FN, " (",
 	     format_method_arg_accessor (method_n_th_param,
 					 M_NAME(messages[idx]),
-					 expr_buf), ", 1)",
+					 false, expr_buf), ", 1)",
 	     NULL);
   } else {
     if ((fn_arg_idx = obj_expr_is_arg (messages, idx, 
@@ -4220,7 +4280,7 @@ int method_arg_accessor_fn_c (MESSAGE_STACK messages, int idx,
       __set_arg_message_name (messages[idx],
 			      format_method_arg_accessor 
 			      (method_n_th_param, M_NAME(messages[idx]),
-			       expr_buf));
+			       false, expr_buf));
     } else {
       if (!strcmp (M_NAME(messages[fn_label_idx]), CHAR_TRANS_FN) ||
 	  !strcmp (M_NAME(messages[fn_label_idx]), FLOAT_TRANS_FN) ||
@@ -4237,7 +4297,7 @@ int method_arg_accessor_fn_c (MESSAGE_STACK messages, int idx,
 	__set_arg_message_name (messages[idx],
 				format_method_arg_accessor
 				(method_n_th_param, M_NAME(messages[idx]),
-				 expr_buf));
+				 false, expr_buf));
       } else {
 	if ((cfn = get_function (M_NAME(messages[fn_label_idx]))) == NULL) {
 	  _warning ("method_arg_accesor_fn_c: function %s not found.\n",
@@ -4265,6 +4325,7 @@ int method_arg_accessor_fn_c (MESSAGE_STACK messages, int idx,
 	  } else {
 	    format_method_arg_accessor (method_n_th_param,
 					M_NAME(messages[idx]),
+					method -> varargs,
 					arg_expr_buf);
 						
 	    messages[idx] -> obj =
@@ -4726,7 +4787,7 @@ bool is_method_parameter_s (char *paramname) {
   METHOD *n_method;
   int n_th_param;
 
-  if (new_method_ptr >= MAXARGS)
+  if (new_method_ptr >= MAXARGS || interpreter_pass != method_pass)
     return false;
 
   if ((n_method = new_methods[new_method_ptr + 1] -> method) != NULL) {

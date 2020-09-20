@@ -1,977 +1,1236 @@
-2019-01-05
-	- Added xstrcat (strsecure.c).
-2019-01-06
-	- Added return15.c test program.
-2019-01-07
-	- Added prefix65.c test program.
-2019-01-09
-	- Added xmemcpy, xmemset, xstrncpy, and xstrncat library
-	functions (strsecure.c).
-	- Removed the ltime.c demonstration program.
-2019-01-11
-	- Added printon5.c and margexprs55.c test programs.
-2019-01-12
-	- Added printon6.c test program.
-2019-01-13
-	- Added margexprs[56-57].c test programs.
-2019-01-14
-	- Added the ANSIWidgetPane : addBuffer method.
-	- Cleaned up the ANSIButtonPane methods, new and
-	withText to use the addBuffer method.
-	- Updated ANSIYesNoBoxPane methods new and withText
-	to use the addBuffer method.
-	- Updated ANSILabelPane : sizePane to use addBuffer.
-2019-01-15
-	- Updated ANSIListBoxPane : new and ANSIMessageBoxPane :
-	new to use addBuffer.
-	- Updated ANSIMessageBoxPane : withText, and
-	ANSIProgressBarPane : new and ANSIProgressBarPane :
-	dimension to use addBuffer.
-2019-01-16
-	- Updated ANSIScrollingListBoxPane and ANSITextBoxPane
-	to use addBuffer.
-2019-01-19
-	- The ctdb program now creates an object file ("filename.o")
-	for systems that read debugging symbols from the object file.
-	- Updated fn_param9.c  test program to use xstrcpy.
-2019-01-23
-	- Updated sprintf call in cCTime macro to xsprintf
-	(classes/lib/c).
-2019-01-24
-	- Added cXsprintf template (classes/libc/x). Also updated
-	functions in rt_stdargs.c to recognize xsprintf.
-	- Added template for xstrcat and xstrcpy (classes/libc/x).
-	Updated	the test programs in test/expect to use xstrcat,
-	xstrcpy, xstrncat, and xstrncpy.
-2019-01-28
-	- Updated bitfield1.c test program to be compatible
-	(hopefully) with OS X.
-2019-01-31
-	- Added fprintf4.c test program.
-2019-02-03
-	- Added the Symbol : asString method.
-	- Added the fn_rval[1-2].c test programs.
-	- Added the symtostr1.c test program.
-2019-02-07
-	- Removed the test/expect/examples-x11/line-draw.c test
-	program - Xrender needs to use pane buffers to draw.
-	- Updated the MAXMSG #define in ctalklib.in to 8192 to match
-	the internal library value.
-2019-02-08
-	- Updated docs/doctools/makelibdoc.pl to format the
-	docs/libdoc file so it can be parsed more quicly/easily,
-	and updated the LibrarySearch : cAPIFunctionSearch method
-	to parse it.
-2019-02-10
-	- Added -I <X_INCLUDES_DIR> to the configuration system
-	and to ctcc, and ctdb, so the x include directories
-	are given on the command line.
-2019-02-12
-	- Added the X11TextEditorPane: ftFont instance variable,
-	and updated demos/x11/ctedit.ca file to use it. Also
-	updated X11TextEditorPane : defaultFormat method to
-	handle both X11Font and X11FreetypeFont measurements.
-2019-02-13
-	- Added the X11TextEditorPane subPaneResize event handler
-	which handles window resizing events.
-2019-02-14
-	- Added the X11TextEditorPane subPaneButtonPress event
-	handler	which handles window resizing events.
-	- Added the X11Pane : ftFontVar instance variable, and
-	the X11Pane : ftFont method.
-	- Updated the demos/xft/xfthello.c example program.
-2019-02-15
-	- Updated xfthello.c, displaytext.c, and x11textpane.c
-	in demos/xft,to use the X11Pane's ftFontVar instance
-	variable.
-	- Added __edittext_point_to_click (edittext.c), bound
-	to a Button1 press in X11TextEditorPane :
-	subPaneButtonPress.
-2019-02-23
-	- Added Apple monospace outline font (i.e., Courier) in
-	xftlib.c.
-2019-02-24
-	- Updated demos/x11/ctedit.ca to use Courier as the default
-	font for Apple, and also to display the -pt option in the
-	help message.
-	- Added point-to-click cursor movement and selected text
-	overlays in X11TextEditorPane class and edittext.c.
-2019-02-28
-	- Updated Object : asSymbol to return the receiver if it
-	is already a symbol.
-2019-03-04
-	- Updated configure.ac and configure to check for curses or
-	ncurses when installing GNU readline.
-2019-03-05
-	- Updated configure.ac and configure to check for the libreadline
-	dependency curses or ncurses.  Added either -lncurses -lcurses to
-	LD_AM_CFLAGS, and removed -lreadline, etc from the flags in ctcc
-	ctdb, and cttest, so HAVE_GNU_READLINE is only necessary in
-	__ctalkConsoleReadLine, so when building apps it is not necessary
-	to worry about adding -lreadline, -lhistory, and -lncurses to
-	the linker options.
-2019-03-07
-	- Added the library functions __inspect_brief_help and
-	__inspect_long_help in dblib.c Updated the class to call these
-	functions, which cat the text through either less or more,
-	depending on availablility.  Createad the help text files which are
-	installed in /usr/local/share/ctalk.
-	- Also moved libdoc and classlibdoc installation into the
-	doc/Makefile.am along with the ObjectInspector help text.
-2019-03-08
-	- Added the autoconf $pkgdatadir to the libctalk compile flags
-	(lib/Makefile.am), -DDOCDIR="<dir>".  Added the library function
-	__ctalkDocDir (lib/rtinfo.c), and the Object : docDir instance
-	method.	Updated the searchlib utility to use the Object : docDir
-	method when looking for documentation.
-	- Updated the documentation functions in dblib.c to use
-	the -DDOCDIR definition.
-2019-03-10
-	- Added unsigned1.c test program.
-2019-03-14
-	- Added argblk[35-38].c test programs.
-2019-03-16
-	- Added unsigned3.c and unsigned4.c test programs.
-2019-03-17
-	- Added argblk[39-43].c test programs.
-2019-03-18
-	- Added argblk[44-48].c test programs.
-2019-03-19
-	- Updated configure to check for the GL and GLU libraries
-	and include files expressely, and to link them with libctalk,
-	in case a machine doesn't use weak linking for functions
-	(i.e., a library reference must be resolved wherever it appears
-	instead of where it's actually used).
-	- Added argblk[49-53].c test programs.
-2019-03-20
-	- Added argblk[54-58].c test programs.
-2019-03-23
-	- Added __edittext_get_primary_selection and
-	__edittext_insert_str_at_point (edittext.c).  Used
-	to paste the X selection at a X11TextEditorPane object's
-	insertion point.
-2019-03-24
-	- Added __edittext_set_selection_owner library function.
-	- Added X primary selection cutting and pasting to
-	X11TextEditorPane objects.
-	- Updated __ctalkXftInitLib to look for directory lines
-	that use <dir>...</dir> tags, so the Xft lib internals
-	don't complain.  Also updated doc/XftConfig.sample and
-	the X11FreeTypeFont secion of the Ctalk Reference Manual.
-2019-03-25
-	- Release 0.0.64 2019-03-25.
-2019-03-31
-	- Added the __ctalkRegisterUserFunctionName library
-	call.
-2019-04-01
-	- Added fn_param15.c test program.
-2019-04-02
-	- Added fn_param[16-18].c test programs.
-2019-04-03
-	- Added f_param[19-22].c test programs.
-2019-04-04
-	- Added fn_param[23-25].c test programs.
-2019-04-05
-	- Added struct3.c test program.
-2019-04-06
-	- Added fn_param26.c test program.
-2019-04-07
-	- Added fn_param27.c test program.
-2019-04-08
-	- Added offsetof1.c test program.
-2019-04-12
-	- Updated Character : bitComp so there is only a version with
-	zero parameters.
-2019-04-21
-	- Updated Integer : = to use a binary arg value to
-	set the receiver directly.
-	- Updated Integer : + to use the binary values for
-	an Integer operand.
-2019-04-26
-	- Updated Integer methods to use binary values.
-2019-04-27
-	- Updated LongInteger methods to handle binary Integer
-	operands.
-2019-04-28
-	- Updated Array : size to use binary int names.
-	- Updated basicobject1.c test program.
-2019-04-29
-	- Updated String : at for binary int argument.
-	- Updated Magnitude : asCharacter to handle binary
-	Integer receiver values.
-	- Updated Boolean || and && to check for binary
-	Integer values.
-2019-04-30
-	- Updated all Object : basicNew methods to use
-	binary int values when suitable.
-2019-05-01
-	- Updated Integer : set_value to check for the
-	presence of value variables before trying to
-	read or set them.
-	- Updated String : subString to use binary
-	int values in parameters.
-	- Updated __ctalk_do_c_double to handle
-	binary int values (lib/objtoc.c).
-	2019-05-02
-	- Updated __ctalkSelfPrintOn to handle binary_int_values
-	(rt_prton.c).
-2019-05-03
-	- In Object : -> , check for a value instancevar before
-	using atoi on the __o_value.
-	- Added OBJECT_VALUE_IS_BIN_INT #define to ctalklib.in.
-	- Updated Integer : = to handle all classes of arguments.
-2019-05-05
-	- Updated fn_param6.c to handle binary Integer values.
-	- Updated Array : size yet again for compatibility with
-	Integer to String conversions.
-2019-05-06
-	- Updated formatObject[2-8].c for bin ints, and other
-	revisions.
-2019-05-08
-	- Updated ObjectInspector : formatInstanceVariable and
-	ObjectInspector : formatClassVariable for binary Integer
-	values.
-2019-05-09
-	- Updated LongInteger : == to handle binary Integer
-	argument.
-2019-05-12
-	- Updated instvars[1-2].c test programs.
-	- Updated Character : =^ to handle a binary int operand.
-	- Updated Object : -> to produce an Integer result if
-	the argument is an __o_value member of an Integer receiver.
-	- Updated LongInteger : = to handle binary int operands.
-2019-05-14
-	- Updated objderef[11-13].c to handle object deref differences.
-	- Updated objderef17.c to handle object deref differences.
-	- Updated Integer : = to check whether the receiver is the
-	value var again.
-2019-05-15
-	- Updated icol6.c test program.
-2019-05-18
-	- Updated objderef6.c and objderef14.c test programs.
-	- Updated all of the Integer ++|-- methods to update
-	the parent object if the receiver is the value variable.
-2019-05-19
-	- Updated ANSIYesNoBoxPane class to use binary int values.
-2019-05-20
-	- Updated veccontains1.c test program to use a LongInteger
-	argument to readVec.
-	- Updated the uSleep call in demos/lclock.c to wait longer
-	before checking the time again, to lower CPU usage.
-	- Updated CTime : utcTime to use a binary int value.
-2019-05-21
-	- Updated objderef7.c test program for binary int values.
-2019-05-24
-	- Updated Symbol : getValue to return NULL if the receiver's
-	value is NULL.
-2019-05-25
-	- Updated __ctalkCloseX11Pane, __ctalkX11CloseParentPane, and
-	__ctalkCreateX11SubWindow for binary int (or window XID) values
-	(x11lib.c).
-2019-05-26
-	- Updated X11Bitmap : create to use a binary int value for
-	the parent drawable, pixmap_xid, and gc_addr.
-	- Updated __ctalkGUIPaneDrawRectangle, __ctalkGUIPaneDrawLine,
-	and __ctalkGUIPaneDrawPoint to use the ascii array
-	for dimensions and bin int values for Integer objects.
-2019-05-28
-	- Updated bitfield1.c test program of MacOS.
-2019-05-31
-	- Updated Boolean : == and != to prevent using atoi
-	on bigendian systems.
-2019-06-08
-	- Updated configure, Makefiles, and test/expect/cttest.in
-	for -Waddress-of-packed-struct warning.
-	- Updated src/ctdb.in and src/ctcc.in to add
-	-Wstringop_trunctation.
-2019-06-11
-	- Added symfp4.c test program.
-2019-06-15
-	- Cleaned up String : subString and String : atPut.
-2019-06-17
-	- Removed CTime : =.
-	- Updated CTime : localTime for binary values.
-2019-06-18
-	- Added the _store_int primitive function, used in
-	Integer : =.
-2019-06-19
-	- Binary Integer values.
-2019-06-21
-	- Updated Object : isNullValue to use bin int values.
-	- Added String class clause to Magnitude : asLongInteger.
-2019-06-22
-	- Updated LongInteger class to use binary values.
-	- Updated Magnitude : asInteger and Magnitude : asFloat
-	to use binary LongInteger values.
-2019-07-02
-	- Added Symbol : asAddrString instance method.
-2019-08-04
-	- Moved the UNIX domain socket functions to lib/unixsock.c,
-	and added the API functions __ctalkUNIXSocketShutdown,
-	__ctalkUNIXSocketOpenReader, __ctalkUNIXSocketOpenWriter,
-	and __ctalkUNIXSocketWrite (unixsock.c), and updated
-	the UNIXNetworkStream* classes.
-2019-08-10
-	- Added if[189-212].c test programs.
-2019-08-11
-	- Updated __ctalkX11CreateGC to return a void *
-	(bitmap.c).
-	- Updated margexprs47.c test program.
-2019-08-12
-	- Updated the Integer, LongInteger, Boolean, Symbol, and
-	Character classes to store their values as binary data,
-	and updated the compiler and libraries to handle the binary
-	values.
-2019-08-13
-	- Release 0.0.65 2019-08-13.
-2019-08-15
-	- Added __ctalkXPMToGLXTexture (glxlib.c) and the GLXCanvasPane :
-	xpmToTexture methods.
-	- Added the demos/glx/glxtexture.ca example program.
-2019-08-16
-	- Release 0.0.65 2019-08-16.
-2019-08-18
-	- Added margexprs[58-59].c test programs.
-2019-08-19
-	- Updated __ctalkXPMToGLXTexture to handle MacOS texture formats,
-	for 24-bit colors, and demos/glx/glxtexture.ca to generate textures
-	with the MacOS internal texture format.  Updated ctalk.texi to
-	include information about MacOS texture formats.
-2019-08-20
-	- Added margexprs[60-62].c test programs.
-2019-08-21
-	- Added margexprs63.c.
-2019-08-23
-	- Release 0.0.65 2019-08-23
-2019-08-25
-	[
-	- __ctalkCreateObjectInit etc cleanup in typecast.c.
-	- Added the global flag longinteger_fold_is_ptr (src/rt_expr.c),
-	when a parameter is an unsigned long int that gets folded
-	into longitneger class.  This tells fn_param_return_trans
-	to use __ctalkToCLongInteger for the translation instead
-	of __ctalk_to_c_long_long (src/objtoc.c).
-	]
-2019-08-26
-	[
-	- Added check for OBJECT_VALUE_IS_BIN_SYMBOL attribute
-	in __ctalkToCLongInteger (lib/objtoc.c).
-	- Updated __save_pane_to_vars and __ctalkX11CreateSubWindow
-	to store the GC as a binary value in the xGC instance var
-	(x11lib.c).
-	- Updated make_req_gc_str to make_req in guiputstr.c, guirefresh.c.
-	]
-2019-08-27
-	[
-	- Updated run-bg1.c to use /bin/echo.
-	- Updated build/lcflags.sh to chmod +x test/expect/cttest.
-	- Updated __xlib_draw_point to check for a panebuffer also
-	before drawing with xrender (xrender.c).
-	]
-2019-08-28
-	[
-	- Updated configure.ac to add $x_libraries to $x_ldflags
-	if the user set it on the command line.
-	- Added has_rassoc_pfx and eval_rassoc_rcvr_as_subexpr_b
-	(rt_expr.c).
-	- Updated postfix_arg_cvar_expr_registration to *not* do
-	a C ++ or -- op after the registration if the operand is
-	an int * (prefixop.c).
-	]
-2019-08-30
-	[
-	- Added dce_keepstr, to replace DCE_KEEPSTR macro,
-	called by fnt_default_ctrlblk_expr (rt_expr.c).
-	- Removed redundant check_constant_expr call from
-	ctrblk_pred_rt_subexpr (ifexpr.c).
-	- Removed calls to delete_method_arg_cvars_evaled
-	from __ctalkEvalExpr and __ctalkEvalExprU (rt_expr.c),
-	and added a call to delete_method_arg_cvars in
-	__ctalkToCInteger (objtoc.c).
-	]
-	- Added margexprs6[4-5].c test programs.
-2019-08-31
-	[
-	- Added last_cvar_term, called by dce_keepstr (rt_expr.c).
-	- Cleaned up delete_method_arg_cvars (rt_cvar.c).
-	- Added delete_method_arg_cvars prototype to ctalklib.in,
-	and in rt_self_expr, if check_method_arg_cvars returns
-	true, then set have_cvar_registration to true, and that adds
-	a call to delete_method_arg_cvars in the output (rt_expr.c).
-	]
-2019-08-01
-	[
-	- Added a call to delete_method_arg_cvars in method_args
-	(method.c).
-	- Added a have_cvar_registration bool in rt_expr,
-	and a clause to output a delete_method_arg_cvars
-	call if necessary (rt_expr.c).
-	- Added rcvr_cvar_registration bool in method call,
-	and add a delete_method_arg_cvars to the output for
-	methods that take 0 arguments (method.c).
-	]
-2019-08-02
-	[
-	- Added output_delete_cvars_call (output.c).
-	- Added call to delete_method_arg_cvars to
-	format_obj_lval_fn_expr when needed (c_rval.c).
-	- Updated for_term_rt_expr to check for a CVAR registration
-	and use OBJTOC_DELETE_CVARS as the argument to __ctalkToCInteger
-	(rt_expr.c).
-	- Updated mcct_fmt_default_ctrlblk_expr to use the
-	OBJTOC_DELETE_CVARS argument to __ctalkToCInteger when
-	needed (mcct.c).
-	- Added fmt_user_fn_rt_expr_b, which checks for the
-	OBJTOC_DELETE_CVARS bit, called by ctrlblk_pred_rt_expr.
-	Also added a separate check for a CVAR in the first loop
-	of ctrblk_pred_rt_expr (ifexpr.c).
-	- Updated RTR_KEEPSTR to rtr_keepstr (objtoc.c).
-	- Added var_rep (mcct.c) to check for the final
-	CVAR.
-	- Added var_rep_argblk to check for the final argblk
-	CVAR (mcct.c).
-	]
-2019-09-03
-	[
-	- Updated register_c_receiver_var to return true or false
-	depending on whether it actuall registers a C variable
-	(method.c), then check the return value in method_call
-	to determine if we need to delete_method_arg_cvars after
-	outputting a __ctalk_method call.
-	- In Array : atPut, if the parent collection has global
-	scope, add OBJECT_IS_GLOBAL_COPY to the item's attributes,
-	and check for it in __ctalkRegisterUserObject (rt_obj.c),
-	before deleting a global array member.
-	]
-2019-09-04
-	[
-	- In format_obj_lval_fn_expr, add a delete_method_arg_cvars
-	call after the expression (c_rval.c).
-	- Added a delete_method_arg_cvars call in the argument_context
-	case of rt_self_expr (rt_expr.c).
-	- Updated register_prefix_expr_CVARs to return true or false
-	depending on whether it actually registered a C variable.
-	Added have_cvar_reg bool to prefix_method_expr_a (rt_expr.c),
-	and output a delete_method_arg_cvars call if needed.
-	- Added a call manually to Object : ->.
-	- Added eval_arg_cvar_reg global (eval_arg.c), set to true
-	whenever eval_arg registers a C method arg.  Updated method_args
-	to check for it and call output_delete_cvars_call (method.c).
-	]
-2019-09-05
-	[
-	- Updated format_self_lval_fn_expr to output a
-	delete_method_arg_cvars call (c_rval.c).
-	- Added a eval_arg_cvar_reg = true in eval_arg for
-	struct CVARs (eval_arg.c), and added checks in
-	collection_rt_expr to output delete_method_arg_cvars calls
-	(collection.c).
-	- Updated ctrlblk_pred_rt_expr to use either DCE_KEEPSTR
-	or dce_keepstr depending on whether the expression contains
-	cvars (rt_expr.c).
-	]
-2019-09-06
-	[
-	- Added more have_cvar_registration flags to rt_expr
-	(rt_expr.c).
-	- Updated delete_method_arg_cvars to work within argblks
-	in collection_rt_expr (collection.c).
-	- Added a delete_method_arg_cvars call output in
-	eval_keyword_expr (rt_expr.c).
-	- Added an eval_arg_cvar_reg to eval_receiver_token,
-	and yet another delete_method_arg_cvars call in
-	method_call (method.c).
-	]
-2019-09-07
-	[
-	- Added an output for delete_method_arg_cvars to
-	resolve (resolve.c).
-	- Added output for delete_method_arg_cvars to
-	method_call (method.c).
-	- Added yet another eval_arg_cvar_reg = true
-	in eval_arg (eval_arg.c).
-	- Added resolve_ctrlblk_cvar_reg, set in resolve,
-	checked in fmt_default_ctrlblk_expr (resolve.c,
-	rt_expr.c).
-	]
-2019-09-08
-	[
-	- Added another rcvr_cvar_registration = true in method_call
-	after postfix_rcvr_cvar_registration, and mc_cvar_cleanup
-	(method.c).
-	- Added cpre_have_cvar_reg global (ifexpr.c), set in
-	ctrlblk_pred_rt_expr, checked and cleared in
-	fmt_default_ctrlblk_expr (rt_expr.c).
-	- Added vars_occur_again and cvar_reg as arguments to
-	mcct_fmt_default_ctrlblk_expr, and declared it in
-	handle_mcct_expr (mcct.c).
-	]
-2019-09-09
-	[
-	- Updatded var_rep to check for matching var tokens (mcct.c)
-	(the if174.c case).
-	]
-2019-09-10
-	[
-	- Updated var_rep to use the same process as mcct_check_token
-	to find out if a term has objects.  Also added a check for
-	cvartab names and removed var_rep_argblk (mcct.c).
-	- Added last_obj_expr (mcct.c).
-	- Added mcct_is_fn_param, called by last_obj_expr (mcct.c).
-	- Cleanup after call to last_obj_expr in
-	mcct_fmt_default_ctrlblk_expr (mcct.c).
-	- Updated fmt_rt_return to use the keep value for calls
-	formatted with LONGLONGINT_TRANS_FN (src/objtoc.c), and
-	updated longlong_cond_delete to use __ctalk_to_c_longlong's
-	keep parameter to call delete_method_arg_cvars (lib/objtoc.c).
-	]
-	- Added a second parameter to __ctalk_to_c_longlong, to specify
-	when to retain the object that is its argument.
-2019-09-11
-	[
-	- Added a bool for cvar_reg in c_param_expr_arg, and
-	cpea_cvar_cleanup to generate delete_method_arg_cvar
-	calls in the output when needed (arg.c).
-	]
-	- In Array : atPut, replaced the call to Key : setValueOld
-	with Symbol : setValue.
-2019-09-12
-	- Updated lclock.c.
-	- Added a warning message and exit in configure if GNU
-	makeinfo isn't found.
-2019-09-13
-	[
-	- Updated prefix_method_expr_a to not add a C return
-	translation of the preceding token is a semicolon or
-	closing brace, in C context.  Added pmea_cvar_cleanup_call
-	rt_expr.c.
-	- Added rcvrexpr.c source module and the stub for
-	rcvr_expr_in_parens, called by resolve (rcvrexpr.c).
-	Also added output_rcvr_expr_in_parens, also called
-	by resolve.
-	]
-2019-09-14
-	[
-	- Added case in int_cond_delete for CVAR_VAR_ALIAS objects
-	(objtoc.c).
-	]
-2019-09-15
-	[
-	- Updated keyword.c for llvm compatibility.
-	- Made sure that interpreter_pass is declared extern everywhere
-	in the compiler.
-	- In cvar_object, set a Symbol object's void * directly
-	(rt_cvar.c).
-	]
-	- Changed the texture in demos/glx/glxtexture.ca to
-	a higher resolution XPM, and removed the lighting
-	code to make the example code simpler.
-2019-09-16
-	[
-	- Added a file exist check in build/osxbuiltins.sh.
-	- Update for warning in libctpp/lex.c.
-	- Bracketed all GNUC_PACKED_STRUCT #defines with
-	#ifndef __llvm__ (chash.h, message.h, object.h, ctldjgpp,
-	and ctalklib.in).
-	- Fixed missing binary case warning in lexical (lex.c).
-	- Fixed missing return values in pattypes.c.
-	- Fixed missing function call in __ctalkCharRadixToCharASCII
-	(radixof.c).
-	- Updated warning in location_trace (ctpp/error.c,
-	ctpp/preprocessor.c).
-	]
-2019-09-17
-	[
-	- Fixed warning messages in rt_args.c, re_lex.c, ismethd.c,
-	rtnewobj.c, and rt_expr.c.
-	]
-2019-09-18
-	[
-	- Fixed warning in compound_method_limit (arg.c).
-	]
-2019-09-19
-	- Fix in configure.ac if the X library path defaults
-	to "NONE".
-2019-09-20
-	[
-	- Updated format_self_lval_C_expr to include a delete_method_arg_cvars
-	call (c_rval.c).
-	]
-2019-09-23
-	[
-	- Updated configure.ac and configure to prevent Darwin systems
-	from performing static linking.
-	]
-2019-09-24
-	[
-	- Added check in __rt_arglist_limit for a symbol receiver
-	(rt_args.c).  Also added prev_op_tok.
-	]
-	- Release 0.0.65 2019-09-24
-2019-09-25
-	[
-	- Added check for a ++ or -- operator after a parenthesized
-	arg in __rt_arglist_limit (rt_args.c).
-	]
-	- Added margexprs66.c test program.
-2019-09-26
-	[
-	- Added calls to rcvr_expr_in_parens and
-	output_rcvr_expr_in_parens for self tokens in
-	resolve (resolve.c).  Changed the output call
-	to rt_expr in output_rcvr_expr_in_parens so it
-	registers CVARs (rcvrexpr.c).
-	]
-	- Added rcvrexpr1.c test program.
-2019-09-28
-	- Added goto_in_argblk_check for better warnings of goto
-	targets not within the argument block the statement appears
-	in (control.c).
-	- Added goto5.c and margexprs67.c test programs.
-2019-09-29
-	[
-	- __ctalkCVARReturnClass cleanup (ctoobj.c).
-	- Updated nextlangmsg calls in
-	rte_expr_contains_c_fn_arg_call (rt_expr.c) and
-	format_fn_call_method_expr_block (c_rval.c) to
-	nextlangmsgstack.  Also updated the fmt_rt_expr
-	call in eval_expr_return_expr to rt_expr, and
-	added a separate check for the TOK_SELF attribute
-	(return.c).
-	- Added binary_op_rcvr (return.c), and the clause in
-	simple_self_return_expr to turn a C expression into an
-	Object for the method to return. Also updated the Integer
-	methods that use binary math operators.
-	]
-	- Added mparams1.c test program.
-2019-09-30
-	[
-	- Added a better match for a struct member when the struct
-	expression contains '.' in register_struct_terminal (subscr.c).
-	]
-	- Added margexprs68.c test program.
-2019-10-02
-	[
-	- Added rt_method_name (ismethd.c), and used in eval_expr
-	(rt_expr.c).
-	- Updated clean_up_message_objects to not delete an instance
-	var with the scope CREATED_PARAM if it is an instance var
-	of the result_object (rttmpobj.c).
-	- Updated eval_expr to only check for a value instancevar
-	instead of calling __ctalk_isMethod_2 (rt_expr.c). Also
-	updated the check for a method name after an instance var
-	in eval_expr.
-	- Cleaned up __ctalkGetClass calls in mbr_class (rt_cvar.c).
-	]
-2019-10-03
-	[
-	- Cleaned up __ctalkGetClass calls in eval_expr (rt_expr.c),
-	and in typecast.c.
-	- Changed is_method_param_name and rte_expr_contains_c_fn_arg_call
-	to non-static (rt_expr.c).
-	]
-	- Added mapi1.c test program.
-2019-10-04
-	[
-	- Added rt_expr_2 (rt_expr.c).
-	- Updated simple_self_return_operand_expr to handle an operand
-	that is an expression that starts with a method parameter
-	(return.c).
-	]
-2019-10-05
-	[
-	- Added a return self + obj handler in
-	simple_self_return_operand_expr (return.c).
-	- Also added a separate Float clause in Integer : * and
-	Integer : / so fractional/ratio calculations (just work).
-	]
-	- Added the ctalkmethods.1 manual page.
-	- Added mapi[2-5].c test programs.
-2019-10-06
-	[
-	- Changed rt_expr_2 to rt_expr_return, and added the
-	return keyword pointer as a parameter in rt_expr_return,
-	simple_self_return_operand_expr, and simple_self_return_expr
-	(return.c, rt_expr.c).  Updated simple_self_return_operand_expr
-	to use OBJTOC_DELETE_CVARS to __ctalkToCInteger, etc., if any
-	CVARS are registered.  Updated rt_expr_return to place the
-	CVAR registration calls before the return keyword.
-	]
-	- Added mapi[6-7].c test programs.
-2019-10-07
-	[
-	- Updated simple_self_return_operand_expr and simple_self_return_expr
-	to handle LongInteger receivers and arguments (return.c).
-	- Added ssroe_class_mismatch_warning (error.c).
-	]
-	- Updated Magnitude : asLongInteger.
-	- Updated the LongInteger operator methods, +, -, *, and /.
-	- Added mapi[8-13].c test programs.
-2019-10-09
-	[
-	- Updated simple_self_return_operand_expr and simple_self_return_expr
-	to handle Boolean receivers and arguments (return.c).
-	]
-	- Added mapi[14-15].c test programs.
-	- Updated the Boolean operator methods ||, &&, ==, and !=.
-2019-10-10
-	[
-	- Updated simple_self_return_operand_expr and simple_self_return_expr
-	to handle Character and Float receivers and arguments (return.c).
-	]
-	- Added mapi[16-19].c test programs.
-2019-10-12
-	[
-	- Updated simple_self_return_expr to set the return class
-	according to the method's declared return class, not the
-	receiver's class (return.c).
-	- Updated Float class so we are sure that the operand is
-	also a Float.
-	]
-	- Added include/break.h.  Added conditionals and asm("int3;")
-	statements etc in parser.c, fnbuf.c, and primitives.c.
-2019-10-13
-	[
-	- Check for missing per-char data inf font_info struct in
-	__ctalkX11QueryFont, and print warning and use fixed
-	font (font.c).
-	]
-2019-10-14
-	[
-	- Added options to configure.ac for freetype.h include
-	directory.
-	- Added lib/ftlib.c.
-	]
-	- Release 0.0.65 2019-10-14
-2019-10-15
-	- Added __ctalkGLXUseFTFont and __ctalkGLXDrawTextFT
-	library functions (ftlib.c).
-2019-10-16
-	[
-	- In operands, return ERROR if the previous token is
-	also a non-unary op (ctpp/ppop.c).
-	- Added has_include (ctpp/include.c, include/ctpp.h).
-	- Added BOOLEAN_T case to m_print_val (libctpp/val.c).
-	- Added "__has_include" clause in eval_constant_expr
-	(cexpr.c).
-	]
-2019-10-18
-	- Added library module lib/glewlib.c. Added the
-	__ctalkInitGLEW, __ctalkGLEW20, and __ctalkARB library
-	functions.
-	- Added __ctalkGLXWinXOrg, __ctalkGLXWinYOrg,
-	__ctalkGLXWinXSize, and __ctalkGLWinYSize library
-	functions (glxlib.c).
-2019-10-19
-	- Added the __ctalkGLXFreeFTFont, __ctalkGLXPixeHeightFT,
-	__ctalkGLXNamedColorFT, __ctalkGLXRGBAColorFT, and
-	__ctalkGLXalphaFT library functions (ftlib.c).
-	- Added the demos/glx/ftfont.ca demonstration program.
-2019-10-20
-	[
-	- Updated __xlib_render_text for machines without libxft
+2020-01-01
+	- Updated X11TextPane : subPaneResize and X11TextPane :
+	background methods.
+	- In __ctalkCreateX11SubWindow, updated the GC foreground
+	from the self foregroundColor instance variable (x11lib.c).
+	Updated X11TextEditorPane : foreground method. Also updated
+	__xlib_render_text to set the drawing gc from the
+	fgcolorname (edittext.c).
+2020-01-02
+	- Updated __ctalkX11SetSizeHints and __ctalkX11GetSizeHints
+	to use size_hints -> width and size_hints -> height as well
+	as base_width and base_height.  Also changed the size_hints
+	flags to use USSize (xgeometry.c).
+	- Updated X11CanvasPane : subPaneResize to set the pane's
+	size x and size y instance variables also.
+	- Updated __edittext_get_primary_selection so that it
+	pastes the receiver's content if the selection is in  our
+	window (edittext.c).
+	- Added __edittext_insert_str_at_click (edittext.c).
+2020-01-03
+	- Updated buf_init and __xlib_render_text to check that
+	a starting point position is not past the end of the text
 	(edittext.c).
-	- Included stdlib.h in glxlib.c to clear up warnings.
-	- Updated all #include <Xlib.h> to #include <X11/Xlib.h>,
-	and all other X includes to include the X11/ directory
-	prefix.
-	- Added the X includes directory in build/.x_h_path,
-	added by configure, used by build/preload.sh.
-	]
-	- Added __glx_resize to update a GLXCanvasPane window's
-	dimensions (glxlib.c).
-	- Added __ctalkGLXFullScreen library function (glx.h).
-2019-10-21
-	[
-	- Update to include_return to make sure we don't
-	insert a line marker in the middle of another line
-	marker (ctpp/preprocess.c).
-	- Updated the tools/*/Makefiles to use the
-	build/.x_h_path when building the language tools.
-	]
-2019-10-22
-	[
-	- Added missing code stubs to the #else /* HAVE_XFT */ branch
-	in xftlib.c.
-	]
-2019-10-26
-	[
-	- Increased MAXUSERDIRS in ctpp.h to 512.
-	- Added fsecure.c and xfopen.  Added #include <stdio.h>
-	in ctalk.h so we could use FILE *xfopen () prototype.
-	Updated ANSITerminalStream, ReadFileStream, and WriteFileStream
-	to use xfopen.
-	- Added check for /usr/include/libkern/i386/_OSByteOrder.h in
-	build/osxbuiltins.sh.
-	]
-2019-10-27
-	[
-	- In begin_function_buffer, check for a function whose name
-	begins with "__darwin_".
-	- Added build/have_llvm.sh and configure.ac and top-level
-	Makefile.am changes.
-	- Added chk_C_return_alone (fnbuf.c), called by parser_pass.
-	- Added /usr/X11R6/include to include/searchdirs.h (generated
-	by include_dirs.sh) for darwin systems.
-	]
-2019-10-28
-	[
-	- Moved include_dirs.sh to build subdirectory.
-	- Updated top-level Makefile.am for .glew_h_path
-	typo.
-	- Added xft_support_error in xftlib.c, where all
-	#ifdef'd sections can find it.
-	- Updated the build/glh.sh script so it handles different
-	parent include dirs better.
-	]
-2019-10-29
-	[
-	- Removed __init_data (rtinfo.c), and its call in
-	__ctalk_class_initialize (rt_rcvr.c).
-	- Added the -Wno-unknown-warning-option to the
-	Makefiles for llvm.
-	- Added a test in configure.ac for the --with-glew-includes
-	option to check if the GL/glew.h, freetype2/ft2build.h, and
-	X11/Xft/Xft.h files exist.
-	]
-	- Added __ctalkCallerPrintOnSelf (rt_prton.c), library function,
-	and the String :vPrintOn method.
-	- Added the run-vprinton[1-2].c and examples/vprinton[1-2].c
-	test programs.
-2019-10-30
-	[
-	- Added exit on __ctalkInitGLEW error return in
-	__ctalkGLXUseFTFont (ftlib.c).
-	]
-	- Added the GLXCanvasPane methods: drawFmtTextFT, drawFmtText,
-	drawFmtTextW, and textWidthFT.
-	- Added the library function __ctalkGLXTextWidthFT (ftlib.c).
-2019-11-02
-	[
-	- Moved XFree call in is_wm_xfce so it is always called
-	for a non-NULL window_name_return and added a XFree call
-	for a non-NULL chilren_return from XQueryTree (x11lib.c).
-	]
-2019-11-03
-	[
-	- In mcct_cvar_or_argblk_tab_term, check whether a CVAR
-	is not also an object (mcct.c).
-	- Added ifexpr_is_cvar_not_shadowed (mcct.c), called by
-	mcct_cvar_or_argblk_tab_term, ctrblk_pred_rt_expr,
-	and check_expr_c_vars (mcct.c).
-	]
-2019-11-04
-	[
-	- Added the caller's method to the parameter list
-	of __rt_arglist_limit (rt_args.c).  Also added clause to
-	check for major boolean after last arg w/o parens.
-	]
-	- Added margexprs69.c test program.
-2019-11-05
-	[
-	- Updated the configure.ac lookup and check for
-	Xrender.h, and added the -DHAVE_XRENDER_H define
-	there.
-	]
-	- Added the __ctalkGLXExtensionsString and
-	__ctalkGLXExtensionSupported API functions (glxlib.c).
-	- Added the __ctalkGLXSwapSyncFrameUsage and
-	__ctalkGLXEnableSwapSync API functions (glxlib.c).
-2019-11-07
-	[
-	- Updated __ctalkGLXDrawTextFT to cache glyph info
-	and textures (ftlib.c).
-	- Removed the glClear etc calls from glxchaser.ca, and
-	added a draw with the color of the background.
-	]
-2019-11-08
-	[
-	- Removed the glxchaserft.ca program.
-	- Removed __ctalkGLXEnableSwapSync (glxlib.c).
-	- Removed __ctalkGLXalpha and __ctalkGLXRGBAColorFt
-	(ftlib.c).  Also removed the GLXCanvasPane : ftColorRGBA
-	method.
-	- Removed the __ctalkGLXRefreshRate API function.
-	]
-	- Updated __ctalkGLXNamedColorFT to only return the rgb
-	values of the color given as the first argument.
-	- Updated GLXCanvasPane : namedColorFT to return Floats
-	with the red, green, and blue values of the color given
-	as the argument.
-	- Added the addFloat method to glxchaser.ca, so we
-	don't get continuous warnings about Floats being
-	truncated to Integers.
-	- Added the __ctalkGLXRefreshRate library function (glxlib.c),
-	and the GLXCanvasPane : refreshRate method.
-	- Added the __ctalkGLXSwapControl library function (glxlib.c).
-2019-11-09
-	[
-	- In __rt_arglist_limit fixup for major boolean following
-	arglist (rt_args.c).
-	- Updated __ctalkGLXSwapControl to use an int interval
-	(glxlib.c).
-	]
-	- Added the __ctalkGLXFrameRate library function (glxlib.c),
-	and the GLXCanvasPane : frameRate method.
-2019-11-10
-	[
-	- In ctalk.h, changed N_VAR_MESSAGES and N_R_MESSAGES to
-	N_MESSAGES * 100.
-	- In c_tmpl_fn_args, don't skip whitespace when assembling
-	fn argument exprs (fn_tmpl.c).
-	- Added LITERAL and LITERAL_CHAR tokens to the single token
-	constant args in eval_arg (eval_arg.c).
-	]
-	- Added the GLXCanvasPane : extensions method.
-2019-11-12
-	- Release 0.0.65 2019-11-12
-2019-11-13
-	[
-	- Added doc/doctools to EXTRA_DIST in top-level
-	Makefile.am.
-	- Updated is_recursive_method_call to return 0 if the
-	argument is NULL.
-	]
-2019-11-14
-	[
-	- Added sanity check to Symbol : removeValue.
-	]
-2019-11-15
-	- Updated ctalk.1 with a list of all of the man pages
-	in the distribution.
-	- Added sections to the ctalkmethods.1 man page.
-	- Updated the cStrcat, cXstrcat, cStrcpy, and cXstrcpy
-	templates to reallocate	the target object's value to
-	fit the new string.
-	- Added the strcat4.c and strcpy3.c test programs.
-2019-11-17
-	[
-	- Updated c_tmpl_fn_args to zero out the
-	template_info_method.n_args member (fn_tmpl.c).
-	- Updated __delete_fn_local_objs to set
-	a VARENTRY -> orig_object_rec to NULL (rtinfo.c).
-	]
-	- Updated the templates cStrncpy, cXstrncpy, cStrncat,
-	and cXstrncat, to allocate memory for the destination string
-	if needed.
-	- Added strncpy3.c and strncat3.c test programs.
-2019-11-18
-	[
-	- Added strcpy, strcat, strncpy, strncat, xstrcpy, xstrcat,
-	xstrncpy, and xstrncat to _c99_writable_args (clibtmpl.c).
-	- Added a clause in default_method for a C function with
-	a template that needs writeable args (rexpr.c).
-	]
-	- Added strcat5.c, strcat5.c, strncpy4.c, and strncat4.c
-	test programs.
-2019-11-19
-	- Added the strncat5.c test program.
-2019-11-20
-	[
-	- Added the build/fn_decl.pl script.  Updates to
-	build/oxsbuiltins.sh, lib/keyword.c, src/fnbuf.c,
-	top-level Makefile.am, and README.
-	]
-2019-11-21
-	- Added the demos/glx/glxchaserft.ca demonstration program.
+	- Added the X11TextEditorPane : gotoChar method.
+	2020-01-05
+	- Added the GLXCanvasPane : displayWidth and displayHeight
+	methods.
+2020-01-06
+	- Added the __ctalkX11SubWindowGeometry library function
+	(xgeometry.c).
+	- Added a check for the "super" keyword in the CAN_CACHE_METHOD
+	macro (rt_expr.c).
+2020-01-07
+	- Added attachTo methods with a geometry string argument in
+	X11PaneDispatcher and X11CanvasPane classes.
+	- Removed the X11PaneDispatcher : containerMode instance variable,
+	which isn't needed.
+	- Added the FOCUSCHANGENOTIFY X event definition in x11defs.h,
+	and updated __ctalkX11InputClient to send the event to the
+	application process (x11lib.c).  Added the X11PaneDispatcher :
+	handleFocusChange instance variable, and focuschange handler
+	type.
+2020-01-08
+	- Added FOCUSCHANGENOTIFY case in X11PaneDispatcher :
+	handleSubPaneEvent.
+	- Added EnterWindowMask and LeaveWindowMask to the X client's
+	event mask (x11defs.h).  Also added the ENTERWINDOWNOTIFY and
+	LEAVEWINDOWNOTIFY InputEvent classes (x11defs.h and ctalklib.in).
+	Added EnterNotify and LeaveNotify cases in __ctalkX11InputClient
+	(x11lib.c).  Added the "enternotify" and "leavenotify" handler
+	types, and the X11PaneDispatcher : handleEnterNotify and
+	X11PaneDispatcher : handleLeaveNotify instance variables.
+	- Updated fmt_printf_fmt_arg to unset ptr_fmt_is_alt_int_fmt
+	after formatting the object-to-C translation if it has been
+	set (objtoc.c).
+2020-01-10
+	- In __rt_method_arglist_n_args, check for a math operator
+	after a closing paren, and don't interpret the first paren
+	set as enclosing the entire arglist (rt_args.c).
+2020-01-11
+	- X11LabelPane class.
+2020-01-12
+	- Added the db member to the METHOD typedef (object.h,
+	ctalklib.in).
+	- Fixed a bug in event_to_client that read the write
+	function's output (x11lib.c).
+2020-01-13
+	- Added read_event, and changed event_to_client
+	to use shared memory to store event data (x11lib.c).  Updated
+	X11TerminalStream : queueInput and read_x_event to read
+	event data from shared memory.
+2020-01-15
+	- Added the X11LabelPane : backgroundColor instance variable,
+	and the X11LabelPane : __highlightBackground internal method
+	to draw it.
+	- Added edittext_resize_notify in x11lib.c, so calc_line_width
+	in edittext.c can update the client-side line width.
+	- Updated parser_pass to check for library_input before checking
+	for a return-statement-only function (parser.c).
+2020-01-16
+	- Removed a clause from __ctalk_arg_expr that used a
+	pre-existing value object for a partial evaluation of
+	a complex argument term (rt_args.c).
+	- Added margexprs71.c test program.
+2020-01-17
+	- Added the X11ScrollBarPane : background instance method,
+	and the instance variables padding, frameWidthVar, and margin.
+2020-01-18
+	- Added a context warning message before the exception handler
+	at the end of parser_pass (parser.c).
+2020-01-20
+	- Added X11ScrollBarPane : attachTo with a geometry specification
+	as the second parameter.
+	- Fixed a typo in __ctalkX11SubWindowGeometry so the y origin
+	of the geometry gets converted correctly (xgeometry.c).
+	- Updated X11ScrollBarPane class to work as a subwindow.
+	- Added the demos/x11/scrollbar.ca example program.
+2020-01-22
+	- Added the X11Bitmap : copy method.
+2020-01-24
+	- Added a beveled thumb to the X11ScrollBarPane class.
+	- Removed the X11PaneDispatcher : subPaneInfo instance variable,
+	and added the X11PaneDispatcher : subPaneGeometry instance
+	variable.
+2020-01-25
+	- Updated the X11ScrollBarPane : subPaneResize method.
+	- In resolve, only look for parameters if the token is
+	a LABEL (resolve.c).
+	- In unary_op_attributes, fill in the returned info for a unary
+	op if the message already has the TOK_IS_PREFIX_OPERATOR
+	attribute set (prefixop.c).
+	- Added check for class casts in eval_arg (eval_arg.c),
+	and for an expression that has a class cast preceded by a
+	prefix operator..
+2020-01-26
+	- Removed is_expr_obj, which is no longer needed (rexpr.c).
+	- Updated method_call to not call a primitive method during
+	expr_check pass (method.c).
+	- In __ctalk_to_c_ptr, just return the object if it has
+	LOCAL_VAR scope and its value isn't a numeric format
+	(lib/objtoc.c).
+	- Added X11Pane : mainWindow method.
+2020-01-27
+	- In resolve, moved the call to class_object_search within
+	the clause the the program takes when there isn't already
+	a result object (resolve.c).
+	- Moved part of resolve into resolve_single_token_method_param
+	(resolve.c).
+	- Added rme (resolve.c).
+	- Added class_method_template_call, from a part of resolve
+	(resolve.c).
+2020-01-29
+	- Added __edittext_row_col_from_mark, __edittext_scroll_down,
+	and __edittext_scroll_up (edittext.c), and the X11TextEditorPane :
+	clearSelection method.
+2020-01-31
+	- Added __edittext_recenter and __edittext_xk_keysym (edittext.c).
+	- Fixed X11LabelPane's enter and leave event handlers.
+	- Check for the subpane's window ID when handling button events
+	in X11PaneDispatcher : queueInput.
+	- Check for a "super" keyword in is_self_expr_as_fn_lvalue
+	(c_rval.c).
+	- Added range checks in the dbuf concatenation in
+	__ctalkGUIPaneDrawRectangle (guidrawrectangle.c).
+	- Updated __ctalk_arg to check for a declared object
+	when the argument is the return of a __ctalk_arg_internal
+	call (rt_args.c).
+2020-02-01
+	- Added the X11LabelPane : drawButtonLayout method.
+	- Added instancevar_wo_rcvr_warning (errmsgs.c), called
+	by eval_arg.
+2020-02-02
+	- Updated __ctalkCreateX11MainWindow to use a background
+	color set in X11Pane : backgroundColor if it is already
+	set before calling X11Pane : initialize (x11lib.c).
+2020-02-03
+	- Added the demos/x11/buttons.ca example program.
+2020-02-04
+	- Use a struct for rectangle dimensions in
+	__xlib_draw_rectangle* (x11lib.c).
+	- Added the __ctalkX11DrawRoundedRectangle and
+	__ctalkGUIDrawRoundedRectangle functions (guirectangle.c).
+	Also add the X11CanvasPane : drawRoundedRectangle method.
+	In these cases, the panebackingstore information is replaced
+	with the corner radius information, which __xlib_draw_rectangle
+	uses to draw the arcs which form the rectangle's corners if
+	corner_radius > 0 (x11lib.c).
+	- Added the radius instance variable to X11LabelPane, and
+	use it to call X11CanvasPane : drawRoundedRectangle when
+	a radius is set.
+2020-02-05
+	- Added a check for a LABEL following a parenthesized expression
+	in __rt_arglist_limit (rt_args.c).
+	- Updated X11ButtonPane : draw to add blending with the background
+	when drawing rounded, and also clipping the label
+	text to fit within deeply rounded corners.
+	- Added the X11ButtonPane methods: isClicked, text, haveClick,
+	and clearClick.
+2020-02-06
+	- Moved __xlib_draw_rectangle to xrender.c.
+	- Added xr_make_surface (xrender.c), which is common to
+	all drawing functions.
+	- Made the X11TerminalStream event_mask an argument to
+	read_event, so we can return from unneeded messages more
+	quickly (x11lib.c).
+	- Updated method_object_msg_internal_2_args to silently
+	return if a virtual method isn't defined (rt_vmthd.c).
+	- Updated read_event to use event_mask as an argument,
+	and to check an event type agains the event_mask, and
+	to reset and wait for the next event if it isn't included,
+	if the event mask > 0 (x11lib.c).
+	- Added the SHM_EVENT_MASK constant (x11defs.h), so read_event
+	can set the event mask there, so event_to_event can also use
+	the event mask to trim unwanted/unneeded events before sending
+	them (x11lib.c).
+	- Cleaned up method_object_msg_internal_2_args (rt_vmthd.c).
+	- Added __ctalk_method_from_object_2_args (rt_vmthd.c).
+2020-02-07
+	- Added the EV_CH struct (x11lib.c), and the buffered
+	event list (x11lib.c).
+	- Updated demos/x11/buttons.ca to use two buttons.
+2020-02-08
+	- Added the X11PaneDispatcher : canFocus instance variable,
+	and removed the X11LabelPane : canFocus instance variable.
+	- Renamed the X11PaneDispatcher : handleFocusChange instance
+	variable to X11PaneDispatcher : handleWMFocusChange.  Changed
+	the handler type from focuschange to wmfocuschange, and also
+	changed the X event type from FOCUSCHANGENOTIFY to
+	WMFOCUSCHAGENOTIFY.
+2020-02-09
+	- Added collect_errmsg_expr (errmsgs.c), called by
+	undefined_receiver_exception (resolve.c).
+	- Added a null result check and null_result_obj call when
+	calling a prefix method in eval_expr (rt_expr.c).
+	- Do a fixup in _rt_math_op if we have a closing paren
+	before an operator, and the paren tok's object hasn't
+	been filled in, for example, if the value of the
+	left-hand operand expression is NULL (rt_expr.c).
+	- Removed the now unused client_sock_fd argument to
+	event_to_client and resize_event_to_client and removed
+	now unused code from event_to_client (x11lib.c).
+2020-02-11
+	- Added the X11PaneDispatcher : canFocus instance variable,
+	and removed the X11CanvasPane-only canFocus instance
+	variable.
+	- Added the X11PaneDispatcher : focusPanePtr instance
+	variable, and added a check for a Tab key press in
+	X11PaneDispatcher : handleSubPaneEvent.  Started on
+	the X11PaneDispatcher : shiftFocus method.
+2020-02-13
+	- Added a recursive superclass lookup to get_instance_variable
+	(object.c).
+	- Added a valid method label check in is_argblk_expr (argblk.c),
+	and a warning function, undefined_blk_method_warning
+	(errmsgs.c).
+	- Moved AssociativeArray : mapKeys to Collection : mapKeys.
+2020-02-14
+	- Removed an unused strcpy call from var_definition (primitives.c).
+	- Added resolve_rcvr_is_undefined (errmsgs.c), to check for a bad
+	receiver to an instanceVariable or classVariable method message in
+	resolve (resolve.c).
+	- Added the X11PaneDispatcher : highlight instance variable, and
+	removed the highlight instance variable from X11LabelPane.
+	- Added the X11ButtonPane : subPaneFocusIn and X11ButtonPane :
+	subPaneFocusOut instance methods.
+	- Added a lookback in argblk_super_expr for prefix operators
+	(mainly '*') and parentesized prefix expressions when super
+	is used as a C function argument to e.g., printf (argblk.c).
+2020-02-15
+	- Updated eval_subexpr to do a fixup if we encounter an
+	expression like: (*myList myInstVar) = myArg when myInstVar
+	is a Symbol, to handle the way that Symbol : = makes
+	assignments.
+	- Added set_receiver_msg_and_obj_fixup (lib/rt_expr.c).
+	- Added the rcvrexpr[2-4].c test programs.
+2020-02-16
+	- Added the void *db member to the RT_FN type (rtinfo.h,
+	ctalklib.in).
+	- Removed linemarker_line from parse (parser.c).
+2020-02-17
+	- In argblk_super_expr, handle a super with a prefix operator
+	directly (argblk.c).
+	- In NULL_return_expr, return a ((void *)0) string for an
+	argument block return (return.c).
+	- Added the X11PaneDispatcher : shiftFocus method, and added a
+	X11LabelPane widget to the demos/x11/buttons.ca example program.
+	Also add a Tab key binding in X11PaneDispatcher :
+	handleSubPaneEvent to shift the focus between widgets.  Also
+	added the X11PaneDispatcher instance variables handleFocusIn
+	and handleFocusOut, as well as the focusin and focusout event
+	types.
+2020-02-19
+	- Added the X11PaneDispatcher : tabFocus instance variable.
+	- Added checks for selecting a saved font from a widget's
+	ftFontVar in X11ButtonPane : draw and X11LabelPane : draw.
+2020-02-20
+	- Added the time member from XKeyEvents and XCrossingEvents to
+	the X event data returned to the app (x11lib.c).  Added the
+	g_ptr_t and g_kbd_t variables in X11PaneDispatcher to record
+	the last focus event, and added the code to save the event
+	times in X11PaneDispatcher : handleSubPaneEvent.
+	- Added the X11PaneDispatcher : clearHightlight method.
+	- Added the X11PaneDispatcher : mouseOver instance variable,
+	and the subPaneEnterNotify and subPaneLeaveNotify methods.
+	Also removed the pointIsInFrame method.
+	- In event_to_client, check for MOTIONNOTIFY events, and
+	if we encounter them, don't cache them but send them directly
+	to the client process, and discard any overflow, which
+	works okay for an event stream that is still being generated
+	(x11lib.c).
+2020-02-21
+	- Added a check for a valid object in get_class_object
+	(cclasses.c).
+2020-02-23
+	- Removed references to LVAL_OBJECT_ALIAS scope, which
+	isn't used any longer (resolve.c, mcct.c, object.h).
+2020-02-25
+	- Updated the ctalkmethods.1 manual page.
+	- Updated the classes/Makefile.am file to add X11MessageBoxPane
+	class.
+2020-02-26
+	- Increased the buffer size in __ctalkX11SubWindowGeometry to
+	255 characters (xgeometry.c).
+2020-02-27
+	- Added xdialog.c and updated lib/Makefile.am.
+	- Added SHM_DISPLAY area in x11defs.h.
+	- Added the X11Pane : displayPtr instance variable.
+	- Added code in __ctalkCreateX11MainWindow,
+	__ctalkCreateX11MainWindowTitle, and
+	__ctalkCreateX11SubWindow to set the pane object's displayPtr
+	instance variable from the main Display * in the app's
+	process space (x11lib.c).
+2020-20-28
+	- Updated X11TextEditorPane : attachTo to set the displayPtr
+	instance variable from the main window's displayPtr, and
+	updated buf_init (edittext.c) to save a pointer to the editor
+	pane's displayPtr instance variable.  Also updated the attachTo
+	methods in X11ButtonPane, X11CanvasPane, X11MessageBoxPane,
+	X11PaneDispatcher, X11ScrollBarPane, and X11TextPane.
+	- In arg_active_varentry, make sure the arg_active_tag is
+	a valid VARENTRY (rtinfo.c).
+	- Updated GUI libs for 6-argument make_req macro (32-bit and
+	64-bit)	that includes a Display * argument (x11defs.h, etc).
+2020-02-29
+	- Added local Display * construction from shared memory in
+	__xlib_handle_client_request (x11lib.c).
+	- Added a Display * parameter to __xlib_put_str (x11lib.c),
+	and __xlib_clear_rectangle_basic (bitmap.c).  Removed
+	__ctalkX11ClearBufferRectangle, which is no longer used
+	(bitmap.c).
+	- Added expression to set the main window background color in
+	demos/x11/xhello.c and tools/ctxlogo/ctxlogo.ca.
+	- Updated __xlib_put_str_ft to use a local Display * (x11lib.c).
+	Also added expression to set the main window background color in
+	demos/xft/xfthello.c.
+	- Updated __xlib_set_wm_name_prop, __xlib_draw_window,
+	__xlib_clear_rectangle, __xlib_resize_window,
+	__xlib_move_window, __xlib_refresh_window, __xlib_use_cursor,
+	__xlib_change_gc, __xlib_change_window_background,
+	__xlib_resize_pixmap, __xlib_pixmap_from_data,
+	__xlib_copy_pixmap, and __xlib_change_face_request, and
+	__xlib_change_face_request_ft to use a Display * argument
+	(x11lib.c).	Also updated __xlib_draw_point,	__xlib_draw_line,
+	__xlib_draw_rectangle, and __xlib_draw_circle (xrender.c). And
+	updated __xlib_render_text and __xlib_get_primary_selection
+	(edittext.c).
+	- Added a Display * parameter to is_wm_xfce and is_kwin_desktop
+	(x11lib.c).
+	- Updated X11CanvasPane : subPaneDestroy, X11ScrollBarPane :
+	subPaneDestroy, and X11PaneDispatcher : subPaneResize and
+	X11PaneDispatcher : subPaneMove to use the receiver's
+	displayPtr instance variable instead of the X11Pane : xDisplay
+	class variable.  Removed the X11Pane : xDisplay variable.
+	- In X11Pane : deleteAndClose, set the displayPtr to NULL.
+	- In X11MessageBox class, moved the buffer creation to the
+	show method, after the dialog window is created and the
+	program has a valid parent ID for the buffers.
+2020-03-02
+	- Added a Display * argument to __ctalkX11CreateGC (bitmap.c).
+	- Updated __save_pane_to_vars to retrieve and set the pane's "depth"
+	value and its "value" variable value (x11lib.c).
+	- Updated the __xlib_set_wm_name_prop call in
+	__ctalkCreateX11MainWindowTitle (x11lib.c).
+	- Changed the lookup_color calls in __xlib_change_gc to
+	lookup_color_d, which uses a Display * argument (x11lib.c).
+2020-03-03
+	- In define_symbol (preprocess.c), save argument list start
+	and end stack indexes, so we know to end the macro name if
+	there is no whitespace between the argument list and the
+	macro body.
+2020-03-04
+	- Added fn_param[28-30].c test programs.
+2020-03-05
+	- Updated __ctalkX11CreateGC (bitmap.c) to create GC
+	with the values defined in DEFAULT_GCV_MASK (x11defs.h).
+	- Updated lookup_pixel_d to use the local Display * when
+	calling lookup_color (x11lib.c).
+	- Added the X11Pane : modal and X11Bitmap : modal instance
+	variables.
+2020-03-06
+	- Updated __ctalkDefineInstanceVariable and __ctalkSetObjectValueClass
+	to check BOOL_BUF_SIZE_INIT and set OBJECT_VALUE_IS_BIN_BOOL
+	(rtobjvar.c and rtnewobj.c).
+	- In copy_instance_vars_from_class, if the source var's "value"
+	var class attributes includes OBJECT_VALUE_IS_BIN_BOOL, then
+	set the new var's "value" instance var's value to INTBUFSIZE,
+	and copy the class object's var prototype value to the new
+	variable (rtobjvar.c).
+	- In ctalk.h, #define BOOLBUFSIZE as an alias for INTBUFSIZE.
+2020-03-07
+	- In __method_object_init, set the isInitialized instance
+	variable as a boolean binary value (rt_vmthd.c).
+	- In __create_object_internal, added an OBJECT_VALUE_IS_BIN_BOOL
+	value initialization (rtnewobj.c).
+	- Updated __glxlib_visual_attributes to use binary boolean
+	values (glxlib.c).
+2020-03-08
+	- Added __ctalkCloseX11DialogPane (xdialog.c).
+	- Updated __ctalkX11SetBackgroundBasic and __ctalkX11SetForegroundBasic
+	to work with xdialog.c windows (guisetbackground.c, guisetforeground.c),
+	and also updated the functions __ctalkX11PutStrBasic and
+	__ctalkX11UseFontBasic to work with dialog windows (guiputstr.c,
+	x11lib.c), and __ctalkGUIPaneRefresh (guirefresh.c).
+	- In __ctalkToCLongInteger, check for an OBJECT_VALUE_IS_BIN_INT
+	attribute and return the int value (lib/objtoc.c).
+	- In __xlib_draw_str_ft, if we have a dialog call, completely
+	delete the XftDraw (x11lib.c).  Also close the X display connection
+	to the dialog in __ctalkCloseX11DialogWindow when closing the
+	window (xdialog.c).
+	- Updated __ctalkCreateX11SubWinwdow to use the parent pane's
+	Display * (x11lib.c).
+2020-03-10
+	- Added create_pane_win_gc (x11lib.c), which can be called by
+	__ctalkCreateX11Window, __ctalkCreateX11WindowTitle,
+	__ctalkCreateX11SubWindow, and __ctalkX11CreateDialogWindow.
+	- Added the X11Pane :foregroundColor instance variable and
+	the X11Pane : foreground method.
+	- Added build/confcttest.sh to add compiler specific warning
+	options to test/expect/cttest when running ./configure.
+2020-03-14
+	- Release 0.0.66 2020-03-14
+2020-03-15
+	- Set X11MessageBoxPane colors to "white" and "black", and
+	added the X11MessageBoxPane : fill method, which fills the
+	pane with the background color.
+	- Added a __call_stack_ptr range check in
+	__ctalkRegisterUserObject (rt_obj.c).
+	- Use the pane object's displayPtr instance variable in
+	get_user_font (x11lib.c).
+	- Added the class pathname as an argument to save_class_init_info
+	(preclass.c).
+	- In arg_object_if_label, check for an expression like,
+	"CFunction cTime", and get the value object, not just the
+	declaration of the label (rt_args.c).
+2020-03-17
+	- Updated preclass.ca to add the method declaration line numbers
+	to the *.class files in the cache, and to read them back when using
+	preloaded methods, using the MLI and CLSLI types in preclass.c to
+	store the line number info.
+	- Moved the c_messages stack to ctoobj.c, where it is still used,
+	and the supporting functions that stack support needs.
+2020-03-18
+	- In X11MessageBox : attachTo, check whether we've set the
+	messagebox's foreground and background colors before using
+	the parent X11Pane's background and foreground colors.
+	- Added a check in __ctalkX11SetBackgroundBasic for initialized
+	shared memory (guisetbackground.c).
+	- Added a check in X11MessageBoxPane : attachTo that checks whether
+	the messagebox's foreground or background colors have been set
+	before assigning them the main window's foreground and background
+	colors.
+	- In __ctalkDefineInstanceVariable, if the constructor class is
+	different than the var's native class, set the var's class to
+	the native class and call __ctalkInstanceVarsFromClassObject so
+	we add the variables defined in the native class.  Then set the
+	variable's parent object class to the class it is a member of
+	(rtobjvar.c).
+	- Removed a call to XGetWindowAttributes from
+	__ctalkCreateX11SubWindow becauase the parent's backing_store attribute
+	is Always, and we can set it directly for the child window also
+	(x11lib.c).
+2020-03-21
+	- Removed the expressions that set the subwindow's display pointer
+	in X11CanvasPane : attachTo, X11ButtonPane : attachTo and
+	X11PaneDispatcher : attachTo - setting the display connection's
+	address is now handled by __ctalkCreateX11SubWindow (x11lib.c).
+	- Removed the buttons' hightlight text color setting in
+	demos/x11/buttons.ca.
+2020-03-21
+	- In __xlib_draw_rectangle, updated lookup_pixel to lookup_pixel_d
+	(xrender.c).
+	- Updated xr_make_surface to use the Display * that's passed to
+	it's calling function, and also declared as static.
+	- Updated X11PaneDispatcher : attachTo (2 params) so that it only
+	sets a full window subwindow when the receiver is a X11PaneDispatcher.
+2020-03-22
+	- Updated the functions in guidrawrectangle.c to check for a dialog
+	window and draw to that window separately .
+	- Updated __ctalkDefineInstanceVariable to start looking for the
+	variable's constructor method the variable's class, not its
+	superclass (rtobjvar.c).
+	- Updated __ctalkX11CopyPixmapBasic to use a dialog window's
+	connection to the server when drawing if needed (xcopypixmap.c),
+	and also __ctalkX11PaneClearRectangle and __ctalkX11ClearRectangleBasic
+	(guiclearrectangle.c).
+2020-03-23
+	- Updated routines in guiputstr.c to draw on dialog windows.
+	- Updated __xlib_put_str to not clear the region behind text,
+	which may no longer be needed (x11lib.c).
+	- Added the display member to the XFTFONT type (xftfont.h),
+	added the macro DISPLAY to determine whether we're using the
+	xdialog.c connection to the display, and added the g_dpy global
+	in xftlib.c, and checked in new_font_spec whether the font was
+	selected on the same display connection (xftlib.c).
+	- Fixed a bug in __ctalkX11SubWindowGeometry (xgeometry.c).
+	- Added a check for a missing format argument in
+	__call_printon_fn_w_args (rt_prton.c).
+	- Added the start of a string as an argument to is_printf_fmt,
+	so the fn can look back to find an escaped '%' ('%%') (pattern.c).
+	Also updated the "%%" handling in __call_printon_fn_w_args
+	(rt_prton.c).
+2020-03-24
+	- Added a check in eval_arg for undefined labels that don't
+	follow a constructor method message or are a method message
+	themselves, or an AssociativeArray key (eval_arg.c).
+	- Updated fmt_tokens with more checks for escaped percent
+	characters ("%%") (rt_stdarg.c). Also added a check for any
+	combination of "%" and "%%" sequences in the format string
+	in __check_printon_args (rt_prton.c), and __compress_escs
+	to unescape %%' sequences.
+2020-03-25
+	- Updated mcct_check_token to set OBJ_IS_INSTANCE_VAR
+	attributes and the receiver_msg and receiver_obj members
+	of the tokens' messages on instance variable tokens (mcct.c).
+	- Added the DIALOG_C type in x11defs.h, and updated the DIALOG
+	macro to use it to determine if a dialog window is mapped.
+	Also added the __enable_dialog function (xdialog.c) to set
+	the DIALOG_C entry that the dialog is mapped on successive views
+	(xdialog.c).
+2020-03-26
+	- Added the X11MessageBoxPane section to doc/ctalk.texi, and
+	added the demos/x11/messagebox.ca example program.
+2020-03-27
+	- Added a check for a NULL display connectiion in
+	__xlib_change_gc and lookup_pixel_d (x11lib.c).
+	- Fixed an unbalanced brace in X11MessageBoxPane : show.
+2020-03-28
+	- Added the __ctalkPaneResource library function (xresource.c).
+	- Updated the library functions in xgeometry.c, x11lib.c, and
+	xdialog.c to center a dialog window above its parent window.
+2020-03-29
+	- Added the Collection : replaceAt method.
+2020-03-31
+	- Added fmt_method_call_term, called by generate_method_call
+	(output.c).  Also updated method_call to omit a semicolon
+	if the method call is a function argument (method.c).
+	- Updated X11Pane : mainWindow so that if the receiver is
+	class X11Pane, the method simply returns the reciever.
+2020-04-01
+	- In rt_expr, add a check for an expression that is a
+	function argument, and format an object-to-C translation.
+	Also placed similar clauses into rte_fn_output_arg
+	(rt_expr.c).
+2020-04-03
+	- Added the include/xpms subdirectory and the XPM icons for the
+	*DialogPane classes, and #included them in xdialog.c.  Also added
+	__ctalkIconXPM library function (xdialog.c), and the icon, iconStop,
+	iconCaution, and iconInfo methods in X11Bitmap class.
+	- Updated __ctalkX11XPMFromData for dialog windows (guixpm.c).
+	- Updated the test/expect/examples-x11/canvas-copy.c demonstration
+	program, and moved it demos/x11.
+2020-04-04
+	- Updated __ctalkX11PaneDrawCircleBasic to work with
+	dialog windows (xcircle.c). Also updated
+	__ctalkX11DrawPointBasic to work with dialog windows
+	(guidrawpoint.c).
+	- Added the X11Bitmap : drawCircle method.
+	- Added icons to the X11MessageBoxPane class.
+	- Updated String : split to specifically handle receiver
+	Strings that don't contain the delimiter. Also added the
+	split[5-6].c test programs.
+2020-04-05
+	- Updated X11ButtonPane : subPaneLeave to release a
+	button press on a leave notify event.
+	- Added a check for valid method arguments in new_object
+	(primitives.c).
+	- Added the X11Bitmap : backgroundColor instance variable,
+	set in X11Bitmap : background.
+	- Added a better warning message in eval_expr if we have a
+	method mismatch (rt_expr.c).
+	- Moved the actual icon drawing from X11MessageBoxPane : drawIcon
+	to the corresponding methods in X11Bitmap.
+	- Added the X11MessageBox : titleText resource, and updated
+	__ctalkX11CreateDialogWindow to retrieve it (xdialog.c).
+2020-04-06
+	- Added keyboard Tab and Enter keyboard shortcuts to
+	X11MessageBoxPane.  Also added the X11MessageBoxPane :
+	messageColor resource.
+2020-04-07
+	- Updatd __ctalkXftInitLib to use FcFontInitLoadConFigAndFonts
+	(xftlib.c).
+2020-04-09
+	- Updated __ctalkSaveCVARResource to check for a receiver object
+	(rt_return.c).
+	2020-04-10
+	- Added the __ctalkXftShowFontLoad library function.
+2020-04-10
+	- Added the __ctalkXftShowFontLoad library function,
+	and the X11FreeTypeFont methods notifyLevel, verbose, and errors,
+	and added optional font load and load error messages to xftlib.c.
+	- Added prev_instvar_is_actually_method in src/rt_expr.c, called
+	by rt_expr.
+2020-04-11
+	- Updated xftlib.c to make Fontconfig pattern sets experimental,
+	and add the XFTCONFIG environment variable fonts.conf file
+	location, and to add the files given in an old-style fonts.conf
+	to the libraries' internal fonts database.
+	- Moved test/expect/examples-x11/x11labelpane.ca to
+	demos/x11/labelpane.ca.
+	- Added resources for the font and element colors used for
+	drawing in X11LabelPane.
+	- Some adjustments to the X11Bitmap : iconInfo drawing.
+	- Added an exception handler, message, and app exit to
+	eval_expr for unmatched parentheses (rt_expr.c).
+	- Added the X11MessageBoxPane : messageFont resource.
+	The message box's label pane inherits the font descriptors
+	value when the widget is being constructed.
+2020-04-12
+	- Added resources for some of the Pen colors and line widths
+	in X11ButtonPane.
+	- Added an undefined label check in rt_expr (src/rt_expr.c).
+	- Updated X11LabelPane and X11ButtonPane to use resources
+	for the highlight background color.
+	- Added the X11LabelPane : backgroundColor resource.
+2020-04-13
+	- Updated create_pane_win_gc to use a "backgroundColor" resource
+	to set the window's background if one is set, otherwise to
+	use the "backgroundColor" instance variable (x11lib.c).
+	- Updated X11ButonPane : attachTo to set the the button's label
+	background using the label's "backgroundColor" resource.
+	- Updated X11MessageBoxPane class to use the background resource
+	to set the background color of all of the subpanes.
+	- Also added the foreground and highlightForeground resources
+	to X11ButtonPane class, and use these to set the text and
+	highlighted text colors in the button's X11LabelPane subpane.
+	- Added the X11ButtonPane : faceBackground resource.
+2020-04-14
+	- In xftlib.c, added __select_font_from_family, for font-only
+	changes by __ctalkXftSelectFont.  Also changed the mono_families
+	label to default_families, and updated with "san-serif" as the
+	default family, and also search for alternate fonts that come
+	shipped with the OS.
+	- Updated __ctalkXftSelectFontFromFontConfig to check for the
+	last hyphen in a font family specification, so the parser
+	can distinguish between e.g., "sans serif-12" and "sans-serif-12"
+	(xftlib.c).
+	- Added __select_font_from_family (xftlib.c).  Also changed
+	__xlib_change_face_request_ft to __xlib_change_font_request_ft,
+	called directly by __xlib_change_font_request_ft (x11lib.c).
+	- Added the X11PaneDispatcher : handleMap instance variable
+	and the "map" event handler type.
+	- Added the X11ButtonPane : hover instance variable.
+2020-04-16
+	- In create_pane_win_gc, set gcv.graphics_exposures to
+	false (x11lib.c), and also in __ctalkX11CreatePixmap
+	(bitmap.c).
+	- Updated exception notice X11PaneDispatcher : setMethodHandler
+	for undefined handler type.
+	- Added Map and Pointer Motion event handlers in X11ButtonPane
+	class, and other updates.
+	- In super_argblk_rcvr_expr, check for a NULL rcvr_class_object
+	(complexmethd.c).
+	- In __new_instance_method, added a call to
+	set_rcvr_class_obj_new_method_2, which sets the new method's
+	rcvr_class_obj member (primitives.c).
+2020-04-17
+	- Added an error message and exit for an invalid rcvr_class_obj
+	in super_argblk_rcvr_expr (complexmethd.c).
+2020-04-18
+	- In __ctalkX11PanePutStrBasic, added a range check for the
+	X,Y coordinates of the string (guiputstr.c).
+	- Removed the warning message from Float : asInteger.
+	- Added the demos/x11/roundbuttons.ca example program.
+2020-04-19
+	- Cleanup of pane resources and documentation for
+	X11LabelPane, X11ButtonPane, and X11MessageBoxPane classes.
+	- Updated X11Bitmap : iconInfo to draw a rendered circle
+	for the dot in the 'i'.
+2020-04-21
+	- Added member_of_method_return_class, called by eval_arg
+	(eval_arg.c).
+2020-04-22
+	- Fixed a typo in ANSIYesNoBoxPane : new.
+	- Updated eval_constant_arg to handle PATTERN tokens
+	(eval_arg.c).
+	- Added a check for expr_check_ pass in method_args
+	(method.c).
+	- Added a check to prevent leading whitespace in
+	c_tmpl_fn_args (fn_tmpl.c).
+	- Removed constant token cases for single token
+	arguments from eval_arg (eval_arg.c).
+2020-04-23
+	- Added the X11LabelPane : highlightTextBold resource,
+	and removed the X11LabelPane: highlightTextBold instance
+	variable.
+2020-04-24
+	- Added the X11MessageBoxPane : showManaged method.
+	- Updated the documentaiton of the --without-signed-
+	hex-octal-constant-warnings configure option.
+2020-04-26
+	- Added the X11Bitmap : iconQuestion method and the
+	ICON_QUESTION icon ID (ctalk/ctalkdefs.h).
+	- Added the X11YesNoBoxPane class.
+2020-04-29
+	- Added Tab and Return keystroke handlers to X11YesNoBoxPane
+	class.
+	- Added the X11Cursor : xterm method.
+2020-05-01
+	- In __ctalkToCCharPtr, check for an active i before buffering
+	the C string (lib/objtoc.c).  Also added __result_obj_post_call
+	for to return instead of the i_post object (lib/rt_methd.c).
+2020-05-02
+	- Added X11TextEntryPane class, a basic text entry widget,
+	and the demos/x11/entrybox.ca demonstration program.
+2020-05-03
+	- Added new_mb_list and reuse_mb_list in methodbuf.c.  Also
+	created the MBLIST type, which use fewer mallocs/frees for
+	use with method buffering.
+	- Added the LABEL token type to constant_token_object, which
+	is not really a constant, but the object creation works in
+	that place (object.c).
+2020-05-04
+	- Updated the GL blend function in render_text to GL_SRC_ALPHA,
+	GL_DST_ALPHA (ftlib.c).  Update the demos/x11/ftfont.ca example
+	program to set both the font and GL libraries' alpha channel.
+2020-05-05
+	- Added the X11Bitmap methods drawRectangle and drawFilledRectangle.
+	Also added the __ctalkX11PaneDrawRectangleBasic and
+	__ctalkGUIPaneDrawRectangleBasic library functions
+	(guidrawrectangle.c).
+	- Updated X11ScrollBarPane : refresh to use a fill color when
+	drawing	a beveled thumb.
+2020-05-06
+	- Added the XllFreeTypeFont methods, loadNotify, verbose, and quiet.
+	Also added the __ctalkXftVerbosity library function (xftlib.c).
+	- Added the X11FreeTypeFont : currentDescParamStr method, and also
+	the __ctalkXftDescStr library function, and the XFT_NOTIFY_VERBOSE
+	message level.
+2020-05-07
+	- Added __ctalkXftRequestedFamily, __ctalkXftRequestedPointSize,
+	__ctalkXftRequestedSlant, __ctalkXftRequestedWeight, __ctalkXftRequestedDPI
+	to xftlib.c, which return global variables that
+	__ctalkXftSelectFontFromFontConfig sets. Also added the X11FreeTypeFont :
+	__loadInfo method for internal use by the font loading methods.
+	- In fmt_c_to_obj_call, add a handler for a char * return type
+	(ctoobj.c). In method_args, added a handler for an arg_c_fn_expr
+	argument class (method.c).
+2020-05-07
+	- Updated X11FreeTypeFont : selectFontFromFontConfig to use the
+	5-argument form of __loadInfo.
+2020-05-08
+	- Added selected_filename buffer and selected_fn function to
+	fill in the selected font's filename in case we need to use
+	it directly with the freetype libaries (xftlib.c).
+	- Added -lfreetype to the "-lXft -lfontconfig" linker flags
+	in configure.ac so the Freetype library is available to all
+	of the source modules.
+2020-05-09
+	- Added a check for a derived i object still on the argument
+	stack in delete_char_ptr_arg (lib/objtoc.c).
+	- Added selected_fn to retrieve and store a Freetype font's
+	file name when loading fonts (xftlib.c).
+	- Updated __ctalkXftGetStringDimensions to use the Freetype
+	glyph advance of each string character to calculate a string's
+	width (xftlib.c).
+	- Added X11TextEntryPane : drawCursor to draw a solid cursor
+	where text is to be inserted at the end of the entry text.
+	Also Added the hover instance variable to X11TextEntryPane
+	class and use it to only draw the cursor when the pointer is
+	over the text entry.
+2020-05-10
+	- Release 0.66 2020-05-10.
+2020-05-12
+	- Updated __ctalk_define_class to check whether a new class is
+	a subclass of Character class (rtclslib.c).
+	- Added a check for an instance that is in a subclass of
+	Character in Magnitude : asCharacter.
+2020-05-13
+	- Added an error in handle_cvar_argblk_translation (cvartab.c),
+	if we encounter a subscripted char array expression within an
+	argument block.
+	- Added a check for a method parameter label for a single-token
+	argument in eval_arg (eval_arg.c).
+2020-05-14
+	- Added the X11FreeTypeFont : textRBearing method, and a rbearing
+	parameter to __ctalkXftGetStringDimensions (xftlib.c).
+	- Also added the X11FreeTypeFont : isMonospace method and the
+	__ctalkXftIsMonospace library function.
+	- Added check for monospace font to __select_font_fc (xftlib.c).
+	- Updated X11TextEntryPane to use a spacingHint resource when
+	displaying text with monospaced fonts.
+2020-05-15
+	- Updated __ctalkXftInitLib to return SUCCESS if Ctalk was
+	build with libXft and Fontconfig support and the libraries
+	are successfully initialized.  The function returns ERROR
+	otherwise.  Also updated X11Pane : openEventStream to call
+	initFontLib and to set the X11Pane : haveXft instance variable
+	to true if te Xft and Fontconfig libraries are successfully
+	initialized.
+2020-05-17
+	- Added a warning to Collection : at for cases where the
+	collection doesn't contain a member with the argument's
+	key name.
+2020-05-18
+	- Updated Magnitude : asInteger to check for a receiver that
+	is a member of a subclass of Character.
+2020-05-20
+	- Added include/xpms/mini-eye-ok.xpm and
+	include/xpms/mini-eye-slashed.xpm, and added the definitions
+	of ENTRY_ICON_EYE_NONE, ENTRY_ICON_EYE_OK, and
+	ENTRY_ICON_EYE_SLASHED in x11defs.h.  Added the library
+	function __ctalkEntryIconXPM (xdialog.c).  Also added the
+	X11Bitmap methods entryIcon, entryIconEye, and
+	entryIconEyeSlashed.
+2020-05-21
+	- Added the ability to echo dots to X11TextEntryPane.
+	- In rt_self_expr, don't issue a warning if the
+	expression contains a "super" token (src/rt_expr.c).
+2020-05-23
+	- Added the start and end parameters to __ctalkX11PaneDrawCircleBasic
+	and __ctalkGUIPaneDrawCircleBasic (xcircle.c), and the start and end
+	instance variables to Circle class.
+2020-05-25
+	- Added the X11TextEntryPane : button instance variable, and the
+	X11TextEntryPane : charIndexAtClick instance method.
+2020-05-26
+	- Added a check in __receiver_become for an old receiver that is
+	a VAR_REF_OBJECT and whether it has been saved as a
+	METHOD_USER_OBJECT (become.c).
+2020-05-30
+	- Added a check for self if it is present in the warning message
+	in eval_expr 2nd pass (rt_expr.c).
+	- Added pasting from the X primary selection to the text buffer
+	in X11TextEntryPane.
+2020-05-31
+	- In ctrlblk_pred_rt_expr, only do a var's argblk translation
+	if it's a local variable (ifexpr.c).
+2020-06-03
+	- Added rtse_instvar_msg, called by rt_self_expr (src/rt_expr.c).
+	- Added is_darwin_ctype_fn (keyword.c), and added it to the
+	IS_DEFINED_LABEL macros for Apple (ctalk.h), and begin_fn_buffer
+	(fnbuf.c).
+2020-06-04
+	- In sym_ptr_expr, if a called function places an entry on
+	the call stack and hasn't removed it, clean it up after the
+	fn returns (rt_call.c).
+	- In parser_pass, check for a non-cleared fn_is_builtin
+	flag (parser.c).
+2020-06-07
+	- Added __entrytext_set_selection_owner library function
+	(edittext.c), and use it in X11TextEntryPane whenever
+	beginning to select text.
+2020-06-08
+	- Added PANE_SET_PRIMARY_SELECTION_OWNERSHIP_REQUEST and
+	PANE_SET_PRIMARY_SELECTION_TEXT	(x11defs.h).  Added
+	__entrytext_set_selection_owner and __entrytext_update_selection
+	(for X11TextEntryPane clients), and __xlib_set_primary_selection_owner
+	and __xlib_set_primary_selection_text (for generic server)
+	(edittext.c).
+	- Added the X11TextEntryPane : selectionToText method.
+2020-06-09
+	- Updated selection methods to check for display clipping
+	when the entry text scrolls leftward, and added the
+	X11TextEntryPane : subPaneSelectionClear method.
+2020-06-10
+	- Updated X11TextEntryBoxPane selection mechanism to
+	adjust to left scrolled text, delete the selection if the
+	user presses the Backspace key, and to release the selection
+	ownership if another X client application requests it.
+2020-06-11
+	- Added a check for a valid VARTAG in __delete_local_object_internal
+	(rt_methd.c).
+	- Added the Collection : integerAt method.  Updated the
+	X11TextEntryPane methods drawCursor and draw.
+2020-06-12
+	- In X11TextEntryPane : subPaneLeave, clear the selecting instance
+	variable if it is set.
+2020-06-14
+	- Updated tools/ctxlogo.ca.
+2020-06-15
+	- Updated __ctalkX11FontCursor and __ctalkX11UseCursor to check
+	for an open dialog window connection, and change the cursor using
+	that connection	(x11lib.c).
+2020-06-18
+	- Added the X11TextEntryBox class.
+	- Changed the demos/x11/entrybox.ca program to entrypane.ca,
+	and added the X11TextEntryBox demonstration program as
+	demos/x11/entrybox.ca.
+	- Updated __entrytext_set_selection_owner to work with
+	dialog windows (edittext.c).
+	- Added the pointermotion, button press, and button release
+	handlers for the entry pane in X11TextEntryBox class.
+2020-06-19
+	- Updated __entrytext_update_selection for dialog windows
+	(edittext.c). Also added the __entrytext_send_selection
+	library funciton (edittext.c).
+	- Updated __entrytext_get_primary_selection to work with
+	a dialog box (edittext.c).
+2020-06-20
+	- Added the push_dpyrec and pop_dpyrec functions. Updated
+	open_dialog_display_connection to call push_dpyrec and return
+	the new Display * to the window creation function. Added
+	display_dpy (xdialog.c).
+2020-06-21
+	- Added the X11TextEntryBox : dots instance variable.
+	- Updated the DIALOG macros int libctalk to display_dpy.
+	- Updated DISPLAY macro in xftlib.c to use the
+	dialog_dpy function.
+	- Added the self_enclosing_class_message_warning
+	(rt_error.c), called by non_message_label (rt_expr.c).
+2020-06-22
+	- Changed dpyrec into the dpyrecs stack (xdialog.c).
+	- Added a check for a valid VARTAG in __get_object_from_tag
+	(rt_obj.c).
+2020-06-23
+	- Updated delete_extra_local_objects to not delete objects
+	declared as LOCAL_VAR (rt_obj.c).
+2020-06-25
+	- Added the validatedentry.ca and X11ValidatedTextEntryBox
+	class and demonstration program in demos/x11/validatedentrybox.
+	- Updated the X11Bitmap : iconInfo method to use an actual
+	"i" from a monospace font.
+2020-06-27
+	- Added __ctalk_get_object_return (rt_obj.c).
+	- Added save_local_objects_to_extra_b, which puts the local
+	objects of a successive call on the call stack entry's
+	local_object_cache.  Also added obj_from_local_object_cache
+	and cleanup_local_object_cache to retrieve them when called
+	by __ctalk_get_object_return (rt_obj.c).
+2020-06-28
+	- Updated non_method_label to check for more expression
+	contexts in argument blocks where a "self" keyword might
+	erroneously appear instead of a "super" keyword
+	(lib/rt_expr.c).
+	- Moved __ctalkX11UseFontBasic from x11lib.c to xlibfont.c.
+	- Updated X11Bitmap : putStrXY (4 and 5 arguments) to check
+	if the Freetype font libaries have been initialized, and to
+	select either X or Freetype font selection.
+2020-06-29
+	- In prefix_method_expr_a, remove newlines from an expression when
+	formatting as a __ctalkEvalExpr argument (rt_expr.c).
+	- In expr_result_object, check for a terminal token's value variable
+	that is a top-level object (rt_expr.c).
+2020-07-01
+	- Added a check for method parameters in is_class_typecast
+	(typecast_expr.c).
+	- Added a check for a class typecast in eval_arg (eval_arg.c).
+2020-07-02
+	- Updated rt_self_expr to check for an opening paren of a
+	self expr that is the parenthesized receiver of a method
+	expression; e.g., "(self items size) asFloat" (rt_expr.c).
+	- Added the rcvrexpr5.c test program.
+2020-07-04
+	- Added another check for an instance variable series to
+	mcct_check_token (mcct.c).
+	- Added a check for a unary minus following an assignment
+	operator in find_leading_tok_idx (pattypes.c).
+	- Updated rt_self_expr to use the leading_tok_idx as the
+	actual_expr_start (rt_expr.c).
+2020-07-06
+	- Added the demos/x11/listpane.ca demonstration program,
+	and the X11ListPane widget class, initial version.
+	- Added an argument subexpression rewrite clause in
+	eval_expr (eval_expr.c).  Also added the opsubexpr1.c
+	test program.
+2020-07-07
+	- Updates to ctalk and ctpp for GCC 10.1.
+2020-07-08
+	- Updated expr_n_occurences to check whether we're
+	using an EXPR_PARSER record (rt_expr.c).
+2020-07-09
+	- Added the class_typecast, class_typecast_start_idx,
+	and class_typecast_end_idx members to the ARGSTR typedef
+	(message.h).
+	- Added the is_class_typecast_2 function (typecast_expr.c).
+	- Added a check in eval_arg for a class typecast expression,
+	which fills in the class information (eval_arg.c), and added
+	a check	in create_arg_EXPR_object to omit the typecast tokens
+	from the final (i.e., run-time) arg expression )object.c).
+	- Added a delay in demos/ipc/sockproc.c to allow the reader
+	process to create the socket before the writer process
+	starts writing to it.
+2020-07-10
+	- Updated string_return_needs_mutaion to check for any
+	vaild EXPR_PARSERS (rtobjvar.c).
+2020-07-11
+	- Removed the Xft library initialization from X11Pane :
+	openEventStream, which causes programs that use X bitmap
+	fonts not to display text.
+	- Moved demos/xft/xfthello.c to demos/x11/xhello.c.
+	- Updated demos/xft/x11textpane.c to use a Fontconfig
+	font descriptor for outline fonts.
+	- Release 0.0.66 2020-07-11.
+2020-07-12
+	- Added the _Atomic keyword to the registries for
+	is_c_keyword and is_c_data_type (keyword.c).
+	- Added _Bool replacement in ctalklib.in if stdbool.h
+	isn't present.
+2020-07-13
+	- Removed the hover and focusBorderWidth resources from
+	X11ListPane class, and added the thumbMargin, thumbColor,
+	textColor, and selectColor resources.
+2020-07-14
+	- In __delete_local_object_internal, check for an
+	OBJECT_HAS_LOCAL_TAG attribute before removing the LOCAL_VAR
+	scope (rt_methd.c).
+2020-07-15
+	- Added the X11ListPane : shiftState instance variable, and
+	the #defines shiftStateCtrl and shiftStateShift, which are
+	set and cleared in the X11ListPane : onKey method.
+	- Added clauses in eval_arg to register global CVARs when
+	they're included in a complete argument expressions, in
+	argument blocks (eval_arg.c).
+	- Added listoffset[1-2].c test programs.
+2020-07-16
+	- Changed the attr argument of __ctalkSetObjectAttr to
+	unsigned int (rt_obj.c).
+2020-07-16
+	- Added the __ctalkObjectAttrAnd and __ctalkObjectAttrOr
+	library functions (rt_obj.c).
+2020-07-17
+	- Added unresolved_instance_variable_warning (rt_error.c),
+	called by eval_expr (rt_expr.c).
+	- In op_is_prefix_op, check for a preceding typecast token
+	(pattypes.c).
+2020-07-18
+	- Added is_OBJECT_vartab_deref_cast (pattypes.c), called
+	by eval_expr (rt_expr.c).
+	- In eval_expr (rt_expr.c), added a clause that selects
+	a CVAR that matches an entire OBJECT * deref expression,
+	including the typecast.
+	- Added cvar_for_OBJECT_deref_typecast (rt_cvar.c), called
+	by eval_expr (rt_expr.c).
+	- Added a clause to add a DELETE_CVARS_CALL in rt_self_expr
+	(ifexpr.c), and the DELETE_CVARS_CALL in ctalk.h.
+2020-07-19
+	- In register_argblk_c_vars_1, register a C variable regardless
+	of whether an object is present in the argument expression
+	(complexmethd.c).
+	- In prefix_method_expr_a, rewrite the expression tokens after
+	registering CVARs in an argument block (rt_expr.c).
+	- Added the cvararg[8-9].c test programs.
+2020-07-21
+	- Added resize handler frames in X11LabelPane, and X11ListPane.
+	- Fill in the subPane geometry spec in X11PaneDispatcher :
+	attachTo (2 args).
+	- Added the __ctalkX11WxHGeometry library function (xgeometry.c).
+2020-07-22
+	- Added the X11ButtonPane : subPaneResize, X11LabelPane :
+	subPaneResize, and X11ListPane : onResize  methods.
+	- Updated demos/x11/listpane.ca to use resizable subpanes.
+	- Added the ability for subpane geometry specifications to
+	recognize a leading minus sign, which positions the edge
+	of a window that many pixels in from either the right or
+	bottom edge of the parent window (xgeometry.c).
+	- Added the X11LabelPane : selectFont method.
+2020-07-24
+	- Added the initial version of the X11ListBox class and
+	the demos/x11/listbox.ca demonstration program.
+2020-07-25
+	- In eval_expr, increment a conditional token '?' evaled count
+	in case the compiler didn't translate it into a C substitution
+	(rt_expr.c).
+	- Added subexpr_conditional (rt_argblk.c), called by eval_subexpr
+	(rt_expr.c), and the qcond2.c test program.
+2020-07-26
+	- Added the qcond[3-5].c test programs.	      return prevlangmsg (messages, i_2);
+
+2020-07-27
+	- Added the qcond[6-9].c test programs.
+	- Updated subexpr_conditional to use int, char, and char *
+	values as the result of the predicate expression (rt_argblk.c).
+2020-07-28
+	- Added the qcond[10-17].c test programs.
+2020-07-29
+	- Added the eval_subexpr_call global bool in rt_expr.c, set by
+	eval_subexpr and cleared in the recursive call to eval_expr when
+	it creates the EXPR_PARSER.  Added the EVAL_STATUS_DIRECT_SUBEXPR
+	define in rtinfo.h, set at the beginning of eval_expr if
+	eval_subexpr_call is true (rt_expr.c).
+	- Added the question_conditional function (rt_argblk.c), called
+	by eval_expr.
+	- Added the qcond18.c test program.
+2020-07-30
+	- Added the qcond[19-26].c test programs.
+	- Fixed a bug in eval_op_precedence (rt_expr.c).
+2020-07-31
+	- Added the qcond[27-33].c test programs.
+	- Added a CONDITIONAL case to method_arg_limit, with scan
+	forward for a semicolon argument terminator and comma
+	argument separator (arg.c).
+	- In method_arg_limit_2, added a check for embedded parentheses
+	before returning at a closing paren (arg.c).
+2020-08-01
+	- Added the qcond[34-35].c test programs.
+	- Updated eval_arg to check for a CONDITIONAL token after
+	a C variable in argument expressions (eval_arg.c).
+2020-08-02
+	- Added the qcond[36-37].c test programs.
+	- Added a check and a handler for a size_t function return
+	type in	output_mixed_c_to_obj_arg_block (ctoobj.c).
+	- In eval_arg, check to determine if the function needs to
+	register CVARs in trailing tokens if the argument contains
+	a C function call (eval_arg.c).
+2020-08-03
+	- Added the qcond[39-49].c test programs.
+2020-08-04
+	- Added the qcond[50-65].c test programs.
+2020-08-05
+	- Added rt_fn_arg_cond_expr (src/rt_expr.c). Also added
+	the globals fn_arg_conditional and fn_cond_arg_fn_label_idx.
+	- Added the qcond[66-67].c test programs.
+2020-08-06
+	- Added the qcond[68-73].c test programs.
+2020-08-07
+	- Added the qcond[74-89].c test programs.
+2020-08-08
+	- Added the qcond[90-106].c test programs.
+	- In __rt_math_op, print a warning and return if
+	either of the operand indexes <= 0 (rt_expr.c).
+2020-08-09
+	- Added the qcond[107-130].c test programs.
+2020-08-10
+	- Added the qcond[131-146].c test programs.
+2020-08-11
+	- Added is_question_conditional_predicate (object.c),
+	called by resolve.
+	- Added the qcond[147-156].c test programs.
+2020-08-12
+	- Added qcond_fn_arg_cvar_registration and
+	qcond_fn_arg_cvar_registration_idx, set by
+	is_question_conditional_predicate (object.c),
+	and cleared by rt_expr (rt_expr.c).
+	- Added is_cond_pred (rexpr.c), called by default_method.
+	- Added qcond[157-158].c test programs.
+2020-08-13
+	- Added format_fn_call_method_expr_block_cond
+	(c_rval.c), called by rt_expr.
+2020-08-14
+	- Added expression re-format after
+	format_fn_call_method_expr_block_cond in rt_expr (rt_expr.c).
+	- Also in rt_expr, added a check for a call from fn_arg_cond_expr,
+	and place CVAR registration calls before the function call if
+	needed (rt_expr.c).
+	- Added the qcond159.c test program.
+2020-08-15
+	- Removed qcond_fn_arg_cvar_registration and
+	qcond_fn_arg_cvar_registration_idx globals in object.c, and
+	use fn_arg_conditional and fn_cond_arg_fn_label_idx globals
+	(declared in rt_expr.c) instead.
+	- Added the qcond[160-170].c test programs.
+2020-08-16
+	- Updated arg_is_question_conditional_predicate to check
+	for predicates not enclosed in parens (object.c).
+	- Added the qcond[171-178].c test programs.
+	- Added check for internal parens in a conditional predicate
+	term in rt_fn_arg_cond_expr (rt_expr.c).
+2020-08-24
+	- Added an undefined label warning in eval_expr
+	(lib/rt_expr.c).
+2020-08-25
+	- Added is_fn_for_template, called by eval_expr (lib/rt_expr.c),
+	to check for labels of functions that are called as arguments
+	by templated user functions.
+2020-08-26
+	- Added another is_obj_deref_expr for additional warning message
+	in eval_expr (rt_expr.c).
+2020-08-28
+	- Added is_method_of_prev_tok_value (rt_expr.c).
+2020-08-29
+	- Minor updates to demos/glx/glxcharser.ca and
+	demos/glx/glxchaserft.ca.
+2020-08-30
+	- Moved undefined_label_check from rt_expr.c to errmsgs.c.
+	- Added a check for an undefined class before an, "instanceMethod,"
+	or, "classMethod," keyword.
+	- Added the MIN_SCROLL #define in X11ListPane class.
+2020-08-31
+	- In method_cvar_tab_entry, use a different format for the
+	vartab init for OBJECT *'s.
+2020-09-01
+	- Added a check for a valid OBJECT * in is_method_of_prev_tok_value
+	(rt_expr.c).
+	- Some code cleanup in  X11ListPane : add.
+2020-09-03
+	- Added the __ctalkExpandPath library function (statfile.c),
+	and the	String : asExpandedPath method.
+2020-09-05
+	- Updated method_args to check for an instance variable of
+	a method return value.  Also added mane_basic_arglist,
+	called by method_args (method.c).
+	- Added another check for an expression with an instance
+	variable as its terminal token in eval_expr (rt_expr.c).
+	- Updated is_instance_variable_message to check for
+	an instance variable that follows a method label (object.c).
+	- Added a call to find_expression_limit to arg_expr_object_2
+	(argexprchk.c).
+2020-09-06
+	- Lots of cleanup in X11ListPane class.
+	- First version of X11FileSelectDialog class, and the
+	demos/x11/fileselectbox.ca demo program.
+2020-09-08
+	- Added X11FileSelectBox buttonClick and buttText methods,
+	defined FILESELECT_LBUTTON, FILESELECT_RBUTTON, and
+	FILESELECT_BUTTON_NONE (classes/ctalkdefs.h), and updated
+	demos/x11/fileselectbox.ca to use them.
+2020-09-12
+	- Added check for a modal dialog box resize in __ctalkX11ResizePixmap
+	and __ctalkX11MoveWindow (x11lib.c).
+2020-09-13
+	- Updated List : asString to remove the unneeded test for a
+	leading opening quote.
+2020-09-14
+	- Updated subexpr_conditional to delete the unused result
+	(rt_argblk.c).
+2020-09-15
+	- Added a check for unused conditional branch object that is
+	an i result and we can delete there, in question_conditional
+	(rt_argblk.c).
+	- Updated subexpr_conditional to evaluate either the true
+	argument or false argument, not both (rt_argblk.c).
+2020-09-16
+	- Delete old i result object in set_conditional_expr_value
+	(rt_argblk.c).
+2020-09-17
+	- Updated __delete_char_ptr_arg to delete an object with
+	CREATED_CVAR_SCOPE if is not otherwise on the argument or
+	receiver stack
+	(lib/objtoc.c).
+2020-09-18
+	- Renamed canvas-copy.c demo program in demos/x11 to
+	canvas-copy.ca.
+	- Updated searchlib language tool to exit with a help
+	message if the program is run with no arguments.
+	- Updated __ctalkX11TextWidth to use a fixed font if
+	the X11Font object's xlfd is uninitialized or the
+	font isn't found (font.c).
+	- Updated demos/x11/entrypane.ca demonstration program to
+	initialize the Freetype font library when the program begins
+	processing X events.
+	- In mcct_check_token, check for an unresolved instance variable
+	series if we encounter a <LABEL> <LABEL> set of tokens (mcct.c).
+	- Updated some of the documentation in the demos/x11 directory,
+	and renamed xhello.c to xhello.ca.
+
 

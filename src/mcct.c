@@ -1,8 +1,8 @@
-/* $Id: mcct.c,v 1.4 2019/11/11 20:21:52 rkiesling Exp $ */
+/* $Id: mcct.c,v 1.3 2020/09/19 03:29:27 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
-  Copyright © 2017-2019 Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2017-2020 Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
 
@@ -220,6 +220,23 @@ MCCT_RESULT mcct_check_token (MESSAGE_STACK messages, int i,
   if (M_ISSPACE(tok))
       return mcct_whitespace;
     if (IS_OBJECT(tok -> obj)) {
+      if ((lookahead = nextlangmsg (messages, i)) != ERROR) {
+	if ((M_TOK(messages[lookahead]) == LABEL) &&
+	    !IS_OBJECT(messages[lookahead] -> obj)) {
+	  /* i.e., we haven't already looked for and found an instance
+	     variable label series. */
+	  if ((messages[lookahead] -> obj =
+	       get_instance_variable (M_NAME(messages[lookahead]),
+				      (IS_OBJECT(tok -> obj -> instancevars) ?
+				       tok -> obj -> instancevars -> __o_classname :
+				       tok -> obj -> __o_classname),
+				      false)) != NULL) {
+	    messages[lookahead] -> receiver_msg = tok;
+	    messages[lookahead] -> receiver_obj = tok -> obj;
+	    messages[lookahead] -> attrs |= OBJ_IS_INSTANCE_VAR;
+	  }
+	}
+      }
       return mcct_continue;
     } else if ((o = get_object (M_NAME(tok), NULL)) != NULL) {
       tok -> obj = o;
@@ -247,7 +264,6 @@ MCCT_RESULT mcct_check_token (MESSAGE_STACK messages, int i,
 		  messages[lookahead] -> receiver_msg = tok;
 		  messages[lookahead] -> receiver_obj = tok -> obj;
 		  messages[lookahead] -> tokentype = METHODMSGLABEL;
-		  c -> scope |= LVAL_OBJECT_ALIAS;
 		  return mcct_continue;
 		}
 	      }
@@ -262,6 +278,7 @@ MCCT_RESULT mcct_check_token (MESSAGE_STACK messages, int i,
       if (!tok -> obj) {
 	tok -> obj = instantiate_self_object ();
 	if ((lookahead_2 = nextlangmsg (messages, i)) != ERROR) {
+	mcct_instvar_lookahead:
 	  if (M_TOK(messages[lookahead_2]) == LABEL) {
 	    if (is_instance_variable_message (messages, lookahead_2)) {
 	      if ((var = get_instance_variable_series
@@ -270,6 +287,16 @@ MCCT_RESULT mcct_check_token (MESSAGE_STACK messages, int i,
 		    lookahead_2,
 		    get_stack_top (messages))) != NULL) {
 		messages[lookahead_2] -> obj = var;
+		messages[lookahead_2] -> receiver_obj = tok -> obj;
+		messages[lookahead_2] -> receiver_msg = tok;
+		messages[lookahead_2] -> attrs |= OBJ_IS_INSTANCE_VAR;
+		if ((lookahead_2 = nextlangmsg (messages, lookahead_2))
+		    != ERROR) {
+		  if ((lookahead_2 >= pred_end_idx) &&
+		      (M_TOK(messages[lookahead_2]) == LABEL)) {
+		    goto mcct_instvar_lookahead;
+		  }
+		}
 	      }
 	    }
 	  }
@@ -844,7 +871,6 @@ static bool var_rep (MESSAGE_STACK messages, int idx,
 		  messages[lookahead] -> receiver_obj =
 		    messages[i] -> obj;
 		  messages[lookahead] -> tokentype = METHODMSGLABEL;
-		  c -> scope |= LVAL_OBJECT_ALIAS;
 		  return true;
 		}
 	      }

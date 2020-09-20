@@ -1,8 +1,8 @@
-/* $Id: control.c,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ */
+/* $Id: control.c,v 1.2 2020/09/19 01:08:26 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
-  Copyright © 2005-2019 Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2005-2020 Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
 
@@ -479,7 +479,6 @@ int for_stmt (MESSAGE_STACK messages, int ptr) {
   int i, j, k,
     stack_end,
     p_start,
-    p_end,
     lookahead,
     blk_level,
     paren_level,
@@ -489,14 +488,13 @@ int for_stmt (MESSAGE_STACK messages, int ptr) {
   FRAME *this_frame,
     *next_frame;
   MESSAGE *m;
-  int n_block_levels;
   int n_pred_objects;
   OBJECT *pred_objects[MAXARGS];  /* Arrays of object references allow */
                                   /* the code to keep track of objects */
                                   /* without duplicating them.         */
 
   loop_linemarker (messages, ptr);
-
+  
   if ((c = new_ctrl_blk ()) == NULL)
     error (messages[ptr], "for_stmt: %s.", strerror (errno));
 
@@ -523,11 +521,11 @@ int for_stmt (MESSAGE_STACK messages, int ptr) {
       case OPENPAREN:
 	if (p_start == ERROR) {
 	  p_start = c -> pred_start_ptr = i;
-	  if ((p_end = match_paren (messages, i, stack_end)) == ERROR) {
+	  if ((c -> pred_end_ptr = match_paren (messages, i, stack_end))
+	      == ERROR) {
 	    warning (messages[i], "Mismatched parentheses.");
 	    return ERROR;
 	  }
-	  c -> pred_end_ptr = p_end;
 	  (void) for_predicates (c, messages, i);
 	}
 	/*
@@ -537,14 +535,14 @@ int for_stmt (MESSAGE_STACK messages, int ptr) {
 	/*
 	 *  Look for the next message in the frame.
 	 */
-	if ((lookahead = nextlangmsg (messages, p_end)) == ERROR) {
+	if ((lookahead = nextlangmsg (messages, c -> pred_end_ptr)) == ERROR) {
 	  /*
 	   *  If at the end of the frame the block is a single 
 	   *  statement and should be contained in the next
 	   *  frame.
 	   */
 	  c -> braces = FALSE;
-	  c -> blk_start_ptr = p_end - 1;
+	  c -> blk_start_ptr = c -> pred_end_ptr - 1;
 	  c -> blk_end_ptr = -1;
 
  	  for (j = start_frame_ptr - 1; 
@@ -593,25 +591,7 @@ int for_stmt (MESSAGE_STACK messages, int ptr) {
 		  ++blk_level;
 		if (messages[j] -> tokentype == CLOSEBLOCK) {
 		  if (--blk_level == 0) {
-		    int j_1;
 		    c -> blk_end_ptr = j;
-		    n_block_levels = parsers[current_parser_ptr] -> block_level;
-		    for (j_1 = c -> blk_end_ptr - 1;  
-			 (j_1 > stack_end) && n_block_levels; j_1--) {
-		      switch (M_TOK(messages[j_1]))
-			{
-			case CLOSEBLOCK:
-			  --n_block_levels;
-			  break;
-			case OPENBLOCK:
-			  ++n_block_levels;
-			  break;
-			}
-		    }
-		    if (n_block_levels) {
-		      warning (messages[c->blk_start_ptr], 
-			       "Missing brace after, \"for,\" loop body.");
-		    }
 		    goto parsed;
 		  }
 		}
@@ -1111,6 +1091,7 @@ int if_stmt (MESSAGE_STACK messages, int ptr) {
 		      !get_local_var (M_NAME(m_lbl)) &&
 		      !get_typedef (M_NAME(m_lbl)) &&
 		      !get_function (M_NAME(m_lbl)) &&
+		      !is_fn_param (M_NAME(m_lbl)) &&
 		      !is_enum_member (M_NAME(m_lbl)) &&
 		      !is_instance_variable_message (messages, j) &&
 		      !is_class_variable_message (messages, j) &&

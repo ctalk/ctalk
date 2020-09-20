@@ -1,4 +1,4 @@
-/* $Id: ctalkdefs.h,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-C-*-*/
+/* $Id: ctalkdefs.h,v 1.1.1.1 2020/09/13 17:14:20 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -315,6 +315,73 @@ int memcmp(const void *s1, const void *s2, size_t n);
 #ifndef DEFAULT_TCPIP_PORT
 #define DEFAULT_TCPIP_PORT 9998
 #endif
+
+/* Text justification in X11LabelPane */
+#define LABEL_LEFT   1
+#define LABEL_CENTER 2
+#define LABEL_RIGHT  3
+
+/* If changing these, also change in x11defs.h, and any classes
+   that contain #defines for them. */
+#define ICON_NONE      0
+#define ICON_STOP      1
+#define ICON_CAUTION   2
+#define ICON_INFO      3
+#define ICON_QUESTION  4
+
+#define ICON_WIDTH_PX  64
+#define ICON_HEIGHT_PX  64
+/* The distance between the edges of the bitmap and the icon's
+   drawing area. */
+#define ICON_BORDER_PX 2
+
+#define ENTRY_ICON_EYE_NONE     0
+#define ENTRY_ICON_EYE_OK       1
+#define ENTRY_ICON_EYE_SLASHED  2
+
+#define ENTRY_ICON_WIDTH_PX     16
+#define ENTRY_ICON_HEIGHT_PX    14
+
+#ifndef YESNO_LBUTTON
+#define YESNO_LBUTTON 1
+#endif
+
+#ifndef YESNO_RBUTTON
+#define YESNO_RBUTTON 2
+#endif
+
+#ifndef YESNO_NONE
+#define YESNO_NONE 0
+#endif
+
+#ifndef XFT_NOTIFY_NONE
+#define XFT_NOTIFY_NONE 0
+#endif
+#ifndef XFT_NOTIFY_ERRORS
+#define XFT_NOTIFY_ERRORS 1
+#endif  
+#ifndef XFT_NOTIFY_LOAD
+#define XFT_NOTIFY_LOAD 2
+#endif
+#ifndef XFT_NOTIFY_VERBOSE
+#define XFT_NOTIFY_VERBOSE 3
+#endif
+
+/* Bevel resoulution, in pixels.  Also in x11defs.h. */
+#ifndef B_RES_PX
+#define B_RES_PX 1
+#endif
+
+#ifndef FILESELECT_LBUTTON
+#define FILESELECT_LBUTTON       -1
+#endif
+#ifndef FILESELECT_BUTTON_NONE
+#define FILESELECT_BUTTON_NONE   0
+#endif
+#ifndef FILESELECT_RBUTTON
+#define FILESELECT_RBUTTON       1
+#endif
+
 
 #define _CTALKDEFS_H_
 #endif /* #ifdef _CTALKDEFS_H_ */

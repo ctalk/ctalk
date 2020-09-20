@@ -1,4 +1,4 @@
-/* $Id: cparse.c,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ */
+/* $Id: cparse.c,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -47,10 +47,7 @@ bool constant_expr = False;        /* True if syntax requires a
 					 constant expression.              */
 bool typedef_check = False;        /* True if parsing a typedef.        */
 extern bool fn_is_builtin;
-MESSAGE *c_messages[N_MESSAGES + 1];  /* C language message stack and      */
-int c_message_ptr = N_MESSAGES;       /* stack pointer.  Also used by      */
-                                      /* method_param () in primitives.c,  */
-                                      /* and in control.c.                 */
+
 int preamble = TRUE;                  /* True until the first function 
 					 declaration in the module is
 					 reached. */
@@ -74,27 +71,6 @@ extern int current_parser_ptr;
 
 extern ARGBLK *argblks[MAXARGS + 2]; /* Declared in argblk.c.             */
 extern int argblk_ptr;
-
-int get_c_message_ptr (void) {
-  return c_message_ptr;
-}
-
-MESSAGE_STACK c_message_stack (void) {
-  return c_messages;
-}
-
-MESSAGE *c_message_at (int idx) {
-  return c_messages[idx];
-}
-
-int c_message_push (MESSAGE *m) {
-  if (c_message_ptr == 0) {
-    warning (m, "c_message_push: stack overflow.");
-    return ERROR;
-  }
-  c_messages[c_message_ptr--] = m;
-  return c_message_ptr;
-}
 
 /*
  *  Whether the function is inline or not depends on the specific 

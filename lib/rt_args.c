@@ -1,8 +1,8 @@
-/* $Id: rt_args.c,v 1.6 2019/11/11 20:21:51 rkiesling Exp $ */
+/* $Id: rt_args.c,v 1.2 2020/09/18 21:25:12 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
-  Copyright © 2005-2019  Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2005-2020  Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
 
@@ -364,9 +364,18 @@ int __ctalk_arg (char *__recv_name, char *__method, int n_params,
 		    OBJECT_IS_MEMBER_OF_PARENT_COLLECTION) {
 	  arg_p_object = arg_object;
 	} else {
-	  arg_p_object = 
-	    ((arg_object -> __o_p_obj != NULL) ? 
-	     arg_object -> __o_p_obj : arg_object);
+	  if ((arg_object == (OBJECT *)__arg) &&
+	      (IS_OBJECT(arg_object -> instancevars)) &&
+	      (arg_object -> instancevars -> attrs & OBJECT_IS_VALUE_VAR)) {
+	    /* I.e., if it's a declared object, instance or class
+	       variable, regardless of parent, and is the return value
+	       of a __ctalk_arg_internal call. */
+	    arg_p_object = arg_object;
+	  } else {
+	    arg_p_object = 
+	      ((arg_object -> __o_p_obj != NULL) ? 
+	       arg_object -> __o_p_obj : arg_object);
+	  }
 	}
       } else {
 	if (arg_object -> attrs & OBJECT_IS_MEMBER_OF_PARENT_COLLECTION) {
@@ -698,7 +707,7 @@ int __ctalk_arg_cleanup (OBJECT *result_obj) {
       }
     } else {
       if (arg_object -> scope & VAR_REF_OBJECT) {
-	save_local_objects_to_extra ();
+	save_local_objects_to_extra_b ();
 	return arg_nrefs;
       }
       if (arg_object -> scope == CREATED_PARAM) {
@@ -1600,17 +1609,21 @@ int __rt_method_args(METHOD *method, MESSAGE_STACK messages,
 	  if (M_VALUE_OBJ (messages[j]) != arg_val_obj) {
 	    /* this needs to be the value object, so it doesn't overwrite
 	       the tmp parameter created at this parser level. */
-	    messages[j] -> value_obj = arg_val_obj;
-	    if (arg_val_obj -> scope & SUBEXPR_CREATED_RESULT) {
-	      messages[j] -> attrs |= RT_TOK_OBJ_IS_CREATED_PARAM;
+	    if (IS_OBJECT(arg_val_obj)) {
+	      messages[j] -> value_obj = arg_val_obj;
+	      if (arg_val_obj -> scope & SUBEXPR_CREATED_RESULT) {
+		messages[j] -> attrs |= RT_TOK_OBJ_IS_CREATED_PARAM;
+	      }
+	      if (arg_val_obj -> scope == CREATED_CVAR_SCOPE)
+		messages[j] -> attrs |= RT_TOK_OBJ_IS_CREATED_CVAR_ALIAS;
 	    }
-	    if (arg_val_obj -> scope == CREATED_CVAR_SCOPE)
-	      messages[j] -> attrs |= RT_TOK_OBJ_IS_CREATED_CVAR_ALIAS;
 	  }
 	}
 
-	if (arg_val_obj) 
+	if (arg_val_obj) {
 	  __add_arg_object_entry_frame (method, arg_val_obj);
+	}
+	  
 
       } else { /* ... 	    RT_TOK_OBJ_IS_CREATED_CVAR_ALIAS))  */
 
@@ -1742,6 +1755,13 @@ static int __rt_arglist_limit (METHOD *method,
 	   }
 	 } else if ((M_TOK(messages[lookahead]) == INCREMENT) ||
 		    (M_TOK(messages[lookahead]) == DECREMENT)) {
+	   if (arg_separator_count (messages, arglist_start, close_paren_idx,
+				    n_args)) {
+	     return lookahead;
+	   } else {
+	     goto multiple_args;
+	   }
+	 } else if (M_TOK(messages[lookahead]) == LABEL) {
 	   if (arg_separator_count (messages, arglist_start, close_paren_idx,
 				    n_args)) {
 	     return lookahead;
@@ -2054,8 +2074,19 @@ static int __rt_arglist_limit (METHOD *method,
 static inline OBJECT *arg_object_if_label (MESSAGE *m_tok) {
   OBJECT *o;
   if (M_TOK(m_tok) == LABEL) {
-    if ((o = __ctalk_get_arg_tok (M_NAME(m_tok))) != NULL)
-      return o;
+    if (IS_OBJECT(m_tok -> obj) && IS_CLASS_OBJECT (m_tok -> obj)) {
+      /* 
+	 In case we have a construct like: 
+	 
+	   self = CFunction cTime ...
+
+	 This might need to be worked out more.
+      */
+      return M_VALUE_OBJ(m_tok);
+    } else {
+      if ((o = __ctalk_get_arg_tok (M_NAME(m_tok))) != NULL)
+	return o;
+    }
   }
   return NULL;
 }
@@ -2077,10 +2108,6 @@ static OBJECT *__ctalk_arg_expr (MESSAGE_STACK messages, int method_ptr,
   OBJECT *rcvr_obj,
     *rcvr_class_obj,
     *result_obj = NULL;
-
-  if ((messages[arg_start_idx] -> evaled > 1) &&
-      IS_OBJECT (messages[arg_start_idx] -> value_obj))
-    return messages[arg_start_idx] -> value_obj;
 
   stack_start = __rt_get_stack_top (messages);
 
@@ -2438,13 +2465,108 @@ static int __rt_is_comma_before_receiver (MESSAGE_STACK messages,
   }
 }
 
+/*
+ *  Handle cases like this:
+ *
+ *    tokenList push (String basicNew "token", tokenbuf);
+ *    tokenList push String basicNew "token", tokenbuf;
+ *
+ *  I.e., make sure that the argument list associates
+ *  with "basicNew" and not "push".  This is easy
+ *  enough so far if we make it all of the way to
+ *  the closing paren of the arglist, or to the end
+ *  of the message stack if there are no parens (and
+ *  arglist_end == -1 in this case because we didn't
+ *  previously scan for it in the calling fn).
+ */
+static int arglist_internal_method_expr (EXPR_PARSER *p,
+					 int rcvr_tok_idx,
+					 int arglist_end,
+					 METHOD *pri_method) {
+  OBJECT *arg_obj;
+  METHOD *arg_method;
+  int i_2, arg_arglist_end, n_arg_parens, n_arg_method_args,
+    lookahead;
+
+  if ((lookahead = next_arg_tok_b (p, rcvr_tok_idx)) == ERROR)
+    return ERROR;
+  if (M_TOK(p -> m_s[lookahead]) == LABEL) {
+    if ((arg_obj = 
+	 __ctalk_get_object (M_NAME(p -> m_s[rcvr_tok_idx]),
+			     NULL)) != NULL) {
+      p -> m_s[rcvr_tok_idx] -> obj = arg_obj;
+      if (__ctalk_isMethod_2 (M_NAME(p -> m_s[lookahead]),
+			      p -> m_s, lookahead,
+			      p -> msg_frame_start)) {
+	if (arglist_end == -1) {
+	  for (i_2 = lookahead - 1, n_arg_parens = 0,
+		 n_arg_method_args = 1;
+	       (i_2 > p -> msg_frame_top) && (n_arg_parens >= 0);
+	       --i_2) {
+	    if (M_TOK(p -> m_s[i_2]) == SEMICOLON)
+	      break;
+	    switch (M_TOK(p -> m_s[i_2]))
+	      {
+	      case OPENPAREN:
+		++n_arg_parens;
+		break;
+	      case CLOSEPAREN:
+		--n_arg_parens;
+		break;
+	      case ARGSEPARATOR:
+		++n_arg_method_args;
+		break;
+	      }
+	  }
+	} else {
+	  for (i_2 = lookahead - 1, n_arg_parens = 0,
+		 n_arg_method_args = 1;
+	       (i_2 > arglist_end) && (n_arg_parens >= 0);
+	       --i_2) {
+	    switch (M_TOK(p -> m_s[i_2]))
+	      {
+	      case OPENPAREN:
+		++n_arg_parens;
+		break;
+	      case CLOSEPAREN:
+		--n_arg_parens;
+		break;
+	      case ARGSEPARATOR:
+		++n_arg_method_args;
+		break;
+	      }
+	  }
+	}
+      }
+      if ((arg_method = __ctalkFindMethodByName
+	   (&arg_obj, M_NAME(p -> m_s[lookahead]),
+	    FALSE, n_arg_method_args)) != NULL) {
+	/* just return the primary method's param count because... */
+	if (arglist_end == -1) {
+	  /* we reached the end of the expr's stack */
+	  if (i_2 == p -> msg_frame_top) {
+	    return pri_method -> n_params;
+	  }
+	} else {
+	/* we've checked all the way to the closing
+	   paren of the arg method's arglist */
+	  if (i_2 == arglist_end) {
+	    return pri_method -> n_params;
+	  }
+	}
+      }
+    }
+  }
+  return -1;
+}
+
 static int stack_end_chk = 0;
 
 int __rt_method_arglist_n_args (EXPR_PARSER *p, int method_msg_idx,
 				METHOD *m) {
   bool paren_delimiters = false;
   int open_paren, close_paren, lookahead, arglist_start = 0, i,
-    arglist_end, paren_level, n_args;;
+    arglist_end, paren_level, n_args, n_internal_args, n_commas;
   
   if (m -> n_params == 0)
     return 0;
@@ -2456,12 +2578,49 @@ int __rt_method_arglist_n_args (EXPR_PARSER *p, int method_msg_idx,
     return 0;
   }
   if (M_TOK(p -> m_s[open_paren]) == OPENPAREN) {
-    paren_delimiters = true;
     close_paren = __ctalkMatchParen (p -> m_s, open_paren, p -> msg_frame_top);
 
     /* empty arglist */
     if (next_arg_tok_b (p, open_paren) == close_paren)
       return 0;
+
+    if ((lookahead = next_arg_tok_b (p, close_paren)) != ERROR) {
+      /* 
+	 check for further operators after the matching paren; e.g.,
+
+	   rcvr mthd (arg1 term) - (another arg1 term), arg2, arg3...
+                                 ^
+	 and don't interpret the opening paren and its match as
+	 enclosing the entire argument list.
+
+	 HOWEVER, we have to check for expressions like the
+	 following - 
+
+	   if (rcvr mthd (arglist) == 0)
+
+	 to see if there is a complete argument list between the
+	 parens anyway, so we do a comma check to see how many args
+	 there are between the parens, where there are no nested paren
+	 levels.
+      */
+      if (IS_C_BINARY_MATH_OP(M_TOK(p -> m_s[lookahead]))) {
+	for (n_commas = 0, paren_level = 0,
+	       i = open_paren - 1; i > close_paren; i--) {
+	  if ((M_TOK(p -> m_s[i]) == ARGSEPARATOR) &&
+	      (paren_level == 0)) {
+	    ++n_commas;
+	  } else if (M_TOK(p -> m_s[i]) == OPENPAREN) {
+	    ++paren_level;
+	  } else if (M_TOK(p -> m_s[i]) == CLOSEPAREN) {
+	    ++paren_level;
+	  }
+	}
+	if (n_commas != m -> n_params - 1)
+	  goto not_paren_delimiters;
+      }
+    }
+    
+    paren_delimiters = true;
 
     arglist_start = next_arg_tok_b (p, open_paren);
     arglist_end = prev_arg_tok_b (p, close_paren);
@@ -2487,7 +2646,7 @@ int __rt_method_arglist_n_args (EXPR_PARSER *p, int method_msg_idx,
     }
 
   } else {
-    arglist_start = lookahead;
+    arglist_start = n_args;
   }
 
   if (paren_delimiters) {
@@ -2508,10 +2667,17 @@ int __rt_method_arglist_n_args (EXPR_PARSER *p, int method_msg_idx,
 	  if (paren_level == 1)
 	    ++n_args;
 	  break;
+	case LABEL:
+	  if ((n_internal_args =
+	       arglist_internal_method_expr (p, i, arglist_end, m))
+	      > 0)
+	    return n_internal_args;
+	  break;
 	}
     }
     return n_args;
   } else {
+  not_paren_delimiters:
     paren_level = 0;
     arglist_start = next_arg_tok_b (p, method_msg_idx);
     if (METHOD_ARG_TERM_MSG_TYPE (p -> m_s[arglist_start]))
@@ -2532,6 +2698,12 @@ int __rt_method_arglist_n_args (EXPR_PARSER *p, int method_msg_idx,
 	  if (paren_level == 0) {
 	    ++n_args;
 	  }
+	  break;
+	case LABEL:
+	  /* without parens, the fn didn't find arglist_end above */
+	  if ((n_internal_args = arglist_internal_method_expr
+	       (p, i, -1, m)) != ERROR)
+	    return n_internal_args;
 	  break;
 	default:
 	  if (METHOD_ARG_TERM_MSG_TYPE (p -> m_s[arglist_start])) {

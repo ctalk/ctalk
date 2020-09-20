@@ -1,4 +1,4 @@
-/* $Id: X11Pane,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11Pane,v 1.3 2020/07/11 15:34:02 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -51,14 +51,37 @@ X11Pane instanceVariable ftFontVar X11FreeTypeFont NULL;
 X11Pane instanceVariable container Symbol NULL;
 X11Pane instanceVariable depth Integer NULL;
 X11Pane instanceVariable backgroundColor String NULL;
+X11Pane instanceVariable foregroundColor String NULL;
 X11Pane instanceVariable borderWidth Integer 1;
+X11Pane instanceVariable displayPtr Symbol NULL
+"The pointer to the main window pane's display connection.  
+This variable is set when the app creates the main window. 
+Generally, programs should not need to change this.";
+X11Pane instanceVariable modal Boolean false
+"Helps determine how Ctalk draws on the pane.  True for popup windows,
+false for everything else.";
+X11Pane instanceVariable resources AssociativeArray NULL
+"Holds the key-value pairs of variables that control Pane classes'
+appearance.  Refer to the X11Pane section of the Ctalk language
+reference and the individual Pane classes for more information.";
+X11Pane instanceVariable haveXft Boolean false
+"Set to true if Ctalk is built with Xft and Fontconfig library support,
+and the libraries have been initialized.  This variable is normally
+set by X11Pane : openEventStream."; 
 
-X11Pane classVariable xDisplay Symbol 0;
+X11Pane classVariable xDisplay Symbol 0
+"This variable is deprecated, use the displayPtr instance variable instead.";
 X11Pane classVariable classInit Integer 0;
 X11Pane classVariable xColormap Integer 0;
 
 X11Pane instanceMethod openEventStream (void) {
-  "Open the receiver pane's input stream."
+  "Open the receiver pane's input stream.  This method is
+   normally called during program initialization.  In general,
+   programs cannot call any X drawing routines until after this
+   method returns.  This method also calls the X11FreeTypeFont :
+   initFontLib method, and sets the X11Pane : haveXft instance
+   variable to true if the libraries have been successfully 
+   initialized."
   self inputStream openInputClient;
   return self;
 }
@@ -257,8 +280,9 @@ X11Pane instanceMethod clearRectangle (Integer x, Integer y,
 
 X11Pane instanceMethod map (void) {
   "Map the receiver object's window on the display."
-  if (self value is X11Pane)
+   if (self value is X11Pane) {
     __ctalkMapX11Window (self);
+  }
   return NULL;
 }
 
@@ -279,9 +303,11 @@ X11Pane instanceMethod deleteAndClose (void) {
     eval self deleteAndClose;
   }
   __ctalkDeleteWinBuffer (self paneBuffer);
+  __ctalkDeleteWinBuffer (self paneBackingStore);
   __ctalkCloseX11Pane (self);
   if (self is X11Pane)
     __ctalkX11CloseParentPane (self);
+  self displayPtr = NULL;
   return NULL;
 }
 
@@ -358,7 +384,7 @@ X11Pane instanceMethod font (String fontDesc) {
   variable."
   self fontDescStr = fontDesc;
   self fontVar getFontInfo fontDesc;
-  __ctalkX11UseFontBasic (self xWindowID, self xGC, fontDesc);
+  __ctalkX11UseFontBasic (self displayPtr, self xWindowID, self xGC, fontDesc);
 }
 
 X11Pane instanceMethod ftFont (String family, Integer slant,
@@ -394,7 +420,7 @@ X11Pane instanceMethod subPaneNotify (InputEvent event) {
   return NULL;
 }
 
-X11Pane instanceMethod background (String color) {
+X11Pane instanceMethod background (String colorName) {
   "Set the receiver pane's background color to
   the argument, a String.  This method also 
   sets the background color of the receiver pane's
@@ -409,18 +435,21 @@ X11Pane instanceMethod background (String color) {
   __ctalkX11SetBackgroundBasic instead.  Again, this
   can be implemented in the classes' background method.
   
-  Remember that trying to change the background
-  of a window before initializing the X client can cause
-  a segfault.  E.g., send the X11Pane object an
-  openEventStream message before using this 
-  method.
-  
-  Also remember that this method only changes the color;
-  it does not update the window on the screen. For
-  that, use the clearWindow method after this one."
+  If the program doesn't specify a color, the default
+  window background is white."
 
-  self backgroundColor = color;
-  __ctalkGUISetBackground (self, color);
+  self backgroundColor = colorName;
+  __ctalkGUISetBackground (self, colorName);
+}
+
+X11Pane instanceMethod foreground (String colorName) {
+  "Sets the window's foreground color (i.e., the default
+   color for drawing on the window) to the name of the
+   color given as the argument.  If a program doesn't
+    set a foreground color, the default color is black."
+  self foregroundColor = colorName;
+  __ctalkX11SetForegroundBasic (self displayPtr, self xWindowID,
+				self xGC, colorName);
 }
 
 X11Pane instanceMethod useCursor (X11Cursor cursor) {
@@ -444,7 +473,8 @@ X11Pane instanceMethod setResources (String resourceName,
   the window title.  The resource class is how the X
   resource database refers to the application."
 
-  __ctalkX11SetResource (self xWindowID, resourceName, resourceClass);
+    __ctalkX11SetResource (self displayPtr, self xWindowID,
+			   resourceName, resourceClass);
 }
 
 X11Pane instanceMethod displayHeight (void) {
@@ -472,17 +502,42 @@ X11Pane instanceMethod usingXRender (void) {
 #define X_FACE_BOLD_ITALIC (1 << 3)
 
 X11Pane instanceMethod faceBold (void) {
-  __ctalkSelectXFontFace (self xWindowID, self xGC, X_FACE_BOLD);
+  __ctalkSelectXFontFace (self displayPtr, self xWindowID, self xGC, X_FACE_BOLD);
 }
 
 X11Pane instanceMethod faceRegular (void) {
-  __ctalkSelectXFontFace (self xWindowID, self xGC, X_FACE_REGULAR);
+  __ctalkSelectXFontFace (self displayPtr, self xWindowID, self xGC, X_FACE_REGULAR);
 }
 
 X11Pane instanceMethod faceItalic (void) {
-  __ctalkSelectXFontFace (self xWindowID, self xGC, X_FACE_ITALIC);
+  __ctalkSelectXFontFace (self displayPtr, self xWindowID, self xGC, X_FACE_ITALIC);
 }
 
 X11Pane instanceMethod faceBoldItalic (void) {
-  __ctalkSelectXFontFace (self xWindowID, self xGC, X_FACE_BOLD_ITALIC);
+  __ctalkSelectXFontFace (self displayPtr, self xWindowID, self xGC, X_FACE_BOLD_ITALIC);
 }
+
+X11Pane instanceMethod mainWindow (void) {
+  "Return a subpane's main window pane object."
+    Pane new containerPane;
+
+  if (self is X11Pane)
+    return self;
+  
+  containerPane = *(X11Pane *)self container;
+  while (containerPane) {
+    if (containerPane is X11Pane) {
+      return containerPane;
+    } else {
+      /* We use this expression with and without the typecast (above)
+	 to check that both work - the typecast is actually not needed
+	 here. */
+      containerPane = *containerPane container;
+    }
+  }
+  if (containerPane) {
+    _warning ("X11Pane : mainWindow: \"%s,\" is not a X11Pane object.\n"); 
+  }
+  return NULL;
+}
+

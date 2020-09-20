@@ -1,4 +1,4 @@
-/* $Id: CGIApp,v 1.1.1.1 2019/10/26 23:40:51 rkiesling Exp $ -*-c-*- */
+/* $Id: CGIApp,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ -*-c-*- */
 
 /*
   This file is part of Ctalk.
@@ -67,20 +67,8 @@ CGIApp instanceMethod getServerEnv (char **_appEnvP) {
 
   appEnvCVar = (char **)__ctalk_arg_internal(0)->instancevars->__o_value;
 
-  /***/
-  /*
-   *  Use this when we do exception handler testing.
-   */
-/*      for (idx = 0; appEnvCVar[idx]; idx++) { */
-/*        envVar = appEnvCVar[idx]; */
   for (idx = 0; environ[idx]; idx++) {
     envVar = environ[idx];
-    /*
-     *  Not all Solaris versions keep the environment in contiguous 
-     *  memory, so break here in order to avoid a possible segfault.  
-     *  You may need to run an app several times to get
-     *  the complete environment.
-     */
     if (__oldEnvVarSeg && (__oldEnvVarSeg != 
 			   ((unsigned int)envVar & 0xF0000000)))
     break;

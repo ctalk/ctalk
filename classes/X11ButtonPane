@@ -1,0 +1,554 @@
+/* $Id: X11ButtonPane,v 1.1.1.1 2020/07/26 05:50:11 rkiesling Exp $ -*-c-*-*/
+
+/*
+  This file is part of Ctalk.
+  Copyright © 2020  Robert Kiesling, rk3314042@gmail.com.
+  Permission is granted to copy this software provided that this copyright
+  notice is included in all source code modules.
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+*/
+
+/*
+ *    X11ButtonPane class.
+ */
+/*
+ *    Resource                  Default
+ *
+ *    ftFont                    "sans serif-12"
+ *    textColor                 "black"
+ *    foregroundColor           "gray"
+ *    backgroundColor           "gray"
+ *    borderColor               "black"
+ *    borderWidth               1
+ *    highlightForegroundColor  "gray90"
+ *    highlightBorderWidth      1
+ *    highlightBorderColor      "black"
+ *    highlightHPenColor        "gray94"
+ *    highlightVPenColor        "gray91"
+ *    shadowPenColor            "gray55"
+ *
+ *    Note that the corresponding instance variables will go away
+ *    in the future, so programs should try to use these resources
+ *    instead.
+ */
+
+X11CanvasPane class X11ButtonPane;
+
+#include <ctalk/ctalkdefs.h>
+
+X11ButtonPane instanceVariable shadowPen Pen NULL;
+X11ButtonPane instanceVariable highlightHPen Pen NULL;
+X11ButtonPane instanceVariable highlightVPen Pen NULL;
+X11ButtonPane instanceVariable bevelEdges Boolean true;
+X11ButtonPane instanceVariable bevelWidth Integer 4;
+X11ButtonPane instanceVariable clicked Boolean false;
+X11ButtonPane instanceVariable label X11LabelPane NULL;
+X11ButtonPane instanceVariable borderWidth Integer 1;
+X11ButtonPane instanceVariable borderHighlightWidth Integer 2;
+X11ButtonPane instanceVariable borderMargin Integer 2;
+X11ButtonPane instanceVariable borderColor String "black";
+X11ButtonPane instanceVariable radius Integer 0;
+X11ButtonPane instanceVariable clickSet Boolean false;
+X11ButtonPane instanceVariable lOrg Point NULL;
+X11ButtonPane instanceVariable lSize Point NULL;
+X11ButtonPane instanceVariable hover Boolean false;
+
+/* Print the names of the event handlers and drawing
+   methods as we enter them */
+/* #define TRACK_EVENTS */
+/* Uncomment to add processing when the window/subwindows are mapped */
+/* #define HANDLE_MAP */
+
+X11ButtonPane instanceMethod new (String __paneName) {
+  "The X11ButtonPane constructor.  The argument, a String,
+  contains the name of the new object.  Also sets the
+  event handlers that this class overrides."
+
+  Method new exposeMethod, buttonPressMethod, enterMethod,
+    leaveMethod, focusInMethod, focusOutMethod, resizeMethod;
+  Method new motionMethod;
+#ifdef HANDLE_MAP
+  Method mapMethod;
+#endif  
+
+  X11ButtonPane super new __paneName;
+
+  buttonPressMethod definedInstanceMethod "X11ButtonPane",
+    "subPaneButtonPress";
+  exposeMethod definedInstanceMethod "X11ButtonPane",
+    "subPaneExpose";
+  enterMethod definedInstanceMethod "X11ButtonPane", "subPaneEnter";
+  leaveMethod definedInstanceMethod "X11ButtonPane", "subPaneLeave";
+  focusInMethod definedInstanceMethod "X11ButtonPane", "subPaneFocusIn";
+  focusOutMethod definedInstanceMethod "X11ButtonPane", "subPaneFocusOut";
+  motionMethod definedInstanceMethod "X11ButtonPane", "subPaneMotion";
+  resizeMethod definedInstanceMethod "X11ButtonPane", "subPaneResize";
+
+#ifdef HANDLE_MAP
+  mapMethod definedInstanceMethod "X11ButtonPane", "subPaneMap";
+#endif  
+
+  __paneName setMethodHandler "expose", exposeMethod;
+  __paneName setMethodHandler "pointerinput", buttonPressMethod;
+  __paneName setMethodHandler "enternotify", enterMethod;
+  __paneName setMethodHandler "leavenotify", leaveMethod;
+  __paneName setMethodHandler "focusin", focusInMethod;
+  __paneName setMethodHandler "focusout", focusOutMethod;
+  __paneName setMethodHandler "pointermotion", motionMethod;
+  __paneName setMethodHandler "resize", resizeMethod;
+
+#ifdef HANDLE_MAP
+  __paneName setMethodHandler "map", mapMethod;
+#endif  
+
+  if (__paneName bevelEdges) {
+    __paneName resources atPut "shadowPenColor", "gray55";
+    __paneName resources atPut "highlightHPenColor", "gray94";
+    __paneName resources atPut "highlightVPenColor", "gray91";
+  }
+  __paneName resources atPut "foregroundColor", "gray";
+  __paneName resources atPut "highlightForegroundColor", "gray90";
+  __paneName resources atPut "textColor", "black";
+  __paneName resources atPut "backgroundColor", "lightgray";
+  __paneName resources atPut "highlightBackground", "gray90";
+  __paneName resources atPut "ftFont", "sans serif-12";
+
+  __paneName resources atPut "borderColor", "black";
+  __paneName resources atPut "borderWidth", 1;
+  __paneName resources atPut "highlightBorderColor", "black";
+  __paneName resources atPut "highlightBorderWidth", 1;
+
+  __paneName lOrg x = -1;
+  
+  return __paneName;
+}
+
+X11ButtonPane instanceMethod attachTo (Object parentPane,
+				       String geomspec) {
+  "Register the receiver pane as a subpane of the X11Pane
+  given as the argument.  Generally parent pane should
+  be a X11PaneDispatcher object."
+  X11Bitmap new xPaneBuffer;
+  X11Bitmap new xPaneBackingStore;
+  X11LabelPane new l_local;
+  String new labelGeom;
+  Integer new inset;
+  int x, y, width, height;
+
+  self super attachTo (parentPane, geomspec);
+  self paneBuffer become xPaneBuffer;
+  self paneBackingStore become xPaneBackingStore;
+
+  __ctalkX11SubWindowGeometry (parentPane, geomspec,
+				 &x, &y, &width, &height);
+  self size x = width;
+  self size y = height;
+  self origin x = x;
+  self origin y = y;
+
+  /*
+   *  The evaluation of these statements  needs to be deferred
+   *  until run time.  See the comment in the other, "attachTo,"
+   *  method, below.
+   */
+  (X11Bitmap *)self paneBuffer create self displayPtr, self xWindowID,
+    self size x, self size y, self depth;
+  /*(X11Bitmap *)self paneBuffer background (self resources at "faceBackground"); */
+  (X11Bitmap *)self paneBackingStore create self displayPtr, self xWindowID,
+    self size x, self size y, self depth;
+
+  inset = self bevelWidth;
+
+  labelGeom printOn "%dx%d+%d+%d", (width - (inset * 2)),
+    (height - (inset * 2)),
+    inset, inset;
+
+  l_local subPaneGeometry = labelGeom;
+  /* DO NOT set l_local's backgroundColor to the buttons's 
+     background - for a button, its background only affects
+     the window behind it - we want the label that displays
+     the button text to have a different background. Instead,
+     we use faceBackground. */
+  l_local resources replaceAt "backgroundColor",
+    (self resources at "backgroundColor");
+  l_local resources replaceAt "foregroundColor",
+    (self resources at "foregroundColor");
+  l_local resources replaceAt "textColor",
+    (self resources at "textColor");
+  l_local resources replaceAt "highlightForegroundColor",
+    (self resources at "highlightForegroundColor");
+  l_local resources replaceAt "ftFont",
+    (self resources at "ftFont");
+  l_local resources replaceAt "highlightBorderWidth",
+    (self resources at "highlightBorderWidth");
+  l_local resources replaceAt "highlightBorderColor",
+    (self resources at "highlightBorderColor");
+  l_local margin = 3;
+  l_local resources atPut "highlightTextBold", false;
+  l_local attachTo self, labelGeom;
+
+  self label become l_local;
+  self pen colorName = self label backgroundColor;
+  self pen width = 1;
+
+  self shadowPen colorName = self resources at "shadowPenColor";
+  self shadowPen width = B_RES_PX;
+  self highlightHPen colorName = self resources at "highlightHPenColor";
+  self highlightHPen width = B_RES_PX;
+  self highlightVPen colorName = self resources at "highlightVPenColor";
+  self highlightVPen width = B_RES_PX;
+  
+  return NULL;
+}
+
+X11ButtonPane instanceMethod draw (void) {
+
+  Integer new in;
+  String new saveBGColor;
+  Integer new savePenWidth;
+  Integer new labelWidth, pxSize;
+  int label_x, label_y, label_width, label_height;
+
+#ifdef TRACK_EVENTS
+  printf ("draw\n");
+#endif  
+
+  if (self ftFontVar family length > 0) {
+    /* i.e., The app has stored this widget's font selection. */
+    self ftFontVar selectFont;
+  }
+
+  if (self bevelEdges) {
+    for (in = 0; in < self bevelWidth; ++in) {
+      if (self clicked) {
+	self drawLine self size x - in, in, self size x - in, self size y - in,
+	  self highlightVPen; 
+	self drawLine in, self size y - in, self size x - in,
+	  self size y - in, self highlightHPen;
+	self drawLine in, in, self size x - in, in, self shadowPen;
+	self drawLine in, in, in, self size y - in, self shadowPen;
+      } else {
+	self drawLine self size x - in, in, self size x - in, self size y - in,
+	  self shadowPen; 
+	self drawLine in, self size y - in, self size x - in,
+	  self size y - in, self shadowPen;
+	self drawLine in, in, self size x - in, in, self highlightHPen;
+	self drawLine in, in, in, self size y - in, self highlightVPen;
+      }
+    }
+  } else {
+    if (self radius) {
+
+      /* This blends the corner curves with the main window's 
+	 background color. */
+      self pen colorName = self resources at "backgroundColor";
+      self drawFilledRectangle 0, 0, self size x, self size y;
+      if (self highlight) {
+	self pen colorName = self resources at "highlightBackgroundColor";
+      } else {
+	self pen colorName = self resources at "foregroundColor";
+      }
+      self drawFilledRoundedRectangle 0, 0, self size x, self size y,
+	self radius;
+
+    } else {
+      self drawFilledRectangle 0, 0, self size x, self size y;
+    }
+    if (self clicked) {
+      saveBGColor = self pen colorName;
+      savePenWidth = self pen width;
+      self pen width = self borderHighlightWidth;
+      self pen colorName = self borderColor;
+      if (self radius) {
+	self drawRoundedRectangle self borderMargin, self borderMargin,
+	  self size x - (self borderMargin * 2),
+	  self size y - (self borderMargin * 2),
+	  self radius;
+      } else {
+	self drawRectangle self borderMargin, self borderMargin,
+	  self size x - (self borderMargin * 2),
+	  self size y - (self borderMargin * 2);
+      }
+      self pen colorName = saveBGColor;
+      self pen width = savePenWidth;
+    } else {
+      saveBGColor = self pen colorName;
+      savePenWidth = self pen width;
+      self pen width = self borderWidth;
+      self pen colorName = "black";
+      if (self radius) {
+	self drawRoundedRectangle self borderMargin, self borderMargin,
+	  self size x - (self borderMargin * 2),
+	  self size y - (self borderMargin * 2),
+	  self radius;
+      } else {
+	self drawRectangle self borderMargin, self borderMargin,
+	  self size x - (self borderMargin * 2),
+	  self size y - (self borderMargin * 2);
+      }
+      self pen colorName = saveBGColor;
+      self pen width = savePenWidth;
+    }
+  }
+
+  if (self radius > 0) {
+    /* 
+       The app should already have selected a label font. 
+       (At least for now, draw the label directly on the
+       button.)
+    */
+    labelWidth = self label ftFontVar textWidth self label textLine;
+    self ftFontVar namedX11Color (self resources at "textColor");
+    self ftFontVar selectFontFromFontConfig (self label resources at "ftFont");
+
+    pxSize = (self label ftFontVar pointSize *
+	      (self label ftFontVar dpi / 72)) asInteger;
+
+    self putStrXY (self size x /2) - (labelWidth / 2),
+      ((self size y / 2) + (pxSize / 2) - (self size y / 25)), /* air */
+      self label textLine;
+
+  } else {
+    if (self lOrg x == -1) {
+      sscanf (self label subPaneGeometry, "%dx%d+%d+%d",
+	      &label_width, &label_height, &label_x, &label_y); 
+      self lOrg x = label_x;
+      self lOrg y = label_y;
+      self lSize x = label_width;
+      self lSize y = label_height;
+      self label drawButtonLayout;
+    }
+
+    self paneBuffer copy self label paneBuffer,
+      0, 0, self lSize x, self lSize y,
+      self lOrg x, self lOrg y;
+  }
+  
+}
+
+X11ButtonPane instanceMethod subPaneResize (X11Pane subPane,
+					    InputEvent event) {
+  int x_out, y_out, width_out, height_out;
+
+  __ctalkX11WxHGeometry (event xEventData3, event xEventData4,
+			 subPane subPaneGeometry,
+			 &x_out, &y_out, &width_out, &height_out);
+
+  self size x = width_out;
+  self size y = height_out;
+  self origin x = x_out;
+  self origin y = y_out;
+
+  __ctalkX11MoveWindow (subPane, x_out, y_out);
+  __ctalkX11ResizeWindow (subPane, width_out, height_out, subPane depth);
+
+  (X11Bitmap *)self paneBuffer resize self xWindowID,
+    self size x, self size y;
+  (X11Bitmap *)self paneBuffer background (self backgroundColor);
+  (X11Bitmap *)self paneBackingStore resize self xWindowID,
+    self size x, self size y;
+
+}
+
+X11ButtonPane instanceMethod subPaneFocusIn (void) {
+#ifdef TRACK_EVENTS
+  printf ("subPaneFocusIn\n");
+#endif  
+  if (self canFocus) {
+    self label highlight = true;
+    self hasFocus = true;
+    self draw;
+    self refresh;
+  }
+}
+
+X11ButtonPane instanceMethod subPaneFocusOut (void) {
+#ifdef TRACK_EVENTS
+  printf ("subPaneFocusOut\n");
+#endif  
+  if (self canFocus) {
+    self label highlight = false;
+    self hasFocus = false;
+    self draw;
+    self refresh;
+  }
+}
+
+X11ButtonPane instanceMethod subPaneExpose (Object __subPane,
+					  InputEvent __event) {
+#ifdef TRACK_EVENTS
+  printf ("subPaneExpose\n");
+#endif  
+  self draw;
+  self refresh;
+}
+
+#ifdef HANDLE_MAP
+X11ButtonPane instanceMethod subPaneMap (Object __subPane,
+					  InputEvent __event) {
+  int label_width, label_height, label_x, label_y;
+#ifdef TRACK_EVENTS
+  printf ("subPaneMap\n");
+#endif  
+  sscanf (self label subPaneGeometry, "%dx%d+%d+%d",
+	  &label_width, &label_height, &label_x, &label_y);
+  __subPane lOrg x = label_x;
+  __subPane lOrg y = label_y;
+  __subPane lSize x = label_width;
+  __subPane lSize y = label_height;
+  __subPane label drawButtonLayout;
+}
+#endif /* HANDLE_MAP */
+
+X11ButtonPane instanceMethod subPaneButtonPress (Object __subPane,
+						 InputEvent __event) {
+  switch (__event eventClass)
+    {
+    case BUTTONPRESS:
+#ifdef TRACK_EVENTS
+      printf ("\n-------------------\n");
+      printf ("subPaneButtonPress\n");
+#endif      
+      if (!self clicked) {
+	self clicked = true;
+	if (!self clickSet)
+	  self clickSet = true;
+	self draw;
+	self refresh;
+      }
+      break;
+    case BUTTONRELEASE:
+#ifdef TRACK_EVENTS
+      printf ("subPaneButtonRelease\n");
+      printf ("-------------------\n\n");
+#endif      
+      if (self clicked) {
+	self clicked = false;
+	self draw;
+	self refresh;
+      }
+      break;
+    }
+}
+
+X11ButtonPane instanceMethod subPaneEnter (Object __subPane,
+					  InputEvent __event) {
+  /* This has some extra checks in case we get extra events
+     after a BUTTONPRESS event - like with xquartz */
+  if (__event eventData == __subPane xWindowID) {
+#ifdef TRACK_EVENTS
+    printf ("subPaneEnter\n");
+#endif  
+    if (__subPane canFocus) {
+      if (self clicked) {
+	self clicked = false;
+      }
+      if (!self hover) {
+	__subPane label highlight = true;
+	self hover = true;
+      }
+      if (!self radius)
+	self label drawButtonLayout;
+      __subPane draw;
+      __subPane refresh;
+    }
+  } else if (self clicked) {
+    self clicked = false;
+    if (!self radius)
+      self label drawButtonLayout;
+    __subPane draw;
+    __subPane refresh;
+  }
+}
+
+X11ButtonPane instanceMethod subPaneLeave (Object __subPane,
+					  InputEvent __event) {
+  if (__event eventData == __subPane xWindowID) {
+#ifdef TRACK_EVENTS
+    printf ("subPaneLeave\n");
+#endif    
+  if (__subPane canFocus) {
+    if (self hover) {
+      __subPane label highlight = false;
+      if (self clicked)
+	self clicked = false;
+      self label drawButtonLayout;
+      __subPane draw;
+      __subPane refresh;
+      self hover = false;
+    }
+  }
+  }
+}
+
+/* These definitions are from the machine's X.h file. */
+#ifndef Button1Mask
+#define Button1Mask		(1<<8)
+#endif
+#ifndef Button3Mask
+#define Button3Mask		(1<<10)
+#endif
+
+X11ButtonPane instanceMethod subPaneMotion (Object __subPane,
+					    InputEvent __event) {
+  if (self clicked) {
+    if (!(__event xEventData3 & Button1Mask) &&
+	!(__event xEventData3 & Button3Mask)) {
+      self clicked = false;
+      self draw;
+      self refresh;
+    }
+  }
+}
+
+X11ButtonPane instanceMethod isClicked (void) {
+  "Returns true or false depending on whether the pointer
+   button is  being clicked within the button."
+  returnObjectClass Boolean;
+  return self clicked;
+}
+
+X11ButtonPane instanceMethod text (void) {
+  "Returns the text of the button.  If the button displays 
+   multiple lines, returns the lines concatenated and
+   separated by a space character."
+  String new s;
+  returnObjectClass String;
+  if (self label haveMultiLine) {
+    s = "";
+    self label textLines map {
+      s += self + " ";
+    }
+    return s;
+  } else {
+    return self label textLine;
+  }
+}
+
+X11ButtonPane instanceMethod haveClick (void) {
+  "Returns true or false depending on whether the
+   button was clicked earlier.  Calling the clearClick
+   method resets the state of this earlier click setting
+   to false."
+  returnObjectClass Boolean;
+  return self clickSet;
+}
+
+X11ButtonPane instanceMethod clearClick (void) {
+  "Reset the state of an earlier click setting to
+   false."
+  self clickSet = false;
+}
