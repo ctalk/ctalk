@@ -1,4 +1,4 @@
-/* $Id: edittext.c,v 1.2 2020/09/18 21:25:11 rkiesling Exp $ -*-c-*-*/
+/* $Id: edittext.c,v 1.5 2020/09/21 17:56:45 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -1348,7 +1348,7 @@ int __edittext_prev_line (OBJECT *editorpane_object) {
 int __edittext_next_line (OBJECT *editorpane_object) {
   LINEREC *text_lines = NULL, *l;
   int l_point, point_new, l_col, l_viewstart, l_viewlines,
-    line_no, cursor_line, l_viewstart_old, l_line_width;
+    line_no, cursor_line, l_line_width; 
   
   if (need_init)
     buf_init (editorpane_object);
@@ -1383,15 +1383,12 @@ int __edittext_next_line (OBJECT *editorpane_object) {
     return SUCCESS;
   }
 
-  /* Scroll down if needed and move the cursor back
-     into the view. */
-  l_viewstart_old = l_viewstart;
+  /* Scroll down if needed. */
   while (cursor_line >= (l_viewstart + l_viewlines - c_scrollmargin)) {
     ++l_viewstart;
+    EDITINTSET(viewstartline_instance_var, l_viewstart);
   }
   
-  EDITINTSET(viewstartline_instance_var, l_viewstart);
-  EDITINTSET(point_instance_var, l_viewstart);
   delete_lines (&text_lines);
   return SUCCESS;
 }
