@@ -1,4 +1,4 @@
-/* $Id: WriteFileStream,v 1.2 2020/09/19 01:08:25 rkiesling Exp $ -*-c-*-*/
+/* $Id: WriteFileStream,v 1.3 2020/09/26 11:00:52 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -59,6 +59,8 @@ WriteFileStream classMethod classInit (void) {
   stderrStreamVar = __ctalkFindClassVariable ("stderrStream", TRUE);
   __ctalkInstanceVarsFromClassObject (stderrStreamVar);
   
+  __ctalkObjValPtr (stdoutStreamVar, xstdout());
+#if 0 /***/
 #if defined (__linux__)
   __ctalkObjValPtr (stdoutStreamVar, _IO_stdout);
   __ctalkObjValPtr (stderrStreamVar, _IO_stderr);
@@ -66,6 +68,7 @@ WriteFileStream classMethod classInit (void) {
   __ctalkObjValPtr (stdoutStreamVar, stdout);
   __ctalkObjValPtr (stderrStreamVar, stderr);
 #endif
+#endif  
 
   __ctalkInstanceVarsFromClassObject (stdoutStreamVar);
   __ctalkInstanceVarsFromClassObject (stderrStreamVar);

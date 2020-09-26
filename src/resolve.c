@@ -1,4 +1,4 @@
-/* $Id: resolve.c,v 1.2 2020/09/19 01:08:28 rkiesling Exp $ */
+/* $Id: resolve.c,v 1.3 2020/09/26 11:00:52 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -1036,7 +1036,8 @@ static void undefined_receiver_exception (int message_ptr,
       break;
     default:
       if (!NON_METHOD_CONTEXT(message_stack_at (actual_method_idx))) {
-	if (!is_method_name (M_NAME(m_actual_method))) {
+	if (!is_method_name (M_NAME(m_actual_method)) &&
+	    !global_var_is_declared (M_NAME(m_actual_method))) {
 	  if (interpreter_pass == method_pass) {
 	    if (nolinemarker_opt) {
 	      /* Without linemarkers, the start line of a method is
@@ -1054,7 +1055,7 @@ static void undefined_receiver_exception (int message_ptr,
 		(m, undefined_label_x, m_actual_method -> name, visible_line);
 	    }
 	  } else {
-#if defined(__APPLE__) && defined (__x86_64)
+#if defined (__x86_64) /***/
 	    /* Secure osx lib replacement check here, too. */
 	    if (!strstr (m -> name, "__builtin_"))
 	      __ctalkExceptionInternal 

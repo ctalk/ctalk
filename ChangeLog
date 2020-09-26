@@ -1237,5 +1237,10 @@
 2020-09-21
 	- Updated __edittext_line_start to rely on the cursor position
 	determined before performing a scroll (down).
+2020-09-26
+	- Removed check for APPLE system in resolve.c - now just check
+	any __x86_64 system for functions with the prefix, "__builtin_."
+	- Added xstdin, xstdout, and xstderr library functions.
+
 
 

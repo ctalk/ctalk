@@ -1,4 +1,4 @@
-/* $Id: strsecure.c,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ */
+/* $Id: strsecure.c,v 1.2 2020/09/26 11:00:52 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -61,3 +61,4 @@ void *xmemset (void *s, int c, size_t n) {
 void *xmemmove (void *d, const void *s, size_t n) {
   return memmove (d, s, n);
 }
+

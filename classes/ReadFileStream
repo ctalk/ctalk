@@ -1,4 +1,4 @@
-/* $Id: ReadFileStream,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ -*-c-*-*/
+/* $Id: ReadFileStream,v 1.2 2020/09/26 11:00:52 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -70,11 +70,14 @@ ReadFileStream classMethod classInit (void) {
   stdinStreamVar = __ctalkFindClassVariable ("stdinStream", TRUE);
   __ctalkInstanceVarsFromClassObject (stdinStreamVar);
   
+  __ctalkObjValPtr (stdinStreamVar, xstdin ());
+#if 0 /***/
 #if defined (__linux__)
   __ctalkObjValPtr (stdinStreamVar, _IO_stdin);
 #else
   __ctalkObjValPtr (stdinStreamVar, stdin);
 #endif
+#endif  
 
   classInitVar = 
     __ctalkCreateObjectInit ("classInitDone", "Integer",

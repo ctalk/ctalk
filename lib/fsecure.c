@@ -1,8 +1,8 @@
-/* $Id: fsecure.c,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ */
+/* $Id: fsecure.c,v 1.2 2020/09/26 11:00:52 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
-  Copyright © 2018 Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2018, 2020 Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
 
@@ -42,4 +42,16 @@ int xfscanf (FILE *s, const char *fmt, ...) {
   va_list ap;
   va_start (ap, fmt);
   return vfscanf (s, fmt, ap);
+}
+
+FILE *xstdin (void) {
+  return stdin;
+}
+
+FILE *xstdout (void) {
+  return stdout;
+}
+
+FILE *xstderr (void) {
+  return stderr;
 }

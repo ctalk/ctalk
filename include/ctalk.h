@@ -1,4 +1,4 @@
-/* $Id: ctalk.h,v 1.2 2020/09/19 01:08:26 rkiesling Exp $ -*-Fundamental-*- */
+/* $Id: ctalk.h,v 1.3 2020/09/26 11:00:52 rkiesling Exp $ -*-Fundamental-*- */
 
 /*
   This file is part of Ctalk.
@@ -1579,6 +1579,9 @@ int __ctalkX11TextWidth (char *xlfd, char *text);
 FILE *xfopen (const char *, const char *);
 int xfprintf (FILE *, const char *, ...);
 int xfscanf (FILE *, const char *, ...);
+FILE *xstdin (void);
+FILE *xstdout (void);
+FILE *xstderr (void);
 
 /* lib/ftlib.c */
 int __ctalkGLXUseFTFont (char *);

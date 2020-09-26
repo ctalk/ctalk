@@ -1,4 +1,4 @@
-/* $Id: ANSITerminalStream,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ -*-c-*-*/
+/* $Id: ANSITerminalStream,v 1.2 2020/09/26 11:00:52 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -156,22 +156,28 @@ ANSITerminalStream instanceMethod new (char *__ttyName) {
        __ctalkGetInstanceVariable (__ttyName, "inputHandle",
 				   FALSE)) != NULL) {
     __ctalkInstanceVarsFromClassObject (__stdinStreamVar);
+    __ctalkObjValPtr (__stdinStreamVar, (void *)xstdin ());
+#if 0 /***/
 #if defined (__linux__)
     __ctalkObjValPtr (__stdinStreamVar, _IO_stdin);
 #else
     __ctalkObjValPtr (__stdinStreamVar, stdin);
 #endif
+#endif    
   }
 
   if ((__stdoutStreamVar = 
        __ctalkGetInstanceVariable (__ttyName, "outputHandle",
 				   FALSE)) != NULL) {
     __ctalkInstanceVarsFromClassObject (__stdoutStreamVar);
+    __ctalkObjValPtr (__stdoutStreamVar, (void *)xstdout ());
+#if 0 /***/
 #if defined (__linux__)
     __ctalkObjValPtr (__stdoutStreamVar, _IO_stdout);
 #else
     __ctalkObjValPtr (__stdoutStreamVar, stdout);
 #endif
+#endif    
   }
 
   tcgetattr (0, &termios_s);
@@ -331,8 +337,13 @@ ANSITerminalStream instanceMethod getCh (void) {
     self rawMode;
 
   if ((r = select (self_input_stream_no + 1, &rfds, NULL, NULL, NULL))< 0) {
+#if 0 /***/
     fprintf (stderr, "select () error on standard input\n");
     fflush (stderr);
+#endif    
+
+    fprintf (xstderr (), "select () error on standard input\n");
+    fflush (xstderr ());
     exit (1);
   }
   if (FD_ISSET (self_input_stream_no, &rfds)) {
@@ -436,7 +447,8 @@ ANSITerminalStream instanceMethod getChNoBlock (void) {
       return c;
     }
   } else {
-    fprintf (stderr, "%s\n", strerror(errno));
+    /* fprintf (stderr, "%s\n", strerror(errno)); *//***/
+    fprintf (xstderr (), "%s\n", strerror(errno));
     return 0;
   }
 }
