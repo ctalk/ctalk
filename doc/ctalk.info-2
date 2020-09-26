@@ -7921,42 +7921,49 @@ Class Initialization
 Some classes that have class variables require initialization when the
 program is run.  For example, class 'ReadFileStream' needs to have its
 class variable 'stdinStream' set to the application's 'stdin' file
-stream before the program can read from standard input.
+stream before the program can read from standard input.  For this, you
+would use the library function 'xstdin', and use its value in
+'stdinStreamVar'.
 
-Classes that require initialization need to define a method,
-'classInit', which is called by a constructor when the first object is
-created.  An example is the 'ReadFileStream' method 'new' from the
-previous section.
+
+     __ctalkObjValPtr (stdinStreamVar, xstdin ());
+
+
+Classes that require class variable initialization need to define a
+method, 'classInit', which is called by a constructor when the first
+object is created.  An example is the 'ReadFileStream' method 'new' from
+the previous section.
 
 Here is the 'classInit' method for class 'ReadFileStream'.
 
-     ReadFileStream classMethod classInit (void) {
 
+     ReadFileStream classMethod classInit (void) {
+       "Initializes the classes' standard input stream.  This
+       method is normally called by the ReadFileStream
+       constructor.  The method needs to be called only once;
+       on further calls to 'new', it is a no-op."
        OBJECT *classObject,
          *stdinStreamVar,
          *classInitVar;
-       char buf[MAXLABEL];
 
        if (self classInitDone)
          return NULL;
 
        classObject = __ctalkGetClass ("ReadFileStream");
-       stdinStreamVar = __ctalkGetClassVariable ("stdinStream", TRUE);
-
-       sprintf (buf, "%p", _IO_stdin);
-       __ctalkSetObjectValueVar (stdinStreamVar, buf);
-
+       stdinStreamVar = __ctalkFindClassVariable ("stdinStream", TRUE);
        __ctalkInstanceVarsFromClassObject (stdinStreamVar);
-       stdinStream statStream;
+
+       __ctalkObjValPtr (stdinStreamVar, xstdin ());
 
        classInitVar =
-         __ctalkCreateObjectInit ("classInitDone", classObject -> __o_name,
-     				classObject -> __o_superclassname,
-     				classObject -> scope, "1");
-       __ctalkAddInstanceVariable (classObject, "classInitDone", classInitVar);
+         __ctalkCreateObjectInit ("classInitDone", "Integer",
+     			     "Magnitude",
+     			     classObject -> scope, "1");
+       __ctalkAddClassVariable (classObject, "classInitDone", classInitVar);
 
        return NULL;
      }
+
 
 A 'classInit' method needs to be called only once.  The method checks
 the 'classInitDone' instance variable to determine the method has

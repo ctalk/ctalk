@@ -586,10 +586,16 @@ Method Keywords
 
           PARENT_CLASS classVariable NAME [NATIVE_CLASS|TYPECAST_EXPR]
           [INITIAL_VALUE] [DOCSTRING] ;
+
      For example:
 
+
           FileStream class ReadFileStream;
-          ReadFileStream classVariable stdin Symbol 0x0;
+
+          _..._
+
+          ReadFileStream classVariable stdinStream Symbol 0x0;
+
 
      The value of INITIAL_VALUE can be either a constant or an
      expression that evaluates to a constant.
@@ -3866,6 +3872,16 @@ functions.
      manual page for the corresponding library function (e.g.,
      'strcpy(3)' for the definition of 'xstrcpy').
 
+'xstdin (void)'
+'xstdout (void)'
+'xstderr (void)'
+     These functions return a 'FILE *' with the 'stdin, stdout,' or
+     'stderr' file stream.  They're useful if your compiler defines
+     either 'stdin, stdout,' or 'stderr' as some sort of macro (most
+     compilers do this).  The functions provide a consistent interface
+     and leave any implementation details in the library, where they
+     belong.
+
 
 File: ctalk.info,  Node: C,  Next: Copying,  Prev: Methods,  Up: Top
 
@@ -5367,8 +5383,8 @@ File: ctalk.info,  Node: fputc,  Next: fputs,  Prev: fprintf,  Up: C library fun
 
      Integer new myInput;
 
-     myInput = fgetc (stdin);
-     fputc (myInput, stdout);
+     myInput = fgetc (xstdin ());
+     fputc (myInput, xstdout ());
 
 
 
@@ -5381,8 +5397,8 @@ File: ctalk.info,  Node: fputs,  Next: fread,  Prev: fputc,  Up: C library funct
 
      String new myInput;
 
-     fgets (myInput, 255, stdin);
-     fputs (myInput, stdout);
+     fgets (myInput, 255, xstdin ());
+     fputs (myInput, xstdout ());
 
 
 File: ctalk.info,  Node: fread,  Next: free,  Prev: fputs,  Up: C library functions
@@ -5396,7 +5412,7 @@ File: ctalk.info,  Node: fread,  Next: free,  Prev: fputs,  Up: C library functi
 
      myInput = "";
 
-     fread (myInput, 255, sizeof (char), stdin);
+     fread (myInput, 255, sizeof (char), xstdin ());
 
 
 File: ctalk.info,  Node: free,  Next: freopen,  Prev: fread,  Up: C library functions
@@ -5437,7 +5453,7 @@ File: ctalk.info,  Node: freopen,  Next: frexp,  Prev: free,  Up: C library func
      path = "/home/user/.profile";
      mode = "r";
 
-     f2 = freopen (path, mode, stdin);
+     f2 = freopen (path, mode, xstdin ());
 
 
 File: ctalk.info,  Node: frexp,  Next: fscanf,  Prev: freopen,  Up: C library functions
@@ -5468,11 +5484,16 @@ File: ctalk.info,  Node: fscanf,  Next: fseek,  Prev: frexp,  Up: C library func
 
 _Note:_ The C99 standard requires that 'stdin,' 'stdout,' and 'stderr'
 should be implemented as macros, which on some systems (notably Solaris)
-causes problems with C-to-object translation.  If Ctalk cannot register
-these macros as C variables, then either call 'fscanf(3)' C function
-with only C variables, or use a method with 'stdoutStream' or
-'stderrStream' *Note WriteFileStream::, or 'stdinStream' *Note
-ReadFileStream::.
+causes problems with C-to-object translation.
+
+If Ctalk cannot register these macros as C variables, then either call
+'fscanf(3)' C function with only C variables, or use a method with
+'stdoutStream' or 'stderrStream' *Note WriteFileStream::, or
+'stdinStream' *Note ReadFileStream::.
+
+Ctalk also wraps 'stdin, stdout,' and 'stderr' in the functions 'xstdin,
+xstdout,' and 'xstderr,' which gives the streams a constant interface
+for methods to use regardless of the streams' internal implementation.
 
 
 File: ctalk.info,  Node: fseek,  Next: fsetpos,  Prev: fscanf,  Up: C library functions
@@ -8546,7 +8567,7 @@ Index
 * errors instance method (X11FreeTypeFont class): X11FreeTypeFont.
                                                              (line  178)
 * Escape sequences, character:           Character.          (line   12)
-* eval keyword:                          Method keywords.    (line   34)
+* eval keyword:                          Method keywords.    (line   40)
 * Event class:                           Event.              (line    6)
 * eventClass instanceVariable (InputEvent class): InputEvent.
                                                              (line    9)
@@ -9056,8 +9077,8 @@ Index
 * Instance variable documentation:       Documentation.      (line    6)
 * Instance variable documentation <1>:   Documentation.      (line  166)
 * instanceMethod instance method (Object class): Object.     (line  422)
-* instanceMethod keyword:                Method keywords.    (line   41)
-* instanceVariable keyword:              Method keywords.    (line   44)
+* instanceMethod keyword:                Method keywords.    (line   47)
+* instanceVariable keyword:              Method keywords.    (line   50)
 * int C data type:                       C statements.       (line  144)
 * Integer class:                         Integer.            (line    6)
 * integerAt instance method (Collection class): Collection.  (line   68)
@@ -9466,7 +9487,7 @@ Index
 * noBorder instance method (ANSIYesNoBoxPane class): ANSIYesNoBoxPane.
                                                              (line   82)
 * noMethodInit keyword:                  Method functions.   (line   25)
-* noMethodInit keyword <1>:              Method keywords.    (line   71)
+* noMethodInit keyword <1>:              Method keywords.    (line   77)
 * noShadow instance method (ANSIScrollingListBoxPane class): ANSIScrollingListBoxPane.
                                                              (line  148)
 * noShadow instance method (ANSIYesNoBoxPane class): ANSIYesNoBoxPane.
@@ -9843,7 +9864,7 @@ Index
 * requestClose instance variable (X11TextPane class): X11TextPane.
                                                              (line  114)
 * require keyword:                       Required classes.   (line    6)
-* require keyword <1>:                   Method keywords.    (line   75)
+* require keyword <1>:                   Method keywords.    (line   81)
 * resetGraphics instance method (ANSITerminalPane class): ANSITerminalPane.
                                                              (line  170)
 * resize instance method (ANSITextBoxPane class): ANSITextBoxPane.
@@ -9857,7 +9878,7 @@ Index
                                                              (line  193)
 * returnClass instance variable (Method class): Method.      (line   54)
 * returnObjectClass:                     Return values.      (line    6)
-* returnObjectClass keyword:             Method keywords.    (line   78)
+* returnObjectClass keyword:             Method keywords.    (line   84)
 * returnText instance variable (X11YesNoBoxPane class): X11YesNoBoxPane.
                                                              (line  265)
 * returnVal instance variable (X11YesNoBoxPane class): X11YesNoBoxPane.
@@ -9987,7 +10008,7 @@ Index
                                                              (line  200)
 * self keyword:                          Self and super.     (line    6)
 * self keyword <1>:                      Return values.      (line  130)
-* self keyword <2>:                      Method keywords.    (line   82)
+* self keyword <2>:                      Method keywords.    (line   88)
 * SELF_WITHOUT_RECEIVER_X exception:     Exception.          (line  118)
 * sEnd instance variable (X11TextEditorPane class): X11TextEditorPane.
                                                              (line  153)
@@ -10354,7 +10375,7 @@ Index
 * subString instance method (String class): String.          (line  440)
 * SUCCESS_X exception:                   Exception.          (line  118)
 * super keyword:                         Self and super.     (line    6)
-* super keyword <1>:                     Method keywords.    (line   94)
+* super keyword <1>:                     Method keywords.    (line  100)
 * superclassName instance method (Object class): Object.     (line  611)
 * SUPERCLASSNAME macro:                  C Macros.           (line  105)
 * swapBuffers instance method (GLXCanvasPane class): GLXCanvasPane.
@@ -10832,6 +10853,9 @@ Index
 * xpmWidthFromData instance method (X11Bitmap class): X11Bitmap.
                                                              (line  284)
 * xsprintf () function:                  Ctalk library.      (line 2972)
+* xstderr () function:                   Ctalk library.      (line 2989)
+* xstdin () function:                    Ctalk library.      (line 2989)
+* xstdout () function:                   Ctalk library.      (line 2989)
 * xstrcat () function:                   Ctalk library.      (line 2972)
 * xstrcpy () function:                   Ctalk library.      (line 2972)
 * xstrncat () function:                  Ctalk library.      (line 2972)

@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.4 2020/09/13 20:17:52 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.5 2020/09/26 17:38:12 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -20398,47 +20398,55 @@ The first statement, @code{ReadFileStream super new name,} calls @mnm{new} from 
 @end ifnottex
 @cindex Class initialization
 
-Some classes that have class variables require initialization when
-the program is run.  For example, class @code{ReadFileStream} needs
-to have its class variable @code{stdinStream} set to the
-application's @code{stdin} file stream before the program can read
-from standard input.  
+Some classes that have class variables require initialization when the
+program is run.  For example, class @code{ReadFileStream} needs to
+have its class variable @code{stdinStream} set to the application's
+@code{stdin} file stream before the program can read from standard
+input.  For this, you would use the library function @cite{xstdin},
+and use its value in @code{stdinStreamVar}.
 
-Classes that require initialization need to define a method,
-@code{classInit}, which is called by a constructor when the first
-object is created.  An example is the @code{ReadFileStream} method
-@mnm{new} from the previous section.
+@example
+
+__ctalkObjValPtr (stdinStreamVar, xstdin ());
+
+@end example
+
+Classes that require class variable initialization need to define a
+method, @code{classInit}, which is called by a constructor when the
+first object is created.  An example is the @code{ReadFileStream}
+method @mnm{new} from the previous section.
 
 Here is the @mnm{classInit} method for class @code{ReadFileStream}.
 
 @example
-ReadFileStream classMethod classInit (void) @{
 
+ReadFileStream classMethod classInit (void) @{
+  "Initializes the classes' standard input stream.  This
+  method is normally called by the ReadFileStream
+  constructor.  The method needs to be called only once;
+  on further calls to 'new', it is a no-op."
   OBJECT *classObject,
     *stdinStreamVar,
     *classInitVar;
-  char buf[MAXLABEL];
 
   if (self classInitDone)
     return NULL;
 
   classObject = __ctalkGetClass ("ReadFileStream");
-  stdinStreamVar = __ctalkGetClassVariable ("stdinStream", TRUE);
-  
-  sprintf (buf, "%p", _IO_stdin);
-  __ctalkSetObjectValueVar (stdinStreamVar, buf);
-
+  stdinStreamVar = __ctalkFindClassVariable ("stdinStream", TRUE);
   __ctalkInstanceVarsFromClassObject (stdinStreamVar);
-  stdinStream statStream;
+  
+  __ctalkObjValPtr (stdinStreamVar, xstdin ());
 
   classInitVar = 
-    __ctalkCreateObjectInit ("classInitDone", classObject -> __o_name,
-				classObject -> __o_superclassname,
-				classObject -> scope, "1");
-  __ctalkAddInstanceVariable (classObject, "classInitDone", classInitVar);
+    __ctalkCreateObjectInit ("classInitDone", "Integer",
+			     "Magnitude",
+			     classObject -> scope, "1");
+  __ctalkAddClassVariable (classObject, "classInitDone", classInitVar);
 
   return NULL;
 @}
+
 @end example
 
 A @code{classInit} method needs to be called only once.  The method
@@ -21959,13 +21967,21 @@ method needs to be used globally, when a class is declared.
 The syntax is:
 
 @quotation
+
 @var{parent_class} classVariable @var{name} [@var{native_class}|@var{typecast_expr}] [@var{initial_value}] [@var{docstring}] ;
+
 @end quotation
+
 For example:
 
 @example
+
 FileStream class ReadFileStream;
-ReadFileStream classVariable stdin Symbol 0x0;
+
+@emph{...}
+
+ReadFileStream classVariable stdinStream Symbol 0x0;
+
 @end example
 
 The value of @var{initial_value} can be either a constant or an
@@ -25997,6 +26013,19 @@ prototype and definition, you should consult the system's manual page
 for the corresponding library function (e.g., @cite{strcpy(3)} for the
 definition of @cite{xstrcpy}).
 
+@idxlibfn{xstdin}
+@idxlibfn{xstdout}
+@idxlibfn{xstderr}
+@item xstdin (void)
+@item xstdout (void)
+@item xstderr (void)
+These functions return a @code{FILE *} with the @code{stdin, stdout,}
+or @code{stderr} file stream.  They're useful if your compiler defines
+either @cite{stdin, stdout,} or @code{stderr} as some sort of macro
+(most compilers do this).  The functions provide a consistent
+interface and leave any implementation details in the library, where
+they belong.
+
 @c LIB-DOC-END-COOKIE ***
 
 @end table
@@ -27768,8 +27797,8 @@ f = fopen (path, mode);
 
 Integer new myInput;
 
-myInput = fgetc (stdin);
-fputc (myInput, stdout);
+myInput = fgetc (xstdin ());
+fputc (myInput, xstdout ());
 
 @end example
 
@@ -27782,8 +27811,8 @@ fputc (myInput, stdout);
 
 String new myInput;
 
-fgets (myInput, 255, stdin);
-fputs (myInput, stdout);
+fgets (myInput, 255, xstdin ());
+fputs (myInput, xstdout ());
 @end example
 
 @node fread, free, fputs, C library functions
@@ -27797,7 +27826,7 @@ String new myInput;
 
 myInput = "";
 
-fread (myInput, 255, sizeof (char), stdin);
+fread (myInput, 255, sizeof (char), xstdin ());
 @end example
 
 @node free, freopen, fread, C library functions
@@ -27841,7 +27870,7 @@ String new mode;
 path = "/home/user/.profile";
 mode = "r";
 
-f2 = freopen (path, mode, stdin);
+f2 = freopen (path, mode, xstdin ());
 @end example
 
 @node frexp, fscanf, freopen, C library functions
@@ -27875,14 +27904,10 @@ expInt = i_exp_val;
 @cindex @code{stdinStream} @idxclscite{ReadFileStream}
 @cindex @code{stdoutStream} @idxclscite{WriteFileStream}
 @cindex @code{stderrStream} @idxclscite{WriteFileStream}
-@emph{Note:} The C99 standard requires that @code{stdin,}
-@code{stdout,} and @code{stderr} should be implemented as
-macros, which on some systems (notably Solaris) causes
-problems with C-to-object translation.  If Ctalk cannot
-register these macros as C variables, then either call
-@idxfncite{fscanf(3)} with only C variables, or use a method
-with @code{stdoutStream} or @code{stderrStream}
-@xref{WriteFileStream}, or @code{stdinStream} @xref{ReadFileStream}.
+Ctalk wraps @code{stdin, stdout,} and @code{stderr} in the
+functions @cite{xstdin, xstdout,} and @cite{xstderr,} which gives the
+streams a constant interface for methods to use regardless of the
+streams' internal implementation.
 
 @node fseek, fsetpos, fscanf, C library functions
 @subheading @code{fseek} Function
@@ -27973,7 +27998,7 @@ fwrite (promptLine, promptLine length, sizeof (char), f);
 
 Integer new myInput;
 
-myInput = getc (stdin);
+myInput = getc (xstdin ());
 
 printf ("%c", myInput asCharacter);
 @end example
