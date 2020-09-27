@@ -2976,9 +2976,8 @@ definition of xstrcpy).
 
 >>>xstdin (void):xstdout (void):xstderr (void)
 These functions return a FILE * with the stdin, stdout,
-or stderr file stream.  They're useful if your compiler defines
-either stdin, stdout, or stderr as some sort of macro
-(most compilers do this).  The functions provide a consistent
-interface and leave any implementation details in the library, where
-they belong.
+or stderr file stream.  They're useful if your compiler
+redefined either stdin, stdout, or stderr internally.
+The functions provide a consistent interface and leave any
+implementation details in the library, where they belong.
 
