@@ -1,4 +1,4 @@
-/* $Id: method.c,v 1.2 2020/09/19 01:08:27 rkiesling Exp $ */
+/* $Id: method.c,v 1.3 2020/09/27 11:53:49 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -118,8 +118,8 @@ MESSAGE_STACK method_message_stack (void) { return m_messages; }
 
 int get_method_message_ptr (void) {return m_message_ptr; }
 
-int ambiguous_arg_start_idx,
-  ambiguous_arg_end_idx;
+int ambiguous_arg_start_idx = -1,
+  ambiguous_arg_end_idx = -1;
 
 int ambiguous_operand_throw (MESSAGE_STACK messages, 
 			     int idx, METHOD *method) {
