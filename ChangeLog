@@ -1241,6 +1241,8 @@
 	- Removed check for APPLE system in resolve.c - now just check
 	any __x86_64 system for functions with the prefix, "__builtin_."
 	- Added xstdin, xstdout, and xstderr library functions.
-
+2020-09-27
+	- Make sure that the argument catch/throw indexes in the method
+	argument catch/throw in method_call are correct (method.c).
 
 
