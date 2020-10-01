@@ -1247,5 +1247,8 @@
 2020-09-30
 	- Added a clause in stdarg_fmt_arg_expr to handle a CVAR
 	receiver (arg.c).
+	2020-10-01
+	- Added a call to escape_str_quotes in method_call when formatting
+	complex expression calls that are printf arguments (method.c).
 
 

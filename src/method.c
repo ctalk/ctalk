@@ -1,4 +1,4 @@
-/* $Id: method.c,v 1.3 2020/09/27 11:53:49 rkiesling Exp $ */
+/* $Id: method.c,v 1.4 2020/10/01 23:16:11 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -3050,10 +3050,13 @@ int method_call (int method_message_ptr) {
 		 *  Eval_arg stuffed the expression object into 
 		 *  the receiver's value_obj slot.
 		 */
-		char tmp[MAXMSG];
+		/***/
+		char tmp_a[MAXMSG], tmp[MAXMSG];
+		escape_str_quotes
+		  (M_VALUE_OBJ(message_stack_at (rcvr_ptr)) -> __o_name,
+		   tmp_a);
 		strcatx (tmp, EVAL_EXPR_FN, "(\"", 
-			 M_VALUE_OBJ(message_stack_at (rcvr_ptr))->__o_name,
-			 "\")", NULL);
+			 tmp_a, "\")", NULL);
 		fileout
 		  (obj_2_c_wrapper_trans 
 		   (message_stack(), rcvr_ptr,
