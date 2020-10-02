@@ -1,4 +1,4 @@
-/* $Id: arg.c,v 1.2 2020/09/19 01:08:26 rkiesling Exp $ */
+/* $Id: arg.c,v 1.4 2020/10/02 17:16:13 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -2282,10 +2282,45 @@ char *stdarg_fmt_arg_expr (MESSAGE_STACK messages, int method_idx,
     }
     return result_buf;
   } else {
-    char buf_out[MAXMSG];
-    return rt_library_method_call 
-      (M_VALUE_OBJ(messages[rcvr_end]),
-       method, messages, method_idx, buf_out);
+    if (!messages[rcvr_end] -> obj && !messages[rcvr_end] -> value_obj) {
+      CVAR *c;
+      char *cvar_class;
+      OBJECT *class_obj;
+      int agg_var_end_idx;
+      FRAME *f;
+      if (((c = get_local_var (M_NAME(messages[rcvr_end]))) != NULL) ||
+	  ((c = get_global_var (M_NAME(messages[rcvr_end]))))) {
+	if ((cvar_class = basic_class_from_cvar (messages[rcvr_end],
+						 c, 0)) != NULL) {
+	  if ((class_obj = get_class_object (cvar_class)) != NULL) {
+	    messages[rcvr_end] -> obj =
+	      create_object (class_obj -> __o_name, M_NAME(messages[rcvr_end]));
+	    register_c_var (messages[rcvr_end], message_stack (), rcvr_end,
+			    &agg_var_end_idx);
+	    rt_library_method_call 
+	      (messages[rcvr_end] -> obj, method, messages, method_idx, result_buf);
+	    delete_object (messages[rcvr_end] -> obj);
+	    messages[rcvr_end] -> obj = NULL;
+ 	    f = frame_at (CURRENT_PARSER -> frame - 1);
+	    output_delete_cvars_call (messages, f -> message_frame_top + 1,
+				      get_stack_top (message_stack ()));
+ 	    return result_buf;
+	  }
+	}
+      } else if (M_TOK(messages[rcvr_end]) == CLOSEPAREN) {
+	int open_paren_idx, end_idx;
+	if ((open_paren_idx = match_paren_rev (messages, rcvr_end,
+					       stack_start (messages)))
+	    != ERROR) {
+	  fmt_rt_expr (messages, open_paren_idx, &end_idx, result_buf);
+	  return result_buf;
+	}
+      }
+    } else {
+      return rt_library_method_call 
+	(M_VALUE_OBJ(messages[rcvr_end]),
+	 method, messages, method_idx, result_buf);
+    }
   }
   return NULL;
 }
