@@ -1,4 +1,4 @@
-/* $Id: arg.c,v 1.4 2020/10/02 17:16:13 rkiesling Exp $ */
+/* $Id: arg.c,v 1.5 2020/10/02 18:04:19 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -2257,11 +2257,22 @@ void delete_arg (ARG *a) {
   __xfree (MEMADDR(a));
 }
 
+/* Adds a delete_cvar call before the next frame. */
+static void sfae_delete_cvar_call () {
+  FRAME *f;
+  MESSAGE_STACK messages = message_stack ();
+  f = frame_at (CURRENT_PARSER -> frame - 1);
+  output_delete_cvars_call (messages, f -> message_frame_top + 1,
+			    get_stack_top (messages));
+}
+
 char *stdarg_fmt_arg_expr (MESSAGE_STACK messages, int method_idx, 
 			   METHOD *method,
 			   char *result_buf) {
-  int arglist_start, arglist_end, rcvr_end, i;
+  int arglist_start, arglist_end, rcvr_end, i, end_idx, expr_start,
+    agg_start;
   char tok_buf[MAXMSG], esc_buf_out[MAXMSG];
+  FRAME *f;
   if ((rcvr_end = prevlangmsg (messages, method_idx)) == ERROR)
     error (messages[method_idx], "Parser error.");
   if (method -> n_params) {
@@ -2286,8 +2297,6 @@ char *stdarg_fmt_arg_expr (MESSAGE_STACK messages, int method_idx,
       CVAR *c;
       char *cvar_class;
       OBJECT *class_obj;
-      int agg_var_end_idx;
-      FRAME *f;
       if (((c = get_local_var (M_NAME(messages[rcvr_end]))) != NULL) ||
 	  ((c = get_global_var (M_NAME(messages[rcvr_end]))))) {
 	if ((cvar_class = basic_class_from_cvar (messages[rcvr_end],
@@ -2296,7 +2305,7 @@ char *stdarg_fmt_arg_expr (MESSAGE_STACK messages, int method_idx,
 	    messages[rcvr_end] -> obj =
 	      create_object (class_obj -> __o_name, M_NAME(messages[rcvr_end]));
 	    register_c_var (messages[rcvr_end], message_stack (), rcvr_end,
-			    &agg_var_end_idx);
+			    &end_idx);
 	    rt_library_method_call 
 	      (messages[rcvr_end] -> obj, method, messages, method_idx, result_buf);
 	    delete_object (messages[rcvr_end] -> obj);
@@ -2308,18 +2317,51 @@ char *stdarg_fmt_arg_expr (MESSAGE_STACK messages, int method_idx,
 	  }
 	}
       } else if (M_TOK(messages[rcvr_end]) == CLOSEPAREN) {
-	int open_paren_idx, end_idx;
+	int open_paren_idx;
 	if ((open_paren_idx = match_paren_rev (messages, rcvr_end,
 					       stack_start (messages)))
 	    != ERROR) {
-	  fmt_rt_expr (messages, open_paren_idx, &end_idx, result_buf);
+	  agg_start = nextlangmsg (messages, open_paren_idx);
+	  if (messages[agg_start] -> attrs & RCVR_TOK_IS_C_STRUCT_EXPR) {
+	    register_c_var (messages[open_paren_idx], message_stack (),
+			    agg_start, &end_idx);
+	    fmt_rt_expr (messages, open_paren_idx, &end_idx, result_buf);
+	    sfae_delete_cvar_call ();
+	  } else {
+	    fmt_rt_expr (messages, open_paren_idx, &end_idx, result_buf);
+	  }
 	  return result_buf;
 	}
       }
     } else {
-      return rt_library_method_call 
-	(M_VALUE_OBJ(messages[rcvr_end]),
-	 method, messages, method_idx, result_buf);
+      if (messages[rcvr_end] -> attrs & RCVR_TOK_IS_C_STRUCT_EXPR) {
+	int prefix_idx;
+	for (agg_start = rcvr_end + 1; agg_start < P_MESSAGES; ++agg_start) {
+	  if (messages[agg_start] == messages[rcvr_end] -> receiver_msg)
+	    break;
+	}
+	if ((prefix_idx = prevlangmsg (messages, agg_start)) != ERROR) {
+	  if ((M_TOK(messages[prefix_idx]) == INCREMENT) ||
+	      (M_TOK(messages[prefix_idx]) == DECREMENT)) {
+	    expr_start = prefix_idx;
+	    ++messages[prefix_idx] -> evaled;
+	    ++messages[prefix_idx] -> output;
+	  } else {
+	    expr_start = agg_start;
+	  }
+	} else {
+	  expr_start = agg_start;
+	}
+	register_c_var (messages[expr_start], message_stack (), agg_start,
+			&end_idx);
+	fmt_rt_expr (messages, expr_start, &end_idx, result_buf);
+	sfae_delete_cvar_call ();
+	return result_buf;
+      } else {
+	return rt_library_method_call 
+	  (M_VALUE_OBJ(messages[rcvr_end]),
+	   method, messages, method_idx, result_buf);
+      }
     }
   }
   return NULL;

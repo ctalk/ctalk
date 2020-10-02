@@ -1252,7 +1252,10 @@
 	complex expression calls that are printf arguments (method.c).
 2020-10-02
 	- Added another clause to stdarg_fmt_arg_expr to handle a
-	parenthesized receiver subexpression (arg.c).
+	parenthesized receiver subexpression (arg.c).  Also added
+	clauses to handle struct member receivers, with or without
+	prefix operators, and parenthesized receiver subexpressions
+	that contain structs as their first token.
 
 
 
