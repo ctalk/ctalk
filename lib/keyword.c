@@ -1,4 +1,4 @@
-/* $Id: keyword.c,v 1.1.1.1 2020/07/17 07:41:39 rkiesling Exp $ */
+/* $Id: keyword.c,v 1.2 2020/10/03 14:08:20 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -447,6 +447,7 @@ static char *gnuc_builtin_types[] = {
   "_pthread_descr_struct",
   "__builtin_va_list",
   "__dirstream",
+  "__builtin_bswap16",
   "__builtin_bswap32",
   "__builtin_bswap64",
   "__uint16_identity",
@@ -460,9 +461,9 @@ static char *gnuc_builtin_types[] = {
 
 
 #ifdef DJGPP
- #define N_GNUC_BUILTIN_TYPES 10
+ #define N_GNUC_BUILTIN_TYPES 11
 #else
-#define N_GNUC_BUILTIN_TYPES 8
+#define N_GNUC_BUILTIN_TYPES 9
 #endif
 
 #endif /* #ifdef __GNUC__ */

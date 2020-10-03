@@ -1,4 +1,4 @@
-/* $Id: resolve.c,v 1.3 2020/09/26 11:00:52 rkiesling Exp $ */
+/* $Id: resolve.c,v 1.4 2020/10/03 14:08:20 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -2702,7 +2702,7 @@ OBJECT *resolve (int message_ptr) {
 			}
 		      }
 
-		    } else {
+		    } else if (!strstr (M_NAME(m), "__builtin_")) { /***/
 
 		      if (!instantiate_self_from_typecast (ms.messages,
 							   prev_label_ptr)) {
