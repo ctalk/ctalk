@@ -1,4 +1,4 @@
-/* $Id: arg.c,v 1.5 2020/10/02 18:04:19 rkiesling Exp $ */
+/* $Id: arg.c,v 1.6 2020/10/03 12:21:05 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -2266,6 +2266,10 @@ static void sfae_delete_cvar_call () {
 			    get_stack_top (messages));
 }
 
+/* This is needed - see margexprs14.c, the last four printf
+   expressions. */
+bool sfae_need_cvar_cleanup = false;
+
 char *stdarg_fmt_arg_expr (MESSAGE_STACK messages, int method_idx, 
 			   METHOD *method,
 			   char *result_buf) {
@@ -2273,6 +2277,8 @@ char *stdarg_fmt_arg_expr (MESSAGE_STACK messages, int method_idx,
     agg_start;
   char tok_buf[MAXMSG], esc_buf_out[MAXMSG];
   FRAME *f;
+  CVAR *c;
+
   if ((rcvr_end = prevlangmsg (messages, method_idx)) == ERROR)
     error (messages[method_idx], "Parser error.");
   if (method -> n_params) {
@@ -2282,11 +2288,20 @@ char *stdarg_fmt_arg_expr (MESSAGE_STACK messages, int method_idx,
 					     method -> n_params,
 					     method -> varargs)) == ERROR)
       error (messages[method_idx], "Parser error.");
-    
+
+    for (i = arglist_start; i >= arglist_end; i--) {
+      if (((c = get_local_var (M_NAME(messages[i]))) != NULL) ||
+	  ((c = get_global_var (M_NAME(messages[i]))))) {
+	register_c_var (messages[i], message_stack (), i, &end_idx);
+	sfae_need_cvar_cleanup = true;
+      }
+    }
+
     toks2str (messages, rcvr_end, arglist_end, tok_buf);
     de_newline_buf (tok_buf);
     strcatx (result_buf, EVAL_EXPR_FN, " (\"", 
 	     escape_str_quotes (tok_buf, esc_buf_out), "\")", NULL);
+    /***/
     for (i = rcvr_end; i >= arglist_end; i--) {
       ++messages[i] -> evaled;
       ++messages[i] -> output;
@@ -2294,7 +2309,6 @@ char *stdarg_fmt_arg_expr (MESSAGE_STACK messages, int method_idx,
     return result_buf;
   } else {
     if (!messages[rcvr_end] -> obj && !messages[rcvr_end] -> value_obj) {
-      CVAR *c;
       char *cvar_class;
       OBJECT *class_obj;
       if (((c = get_local_var (M_NAME(messages[rcvr_end]))) != NULL) ||

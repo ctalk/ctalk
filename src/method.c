@@ -1,4 +1,4 @@
-/* $Id: method.c,v 1.4 2020/10/01 23:16:11 rkiesling Exp $ */
+/* $Id: method.c,v 1.5 2020/10/03 12:21:05 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -2412,6 +2412,8 @@ static void mc_cvar_cleanup (MESSAGE_STACK messages, int tok_idx) {
   fileout ("\ndelete_method_arg_cvars ();\n", 0, term_idx - 1);
 }
 
+extern bool sfae_need_cvar_cleanup;
+
 /*
  *    Given a method token's message stack index, output a
  *    method call. Resolve () should already have identified its receiver.
@@ -3519,6 +3521,13 @@ int method_call (int method_message_ptr) {
 	cleanup_args (method, m -> receiver_obj,
 		      (frame_at (CURRENT_PARSER -> frame - 1) ->
 		       message_frame_top) + 1);
+      }
+      if (sfae_need_cvar_cleanup) {
+	output_delete_cvars_call (message_stack (),
+				  (frame_at (CURRENT_PARSER -> frame - 1) ->
+				   message_frame_top + 1),
+				  get_stack_top (message_stack ()));
+	sfae_need_cvar_cleanup = false;
       }
     }
 

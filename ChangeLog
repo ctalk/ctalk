@@ -1260,6 +1260,12 @@
 	validate_type_declarations (cvars.c).
 	- Added local_struct_from_ptr_tag, called by register_c_var
 	(reg_cvar.c).
+2020-09-03
+	- Added yet another check in stdarg_fmt_arg_expr for
+	C variables - this time in an argument expression's internal
+	method argument list.  Also added the sfae_need_cvar_cleanup
+	state, for when we need to clean up the C variables after the
+	entire expression is finished (arg.c).
 
 
 
