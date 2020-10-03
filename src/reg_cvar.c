@@ -1,4 +1,4 @@
-/* $Id: reg_cvar.c,v 1.1.1.1 2020/07/17 07:41:39 rkiesling Exp $ */
+/* $Id: reg_cvar.c,v 1.2 2020/10/03 02:14:08 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -62,6 +62,23 @@ static CVAR *__arg_is_struct_member (CVAR *struct_defn, MESSAGE_STACK messages,
     }
     if (!strcmp (mbr -> name, M_NAME(messages[idx])))
       return mbr;
+  }
+  return NULL;
+}
+
+/* For an example, see the local struct declaration in cvarrcvr22.c */
+static CVAR *local_struct_from_ptr_tag (CVAR *v_tag) {
+  PARSER *p;
+  CVAR *c;
+  if (v_tag -> attrs & CVAR_ATTR_STRUCT_PTR_TAG) {
+    p = pop_parser ();
+    push_parser (p);
+    for (c = p -> cvars; c; c = c -> next) {
+      if (str_eq (v_tag -> type, c -> type) &&
+	  (c -> attrs & CVAR_ATTR_STRUCT_DECL)) {
+	return c;
+      }
+    }
   }
   return NULL;
 }
@@ -496,7 +513,10 @@ int register_c_var (MESSAGE *m_err, MESSAGE_STACK messages, int idx,
       if ((((v_derived = 
 	     get_typedef (v -> type)) != NULL) ||
 	   ((v_derived = 
-	     get_typedef (v -> qualifier)) != NULL)) &&
+	     get_typedef (v -> qualifier)) != NULL) ||
+	   /* this is a CVAR_ATTR_STRUCT_PTR_TAG - see cvarrcvr22.c */
+	   ((v_derived = /***/
+	     local_struct_from_ptr_tag (v)) != NULL)) &&
 	  v_derived -> members &&
 	  struct_deref_end != ERROR) {
 	CVAR *derived_mbr;

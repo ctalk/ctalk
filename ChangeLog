@@ -1256,6 +1256,10 @@
 	clauses to handle struct member receivers, with or without
 	prefix operators, and parenthesized receiver subexpressions
 	that contain structs as their first token.
+	- Added a check for a CVAR_ATTR_STRUCT_PTR_TAG in
+	validate_type_declarations (cvars.c).
+	- Added local_struct_from_ptr_tag, called by register_c_var
+	(reg_cvar.c).
 
 
 
