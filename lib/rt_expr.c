@@ -1,4 +1,4 @@
-/* $Id: rt_expr.c,v 1.2 2020/09/18 21:25:12 rkiesling Exp $ */
+/* $Id: rt_expr.c,v 1.3 2020/10/03 21:30:52 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -4952,9 +4952,16 @@ OBJECT *eval_expr (char *s, OBJECT *recv_class, METHOD *method,
 			  e_result = create_param_i (e_result, c_i);
 			}
 		      
-			set_method_expr_value (e_messages, 
-					       i, i, prefix_expr_end,
-					       precedence, e_result);
+			if (i == p -> msg_frame_start &&
+			    prefix_expr_end == p -> msg_frame_top) {
+			  set_method_expr_value (e_messages, 
+						 i, i, prefix_expr_end,
+						 precedence, subexpr_result);
+			} else {
+			  set_method_expr_value (e_messages, 
+						 i, i, prefix_expr_end,
+						 precedence, e_result);
+			}
 			find_prefixed_CVAR_for_write (i, e_method);
 		      }
 		    }

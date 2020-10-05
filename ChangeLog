@@ -1268,6 +1268,17 @@
 	entire expression is finished (arg.c).
 	- Added __builtin_bswap16 to gnuc_builtin_type (keyword.c).
 	- Added check for builtin function in resolve (resolve.c).
+	- In eval_arg, don't output a cvar registration for a __ctalk_arg
+	expression - this now gets handled in stdarg_fmt_arg_expr
+	(eval_arg.c).  Also, in method_args, don't output a __ctalk_arg
+	call if it's a printf argument, or call cleanup_args in method_call
+	(method.c).
+2020-09-04
+	- Added the cleanup_args_2 function in method.c, which handles
+	internal method argument cleanup, but does not add a
+	__ctalk_arg_cleanup call to the output (method.c).
+	- Added a check for C variables to collection_rt_expr
+	(collection.c).
 
 
 

@@ -1,4 +1,4 @@
-/* $Id: collection.c,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ */
+/* $Id: collection.c,v 1.2 2020/10/04 21:15:49 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -32,6 +32,8 @@
 extern DEFAULTCLASSCACHE *ct_defclasses; /* Declared in cclasses.c.       */
 
 extern bool eval_arg_cvar_reg;           /* Declared in eval_arg.c        */
+extern PARSER *parsers[MAXARGS+1];           /* Declared in rtinfo.c. */
+extern int current_parser_ptr;
 
 int collection_rt_expr (METHOD *method, MESSAGE_STACK messages,
 			int receiver_ptr, int msg_ptr,
@@ -40,7 +42,11 @@ int collection_rt_expr (METHOD *method, MESSAGE_STACK messages,
   char expr_buf[MAXMSG];
   char expr_buf_tmp[MAXMSG], expr_buf_tmp_2[MAXMSG];
   char *cvar_lval_class;
-  int n_th_arg;
+  int n_th_arg, end_ptr, i;
+  MSINFO ms;
+  CVAR *c;
+  bool b_register_c_var = false;
+  FRAME *f;
 
   toks2str (messages, receiver_ptr, msg_ptr - 1, expr_buf);
   for (n_th_arg = 0; n_th_arg < method -> n_args; n_th_arg++) {
@@ -62,12 +68,32 @@ int collection_rt_expr (METHOD *method, MESSAGE_STACK messages,
 				cvar_lval_class, TRUE, expr_buf_tmp_2),
 		 FALSE, msg_ptr);
       } else {
+#if 1
+	ms.messages = messages;
+	ms.tok = receiver_ptr;
+	ms.stack_ptr = get_stack_top (messages);
+	end_ptr = find_expression_limit (&ms);
+	for (i = receiver_ptr; i >= end_ptr; i--) {
+	  if (((c = get_local_var (M_NAME(messages[i]))) != NULL) ||
+	      ((c = get_global_var (M_NAME(messages[i]))) != NULL)) {
+	    register_c_var (messages[i], messages, i, &end_ptr);
+	    b_register_c_var = true;
+	  }
+	}
+#endif	
 	fileout
 	  (array_obj_2_c_wrapper (messages, msg_ptr, 
 				  messages[msg_ptr]->receiver_obj,
 				  method, fmt_eval_expr_str (expr_buf,
 							     expr_buf_tmp)), 
 	   FALSE, msg_ptr);
+#if 1
+	if (b_register_c_var) {
+	  f = frame_at (CURRENT_PARSER -> frame - 1);
+	  output_delete_cvars_call (messages, f -> message_frame_top + 1,
+				    get_stack_top (messages));
+	}
+#endif	
       }
       break;
     case receiver_context:

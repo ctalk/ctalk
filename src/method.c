@@ -1,4 +1,4 @@
-/* $Id: method.c,v 1.5 2020/10/03 12:21:05 rkiesling Exp $ */
+/* $Id: method.c,v 1.9 2020/10/05 00:09:04 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -1322,8 +1322,12 @@ int method_args (METHOD *method, int method_msg_ptr) {
 		      _m -> obj = t_arg_obj;
 		      arg_class = arg_rt_expr;
 		    } else {
-		      generate_store_arg_call (m_method -> receiver_obj,
-					       method, arg_obj, FRAME_START_IDX);
+		      if (!method_expr_is_c_fmt_arg
+			  (message_stack (), method_msg_ptr, P_MESSAGES,
+			   get_stack_top (message_stack ()))) {
+			generate_store_arg_call (m_method -> receiver_obj,
+						 method, arg_obj, FRAME_START_IDX);
+		      }
 		    }
 		  }
 		}
@@ -2448,7 +2452,7 @@ int method_call (int method_message_ptr) {
   static char expr_buf_out[MAXMSG];  /* for use by rt_expr's fileout */
   int fmt_arg_prev_idx;
   MESSAGE *fmt_arg_m_prev;
-  bool rcvr_cvar_registration = false;
+  bool rcvr_cvar_registration = false, stdarg_arg = false;
 
   m = message_stack_at (method_message_ptr);
 
@@ -2456,6 +2460,10 @@ int method_call (int method_message_ptr) {
   method = NULL;
   m_super_idx = -1;
   m_super = NULL;
+
+  stdarg_arg = method_expr_is_c_fmt_arg
+    (message_stack (), method_message_ptr, P_MESSAGES,
+     get_stack_top (message_stack ()));
 
   if (IS_METHOD_MSG (m) ||
       (m -> attrs & RCVR_OBJ_IS_CONSTANT)) {
@@ -3043,16 +3051,12 @@ int method_call (int method_message_ptr) {
 	  if (ctrlblk_pred) {
 	    ctrlblk_method_call (receiver, method, method_message_ptr);
 	  } else {
- 	    if (method_expr_is_c_fmt_arg (message_stack (), method_message_ptr,
-					  P_MESSAGES,
-					  get_stack_top (message_stack ())) &&
-		(ambiguous_arg_start_idx == -1)) {
+	    if (stdarg_arg && (ambiguous_arg_start_idx == -1)) {
 	      if (arg_class == arg_rt_expr) {
 		/*
 		 *  Eval_arg stuffed the expression object into 
 		 *  the receiver's value_obj slot.
 		 */
-		/***/
 		char tmp_a[MAXMSG], tmp[MAXMSG];
 		escape_str_quotes
 		  (M_VALUE_OBJ(message_stack_at (rcvr_ptr)) -> __o_name,
@@ -3119,11 +3123,6 @@ int method_call (int method_message_ptr) {
 		    fmt_rt_expr (message_stack (), rcvr_ptr, &expr_end_idx,
 				 output_buf);
 		    rcvr_cvar_registration = true;
- 		    method_expr_is_c_fmt_arg 
- 		      (message_stack (),
- 		       expr_end_idx,
-		       P_MESSAGES,
- 		       get_stack_top (message_stack ()));
 		  } else { /* if (m -> attrs & RCVR_OBJ_IS_SUBEXPR) */
 		    if (m -> attrs & RCVR_OBJ_IS_C_ARRAY_ELEMENT) {
 		      int __subscript_end_idx;
@@ -3186,11 +3185,6 @@ int method_call (int method_message_ptr) {
 		      if (rcvr_cvar_registration)
 			mc_cvar_cleanup (message_stack (),
 					 method_message_ptr);
-		      method_expr_is_c_fmt_arg 
-			(message_stack (),
-			 expr_end_idx,
-			 P_MESSAGES,
-			 get_stack_top (message_stack ()));
 		    } else { /* if (m -> attrs & RCVR_OBJ_IS_C_ARRAY_ELEMENT) */
 		      if (m -> attrs & RCVR_OBJ_IS_C_STRUCT_ELEMENT) {
 			int __st, __s_term;
@@ -3279,11 +3273,6 @@ int method_call (int method_message_ptr) {
 				 expr_end_idx);
 			      fmt_rt_expr (message_stack (), rcvr_ptr,
 					   &expr_end_idx, output_buf);
-			      method_expr_is_c_fmt_arg 
-				(message_stack (),
-				 expr_end_idx,
-				 P_MESSAGES,
-				 get_stack_top (message_stack ()));
 			    }
 			  } /* if ((__s_term = struct_end  */
 			} /* if (((c_struct= ... */
@@ -3518,9 +3507,15 @@ int method_call (int method_message_ptr) {
        */
       if (!((arg_class == arg_rt_expr) || 
 	    (interpreter_pass == expr_check))) {
-	cleanup_args (method, m -> receiver_obj,
-		      (frame_at (CURRENT_PARSER -> frame - 1) ->
-		       message_frame_top) + 1);
+	if (!stdarg_arg) {
+	  cleanup_args (method, m -> receiver_obj,
+			(frame_at (CURRENT_PARSER -> frame - 1) ->
+			 message_frame_top) + 1);
+	} else {
+	  cleanup_args_2 (method, m -> receiver_obj,
+			(frame_at (CURRENT_PARSER -> frame - 1) ->
+			 message_frame_top) + 1);
+	}
       }
       if (sfae_need_cvar_cleanup) {
 	output_delete_cvars_call (message_stack (),
@@ -3651,6 +3646,22 @@ void cleanup_args (METHOD *m, OBJECT *receiver_object, int stmt_end_ptr) {
       if (!m -> cfunc)
 	generate_method_pop_arg_call (stmt_end_ptr - 1);
     }
+    if (m -> args[i] -> obj -> scope == ARG_VAR) 
+      delete_arg_object (m -> args[i] -> obj);
+    delete_arg (m -> args[i]);
+    m -> args[i] = NULL;
+    m -> n_args = i;
+  }
+}
+
+/* As above, but does not output a __ctalk_arg_cleanup call, or check
+   for non-collection receiver that the cleanup call needs. */
+void cleanup_args_2 (METHOD *m, OBJECT *receiver_object, int stmt_end_ptr) {
+  int i;
+
+  if (interpreter_pass == expr_check) return;
+
+  for (i = m -> n_args - 1; i >= 0; i--) {
     if (m -> args[i] -> obj -> scope == ARG_VAR) 
       delete_arg_object (m -> args[i] -> obj);
     delete_arg (m -> args[i]);

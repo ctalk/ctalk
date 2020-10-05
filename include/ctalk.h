@@ -1,4 +1,4 @@
-/* $Id: ctalk.h,v 1.3 2020/09/26 11:00:52 rkiesling Exp $ -*-Fundamental-*- */
+/* $Id: ctalk.h,v 1.4 2020/10/04 11:07:20 rkiesling Exp $ -*-Fundamental-*- */
 
 /*
   This file is part of Ctalk.
@@ -2857,6 +2857,7 @@ CVAR *ifexpr_is_cvar_not_shadowed (MESSAGE_STACK, int);
 /* method.c */
 int arg_error_loc (int, int, int, ERROR_LOCATION *);
 void cleanup_args (METHOD *, OBJECT *, int);
+void cleanup_args_2 (METHOD *, OBJECT *, int);
 int compound_method (MESSAGE_STACK, int, int *);
 int define_primitive_method (char *, char *, OBJECT *(*)(), int, int);
 OBJECT *eval_receiver_token (MESSAGE_STACK, int, OBJECT *);

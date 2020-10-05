@@ -1,4 +1,4 @@
-/* $Id: eval_arg.c,v 1.2 2020/09/19 01:08:27 rkiesling Exp $ */
+/* $Id: eval_arg.c,v 1.6 2020/10/04 21:15:49 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -558,6 +558,19 @@ static OBJECT *resolve_single_token_arg (METHOD *rcvr_method,
   msg_frame_top = message_frame_top_n (parser_frame_ptr ());
 
   if ((result_object = class_object_search (m -> name, FALSE)) != NULL) {
+    /***/
+    if (str_eq (source_filename (), "assocdel1.c")) {
+      if (str_eq (get_fn_name (), "main")) {
+	printf ("TRUE: m : %s, result : %s\n", M_NAME(m), result_object -> __o_name);
+      }
+    }
+    /***/
+    if (str_eq (source_filename (), "assocdel2.c")) {
+      if (str_eq (get_fn_name (), "main")) {
+	printf ("TRUE: m : %s, result : %s\n", M_NAME(m), result_object -> __o_name);
+      }
+    }
+    /***/
     m -> obj = result_object;
     /*
      *  Add a value method only if necessary.
@@ -1158,7 +1171,7 @@ OBJECT *eval_arg (METHOD *method, OBJECT *rcvr_class, ARGSTR *argbuf,
 		} /* if (strcmp (method -> returnclass, "Any")) ... */
 	      }
 	    }
-	}
+	  }
 	}
 	break;
       default:
@@ -1680,12 +1693,24 @@ OBJECT *eval_arg (METHOD *method, OBJECT *rcvr_class, ARGSTR *argbuf,
 	   */
 	  if ((_p = prevlangmsg(m_messages, i)) != ERROR) {
 	    if ((M_TOK(m_messages[_p]) != PERIOD) && (M_TOK(m_messages[_p]) != DEREF)) {
-	      if (interpreter_pass != expr_check &&  !ctrlblk_pred)
+	      if (cvar && interpreter_pass != expr_check &&  !ctrlblk_pred) {
 		/* CVARs in control structures get registered at
 		   various places from control.c and ifexpr.c, 
 		   and fmt_register_argblk_c_vars_* ...  */
-		register_c_var (message_stack_at (main_stack_idx),
-				m_messages, i, &agg_var_end_idx);
+		/***/
+		if (!method_expr_is_c_fmt_arg (message_stack (),
+					       main_stack_idx,
+					       P_MESSAGES,
+					       get_stack_top
+					       (message_stack ()))) {
+		  /* ... this CVAR gets registered in stdarg_fmt_arg_expr. */
+		  register_c_var (message_stack_at (main_stack_idx),
+				  m_messages, i, &agg_var_end_idx);
+		  /***/
+		  eval_arg_cvar_reg = true;
+		  if (arg_class != arg_null) arg_class = arg_c_var_expr;
+		}
+	      }
 	      if (cvar && cvar -> scope & GLOBAL_VAR) {
 		if (argblk) {
 		  /* ... unless it's a global var, so here we still
@@ -1697,11 +1722,12 @@ OBJECT *eval_arg (METHOD *method, OBJECT *rcvr_class, ARGSTR *argbuf,
 		  register_c_var (message_stack_at (main_stack_idx),
 				  m_messages, i, &agg_var_end_idx);
 		  argblk = true;
+		  /***/
+		  eval_arg_cvar_reg = true;
+		  if (arg_class != arg_null) arg_class = arg_c_var_expr;
 		}
 	      }
-	      eval_arg_cvar_reg = true;
-	      if (arg_class != arg_null) arg_class = arg_c_var_expr;
-	    }
+ 	    }
 	  }
 	}
       } else { /*  if (((cvar = get_global_var (m_arg -> name)) != NULL) ... */
