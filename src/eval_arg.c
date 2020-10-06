@@ -1,4 +1,4 @@
-/* $Id: eval_arg.c,v 1.6 2020/10/04 21:15:49 rkiesling Exp $ */
+/* $Id: eval_arg.c,v 1.7 2020/10/06 20:44:16 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -97,6 +97,200 @@ static bool member_of_method_return_class (METHOD *method,
     }
   }
   return false;
+}
+
+/*
+ *  Mark a prefix method syntactically _unless_
+ *  it is a ! operator and it is the first token
+ *  of a contrl block predicate, in which case we 
+ *  let the compiler handle the negation in context....
+ *
+ *  Note: This is similar to prefix_method_attr in resolve.c,
+ *  except it only works with the single stack frame that eval
+ *  arg uses; i.e., the prevalngmsg call just gets replaced with
+ *  N_MESSAGES.
+ *
+ *  Can probably be pared down further in the future also.
+ */
+#define PREFIX_PREV_OP_TOKEN_NOEVAL(tok) (IS_C_OP_TOKEN_NOEVAL(tok) || \
+			    (tok == OPENBLOCK) || \
+			    (tok == CLOSEBLOCK) || \
+			       (tok==OPENPAREN) || \
+			     (tok==CLOSEPAREN))
+static int prefix_method_attr_arg (MESSAGE_STACK messages, int message_ptr) {
+  int prev_tok_idx, next_tok_idx;
+  int r;
+  MESSAGE *m_prev_tok;
+  MESSAGE *m = messages[message_ptr];
+  MESSAGE *m_rcvr, *m_op;
+
+  r = FALSE;
+
+  if ((next_tok_idx = nextlangmsgstack_pfx (messages, message_ptr)) != ERROR) {
+    if ((M_TOK(messages[next_tok_idx]) == SEMICOLON) ||
+	(M_TOK(messages[next_tok_idx]) == ARGSEPARATOR))
+      return r;
+  }
+
+  /* If there's an op at the beginning of a stack, then it's
+     automatically a prefix op. */
+  if (message_ptr == N_MESSAGES) {
+#if 0 /***/
+  if ((prev_tok_idx = prevlangmsg (messages, 
+				   message_ptr)) == ERROR) {
+#endif    
+    if (IS_C_UNARY_MATH_OP(M_TOK(messages[message_ptr])) ||
+	(M_TOK(messages[message_ptr]) == MINUS)) {
+      messages[message_ptr] -> attrs |= TOK_IS_PREFIX_OPERATOR;
+      return TRUE;
+    } else {
+      return FALSE;
+    }
+  } else {
+    prev_tok_idx = prevlangmsg (messages, message_ptr); /***/
+  }
+
+  m_prev_tok = messages[prev_tok_idx];
+  if (M_TOK(m) == EXCLAM) {
+    if (ctrlblk_pred) {
+      /*
+       *  If a contrl block predicate begins with a sequence 
+       *  like these, then use the C operators.  We can send
+       *  them to the output verbatim.
+       *
+       *     <negation_prefix_tok> : !
+       *     <negation_prefix_tok_sequence> :  
+       *       <negation_prefix_tok> |
+       *       ++ | -- | ~ | & | * <negation_prefix_tok> |
+       *       <negation_prefix_tok_sequence> <negation_prefix_tok> |
+       *
+       *    <if|while> (<prefix_tok_sequence>!<expr>) { ...
+       *  
+       *  When compiling, though, only sequences of ! and ~ do not generate
+       *  errors or warnings.
+       *
+       *  Sequences of multiple ++|-- operators are not legal C, so we
+       *  don't support them in C expressions both here and elsewhere.
+       *
+       *  NOTE - If we see a leading ! operator, and it is overloaded
+       *  by a method, the message gets the TOK_IS_PREFIX_OPERATOR
+       *  attribute also, and we fix up the start of the predicate
+       *  expression in ctrlblk_pred_rt_expr (), to include the
+       *  operator in the run-time expression.
+       *
+       *  NOTE2 - In actual use this should always be the case,
+       *  since we have an Object : ! method.  
+       *
+       *  TODO - we should simplify this so that ! works the same
+       *  everywhere, no matter where it appears in an expression.
+       *  See test/expect/condexprs3.c for an example.
+       */
+      if (!is_leading_ctrlblk_prefix_op_tok
+	  (messages, message_ptr, P_MESSAGES)) {
+	if (IS_C_UNARY_MATH_OP(M_TOK(m))) {
+	  if (PREFIX_PREV_OP_TOKEN_NOEVAL(M_TOK(m_prev_tok))) {
+	    m -> attrs |= TOK_IS_PREFIX_OPERATOR;
+	    r = TRUE;
+	  }
+	}
+      } else {
+	int next_label_idx;
+	OBJECT *_pfx_rcvr_obj;
+	if ((next_label_idx = nextlangmsg (messages, message_ptr))
+	    != ERROR) {
+	  m_op = message_stack_at (message_ptr);
+	  m_rcvr = message_stack_at (next_label_idx);
+	  if (((_pfx_rcvr_obj = get_global_object (M_NAME(m_rcvr), NULL)) 
+	       != NULL) || 
+	      ((_pfx_rcvr_obj = get_local_object (M_NAME(m_rcvr), NULL)) 
+	       != NULL)) {
+	    if (get_prefix_instance_method (m, _pfx_rcvr_obj, M_NAME(m_op), 
+				     FALSE)) {
+	      m -> attrs |= TOK_IS_PREFIX_OPERATOR;
+	      r = TRUE;
+	    }
+	  } else {
+	    if (m -> attrs & TOK_SELF) {
+	      if (get_prefix_instance_method (m, rcvr_class_obj, 
+					      M_NAME(m_op), 
+					      FALSE)) {
+		m -> attrs |= TOK_IS_PREFIX_OPERATOR;
+		r = TRUE;
+	      }
+	    } else if (m_rcvr -> attrs & TOK_SUPER) {
+		if (argblk) {
+		  if (get_prefix_instance_method (m, rcvr_class_obj, 
+						  M_NAME(m_op), 
+						  FALSE)) {
+		    m -> attrs |= TOK_IS_PREFIX_OPERATOR;
+		    r = TRUE;
+		  }
+		} else {
+		  if (get_prefix_instance_method 
+		      (m, 
+		       rcvr_class_obj -> __o_superclass, 
+		       M_NAME(m_op), 
+		       FALSE)) {
+		    m -> attrs |= TOK_IS_PREFIX_OPERATOR;
+		    r = TRUE;
+		  }
+		}
+	    }
+	  }
+	}
+      }
+    } else if (get_function (M_NAME(m_prev_tok))) {
+      int i_2, n_fn_parens;
+      /*
+       *  Distinguish an expression like this:
+       *
+       *  fn_label (*<arg_expr>)...
+       *
+       *   from this:
+       *
+       *   fn_label () * <arg_expr>
+       *
+       *  ... because prevlangmsgstack_pfx returns the stack index of
+       *  the fn_label token.
+       */
+      n_fn_parens = 0;
+      for (i_2 = message_ptr + 1; i_2 <= prev_tok_idx; i_2++) {
+	switch (M_TOK(messages[i_2]))
+	  {
+	  case WHITESPACE:
+	  case NEWLINE:
+	    continue;
+	    break;
+	  case OPENPAREN:
+	    --n_fn_parens;
+	    break;
+	  case CLOSEPAREN:
+	    ++n_fn_parens;
+	    break;
+	  }
+      }
+      if (n_fn_parens < 0) {
+	/* then the closing parens of fn_label's argument list
+	   occur after our expression's tokens. */
+	m -> attrs |= TOK_IS_PREFIX_OPERATOR;
+	r = TRUE;
+      }
+    } else { /* if (ctrlblk_pred) */
+      if (IS_C_UNARY_MATH_OP(M_TOK(m))) {
+	if (PREFIX_PREV_OP_TOKEN_NOEVAL(M_TOK(m_prev_tok))) {
+	  m -> attrs |= TOK_IS_PREFIX_OPERATOR;
+	  r = TRUE;
+	}
+      }
+    }
+  } else if (IS_C_UNARY_MATH_OP(M_TOK(m)) || /* if (M_TOK(m) == EXCLAM) */
+	     is_unary_minus (messages, message_ptr)) {
+    if (PREFIX_PREV_OP_TOKEN_NOEVAL(M_TOK(m_prev_tok))) {
+      m -> attrs |= TOK_IS_PREFIX_OPERATOR;
+      r = TRUE;
+    }
+  }
+  return r;
 }
 
 static bool c_first_operand (MESSAGE_STACK messages, int
@@ -1385,7 +1579,7 @@ OBJECT *eval_arg (METHOD *method, OBJECT *rcvr_class, ARGSTR *argbuf,
 	continue;
       }
     } else if (IS_C_UNARY_MATH_OP (M_TOK(m_arg)) || M_TOK(m_arg) == MINUS) {
-      if (prefix_method_attr (m_messages, i)) {
+      if (prefix_method_attr_arg (m_messages, i)) {
 	if (!unary_op_attributes (m_messages, i, &arg_has_leading_unary, 
 				  &leading_unary_idx)) {
 	  continue;

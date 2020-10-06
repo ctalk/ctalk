@@ -1260,7 +1260,7 @@
 	validate_type_declarations (cvars.c).
 	- Added local_struct_from_ptr_tag, called by register_c_var
 	(reg_cvar.c).
-2020-09-03
+2020-10-03
 	- Added yet another check in stdarg_fmt_arg_expr for
 	C variables - this time in an argument expression's internal
 	method argument list.  Also added the sfae_need_cvar_cleanup
@@ -1273,12 +1273,16 @@
 	(eval_arg.c).  Also, in method_args, don't output a __ctalk_arg
 	call if it's a printf argument, or call cleanup_args in method_call
 	(method.c).
-2020-09-04
+2020-10-04
 	- Added the cleanup_args_2 function in method.c, which handles
 	internal method argument cleanup, but does not add a
 	__ctalk_arg_cleanup call to the output (method.c).
 	- Added a check for C variables to collection_rt_expr
 	(collection.c).
+2020-10-06
+	- Added prefix_method_attr_arg in eval_arg.c, which is a
+	mod of prefix_method_attr that doesn't use stack frames to
+	determine the first token in an expression (eval_arg.c).
 
 
 
