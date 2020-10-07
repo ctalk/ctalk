@@ -1,4 +1,4 @@
-/* $Id: eval_arg.c,v 1.7 2020/10/06 20:44:16 rkiesling Exp $ */
+/* $Id: eval_arg.c,v 1.9 2020/10/07 18:42:07 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -1903,6 +1903,19 @@ OBJECT *eval_arg (METHOD *method, OBJECT *rcvr_class, ARGSTR *argbuf,
 		  /***/
 		  eval_arg_cvar_reg = true;
 		  if (arg_class != arg_null) arg_class = arg_c_var_expr;
+		} else {
+		  if (interpreter_pass != expr_check) {
+		    register_c_var (message_stack_at (main_stack_idx),
+				    m_messages, i, &agg_var_end_idx);
+		    /* but not necessarily this one, so we check for this
+		       attribute later - remember, anything that follows
+		       will use the main stack index. */
+		    message_stack_at (argbuf -> start_idx -
+				      (N_MESSAGES - i)) -> attrs
+		      |= TOK_CVAR_REGISTRY_IS_OUTPUT;
+		    if (arg_class != arg_null) arg_class = arg_c_var_expr;
+		    eval_arg_cvar_reg = true;
+		  }
 		}
 	      }
 	      if (cvar && cvar -> scope & GLOBAL_VAR) {

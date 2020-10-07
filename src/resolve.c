@@ -1,4 +1,4 @@
-/* $Id: resolve.c,v 1.4 2020/10/03 14:08:20 rkiesling Exp $ */
+/* $Id: resolve.c,v 1.7 2020/10/07 00:29:08 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -150,8 +150,6 @@ int prefix_method_attr (MESSAGE_STACK messages, int message_ptr) {
       return r;
   }
 
-  /* Use prevlangmsgstack_pfx () so we can find a token at the beginning of a
-     frame without errors. */
   /* If there's an op at the beginning of a stack, then it's
      automatically a prefix op. */
   if ((prev_tok_idx = prevlangmsg (messages, 

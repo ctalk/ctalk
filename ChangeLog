@@ -1283,6 +1283,10 @@
 	- Added prefix_method_attr_arg in eval_arg.c, which is a
 	mod of prefix_method_attr that doesn't use stack frames to
 	determine the first token in an expression (eval_arg.c).
+	- Added another call to register_c_var in eval_arg,
+	and it sets the TOK_CVAR_REGISTRY_IS_OUTPUT on the
+	token (eval_arg.c).  This is checked by stdarg_fmt_arg_expr
+	(arg.c).
 
 
 

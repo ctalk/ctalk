@@ -1,4 +1,4 @@
-/* $Id: method.c,v 1.9 2020/10/05 00:09:04 rkiesling Exp $ */
+/* $Id: method.c,v 1.11 2020/10/07 18:42:07 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -3523,6 +3523,14 @@ int method_call (int method_message_ptr) {
 				   message_frame_top + 1),
 				  get_stack_top (message_stack ()));
 	sfae_need_cvar_cleanup = false;
+      } else if (eval_arg_cvar_reg) {
+	if (interpreter_pass != expr_check) { /***/
+	  output_delete_cvars_call (message_stack (),
+				  (frame_at (CURRENT_PARSER -> frame - 1) ->
+				   message_frame_top + 1),
+				    get_stack_top (message_stack ()));
+	}
+	eval_arg_cvar_reg = false;
       }
     }
 
