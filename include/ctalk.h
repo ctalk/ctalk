@@ -1,4 +1,4 @@
-/* $Id: ctalk.h,v 1.4 2020/10/04 11:07:20 rkiesling Exp $ -*-Fundamental-*- */
+/* $Id: ctalk.h,v 1.5 2020/10/08 23:04:34 rkiesling Exp $ -*-Fundamental-*- */
 
 /*
   This file is part of Ctalk.
@@ -2879,7 +2879,7 @@ int is_method_parameter (MESSAGE_STACK, int);
 bool is_method_parameter_s (char *);
 int is_method_selector (const char *);
 OBJECT *method_arg_object ( MESSAGE *);
-int method_args (METHOD *, int);
+int method_args (METHOD *, int, int *);
 int method_args2 (METHOD *, int);
 int method_call (int);
 int method_declaration_info (char *, char *, char **, int *, int *);

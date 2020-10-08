@@ -1,4 +1,4 @@
-/* $Id: method.c,v 1.11 2020/10/07 18:42:07 rkiesling Exp $ */
+/* $Id: method.c,v 1.12 2020/10/08 23:04:35 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -365,7 +365,7 @@ OBJECT *resolve_arg (METHOD *rcvr_method, MESSAGE_STACK messages,
   OBJECT *class_object; 
   OBJECT *instancevar_object;
   MESSAGE *m;      
-  int msg_frame_top;
+  int msg_frame_top, arglist_end;
   int prev_label_ptr = ERROR;  /* Stack pointers to messages with      */
   int prev_method_ptr = ERROR; /*  resolved objects.                   */
   int prev_tok_ptr = ERROR;
@@ -769,7 +769,7 @@ OBJECT *resolve_arg (METHOD *rcvr_method, MESSAGE_STACK messages,
 	  m_prev_method -> name, ERROR, TRUE)) != NULL) {
 
       if (!m -> evaled && !m_prev_label -> evaled) 
-	method_args (method, message_ptr);
+	method_args (method, message_ptr, &arglist_end);
     }    
   }  
 
@@ -968,7 +968,7 @@ static void make_basic_arglist (MESSAGE_STACK messages,
  *  that requires one argument.
  */
 
-int method_args (METHOD *method, int method_msg_ptr) {
+int method_args (METHOD *method, int method_msg_ptr, int *p_arglist_end) {
 
   int arglist_start,
     arglist_end,
@@ -1060,6 +1060,7 @@ int method_args (METHOD *method, int method_msg_ptr) {
       return ERROR;
     }
   }
+  *p_arglist_end = arglist_end;
 
   /* if (!global_constructor_arg (method, method_msg_ptr))
      return SUCCESS;*/
@@ -2443,7 +2444,8 @@ int method_call (int method_message_ptr) {
     stmt_end_ptr,
     m_super_idx,
     expr_end_idx = -1,
-    lookahead;
+    lookahead,
+    arglist_end;
   int i_2, _expr_end;
   int n_args_declared;
   char *_expr_class_buf, _expr_buf[MAXMSG];
@@ -2953,7 +2955,8 @@ int method_call (int method_message_ptr) {
 	register_c_var_receiver = receiver;
 
 	if (method_args (method, 
-			 (m_super_idx != -1) ? m_super_idx : method_message_ptr)
+			 (m_super_idx != -1) ? m_super_idx : method_message_ptr,
+			 &arglist_end)
 	    != 0) {
 	  return ERROR;
 	}
@@ -3069,6 +3072,29 @@ int method_call (int method_message_ptr) {
 		    m, receiver, method, tmp, FALSE),
 		   0, method_message_ptr);
 		arg_class = arg_null;
+#if 0
+	      } else if (arg_class == arg_obj_tok) { /***/
+		/* TODO - make sure sometime that method_args notes
+		   whether it has actually output the __ctalk_arg
+		   calls. */
+		rt_library_method_call (receiver, method,
+					message_stack (),
+					method_message_ptr, output_buf);
+		for (i = rcvr_ptr; i >= arglist_end; i--) {
+		  ++(message_stack_at (i) -> evaled);
+		  ++(message_stack_at (i) -> output);
+		}
+		fileout (obj_2_c_wrapper_trans
+			 (message_stack (), rcvr_ptr, m,
+			  receiver, method, output_buf,
+			  FALSE), 0, method_message_ptr);
+		arg_class = arg_null;
+#if  0
+		cleanup_args (method, m -> receiver_obj,
+			      (frame_at (CURRENT_PARSER -> frame - 1) ->
+			       message_frame_top) + 1);
+#endif		
+#endif
 	      } else {
 		fileout
 		  (obj_2_c_wrapper_trans 

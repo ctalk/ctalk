@@ -1,4 +1,4 @@
-/* $Id: eval_arg.c,v 1.9 2020/10/07 18:42:07 rkiesling Exp $ */
+/* $Id: eval_arg.c,v 1.10 2020/10/08 23:04:34 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -729,6 +729,7 @@ static OBJECT *resolve_single_token_arg (METHOD *rcvr_method,
   MESSAGE *m_prev_method = NULL;   /* resolved objects. Initialized here */
 				   /* to avoid warnings.                 */
   int next_label_ptr;          /* Forward message references to check  */
+  int arglist_end;
   METHOD *method;
   char errbuf[MAXMSG];
   MSINFO ms;
@@ -1102,7 +1103,7 @@ static OBJECT *resolve_single_token_arg (METHOD *rcvr_method,
 	  m_prev_method -> name, ERROR, TRUE)) != NULL) {
 
       if (!m -> evaled && !m_prev_label -> evaled) 
-	method_args (method, message_ptr);
+	method_args (method, message_ptr, &arglist_end);
     }    
   }  
 

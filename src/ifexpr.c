@@ -1,4 +1,4 @@
-/* $Id: ifexpr.c,v 1.2 2020/09/19 01:08:27 rkiesling Exp $ */
+/* $Id: ifexpr.c,v 1.3 2020/10/08 23:04:34 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -345,7 +345,7 @@ static int n_CVARS (MESSAGE_STACK messages, int start_idx, int end_idx) {
 int ctrlblk_pred_rt_expr_self (MESSAGE_STACK messages, int self_ptr) {
 
   int i, fn_idx = -1, op_idx = -1;
-  int rt_fn_start_paren, rt_fn_end_paren;
+  int rt_fn_start_paren, rt_fn_end_paren, arglist_end;
   char expr_buf[MAXMSG], expr_buf_tmp[MAXMSG];
   char _t[MAXMSG], *e;
   MESSAGE *m = NULL;   /* Avoid a warning. */
@@ -444,7 +444,7 @@ int ctrlblk_pred_rt_expr_self (MESSAGE_STACK messages, int self_ptr) {
 		  /* method_args () needs this. */
 		  messages[op_idx] -> receiver_obj = 
 		    instantiate_self_object ();
-		  method_args (op_method, op_idx);
+		  method_args (op_method, op_idx, &arglist_end);
 		  if (IS_ARG(op_method -> args[0]) &&
 		      IS_OBJECT(op_method -> args[0] -> obj)) {
 		    if (DEFAULTCLASS_CMP(op_method->args[0]->obj,
