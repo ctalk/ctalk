@@ -1289,7 +1289,12 @@
 	(arg.c).
 2020-10-08
 	- Added a param in method_args to return the stack index of
-	the expression's end (method.c).
+	the expression's end. Also added a clause to handle arg_obj_tok
+	class arguments in expressions which are printf arguments
+	in method_call (method.c).  And, set arg_class to arg_null
+	at the start of method_call, and the arglist end stack index
+	to default to the method's stack index, in case method_args
+	doesn't get called.
 
 
 

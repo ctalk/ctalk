@@ -1,4 +1,4 @@
-/* $Id: method.c,v 1.12 2020/10/08 23:04:35 rkiesling Exp $ */
+/* $Id: method.c,v 1.14 2020/10/09 14:04:01 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -348,7 +348,7 @@ CVAR *get_local_local_cvar (char *s) {
   return NULL;
 }
 
-ARG_CLASS arg_class;
+ARG_CLASS arg_class = arg_null;
 
 extern int fn_arg_expression_call;
 int m_message_stack = FALSE;
@@ -1060,7 +1060,15 @@ int method_args (METHOD *method, int method_msg_ptr, int *p_arglist_end) {
       return ERROR;
     }
   }
-  *p_arglist_end = arglist_end;
+  if (method -> n_params == 0) { /***/
+    *p_arglist_end = method_msg_ptr;
+  } else {
+    if (arglist_end == 0) {
+      *p_arglist_end = method_msg_ptr;
+    } else {
+      *p_arglist_end = arglist_end;
+    }
+  }
 
   /* if (!global_constructor_arg (method, method_msg_ptr))
      return SUCCESS;*/
@@ -2445,7 +2453,7 @@ int method_call (int method_message_ptr) {
     m_super_idx,
     expr_end_idx = -1,
     lookahead,
-    arglist_end;
+    arglist_end = method_message_ptr;
   int i_2, _expr_end;
   int n_args_declared;
   char *_expr_class_buf, _expr_buf[MAXMSG];
@@ -2457,6 +2465,8 @@ int method_call (int method_message_ptr) {
   bool rcvr_cvar_registration = false, stdarg_arg = false;
 
   m = message_stack_at (method_message_ptr);
+
+  arg_class = arg_null;
 
   value_object = NULL;
   method = NULL;
@@ -3072,8 +3082,8 @@ int method_call (int method_message_ptr) {
 		    m, receiver, method, tmp, FALSE),
 		   0, method_message_ptr);
 		arg_class = arg_null;
-#if 0
-	      } else if (arg_class == arg_obj_tok) { /***/
+#if 1
+	      } else if (arg_class == arg_obj_tok) {
 		/* TODO - make sure sometime that method_args notes
 		   whether it has actually output the __ctalk_arg
 		   calls. */
