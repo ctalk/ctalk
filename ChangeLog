@@ -1306,6 +1306,9 @@
 2020-10-10
 	- Updated stdarg_fmt_arg_expr (arg.c) to handle subscripted
 	C variables used as receivers.
+	- Added stdarg_arg parameter to method args, and use that
+	instead of any function that checks whether the expression
+	is a printf format argument (method.c, eval_arg.c, ifexpr.c).
 
 
 

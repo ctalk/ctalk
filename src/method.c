@@ -1,4 +1,4 @@
-/* $Id: method.c,v 1.14 2020/10/09 14:04:01 rkiesling Exp $ */
+/* $Id: method.c,v 1.15 2020/10/10 21:29:04 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -769,7 +769,8 @@ OBJECT *resolve_arg (METHOD *rcvr_method, MESSAGE_STACK messages,
 	  m_prev_method -> name, ERROR, TRUE)) != NULL) {
 
       if (!m -> evaled && !m_prev_label -> evaled) 
-	method_args (method, message_ptr, &arglist_end);
+	method_args (method, message_ptr, &arglist_end,
+		     messages[message_ptr] -> attrs & TOK_IS_PRINTF_ARG);
     }    
   }  
 
@@ -968,7 +969,8 @@ static void make_basic_arglist (MESSAGE_STACK messages,
  *  that requires one argument.
  */
 
-int method_args (METHOD *method, int method_msg_ptr, int *p_arglist_end) {
+int method_args (METHOD *method, int method_msg_ptr, int *p_arglist_end,
+		 bool stdarg_arg) {
 
   int arglist_start,
     arglist_end,
@@ -1060,7 +1062,7 @@ int method_args (METHOD *method, int method_msg_ptr, int *p_arglist_end) {
       return ERROR;
     }
   }
-  if (method -> n_params == 0) { /***/
+  if (method -> n_params == 0) {
     *p_arglist_end = method_msg_ptr;
   } else {
     if (arglist_end == 0) {
@@ -1286,11 +1288,7 @@ int method_args (METHOD *method, int method_msg_ptr, int *p_arglist_end) {
 		       get_stack_top (message_stack ()));
 		  }
 		} else {
-		  if (method_expr_is_c_fmt_arg 
-		      (message_stack (), method_msg_ptr,
-		       P_MESSAGES,
-		       get_stack_top (message_stack ())) &&
-		      (arg_class != arg_rt_expr)) {
+		  if (stdarg_arg && (arg_class != arg_rt_expr)) {
 		    if (arg_class == arg_obj_tok || arg_class == arg_const_tok){
 		      /*
 		       *  We'll do this simply for now....
@@ -1331,11 +1329,10 @@ int method_args (METHOD *method, int method_msg_ptr, int *p_arglist_end) {
 		      _m -> obj = t_arg_obj;
 		      arg_class = arg_rt_expr;
 		    } else {
-		      if (!method_expr_is_c_fmt_arg
-			  (message_stack (), method_msg_ptr, P_MESSAGES,
-			   get_stack_top (message_stack ()))) {
+		      if (!stdarg_arg) { /***/
 			generate_store_arg_call (m_method -> receiver_obj,
-						 method, arg_obj, FRAME_START_IDX);
+						 method, arg_obj,
+						 FRAME_START_IDX);
 		      }
 		    }
 		  }
@@ -2966,7 +2963,7 @@ int method_call (int method_message_ptr) {
 
 	if (method_args (method, 
 			 (m_super_idx != -1) ? m_super_idx : method_message_ptr,
-			 &arglist_end)
+			 &arglist_end, stdarg_arg)
 	    != 0) {
 	  return ERROR;
 	}
@@ -3560,7 +3557,7 @@ int method_call (int method_message_ptr) {
 				  get_stack_top (message_stack ()));
 	sfae_need_cvar_cleanup = false;
       } else if (eval_arg_cvar_reg) {
-	if (interpreter_pass != expr_check) { /***/
+	if (interpreter_pass != expr_check) {
 	  output_delete_cvars_call (message_stack (),
 				  (frame_at (CURRENT_PARSER -> frame - 1) ->
 				   message_frame_top + 1),

@@ -1,4 +1,4 @@
-/* $Id: eval_arg.c,v 1.10 2020/10/08 23:04:34 rkiesling Exp $ */
+/* $Id: eval_arg.c,v 1.11 2020/10/10 21:29:04 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -1103,7 +1103,8 @@ static OBJECT *resolve_single_token_arg (METHOD *rcvr_method,
 	  m_prev_method -> name, ERROR, TRUE)) != NULL) {
 
       if (!m -> evaled && !m_prev_label -> evaled) 
-	method_args (method, message_ptr, &arglist_end);
+	method_args (method, message_ptr, &arglist_end,
+		     m -> attrs & TOK_IS_PRINTF_ARG);
     }    
   }  
 

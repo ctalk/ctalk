@@ -1,4 +1,4 @@
-/* $Id: ifexpr.c,v 1.3 2020/10/08 23:04:34 rkiesling Exp $ */
+/* $Id: ifexpr.c,v 1.4 2020/10/10 21:29:04 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -444,7 +444,8 @@ int ctrlblk_pred_rt_expr_self (MESSAGE_STACK messages, int self_ptr) {
 		  /* method_args () needs this. */
 		  messages[op_idx] -> receiver_obj = 
 		    instantiate_self_object ();
-		  method_args (op_method, op_idx, &arglist_end);
+		  method_args (op_method, op_idx, &arglist_end,
+			       messages[i] -> attrs & TOK_IS_PRINTF_ARG);/***/
 		  if (IS_ARG(op_method -> args[0]) &&
 		      IS_OBJECT(op_method -> args[0] -> obj)) {
 		    if (DEFAULTCLASS_CMP(op_method->args[0]->obj,
