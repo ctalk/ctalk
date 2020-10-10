@@ -1295,6 +1295,14 @@
 	at the start of method_call, and the arglist end stack index
 	to default to the method's stack index, in case method_args
 	doesn't get called.
+2020-10-09
+	- Added the TOK_IS_TMP_FN_RESULT message attribute (message.h),
+	and updated output_mixed_c_to_obj_arg_block to set the message's
+	token type on the temporary CVARS's token to LABEL and its
+	attribute to TOK_IS_TMP_FN_RESULT (ctoobj.c).
+	- Updated output_mixed_c_to_obj_arg_block to not output
+	a __ctalk_arg call if the expression is a printf statement
+	(arg.c).
 
 
 

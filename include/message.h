@@ -1,4 +1,4 @@
-/* $Id: message.h,v 1.2 2020/07/09 20:21:41 rkiesling Exp $ */
+/* $Id: message.h,v 1.2 2020/10/09 22:05:37 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -98,6 +98,7 @@
 #define TOK_IS_FN_START                (1 << 23)
 #define TOK_SELF                       (1 << 24)
 #define TOK_SUPER                      (1 << 25)
+#define TOK_IS_TMP_FN_RESULT           (1 << 26)
 
 #define TOK_IS_MEMBER_VAR(m) (((m) -> attrs & OBJ_IS_INSTANCE_VAR) ||	\
 			      ((m) -> attrs & OBJ_IS_CLASS_VAR))
