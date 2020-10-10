@@ -1,4 +1,4 @@
-/* $Id: arg.c,v 1.6 2020/10/03 12:21:05 rkiesling Exp $ */
+/* $Id: arg.c,v 1.9 2020/10/10 15:03:55 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -2290,10 +2290,14 @@ char *stdarg_fmt_arg_expr (MESSAGE_STACK messages, int method_idx,
       error (messages[method_idx], "Parser error.");
 
     for (i = arglist_start; i >= arglist_end; i--) {
-      if (((c = get_local_var (M_NAME(messages[i]))) != NULL) ||
-	  ((c = get_global_var (M_NAME(messages[i]))))) {
-	register_c_var (messages[i], message_stack (), i, &end_idx);
-	sfae_need_cvar_cleanup = true;
+      if (!(messages[i] -> attrs & TOK_CVAR_REGISTRY_IS_OUTPUT)) {
+	if (M_TOK(messages[i]) == LABEL) {
+	  if (((c = get_local_var (M_NAME(messages[i]))) != NULL) ||
+	      ((c = get_global_var (M_NAME(messages[i]))))) {
+	    register_c_var (messages[i], message_stack (), i, &end_idx);
+	    sfae_need_cvar_cleanup = true;
+	  }
+	}
       }
     }
 
@@ -2344,6 +2348,19 @@ char *stdarg_fmt_arg_expr (MESSAGE_STACK messages, int method_idx,
 	  } else {
 	    fmt_rt_expr (messages, open_paren_idx, &end_idx, result_buf);
 	  }
+	  return result_buf;
+	}
+      } else if (M_TOK(messages[rcvr_end]) == ARRAYCLOSE) { /***/
+	if (IS_MESSAGE(messages[rcvr_end] -> receiver_msg)) {
+	  for (agg_start = rcvr_end+1; agg_start <= stack_start (messages);
+	       ++agg_start) {
+	    if (messages[agg_start] == messages[rcvr_end] -> receiver_msg)
+	      break;
+	  }
+	  register_c_var (messages[agg_start], message_stack (),
+			  agg_start, &end_idx);
+	  fmt_rt_expr (messages, agg_start, &end_idx, result_buf);
+	  sfae_delete_cvar_call ();
 	  return result_buf;
 	}
       }
