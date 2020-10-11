@@ -1,4 +1,4 @@
-/* $Id: tempname.c,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ */
+/* $Id: tempname.c,v 1.2 2020/10/11 16:50:21 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -28,6 +28,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <sys/stat.h>
+#include <errno.h>
 
 #ifndef MAXLABEL
 #define MAXLABEL 0x100
@@ -58,9 +59,7 @@ char tmpname_pidbuf[64] = "";
 /* buf_out should be at least FILENAME_MAX long. */
 char *__tempname (char *pfx, char *buf_out) {
 
-  char hbuf[64];
   struct stat statbuf;
-  int r;
 
   while (1) {
     if (*tmpname_pidbuf == '\0')
@@ -70,10 +69,8 @@ char *__tempname (char *pfx, char *buf_out) {
     else
       strcatx (buf_out, P_tmpdir, "/", pfx, tmpname_pidbuf, ".",
 	       random_string (), NULL);
-    if ((r = stat (buf_out, &statbuf)) != 0) {
-      return buf_out;
-    }
+    if ((stat (buf_out, &statbuf) == -1) && (errno == ENOENT))
+       return buf_out;
   }
-
   return NULL;
 }
