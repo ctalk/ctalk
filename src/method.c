@@ -1,4 +1,4 @@
-/* $Id: method.c,v 1.15 2020/10/10 21:29:04 rkiesling Exp $ */
+/* $Id: method.c,v 1.17 2020/10/11 13:25:10 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -3079,7 +3079,6 @@ int method_call (int method_message_ptr) {
 		    m, receiver, method, tmp, FALSE),
 		   0, method_message_ptr);
 		arg_class = arg_null;
-#if 1
 	      } else if (arg_class == arg_obj_tok) {
 		/* TODO - make sure sometime that method_args notes
 		   whether it has actually output the __ctalk_arg
@@ -3096,12 +3095,9 @@ int method_call (int method_message_ptr) {
 			  receiver, method, output_buf,
 			  FALSE), 0, method_message_ptr);
 		arg_class = arg_null;
-#if  0
 		cleanup_args (method, m -> receiver_obj,
 			      (frame_at (CURRENT_PARSER -> frame - 1) ->
 			       message_frame_top) + 1);
-#endif		
-#endif
 	      } else {
 		fileout
 		  (obj_2_c_wrapper_trans 
