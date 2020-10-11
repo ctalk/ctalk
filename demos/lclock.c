@@ -1,4 +1,4 @@
-/* $Id: lclock.c,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ */
+/* $Id: lclock.c,v 1.2 2020/10/11 20:54:42 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -302,25 +302,25 @@ int main (int argc, char **argv) {
       digitN = 0;
       (hourDigit1 selectDigit) printDigit;
       ++digitN;
-      hourDigit2 selectDigit printDigit;
+      (hourDigit2 selectDigit) printDigit;
     }
 
     ++digitN;
     colon printDigit;
 
     ++digitN;
-    minuteDigit1 selectDigit printDigit;
+    (minuteDigit1 selectDigit) printDigit;
     ++digitN;
-    minuteDigit2 selectDigit printDigit;
+    (minuteDigit2 selectDigit) printDigit;
 
     if (displaySeconds == TRUE) {
       ++digitN;
       colon printDigit;
 
       ++digitN;
-      secondDigit1 selectDigit printDigit;
+      (secondDigit1 selectDigit) printDigit;
       ++digitN;
-      secondDigit2 selectDigit printDigit;
+      (secondDigit2 selectDigit) printDigit;
     }
 
     printf ("\n");
