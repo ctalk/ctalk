@@ -1,4 +1,4 @@
-/* $Id: x11defs.h,v 1.2 2020/09/19 01:08:26 rkiesling Exp $ -*-c-*-*/
+/* $Id: x11defs.h,v 1.3 2020/10/12 15:59:53 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -24,6 +24,7 @@
 
 #ifndef _X11DEFS_H
 
+#ifndef WITHOUT_X11
 #include <X11/Xlib.h>
 
 #if defined(__sparc__) && defined(__svr4__)
@@ -307,4 +308,5 @@ typedef struct _dc {
 #define B_RES_PX 1
 #endif
 
+#endif /* WITHOUT_X11 */
 #endif /* _X11DEFS_H */
