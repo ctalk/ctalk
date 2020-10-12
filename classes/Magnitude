@@ -1,4 +1,4 @@
-/* $Id: Magnitude,v 1.2 2020/05/18 22:51:04 rkiesling Exp $ -*-C-*-*/
+/* $Id: Magnitude,v 1.2 2020/10/12 16:03:56 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -354,17 +354,26 @@ Magnitude instanceMethod asFloat (void) {
    as a floating point number."
   Float new result;
   long long int l;
+  double d;
+  OBJECT *self_value;
   returnObjectClass Float;
 
   if (self is Integer) {
     result = strtod (self value, NULL);
   } else if (self is LongInteger) {
+    self_value = self value;
+    d = (double) *(long long int *)self_value -> __o_value;
+    result = d;
     /* this cast is here to excercise the parser a little more */
-    result = (double)strtod (self value, NULL);
+    /* result = (double)*(long long int *)self value; */
   } else if (self is Float) {
     result = self;
   } else if (self is String) {
     result = strtod (self value, NULL);
+  } else if (self is Character) {
+    self_value = self value;
+    d = (double) *(char *)self_value -> __o_value;
+    result = d;
   } else {
     _warning ("Magnitude : asFloat: Invalid receiver, \"%s.\"\n",
 	      self name);
