@@ -1,4 +1,4 @@
-/* $Id: ctalkdefs.h,v 1.1.1.1 2020/09/13 17:14:20 rkiesling Exp $ -*-C-*-*/
+/* $Id: ctalkdefs.h,v 1.2 2020/10/14 01:18:55 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -31,12 +31,12 @@
    rescanning, sooo ...  */
 #ifdef TRUE
 #undef TRUE
-#define TRUE 1
 #endif
+#define TRUE 1
 #ifdef FALSE
 #undef FALSE
-#define FALSE 0
 #endif
+#define FALSE 0
 
 #ifdef __x86)64
 #define FMT_0XHEX(__x) "%#lx",((unsigned long int)__x)
