@@ -1,4 +1,4 @@
-/* $Id: xftlib.c,v 1.2 2020/09/18 21:25:13 rkiesling Exp $ -*-c-*-*/
+/* $Id: xftlib.c,v 1.3 2020/10/15 19:07:51 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -1663,8 +1663,7 @@ int __ctalkInitFTLib (void) {
 }
 
 int __ctalkXftInitLib (void) {
-  /* xft_support_error (); */
-  return ERROR;
+  xft_support_error ();
 }
 
 int __ctalkXftInitialized (void) {

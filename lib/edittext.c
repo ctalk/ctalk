@@ -1,4 +1,4 @@
-/* $Id: edittext.c,v 1.5 2020/09/21 17:56:45 rkiesling Exp $ -*-c-*-*/
+/* $Id: edittext.c,v 1.6 2020/10/15 18:59:57 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -2462,7 +2462,7 @@ int __edittext_get_primary_selection (OBJECT *editorpane_object,
   displayptr_var = __ctalkGetInstanceVariable (editorpane_object, "displayPtr",
 					       TRUE);
   make_req (shm_mem,
-	    SYMVAL(displayptr_var -> instancevariable -> __o_value),
+	    SYMVAL(displayptr_var -> instancevars -> __o_value),
 	    PANE_GET_PRIMARY_SELECTION_REQUEST, 0, 0,
 	    handle_basename_path);
   wait_req (shm_mem);
