@@ -1,4 +1,4 @@
-/* $Id: fn_tmpl.c,v 1.2 2020/09/19 01:08:27 rkiesling Exp $ */
+/* $Id: fn_tmpl.c,v 1.3 2020/10/15 23:33:45 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -60,6 +60,7 @@
 #include <unistd.h>
 #include <ctype.h>
 #include <sys/stat.h>
+#include <sys/wait.h>
 #include "object.h"
 #include "message.h"
 #include "ctalk.h"
@@ -817,12 +818,20 @@ char *preprocess_template (FN_TMPL *template) {
   char argbuf[MAXMSG],
     cachebuf[MAXMSG],
     oldcache[FILENAME_MAX];
+  char shbuf[FILENAME_MAX], *s;
   static char *outbuf;
-  int retval;
-  FILE *P;
+  int /* retval,*/ child_pid, waitstatus; /***/
+  /* FILE *P; *//***/
 
   strcpy (ctpp_path, which (CTPP_BIN));
   strcpy (ctpp_ofn, ctpp_name (template -> name, TRUE));
+
+  if ((s = getenv ("SHELL")) == NULL) {
+    printf ("ctalk: preprocess_template: SHELL environment variable not found.\n");
+    exit (EXIT_FAILURE);
+  } else {
+    strcpy (shbuf, s);
+  }
 
   create_tmp ();
   write_tmp (template -> def);
@@ -845,6 +854,38 @@ char *preprocess_template (FN_TMPL *template) {
   strcatx (cmd, ctpp_path, " -P ", argbuf, " ", get_tmpname (), " ",
 	   ctpp_ofn, NULL);
 
+  switch (child_pid = fork ())
+    {
+    case -1:
+      printf ("preprocess_template: fork: %s\n", strerror (errno));
+      exit (EXIT_FAILURE);
+      break;
+    case 0:
+      /* For the moment, this is easier to work in than creating
+	 an argument vector for execv, although starting a subshell
+	 if probably slower. */
+      if (execl (shbuf, shbuf, "-c", cmd, (char *)NULL) < 0) {
+	printf ("preprocess_template: execl: %s\n", strerror (errno));
+	exit (EXIT_FAILURE);
+      }
+      break;
+    default:
+      wait (&waitstatus);
+      break;
+    }
+
+  if (WIFEXITED (waitstatus)) {
+    if (WEXITSTATUS (waitstatus) != 0) {
+      printf ("preprocess_template: ctpp:  Return code %d.\n",
+	      WEXITSTATUS (waitstatus));
+      exit (EXIT_FAILURE);
+    }
+  } else {
+    printf ("preprocess_template: preprocessor error.\n");
+    exit (EXIT_FAILURE);
+  }
+
+#if 0 /***/
   if ((P = popen (cmd, "w")) == NULL) {
     printf ("%s: %s.\n", ctpp_ofn, strerror (errno));
     return NULL;
@@ -854,6 +895,7 @@ char *preprocess_template (FN_TMPL *template) {
     cleanup_temp_files (TRUE);
     exit (retval);
   }
+#endif  
 
   if (*oldcache && file_exists (oldcache)) unlink (oldcache);
 

@@ -1,4 +1,4 @@
-/* $Id: main.c,v 1.1.1.1 2020/07/17 07:41:39 rkiesling Exp $ */
+/* $Id: main.c,v 1.14 2020/10/15 23:33:45 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -33,6 +33,7 @@
 #include <dirent.h>
 #include <ctype.h>
 #include <signal.h>
+#include <sys/wait.h>
 #ifdef __DJGPP__
 #include "djgpp.h"
 #include <dpmi.h>
@@ -104,6 +105,7 @@ char *get_package_name (void) {
 extern int outputfile_opt;          /* Declared in tempio.c                  */
 extern char 
 output_file[FILENAME_MAX];
+char ctpp_path[FILENAME_MAX];
 
 static char p_source_file[FILENAME_MAX]; /* Name of preprocessed input file. */
 char ctpp_ofn[FILENAME_MAX];      /* File name of any preprocessor output.   */
@@ -162,6 +164,7 @@ int main (int argc, char **argv) {
   CTFLAGS_args();
   args (argv, argc, FALSE);
 
+  strcpy (ctpp_path, which (CTPP_BIN));
   if (version_opt) {
     printf ("%s\n", VERSION);
     exit (EXIT_SUCCESS);
@@ -588,22 +591,62 @@ void exit_help (void) {
   exit ((help_opt == TRUE) ? EXIT_SUCCESS : EXIT_FAILURE);
 }
 
-int preprocess (char *fn, bool include_lib, bool classlib_read) {
- 
-  char cmd[MAXMSG],
-    argbuf[MAXMSG],
-    tmpbuf[MAXMSG],
-    cachebuf[MAXMSG],
-    oldcache[FILENAME_MAX];
-  char cmdbuf[2];
-  char *lib_tmp_fn = NULL;     /* Avoid a warning. */
-  int inc_idx;
-  int r;
-  int retval;
-  FILE *P;
+static char args_s[MAXARGS][MAXMSG];
+static char *args_v[MAXARGS] = {NULL,};
+
+static void ctpp_args (char *fn, bool include_lib, bool classlib_read,
+			   char *cmpath, char *oldcache) {
+  int i, n, inc_idx;
+  n = 0;
   char *path;
 
-  *argbuf = 0;
+  strcpy (args_s[n++], which (CTPP_BIN));
+
+  if (*oldcache && file_exists (oldcache)) {
+    strcatx (args_s[n++], "-imacros", NULL);
+    strcatx (args_s[n++], oldcache, NULL);
+  }
+
+  for (inc_idx = 0; inc_idx < n_user_include_dirs; inc_idx++) {
+    strcatx (args_s[n++], "-I", user_include_dirs[inc_idx], " ", NULL);
+  }
+  for (inc_idx = 0; inc_idx < n_system_inc_dirs; inc_idx++) {
+    strcatx (args_s[n++], "-I", systeminc_dirs[inc_idx], " ", NULL);
+  }
+  if (nolinemarker_opt) strcatx (args_s[n++], "-P ", NULL);
+  if (classlib_read) strcatx (args_s[n++], "-Pf", NULL);
+  if (!preprocess_only_opt && !nolibinc_opt && include_lib) {
+    if ((path = ctalklib_path ()) != NULL) {
+      strcatx (args_s[n++], "-include", NULL);
+      strcatx (args_s[n++], path, NULL);
+    }
+  }
+  strcatx (args_s[n++], "-dF", NULL);
+  strcatx (args_s[n++], cmpath, NULL);
+  strcatx (args_s[n++], "-move-includes", NULL);
+  strcatx (args_s[n++], fn, NULL);
+  strcpy (args_s[n++], ctpp_ofn);
+
+  for (i = 0; i < n; ++i) {
+    args_v[i] = strdup (args_s[i]);
+  }
+  args_v[n] = NULL;
+}
+
+void delete_ctpp_args (void) {
+  char **p;
+  p = args_v;
+  while (*p) {
+    free (*p);
+    ++p;
+  }
+}
+
+int preprocess (char *fn, bool include_lib, bool classlib_read) {
+ 
+  char oldcache[FILENAME_MAX], *cmpath;
+  char *lib_tmp_fn = NULL;     /* Avoid a warning. */
+  int child_pid, waitstatus;
 
   /*
    *  If there are cached macros, include them.
@@ -611,43 +654,17 @@ int preprocess (char *fn, bool include_lib, bool classlib_read) {
 
   if (macro_cache_path ()) {
     strcpy (oldcache, macro_cache_path ());
-    if (file_exists (oldcache)) {
-      strcatx (cachebuf, "-imacros ", macro_cache_path (), " ", NULL);
-      strcatx2 (argbuf, cachebuf, NULL);
-    }
   } else {
     *oldcache = 0;
   }
 
-  /*
-   *  Includes with -I, then includes with -s.
-   *  Use args from the command line if necessary.
-   */
-  for (inc_idx = 0; inc_idx < n_user_include_dirs; inc_idx++) {
-    strcatx (tmpbuf, "-I", user_include_dirs[inc_idx], " ", NULL);
-    strcatx2 (argbuf, tmpbuf, NULL);
-  }
-  for (inc_idx = 0; inc_idx < n_system_inc_dirs; inc_idx++) {
-    strcatx (tmpbuf, "-I", systeminc_dirs[inc_idx], " ", NULL);
-    strcatx2 (argbuf, tmpbuf, NULL);
-  }
-  if (nolinemarker_opt) strcatx2 (argbuf, "-P ", NULL);
-  if (classlib_read) strcatx2 (argbuf, " -Pf ", NULL);
-  
   show_progress ();
 
-  if (!preprocess_only_opt && !nolibinc_opt && include_lib) {
+  cmpath = new_macro_cache_path ();
 
-    if ((path = ctalklib_path ()) != NULL) {
-      strcatx (tmpbuf, "-include ", path, " ", NULL);
-      strcatx2 (argbuf, tmpbuf, NULL);
+  strcpy (ctpp_ofn, ctpp_tmp_name (fn, TRUE));
 
-    }
-  }
-
-  strcatx (cachebuf, "-dF ", new_macro_cache_path (), " ", NULL);
-  strcatx2 (argbuf, cachebuf, NULL);
-
+#if 0
 #ifndef __CYGWIN__
   if (include_lib)
     strcatx2 (argbuf, "-move-includes ", NULL);
@@ -660,26 +677,37 @@ int preprocess (char *fn, bool include_lib, bool classlib_read) {
 #else
   strcatx (cmd, which (CTPP_BIN), " ", argbuf, " ", fn, " ", ctpp_ofn, NULL);
 #endif
+#endif   /* #if 0 */
 
-  if ((P = popen (cmd, "r")) != NULL) {
-    /*
-     *  Needed for Solaris fprintf output.
-     */
-    cmdbuf[1] = '\0';
-    while ((r = fread (cmdbuf, sizeof (char), 1, P)) > 0)
-      printf ("%c", cmdbuf[0]);
-  } else {
-    printf ("%s: %s.\n", fn, strerror (errno));
-    return ERROR;
-  }
+  ctpp_args (fn, include_lib, classlib_read, cmpath, oldcache);
+
+  switch (child_pid = fork ())
+    {
+    case -1:
+      printf ("preprocess: fork: %s\n", strerror (errno));
+      break;
+    case 0:
+      if (execv (ctpp_path, args_v) < 0) {
+	printf ("preprocess: execv: %s\n", strerror (errno));
+	exit (EXIT_FAILURE);
+      }
+      break;
+    default:
+      wait (&waitstatus);
+      break;
+    }
 
   show_progress ();
+  delete_ctpp_args ();
 
-  retval = pclose (P);
-
-  if (retval == -1) {
-    printf ("%s: Error: %s\n", fn, strerror (errno));
-    cleanup_temp_files (TRUE);
+  if (WIFEXITED (waitstatus)) {
+    if (WEXITSTATUS (waitstatus) != 0) {
+      printf ("ctpp: error.  Return code %d.\n",
+	      WEXITSTATUS (waitstatus));
+      exit (EXIT_FAILURE);
+    }
+  } else {
+    printf ("ctalk: preprocessor error.\n");
     exit (EXIT_FAILURE);
   }
 
