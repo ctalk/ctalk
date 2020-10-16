@@ -1315,3 +1315,18 @@
 	- Updated include/x11defs.h to check for the WITHOUT_X11
 	#define.
 	- Updates to Magnitude : asFloat.
+2020-10-13
+	- Replaced popen in preprocess with fork/execl (main.c).
+	- Updated the TRUE and FALSE #defines in ctalkdefs.h.
+2020-10-14
+	- Replaced the popen call in preprocess with fork andexecv
+	and added the ctpp_args function to create the char**
+	argument vector to run ctpp (main.c).
+2020-10-15
+	- Replaced the popen call in preprocess_template with
+	fork and execl calls (fn_tmpl.c).
+	- Fixed typos in __edittext_get_primary_selection (edittext.c),
+	and __ctalkXftInitLib (xftlib.c).
+2020-10-16
+	- Added a check for the FcPatternFormat function, in the
+	Fontconfig library, to configure.
