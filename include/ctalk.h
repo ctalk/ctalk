@@ -1,4 +1,4 @@
-/* $Id: ctalk.h,v 1.6 2020/10/10 21:29:04 rkiesling Exp $ -*-Fundamental-*- */
+/* $Id: ctalk.h,v 1.7 2020/10/16 17:07:31 rkiesling Exp $ -*-Fundamental-*- */
 
 /*
   This file is part of Ctalk.
@@ -3043,6 +3043,7 @@ char *basic_class_from_fmt_arg (MESSAGE_STACK, int);
 char *c_lval_class (MESSAGE_STACK, int);
 bool have_unknown_c_type (void);
 int arg_is_question_conditional_predicate (MSINFO *ms);
+char *obj_fmt_arg_trans (MESSAGE_STACK, int, char *, char *, int);
 
 /* op.c */
 OP_CONTEXT op_context (MESSAGE_STACK, int);

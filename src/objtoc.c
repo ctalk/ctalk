@@ -1,4 +1,4 @@
-/* $Id: objtoc.c,v 1.2 2020/09/19 01:08:28 rkiesling Exp $ */
+/* $Id: objtoc.c,v 1.3 2020/10/16 17:07:32 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -239,6 +239,44 @@ static char *return_classes[] = {
 #define __VALUE_INSTVAR(__o) ((__o)->instancevars ? \
 				    (__o)->instancevars : \
 				    (__o))
+char *obj_fmt_arg_trans (MESSAGE_STACK messages, int idx,
+		     char *rt_expr, char *expr_out, int keep) {
+  char *obj_return_class_name;
+  switch (fmt_arg_type (messages, idx, stack_start (messages)))
+    {
+    case fmt_arg_char_ptr:
+      obj_return_class_name = return_classes[STRING_RETURN_CLASS_IDX];
+      return fmt_rt_return (rt_expr, obj_return_class_name, keep, expr_out);
+      break;
+    case fmt_arg_ptr:
+      obj_return_class_name = return_classes[SYMBOL_RETURN_CLASS_IDX];
+      return fmt_rt_return (rt_expr, obj_return_class_name, keep, expr_out);
+      break;
+    case fmt_arg_char:
+      obj_return_class_name = return_classes[CHARACTER_RETURN_CLASS_IDX];
+      return fmt_rt_return (rt_expr, obj_return_class_name, keep, expr_out);
+      break;
+    case fmt_arg_double:
+      obj_return_class_name = return_classes[FLOAT_RETURN_CLASS_IDX];
+      return fmt_rt_return (rt_expr, obj_return_class_name, keep, 
+			      expr_out);
+      break;
+    case fmt_arg_int:
+      obj_return_class_name = return_classes[INTEGER_RETURN_CLASS_IDX];
+      return fmt_rt_return (rt_expr, obj_return_class_name, keep, expr_out);
+      break;
+    case fmt_arg_long_int:
+      return fmt_rt_return (rt_expr, INTEGER_CLASSNAME_L, keep, expr_out);
+      break;
+    case fmt_arg_long_long_int:
+      return fmt_rt_return (rt_expr, LONGINTEGER_CLASSNAME, keep, expr_out);
+      break;
+    case fmt_arg_null:
+      break;
+    }
+  return expr_out;
+}
+
 char *obj_2_c_wrapper_trans (MESSAGE_STACK messages, int idx, 
 			     MESSAGE *orig, OBJECT *object, 
 			     METHOD *method, char *rt_expr, int keep) {
