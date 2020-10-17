@@ -1,4 +1,4 @@
-/* $Id: LongInteger,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ -*-c-*-*/
+/* $Id: LongInteger,v 1.3 2020/10/17 07:38:32 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -51,7 +51,6 @@ to the C data type 'long long int'.";
 LongInteger instanceMethod = set_value (long long int l) { 
   "Set the value of the receiver to the argument."
   OBJECT *l_var;
-  char buf[MAXLABEL];
 
   l_var = l value;
 
