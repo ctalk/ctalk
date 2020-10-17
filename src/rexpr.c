@@ -1,4 +1,4 @@
-/* $Id: rexpr.c,v 1.2 2020/09/19 01:08:28 rkiesling Exp $ */
+/* $Id: rexpr.c,v 1.3 2020/10/17 10:37:59 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -2645,7 +2645,7 @@ int terminal_printf_arg (MESSAGE_STACK messages, int terminal_rval_object) {
   }
 
 #else
-#if defined (__GNUC__) && defined (__APPLE__)
+# if defined (__GNUC__) && defined (__APPLE__)
     char expr_buf_2[MAXMSG];
 
     strcatx (expr_buf_2, ALT_PTR_FMT_CAST, expr_buf, NULL);
@@ -2656,7 +2656,20 @@ int terminal_printf_arg (MESSAGE_STACK messages, int terminal_rval_object) {
     fileout (expr_buf, 0, terminal_rval_object);
 
   }
-#else
+# else
+#  if defined (__GNUC__) && defined (__x86_64)
+
+    char expr_buf_2[MAXMSG];
+
+    strcatx (expr_buf_2, ALT_PTR_FMT_CAST, expr_buf, NULL);
+    fileout (expr_buf_2, 0, terminal_rval_object);
+
+  } else {
+
+    fileout (expr_buf, 0, terminal_rval_object);
+
+  }
+#  else
 
   } else {
 
@@ -2665,7 +2678,8 @@ int terminal_printf_arg (MESSAGE_STACK messages, int terminal_rval_object) {
 
   }
 
-#endif /* #if defined (__GNUC__) && defined (__APPLE__) */
+#  endif /* #if defined (__GNUC__) && defined (__x86_64) */
+# endif /* #if defined (__GNUC__) && defined (__APPLE__) */
 #endif /* #if defined (__GNUC__) && defined (i386) */
   
   ++messages[terminal_rval_object] -> evaled;
