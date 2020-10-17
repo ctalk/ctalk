@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.2 2020/10/16 11:46:38 rkiesling Exp $
+# $Id: configure.ac,v 1.3 2020/10/17 11:02:03 rkiesling Exp $
 AC_INIT(ctalk, 0.0.66, rk3314042@gmail.com, "")
 
 # Contained in acinclude.m4 and generated aclocal.m4
@@ -1355,19 +1355,22 @@ else
    fi
 fi
 
-if test "x$no_x" != "xyes"; then
-AC_CHECK_LIB(fontconfig, FcPatternFormat,
-			 [],
-			 [
-cat <<EOF
-This machine uses an old version of the fontconfig library.  You should
-consider installing a more recent version of fontconfig, which is available
-at: http://www.freedesktop.org/software/fontconfig/release/.  Alternatively,
-you can build Ctalk without X window support, by adding the --without-x
-option to configure.
-EOF
-exit 1])
-fi
+#
+# Needs a better test if we decide to support old machines.
+#
+# if test "x$no_x" != "xyes"; then
+# AC_CHECK_LIB(fontconfig, FcPatternFormat,
+#			 [],
+#			 [
+# cat <<EOF
+# This machine uses an old version of the fontconfig library.  You should
+# consider installing a more recent version of fontconfig, which is available
+# at: http://www.freedesktop.org/software/fontconfig/release/.  Alternatively,
+# you can build Ctalk without X window support, by adding the --without-x
+# option to configure.
+# EOF
+# exit 1])
+# fi
 
 AC_CHECK_LIB(GL, glWindowPos2i, glwindowpos2i_def="-DHAVE_GLWINDOWPOS",
 		 glwindowpos2i_def="", "-L/usr/X11R6/lib")
