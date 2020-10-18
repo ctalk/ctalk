@@ -1,4 +1,4 @@
-/* $Id: method.c,v 1.18 2020/10/16 17:07:31 rkiesling Exp $ */
+/* $Id: method.c,v 1.19 2020/10/17 22:29:37 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -3075,13 +3075,6 @@ int method_call (int method_message_ptr) {
 			 tmp_a, "\")", NULL);
 		obj_fmt_arg_trans (message_stack (), rcvr_ptr, tmp, tmp_b, TRUE);
 		fileout (tmp_b, 0, method_message_ptr);
-#if 0 /***/
-		fileout
-		  (obj_2_c_wrapper_trans 
-		   (message_stack(), rcvr_ptr,
-		    m, receiver, method, tmp, FALSE),
-		   0, method_message_ptr);
-#endif		
 		arg_class = arg_null;
 	      } else if (arg_class == arg_obj_tok) {
 		/* TODO - make sure sometime that method_args notes
@@ -3102,6 +3095,21 @@ int method_call (int method_message_ptr) {
 		cleanup_args (method, m -> receiver_obj,
 			      (frame_at (CURRENT_PARSER -> frame - 1) ->
 			       message_frame_top) + 1);
+	      } else if (arg_class == arg_compound_method) { /***/
+		char *expr, tmp[MAXMSG], tmp_a[MAXMSG], tmp_b[MAXMSG];
+		arglist_end = nextlangmsg (message_stack (), arglist_end);
+		expr = collect_tokens (message_stack (), rcvr_ptr, arglist_end);
+		escape_str_quotes (expr, tmp_a);
+		strcatx (tmp, EVAL_EXPR_FN, "(\"", 
+			 tmp_a, "\")", NULL);
+		__xfree (MEMADDR(expr));
+		obj_fmt_arg_trans (message_stack (), rcvr_ptr, tmp, tmp_b, TRUE);
+		fileout (tmp_b, 0, method_message_ptr);
+		for (i = rcvr_ptr; i >= arglist_end; --i) {
+		  ++(message_stack_at(i)) -> evaled;
+		  ++(message_stack_at(i)) -> output;
+		}
+		arg_class = arg_null;
 	      } else {
 		fileout
 		  (obj_2_c_wrapper_trans 

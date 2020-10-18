@@ -1,4 +1,4 @@
-/* $Id: object.h,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ */
+/* $Id: object.h,v 1.2 2020/10/17 22:29:37 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -135,7 +135,8 @@ typedef enum {
   arg_c_fn_const_expr,
   arg_c_global_arg,
   arg_rt_expr,
-  arg_c_sizeof_expr
+  arg_c_sizeof_expr,
+  arg_compound_method
 } ARG_CLASS;
 
 typedef enum {

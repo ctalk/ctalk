@@ -1,4 +1,4 @@
-/* $Id: eval_arg.c,v 1.11 2020/10/10 21:29:04 rkiesling Exp $ */
+/* $Id: eval_arg.c,v 1.12 2020/10/17 22:29:37 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -1209,6 +1209,23 @@ OBJECT *eval_arg (METHOD *method, OBJECT *rcvr_class, ARGSTR *argbuf,
 	     (method, m_messages, start_stack, rcvr_class_obj,
 	      main_stack_idx, argbuf))
 	    == NULL) {
+	  if (message_stack_at (main_stack_idx) -> tokentype ==
+	      METHODMSGLABEL) { /***/
+	    METHOD *m_1;
+	    MESSAGE *m_main_stack;
+	    m_main_stack = message_stack_at (main_stack_idx);
+	    if (((m_1 = get_instance_method (m_main_stack, rcvr_class,
+					   m_main_stack -> name, 0, FALSE))
+		 != NULL) ||
+		((m_1 = get_class_method (m_main_stack, rcvr_class,
+					m_main_stack -> name, 0, FALSE))
+		 != NULL)) {
+	      if (m_1 -> n_params == 0) {
+		arg_class = arg_compound_method;
+		goto arg_evaled;
+	      }
+	    }
+	  }
 	  /*
 	   *  Check for a constructor method - if shadowing a variable,
 	   *  the object will not be registered yet.
