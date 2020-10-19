@@ -1,4 +1,4 @@
-/* $Id: lclock.c,v 1.2 2020/10/11 20:54:42 rkiesling Exp $ */
+/* $Id: lclock.c,v 1.4 2020/10/19 17:42:39 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -297,6 +297,7 @@ int main (int argc, char **argv) {
 
     if (!hours24 && ((clockTime at 0) < 10)) {
       digitN = 0;
+      /* Without parens helps check the compiler. */
       hourDigit2 selectDigit printDigit;
     } else {
       digitN = 0;

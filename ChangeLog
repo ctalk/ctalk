@@ -1343,3 +1343,8 @@
 	sequence when checking the next token if it's a LABEL(complexmethd.c).
 	- Added a check for a pending class label in eval_arg before
 	warning about an undefined label (eval_arg.c).
+2020-10-19
+	- Added arg_compound_method_rcvr and arg_compound_method_fmt_arg
+	(complexmthd.c), to handle expressions that contain
+	<METHODMSGLABEL> <METHODMSGLABEL> tokens, called by method_call.
+

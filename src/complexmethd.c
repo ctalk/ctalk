@@ -1,4 +1,4 @@
-/* $Id: complexmethd.c,v 1.4 2020/10/19 11:23:34 rkiesling Exp $ */
+/* $Id: complexmethd.c,v 1.5 2020/10/19 17:40:12 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -953,3 +953,39 @@ void super_argblk_rcvr_expr (MESSAGE_STACK messages, int super_idx,
 }
 #endif  /* #ifdef MRCO */
     
+void arg_compound_method_rcvr (MESSAGE_STACK messages, int rcvr_idx,
+			       int method_idx) {
+  int i, arglist_end;
+  char *expr, tmp[MAXMSG], tmp_a[MAXMSG];
+  arglist_end = nextlangmsg (message_stack (), method_idx);
+  expr = collect_tokens (message_stack (), rcvr_idx, arglist_end);
+  escape_str_quotes (expr, tmp_a);
+  strcatx (tmp, EVAL_EXPR_FN, "(\"", 
+	   tmp_a, "\")", NULL);
+  __xfree (MEMADDR(expr));
+  fileout (tmp, 0, method_idx);
+  for (i = rcvr_idx; i >= arglist_end; --i) {
+    ++(message_stack_at(i)) -> evaled;
+    ++(message_stack_at(i)) -> output;
+  }
+}
+
+void arg_compound_method_fmt_arg (MESSAGE_STACK messages, int rcvr_idx,
+				  int method_idx) {
+  int i, arglist_end;
+
+  char *expr, tmp[MAXMSG], tmp_a[MAXMSG], tmp_b[MAXMSG];
+  arglist_end = nextlangmsg (message_stack (), method_idx);
+  expr = collect_tokens (message_stack (), rcvr_idx, arglist_end);
+  escape_str_quotes (expr, tmp_a);
+  strcatx (tmp, EVAL_EXPR_FN, "(\"", 
+	   tmp_a, "\")", NULL);
+  __xfree (MEMADDR(expr));
+  obj_fmt_arg_trans (message_stack (), rcvr_idx, tmp, tmp_b, TRUE);
+  fileout (tmp_b, 0, method_idx);
+  for (i = rcvr_idx; i >= arglist_end; --i) {
+    ++(message_stack_at(i)) -> evaled;
+    ++(message_stack_at(i)) -> output;
+  }
+}
+

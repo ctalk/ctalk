@@ -1,4 +1,4 @@
-/* $Id: rexpr.c,v 1.3 2020/10/17 10:37:59 rkiesling Exp $ */
+/* $Id: rexpr.c,v 1.4 2020/10/19 14:55:29 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -970,7 +970,7 @@ int default_method (MSINFO *ms) {
   int tmp_end_ptr;
   int method_attrs;
   int m_prev_ptr;
-  METHOD *m;
+  METHOD *m = NULL;
   OBJECT *class;
   OBJECT_CONTEXT context;
   char buf[MAXMSG], expr_out_buf[MAXMSG], expr_out_buf_2[MAXMSG];

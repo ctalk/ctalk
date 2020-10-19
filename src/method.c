@@ -1,4 +1,4 @@
-/* $Id: method.c,v 1.19 2020/10/17 22:29:37 rkiesling Exp $ */
+/* $Id: method.c,v 1.22 2020/10/19 17:42:39 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -3096,19 +3096,8 @@ int method_call (int method_message_ptr) {
 			      (frame_at (CURRENT_PARSER -> frame - 1) ->
 			       message_frame_top) + 1);
 	      } else if (arg_class == arg_compound_method) { /***/
-		char *expr, tmp[MAXMSG], tmp_a[MAXMSG], tmp_b[MAXMSG];
-		arglist_end = nextlangmsg (message_stack (), arglist_end);
-		expr = collect_tokens (message_stack (), rcvr_ptr, arglist_end);
-		escape_str_quotes (expr, tmp_a);
-		strcatx (tmp, EVAL_EXPR_FN, "(\"", 
-			 tmp_a, "\")", NULL);
-		__xfree (MEMADDR(expr));
-		obj_fmt_arg_trans (message_stack (), rcvr_ptr, tmp, tmp_b, TRUE);
-		fileout (tmp_b, 0, method_message_ptr);
-		for (i = rcvr_ptr; i >= arglist_end; --i) {
-		  ++(message_stack_at(i)) -> evaled;
-		  ++(message_stack_at(i)) -> output;
-		}
+		arg_compound_method_fmt_arg (message_stack (), rcvr_ptr,
+					     arglist_end);
 		arg_class = arg_null;
 	      } else {
 		fileout
@@ -3416,8 +3405,13 @@ int method_call (int method_message_ptr) {
 	   *  Class-specific constructors get added to the function
 	   *  initialization.
 	   */
-	  if (ctrlblk_pred && (do_predicate || for_init || for_term || for_inc)) {
+	  if (ctrlblk_pred && (do_predicate || for_init || for_term
+			       || for_inc)) {
 	    ctrlblk_method_call (receiver, method, method_message_ptr);
+	  } else if (arg_class == arg_compound_method) {
+	    arg_compound_method_rcvr (message_stack (), rcvr_ptr,
+				      arglist_end);
+	    arg_class = arg_null;
 	  } else {
 	    if (!strcmp (method -> name, "new")) {
 	      char mcbuf[MAXMSG];
