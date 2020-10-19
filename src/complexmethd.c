@@ -1,4 +1,4 @@
-/* $Id: complexmethd.c,v 1.2 2020/09/19 01:08:26 rkiesling Exp $ */
+/* $Id: complexmethd.c,v 1.4 2020/10/19 11:23:34 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -119,6 +119,7 @@ MESSAGE_CLASS message_class (MESSAGE_STACK messages, int idx) {
     *rcvr_value_obj = NULL;
   OBJECT *__instvar, *__classvar;
   MESSAGE_CLASS prev_message_class;
+  METHOD *m_tmp;
 
   if (messages[idx] -> receiver_obj) {
     if ((var_message_object = 
@@ -185,6 +186,8 @@ MESSAGE_CLASS message_class (MESSAGE_STACK messages, int idx) {
 	} else {
 	  have_complex_arg_block = FALSE;
 	}
+	if (M_TOK(messages[idx]) == LABEL) /***/
+	  messages[idx] -> tokentype = METHODMSGLABEL;
 	return instance_method_message;
       }
       if (get_class_method (messages[idx],
@@ -207,7 +210,6 @@ MESSAGE_CLASS message_class (MESSAGE_STACK messages, int idx) {
 	if (M_TOK(messages[idx]) == DEREF) {
 	  return instance_method_message;
 	} else if (IS_C_BINARY_MATH_OP(M_TOK(messages[idx]))) {
-	  METHOD *m_tmp;
 	  /* Check the case where we have a numeric method return class
 	     with 0 params and a math op message following. 
 	     e.g.,
@@ -231,6 +233,33 @@ MESSAGE_CLASS message_class (MESSAGE_STACK messages, int idx) {
 		  return instance_method_message;
 		}
 	      }
+	    }
+	  }
+	} else if (M_TOK(messages[idx]) == LABEL) {
+	  if ((M_TOK(messages[prev_idx]) == METHODMSGLABEL) &&
+	      IS_OBJECT(messages[prev_idx] -> receiver_obj)) {
+	    if (((m_tmp = get_instance_method 
+		  (messages[prev_idx], 
+		   messages[prev_idx] -> receiver_obj -> instancevars,
+		   M_NAME(messages[prev_idx]), ERROR, FALSE)) != NULL) ||
+		((m_tmp = get_class_method
+		  (messages[prev_idx], 
+		   messages[prev_idx] -> receiver_obj -> instancevars,
+		   M_NAME(messages[prev_idx]), ERROR, FALSE)) != NULL)) {
+	      if (m_tmp -> n_params == 0) {
+#if 0 /***/
+		if (is_subclass_of (m_tmp -> returnclass, 
+				    MAGNITUDE_CLASSNAME)) {
+#endif		  
+		  if (is_method_name (M_NAME(messages[idx]))) {
+		    messages[idx] -> tokentype = METHODMSGLABEL;
+		    messages[idx] -> receiver_msg = messages[prev_idx];
+		    return instance_method_message;
+		  }
+		}
+#if 0
+	      }
+#endif	      
 	    }
 	  }
 	}

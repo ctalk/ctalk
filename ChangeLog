@@ -1336,3 +1336,10 @@
 	2020-10-18
 	- Added the arg_compound_method ARG_CLASS (object.h), and
 	added handlers in eval_arg and method_call.
+2020-10-18
+	- In message_class, set a token's type to METHODMSGLABEL
+	from label if the message_class is instance_method_message,
+	and use this to check for a <METHODMSGLABEL> <METHODMSGLABEL>
+	sequence when checking the next token if it's a LABEL(complexmethd.c).
+	- Added a check for a pending class label in eval_arg before
+	warning about an undefined label (eval_arg.c).
