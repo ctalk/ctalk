@@ -1,4 +1,4 @@
-/* $Id: keyword.c,v 1.2 2020/10/03 14:08:20 rkiesling Exp $ */
+/* $Id: keyword.c,v 1.3 2020/10/20 22:23:02 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -244,6 +244,7 @@ static char *c_data_types[] = {
   "_Complex",
   "_Imaginary",
   "__float128",
+  "_Float128",
   "_Atomic"
 #ifdef __GNUC__
   , "__complex__",
@@ -254,9 +255,9 @@ static char *c_data_types[] = {
 };
 
 #ifdef __GNUC__
-# define N_C_DATA_TYPES 30
+# define N_C_DATA_TYPES 31
 # else
-# define N_C_DATA_TYPES 27
+# define N_C_DATA_TYPES 28
 #endif
 
 /* 
