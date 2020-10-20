@@ -1,4 +1,4 @@
-/* $Id: method.c,v 1.22 2020/10/19 17:42:39 rkiesling Exp $ */
+/* $Id: method.c,v 1.23 2020/10/20 10:27:05 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -991,6 +991,9 @@ int method_args (METHOD *method, int method_msg_ptr, int *p_arglist_end,
   ERROR_LOCATION error_loc;
   ARGSTR argstrs[MAXARGS] = {{NULL, NULL, 0, 0, false, NULL, 0, 0},};
   int argstrptr;
+  bool arg_subscripts = false;  /* This could actually become another
+				   argument class if the compiler seems
+				   to become to picky. */
 
   char _e[MAXMSG];
   static MESSAGE *_m;
@@ -1399,10 +1402,11 @@ int method_args (METHOD *method, int method_msg_ptr, int *p_arglist_end,
       case ARGSEPARATOR:
 	/* check if the comma is between parentheses before ending
 	   the arg */
-	if (n_parens == 0)
+	if (n_parens == 0) {
 	  ma_add_arg (message_stack (), i, argstrs, &argstrptr, argbuf);
-	else
+	} else {
 	  strcat (argbuf, m_arg -> name);
+	}
 	break;
       case SEMICOLON:
 	ma_add_arg (message_stack (), i, argstrs, &argstrptr, argbuf);
@@ -1419,6 +1423,10 @@ int method_args (METHOD *method, int method_msg_ptr, int *p_arglist_end,
 	break;
       case CLOSEPAREN:
 	--n_parens;
+	strcat (argbuf, m_arg -> name);
+	break;
+      case ARRAYOPEN:
+	arg_subscripts = true; /***/
 	strcat (argbuf, m_arg -> name);
 	break;
       default:
@@ -1642,22 +1650,24 @@ int method_args (METHOD *method, int method_msg_ptr, int *p_arglist_end,
 		 don't generate another __ctalk_arg () call. */
 	      subscript_object_expr = FALSE;
 	    } else {
-	      if ((arg_class != arg_rt_expr) && !collection_needs_rt_eval 
-		  (m_method->receiver_obj -> __o_class, method)) {
-		prev_idx = prevlangmsg (message_stack (), method_msg_ptr);
-		if (message_stack_at (prev_idx) -> attrs &
-		    TOK_IS_DECLARED_C_VAR) {
-		  /* We can't use just one register call here, because
-		     __ctalk_arg deletes the CVAR immediately after 
-		     it pushes the arg onto the stack */
-		  register_c_var (message_stack_at (prev_idx),
-				  message_stack (),
-				  prev_idx, &prev_end_ptr);
+	      if (!(arg_subscripts && stdarg_arg)) { /***/
+		if ((arg_class != arg_rt_expr) && !collection_needs_rt_eval 
+		    (m_method->receiver_obj -> __o_class, method)) {
+		  prev_idx = prevlangmsg (message_stack (), method_msg_ptr);
+		  if (message_stack_at (prev_idx) -> attrs &
+		      TOK_IS_DECLARED_C_VAR) {
+		    /* We can't use just one register call here, because
+		       __ctalk_arg deletes the CVAR immediately after 
+		       it pushes the arg onto the stack */
+		    register_c_var (message_stack_at (prev_idx),
+				    message_stack (),
+				    prev_idx, &prev_end_ptr);
+		  }
+		  generate_store_arg_call (m_method -> receiver_obj,
+					   method, arg_obj,
+					   frame_at (CURRENT_PARSER -> frame)
+					   -> message_frame_top);
 		}
-		generate_store_arg_call (m_method -> receiver_obj,
-					 method, arg_obj,
-					 frame_at (CURRENT_PARSER -> frame)
-					 -> message_frame_top);
 	      }
 	    }
 	  }

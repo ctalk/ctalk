@@ -1,4 +1,4 @@
-/* $Id: resolve.c,v 1.7 2020/10/07 00:29:08 rkiesling Exp $ */
+/* $Id: resolve.c,v 1.9 2020/10/19 17:47:14 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.

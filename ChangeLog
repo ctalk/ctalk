@@ -1347,4 +1347,9 @@
 	- Added arg_compound_method_rcvr and arg_compound_method_fmt_arg
 	(complexmthd.c), to handle expressions that contain
 	<METHODMSGLABEL> <METHODMSGLABEL> tokens, called by method_call.
+	- In method_args, check for a subscripted argument, and use
+	that to determine, when used with the stdarg_arg parameter,
+	whether to insert a CVAR registration, or just let
+	method_call make a __ctalkEvalExpr call and register the
+	CVARs there (method.c).
 
