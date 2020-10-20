@@ -1,4 +1,4 @@
-/* $Id: keyword.c,v 1.3 2020/10/20 22:23:02 rkiesling Exp $ */
+/* $Id: keyword.c,v 1.5 2020/10/20 22:58:37 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -180,6 +180,7 @@ static char *c_keywords[] = {
   "_Complex",
   "_Imaginary",
   "__float128",
+  "_Float128",
   "_Atomic"
 #ifdef __GNUC__
   , "__complex__",
@@ -189,9 +190,9 @@ static char *c_keywords[] = {
 };
 
 #ifdef __GNUC__
-# define N_C_KEYWORDS 47
+# define N_C_KEYWORDS 48
 # else
-# define N_C_KEYWORDS 44
+# define N_C_KEYWORDS 45
 #endif
 
 /* Check if a label is an ANSI C or C99 keyword, including data types.  
