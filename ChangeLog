@@ -1352,4 +1352,10 @@
 	whether to insert a CVAR registration, or just let
 	method_call make a __ctalkEvalExpr call and register the
 	CVARs there (method.c).
+2020-10-20
+	- Added a statement to eval_arg to set a
+	TOK_CVAR_REGISTRY_IS_OUTPUT attribute on the message on the
+	main stack with the C variable's token (eval_arg.c).
+	- Added the _Float128 C data type to c_data_types table
+	(keyword.c).
 

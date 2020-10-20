@@ -1,4 +1,4 @@
-/* $Id: eval_arg.c,v 1.13 2020/10/18 23:43:14 rkiesling Exp $ */
+/* $Id: eval_arg.c,v 1.14 2020/10/20 22:23:02 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -1852,6 +1852,11 @@ OBJECT *eval_arg (METHOD *method, OBJECT *rcvr_class, ARGSTR *argbuf,
 	      } else {
 		register_c_var (message_stack_at (main_stack_idx),
 				m_messages, i, &agg_var_end_idx);
+		/* Here, too, set the attribute on the token *on the
+		   main stack* so we don't output a C variable
+		   register call more than once. */
+		message_stack_at (argbuf -> start_idx - (N_MESSAGES - i))
+		  -> attrs |= TOK_CVAR_REGISTRY_IS_OUTPUT;
 		eval_arg_cvar_reg = true;
 	      }
 	      break;
