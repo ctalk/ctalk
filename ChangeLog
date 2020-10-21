@@ -1358,4 +1358,7 @@
 	main stack with the C variable's token (eval_arg.c).
 	- Added the _Float128 C data type to c_data_types table
 	(keyword.c).
+	- Added a class library lookup "miss" list so
+	get_class_library_definition doesn't try to parse miscellaneous
+	files in class library directories repeatedly (rtclslib.c).
 

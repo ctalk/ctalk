@@ -1,4 +1,4 @@
-/* $Id: rtclslib.c,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ -*-c-*-*/
+/* $Id: rtclslib.c,v 1.2 2020/10/21 02:32:53 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -289,13 +289,14 @@ OBJECT *__ctalkGetClass (const char *s) {
   }
   
   /* if (!is_class_name) */
-  if (! c)
+  if (! c) {
     return NULL;
-  else
+  } else {
     if ((__o = get_class_library_definition (c -> path)) != NULL)
       return __o;
     else
       return NULL;
+  }
 }
 
 /* 
@@ -406,19 +407,34 @@ MESSAGE *cl_message_pop (void) {
   }
 }
 
+/*
+ * get_class_library_definition also records the misses (i.e., th
+ * files that aren't class files) that might be in a class directory.
+ */
+LIST *class_misses = NULL, *class_misses_head = NULL;
+
 OBJECT *get_class_library_definition (char *fn) {
 
   char *buf, *keyword, *sc_start, *sc_end, *cl_start, *cl_end,
     *followingtok, scbuf[MAXLABEL], clbuf[MAXLABEL];
   int size, bytes_read;
-  LIST *l;
+  LIST *l, *class_miss;
   bool have_superclass;
   struct stat statbuf;
   MESSAGE *m;
   OBJECT *o = NULL, *o_value = NULL;
 
+  if (!*fn)
+    return NULL;
+
   if (stat (fn, &statbuf))
     return NULL;
+
+  for (l = class_misses; l; l = l -> next) {
+    if (str_eq (fn, (char *)l -> data)) {
+      return NULL;
+    }
+  }
 
   __setClassLibRead (True);
 
@@ -527,6 +543,16 @@ OBJECT *get_class_library_definition (char *fn) {
   }
 
  class_def_NULL_return:
+  /***/
+  class_miss = new_list ();
+  class_miss -> data = strdup (fn);
+  if (class_misses == NULL) {
+    class_misses = class_misses_head = class_miss;
+  } else {
+    class_misses_head -> next = class_miss;
+    class_miss -> prev = class_misses_head;
+    class_misses_head = class_miss;
+  }
   __xfree (MEMADDR (buf));
   __setClassLibRead (False);
 
