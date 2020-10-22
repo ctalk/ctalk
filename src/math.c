@@ -1,8 +1,8 @@
-/* $Id: math.c,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ */
+/* $Id: math.c,v 1.2 2020/10/22 13:00:06 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
-  Copyright © 2005-2012, 2018 Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2005-2012, 2018, 2020 Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
 
@@ -2355,7 +2355,7 @@ int handle_sizeof_op (MESSAGE_STACK messages, int op_ptr,
   for (i = op_ptr; i >= arg_end; i--) {
       messages[i] -> tokentype = RESULT;
     
-#if defined(__DJGPP__) || defined (__APPLE__)
+#if defined(__DJGPP__) || defined (__x86_64__)
     sprintf (messages[i] -> value, "%lu", sizeof (void *));
 #else
     sprintf (messages[i] -> value, "%u", sizeof (void *));
