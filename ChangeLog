@@ -1361,4 +1361,12 @@
 	- Added a class library lookup "miss" list so
 	get_class_library_definition doesn't try to parse miscellaneous
 	files in class library directories repeatedly (rtclslib.c).
+2020-10-23
+	- Updated obj_ref_str to handle 12-digit numbers (rtobjref.c).
+	- Added a check in eval_subexpr for an expression that is
+	like (*f), and just set the expression to the reffed value
+	if the label has been evaled (rt_expr.c).
+2020-10-24
+	- Added a call to __ctalkRegisterUserObject to Array : atPut.
+
 
