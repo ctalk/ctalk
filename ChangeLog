@@ -1368,5 +1368,9 @@
 	if the label has been evaled (rt_expr.c).
 2020-10-24
 	- Added a call to __ctalkRegisterUserObject to Array : atPut.
+2020-10-25
+	- Added a call to __ctalkRegisterUserObject to save reference
+	targets in cvar_object (rt_cvar.c).
+	- Increased MAX_USER_OBJECT_RESOURCES to 20480 (object.h).
 
 

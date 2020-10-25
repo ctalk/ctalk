@@ -1,4 +1,4 @@
-/* $Id: rt_cvar.c,v 1.2 2020/09/18 21:25:12 rkiesling Exp $ */
+/* $Id: rt_cvar.c,v 1.3 2020/10/25 22:38:27 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -2240,6 +2240,7 @@ OBJECT *cvar_object (CVAR *c, int *obj_is_created) {
 			(c -> name, rt_defclasses -> p_integer_class,
 			 d_scope|VAR_REF_OBJECT, "");
 		      SETINTVARS(o_ref, i_2);
+		      __ctalkRegisterUserObject (o_ref); /***/
 		      o_ref -> attrs |= OBJECT_REF_IS_CVAR_PTR_TGT;
 		      o = create_object_init_internal
 			(c -> name, rt_defclasses -> p_symbol_class,
