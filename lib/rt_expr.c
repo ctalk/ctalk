@@ -1,4 +1,4 @@
-/* $Id: rt_expr.c,v 1.3 2020/10/03 21:30:52 rkiesling Exp $ */
+/* $Id: rt_expr.c,v 1.4 2020/10/23 23:36:36 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -6074,22 +6074,65 @@ OBJECT *eval_subexpr (MESSAGE_STACK messages, int idx, int is_arg_expr) {
   if ((idx - matching_paren_ptr) == 1)
     return NULL;
 
-  /* one token within the parens - check if it's already evaled -
-     if so, just return it */
   n_subexpr_toks = 0;
   for (i = idx - 1; i > matching_paren_ptr; i--) {
     if (M_ISSPACE(e_messages[i]))
       continue;
     ++n_subexpr_toks;
     if (n_subexpr_toks == 1) {
+      /* one token within the parens - check if it's already evaled -
+	 if so, just return it */
       if (IS_OBJECT(e_messages[i] -> obj) &&
 	  (e_messages[i] -> evaled > 0)) {
 	subexpr_result = e_messages[i] -> obj;
       }
-    } else if (n_subexpr_toks > 1) {
+    } else if (n_subexpr_toks == 2) {
+      /*
+       *  If we have a subexpression that's just something like:
+       *
+       *     (*f)
+       *
+       *  Then just get the reffed object from f, and set the
+       *  expression's value object to it.
+       */
+      if ((M_TOK(e_messages[i]) == LABEL) &&
+	  IS_OBJECT(e_messages[i] -> obj)) {
+	int prev_idx, prev_idx_2, next_idx;
+	OBJECT *__r;
+	prev_idx = prev_msg (e_messages, i);
+	prev_idx_2 = prev_msg (e_messages, prev_idx);
+	next_idx = next_msg (e_messages, i);
+	if ((next_idx == matching_paren_ptr) &&
+	    (prev_idx_2 == idx)) {
+	  if (e_messages[prev_idx] -> attrs & RT_TOK_IS_PREFIX_OPERATOR) {
+	    if ((e_messages[i] -> obj -> __o_class ==
+		rt_defclasses -> p_symbol_class) &&
+		(e_messages[i] -> evaled > 0)) {
+	      __r = *(OBJECT **)e_messages[i] -> obj -> __o_value;
+	      if (IS_OBJECT(__r)) {
+		for (i = idx; i >= matching_paren_ptr; i--) {
+		  if (e_messages[i] -> obj == NULL) {
+		    e_messages[i] -> obj = __r;
+		  }
+		  e_messages[i] -> value_obj = __r;
+		  e_messages[i] -> evaled += 2;
+		}
+		if (__r -> nrefs == 0) {
+		  __objRefCntInc (OBJREF(__r));
+		}
+		__ctalkRegisterUserObject (__r);
+		subexpr_result = __r;
+		return subexpr_result;
+	      }
+	    }
+	  }
+	}
+      }
+    } else if (n_subexpr_toks > 2) {
       break;
     }
   }
+
   if (n_subexpr_toks == 1) {
     for (i = idx; i >= matching_paren_ptr; i--) {
       e_messages[i] -> obj = subexpr_result;
@@ -6097,6 +6140,7 @@ OBJECT *eval_subexpr (MESSAGE_STACK messages, int idx, int is_arg_expr) {
     }
     return subexpr_result;
   }
+
 
   subexpr_start = next_msg (e_messages, idx);
   subexpr_end = prev_msg (e_messages, matching_paren_ptr);
