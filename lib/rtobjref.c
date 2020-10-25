@@ -1,4 +1,4 @@
-/* $Id: rtobjref.c,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ */
+/* $Id: rtobjref.c,v 1.2 2020/10/23 15:56:34 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -155,6 +155,7 @@ OBJECT *obj_ref_str (char *__s) {
 
 #ifdef __x86_64
 
+# ifdef __APPLE__
   if ((__s[0] && (__s[0] == '0')) && 
       (__s[1] && (__s[1] == 'x')) && 
       (__s[2] && ct_xdigit((int)__s[2])) && 
@@ -173,6 +174,32 @@ OBJECT *obj_ref_str (char *__s) {
       }
     }
   }
+
+# else /* __APPLE__ */
+
+  if ((__s[0] && (__s[0] == '0')) && 
+      (__s[1] && (__s[1] == 'x')) && 
+      (__s[2] && ct_xdigit((int)__s[2])) && 
+      (__s[3] && ct_xdigit((int)__s[3])) && 
+      (__s[4] && ct_xdigit((int)__s[4])) && 
+      (__s[5] && ct_xdigit((int)__s[5])) && 
+      (__s[6] && ct_xdigit((int)__s[6])) && 
+      (__s[7] && ct_xdigit((int)__s[7])) &&
+      (__s[8] && ct_xdigit((int)__s[8])) &&
+      (__s[9] && ct_xdigit((int)__s[9])) &&
+      (__s[10] && ct_xdigit((int)__s[10])) &&
+      (__s[11] && ct_xdigit((int)__s[11])) &&
+      (__s[12] && ct_xdigit((int)__s[12])) &&
+      (__s[13] && ct_xdigit((int)__s[13])) &&
+      (__s[14] == '\0')) {
+    if ((__r = (OBJECT *)__ctalkStrToPtr (__s)) != NULL) {
+      if (OBJREF_IS_OBJECT(__r)) {
+	return __r;
+      }
+    }
+  }
+
+# endif /* __APPLE__ */
 
 #else /* __x86_64 */
 
