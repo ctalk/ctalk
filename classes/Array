@@ -1,4 +1,4 @@
-/* $Id: Array,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ -*-c-*-*/
+/* $Id: Array,v 1.2 2020/10/25 01:27:47 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -82,7 +82,6 @@ Array instanceMethod atPut (int __array_index, OBJECT *__elem_object) {
     key_object = NULL;
   }
 
-  /* keyObject setValueOld __elem_object; */
   keyObject setValue __elem_object;
   key_alias_ptr = keyObject setName __array_index;
   key_alias_ptr -> attrs |= OBJECT_IS_MEMBER_OF_PARENT_COLLECTION;
@@ -102,6 +101,7 @@ Array instanceMethod atPut (int __array_index, OBJECT *__elem_object) {
   __ctalkAddInstanceVariable (__ctalk_self_internal (),
    			      key_alias_ptr -> __o_name,
    			      key_alias_ptr);
+  __ctalkRegisterUserObject (*(OBJECT **)key_alias_ptr -> __o_value);
   return self;
 }
 
