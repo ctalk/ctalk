@@ -1,4 +1,4 @@
-/* $Id: rtobjref.c,v 1.7 2020/10/28 15:15:06 rkiesling Exp $ */
+/* $Id: rtobjref.c,v 1.8 2020/10/28 22:46:43 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -157,6 +157,7 @@ OBJECT *obj_ref_str (char *__s) {
 #ifdef __x86_64
 
 # ifdef __APPLE__
+
   if ((__s[0] && (__s[0] == '0')) && 
       (__s[1] && (__s[1] == 'x')) && 
       (__s[2] && ct_xdigit((int)__s[2])) && 
@@ -199,34 +200,6 @@ OBJECT *obj_ref_str (char *__s) {
       }
     }
   }
-#if 0
-  else {
-    /* We might have a byte alignment that results in a negative char 
-       or some other overflow - check. */
-    uintptr_t tmp;
-    errno = 0;
-    __r = NULL;
-    OBJECT *addrbase;
-    tmp = strtoul (__s, NULL, 16);
-    addrbase = __ctalkCreateObject ("tmp", "Magnitude", "Object",
-				    LOCAL_VAR);
-    if (errno == 0 && tmp != 0) {
-      if ((tmp & 0xff0000000000) == ((uintptr_t)addrbase & 0xff0000000000)) {
-	if ((__r = (OBJECT *)__ctalkStrToPtr (__s)) != NULL) {
-	  if (!OBJREF_IS_OBJECT(__r)) {
-	    __r = NULL;
-	  }
-	}
-      } else {
-	__r = NULL;
-      }
-    }
-    __xfree (MEMADDR(addrbase -> __o_value));
-    __xfree (MEMADDR(addrbase -> __o_vartags));
-    __xfree (MEMADDR(addrbase));
-    return __r;
-  }
-#endif  
 
 # endif /* __APPLE__ */
 
