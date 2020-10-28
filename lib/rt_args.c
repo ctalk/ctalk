@@ -1,4 +1,4 @@
-/* $Id: rt_args.c,v 1.2 2020/09/18 21:25:12 rkiesling Exp $ */
+/* $Id: rt_args.c,v 1.3 2020/10/28 10:29:19 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -2157,7 +2157,8 @@ static OBJECT *__ctalk_arg_expr (MESSAGE_STACK messages, int method_ptr,
 	   use that as the result, which means we can delete
 	   the Symbol object that references it.
 	*/
-	__r = obj_ref_str (messages[arg_end_idx] -> obj -> __o_value);
+	__r = obj_ref_str_2 (messages[arg_end_idx] -> obj -> __o_value,
+			     messages[arg_end_idx] -> obj);
 	if (IS_OBJECT(__r)) {
 	  __ctalkSetObjectScope (__r, __r -> scope & ~VAR_REF_OBJECT);
 	  __objRefCntSet (OBJREF(__r), 1);

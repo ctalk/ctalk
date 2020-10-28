@@ -1372,5 +1372,22 @@
 	- Added a call to __ctalkRegisterUserObject to save reference
 	targets in cvar_object (rt_cvar.c).
 	- Increased MAX_USER_OBJECT_RESOURCES to 20480 (object.h).
-
-
+2020-10-26
+	- Added a check in obj_ref_str that works with addresses that
+	have byte alignment changes (rtobjref.c).
+	- In __ctalkDeleteObjectInternal, check that a reffed object
+	is not a class object before deleting it (rtnewobj.c).
+2020-10-27
+	- Added obj_ref_str_2 (rtnewobj.c). Updated obj_ref_str
+	calls to obj_ref_str_2 in __ctalkDeleteObjectInternal,
+	CVAR_receiver_return and CVAR_ref_return (rt_return.c).
+2020-10-28
+	- Updated obj_ref_str to obj_ref_str_2 calls in
+	find_method_after_close_paren_a (ismethd.c),
+	__ctalk_arg_expr (rt_args.c), object_from_CVAR and
+	__cvarGetTemplateCallerCVAR (rt_cvar.c); __restore_rt_info
+	(rtinfo.c), reffed_ref_is_circular_a (rt_obj.c),
+	__ctalkAddInstanceVariable (rtobjvar.c),
+	__ctalkRegisterCharPtrReturn, CVAR_receiver_return,
+	and CVAR_ref_return (rt_cvar.c); and
+	cvar_alias_created_here (rttmpobj.c).

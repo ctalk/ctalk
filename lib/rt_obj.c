@@ -1,4 +1,4 @@
-/* $Id: rt_obj.c,v 1.2 2020/09/18 21:25:12 rkiesling Exp $ */
+/* $Id: rt_obj.c,v 1.3 2020/10/28 10:29:19 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -1483,7 +1483,7 @@ static int reffed_ref_is_circular_a (OBJECT *o, OBJECT *reffed) {
 	return r;
       }
     }
-    if ((value_reffed_obj = obj_ref_str (t -> __o_value)) != NULL) {
+    if ((value_reffed_obj = obj_ref_str_2 (t -> __o_value, t)) != NULL) {
       if ((r = reffed_ref_is_circular_a (o, value_reffed_obj)) != FALSE) {
 	--reffed_ref_lvl;
 	return r;

@@ -1,4 +1,4 @@
-/* $Id: rtobjref.c,v 1.2 2020/10/23 15:56:34 rkiesling Exp $ */
+/* $Id: rtobjref.c,v 1.7 2020/10/28 15:15:06 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -34,6 +34,7 @@
 #include <sys/stat.h>
 #include <stddef.h>
 #include <limits.h>
+#include <errno.h>
 #include "object.h"
 #include "message.h"
 #include "ctalk.h"
@@ -197,6 +198,185 @@ OBJECT *obj_ref_str (char *__s) {
 	return __r;
       }
     }
+  }
+#if 0
+  else {
+    /* We might have a byte alignment that results in a negative char 
+       or some other overflow - check. */
+    uintptr_t tmp;
+    errno = 0;
+    __r = NULL;
+    OBJECT *addrbase;
+    tmp = strtoul (__s, NULL, 16);
+    addrbase = __ctalkCreateObject ("tmp", "Magnitude", "Object",
+				    LOCAL_VAR);
+    if (errno == 0 && tmp != 0) {
+      if ((tmp & 0xff0000000000) == ((uintptr_t)addrbase & 0xff0000000000)) {
+	if ((__r = (OBJECT *)__ctalkStrToPtr (__s)) != NULL) {
+	  if (!OBJREF_IS_OBJECT(__r)) {
+	    __r = NULL;
+	  }
+	}
+      } else {
+	__r = NULL;
+      }
+    }
+    __xfree (MEMADDR(addrbase -> __o_value));
+    __xfree (MEMADDR(addrbase -> __o_vartags));
+    __xfree (MEMADDR(addrbase));
+    return __r;
+  }
+#endif  
+
+# endif /* __APPLE__ */
+
+#else /* __x86_64 */
+
+#if ((defined (__sparc__) && defined (__GNUC__)) ||	\
+     (defined (__APPLE__) && defined (__GNUC__)))
+  if ((__s[0] && (__s[0] == '0')) && 
+      (__s[1] && (__s[1] == 'x')) && 
+      (__s[2] && ct_xdigit((int)__s[2])) && 
+      (__s[3] && ct_xdigit((int)__s[3])) && 
+      (__s[4] && ct_xdigit((int)__s[4])) && 
+      (__s[5] && ct_xdigit((int)__s[5])) && 
+      (__s[6] && ct_xdigit((int)__s[6])) && 
+      (__s[7] && ct_xdigit((int)__s[7])) &&
+      (__s[8] == '\0')) {
+    if ((__r = (OBJECT *)__ctalkStrToPtr (__s)) != NULL) {
+      if (OBJREF_IS_OBJECT(__r)) {
+	return __r;
+      }
+    }
+  }
+  /*
+   *  In case Solaris or OS X uses different addressing.
+   */
+  if ((__s[0] && (__s[0] == '0')) && 
+      (__s[1] && (__s[1] == 'x')) && 
+      (__s[2] && ct_xdigit((int)__s[2])) && 
+      (__s[3] && ct_xdigit((int)__s[3])) && 
+      (__s[4] && ct_xdigit((int)__s[4])) && 
+      (__s[5] && ct_xdigit((int)__s[5])) && 
+      (__s[6] && ct_xdigit((int)__s[6])) &&
+      (__s[7] == '\0')) {
+    if ((__r = (OBJECT *)__ctalkStrToPtr (__s)) != NULL) {
+      if (OBJREF_IS_OBJECT(__r)) {
+	return __r;
+      }
+    }
+  }
+#else
+
+  if ((__s[0] && (__s[0] == '0')) && 
+      (__s[1] && (__s[1] == 'x')) && 
+      (__s[2] && ct_xdigit((int)__s[2])) && 
+      (__s[3] && ct_xdigit((int)__s[3])) && 
+      (__s[4] && ct_xdigit((int)__s[4])) && 
+      (__s[5] && ct_xdigit((int)__s[5])) && 
+      (__s[6] && ct_xdigit((int)__s[6])) && 
+      (__s[7] && ct_xdigit((int)__s[7])) && 
+      (__s[8] && ct_xdigit((int)__s[8])) &&
+      (__s[9] == '\0')) {
+    if ((__r = (OBJECT *)__ctalkStrToPtr (__s)) != NULL) {
+      if (((int)__r == INT_MAX) || (__r == I_UNDEF))
+	return NULL;
+      if (IS_OBJECT(__r))
+	return __r;
+    }
+  }
+
+#endif
+#endif /* __x86_64 */  
+
+  return NULL;
+}
+
+/* Similar to obj_ref_str, but the obj parameter provides the
+   fn with a heap location so we can guage whether a number
+   refers to a valid memory location.
+*/
+OBJECT *obj_ref_str_2 (char *__s, OBJECT *obj) {
+  OBJECT *__r;
+  if (__s == NULL)
+    return NULL;
+
+  /* See the comments with the definition of ct_xdigit, above. 
+   (We really, really do need to check every digit of a
+   possible pointer.) */
+
+#ifdef __x86_64
+
+# ifdef __APPLE__
+  if ((__s[0] && (__s[0] == '0')) && 
+      (__s[1] && (__s[1] == 'x')) && 
+      (__s[2] && ct_xdigit((int)__s[2])) && 
+      (__s[3] && ct_xdigit((int)__s[3])) && 
+      (__s[4] && ct_xdigit((int)__s[4])) && 
+      (__s[5] && ct_xdigit((int)__s[5])) && 
+      (__s[6] && ct_xdigit((int)__s[6])) && 
+      (__s[7] && ct_xdigit((int)__s[7])) &&
+      (__s[8] && ct_xdigit((int)__s[8])) &&
+      (__s[9] && ct_xdigit((int)__s[9])) &&
+      (__s[10] && ct_xdigit((int)__s[10])) &&
+      (__s[11] == '\0')) {
+    if ((__r = (OBJECT *)__ctalkStrToPtr (__s)) != NULL) {
+      if (OBJREF_IS_OBJECT(__r)) {
+	return __r;
+      }
+    }
+  }
+
+# else /* __APPLE__ */
+
+  if ((__s[0] && (__s[0] == '0')) && 
+      (__s[1] && (__s[1] == 'x')) && 
+      (__s[2] && ct_xdigit((int)__s[2])) && 
+      (__s[3] && ct_xdigit((int)__s[3])) && 
+      (__s[4] && ct_xdigit((int)__s[4])) && 
+      (__s[5] && ct_xdigit((int)__s[5])) && 
+      (__s[6] && ct_xdigit((int)__s[6])) && 
+      (__s[7] && ct_xdigit((int)__s[7])) &&
+      (__s[8] && ct_xdigit((int)__s[8])) &&
+      (__s[9] && ct_xdigit((int)__s[9])) &&
+      (__s[10] && ct_xdigit((int)__s[10])) &&
+      (__s[11] && ct_xdigit((int)__s[11])) &&
+      (__s[12] && ct_xdigit((int)__s[12])) &&
+      (__s[13] && ct_xdigit((int)__s[13])) &&
+      (__s[14] == '\0')) {
+    if ((__r = (OBJECT *)__ctalkStrToPtr (__s)) != NULL) {
+      if (OBJREF_IS_OBJECT(__r)) {
+	return __r;
+      }
+    }
+  } else {
+    /* We might have a byte alignment that results in a negative char 
+       or some other overflow - check. */
+    uintptr_t tmp;
+    if (!IS_OBJECT(obj))
+      return NULL;
+    errno = 0;
+    __r = NULL;
+    tmp = strtoul (__s, NULL, 16);
+    if (errno == 0 && tmp != 0) {
+      if (((uintptr_t)obj & 0xff0000000000) == 0) {
+	return NULL;
+      }
+      if ((tmp & 0xff0000000000) == ((uintptr_t)obj & 0xff0000000000)) {
+	if (((uintptr_t)obj & 0xff0000000000) == 0) {
+	  return NULL;
+	}
+	if ((__r = (OBJECT *)__ctalkStrToPtr (__s)) != NULL) {
+	  if (!OBJREF_IS_OBJECT(__r)) {
+	    __r = NULL;
+	  }
+	}
+      } else {
+	__r = NULL;
+      }
+      return __r;
+    }
+    return __r;
   }
 
 # endif /* __APPLE__ */

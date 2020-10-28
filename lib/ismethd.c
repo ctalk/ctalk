@@ -1,8 +1,8 @@
-/* $Id: ismethd.c,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ */
+/* $Id: ismethd.c,v 1.2 2020/10/28 10:29:19 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
-  Copyright © 2005-2017, 2019  Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2005-2017, 2019, 2020  Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
 
@@ -424,8 +424,10 @@ static bool find_method_after_close_paren_a (MESSAGE_STACK messages,
 		/* If we have a case of the __ptr member pointing to
 		   an __o_value member string which contains the address...
 		*/
-		if ((reffed_obj = obj_ref_str 
-		     ((char *)cvar_label->val.__value.__ptr)) != NULL) {
+		if ((reffed_obj = obj_ref_str_2
+		     ((char *)cvar_label->val.__value.__ptr,
+		      /* *Any* object works here. */
+		      __ctalkGetClass ("OBJECT"))) != NULL) {
 		  if (IS_OBJECT(reffed_obj)) {
 		    if (ismethd_find_method_by_name_p 
 			(&(reffed_obj), method_name)) {
@@ -449,7 +451,8 @@ static bool find_method_after_close_paren_a (MESSAGE_STACK messages,
 	} else { /* if (label_is_cvar) */
 	  if (IS_OBJECT(messages[i_2]->obj)) {
 	    m_prev_tok_obj = messages[i_2] -> obj;
-	    if ((reffed_obj = obj_ref_str (m_prev_tok_obj -> __o_value))
+	    if ((reffed_obj = obj_ref_str_2
+		 (m_prev_tok_obj -> __o_value, m_prev_tok_obj))
 		!= NULL) {
 	      if (ismethd_find_method_by_name_p 
 		  (&(reffed_obj), method_name)) {
@@ -461,8 +464,9 @@ static bool find_method_after_close_paren_a (MESSAGE_STACK messages,
 		}
 	      }
 	    } else if (IS_OBJECT(m_prev_tok_obj -> instancevars)) {
-	      if ((reffed_obj = obj_ref_str 
-		   (m_prev_tok_obj -> instancevars -> __o_value))
+	      if ((reffed_obj = obj_ref_str_2
+		   (m_prev_tok_obj -> instancevars -> __o_value,
+		    m_prev_tok_obj))
 		  != NULL) {
 		if (ismethd_find_method_by_name_p 
 		    (&(reffed_obj), method_name)) {

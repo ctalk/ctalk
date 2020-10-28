@@ -1,4 +1,4 @@
-/* $Id: rtobjvar.c,v 1.2 2020/09/18 21:25:13 rkiesling Exp $ -*-c-*-*/
+/* $Id: rtobjvar.c,v 1.3 2020/10/28 10:29:20 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -168,9 +168,10 @@ OBJECT *__ctalkAddInstanceVariable (OBJECT *receiver, char *name, OBJECT *var) {
 	   */
 	  if (v -> __o_p_obj && var_copy -> __o_p_obj) {
 	    if (v -> __o_p_obj == var_copy -> __o_p_obj) {
-	      __r1 = obj_ref_str 
+	      __r1 = obj_ref_str_2 
 		((v -> instancevars) ? v -> instancevars -> __o_value :
-		 v -> __o_value);
+		 v -> __o_value,
+		 (v -> instancevars) ? v -> instancevars : v);
 	      if (IS_OBJECT (__r1) && __r1 -> scope & CVAR_VAR_ALIAS_COPY) {
 		__ctalkDeleteObject (__r1);
 	      }

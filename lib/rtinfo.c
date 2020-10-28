@@ -1,4 +1,4 @@
-/* $Id: rtinfo.c,v 1.2 2020/09/18 21:25:13 rkiesling Exp $ */
+/* $Id: rtinfo.c,v 1.3 2020/10/28 10:29:19 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -510,7 +510,8 @@ int __restore_rt_info (void) {
 	    } else {
 	      if (!(__v -> var_object -> scope & METHOD_USER_OBJECT)) {
 		OBJECT *__r;
-		if ((__r = obj_ref_str (__v->var_object -> __o_value)) != NULL) {
+		if ((__r = obj_ref_str_2 (__v->var_object -> __o_value,
+					  __v -> var_object)) != NULL) {
 		  __v -> var_object -> __o_value[0] = '\0';
 		}
 		__ctalkDeleteObject (__v -> var_object);
@@ -536,8 +537,9 @@ int __restore_rt_info (void) {
 		  METHOD_USER_OBJECT)) {
 	      OBJECT *__r;
 	      if ((__r = 
-		   obj_ref_str (M_LOCAL_VAR_LIST(__m)->var_object -> __o_value))
-		  != NULL) {
+		   obj_ref_str_2
+		   (M_LOCAL_VAR_LIST(__m)->var_object -> __o_value,
+		    M_LOCAL_VAR_LIST(__m)->var_object)) != NULL) {
 		M_LOCAL_VAR_LIST(__m) -> var_object -> __o_value[0] = '\0';
 	      }
 	      __ctalkDeleteObject (M_LOCAL_VAR_LIST(__m) -> var_object); 

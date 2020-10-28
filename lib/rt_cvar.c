@@ -1,4 +1,4 @@
-/* $Id: rt_cvar.c,v 1.3 2020/10/25 22:38:27 rkiesling Exp $ */
+/* $Id: rt_cvar.c,v 1.4 2020/10/28 10:29:19 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -1887,8 +1887,9 @@ static OBJECT *object_from_CVAR (CVAR *c, OBJECT **o_out, int *obj_is_created) {
 	  __objRefCntInc (OBJREF(o_from_var));
 	}
 	*o_out = o_from_var;
-      } else if ((o_from_var = obj_ref_str 
-		  ((char *)c -> val.__value.__ptr))  != NULL) {
+      } else if ((o_from_var = obj_ref_str_2 
+		  ((char *)c -> val.__value.__ptr,
+		   __ctalkGetClass ("Object")))  != NULL) {
 	*o_out = create_object_init_internal
 	  (c -> name, rt_defclasses -> p_symbol_class, CREATED_PARAM,
 	   (char *)c -> val.__value.__ptr);
@@ -2669,7 +2670,7 @@ OBJECT *__ctalkGetTemplateCallerCVAR (char *name) {
   /*
    *  If reference is not an object, check for a char *.
    */
-  if ((__t_2 = obj_ref_str (valbuf)) != NULL) {
+  if ((__t_2 = obj_ref_str_2 (valbuf, __ctalkGetClass ("Object"))) != NULL) {
     __ctalkCopyObject (OBJREF(__t_2), OBJREF(__t));
   } else {
     if ((__lcvar -> type_attrs & CVAR_TYPE_CHAR) &&

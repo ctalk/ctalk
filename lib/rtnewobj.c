@@ -1,4 +1,4 @@
-/* $Id: rtnewobj.c,v 1.2 2020/09/18 21:25:13 rkiesling Exp $ -*-c-*-*/
+/* $Id: rtnewobj.c,v 1.8 2020/10/28 10:29:19 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -1307,7 +1307,7 @@ void __ctalkDeleteObjectInternal (OBJECT *__o) {
      if (__o -> __o_value)  {
        if (IS_OBJECT(__o -> __o_class)) {
 	 if ((__o -> __o_class != rt_defclasses -> p_string_class) &&
-	     ((__r = obj_ref_str (__o -> __o_value)) != NULL)) {
+	   ((__r = obj_ref_str_2 (__o -> __o_value, __o)) != NULL)) {
 	   cleanup_reffed_object (__o, __r);
 	   __xfree (MEMADDR(__o -> __o_value));
 	   __o ->__o_value = NULL;
@@ -1322,15 +1322,17 @@ void __ctalkDeleteObjectInternal (OBJECT *__o) {
 		    (__o -> attrs & OBJECT_VALUE_IS_BIN_SYMBOL)) {
 	   if ((__r = *(OBJECT **)__o -> __o_value) != NULL) {
 	     sprintf (buf, "%p", (void *)__r);
-	     if (obj_ref_str (buf)) {
-	       if (!parent_ref_is_circular (__o, __r)) {
-		 if (__r -> next) __r -> next -> prev = __r -> prev;
-		 if (__r -> prev) __r -> prev -> next = __r -> next;
-		 if ((__r -> attrs & OBJECT_IS_VALUE_VAR) &&
-		     (IS_OBJECT(__r -> __o_p_obj))) {
-		   __r -> __o_p_obj -> instancevars = __r -> next;
+	     if (obj_ref_str_2 (buf, __o)) {
+	       if (!IS_CLASS_OBJECT(__r)) { /***/
+		 if (!parent_ref_is_circular (__o, __r)) {
+		   if (__r -> next) __r -> next -> prev = __r -> prev;
+		   if (__r -> prev) __r -> prev -> next = __r -> next;
+		   if ((__r -> attrs & OBJECT_IS_VALUE_VAR) &&
+		       (IS_OBJECT(__r -> __o_p_obj))) {
+		     __r -> __o_p_obj -> instancevars = __r -> next;
+		   }
+		   __ctalkDeleteObject (__r);
 		 }
-		 __ctalkDeleteObject (__r);
 	       }
 	     }
 	   }
@@ -1340,7 +1342,7 @@ void __ctalkDeleteObjectInternal (OBJECT *__o) {
 		    (__o -> attrs & OBJECT_VALUE_IS_BIN_SYMBOL)) {
 	   if ((__r = *(OBJECT **)__o -> __o_value) != NULL) {
 	     sprintf (buf, "%p", (void *)__r);
-	     if (obj_ref_str (buf)) {
+	     if (obj_ref_str_2 (buf, __o)) {
 	       if (!(__r -> scope & GLOBAL_VAR)&& !is_receiver (__r)) {
 		 if (!parent_ref_is_circular (__o, __r)) {
 		   if (__r -> next) __r -> next -> prev = __r -> prev;

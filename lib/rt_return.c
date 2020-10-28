@@ -1,8 +1,8 @@
-/* $Id: rt_return.c,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ */
+/* $Id: rt_return.c,v 1.3 2020/10/28 10:29:19 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
-  Copyright © 2005-2012, 2015-2017, 2019  
+  Copyright © 2005-2012, 2015-2017, 2019, 2020  
     Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
@@ -121,7 +121,7 @@ OBJECT *__ctalkRegisterCharPtrReturn (char *s) {
     __o = create_object_init_internal
       ("result", rt_defclasses -> p_string_class, LOCAL_VAR, s);
     __ctalkRegisterUserObject(__o);
-    if (obj_ref_str (s)) {
+    if (obj_ref_str_2 (s, __o)) {
       /* __ctalkToCCharPtr uses checks this in order to return
 	 the char *, not an OBJECT *. */
       __ctalkSetObjectAttr (__o, OBJECT_IS_STRING_LITERAL);
@@ -168,7 +168,8 @@ static OBJECT *CVAR_receiver_return (char *name) {
 #else
       htoa (buf, (unsigned int)c -> val.__value.__ptr);
 #endif
-      if ((obj = obj_ref_str (buf)) != NULL) {
+      /* *Any* object will do for the second arg. */
+      if ((obj = obj_ref_str_2 (buf, __ctalkGetClass ("Object"))) != NULL) {
 	if (is_receiver (obj))
 	  return obj;
 	if (is_receiver (top_parent_object (obj)))
@@ -181,7 +182,7 @@ static OBJECT *CVAR_receiver_return (char *name) {
 #else
       htoa (buf, (unsigned int)c -> val.__value.__ptr);
 #endif
-      if ((obj = obj_ref_str (buf)) != NULL) {
+      if ((obj = obj_ref_str_2 (buf, __ctalkGetClass ("Object"))) != NULL) {
 	if (is_receiver (obj))
 	  return obj;
 	if (is_receiver (top_parent_object (obj)))
@@ -204,7 +205,7 @@ static OBJECT *CVAR_ref_return (char *name) {
 #else
       htoa (buf, (unsigned int)c -> val.__value.__ptr);
 #endif
-      if ((obj = obj_ref_str (buf)) != NULL) {
+      if ((obj = obj_ref_str_2 (buf, __ctalkGetClass ("Object"))) != NULL) {
 	if (obj -> scope & VAR_REF_OBJECT) 
 	  return obj;
       }
@@ -214,7 +215,7 @@ static OBJECT *CVAR_ref_return (char *name) {
 #else
       htoa (buf, (unsigned int)c -> val.__value.__ptr);
 #endif
-      if ((obj = obj_ref_str (buf)) != NULL) {
+      if ((obj = obj_ref_str_2 (buf, __ctalkGetClass ("Object"))) != NULL) {
 	if (obj -> scope & VAR_REF_OBJECT) 
 	  return obj;
       }

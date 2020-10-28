@@ -1,8 +1,8 @@
-/* $Id: rttmpobj.c,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ */
+/* $Id: rttmpobj.c,v 1.2 2020/10/28 10:29:20 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
-  Copyright © 2005-2019  Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2005-2020  Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
 
@@ -409,7 +409,8 @@ int cvar_alias_rcvr_created_here (MESSAGE_STACK messages, int stack_start,
 	      OBJECT_VALUE_IS_BIN_SYMBOL) {
 	    if ((__r = *(OBJECT **)(rcvr_obj -> instancevars -> __o_value))
 		!= NULL) {
-	      if (obj_ref_str (htoa (buf, (unsigned long)__r))) {
+	      if (obj_ref_str_2 (htoa (buf, (unsigned long)__r),
+				 __r)) {
 		__ctalkRegisterUserObject (__r);
 		rcvr_obj -> instancevars -> __o_value[0] = 0;
 		rcvr_obj -> __o_value[0] = 0;
@@ -417,7 +418,8 @@ int cvar_alias_rcvr_created_here (MESSAGE_STACK messages, int stack_start,
 	    }
 	  }
 	} else {
-	  if ((__r = obj_ref_str (rcvr_obj -> __o_value)) != NULL) {
+	  if ((__r = obj_ref_str_2 (rcvr_obj -> __o_value, rcvr_obj))
+	      != NULL) {
 	    __ctalkRegisterUserObject (__r);
 	    rcvr_obj -> __o_value[0] = 0;
 	  }
