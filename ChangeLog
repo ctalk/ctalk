@@ -1391,4 +1391,11 @@
 	__ctalkRegisterCharPtrReturn, CVAR_receiver_return,
 	and CVAR_ref_return (rt_cvar.c); and
 	cvar_alias_created_here (rttmpobj.c).
-	- Another update to Array : atPut for saving 
+2020-10-28
+	- Updated __copy_object_internal to copy
+	an OBJECT reference from a value instance variable
+	to its parent object (rt_obj.c).
+2020-10-29
+ 	- Another update to Array : atPut for saving the
+	array element to the method's object pool.
+

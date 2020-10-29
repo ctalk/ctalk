@@ -1,4 +1,4 @@
-/* $Id: rt_obj.c,v 1.3 2020/10/28 10:29:19 rkiesling Exp $ */
+/* $Id: rt_obj.c,v 1.4 2020/10/29 11:56:09 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -1436,6 +1436,15 @@ static OBJECT *__copy_object_internal (OBJREF_T src_ptr, OBJREF_T dest_ptr) {
 	} else {
 	  (*dest_ptr)->instancevars = new_var;
 	  (void)__objRefCntSet (OBJREF(new_var), (*src_ptr) -> nrefs);
+	  if ((new_var -> attrs & OBJECT_IS_VALUE_VAR) &&
+	      (new_var -> attrs & OBJECT_VALUE_IS_BIN_SYMBOL)) {
+	    free ((*dest_ptr) -> __o_value); /* not __xfree */
+	    (*dest_ptr) -> __o_value = __xalloc (PTRBUFSIZE);
+	    memcpy ((void *)(*dest_ptr) -> __o_value,
+		    (void *)p_var -> __o_value,
+		    PTRBUFSIZE);
+	    (*dest_ptr) -> attrs |= OBJECT_VALUE_IS_BIN_SYMBOL;
+	  }
 	}
       } else {
 	--copy_object_lvl;
