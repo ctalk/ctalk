@@ -1,4 +1,4 @@
-/* $Id: rt_cvar.c,v 1.4 2020/10/28 10:29:19 rkiesling Exp $ */
+/* $Id: rt_cvar.c,v 1.6 2020/10/30 21:07:50 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -1705,6 +1705,12 @@ static bool multiple_cvars_in_frame (char *varname) {
   return (n > 1);
 }
 
+static void new_cvar_obj_ref (OBJECT *o) {
+  o -> attrs |= OBJECT_REF_IS_CVAR_PTR_TGT;
+  o -> instancevars -> attrs |= OBJECT_REF_IS_CVAR_PTR_TGT;
+  __ctalkRegisterUserObject (o);
+}
+
 /* Refer to the comments in object_from_int_CVAR. */
 static OBJECT *object_from_longlong_CVAR (CVAR *c, int *obj_is_created,
 					  int d_scope) {
@@ -1759,14 +1765,14 @@ static OBJECT *object_from_longlong_CVAR (CVAR *c, int *obj_is_created,
 				       LONGINTEGER_SUPERCLASSNAME,
 				       d_scope|VAR_REF_OBJECT,
 				       buf);
-      o_ref -> attrs |= OBJECT_REF_IS_CVAR_PTR_TGT;
+      new_cvar_obj_ref (o_ref);
       CVHTOA(buf,o_ref);
       o = __ctalkCreateObjectInit (c -> name, 
 				   SYMBOL_CLASSNAME,
 				   SYMBOL_SUPERCLASSNAME,
 				   d_scope,
 				   buf);
-      o -> attrs |= OBJECT_REF_IS_CVAR_PTR_TGT;
+      new_cvar_obj_ref (o);
       *obj_is_created = TRUE;
 #endif      
       break;
@@ -1781,17 +1787,20 @@ static OBJECT *object_from_longlong_CVAR (CVAR *c, int *obj_is_created,
 	o_ref = create_object_init_internal
 	  (c -> name, rt_defclasses -> p_longinteger_class,
 	   d_scope|VAR_REF_OBJECT, "");
+	new_cvar_obj_ref (o_ref);
 	*(long long *)o_ref -> __o_value =
 	  *(long long *)o_ref -> instancevars -> __o_value = i_2;
 	o_ref2 = create_object_init_internal
 	  (c -> name, rt_defclasses -> p_symbol_class,
 	   d_scope, "");
+	new_cvar_obj_ref (o_ref2);
 	*(OBJECT **)o_ref2 -> __o_value =
 	  *(OBJECT **)o_ref2 -> instancevars -> __o_value =
 	  o_ref;
 	o = create_object_init_internal
 	  (c -> name, rt_defclasses -> p_symbol_class,
 	   d_scope, "");
+	new_cvar_obj_ref (o);
 	*(OBJECT **)o -> __o_value =
 	  *(OBJECT **)o -> instancevars -> __o_value =
 	  o_ref2;
@@ -1834,6 +1843,7 @@ static OBJECT *object_from_int_CVAR (CVAR *c, int *obj_is_created,
 	    (c -> name, rt_defclasses -> p_integer_class, d_scope, "");
 	  SETINTVARS(o, c -> val.__value.__i);
 	  *obj_is_created = TRUE;
+	  new_cvar_obj_ref (o);
 	  return o;
 	} else {
 	  o = create_object_init_internal
@@ -1842,6 +1852,7 @@ static OBJECT *object_from_int_CVAR (CVAR *c, int *obj_is_created,
 	    *(unsigned long *)o -> instancevars -> __o_value =
 	    (unsigned long)c -> val.__deref_ptr;
 	*obj_is_created = TRUE;
+	new_cvar_obj_ref (o);
 	return o;
 	}
       } else if (c -> attrs & CVAR_ATTR_ARRAY_DECL) {
@@ -1849,6 +1860,7 @@ static OBJECT *object_from_int_CVAR (CVAR *c, int *obj_is_created,
 	  (c -> name, rt_defclasses -> p_integer_class, d_scope, "");
 	SETINTVARS(o, c -> val.__value.__i);
 	*obj_is_created = TRUE;
+	new_cvar_obj_ref (o);
 	return o;
       }
       /* save the object in the first declared method we
@@ -1857,7 +1869,8 @@ static OBJECT *object_from_int_CVAR (CVAR *c, int *obj_is_created,
 	 The attribute means we can delete the object
 	 completely during the method pool cleaning.
       */
-      o_ref -> attrs |= OBJECT_REF_IS_CVAR_PTR_TGT;
+      /* new_object_attr (o_ref, OBJECT_REF_IS_CVAR_PTR_TGT); *//***/
+      /* o_ref -> attrs |= OBJECT_REF_IS_CVAR_PTR_TGT; *//***/
       /* Do this separately... */
 #ifdef __x86_64
       li = (long long int)((long long int **)c -> val.__value.__ptr)[0];
@@ -1869,7 +1882,8 @@ static OBJECT *object_from_int_CVAR (CVAR *c, int *obj_is_created,
       *obj_is_created = TRUE;
       break;
     }
-  __ctalkSetObjectAttr (o, o -> attrs | OBJECT_REF_IS_CVAR_PTR_TGT);
+  /* Still needed? */
+  new_cvar_obj_ref (o);
   return o;
 }
 
@@ -2143,12 +2157,13 @@ OBJECT *cvar_object (CVAR *c, int *obj_is_created) {
 		o_ref = create_object_init_internal
 		  (c -> name, rt_defclasses -> p_float_class,
 		   d_scope|VAR_REF_OBJECT, buf);
+		new_cvar_obj_ref (o_ref);
 		o = create_object_init_internal
 		  (c -> name, rt_defclasses -> p_symbol_class,
 		   d_scope, "");
 		*(OBJECT **)o -> __o_value =
 		  *(OBJECT **)o -> instancevars -> __o_value = o_ref;
-		o -> attrs |= OBJECT_REF_IS_CVAR_PTR_TGT;
+		new_cvar_obj_ref (o);
 		*obj_is_created = TRUE;
 		return o;
 	      break;
@@ -2241,15 +2256,14 @@ OBJECT *cvar_object (CVAR *c, int *obj_is_created) {
 			(c -> name, rt_defclasses -> p_integer_class,
 			 d_scope|VAR_REF_OBJECT, "");
 		      SETINTVARS(o_ref, i_2);
-		      __ctalkRegisterUserObject (o_ref); /***/
-		      o_ref -> attrs |= OBJECT_REF_IS_CVAR_PTR_TGT;
+		      new_cvar_obj_ref (o_ref);
 		      o = create_object_init_internal
 			(c -> name, rt_defclasses -> p_symbol_class,
 			 d_scope, "");
 		      SYMVAL(o -> __o_value) =
 			SYMVAL(o -> instancevars -> __o_value) =
 			(uintptr_t)o_ref;
-		      o -> attrs |= OBJECT_REF_IS_CVAR_PTR_TGT;
+		      new_cvar_obj_ref (o);
 		      *obj_is_created = TRUE;
 		      break;
 		    case 2:
@@ -2265,17 +2279,20 @@ OBJECT *cvar_object (CVAR *c, int *obj_is_created) {
 			o_ref = create_object_init_internal
 			  (c -> name, rt_defclasses -> p_integer_class,
 			   d_scope|VAR_REF_OBJECT, "");
+			new_cvar_obj_ref (o_ref);
 			INTVAL(o_ref -> __o_value) = 
 			  INTVAL(o_ref -> instancevars -> __o_value) = i_2;
 			o_ref2 = create_object_init_internal
 			  (c -> name, rt_defclasses -> p_symbol_class,
 			   d_scope, "");
+			new_cvar_obj_ref (o_ref2);
 			SYMVAL(o_ref2 -> __o_value) =
 			  SYMVAL(o_ref2 -> instancevars -> __o_value) =
 			  (uintptr_t)o_ref;
 			o = create_object_init_internal
 			  (c -> name, rt_defclasses -> p_symbol_class,
 			   d_scope, "");
+			new_cvar_obj_ref (o);
 			SYMVAL(o -> __o_value) =
 			  SYMVAL(o -> instancevars -> __o_value) =
 			  (uintptr_t)o_ref2;
