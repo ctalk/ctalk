@@ -1,4 +1,4 @@
-/* $Id: object.h,v 1.3 2020/10/25 22:38:27 rkiesling Exp $ */
+/* $Id: object.h,v 1.2 2020/11/06 20:22:52 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -478,10 +478,7 @@ typedef enum {
   m_char_ptr_context
 } METHOD_C_CONTEXT;
 
-/* MAXARGS * 2 */
-/* #define MAX_USER_OBJECT_RESOURCES 1024 *//***/
-/* MAXARGS * 40 */
-#define MAX_USER_OBJECT_RESOURCES 20480
+#define MAX_USER_OBJECT_RESOURCES 50000
 
 /* The macros don't work with all GCC versions. 
    So just use the C function versions.  These are generally only
