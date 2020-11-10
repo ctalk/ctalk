@@ -1,4 +1,4 @@
-/* $Id: tempio.c,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ */
+/* $Id: tempio.c,v 1.2 2020/11/10 23:26:51 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -171,7 +171,11 @@ int rename_file (char *oldname, char *newname) {
 
   FILE *old_f, *new_f;
   char c;
-  int r;
+  char *s;
+  int r, fsize;
+
+  if ((fsize = file_size_silent (oldname)) == ERROR) 
+    return ERROR;
 
   if ((old_f = fopen (oldname, FILE_READ_MODE)) == NULL)
     return ERROR;
@@ -179,8 +183,13 @@ int rename_file (char *oldname, char *newname) {
   if ((new_f = fopen (newname, FILE_WRITE_MODE)) == NULL)
     return ERROR;
 
-  while ((r = fread (&c, sizeof (char), 1, old_f)) != 0)
-    fwrite (&c, sizeof (char), 1, new_f);
+  if ((s = (char *)__xalloc (fsize)) == NULL)
+    return ERROR;
+
+  while ((r = fread (s, sizeof (char), fsize, old_f)) != 0)
+    fwrite (s, sizeof (char), fsize, new_f);
+
+  __xfree (MEMADDR(s));
 
   fclose (old_f);
   fclose (new_f);

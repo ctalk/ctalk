@@ -1,4 +1,4 @@
-/* $Id: libdeps.c,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ */
+/* $Id: libdeps.c,v 1.2 2020/11/10 23:26:51 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -52,7 +52,8 @@ int cache_ctpp_output_file (char *ctpp_ofn_path) {
   
   strcatx (lib_cache_path, libcachedir, "/", buf, NULL);
 
-  rename (ctpp_ofn_path, lib_cache_path);
+  /* rename (ctpp_ofn_path, lib_cache_path); *//***/
+  rename_file (ctpp_ofn_path, lib_cache_path);
 
   return SUCCESS;
 }
