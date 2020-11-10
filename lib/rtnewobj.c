@@ -1,4 +1,4 @@
-/* $Id: rtnewobj.c,v 1.8 2020/10/28 10:29:19 rkiesling Exp $ -*-c-*-*/
+/* $Id: rtnewobj.c,v 1.4 2020/11/08 16:07:22 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -36,6 +36,8 @@
 #include "ctalk.h"
 #include "lex.h"
 #include "typeof.h"
+
+/* #define SHOW_POOL_DELETIONS */
 
 extern I_PASS interpreter_pass; /* Declared in rtinfo.c. */
 
@@ -1068,6 +1070,65 @@ static bool collection_member_reference (OBJECT *o) {
     return false;
 }
 
+static void remove_reffed_object (OBJECT *o, OBJECT *referer) {
+
+  METHOD *m;
+  LIST *l;
+
+  if (o -> scope & GLOBAL_VAR || o -> scope & LOCAL_VAR ||
+      o -> scope & ARG_VAR || is_receiver (o))
+    /* At least for now, until we check whether the object is in 
+       that function methdod or its callers' nested scope. */
+    return;
+
+  if (referer -> attrs & OBJECT_IS_VALUE_VAR &&
+      IS_OBJECT(referer -> __o_p_obj) &&
+      referer -> __o_p_obj -> attrs & OBJECT_IS_MEMBER_OF_PARENT_COLLECTION)
+    return;
+
+  if (o -> scope & VAR_REF_OBJECT) {
+    if (o -> scope & CREATED_PARAM) {
+      if (o -> nrefs <= 2) {
+	/* Only one object refers to this object. */
+	if (o -> scope & METHOD_USER_OBJECT) {
+#ifdef SHOW_POOL_DELETIONS
+	  printf ("<<<<< REGISTERED METHOD_USER_OBJECT 1\n");
+#endif	  
+	  m = POOL_METHOD_P(o);
+	  if (IS_METHOD(m)) {
+	    l = POOL_LINK_P(o);
+	    if (l -> next)
+	      l -> next -> prev = l -> prev;
+	    if (l -> prev)
+	      l -> prev -> next = l -> next;
+	    if (l == m -> user_object_ptr)
+	      m -> user_object_ptr = l -> prev;
+	    if (l == m -> user_objects)
+	      m -> user_objects = l -> next;
+	    --m -> n_user_objs;
+	    __xfree (MEMADDR(l));
+	  }
+	}
+
+	__ctalkDeleteObject (o);
+      } else {
+	__objRefCntDec (OBJREF(o));
+      }
+    } else {
+      __objRefCntDec (OBJREF(o));
+    }
+    return;
+  }
+
+  if (o -> scope & METHOD_USER_OBJECT) {
+#ifdef SHOW_POOL_DELETIONS
+    printf ("<<<<< REGISTERED METHOD_USER_OBJECT 2\n");
+#endif		   
+  }
+  __ctalkDeleteObject (o);
+
+}
+
 /*
   WARNING: 
   Be careful here if we get a segfault -
@@ -1115,7 +1176,7 @@ void cleanup_reffed_object (OBJECT *__o, OBJECT *__r) {
 		    if (__cleanup_deletion)
 		      varentry_cleanup_reset (__r -> __o_vartags -> tag);
 		    if (collection_member_reference (__o)) {
-		      __ctalkDeleteObject (__r);
+		      remove_reffed_object (__r, __o); /***/
 		    } else {
 		      __objRefCntDec (OBJREF(__r));
 		    }
@@ -1125,7 +1186,7 @@ void cleanup_reffed_object (OBJECT *__o, OBJECT *__r) {
 		    if (__cleanup_deletion)
 		      varentry_cleanup_reset (__r -> __o_vartags -> tag);
 		    if (collection_member_reference (__o)) {
-		      __ctalkDeleteObject (__r);
+		      remove_reffed_object (__r, __o);
 		    } else {
 		      __objRefCntDec (OBJREF(__r));
 		    }
@@ -1152,12 +1213,10 @@ void cleanup_reffed_object (OBJECT *__o, OBJECT *__r) {
 		!((__r -> __o_vartags) ?
 		  __r -> __o_vartags -> tag : NULL)) {
 	      if (collection_member_reference (__o)) {
-		__objRefCntZero (OBJREF(__r));
-		__call_delete_object_internal (__r);
+		remove_reffed_object (__r, __o); /***/
 	      } else if (__cleanup_deletion &&
 			 (__r -> scope & CVAR_VAR_ALIAS_COPY)) {
-		__objRefCntZero (OBJREF(__r));
-		__call_delete_object_internal (__r);
+		remove_reffed_object (__r, __o);
 	      } else {
 		__objRefCntDec (OBJREF(__r));
 	      }
@@ -1172,8 +1231,7 @@ void cleanup_reffed_object (OBJECT *__o, OBJECT *__r) {
 			   __r is a collection member instead of a
 			   separate object that's pointing to a collection
 			   member. */
-			__objRefCntZero (OBJREF(__r));
-			__call_delete_object_internal (__r);
+			remove_reffed_object (__r, __o);
 		      } else {
 			__objRefCntDec (OBJREF(__r));
 		      }
@@ -1188,15 +1246,13 @@ void cleanup_reffed_object (OBJECT *__o, OBJECT *__r) {
 		if (__r -> scope & VAR_REF_OBJECT) {
 		  if (IS_OBJECT(__o -> __o_p_obj)) {
 		    if (collection_member_reference (__o) || __cleanup_deletion) {
-		      __objRefCntZero (OBJREF(__r));
-		      __call_delete_object_internal (__r);
+		      remove_reffed_object (__r, __o); /***/
 		    } else {
 		      __objRefCntDec (OBJREF(__r));
 		    }
 		  }
 		} else {
-		  __objRefCntZero (OBJREF(__r));
-		  __call_delete_object_internal (__r);
+		  remove_reffed_object (__r, __o);
 		}
 	      }
 	    } else {
@@ -1209,8 +1265,7 @@ void cleanup_reffed_object (OBJECT *__o, OBJECT *__r) {
 		  (void)__objRefCntDec (OBJREF (__r));
 		} else {
 		  if (collection_member_reference (__o)) {
-		    __objRefCntZero (OBJREF(__r));
-		    __call_delete_object_internal (__r);
+		    remove_reffed_object (__r, __o); /***/
 		  } else {
 		    __objRefCntDec (OBJREF(__r));
 		  }
@@ -1323,7 +1378,7 @@ void __ctalkDeleteObjectInternal (OBJECT *__o) {
 	   if ((__r = *(OBJECT **)__o -> __o_value) != NULL) {
 	     sprintf (buf, "%p", (void *)__r);
 	     if (obj_ref_str_2 (buf, __o)) {
-	       if (!IS_CLASS_OBJECT(__r)) { /***/
+	       if (!IS_CLASS_OBJECT(__r)) {
 		 if (!parent_ref_is_circular (__o, __r)) {
 		   if (__r -> next) __r -> next -> prev = __r -> prev;
 		   if (__r -> prev) __r -> prev -> next = __r -> next;
@@ -1331,7 +1386,7 @@ void __ctalkDeleteObjectInternal (OBJECT *__o) {
 		       (IS_OBJECT(__r -> __o_p_obj))) {
 		     __r -> __o_p_obj -> instancevars = __r -> next;
 		   }
-		   __ctalkDeleteObject (__r);
+		   remove_reffed_object (__r, __o);
 		 }
 	       }
 	     }
@@ -1351,7 +1406,7 @@ void __ctalkDeleteObjectInternal (OBJECT *__o) {
 		       (IS_OBJECT(__r -> __o_p_obj))) {
 		     __r -> __o_p_obj -> instancevars = __r -> next;
 		   }
-		   __ctalkRegisterUserObject (__r);
+		   remove_reffed_object (__r, __o);
 		 }
 	       }
 	     }

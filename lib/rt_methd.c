@@ -1,4 +1,4 @@
-/* $Id: rt_methd.c,v 1.2 2020/09/18 21:25:12 rkiesling Exp $ */
+/* $Id: rt_methd.c,v 1.2 2020/11/08 10:27:07 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -1610,7 +1610,7 @@ static inline void __delete_local_object_internal (VARENTRY *__v) {
  *  from a function, they are stored in __ctalk_dictionary, where
  *  we delete all objects that are not GLOBAL_VAR in scope.
  */
-int __local_object_init = FALSE;
+/* int __local_object_init = FALSE; *//***/
 extern int __cleanup_deletion;
 void __ctalk_initLocalObjects (void) {
 
@@ -1645,7 +1645,7 @@ void __ctalk_initLocalObjects (void) {
     if (M_LOCAL_VAR_LIST(__m))
       delete_varentry (M_LOCAL_VAR_LIST(__m));
     M_LOCAL_VAR_LIST(__m) = NULL;
-    __local_object_init = FALSE;
+    /* __local_object_init = FALSE; *//***/
   }
   __cleanup_deletion = FALSE;
 }
@@ -1687,7 +1687,7 @@ void init_extra_objects (void) {
       delete_varentry (M_LOCAL_VAR_LIST(__m));
       M_LOCAL_VAR_LIST(__m) = NULL;
     }
-    __local_object_init = FALSE;
+    /* __local_object_init = FALSE; *//***/
     __cleanup_deletion = FALSE;
     --__m -> nth_local_ptr;
   }

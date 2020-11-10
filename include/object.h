@@ -1,4 +1,4 @@
-/* $Id: object.h,v 1.2 2020/11/06 20:22:52 rkiesling Exp $ */
+/* $Id: object.h,v 1.6 2020/11/09 12:10:22 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -478,6 +478,7 @@ typedef enum {
   m_char_ptr_context
 } METHOD_C_CONTEXT;
 
+/*#define MAX_USER_OBJECT_RESOURCES 20480*/
 #define MAX_USER_OBJECT_RESOURCES 50000
 
 /* The macros don't work with all GCC versions. 
@@ -560,6 +561,24 @@ struct _paramlist_entry {
 #define OBJTOC_OBJECT_DELETE  0
 #define OBJTOC_OBJECT_KEEP    (1 << 0)
 #define OBJTOC_DELETE_CVARS   (1 << 1)
+
+/*
+ *  Sets/gets back pointers of objects stored in a method's
+ *  user object pool.  Because objects' instance_methods and
+ *  class_methods members are only used by class objects, we
+ *  can re-purpose them for this use in individual, instantiated
+ *  objects.  This allows us to access the pool data whenever
+ *  we want to clear an object's entry from a method pool 
+ *  whenever we want to delete an object in some other routine,
+ *  like when we instantiate new, local objects whenever we call
+ *  a method.
+ */
+#define POOL_SET_METHOD_P(o,m) (o -> instance_methods = m)
+#define POOL_SET_RT_FN_P(o,r) (o -> instance_methods = (METHOD *)r)
+#define POOL_SET_LINK_P(o,l) (o -> class_methods = (METHOD *)l)
+#define POOL_METHOD_P(o)(o -> instance_methods)
+#define POOL_RT_FN_P(o)((RT_INFO *)o -> instance_methods)
+#define POOL_LINK_P(o)((LIST *)o -> class_methods)
 
 #endif   /* _CTALK_LIB */
 

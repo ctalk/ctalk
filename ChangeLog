@@ -1401,4 +1401,23 @@
 2020-10-30
 	- Added new_cvar_obj_ref, used by the functions in
 	rt_cvar.c.
-
+2020-11-06
+	- Increased MAX_USER_OBJECT_RESOURCES to 50000
+	(object.h).
+2020-11-07
+	- Added the POOL_* defines (object.h).  Used in
+	__ctalkRegisterUserObject (rt_obj.c).
+	- Added remove_reffed_object used in rtnewobj.c.
+	- Removed all references to the local_object_init
+	global, which is not longer used.
+2020-11-09
+	- Added clause in eval_expr to handle dereferenced
+	C variable alias objects in argument blocks (rt_expr.c).
+	- Added a __ctalkRegisterUserObject call in cvar_object,
+	because a lot of strange argument objects originate there,
+	and it at least helps prevent memory leaks (rt_cvar.c).
+2020-11-10
+	- Changed the rename call in cache_ctpp_output_file to rename_file,
+	which works across different disk partitions (libdeps.c).  Updated
+	rename_file to move the file in a single read/write operation
+	(tempio.c).

@@ -1,4 +1,4 @@
-/* $Id: rt_expr.c,v 1.4 2020/10/23 23:36:36 rkiesling Exp $ */
+/* $Id: rt_expr.c,v 1.3 2020/11/09 12:10:22 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -3718,12 +3718,60 @@ OBJECT *eval_expr (char *s, OBJECT *recv_class, METHOD *method,
 			      e_method -> n_params);
 	      
 	      for (j = 0; j < args_in_expr; j++) {
-		
 		OBJECT *__arg_object, *__r;
 		int i_1;
+		bool have_cvartab_arg = false;
 
 		__arg_object = __ctalk_arg_pop ();
 		__ctalk_arg_push (__arg_object);
+		/*
+		 *  First check for objects that are deconstructed
+		 *  reference targets from vartabs; e.g., 
+		 *
+		 *   <method> *<cvartab_entry_1>, *<cvartab_entry_2>
+		 *
+		 *  gets changed by __rt_method_args to: 
+		 *
+		 *   <method>  <cvartab_entry_1>,  <cvartab_entry_2>
+		 *
+		 *  and the messages with the argument tokens 
+		 *  of the cvartab entries have the target object
+		 *  of the parent's reference as its obj member, which
+		 *  is a little faster, but we have to clean it up 
+		 *  here. 
+		 *
+		 *  TODO - Maybe we can add this to the loop below,
+		 *  directly after the check for a 
+		 *  RT_TOK_OBJ_IS_CREATED_CVAR_ALIAS token.
+		 */
+		for (i_1 = p -> msg_frame_start, have_cvartab_arg = false;
+		     (i_1 >= p -> msg_frame_top) && !have_cvartab_arg;
+		     i_1--) {
+		  if (e_messages[i_1] -> attrs & RT_TOK_IS_VARTAB_ID) {
+		    if (IS_OBJECT(e_messages[i_1] -> obj)) {
+		      if (e_messages[i_1] -> obj == __arg_object) {
+			__ctalk_arg_pop ();
+			if (__arg_object -> scope & VAR_REF_OBJECT) {
+			  __ctalkRegisterUserObject (__arg_object);
+			  e_messages[i_1] -> obj = NULL;
+			  have_cvartab_arg = true;
+			} else {
+			  __ctalkDeleteObject (e_messages[i_1] -> obj);
+			  e_messages[i_1] -> obj = NULL;
+			  have_cvartab_arg = true;
+			}
+		      }
+		    }
+		  }
+		}
+
+#if 0 /***/
+		__arg_object = __ctalk_arg_pop ();
+		__ctalk_arg_push (__arg_object);
+#endif		
+		if (have_cvartab_arg)
+		  goto ee_arg_done;
+		
 		__r = reffed_arg_obj (__arg_object);
 		if (!__ctalk_arg_cleanup (e_result)) {
 		  for (i_1 = p -> msg_frame_start;
@@ -3810,7 +3858,8 @@ OBJECT *eval_expr (char *s, OBJECT *recv_class, METHOD *method,
 		    }
 		  }
 		}
-
+	      ee_arg_done:
+		
 		if (e_method->args[e_method -> n_args - 1] && 
 		    IS_ARG(e_method->args[e_method -> n_args - 1])) {
 

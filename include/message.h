@@ -1,4 +1,4 @@
-/* $Id: message.h,v 1.2 2020/10/09 22:05:37 rkiesling Exp $ */
+/* $Id: message.h,v 1.2 2020/11/09 04:11:13 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -54,7 +54,7 @@
 #define RT_TOK_HAS_LVAL_PTR_CX             (1 << 14)
 #define RT_TOK_OBJ_IS_CREATED_CVAR_ALIAS   (1 << 15)
 #define RT_TOK_IS_PREFIX_OPERATOR          (1 << 16) /*==TOK_IS_PREFIX_OP...*/
-#define RT_TOK_IS_VARTAB_ID               (1 << 17)
+#define RT_TOK_IS_VARTAB_ID                (1 << 17)
 #define RT_TOK_IS_SELF_KEYWORD             (1 << 19)
 #define RT_TOK_IS_PRINTF_ARG               (1 << 21) /* ==TOK_IS_PRINTF_ARG */
 #define RT_DATA_IS_CACHED_METHOD           (1 << 22)

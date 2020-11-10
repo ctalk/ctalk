@@ -1,4 +1,4 @@
-/* $Id: rt_obj.c,v 1.4 2020/10/29 11:56:09 rkiesling Exp $ */
+/* $Id: rt_obj.c,v 1.4 2020/11/09 04:11:14 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -1566,7 +1566,7 @@ void __ctalkObjectAttrOr (OBJECT *__o, unsigned int attr) {
   }
 }
 
-extern int __local_object_init;
+/* extern int __local_object_init; */ /***/
 
 int object_is_deletable (OBJECT *obj, OBJECT *result_obj, 
 			 OBJECT *subexpr_obj){
@@ -1574,6 +1574,7 @@ int object_is_deletable (OBJECT *obj, OBJECT *result_obj,
   if (obj == result_obj || obj == subexpr_obj)
     return FALSE;
 
+#if 0 /***/
   if ((obj -> scope & LOCAL_VAR) &&
       (__local_object_init == TRUE)) {
     /*    if ((obj != result_obj) &&
@@ -1584,6 +1585,7 @@ int object_is_deletable (OBJECT *obj, OBJECT *result_obj,
     else
       return TRUE;
   }
+#endif  
   if ((obj -> scope == CREATED_PARAM) &&
       !is_receiver (obj) &&
       !is_arg (obj) &&
@@ -1848,7 +1850,7 @@ void __delete_operand_result (OBJREF_T operand_result_p,
   }
 }
 
-static void delete_reference_in_user_object (OBJECT *user_object) {
+void delete_reference_in_user_object (OBJECT *user_object) {
   OBJECT *r;
   if (IS_OBJECT(user_object -> instancevars)) {
     user_object -> instancevars -> __o_value[0] = 0;
@@ -1890,6 +1892,8 @@ int __ctalkRegisterUserObject (OBJECT *o) {
       m -> user_objects = m -> user_object_ptr = new_list ();
       m -> user_objects -> data = o;
       m -> n_user_objs = 1;
+      POOL_SET_METHOD_P(o,m);
+      POOL_SET_LINK_P(o,m -> user_objects);
     } else {
 
 
@@ -1937,6 +1941,9 @@ int __ctalkRegisterUserObject (OBJECT *o) {
 
       l_1 = new_list ();
       l_1 -> data = o;
+      /***/
+      POOL_SET_METHOD_P(o,m);
+      POOL_SET_LINK_P(o,l_1);
       m -> user_object_ptr -> next = l_1;
       l_1 -> prev = m -> user_object_ptr;
       m -> user_object_ptr = l_1;
@@ -1951,6 +1958,8 @@ int __ctalkRegisterUserObject (OBJECT *o) {
 	r-> user_objects = r -> user_object_ptr = new_list ();
 	r -> user_objects -> data = o;
 	r -> n_user_objs = 1;
+	POOL_SET_RT_FN_P(o, r);
+	POOL_SET_LINK_P(o, r -> user_objects);
       } else {
 
 	if (r -> n_user_objs >= MAX_USER_OBJECT_RESOURCES) {
@@ -1994,6 +2003,8 @@ int __ctalkRegisterUserObject (OBJECT *o) {
 
 	l = new_list ();
 	l -> data = o;
+	POOL_SET_RT_FN_P(o,r);
+	POOL_SET_LINK_P(o,l);
 	l -> prev = r -> user_object_ptr;
 	r -> user_object_ptr = l;
 	++r -> n_user_objs;
