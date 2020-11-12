@@ -762,6 +762,29 @@ Instance Methods
      METHOD_OBJECT argument and its own arguments must have been
      previously defined.  *Note Method::.
 
+'methodPoolMax (void)'
+'methodPoolMax (Integer NEW_MAX_SIZE)'
+     Set (with one argument) and retrieve (with no arguments) the
+     maximum number of objects in each method's object pool.  When a
+     method's pool size reaches this number of objects, the pool deletes
+     the the oldest object in the pool to make room for the new object.
+
+     Generally, the default pool size is suitable for the language tools
+     and demonstration programs that come packaged with Ctalk.  Some of
+     the test programs in the 'test/expect' subdirectory that run
+     through many iterations (i.e., thousands of iterations) require a
+     larger pool size.  This is especially true if a program uses many C
+     variables when iterating through its operations, and whether the C
+     variables are simply scalar or constant values (e.g., ints,
+     doubles, and literal strings), and whether the variables are
+     pointers to objects in memory.
+
+     The default maximum pool size is set when the Ctalk library is
+     built.  This size is reported in the 'configure' status report
+     during the build process.
+
+'methodObjectMessage (Method METHODOBJECT)'
+'methodObjectMessage (Method METHODOBJECT, Object ARG1, Object ARG2)'
      With three arguments, the method uses the second and third
      arguments as the method instance's arguments, without previous
      calls to the 'withArg' method (defined in 'Method' class).
@@ -8910,59 +8933,4 @@ Instance Methods
 'selectPrev (void)'
      Select the next or previous item of the list box's contents.  Also
      saves the index and contents of the previously selected item.
-
-
-File: ctalk.info,  Node: ANSIMessageBoxPane,  Next: ANSIProgressBarPane,  Prev: ANSIListBoxPane,  Up: Classes
-
-'ANSIMessageBoxPane' Class
---------------------------
-
-'ANSIMessageBox' objects present users with a pop-up dialog that
-contains a messages, and an 'ANSIButtonPane' 'Ok' button to close the
-widget.
-
-Here is a simple example.
-     int main () {
-       ANSIMessageBoxPane new messageBox;
-       messageBox withText "Hello, world!";
-       messageBox show 10, 10;
-       messageBox cleanup;
-     }
-
-Subclasses can always implement convenience methods to set input and
-output stream parameters if necessary.
-
-You should also take care of the differences between xterms, consoles,
-and serial terminals.  In particular, even though the 'parent' method
-(class 'ANSIWidgetPane') *Note ANSITerminalStream::.
-
-Instance Variables
-------------------
-
-'okButton'
-     An 'ANSIButtonPane' object that contains the pane's 'Ok' button.
-'messageText'
-     A 'String' object that contains the text that appears in the
-     message box.
-
-Instance Methods
-................
-
-'cleanup (void)'
-     Delete the receiver's extra data before deletion.  The receiver
-     objects themselves are deleted normally.
-
-'new (String MESSAGE_BOX_NAME)'
-     Create one or more new 'ANSIMessageBox' objects.
-
-'withText (String TEXT)'
-     The argument is the text that will appear in the message box.  The
-     method adjusts the pane's dimensions to fit the text.
-
-'show (int X_ORIGIN, int Y_ORIGIN)'
-     Display the receiver at X_ORIGIN, Y_ORIGIN.  If the receiver is
-     displayed independently, the origin is relative to the upper
-     left-hand corner of the display, or if the receiver is to be
-     displayed over a parent pane, it is mapped to the parent pane with
-     the origin relative the the parent pane's upper left-hand corner.
 

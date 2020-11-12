@@ -1421,8 +1421,14 @@
 2020-11-11
 	- Added three __ctalkRegisterUserObject calls in cvar_object
 	and object_from_long_long_CVAR (rt_cvar.c).
-2020-12-12
+2020-11-12
 	- Updated MAX_USER_OBJECT_RESOURCES to 8192 in object.h.
 	- In __ctalkCreateArg make sure that a Symbol object's attribute
 	and buffer is initialized correctly (rt_args.c).
+2020-11-13
+	- Added the __ctalkSetMethodPoolMax and __ctalkMethodPoolMax
+	library functions (rt_obj.c).  Also added the Object :
+	methodPoolMax (0 or 1 arguments).
+	- Updated the test programs in test/expect: cvararg4.c, cvararg5.c,
+	cvararg6.c, and cvararg7.c to use larger method pools.
 

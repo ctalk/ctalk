@@ -395,6 +395,33 @@ Ctalk adds these options.
 			internally by Ctalk, but it may be useful when
 			building programs that use machine-specific GL
 			extensions, like shaders.
+
+     --with-method-pool-size
+                        The default number of objects that each method's
+			pool can hold before it starts deleting the
+			oldest objects.  The default is sufficient for
+			Ctalk's	language tools and demonstration programs.
+			Programs that have greater memory needs, like
+			programs that iterate over a lot of C variables,
+			may need this increased, especially if the
+			C variables are pointers, and need to maintain a
+			lot of memory over the course of the program.
+			One example of program where this happens is
+			the test/expect/cvararg4.c program.
+
+			The default pool size is 8192 objects.  A
+			simple object like an Integer uses about 1.7k
+			for each instance, so the pools' actual memory
+			use must be measured for each program. That said,
+			Ctalk still works with systems with 1 GB of RAM
+			(albeit slowly, if it's an older machine).
+			
+			You can also independently change the pool size
+			for each app with the Object : methodPoolMax method.
+			The best value for a program might require some
+			experimentation	(because we never get tired of
+			hearing about clock programs that use more than
+			.5 Gb of memory).
 			
     UNIX Domain Sockets Additionally, Ctalk supports UNIX domain sockets
                         if the development headers (sys/socket.h and

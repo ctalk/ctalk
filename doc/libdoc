@@ -1347,6 +1347,23 @@ The function returns 0 on success, -1 on error.
 
 For examples of Method object calls, 
 
+>>>__ctalkMethodPoolMax (void):__ctalkSetMethodPoolMax (int new_size)
+Get or set a program's method pool size, in the number of objects that
+each method's pool retains.  The default pool size is set when the Ctalk
+libraries are built, and is displayed in the configure program's
+status report during the build process.  When a method's pool size
+reaches this number of objects, the pool deletes the oldest object
+in the pool to make room for the new object.
+
+Generally, the default pool size is suitable for the language tools
+and demonstration programs that come packaged with Ctalk.  Some of the
+test programs in the test/expect subdirectory that run through
+many iterations (i.e., thousands of iterations) require a larger pool
+size.  This is especially true if a program uses many C variables when
+iterating through its operations, and whether the C variables are
+simply scalar or constant values (e.g., ints, doubles, and literal
+strings), and whether the variables are pointers to objects in memory.
+
 >>>__ctalkMethodReturnClass (char *classname)
 Set the return class of an instance or class method during method
 initialization.

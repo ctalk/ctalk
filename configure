@@ -832,6 +832,7 @@ with_gl_includes
 with_gl_libs
 with_glew_includes
 with_glew_libs
+with_method_pool_size
 '
       ac_precious_vars='build_alias
 host_alias
@@ -1624,6 +1625,11 @@ Optional Packages:
   --with-glew-libs=DIR
                             Directory where the the GL Extension
                             Wrangler library, libGLEW, is located.
+  --with-method-pool-size=N
+                            Default number of objects each method's
+			    pool can hold.  The default is 8192 objects.
+                            Please consult the installation instructions (in
+			    the file, README) before changing this.
 
 Some influential environment variables:
   CC          C compiler command
@@ -13810,6 +13816,27 @@ $as_echo "#define HAVE_STDBOOL_H 0" >>confdefs.h
 
 fi
 
+#
+# IF CHANGING THIS, ALSO CHANGE IN THE OPTION TEXT and README!
+#
+max_method_pool=8192
+max_method_pool_def="-DMETHOD_POOL_MAX=$max_method_pool"
+
+
+# Check whether --with-method-pool-size was given.
+if test "${with_method_pool_size+set}" = set; then :
+  withval=$with_method_pool_size; max_method_pool=$withval
+     max_method_pool_def="-DMETHOD_POOL_MAX=$withval"
+#  [  case "$withval" in
+#     *)
+#     max_method_pool=$withval
+#     max_method_pool_def="-DMETHOD_POOL_MAX=$withval"
+#     ;;
+#     esac
+#  ]
+
+fi
+
 
 case "$host_os" in
      *cygwin*)  have_off_t="" ;;
@@ -14476,7 +14503,7 @@ LIB_AM_CFLAGS="$LIB_AM_CFLAGS $have_atoll_def $have_glob_def $have_glob_h_def $h
 LIB_AM_CFLAGS="$LIB_AM_CFLAGS $without_circular_object_warnings"
 LIB_AM_CFLAGS="$LIB_AM_CFLAGS $without_signed_hex_octal_constant_warnings_def"
 LIB_AM_CFLAGS="$LIB_AM_CFLAGS $lib_freetype_cflags"
-LIB_AM_CFLAGS="$LIB_AM_CFLAGS $have_glut_h_def $have_glx_h_def $have_glew_h_def "
+LIB_AM_CFLAGS="$LIB_AM_CFLAGS $have_glut_h_def $have_glx_h_def $have_glew_h_def $max_method_pool_def"
 LIB_AM_CFLAGS="$LIB_AM_CFLAGS $glwindowpos2i_def"
 LIB_AM_CFLAGS="$LIB_AM_CFLAGS $freetype_includes"
 
@@ -17111,6 +17138,7 @@ else
 fi
 
 $as_echo
+$as_echo  "Method Pool Max Objects               $max_method_pool"
 
 if test -f include_dirs.out; then
   $as_echo  'Built-In Include Paths:'

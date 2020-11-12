@@ -441,6 +441,28 @@ Perform a method call with a Method class object.  The
 method_object argument and its own arguments must have been
 previously defined.  
 
+>>>Object::methodPoolMax (void)
+>>>Object::methodPoolMax (Integer new_max_size)
+Set (with one argument) and retrieve (with no arguments) the maximum
+number of objects in each method's object pool.  When a method's pool
+size reaches this number of objects, the pool deletes the the oldest
+object in the pool to make room for the new object.
+
+Generally, the default pool size is suitable for the language tools
+and demonstration programs that come packaged with Ctalk.  Some of the
+test programs in the test/expect subdirectory that run through
+many iterations (i.e., thousands of iterations) require a larger pool
+size.  This is especially true if a program uses many C variables when
+iterating through its operations, and whether the C variables are
+simply scalar or constant values (e.g., ints, doubles, and literal
+strings), and whether the variables are pointers to objects in memory.
+
+The default maximum pool size is set when the Ctalk library is built.
+This size is reported in the configure status report during
+the build process.
+
+>>>Object::methodObjectMessage (Method methodObject)
+>>>Object::methodObjectMessage (Method methodObject, Object arg1, Object arg2)
 With three arguments, the method uses the second and third arguments
 as the method instance's arguments, without previous calls to
 the withArg method (defined in Method class).
@@ -7622,6 +7644,157 @@ dialog is being displayed for the first time.
 >>>X11ListBox::subPaneLeave (Object subPane, InputEvent event)
 Event handlers for highlighting the dialog's label or buttons when the
 pointer is over them.
+
+
+
+
+>>>X11FileSelectDialog::buttonClick (void)
+Returns an Integer with one of the following values.
+
+---------------------------------------------------------
+  
+  FILESELECT_LBUTTON
+  FILESELECT_RBUTTON
+  FILESELECT_BUTTON_NONE
+  
+---------------------------------------------------------
+
+These values are defined in ctalkdefs.h.  Programs can include
+the statement:
+
+---------------------------------------------------------
+  
+  #include <ctalkdefs.h>
+  
+---------------------------------------------------------
+
+near the start of the file.
+
+>>>X11FileSelectDialog::buttonText (void)
+Returns a String that contains the text of the button
+that the user has clicked, or NULL if no button has been clicked.
+
+To reset the button, programs should use the clearClick method,
+which is defined in X11ButtonPane class; for example:
+
+---------------------------------------------------------
+  
+  myDialog lbutton clearClick;
+  
+  ... or ...
+  
+  myDialog rbutton clearClick;
+  
+---------------------------------------------------------
+
+>>>X11FileSelectDialog::chDir (ItemBox item)
+Changes the working directory of the dialog (and the program that
+opens it) to the directory whose name is contained in item.
+If item contains '..', the the new directory is the
+parent directory of the current directory.
+
+>>>X11FileSelectDialog::draw (void)
+Redraws the dialog's label, list and button subpanes.  Redrawing
+of the text entry pane, if it is displayed, is handled separately.
+
+>>>X11FileSelectDialog::entryLength (void)
+Returns the length of the text entered in the dialog's entry box, or
+'-1' if the dialog does not display a text entry box.
+
+>>>X11FileSelectDialog::getExpandedDir (String dirPattern)
+Retrieves the contents of the directory named in dirPattern,
+which the method qualifies and stores in the targetPath
+instance variable.
+
+The method then constructs a sorted list of the directory's contents,
+which it stores in listPane's items instance variable. In order
+to use these items directly, programs could use an expression similar
+to this one.
+
+---------------------------------------------------------
+  
+  myFileDialog listPane items
+  
+---------------------------------------------------------
+
+>>>X11FileSelectDialog::initWidgets (void)
+Creates the subpane objects and adds them to the dialog's window when
+the dialog is first opened.  Sets the initialized instance variable
+(defined in X11YesNoBoxPane) to 'true'.
+
+>>>X11FileSelectDialog::makeItem (String itemText)
+Creates an ItemBox object (which is defined in
+X11ListPane class), with the text of the object, the item's
+boundaries and position in pixels.
+
+>>>X11FileSelectDialog::new (String paneName)
+The X11FileSelectDialog constructor.  The argument, a
+String, is the name of the new dialog object.
+
+Note: The X11FileSelectDialog class adds the fileMode
+instance variable to ItemBox class, so it's necessary to make
+sure that the ItemBox class, which is defined in
+X11ListPane.  In X11FileSelectDialog class, the
+X11ListPane class should be loaded automatically when the
+listPane instance variable is created.
+
+>>>X11FileSelectDialog::onExpose (Object subPane, InputEvent event)
+>>>X11FileSelectDialog::onListClick (Object subPane, InputEvent event)
+>>>X11FileSelectDialog::onResize (Object subPane, InputEvent event)
+>>>X11FileSelectDialog::subPaneButton (Object subPane, InputEvent event)
+The X11FileSelectDialog's event handlers.  If the dialog handles
+events similarly to the operations in superclasses, then Ctalk uses event
+handlers defined in X11FileSelectDialog's superclasses.
+
+>>>X11FileSelectDialog::nItemsSelected (void)
+Returns an Integer with the number of list entries that are currently
+selected.
+
+>>>X11FileSelectDialog::pathEntry (void)
+If the dialog displays a text entry box, and the user has entered the
+name of a new file in it, returns the fully qualified path of the
+entry (i.e., the current directory path plus the name of text entry).
+If the dialog does not display an entry box, or the entry box contains
+no text, the method returns an empty string.
+
+>>>X11FileSelectDialog::refresh (void)
+Updates the dialog window with the contents of the dialog's subpanes.
+
+>>>X11FileSelectDialog::selectedItems (List selecteItemsOut)
+Stores the text of each item that the user has selected in
+selectedItemsOut.
+
+>>>X11FileSelectDialog::selectedItemN (void)
+If the user has selected a single directory entry, returns the ordinal
+position of the item (counting from 0) as an Integer.
+
+>>>X11FileSelectDialog::selectedItemsN (List selecteItemsOut)
+Stores the ordinal position of enach item, counting from zero
+('0') that the user has selected in selectedItemsOut.  Each
+of the elements in in selectedItemsOut is an Integer
+object.
+
+>>>X11FileSelectDialog::selectedItemText (void)
+If the user has selected a single directory entry, returns the text of
+that item as a String.
+
+>>>X11FileSelectDialog::show (void)
+The main dialog box loop.  This creates the dialog's subpanes and
+attaches them to the main dialog window.  If the dialog has already
+been popped up, maps the dialog on the display.  Contains the event
+loop.  When the dialog is closed, the method returns to the calling
+program.
+
+>>>X11FileSelectDialog::textEntry (void)
+If the dialog displays a text entry box, and the user has entered a
+file name in it, returns a String that contains the text of the
+entry.  If the dialog does not display an entry box, or if the entry box
+does not contain any text, returns and empty string.
+
+>>>X11FileSelectDialog::updateLabel (String qualPath)
+Updates the dialog's label with the name of the directory that is
+being displayed in qualPath.
+
 
 
 >>>X11TextPane::addText (Object text)

@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.3 2020/10/17 11:02:03 rkiesling Exp $
+# $Id: configure.ac,v 1.3 2020/11/12 20:41:52 rkiesling Exp $
 AC_INIT(ctalk, 0.0.66, rk3314042@gmail.com, "")
 
 # Contained in acinclude.m4 and generated aclocal.m4
@@ -1159,6 +1159,21 @@ AC_DEFINE([HAVE_STDBOOL_H], [0],
 AC_SUBST(HAVE_STDBOOL_H)
 fi
 
+#
+# IF CHANGING THIS, ALSO CHANGE IN THE OPTION TEXT and README!
+#
+max_method_pool=8192
+max_method_pool_def="-DMETHOD_POOL_MAX=$max_method_pool"
+
+AC_ARG_WITH(method-pool-size,
+  [  --with-method-pool-size=N
+                            Default number of objects each method's
+			    pool can hold.  The default is 8192 objects.
+                            Please consult the installation instructions (in
+			    the file, README) before changing this.],
+     max_method_pool=$withval
+     max_method_pool_def="-DMETHOD_POOL_MAX=$withval"
+)
 
 case "$host_os" in
      *cygwin*)  have_off_t="" ;;
@@ -1481,7 +1496,7 @@ LIB_AM_CFLAGS="$LIB_AM_CFLAGS $have_atoll_def $have_glob_def $have_glob_h_def $h
 LIB_AM_CFLAGS="$LIB_AM_CFLAGS $without_circular_object_warnings"
 LIB_AM_CFLAGS="$LIB_AM_CFLAGS $without_signed_hex_octal_constant_warnings_def"
 LIB_AM_CFLAGS="$LIB_AM_CFLAGS $lib_freetype_cflags"
-LIB_AM_CFLAGS="$LIB_AM_CFLAGS $have_glut_h_def $have_glx_h_def $have_glew_h_def "
+LIB_AM_CFLAGS="$LIB_AM_CFLAGS $have_glut_h_def $have_glx_h_def $have_glew_h_def $max_method_pool_def" 
 LIB_AM_CFLAGS="$LIB_AM_CFLAGS $glwindowpos2i_def"
 LIB_AM_CFLAGS="$LIB_AM_CFLAGS $freetype_includes"
 
@@ -1652,6 +1667,7 @@ else
 fi
 
 AS_ECHO
+AS_ECHO "Method Pool Max Objects               $max_method_pool"
 
 if test -f include_dirs.out; then
   AS_ECHO 'Built-In Include Paths:'

@@ -1,4 +1,4 @@
-/* $Id: Object,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ -*-C-*-*/
+/* $Id: Object,v 1.2 2020/11/12 17:39:24 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -1144,4 +1144,13 @@ Object instanceMethod docDir (void) {
    documentation is installed on the system."
   returnObjectClass String;
   return __ctalkDocDir ();
+}
+
+Object instanceMethod methodPoolMax (void) {
+  returnObjectClass Integer;
+  return __ctalkMethodPoolMax ();
+}
+
+Object instanceMethod methodPoolMax (Integer newSize) {
+  __ctalkSetMethodPoolMax (newSize);
 }

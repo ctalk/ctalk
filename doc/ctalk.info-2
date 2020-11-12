@@ -17,6 +17,61 @@ Texts.  A copy of the license is included in the section entitled, "GNU
 Free Documentation License."
 
 
+File: ctalk.info,  Node: ANSIMessageBoxPane,  Next: ANSIProgressBarPane,  Prev: ANSIListBoxPane,  Up: Classes
+
+'ANSIMessageBoxPane' Class
+--------------------------
+
+'ANSIMessageBox' objects present users with a pop-up dialog that
+contains a messages, and an 'ANSIButtonPane' 'Ok' button to close the
+widget.
+
+Here is a simple example.
+     int main () {
+       ANSIMessageBoxPane new messageBox;
+       messageBox withText "Hello, world!";
+       messageBox show 10, 10;
+       messageBox cleanup;
+     }
+
+Subclasses can always implement convenience methods to set input and
+output stream parameters if necessary.
+
+You should also take care of the differences between xterms, consoles,
+and serial terminals.  In particular, even though the 'parent' method
+(class 'ANSIWidgetPane') *Note ANSITerminalStream::.
+
+Instance Variables
+------------------
+
+'okButton'
+     An 'ANSIButtonPane' object that contains the pane's 'Ok' button.
+'messageText'
+     A 'String' object that contains the text that appears in the
+     message box.
+
+Instance Methods
+................
+
+'cleanup (void)'
+     Delete the receiver's extra data before deletion.  The receiver
+     objects themselves are deleted normally.
+
+'new (String MESSAGE_BOX_NAME)'
+     Create one or more new 'ANSIMessageBox' objects.
+
+'withText (String TEXT)'
+     The argument is the text that will appear in the message box.  The
+     method adjusts the pane's dimensions to fit the text.
+
+'show (int X_ORIGIN, int Y_ORIGIN)'
+     Display the receiver at X_ORIGIN, Y_ORIGIN.  If the receiver is
+     displayed independently, the origin is relative to the upper
+     left-hand corner of the display, or if the receiver is to be
+     displayed over a parent pane, it is mapped to the parent pane with
+     the origin relative the the parent pane's upper left-hand corner.
+
+
 File: ctalk.info,  Node: ANSIProgressBarPane,  Next: ANSIScrollingListBoxPane,  Prev: ANSIMessageBoxPane,  Up: Classes
 
 'ANSIProgressBarPane' Class

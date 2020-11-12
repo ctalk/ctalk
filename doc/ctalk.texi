@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.6 2020/09/27 11:53:49 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.4 2020/11/12 20:41:53 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -1110,7 +1110,31 @@ Perform a method call with a @code{Method} class object.  The
 @var{method_object} argument and its own arguments must have been
 previously defined.  @xref{Method}.
 
-@cindex @mnm{withArg} instance method @idxclscite{Method}
+@cindex Pool size, method
+@cindex @mnm{methodPoolMax} instance method @idxclscite{Method}
+@item methodPoolMax (@code{void})
+@item methodPoolMax (@code{Integer} @var{new_max_size})
+Set (with one argument) and retrieve (with no arguments) the maximum
+number of objects in each method's object pool.  When a method's pool
+size reaches this number of objects, the pool deletes the the oldest
+object in the pool to make room for the new object.
+
+Generally, the default pool size is suitable for the language tools
+and demonstration programs that come packaged with Ctalk.  Some of the
+test programs in the @flnm{test/expect} subdirectory that run through
+many iterations (i.e., thousands of iterations) require a larger pool
+size.  This is especially true if a program uses many C variables when
+iterating through its operations, and whether the C variables are
+simply scalar or constant values (e.g., ints, doubles, and literal
+strings), and whether the variables are pointers to objects in memory.
+
+The default maximum pool size is set when the Ctalk library is built.
+This size is reported in the @flnm{configure} status report during
+the build process.
+
+@cindex @mnm{methodObjectMessage} instance method @idxclscite{Method}
+@item methodObjectMessage (@code{Method} @var{methodObject})
+@item methodObjectMessage (@code{Method} @var{methodObject}, @code{Object} @var{arg1}, @code{Object} @var{arg2})
 With three arguments, the method uses the second and third arguments
 as the method instance's arguments, without previous calls to
 the @mnm{withArg} method (defined in @code{Method} class).
@@ -8386,7 +8410,7 @@ Separator Character,} below.
 This example matches one of two patterns joined by a @samp{|}
 metacharacter.
 
-@c text/expect/examples/matchref3.c
+@c test/expect/examples/matchref3.c
 @example
 
 int main () @{
@@ -24009,6 +24033,27 @@ event dispatcher methods.
 The function returns @samp{0} on success, @samp{-1} on error.
 
 For examples of @code{Method} object calls, @xref{methodObjectMessage}.
+
+@cindex Pool size, method
+@idxlibfn{__ctalkMethodPoolMax}
+@idxlibfn{__ctalkSetMethodPoolMax}
+@item __ctalkMethodPoolMax (@code{void})
+@item __ctalkSetMethodPoolMax (@code{int} @var{new_size})
+Get or set a program's method pool size, in the number of objects that
+each method's pool retains.  The default pool size is set when the Ctalk
+libraries are built, and is displayed in the configure program's
+status report during the build process.  When a method's pool size
+reaches this number of objects, the pool deletes the oldest object
+in the pool to make room for the new object.
+
+Generally, the default pool size is suitable for the language tools
+and demonstration programs that come packaged with Ctalk.  Some of the
+test programs in the @flnm{test/expect} subdirectory that run through
+many iterations (i.e., thousands of iterations) require a larger pool
+size.  This is especially true if a program uses many C variables when
+iterating through its operations, and whether the C variables are
+simply scalar or constant values (e.g., ints, doubles, and literal
+strings), and whether the variables are pointers to objects in memory.
 
 @idxlibfn{__ctalkMethodReturnClass}
 @item __ctalkMethodReturnClass (@code{char *}@var{classname})

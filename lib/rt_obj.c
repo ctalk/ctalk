@@ -1,4 +1,4 @@
-/* $Id: rt_obj.c,v 1.4 2020/11/09 04:11:14 rkiesling Exp $ */
+/* $Id: rt_obj.c,v 1.6 2020/11/12 20:06:59 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -1858,6 +1858,16 @@ void delete_reference_in_user_object (OBJECT *user_object) {
   user_object -> __o_value[0] = 0;
 }
 
+static int method_pool_max = METHOD_POOL_MAX;
+
+void __ctalkSetMethodPoolMax (int new_size) {
+  method_pool_max = new_size;
+}
+
+int __ctalkMethodPoolMax (void) {
+  return method_pool_max;
+}
+
 int __ctalkRegisterUserObject (OBJECT *o) {
   METHOD *m;
   OBJECT *o_1 = NULL, *o_top = NULL;
@@ -1897,7 +1907,7 @@ int __ctalkRegisterUserObject (OBJECT *o) {
     } else {
 
 
-      if (m -> n_user_objs >= MAX_USER_OBJECT_RESOURCES) {
+      if (m -> n_user_objs >= method_pool_max) {
 	OBJECT *o_del;
 	LIST *l_del;
 	l_del = list_unshift (&(m -> user_objects));
@@ -1962,7 +1972,7 @@ int __ctalkRegisterUserObject (OBJECT *o) {
 	POOL_SET_LINK_P(o, r -> user_objects);
       } else {
 
-	if (r -> n_user_objs >= MAX_USER_OBJECT_RESOURCES) {
+	if (r -> n_user_objs >= method_pool_max) {
 	  LIST *l_del;
 	  OBJECT *o_del;
 	  l_del = list_unshift (&(r -> user_objects));
@@ -2082,7 +2092,7 @@ int register_function_objects (VARENTRY *obj_list) {
       n_fn_pool_objs = 1;
     } else {
       
-      if (n_fn_pool_objs >= MAX_USER_OBJECT_RESOURCES) {
+      if (n_fn_pool_objs >= method_pool_max) {
 	l_del = list_unshift (&(fn_pool));
 	v_del = l_del -> data;
 	fn_pool = l_del -> next;
@@ -2164,7 +2174,7 @@ int __ctalkRegisterExtraObjectInternal (OBJECT *o, METHOD *m) {
     m -> user_objects -> data = o;
     m -> n_user_objs = 1;
   } else {
-    if (m -> n_user_objs >= MAX_USER_OBJECT_RESOURCES) {
+    if (m -> n_user_objs >= method_pool_max) {
       OBJECT *o_del;
       LIST *l_del;
       l_del = list_unshift (&(m -> user_objects));
@@ -2225,7 +2235,7 @@ int __ctalkRegisterExtraObject (OBJECT *o) {
       m -> user_objects -> data = o;
       m -> n_user_objs = 1;
     } else {
-      if (m -> n_user_objs >= MAX_USER_OBJECT_RESOURCES) {
+      if (m -> n_user_objs >= method_pool_max) {
 	OBJECT *o_del;
 	LIST *l_del;
 	l_del = list_unshift (&(m -> user_objects));

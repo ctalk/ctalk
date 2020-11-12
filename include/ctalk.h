@@ -1,4 +1,4 @@
-/* $Id: ctalk.h,v 1.7 2020/10/16 17:07:31 rkiesling Exp $ -*-Fundamental-*- */
+/* $Id: ctalk.h,v 1.2 2020/11/12 17:04:09 rkiesling Exp $ -*-Fundamental-*- */
 
 /*
   This file is part of Ctalk.
@@ -962,6 +962,8 @@ void register_argblk_c_vars_1 (MESSAGE_STACK, int, int);
 char *fmt_register_argblk_c_vars_1 (MESSAGE_STACK, int, int);
 char *fmt_register_argblk_c_vars_2 (MESSAGE *, CVAR *, char *);
 void super_argblk_rcvr_expr (MESSAGE_STACK, int, OBJECT *);
+void arg_compound_method_rcvr (MESSAGE_STACK, int, int);
+void arg_compound_method_fmt_arg (MESSAGE_STACK, int, int);
 
 /* constrcvr.c */
 int handle_cvar_arg_before_terminal_method_a (MESSAGE_STACK, int);
@@ -2365,6 +2367,8 @@ int register_function_objects (VARENTRY *);
 void cleanup_fn_objects (void);
 OBJECT *__ctalk_get_eval_expr_tok (const char *);
 OBJECT *_store_int (OBJECT *, OBJECT *);
+void __ctalkSetMethodPoolMax (int);
+int __ctalkMethodPoolMax (void);
 
 /* lib/rt_prton.c */
 int __ctalkSelfPrintOn (void);
@@ -2483,6 +2487,7 @@ void __objRefCntSet (OBJREF_T, int);
 void __objRefCntZero (OBJREF_T);
 OBJECT *obj_from_ref_str (char *);
 OBJECT *obj_ref_str (char *);
+OBJECT *obj_ref_str_2 (char *, OBJECT *);
 void *__ctalkGenericPtrFromStr (char *);
 void *__ctalkFilePtrFromStr (char *);
 
