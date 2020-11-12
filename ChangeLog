@@ -1413,11 +1413,12 @@
 2020-11-09
 	- Added clause in eval_expr to handle dereferenced
 	C variable alias objects in argument blocks (rt_expr.c).
-	- Added a __ctalkRegisterUserObject call in cvar_object,
-	because a lot of strange argument objects originate there,
-	and it at least helps prevent memory leaks (rt_cvar.c).
 2020-11-10
 	- Changed the rename call in cache_ctpp_output_file to rename_file,
 	which works across different disk partitions (libdeps.c).  Updated
 	rename_file to move the file in a single read/write operation
 	(tempio.c).
+2020-11-10
+	- Added three __ctalkRegisterUserObject calls in cvar_object
+	and object_from_long_long_CVAR (rt_cvar.c).
+

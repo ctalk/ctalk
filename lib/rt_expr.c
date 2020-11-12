@@ -1,4 +1,4 @@
-/* $Id: rt_expr.c,v 1.3 2020/11/09 12:10:22 rkiesling Exp $ */
+/* $Id: rt_expr.c,v 1.4 2020/11/11 12:24:32 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -3751,24 +3751,19 @@ OBJECT *eval_expr (char *s, OBJECT *recv_class, METHOD *method,
 		    if (IS_OBJECT(e_messages[i_1] -> obj)) {
 		      if (e_messages[i_1] -> obj == __arg_object) {
 			__ctalk_arg_pop ();
+			have_cvartab_arg = true;
 			if (__arg_object -> scope & VAR_REF_OBJECT) {
 			  __ctalkRegisterUserObject (__arg_object);
 			  e_messages[i_1] -> obj = NULL;
-			  have_cvartab_arg = true;
-			} else {
+			} else if (!__arg_object -> scope == LOCAL_VAR) {
 			  __ctalkDeleteObject (e_messages[i_1] -> obj);
 			  e_messages[i_1] -> obj = NULL;
-			  have_cvartab_arg = true;
 			}
 		      }
 		    }
 		  }
 		}
 
-#if 0 /***/
-		__arg_object = __ctalk_arg_pop ();
-		__ctalk_arg_push (__arg_object);
-#endif		
 		if (have_cvartab_arg)
 		  goto ee_arg_done;
 		

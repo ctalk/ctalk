@@ -1,4 +1,4 @@
-/* $Id: rt_cvar.c,v 1.4 2020/11/09 17:47:06 rkiesling Exp $ */
+/* $Id: rt_cvar.c,v 1.5 2020/11/11 16:47:48 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -1793,6 +1793,7 @@ static OBJECT *object_from_longlong_CVAR (CVAR *c, int *obj_is_created,
 	  (c -> name, rt_defclasses -> p_longinteger_class,
 	   d_scope|VAR_REF_OBJECT, "");
 	new_cvar_obj_ref (o_ref);
+	__ctalkRegisterUserObject (o_ref);
 	*(long long *)o_ref -> __o_value =
 	  *(long long *)o_ref -> instancevars -> __o_value = i_2;
 	o_ref2 = create_object_init_internal
@@ -2289,6 +2290,9 @@ OBJECT *cvar_object (CVAR *c, int *obj_is_created) {
 			  (c -> name, rt_defclasses -> p_integer_class,
 			   d_scope|VAR_REF_OBJECT, "");
 			new_cvar_obj_ref (o_ref);
+			/* Here also, this helps prevent memory
+			   leaks in strange argument expressions. */
+			__ctalkRegisterUserObject (o_ref); /***/
 			INTVAL(o_ref -> __o_value) = 
 			  INTVAL(o_ref -> instancevars -> __o_value) = i_2;
 			o_ref2 = create_object_init_internal
