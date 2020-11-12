@@ -1,4 +1,4 @@
-/* $Id: rt_args.c,v 1.3 2020/10/28 10:29:19 rkiesling Exp $ */
+/* $Id: rt_args.c,v 1.2 2020/11/12 10:58:28 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -586,8 +586,14 @@ int __ctalkCreateArg (char *__recv_name, char *__method, void *__arg) {
     arg_object -> attrs |= OBJECT_VALUE_IS_BIN_LONGLONG;
     arg_object -> instancevars -> attrs |= OBJECT_VALUE_IS_BIN_LONGLONG;
   } else if (__recv_class -> attrs & SYMBOL_BUF_SIZE_INIT) {
-    arg_object -> attrs |= OBJECT_VALUE_IS_BIN_SYMBOL;
-    arg_object -> instancevars -> attrs |= OBJECT_VALUE_IS_BIN_SYMBOL;
+    if (!arg_object -> attrs & OBJECT_VALUE_IS_BIN_SYMBOL) {
+      arg_object -> attrs |= OBJECT_VALUE_IS_BIN_SYMBOL;
+      __xfree (MEMADDR(arg_object -> __o_value));
+      arg_object -> __o_value = __xalloc (PTRBUFSIZE);
+      arg_object -> instancevars -> attrs |= OBJECT_VALUE_IS_BIN_SYMBOL;
+      __xfree (MEMADDR(arg_object -> instancevars -> __o_value));
+      arg_object -> instancevars -> __o_value = __xalloc (PTRBUFSIZE);
+    }
   }
 
   __add_arg_object_entry_frame (m, arg_object);
