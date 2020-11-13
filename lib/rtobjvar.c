@@ -1,4 +1,4 @@
-/* $Id: rtobjvar.c,v 1.3 2020/10/28 10:29:20 rkiesling Exp $ -*-c-*-*/
+/* $Id: rtobjvar.c,v 1.3 2020/11/13 16:16:12 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -943,10 +943,18 @@ static void copy_instance_vars_from_class (OBJECT *class, OBJECT *o) {
       new_var -> __o_p_obj = o;
       new_var -> attrs = var -> attrs;
       if (var -> instancevars -> __o_class -> attrs & INT_BUF_SIZE_INIT) {
-	var -> instancevars -> attrs |= OBJECT_VALUE_IS_BIN_INT;
+	new_var->__o_value = __xalloc (INTBUFSIZE);
+	memcpy ((void *)new_var -> __o_value,
+		(void *)var -> __o_value, INTBUFSIZE);
+	__xfree (MEMADDR(new_var -> instancevars -> __o_value));
+	new_var->instancevars->__o_value = __xalloc (INTBUFSIZE);
+	memcpy ((void *)new_var -> instancevars -> __o_value,
+		(void *)var -> instancevars -> __o_value, INTBUFSIZE);
+
+	new_var -> attrs |= OBJECT_VALUE_IS_BIN_INT;
 	new_var -> instancevars -> attrs |= OBJECT_VALUE_IS_BIN_INT;
       } else if (var -> instancevars -> __o_class -> attrs & BOOL_BUF_SIZE_INIT) {
-	var -> instancevars -> attrs |= OBJECT_VALUE_IS_BIN_BOOL;
+	new_var -> attrs |= OBJECT_VALUE_IS_BIN_BOOL;
 	new_var -> instancevars -> attrs |= OBJECT_VALUE_IS_BIN_BOOL;
 	__xfree (MEMADDR(new_var -> __o_value));
 	new_var->__o_value = __xalloc (BOOLBUFSIZE);
@@ -956,6 +964,17 @@ static void copy_instance_vars_from_class (OBJECT *class, OBJECT *o) {
 	new_var->instancevars->__o_value = __xalloc (BOOLBUFSIZE);
 	memcpy ((void *)new_var -> instancevars -> __o_value,
 		(void *)var -> instancevars -> __o_value, BOOLBUFSIZE);
+      } else if (var -> instancevars -> __o_class -> attrs & SYMBOL_BUF_SIZE_INIT) {
+	new_var -> attrs |= OBJECT_VALUE_IS_BIN_SYMBOL;
+	new_var -> instancevars -> attrs |= OBJECT_VALUE_IS_BIN_SYMBOL;
+	__xfree (MEMADDR(new_var -> __o_value));
+	new_var->__o_value = __xalloc (PTRBUFSIZE);
+	memcpy ((void *)new_var -> __o_value,
+		(void *)var -> __o_value, PTRBUFSIZE);
+	__xfree (MEMADDR(new_var -> instancevars -> __o_value));
+	new_var->instancevars->__o_value = __xalloc (PTRBUFSIZE);
+	memcpy ((void *)new_var -> instancevars -> __o_value,
+		(void *)var -> instancevars -> __o_value, PTRBUFSIZE);
       }
 
       t -> next = new_var;
