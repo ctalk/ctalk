@@ -1,4 +1,4 @@
-/* $Id: rtnewobj.c,v 1.4 2020/11/08 16:07:22 rkiesling Exp $ -*-c-*-*/
+/* $Id: rtnewobj.c,v 1.5 2020/11/15 01:37:31 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -1074,6 +1074,11 @@ static void remove_reffed_object (OBJECT *o, OBJECT *referer) {
 
   METHOD *m;
   LIST *l;
+
+  if (o -> attrs & OBJECT_IS_STRING_LITERAL && __app_exit) {
+    __ctalkDeleteObject (o);
+    return;
+  }
 
   if (o -> scope & GLOBAL_VAR || o -> scope & LOCAL_VAR ||
       o -> scope & ARG_VAR || is_receiver (o))

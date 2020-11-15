@@ -1,4 +1,4 @@
-/* $Id: rtobjref.c,v 1.8 2020/10/28 22:46:43 rkiesling Exp $ */
+/* $Id: rtobjref.c,v 1.4 2020/11/14 20:53:28 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -265,6 +265,24 @@ OBJECT *obj_ref_str (char *__s) {
   return NULL;
 }
 
+static OBJECT *obj_ref_chk_str (OBJECT *h_obj, uintptr_t t_obj,
+				uintptr_t mask, char *s) { /***/
+  OBJECT *r;
+  if ((t_obj & mask) == ((uintptr_t)h_obj & mask)) {
+    if (((uintptr_t)h_obj & mask) == 0) {
+      return NULL;
+    }
+    if ((r = (OBJECT *)__ctalkStrToPtr (s)) != NULL) {
+      if (!OBJREF_IS_OBJECT(r)) {
+	r = NULL;
+      }
+    }
+  } else {
+    r = NULL;
+  }
+  return r;
+}
+
 /* Similar to obj_ref_str, but the obj parameter provides the
    fn with a heap location so we can guage whether a number
    refers to a valid memory location.
@@ -333,21 +351,45 @@ OBJECT *obj_ref_str_2 (char *__s, OBJECT *obj) {
     tmp = strtoul (__s, NULL, 16);
     if (errno == 0 && tmp != 0) {
       if (((uintptr_t)obj & 0xff0000000000) == 0) {
-	return NULL;
-      }
-      if ((tmp & 0xff0000000000) == ((uintptr_t)obj & 0xff0000000000)) {
-	if (((uintptr_t)obj & 0xff0000000000) == 0) {
-	  return NULL;
-	}
-	if ((__r = (OBJECT *)__ctalkStrToPtr (__s)) != NULL) {
-	  if (!OBJREF_IS_OBJECT(__r)) {
-	    __r = NULL;
+	if (((uintptr_t)obj & 0xff000000000) == 0) {
+	  if (((uintptr_t)obj & 0xff00000000) == 0) {
+	    if (((uintptr_t)obj & 0xff0000000) == 0) {
+	      if (((uintptr_t)obj & 0xff000000) == 0) {
+		if (((uintptr_t)obj & 0xff00000) == 0) {
+		  return NULL;
+		} else {
+		  return obj_ref_chk_str (obj, tmp, 0xff00000, __s);
+		}
+	      } else {
+		return obj_ref_chk_str (obj, tmp, 0xff000000, __s);
+	      }
+	    } else {
+	      return obj_ref_chk_str (obj, tmp, 0xff0000000, __s);
+	    }
+	  } else {
+	    return obj_ref_chk_str (obj, tmp, 0xff00000000, __s);
 	  }
+	} else {
+	  return obj_ref_chk_str (obj, tmp, 0xff000000000, __s);
 	}
       } else {
-	__r = NULL;
+	return obj_ref_chk_str (obj, tmp, 0xff0000000000, __s);
+#if 0 /***/
+	if ((tmp & 0xff0000000000) == ((uintptr_t)obj & 0xff0000000000)) {
+	  if (((uintptr_t)obj & 0xff0000000000) == 0) {
+	    return NULL;
+	  }
+	  if ((__r = (OBJECT *)__ctalkStrToPtr (__s)) != NULL) {
+	    if (!OBJREF_IS_OBJECT(__r)) {
+	      __r = NULL;
+	    }
+	  }
+	} else {
+	  __r = NULL;
+	}
+	return __r;
+#endif	
       }
-      return __r;
     }
     return __r;
   }
