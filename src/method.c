@@ -1,4 +1,4 @@
-/* $Id: method.c,v 1.23 2020/10/20 10:27:05 rkiesling Exp $ */
+/* $Id: method.c,v 1.2 2020/11/18 16:57:08 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -1360,16 +1360,18 @@ int method_args (METHOD *method, int method_msg_ptr, int *p_arglist_end,
       }
     }
     if (interpreter_pass != expr_check) {
-      if (DEFAULTCLASS_CMP(arg_obj, ct_defclasses -> p_expr_class,
-			   EXPR_CLASSNAME)) {
-	for (i = arglist_start; i >= arglist_end; i--) {
-	  message_stack_at (i) -> attrs |= TOK_IS_RT_EXPR;
+      if (IS_OBJECT(arg_obj)) { /***/
+	if (DEFAULTCLASS_CMP(arg_obj, ct_defclasses -> p_expr_class,
+			     EXPR_CLASSNAME)) {
+	  for (i = arglist_start; i >= arglist_end; i--) {
+	    message_stack_at (i) -> attrs |= TOK_IS_RT_EXPR;
+	  }
 	}
-      }
-      for (i = arglist_start; i >= arglist_end; i--) {
-	message_stack_at (i) -> obj = arg_obj;
-	++message_stack_at (i) -> evaled;
-	++message_stack_at (i) -> output;
+	for (i = arglist_start; i >= arglist_end; i--) {
+	  message_stack_at (i) -> obj = arg_obj;
+	  ++message_stack_at (i) -> evaled;
+	  ++message_stack_at (i) -> output;
+	}
       }
     }
     if (argstrs[0].arg != NULL) {
