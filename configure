@@ -13827,13 +13827,6 @@ max_method_pool_def="-DMETHOD_POOL_MAX=$max_method_pool"
 if test "${with_method_pool_size+set}" = set; then :
   withval=$with_method_pool_size; max_method_pool=$withval
      max_method_pool_def="-DMETHOD_POOL_MAX=$withval"
-#  [  case "$withval" in
-#     *)
-#     max_method_pool=$withval
-#     max_method_pool_def="-DMETHOD_POOL_MAX=$withval"
-#     ;;
-#     esac
-#  ]
 
 fi
 
@@ -17105,6 +17098,13 @@ fi
 
 $as_echo_n  "GNU Readline Library                  "
 if test "x$have_gnu_readline" != "x"; then
+    $as_echo  yes
+else
+    $as_echo  no
+fi
+
+$as_echo_n  "X11 Window System                     "
+if test "x$no_x" != "xyes" ; then
     $as_echo  yes
 else
     $as_echo  no

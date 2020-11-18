@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.3 2020/11/12 20:41:52 rkiesling Exp $
+# $Id: configure.ac,v 1.4 2020/11/17 13:42:28 rkiesling Exp $
 AC_INIT(ctalk, 0.0.66, rk3314042@gmail.com, "")
 
 # Contained in acinclude.m4 and generated aclocal.m4
@@ -1638,6 +1638,13 @@ if test "x$have_gnu_readline" != "x"; then
 else
     AS_ECHO no
 fi    
+
+AS_ECHO_N "X11 Window System                     "
+if test "x$no_x" != "xyes" ; then
+    AS_ECHO yes
+else
+    AS_ECHO no
+fi
 
 AS_ECHO "X Render Extension                    $have_xrender"
 AS_ECHO "Xft Outline Fonts                     $have_xft"
