@@ -1,8 +1,8 @@
-/* $Id: SignalHandler,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ -*-c-*-*/
+/* $Id: SignalHandler,v 1.3 2020/11/18 15:04:52 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
-  Copyright © 2005-2014  Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2005-2014, 2020  Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
 
@@ -59,105 +59,113 @@ SignalHandler instanceMethod setSigNo (Integer signo) {
   return self;
 }
 
+SignalHandler instanceMethod __setSystemSig (String sigName) {
+  "Internal method to handle setting a system defined signal."
+  int sig_no;
+  sig_no = __ctalkSystemSignalNumber ("SIGUSR2");
+  self addInstanceVariable "sigNo", sig_no;
+  return self;
+}
+
 SignalHandler instanceMethod setSigHup (void) {
   "Set the receiver's sigNo instance variable to SIGHUP."
-    self addInstanceVariable "sigNo", __ctalkSystemSignalNumber ("SIGHUP");
+   self __setSystemSig "SIGHUP";
   return self;
 }
 
 SignalHandler instanceMethod setSigInt (void) {
   "Set the receiver's sigNo instance variable to SIGINT."
-  self addInstanceVariable "sigNo", __ctalkSystemSignalNumber ("SIGINT");
+   self __setSystemSig "SIGINT";
   return self;
 }
 
 SignalHandler instanceMethod setSigQuit (void) {
   "Set the receiver's sigNo instance variable to SIGQUIT."
-  self addInstanceVariable "sigNo", __ctalkSystemSignalNumber ("SIGQUIT");
+   self __setSystemSig "SIGQUIT";
   return self;
 }
 
 SignalHandler instanceMethod setSigIll (void) {
   "Set the receiver's sigNo instance variable to SIGILL."
-  self addInstanceVariable "sigNo", __ctalkSystemSignalNumber ("SIGILL");
+   self __setSystemSig "SIGILL";
   return self;
 }
 
 SignalHandler instanceMethod setSigAbrt (void) {
   "Set the receiver's sigNo instance variable to SIGABRT."
-  self addInstanceVariable "sigNo", __ctalkSystemSignalNumber ("SIGABRT");
+   self __setSystemSig "SIGABRT";
   return self;
 }
 
 SignalHandler instanceMethod setSigFpe (void) {
   "Set the receiver's sigNo instance variable to SIGFPE."
-  self addInstanceVariable "sigNo", __ctalkSystemSignalNumber ("SIGFPE");
+   self __setSystemSig "SIGFPE";
   return self;
 }
 
 SignalHandler instanceMethod setSigSegv (void) {
   "Set the receiver's sigNo instance variable to SIGSEGV."
-  self addInstanceVariable "sigNo", __ctalkSystemSignalNumber ("SIGSEGV");
+   self __setSystemSig "SIGSEGV";
   return self;
 }
 
 SignalHandler instanceMethod setSigPipe (void) {
   "Set the receiver's sigNo instance variable to SIGPIPE."
-  self addInstanceVariable "sigNo", __ctalkSystemSignalNumber ("SIGPIPE");
+   self __setSystemSig "SIGPIPE";
   return self;
 }
 
 SignalHandler instanceMethod setSigAlrm (void) {
   "Set the receiver's sigNo instance variable to SIGALRM."
-  self addInstanceVariable "sigNo", __ctalkSystemSignalNumber ("SIGALRM");
+   self __setSystemSig "SIGALRM";
   return self;
 }
 
 SignalHandler instanceMethod setSigTerm (void) {
   "Set the receiver's sigNo instance variable to SIGTERM."
-  self addInstanceVariable "sigNo", __ctalkSystemSignalNumber ("SIGTERM");
+   self __setSystemSig "SIGTERM";
   return self;
 }
 
 SignalHandler instanceMethod setSigUsr1 (void) {
   "Set the receiver's sigNo instance variable to SIGUSR1."
-  self addInstanceVariable "sigNo", __ctalkSystemSignalNumber ("SIGUSR1");
+   self __setSystemSig "SIGUSR1";
   return self;
 }
 
 SignalHandler instanceMethod setSigUsr2 (void) {
   "Set the receiver's sigNo instance variable to SIGUSR2."
-  self addInstanceVariable "sigNo", __ctalkSystemSignalNumber ("SIGUSR2");
+   self __setSystemSig "SIGUSR2";
   return self;
 }
 
 SignalHandler instanceMethod setSigChld (void) {
   "Set the receiver's sigNo instance variable to SIGCHLD."
-  self addInstanceVariable "sigNo", __ctalkSystemSignalNumber ("SIGCHLD");
+   self __setSystemSig "SIGCHLD";
   return self;
 }
 
 SignalHandler instanceMethod setSigCont (void) {
   "Set the receiver's sigNo instance variable to SIGCONT."
-  self addInstanceVariable "sigNo", __ctalkSystemSignalNumber ("SIGCONT");
+   self __setSystemSig "SIGCONT";
   return self;
 }
 
 SignalHandler instanceMethod setSigTstp (void) {
   "Set the receiver's sigNo instance variable to SIGTSTP."
-  self addInstanceVariable "sigNo", __ctalkSystemSignalNumber ("SIGTSTP");
+   self __setSystemSig "SIGTSTP";
   return self;
 }
 
 SignalHandler instanceMethod setSigTtin (void) {
   "Set the receiver's sigNo instance variable to SIGTTIN."
-  self addInstanceVariable "sigNo", __ctalkSystemSignalNumber ("SIGTTIN");
+   self __setSystemSig "SIGTTIN";
   return self;
 }
 
 SignalHandler instanceMethod setSigTtou (void) {
   "Set the receiver's sigNo instance variable to SIGTTOU."
-  self addInstanceVariable "sigNo", __ctalkSystemSignalNumber ("SIGTTOU");
+   self __setSystemSig "SIGTTOU";
   return self;
 }
 
