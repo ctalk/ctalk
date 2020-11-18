@@ -1,4 +1,4 @@
-/* $Id: glxchaser.ca,v 1.1.1.1 2020/09/13 17:14:20 rkiesling Exp $ */
+/* $Id: glxchaser.ca,v 1.2 2020/11/18 04:10:50 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -128,11 +128,7 @@ GLXCanvasPane instanceMethod showStats (void) {
 GLXCanvasPane instanceMethod draw (void) {
   String new refresh, frame;
 
-#ifdef __APPLE__
   glClear (GL_COLOR_BUFFER_BIT);
-#else  
-  self drawTextW x_prev, y, bgcolor[0], bgcolor[1], bgcolor[2], text;
-#endif  
 
   self drawTextW x, y, fgcolor[0], fgcolor[1], fgcolor[2], text;
 
