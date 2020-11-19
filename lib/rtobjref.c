@@ -1,4 +1,4 @@
-/* $Id: rtobjref.c,v 1.4 2020/11/14 20:53:28 rkiesling Exp $ */
+/* $Id: rtobjref.c,v 1.6 2020/11/19 14:05:45 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -268,11 +268,16 @@ OBJECT *obj_ref_str (char *__s) {
 static OBJECT *obj_ref_chk_str (OBJECT *h_obj, uintptr_t t_obj,
 				uintptr_t mask, char *s) { /***/
   OBJECT *r;
+  char objstr[0xff];
   if ((t_obj & mask) == ((uintptr_t)h_obj & mask)) {
     if (((uintptr_t)h_obj & mask) == 0) {
       return NULL;
     }
     if ((r = (OBJECT *)__ctalkStrToPtr (s)) != NULL) {
+      sprintf (objstr, "%p", h_obj);
+      if (strlen (s) != strlen (objstr)) {
+	return NULL;
+      }
       if (!OBJREF_IS_OBJECT(r)) {
 	r = NULL;
       }
@@ -283,12 +288,23 @@ static OBJECT *obj_ref_chk_str (OBJECT *h_obj, uintptr_t t_obj,
   return r;
 }
 
+static bool obj_ref_chk_str_seg (OBJECT *h_obj, uintptr_t t_obj,
+				 uintptr_t mask) {
+  if (((uintptr_t)h_obj != 0) &&
+      ((uintptr_t)t_obj != 0) &&
+      (((uintptr_t)h_obj & mask) == ((uintptr_t)t_obj & mask))) {
+    return true;
+  }
+  return false;
+}
+
 /* Similar to obj_ref_str, but the obj parameter provides the
    fn with a heap location so we can guage whether a number
    refers to a valid memory location.
 */
 OBJECT *obj_ref_str_2 (char *__s, OBJECT *obj) {
   OBJECT *__r;
+  char objstr[0xff];
   if (__s == NULL)
     return NULL;
 
@@ -320,6 +336,7 @@ OBJECT *obj_ref_str_2 (char *__s, OBJECT *obj) {
 
 # else /* __APPLE__ */
 
+#if 1 /***/
   if ((__s[0] && (__s[0] == '0')) && 
       (__s[1] && (__s[1] == 'x')) && 
       (__s[2] && ct_xdigit((int)__s[2])) && 
@@ -336,11 +353,23 @@ OBJECT *obj_ref_str_2 (char *__s, OBJECT *obj) {
       (__s[13] && ct_xdigit((int)__s[13])) &&
       (__s[14] == '\0')) {
     if ((__r = (OBJECT *)__ctalkStrToPtr (__s)) != NULL) {
-      if (OBJREF_IS_OBJECT(__r)) {
-	return __r;
+      if (obj_ref_chk_str_seg (obj, (uintptr_t)__r, 0xff0000000000) ||
+	  obj_ref_chk_str_seg (obj, (uintptr_t)__r, 0xff000000000) ||
+	  obj_ref_chk_str_seg (obj, (uintptr_t)__r, 0xff00000000) ||
+	  obj_ref_chk_str_seg (obj, (uintptr_t)__r, 0xff0000000) ||
+	  obj_ref_chk_str_seg (obj, (uintptr_t)__r, 0xff000000)) {
+	/* if (OBJREF_IS_OBJECT(__r)) { */ /***/
+	sprintf (objstr, "%p", obj);
+	if (strlen (objstr) != strlen (__s)) {
+	  return NULL;
+	}
+	if (*(int *)__r == 0xd3d3d3) {
+	  return __r;
+	}
       }
     }
   } else {
+#endif    
     /* We might have a byte alignment that results in a negative char 
        or some other overflow - check. */
     uintptr_t tmp;
@@ -374,25 +403,12 @@ OBJECT *obj_ref_str_2 (char *__s, OBJECT *obj) {
 	}
       } else {
 	return obj_ref_chk_str (obj, tmp, 0xff0000000000, __s);
-#if 0 /***/
-	if ((tmp & 0xff0000000000) == ((uintptr_t)obj & 0xff0000000000)) {
-	  if (((uintptr_t)obj & 0xff0000000000) == 0) {
-	    return NULL;
-	  }
-	  if ((__r = (OBJECT *)__ctalkStrToPtr (__s)) != NULL) {
-	    if (!OBJREF_IS_OBJECT(__r)) {
-	      __r = NULL;
-	    }
-	  }
-	} else {
-	  __r = NULL;
-	}
-	return __r;
-#endif	
       }
     }
     return __r;
+#if 1 /***/
   }
+#endif  
 
 # endif /* __APPLE__ */
 
