@@ -3759,6 +3759,11 @@ functions.
      deleting an object.  Refer to the '__ctalkDeleteObject' function
      for more information.
 
+'obj_ref_range_chk (OBJECT **HOSTOBJ, OBJECT **TARGETOBJECT)'
+     Returns a 'bool' value of 'true' or 'false' depending on whether
+     the host object and the target object it references occupy the same
+     data segment.
+
 '__refObj (OBJECT **OBJ1, OBJECT **OBJ2)'
      Assign OBJ2 to OBJ1.  If OBJ1 already points to an object,
      decrement its reference count.  Increment the reference count of
@@ -7206,7 +7211,7 @@ Index
 * ^= instance method (Integer class):    Integer.            (line  115)
 * ^= instance method (LongInteger class): LongInteger.       (line   99)
 * _error function:                       Ctalk library.      (line 2772)
-* _store_int () function:                Ctalk library.      (line 2883)
+* _store_int () function:                Ctalk library.      (line 2888)
 * _warning function:                     Ctalk library.      (line 2832)
 * __argvFileName function:               Ctalk library.      (line   16)
 * __argvName function:                   Ctalk library.      (line   12)
@@ -7756,7 +7761,7 @@ Index
 * __objRefCntZero function <1>:          free.               (line    9)
 * __objRefCntZero function.:             Ctalk library.      (line  460)
 * __receiver_trace () function:          Ctalk library.      (line 2775)
-* __refObj () function:                  Ctalk library.      (line 2876)
+* __refObj () function:                  Ctalk library.      (line 2881)
 * __rt_init_library_paths () function:   Ctalk library.      (line 2792)
 * __warning_trace () function:           Ctalk library.      (line 2799)
 * __xalloc () function:                  Ctalk library.      (line 2803)
@@ -7987,7 +7992,7 @@ Index
 * boolTrue class variable (Boolean class): Boolean.          (line   23)
 * boolTrue class variable (Boolean class) <1>: Ctalk library.
                                                              (line 1552)
-* BOOLVAL macro () function:             Ctalk library.      (line 2889)
+* BOOLVAL macro () function:             Ctalk library.      (line 2894)
 * border instance variable (ANSITerminalPane class): ANSITerminalPane.
                                                              (line   96)
 * border instance variable (X11LabelPane class): X11LabelPane.
@@ -9094,7 +9099,7 @@ Index
 * Integer class:                         Integer.            (line    6)
 * integerAt instance method (Collection class): Collection.  (line   68)
 * INTVAL macro:                          Scoping.            (line   97)
-* INTVAL macro () function:              Ctalk library.      (line 2895)
+* INTVAL macro () function:              Ctalk library.      (line 2900)
 * INVALID_OPERAND_X exception:           Exception.          (line  118)
 * INVALID_RECEIVER_X exception:          Exception.          (line  118)
 * INVALID_VARIABLE_DECLARATION_X exception: Exception.       (line  118)
@@ -9172,7 +9177,7 @@ Index
 * isXLFD instance method (String class): String.             (line  311)
 * IS_OBJECT macro:                       C Macros.           (line   74)
 * IS_VALUE_INSTANCE_VAR macro:           C Macros.           (line   78)
-* is_zero_q function:                    Ctalk library.      (line 2906)
+* is_zero_q function:                    Ctalk library.      (line 2911)
 * ItemBox class:                         X11FileSelectDialog.
                                                              (line  429)
 * items instance variable (ANSIListBoxPane class): ANSIListBoxPane.
@@ -9251,7 +9256,7 @@ Index
 * llrintl(3) C function <1>:             llrint.             (line    6)
 * llround(3) C function:                 llround.            (line    6)
 * LLVAL macro:                           Scoping.            (line   97)
-* LLVAL macro () function:               Ctalk library.      (line 2910)
+* LLVAL macro () function:               Ctalk library.      (line 2915)
 * loadNotify instance method (X11FreeTypeFont class): X11FreeTypeFont.
                                                              (line  216)
 * localCVARs instance variable (Method class): Method.       (line   99)
@@ -9525,10 +9530,11 @@ Index
                                                              (line   48)
 * OBJECT_IS_STRING_LITERAL attribute;:   Attributes.         (line   45)
 * OBJREF macro:                          Ctalk library.      (line  283)
-* OBJREF macro <1>:                      Ctalk library.      (line 2876)
-* OBJREF macro <2>:                      Ctalk library.      (line 2972)
-* OBJREF_T data type:                    Ctalk library.      (line 2876)
-* obj_ref_str function:                  Ctalk library.      (line 2915)
+* OBJREF macro <1>:                      Ctalk library.      (line 2881)
+* OBJREF macro <2>:                      Ctalk library.      (line 2977)
+* OBJREF_T data type:                    Ctalk library.      (line 2881)
+* obj_ref_range_chk () function:         Ctalk library.      (line 2876)
+* obj_ref_str function:                  Ctalk library.      (line 2920)
 * octahedron instance method (GLUTApplication class): GLUTApplication.
                                                              (line  211)
 * okButton instance variable (ANSIMessageBoxPane class): ANSIMessageBoxPane.
@@ -10275,7 +10281,7 @@ Index
 * STR_0XHEX_TO_PTR macro:                C Macros.           (line   89)
 * STR_IS_NULL macro:                     Object.             (line   26)
 * STR_IS_NULL macro <1>:                 C Macros.           (line  115)
-* str_is_zero_q function:                Ctalk library.      (line 2920)
+* str_is_zero_q function:                Ctalk library.      (line 2925)
 * Subpane geometry:                      X11CanvasPane.      (line  181)
 * subPaneButton instance method (X11FileSelectDialog class): X11FileSelectDialog.
                                                              (line  439)
@@ -10386,8 +10392,8 @@ Index
                                                              (line  234)
 * subPaneSelectionClear instance method (X11TextEntryPane class): X11TextEntryPane.
                                                              (line  345)
-* substrcat function:                    Ctalk library.      (line 2925)
-* substrcpy function:                    Ctalk library.      (line 2929)
+* substrcat function:                    Ctalk library.      (line 2930)
+* substrcpy function:                    Ctalk library.      (line 2934)
 * subString instance method (String class): String.          (line  440)
 * SUCCESS_X exception:                   Exception.          (line  118)
 * super keyword:                         Self and super.     (line    6)
@@ -10399,9 +10405,9 @@ Index
 * Symbol class:                          Symbol.             (line    6)
 * Symbol class <1>:                      C statements.       (line  122)
 * symbolReference instance method (Symbol class): Symbol.    (line  126)
-* SYMTOOBJ macro () function:            Ctalk library.      (line 2932)
+* SYMTOOBJ macro () function:            Ctalk library.      (line 2937)
 * SYMVAL macro:                          Scoping.            (line   97)
-* SYMVAL macro () function:              Ctalk library.      (line 2946)
+* SYMVAL macro () function:              Ctalk library.      (line 2951)
 * syncSwap instance method (GLXCanvasPane class): GLXCanvasPane.
                                                              (line  696)
 * sysErrno (SystemErrnoException class): SystemErrnoException.
@@ -10558,9 +10564,9 @@ Index
 * traceEnabled instance method (Object class): Object.       (line  639)
 * TreeNode class:                        TreeNode.           (line    6)
 * TRIM_CHAR macro:                       Character.          (line   36)
-* TRIM_CHAR macro <1>:                   Ctalk library.      (line 2982)
-* TRIM_CHAR_BUF macro:                   Ctalk library.      (line 2986)
-* TRIM_LITERAL macro:                    Ctalk library.      (line 2978)
+* TRIM_CHAR macro <1>:                   Ctalk library.      (line 2987)
+* TRIM_CHAR_BUF macro:                   Ctalk library.      (line 2991)
+* TRIM_LITERAL macro:                    Ctalk library.      (line 2983)
 * trunc(3) C function:                   trunc.              (line    5)
 * ttyDevice instance variable (ANSITerminalStream class): ANSITerminalStream.
                                                              (line  133)
@@ -10837,9 +10843,9 @@ Index
                                                              (line   24)
 * xEventData5 instanceVariable (InputEvent class): InputEvent.
                                                              (line   24)
-* xfopen () function:                    Ctalk library.      (line 2991)
-* xfprintf () function:                  Ctalk library.      (line 2991)
-* xfscanf () function:                   Ctalk library.      (line 2991)
+* xfopen () function:                    Ctalk library.      (line 2996)
+* xfprintf () function:                  Ctalk library.      (line 2996)
+* xfscanf () function:                   Ctalk library.      (line 2996)
 * Xft configuration:                     X11FreeTypeFont.    (line   13)
 * XftConfig file:                        X11FreeTypeFont.    (line   13)
 * xGC instance variable (X11Bitmap class): X11Bitmap.        (line   44)
@@ -10850,9 +10856,9 @@ Index
                                                              (line  323)
 * xMaxCharWidth instance variable (GLXCanvasPane class): GLXCanvasPane.
                                                              (line  328)
-* xmemcpy () function:                   Ctalk library.      (line 2991)
-* xmemmove () function:                  Ctalk library.      (line 2991)
-* xmemset () function:                   Ctalk library.      (line 2991)
+* xmemcpy () function:                   Ctalk library.      (line 2996)
+* xmemmove () function:                  Ctalk library.      (line 2996)
+* xmemset () function:                   Ctalk library.      (line 2996)
 * xpmCharsPerColorFromData instance method (X11Bitmap class): X11Bitmap.
                                                              (line  272)
 * xpmColorsFromData instance method (X11Bitmap class): X11Bitmap.
@@ -10867,14 +10873,14 @@ Index
                                                              (line  246)
 * xpmWidthFromData instance method (X11Bitmap class): X11Bitmap.
                                                              (line  284)
-* xsprintf () function:                  Ctalk library.      (line 2991)
-* xstderr () function:                   Ctalk library.      (line 3008)
-* xstdin () function:                    Ctalk library.      (line 3008)
-* xstdout () function:                   Ctalk library.      (line 3008)
-* xstrcat () function:                   Ctalk library.      (line 2991)
-* xstrcpy () function:                   Ctalk library.      (line 2991)
-* xstrncat () function:                  Ctalk library.      (line 2991)
-* xstrncpy () function:                  Ctalk library.      (line 2991)
+* xsprintf () function:                  Ctalk library.      (line 2996)
+* xstderr () function:                   Ctalk library.      (line 3013)
+* xstdin () function:                    Ctalk library.      (line 3013)
+* xstdout () function:                   Ctalk library.      (line 3013)
+* xstrcat () function:                   Ctalk library.      (line 2996)
+* xstrcpy () function:                   Ctalk library.      (line 2996)
+* xstrncat () function:                  Ctalk library.      (line 2996)
+* xstrncpy () function:                  Ctalk library.      (line 2996)
 * Xt object classes:                     C library functions.
                                                              (line   20)
 * xterm instance method (X11Cursor class): X11Cursor.        (line   51)

@@ -1,4 +1,4 @@
-/* $Id: rtobjref.c,v 1.6 2020/11/19 14:05:45 rkiesling Exp $ */
+/* $Id: rtobjref.c,v 1.7 2020/11/19 21:51:18 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -292,7 +292,19 @@ static bool obj_ref_chk_str_seg (OBJECT *h_obj, uintptr_t t_obj,
 				 uintptr_t mask) {
   if (((uintptr_t)h_obj != 0) &&
       ((uintptr_t)t_obj != 0) &&
-      (((uintptr_t)h_obj & mask) == ((uintptr_t)t_obj & mask))) {
+      (((uintptr_t)h_obj & mask) == ((uintptr_t)t_obj & mask)) &&
+      ((uintptr_t)h_obj & mask != 0)) {
+    return true;
+  }
+  return false;
+}
+
+bool obj_ref_range_chk (OBJECT *h_obj, OBJECT *t_obj) {
+  if (obj_ref_chk_str_seg (h_obj, (uintptr_t)t_obj, 0xff0000000000) ||
+      obj_ref_chk_str_seg (h_obj, (uintptr_t)t_obj, 0xff000000000) ||
+      obj_ref_chk_str_seg (h_obj, (uintptr_t)t_obj, 0xff00000000) ||
+      obj_ref_chk_str_seg (h_obj, (uintptr_t)t_obj, 0xff0000000) ||
+      obj_ref_chk_str_seg (h_obj, (uintptr_t)t_obj, 0xff000000)) {
     return true;
   }
   return false;

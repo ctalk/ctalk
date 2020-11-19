@@ -1,4 +1,4 @@
-/* $Id: ctalk.h,v 1.2 2020/11/12 17:04:09 rkiesling Exp $ -*-Fundamental-*- */
+/* $Id: ctalk.h,v 1.3 2020/11/19 21:51:18 rkiesling Exp $ -*-Fundamental-*- */
 
 /*
   This file is part of Ctalk.
@@ -2490,6 +2490,7 @@ OBJECT *obj_ref_str (char *);
 OBJECT *obj_ref_str_2 (char *, OBJECT *);
 void *__ctalkGenericPtrFromStr (char *);
 void *__ctalkFilePtrFromStr (char *);
+bool obj_ref_range_chk (OBJECT *, OBJECT *);
 
 /* lib/rtsyserr.c */
 int __ctalkErrnoInternal (void);

@@ -2856,6 +2856,10 @@ You should not need to use this function unless you're
 completely deleting an object.  Refer to the
 __ctalkDeleteObject function for more information.
 
+>>>obj_ref_range_chk (OBJECT **hostObj, OBJECT **targetObject)
+Returns a bool value of true or false depending
+on whether the host object and the target object it references occupy
+the same data segment.
 
 >>>__refObj (OBJECT **obj1, OBJECT **obj2)
 Assign obj2 to obj1.  If obj1 already points to an

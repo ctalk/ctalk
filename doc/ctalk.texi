@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.4 2020/11/12 20:41:53 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.5 2020/11/19 21:51:18 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -25883,6 +25883,11 @@ You should not need to use this function unless you're
 @emph{completely} deleting an object.  Refer to the
 @code{__ctalkDeleteObject} function for more information.
 
+@idxlibfn{obj_ref_range_chk}
+@item obj_ref_range_chk (@code{OBJECT **}@var{hostObj}, @code{OBJECT **}@var{targetObject})
+Returns a @code{bool} value of @samp{true} or @samp{false} depending
+on whether the host object and the target object it references occupy
+the same data segment.
 
 @idxlibfn{__refObj}
 @cindex OBJREF_T data type

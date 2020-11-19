@@ -1,4 +1,4 @@
-/* $Id: ctalklib.in,v 1.2 2020/11/12 17:04:08 rkiesling Exp $ -*-c-*-*/
+/* $Id: ctalklib.in,v 1.3 2020/11/19 21:51:18 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -1431,6 +1431,8 @@ extern int __entrytext_send_selection (void *, void *);
 
 extern void __glx_resize (int, int);
 extern void __glx_get_win_config (int *, int *, int *, int *);
+
+extern bool obj_ref_range_chk (OBJECT *, OBJECT *);
 
 /* Portable wrappers for some system's secure replacements of string.h
    and stdio.h library functions (mostly darwin for now) */

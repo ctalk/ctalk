@@ -1454,5 +1454,12 @@
 	parameter to the function, to defer evaluation of
 	<rcvr> <method> <method> compound method expressions
 	(eval_arg.c).
+	- Updated report_method_argument_mismatch to return immediately
+	during expr_check pass (mthdrep.c).
+	- Added obj_ref_range_chk to the library API, and updated
+	obj_ref_chk_str_seg to make sure that one of the values
+	and the mask does not result in 0 (rtobjref.c).
+	- Updated Symbol : removeValue to use obj_ref_range_chk.
+
 
 
