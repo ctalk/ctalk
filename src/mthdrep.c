@@ -1,4 +1,4 @@
-/* $Id: mthdrep.c,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ */
+/* $Id: mthdrep.c,v 1.2 2020/11/19 17:40:34 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -33,6 +33,8 @@
 
 static METHOD *mrp_last_method;
 static OBJECT *mrp_last_class;
+
+extern I_PASS interpreter_pass;    /* Declared in main.c.               */
 
 METHOD *find_first_instance_method (OBJECT *class_object, char *name, 
 				    OBJECT **class_return) { 
@@ -137,6 +139,9 @@ void report_method_argument_mismatch (MESSAGE *m_orig, OBJECT *class_object,
 
   METHOD *m;
   OBJECT *class_return;
+
+  if (interpreter_pass == expr_check)
+    return;
 
   if ((m = find_first_instance_method (class_object, name, 
 				       &class_return)) != NULL) {
