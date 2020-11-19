@@ -1443,4 +1443,9 @@
 	setting system defined signals.
 	- Updated method_args to check for an empty argument(i.e.,
 	the method doesn't take any arguments) (method.c).
+	- Added a check for a C variable argument token in
+	resolve_single_token_arg (eval_arg.c).
+	- Added a check in eval_arg to use the original method passed
+	in to the function instead of looking it up again (eval_arg.c).
+
 

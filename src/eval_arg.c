@@ -1,4 +1,4 @@
-/* $Id: eval_arg.c,v 1.14 2020/10/20 22:23:02 rkiesling Exp $ */
+/* $Id: eval_arg.c,v 1.2 2020/11/19 02:51:38 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -1214,15 +1214,17 @@ OBJECT *eval_arg (METHOD *method, OBJECT *rcvr_class, ARGSTR *argbuf,
 	    METHOD *m_1;
 	    MESSAGE *m_main_stack;
 	    m_main_stack = message_stack_at (main_stack_idx);
-	    if (((m_1 = get_instance_method (m_main_stack, rcvr_class,
-					   m_main_stack -> name, 0, FALSE))
-		 != NULL) ||
-		((m_1 = get_class_method (m_main_stack, rcvr_class,
-					m_main_stack -> name, 0, FALSE))
-		 != NULL)) {
-	      if (m_1 -> n_params == 0) {
-		arg_class = arg_compound_method;
-		goto arg_evaled;
+	    if (!str_eq (method -> name, M_NAME(m_main_stack))) {
+	      if (((m_1 = get_instance_method (m_main_stack, rcvr_class,
+					       m_main_stack -> name, 0, FALSE))
+		   != NULL) ||
+		  ((m_1 = get_class_method (m_main_stack, rcvr_class,
+					    m_main_stack -> name, 0, FALSE))
+		   != NULL)) {
+		if (m_1 -> n_params == 0) {
+		  arg_class = arg_compound_method;
+		  goto arg_evaled;
+		}
 	      }
 	    }
 	  }
