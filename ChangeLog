@@ -1447,7 +1447,12 @@
 	resolve_single_token_arg (eval_arg.c).
 	- Added a check in eval_arg to use the original method passed
 	in to the function instead of looking it up again (eval_arg.c).
+2020-11-19
 	- Updates to obj_ref_str_2 to make it better at catching strings
 	that look like pointers (rtobjref.c).
+	- Yet another update to eval_arg to use a method that is a
+	parameter to the function, to defer evaluation of
+	<rcvr> <method> <method> compound method expressions
+	(eval_arg.c).
 
 

@@ -1,4 +1,4 @@
-/* $Id: eval_arg.c,v 1.2 2020/11/19 02:51:38 rkiesling Exp $ */
+/* $Id: eval_arg.c,v 1.3 2020/11/19 15:16:28 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -1226,6 +1226,10 @@ OBJECT *eval_arg (METHOD *method, OBJECT *rcvr_class, ARGSTR *argbuf,
 		  goto arg_evaled;
 		}
 	      }
+	    }
+	    if (method -> n_params == 0) {
+	      arg_class = arg_compound_method;
+	      goto arg_evaled;
 	    }
 	  }
 	  /*
