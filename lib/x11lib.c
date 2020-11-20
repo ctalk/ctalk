@@ -1,4 +1,4 @@
-/* $Id: x11lib.c,v 1.2 2020/09/18 21:25:13 rkiesling Exp $ -*-c-*-*/
+/* $Id: x11lib.c,v 1.2 2020/11/20 16:37:51 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -3065,7 +3065,8 @@ int __ctalkX11InputClient (OBJECT *streamobject, int parent_fd, int mem_handle, 
 
 	  event_to_client (EXPOSE,
 			   e.xexpose.window, e.xexpose.x, e.xexpose.y,
-			   e.xexpose.width, e.xexpose.height, 0, 0);
+			   e.xexpose.width, e.xexpose.height,
+			   e.xexpose.count, 0);
 	  eventclass = 0;
 	  continue;
    	  break;

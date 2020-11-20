@@ -1463,4 +1463,8 @@
 2020-11-20
 	- In __ctalkXftSelectFontFromFontConfig and __select_font_fc,
 	added support the style attribute (xftlib.c).
-
+	- Updated the X11ListPane : selectFont method to use the
+	font descriptor that has been parsed in the attachTo method.
+	- Updated __ctalkX11InputClient to set an InputEvent's
+	xEventData5 instance variable to the XExposeEvent's count
+	member (x11lib.c).
