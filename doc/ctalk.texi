@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.6 2020/11/20 02:14:21 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.7 2020/11/20 12:18:25 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -25352,6 +25352,12 @@ Returns an @code{int} with the Xft library's major version number.
 Like all libXft library functions, @cite{__ctalkXftRevision}
 causes the program to exit with an error if Ctalk is built without
 libXft support.
+
+@idxlibfn{__ctalkXftSelectFontFromFontConfig}
+@item __ctalkXftSelectFontFromFontConfig (@code{char *}@var{fontDesc})
+Parses a Fontconfig font descriptor and selects the font.  For information
+about selecting fonts using Fontconfig descriptors, refer to the
+@code{X11FreeTypeFont} class. @xref{X11FreeTypeFont}.
 
 @idxlibfn{__ctalkXftShowFontLoad}
 @item __ctalkXftShowFontLoad (@code{int} @var{warningLevel})

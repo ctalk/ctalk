@@ -1,4 +1,4 @@
-/* $Id: xftlib.c,v 1.2 2020/11/20 02:14:22 rkiesling Exp $ -*-c-*-*/
+/* $Id: xftlib.c,v 1.3 2020/11/20 12:07:16 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -114,8 +114,8 @@ static char *default_families[] = {
 
 static int xft_message_level = 0;
 
-/* set some intelligent defaults. */
 char selected_family[256] = "DejaVu Sans Mono";
+char selected_style[256] = "";
 int selected_slant = XFT_SLANT_ROMAN;
 int selected_weight = XFT_WEIGHT_MEDIUM;
 int selected_dpi = 72;
@@ -466,7 +466,7 @@ XftFont *__select_font_for_family (int p_slant,
 #define FC_WIDTH "width"
 #endif
 
-static XftFont *__select_font_fc (char *p_family, int p_slant,
+static XftFont *__select_font_fc (char *p_family, char *p_style, int p_slant,
 				  int p_weight, int p_dpi, double p_size,
 				  int p_spacing, int p_width) {
   int i, spacing;
@@ -487,6 +487,12 @@ static XftFont *__select_font_fc (char *p_family, int p_slant,
 #endif    
     if (*p_family)
       strcpy (selected_family, p_family);
+    /***/
+    if (*p_style) {
+      strcpy (selected_style, p_style);
+    } else {
+      memset (selected_style, 0, MAXLABEL);
+    }
     if (p_slant >= 0)
       selected_slant = p_slant;
     if (p_weight >= 0)
@@ -514,23 +520,46 @@ static XftFont *__select_font_fc (char *p_family, int p_slant,
   }
 #endif    
 
-  if ((selected_font = XftFontOpen
-       (display, DefaultScreen (display),
-	XFT_FAMILY, XftTypeString, selected_family,
-	XFT_SIZE, XftTypeDouble, selected_pt_size,
-	XFT_SLANT, XftTypeInteger, selected_slant,
-	XFT_WEIGHT, XftTypeInteger, selected_weight,
-	XFT_DPI, XftTypeInteger, selected_dpi,
-	XFT_SPACING, XftTypeInteger, selected_spacing,
-	FC_WIDTH, XftTypeInteger, selected_width,
-	NULL)) != NULL) {
-    XftPatternGetInteger (selected_font -> pattern,
-			  FC_SPACING, 0, &spacing);
-    monospace = (spacing == XFT_MONO ? true : false);
-    selected_fn (selected_family);
-    if (xft_message_level > XFT_NOTIFY_ERRORS) {
-      _warning ("ctalk: Loaded font: %s\n",
-		fmt_fc_desc_str (selected_font -> pattern));
+  if (*selected_style) {
+    if ((selected_font = XftFontOpen
+	 (display, DefaultScreen (display),
+	  XFT_FAMILY, XftTypeString, selected_family,
+	  XFT_STYLE, XftTypeString, selected_style,
+	  XFT_SIZE, XftTypeDouble, selected_pt_size,
+	  XFT_SLANT, XftTypeInteger, selected_slant,
+	  XFT_WEIGHT, XftTypeInteger, selected_weight,
+	  XFT_DPI, XftTypeInteger, selected_dpi,
+	  XFT_SPACING, XftTypeInteger, selected_spacing,
+	  FC_WIDTH, XftTypeInteger, selected_width,
+	  NULL)) != NULL) {
+      XftPatternGetInteger (selected_font -> pattern,
+			    FC_SPACING, 0, &spacing);
+      monospace = (spacing == XFT_MONO ? true : false);
+      selected_fn (selected_family);
+      if (xft_message_level > XFT_NOTIFY_ERRORS) {
+	_warning ("ctalk: Loaded font: %s\n",
+		  fmt_fc_desc_str (selected_font -> pattern));
+      }
+    }
+  } else {
+    if ((selected_font = XftFontOpen
+	 (display, DefaultScreen (display),
+	  XFT_FAMILY, XftTypeString, selected_family,
+	  XFT_SIZE, XftTypeDouble, selected_pt_size,
+	  XFT_SLANT, XftTypeInteger, selected_slant,
+	  XFT_WEIGHT, XftTypeInteger, selected_weight,
+	  XFT_DPI, XftTypeInteger, selected_dpi,
+	  XFT_SPACING, XftTypeInteger, selected_spacing,
+	  FC_WIDTH, XftTypeInteger, selected_width,
+	  NULL)) != NULL) {
+      XftPatternGetInteger (selected_font -> pattern,
+			    FC_SPACING, 0, &spacing);
+      monospace = (spacing == XFT_MONO ? true : false);
+      selected_fn (selected_family);
+      if (xft_message_level > XFT_NOTIFY_ERRORS) {
+	_warning ("ctalk: Loaded font: %s\n",
+		  fmt_fc_desc_str (selected_font -> pattern));
+      }
     }
   }
 
@@ -875,6 +904,7 @@ int __ctalkMatchText (char *, char *, long long int*);
 char *__ctalkMatchAt (int);
 
 static char req_family[MAXLABEL] = "";
+static char req_style[MAXLABEL] = "";
 static int req_pt_size = 0;
 static int req_slant = 0;
 static int req_weight = 0;
@@ -1128,7 +1158,7 @@ void __ctalkXftSelectFontFromFontConfig (char *font_config_str) {
   int i, n, stack_end_i, lookahead, lookahead2, lookahead3,
     spacing_def, j, stack_end;
   long long int offsets[0xff];
-  char family[MAXLABEL], weight[MAXLABEL], slant,
+  char family[MAXLABEL], style[MAXLABEL], weight[MAXLABEL], slant,
     ptsizestr[64], dpi_x_str[64], dpi_y_str[64],
     *r, *p, *q;
   MESSAGE *m_prop;
@@ -1145,6 +1175,7 @@ void __ctalkXftSelectFontFromFontConfig (char *font_config_str) {
   stack_end = tokenize (fc_message_push, font_config_str);
 
   memset (family, 0, MAXLABEL);
+  memset (style, 0, MAXLABEL);
   for (i = P_MESSAGES; i >= stack_end; i--) {
     if ((M_TOK(fc_messages[i]) == MINUS) &&
 	last_family_hyphen (fc_messages, i, stack_end)) {
@@ -1228,38 +1259,8 @@ void __ctalkXftSelectFontFromFontConfig (char *font_config_str) {
 	    goto fontconfig_parse_done;
 	  } else if (str_eq (M_NAME(m_prop), "style")) {
 	    /***/
-	    /* printf ("ctalk: the fontconfig \"style\" keyword is not (yet) "
-	       "supported.\n"); */
-	    for (j = 0; *fc_width[j].name; j++) {
-	      if (str_eq (M_NAME(fc_messages[lookahead2]),
-			  fc_width[j].name)) {
-		req_width = fc_width[j].value;
-		goto fc_param_done;
-	      }
-	    }
-	    for (j = 0; *fc_weight[j].name; j++) {
-	      if (str_eq (M_NAME(fc_messages[lookahead2]),
-			  fc_weight[j].name)) {
-		req_weight = fc_weight[j].value;
-		goto fc_param_done;
-	      }
-	    }
-	    for (j = 0; *fc_slant[j].name; j++) {
-	      if (str_eq (M_NAME(fc_messages[lookahead2]),
-			  fc_slant[j].name)) {
-		req_slant = fc_slant[j].value;
-		goto fc_param_done;
-	      }
-	    }
-	    for (j = 0; *fc_spacing[j].name; j++) {
-	      if (str_eq (M_NAME(fc_messages[lookahead2]), fc_slant[j].name)) {
-		req_spacing = fc_spacing[j].value;
-		goto fc_param_done;
-	      }
-	    }
-	    printf ("ctalk: Badly formed fontconfig string: %s.\n",
-		    font_config_str);
-	    goto fontconfig_parse_done;
+	    strcpy (style, M_NAME(fc_messages[lookahead2]));
+	    goto fc_param_done;
 	  } else if (str_eq (M_NAME(m_prop), "spacing")) {
 	    for (j = 0; *fc_spacing[j].name; j++) {
 	      if (str_eq (M_NAME(fc_messages[lookahead2]), fc_slant[j].name)) {
@@ -1328,8 +1329,8 @@ void __ctalkXftSelectFontFromFontConfig (char *font_config_str) {
   for (i = stack_end; i <= P_MESSAGES; i++)
     delete_message (fc_message_pop ());
 
-  __select_font_fc (family, req_slant, req_weight, req_dpi, (double)req_pt_size,
-		    spacing_def, req_width);
+  __select_font_fc (family, style, req_slant, req_weight, req_dpi,
+		    (double)req_pt_size, spacing_def, req_width);
 }
 
 char *__ctalkXftSelectedFontDescriptor (void) {

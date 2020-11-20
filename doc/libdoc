@@ -2460,6 +2460,11 @@ Like all libXft library functions, __ctalkXftRevision
 causes the program to exit with an error if Ctalk is built without
 libXft support.
 
+>>>__ctalkXftSelectFontFromFontConfig (char *fontDesc)
+Parses a Fontconfig font descriptor and selects the font.  For information
+about selecting fonts using Fontconfig descriptors, refer to the
+X11FreeTypeFont class. 
+
 >>>__ctalkXftShowFontLoad (int warningLevel)
 Enables or disables the display on standard output of fonts that the
 library is loading.  The Ctalk library defines the following

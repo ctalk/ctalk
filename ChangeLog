@@ -1460,10 +1460,7 @@
 	obj_ref_chk_str_seg to make sure that one of the values
 	and the mask does not result in 0 (rtobjref.c).
 	- Updated Symbol : removeValue to use obj_ref_range_chk.
-	- In __ctalkXftSelectFontFromFontConfig, added support
-	for looking up values for the style attribute, if the
-	value is already defined for another attribute (e.g.,
-	weights like, "bold," "medium," etc.) (xftlib.c).
-
-
+2020-11-20
+	- In __ctalkXftSelectFontFromFontConfig and __select_font_fc,
+	added support the style attribute (xftlib.c).
 
