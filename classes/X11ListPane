@@ -1,4 +1,4 @@
-/* $Id: X11ListPane,v 1.2 2020/09/19 01:08:26 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11ListPane,v 1.5 2020/11/20 18:56:44 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -84,8 +84,9 @@ ItemBox instanceMethod = setEqual (OBJECT *__newObject) {
 }
 
 X11ListPane instanceMethod selectFont (void) {
-  self ftFontVar selectFontFromFontConfig self resources at "font";
-  self ftFontVar saveSelectedFont;
+  "A convenience method.  selectFont is synonymous with, 
+   'self ftFontVar selectFont.'"
+  self ftFontVar selectFont;
 }
 
 X11ListPane instanceMethod calcThumb (void) {
@@ -134,9 +135,6 @@ X11ListPane instanceMethod calcThumb (void) {
 X11ListPane instanceMethod add (String itemText) {
   Symbol new itemPtr;
   Integer new nth, itemWidth;
-
-  self ftFontVar selectFontFromFontConfig self resources at "font";
-  self selectFont;
 
   *itemPtr = ItemBox basicNew itemText, itemText;
 
@@ -276,8 +274,6 @@ X11ListPane instanceMethod onClick (Object subPane, InputEvent event) {
 		    }
 		  }
 		}
-		super draw;
-		super refresh;
 	      } else if (super shiftState & shiftStateShift) {
 		if ((y_1 >= item org y) && (y_1 <= item ext y)) {
 		  if (last_click_nth == i) {
@@ -287,8 +283,6 @@ X11ListPane instanceMethod onClick (Object subPane, InputEvent event) {
 		    last_click_nth = i;
 		    item selected = true;
 		  }
-		  super draw;
-		  super refresh;
 		}
 	      } else if (super shiftState & shiftStateCtrl) {
 		if ((y_1 >= item org y) && (y_1 <= item ext y)) {
@@ -300,13 +294,13 @@ X11ListPane instanceMethod onClick (Object subPane, InputEvent event) {
 		    item selected = true;
 		    super selectRange i;
 		  }
-		  super draw;
-		  super refresh;
 		}
 	      }
 	      ++i;
 	    }
 	  }
+	  self draw;
+	  self refresh;
 	  break;
 	case Button2:
 	  subPane buttonState |= BUTTON2MASK;
@@ -336,7 +330,11 @@ X11ListPane instanceMethod onClick (Object subPane, InputEvent event) {
 
 X11ListPane instanceMethod onMotion (Object subPane, InputEvent event) {
 
+#if 0 /***/
+  /* Maybe we don't need this. */
   if (event eventData == self xWindowID) {
+#endif    
+
     if ((event xEventData1 >= self thumbOrg x) &&
 	(event xEventData1 <= self thumbExt x)) {
       if (self buttonState & BUTTON1MASK) {
@@ -370,7 +368,9 @@ X11ListPane instanceMethod onMotion (Object subPane, InputEvent event) {
 	self refresh;
       }
     }
+#if 0 /***/
   }
+#endif  
 }
 
 #ifndef XK_Up
@@ -510,7 +510,8 @@ X11ListPane instanceMethod drawItemList (void) {
   if (self iInit++ < 5)
     return NULL;
 
-  self ftFontVar selectFontFromFontConfig self resources at "font";
+  /* self ftFontVar selectFontFromFontConfig self resources at "font";*/
+  self ftFontVar selectFont;
   self ftFontVar namedX11Color self resources at "textColor";
 
   lineHeight = self ftFontVar textHeight "T";
