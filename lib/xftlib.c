@@ -1,4 +1,4 @@
-/* $Id: xftlib.c,v 1.3 2020/10/15 19:07:51 rkiesling Exp $ -*-c-*-*/
+/* $Id: xftlib.c,v 1.2 2020/11/20 02:14:22 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -880,6 +880,7 @@ static int req_slant = 0;
 static int req_weight = 0;
 static int req_dpi = 0;
 static int req_width = 0;
+static int req_spacing = 0;
 
 void __ctalkXftSelectFontFromXLFD (char *xlfd) {
   int n,  dpi_y; 
@@ -1226,12 +1227,43 @@ void __ctalkXftSelectFontFromFontConfig (char *font_config_str) {
 		    font_config_str);
 	    goto fontconfig_parse_done;
 	  } else if (str_eq (M_NAME(m_prop), "style")) {
-	    printf ("ctalk: the fontconfig \"style\" keyword is not (yet) "
-		    "supported.\n");
+	    /***/
+	    /* printf ("ctalk: the fontconfig \"style\" keyword is not (yet) "
+	       "supported.\n"); */
+	    for (j = 0; *fc_width[j].name; j++) {
+	      if (str_eq (M_NAME(fc_messages[lookahead2]),
+			  fc_width[j].name)) {
+		req_width = fc_width[j].value;
+		goto fc_param_done;
+	      }
+	    }
+	    for (j = 0; *fc_weight[j].name; j++) {
+	      if (str_eq (M_NAME(fc_messages[lookahead2]),
+			  fc_weight[j].name)) {
+		req_weight = fc_weight[j].value;
+		goto fc_param_done;
+	      }
+	    }
+	    for (j = 0; *fc_slant[j].name; j++) {
+	      if (str_eq (M_NAME(fc_messages[lookahead2]),
+			  fc_slant[j].name)) {
+		req_slant = fc_slant[j].value;
+		goto fc_param_done;
+	      }
+	    }
+	    for (j = 0; *fc_spacing[j].name; j++) {
+	      if (str_eq (M_NAME(fc_messages[lookahead2]), fc_slant[j].name)) {
+		req_spacing = fc_spacing[j].value;
+		goto fc_param_done;
+	      }
+	    }
+	    printf ("ctalk: Badly formed fontconfig string: %s.\n",
+		    font_config_str);
+	    goto fontconfig_parse_done;
 	  } else if (str_eq (M_NAME(m_prop), "spacing")) {
 	    for (j = 0; *fc_spacing[j].name; j++) {
 	      if (str_eq (M_NAME(fc_messages[lookahead2]), fc_slant[j].name)) {
-		req_weight = fc_spacing[j].value;
+		req_spacing = fc_spacing[j].value;
 		goto fc_param_done;
 	      }
 	    }

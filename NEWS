@@ -13,7 +13,13 @@ What's New in Release 0.0.66 2020-xx-xx
   is run.  The framework also allows for the removal of target
   objects that are removed when the object that refers to them
   is deleted, and objects that represent constant tokens, when
-  they are no longer needed.
+  they are no longer needed.  Method pool sizes can be adjusted
+  by applications, with the new Object : methodPoolMax method.
+
+- The Fontconfig parser now recognizes the style tag, if its
+  value is a tag that is normally selected by some other attribute
+  (e.g., "weight" attribute values like, "bold," "medium,", "light,"
+  etc.
 
 - Internal compatibility updates for recent Linux distributions.
 
