@@ -3915,9 +3915,8 @@ Instance Methods
      foreground and background colors.
 
 'selectFont (void)'
-     A convenience method that selects the outline font named by the
-     label's 'ftFont' resource, and saves the values of the font in the
-     label's 'ftFontVar' instance variable.
+     A convenience method that is synonymous with, 'self ftFontVar
+     selectFont'.
 
 'subPaneExpose (Object SUBPANE, InputEvent EVENT)'
      The widget's Expose event handler.  When the widget receives an

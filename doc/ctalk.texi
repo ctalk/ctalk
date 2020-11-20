@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.7 2020/11/20 12:18:25 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.8 2020/11/20 12:40:32 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -15651,9 +15651,7 @@ foreground and background colors.
 
 @cindex @code{selectFont} instance method @idxclscite{X11LabelPane}
 @item selectFont (@code{void})
-A convenience method that selects the outline font named by the
-label's @samp{ftFont} resource, and saves the values of the font
-in the label's @code{ftFontVar} instance variable.
+A convenience method that is synonymous with, @code{self ftFontVar selectFont}.
 
 @cindex @code{subPaneExpose} instance method @idxclscite{X11LabelPane}
 @item subPaneExpose (@code{Object} @var{subPane}, @code{InputEvent} @var{event})

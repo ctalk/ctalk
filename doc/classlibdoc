@@ -7150,9 +7150,7 @@ instance variables and event handlers, and sets the pane's default
 foreground and background colors.
 
 >>>X11LabelPane::selectFont (void)
-A convenience method that selects the outline font named by the
-label's 'ftFont' resource, and saves the values of the font
-in the label's ftFontVar instance variable.
+A convenience method that is synonymous with, self ftFontVar selectFont.
 
 >>>X11LabelPane::subPaneExpose (Object subPane, InputEvent event)
 The widget's Expose event handler.  When the widget receives an Expose
