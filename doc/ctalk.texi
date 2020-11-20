@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.8 2020/11/20 12:40:32 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.10 2020/11/20 19:59:44 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -4159,6 +4159,9 @@ Ctalk's libraries are linked with the system's X libraries during
 installation if they are present, but applications may also need to
 link with X libraries directly in some cases.
 
+@anchor{XEventClasses}
+@cindex Events, X Window System
+@cindex X events
 @subsubheading Event Classes
 A @code{X11TerminalStream} object recognizes the following
 input event classes, and returns the following information
@@ -6463,6 +6466,12 @@ For example, when used with subclasses of @code{ANSITerminalPane,}
 When used with subclasses of X11Pane (actually, any subclass or
 program that uses X11TerminalStream : queueInput), @code{eventData}
 generally holds the ID of the window that received the event.
+
+@cindex Events, X Window System
+@cindex X events
+The GUI event types and the data that a @code{X11TerminalStream}
+object returns are described in the @code{X11TerminalStream} class.
+@xref{XEventClasses}.
 
 @cindex @code{xEventData1} instanceVariable @idxclscite{InputEvent}
 @cindex @code{xEventData2} instanceVariable @idxclscite{InputEvent}
