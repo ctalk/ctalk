@@ -1,6 +1,6 @@
 ## Welcome to the Ctalk Repository on Github
 
->![Ctalk](https://a.fsdn.com/con/app/proj/ctalk/screenshots/analogclock_sample_2.jpg)
+>![Ctalk](https://a.fsdn.com/con/app/proj/ctalk/screenshots/analogclock_sample_2.jpg)![Widgets](https://sourceforge.net/p/ctalk/screenshot/filedialog_screenshot_800x600.jpg)
 
 >**Ctalk** code in the **analogclock.ca** app, which is in the **Timepieces** package.
 
