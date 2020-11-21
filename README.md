@@ -6,6 +6,5 @@
 
 ## Download Ctalk as a compressed archive.
 - [Download the latest stable release.](https://github.com/ctalk/ctalk/archive/release.zip)
-- [Download the latest development release.](https://github.com/ctalk/ctalk/archive/release.zip)
 
 *This page is still being developed. Please visit again soon!*
