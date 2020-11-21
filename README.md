@@ -1,3 +1,6 @@
+=Ctalk
+
 >![Ctalk](https://a.fsdn.com/con/app/proj/ctalk/screenshots/analogclock_sample_2.jpg)
->This is part of the code of the **analogclock.ca** app, int the **Timepieces** package.
+
+>**Ctalk** code in the **analogclock.ca** app, which is in the **Timepieces** package.
 
