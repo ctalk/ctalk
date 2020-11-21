@@ -1,5 +1,6 @@
 ## Welcome to the Ctalk Repository on Github
 
+[<table>]
 [<img align="left" width="200px" src="https://a.fsdn.com/con/app/proj/ctalk/screenshots/analogclock_sample_2.jpg"/>]
 [<img align="right" src="https://sourceforge.net/p/ctalk/screenshot/filedialog_screenshot_800x600.jpg"\>]
 
@@ -8,3 +9,4 @@
 ### An Up-To-Date Evolution of C
 
 *This page is still being updated, so please visit again soon!*
+[</table>]
