@@ -1,4 +1,4 @@
-## Welcome to the Ctalk Repository on Github
+# Ctalk 
 
 ![Widgets](https://sourceforge.net/p/ctalk/screenshot/filedialog_screenshot_800x600.jpg)
 
