@@ -1,12 +1,12 @@
 # Ctalk Github Archive
 
-<table>
+<table style="width:800px">
 <tr>
 <td>
-<img width="450px" src="https://a.fsdn.com/con/app/proj/ctalk/screenshots/analogclock_sample_2.jpg"/>
+<img src="https://a.fsdn.com/con/app/proj/ctalk/screenshots/analogclock_sample_2.jpg"/>
 </td>
 <td>
-<img valign="top" width="450px" src="https://sourceforge.net/p/ctalk/screenshot/filedialog_screenshot_800x600.jpg"/></tc>
+<img src="https://sourceforge.net/p/ctalk/screenshot/filedialog_screenshot_800x600.jpg"/></tc>
 </td>
 </table>
 
