@@ -4,7 +4,7 @@
 <tr>
 <td>
 <img height="300px" src="https://a.fsdn.com/con/app/proj/ctalk/screenshots/analogclock_sample_2.jpg"/>
-Code from the <b>analogclock.ca</b> program, which is available in the timepieces package.
+<br>Code from the <b>analogclock.ca</b> program, which is available in the <a href="#packages">timepieces</a> package.
 </td>
 <td>
 <img height="300px" src="https://sourceforge.net/p/ctalk/screenshot/filedialog_screenshot_800x600.jpg"/></tc>
@@ -15,5 +15,7 @@ Code from the <b>analogclock.ca</b> program, which is available in the timepiece
 
 ## Download Ctalk as a compressed archive.
 - [Download the latest stable release.](https://github.com/ctalk/ctalk/archive/release.zip)
+
+<section id="packages">
 
 *This page is still being developed. Please visit again soon!*
