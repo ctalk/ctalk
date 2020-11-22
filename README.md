@@ -3,16 +3,14 @@
 <table>
 <tr>
 <td>
-<img witdth="600px" src="https://a.fsdn.com/con/app/proj/ctalk/screenshots/analogclock_sample_2.jpg"/>
+<img width="500px" src="https://a.fsdn.com/con/app/proj/ctalk/screenshots/analogclock_sample_2.jpg"/>
 </td>
 <td>
-<img width="400px" src="https://sourceforge.net/p/ctalk/screenshot/filedialog_screenshot_800x600.jpg"/></tc>
+<img width="500px" src="https://sourceforge.net/p/ctalk/screenshot/filedialog_screenshot_800x600.jpg"/></tc>
+<b>Ctalk's</b> developing widget set for X, using the <em>X11Pane</em> class and its subclasses.
 </td>
 </table>
 
-![Widgets](https://sourceforge.net/p/ctalk/screenshot/filedialog_screenshot_800x600.jpg)
-
-**Ctalk's** developing widget set for X, using the *X11Pane* class and its subclasses.
 
 ## Download Ctalk as a compressed archive.
 - [Download the latest stable release.](https://github.com/ctalk/ctalk/archive/release.zip)
