@@ -3,10 +3,10 @@
 <table>
 <tr>
 <tc>
-<img src="https://a.fsdn.com/con/app/proj/ctalk/screenshots/analogclock_sample_2.jpg"/>
+<img width="300px" src="https://a.fsdn.com/con/app/proj/ctalk/screenshots/analogclock_sample_2.jpg"/>
 </tc>
 <tc>
-<img src="https://sourceforge.net/p/ctalk/screenshot/filedialog_screenshot_800x600.jpg"/></tc>
+<img width="300px" src="https://sourceforge.net/p/ctalk/screenshot/filedialog_screenshot_800x600.jpg"/></tc>
 </tr>
 </table>
 
