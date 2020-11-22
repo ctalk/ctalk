@@ -24,6 +24,6 @@
 
 Packages, documentation, and the Ctalk Wiki are located on the **Ctalk** project page on Sourceforge.net.
 
-<a href="http://sf.net/projects/ctalk>Browse the <b>Ctalk</b> archives.</a>
+<a href="http://sf.net/projects/ctalk">Browse the <b>Ctalk</b> archives.</a>
 
 *This page is still being developed. Please visit again soon!*
