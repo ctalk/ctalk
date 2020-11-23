@@ -13,7 +13,7 @@
 </table>
 
 
-## Download Ctalk as a Compressed Archive<br><x-small><em>[Find out what's in the latest release.](https://github.com/ctalk/ctalk/releases/latest)</x-small></em>
+<h2> Download Ctalk as a Compressed Archive&nbsp;&nbsp;<small><em><a href="https://github.com/ctalk/ctalk/releases/latest">Find out what's in the latest release.</a></small></em></h2>
 
 - [Download the latest stable release. (.zip)](https://github.com/ctalk/ctalk/archive/release.zip)
 
