@@ -8,12 +8,15 @@
 </td>
 <td>
 <img height="300px" src="https://sourceforge.net/p/ctalk/screenshot/filedialog_screenshot_800x600.jpg"/></tc>
-<b>Ctalk's</b> developing widget set for X, using the <em>X11Pane</em> class and its subclasses.
+<br><b>Ctalk's</b> developing widget set for X, using the <em>X11Pane</em> class and its subclasses.
 </td>
 </table>
 
 
 ## Download Ctalk as a compressed archive.
+
+[Find out what's new.](https://github.com/ctalk/ctalk/releases/latest)
+
 - [Download the latest stable release. (.zip)](https://github.com/ctalk/ctalk/archive/release.zip)
 
 - [Download the latest development updates. (.zip)](https://github.com/ctalk/ctalk/archive/proposed.zip)
