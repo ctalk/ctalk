@@ -15,7 +15,7 @@
 
 ## Download Ctalk as a compressed archive.
 
-[Find out what's new.](https://github.com/ctalk/ctalk/releases/latest)
+### [Find out what's new.](https://github.com/ctalk/ctalk/releases/latest)
 
 - [Download the latest stable release. (.zip)](https://github.com/ctalk/ctalk/archive/release.zip)
 
