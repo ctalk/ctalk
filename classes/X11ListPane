@@ -1,4 +1,4 @@
-/* $Id: X11ListPane,v 1.10 2020/11/24 17:15:57 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11ListPane,v 1.12 2020/11/24 20:38:03 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -534,7 +534,7 @@ X11ListPane instanceMethod dumpList (void) {
   }
 }
 
-X11ListPane instanceMethod selectExtentWith (ItemBox item) {
+X11ListPane instanceMethod selectStyleWith (ItemBox item) {
   "Returns the horizontal size of a selection bar, depending
     on the value of the receiver's 'selectStyle' instance
     variable."
@@ -547,7 +547,7 @@ X11ListPane instanceMethod selectExtentWith (ItemBox item) {
 
 X11ListPane instanceMethod drawItemList (void) {
   ItemBox new item;
-  Integer new lineHeight;
+  Integer new lineHeight, selectY, selectHeight;
   
   if (self iInit++ < 5)
     return NULL;
@@ -565,12 +565,23 @@ X11ListPane instanceMethod drawItemList (void) {
       if (item selected == true) {
 
 	super pen colorName = super resources at "selectColor";
+	/* Try to center the rectangle vertically over the item text. */
+        selectY = item ext y - super viewStartY - lineHeight;
+        selectHeight = item size y;
+
+       if (selectY < 0) {
+	 /* The rectangle drawing routines can't handle negative
+	    numbers, so the method clips here if the selection 
+	    rectangle's origin is negative. (I.e., the selected
+	    item only partially appears at the top of the pane.) */
+	   selectHeight += selectY;
+	   selectY = 0;
+       }
+
 	super drawFilledRectangle (item org x,
-				   /* Try to center the rectangle 
-				      vertically over the text. */
-				   (item ext y - super viewStartY - lineHeight),
-				   super selectExtentWith item,
-				   item size y);
+				   selectY,
+				   super selectStyleWith item,
+				   selectHeight);
       }
       super putStrXY item org x,
 	(item ext y - super viewStartY), item value;
