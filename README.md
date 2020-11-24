@@ -3,7 +3,7 @@
 <table>
 <tr>
 <td>
-<img height="300px" src="https://a.fsdn.com/con/app/proj/ctalk/screenshots/analogclock_sample_2.jpg"/>
+<img height="300px" width="300px" src="https://a.fsdn.com/con/app/proj/ctalk/screenshots/analogclock_sample_2.jpg"/>
 <br>Code from the <b>analogclock.ca</b> program, which is available in the <a href="#packages">timepieces package.</a>
 </td>
 <td>
