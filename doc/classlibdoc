@@ -7280,6 +7280,13 @@ Selects the font to display the list items, and saves the font
 parameters in the object's ftFontVar instance variable,
 which is inherited from X11Pane class.
 
+>>>X11ListPane::selectExtentWith (ItemBox item)
+Returns the width of an item's selection bar depending on the value of
+the list pane's selectStyle instance variable.  Depending on
+selectStyle's value, which may be either, "item," or, "pane,"
+the selection bar shades the item text only, or extends to the right
+margin of the pane.
+
 
 
 

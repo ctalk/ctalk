@@ -4142,14 +4142,21 @@ Resources
      The distance in pixels the list should scroll up or down when the
      user scrolls the list.  The default is 4 pixels.
 
-'leftMargin'
+'margin'
      An 'Integer' that defines the width in pixels of between the left
-     edge of pane's list area and the left margin of the item text.  The
-     default is 4 pixels.
+     edge of pane's list area and the left margin of the item text, and
+     the right margin, when selecting using full-width scroll bars (see
+     'selectStyle', below).  The default is 4 pixels.
 
 'selectColor'
      A 'String' that contains the background color of selected items.
      The default is 'lightblue'.
+
+'selectStyle'
+     A 'String' that defines whether a select bar extends to the right
+     edge of an item's text, or to the right margin of the pane.  The
+     class recognizes the values, "item," and, "pane."  The default is
+     "pane."
 
 'textColor'
      A 'String' that contains the color of the list text.  The default
@@ -4194,6 +4201,17 @@ Instance Variables
 'iInit'
      An 'Integer' that simply causes the 'drawItemList' method to wait
      for class to initialize the fonts it needs.
+
+'margin'
+     An 'Integer' that defines the width in pixels between the left edge
+     of the pane's list area and the start of the item text, and the
+     right edge of the list area when 'selectStyle' is 'pane'.
+
+'selectStyle'
+     A 'String' that determines whether the pane displays selection bars
+     over item text only, or whether the selection bar extends to the
+     right margin of the pane.  The class recognizes the values, "item,"
+     and, "pane."  The default is, "pane."
 
 'scrollWidth'
      An 'Integer' that defines the width in pixels of the scroll bar.
@@ -4317,6 +4335,13 @@ Instance Methods
      Selects the font to display the list items, and saves the font
      parameters in the object's 'ftFontVar' instance variable, which is
      inherited from 'X11Pane' class.
+
+'selectExtentWith (ItemBox ITEM)'
+     Returns the width of an item's selection bar depending on the value
+     of the list pane's 'selectStyle' instance variable.  Depending on
+     'selectStyle's' value, which may be either, "item," or, "pane," the
+     selection bar shades the item text only, or extends to the right
+     margin of the pane.
 
 
 File: ctalk.info,  Node: X11MessageBoxPane,  Next: X11ScrollBarPane,  Prev: X11ListPane,  Up: Classes
@@ -8441,220 +8466,4 @@ expression more readable, depending on whether the new object is an
      INTVAL(result -> __o_value) = int_value;
      INTVAL(result -> instancevars -> __o_value) = int_value;
 
-
-
-File: ctalk.info,  Node: Templates,  Next: Return values,  Prev: Scoping,  Up: Methods
-
-Templates
----------
-
-_Templates_ are simplified methods that are defined as macros and
-written in C. They provide a method-compatible wrapper to C functions.
-
-Template methods can appear in place of C functions in complex
-expressions, and they must be used if a C function writes to its
-arguments (e.g., like 'scanf(3)' or 'sscanf(3)').  For example, if we
-have a template defined for the function 'myPrintMsg', then Ctalk
-subsitutes the method expression wherever 'myPrintMsg' appears in an
-expression like this one.
-
-
-       if ((myInt = myPrintMsg (someMsg)) != 0) {
-          _... do something..._
-       }
-
-
-After compilation, the expression looks like this.
-
-
-       if ((myInt = CFunction cMyPrintMsg (someMsg)) != 0) {
-          ...
-
-
-You can also use 'myPrintMsg' on the left-hand side of an assignment,
-like this.
-
-
-       myInt = myPrintMsg (someMsg);
-
-       _-or-_
-
-       self = myPrintMsg (someMsg);
-
-
-Additionally, you can use templates on their own, by prefacing the
-method's name (the template function's alias) with its class object.
-
-
-       CFuntion myPrintMsg (someMsg);
-
-
-As the last example implies, templates are class methods in the
-pseudo-class 'CFunction'.  Ctalk loads and caches templates where
-necessary when compiling the input file, so you won't see any methods of
-the 'CFunction' class unless the program calls for one or more of them.
-
-If the template wraps a C function of the same name, then, of course,
-you can also use the C function on its own.  However, templates don't
-necessarily need to correspond to a C function; they can provide any set
-of C expressions with a method compatible interface.
-
-Ctalk defines a number of built-in templates for the standard C library.
-You can determine if Ctalk substitutes a template for a C function by
-giving the '--printtemplates' option to 'ctalk' when it compiles a
-source file.  This displays the templates that the compiler loads and
-caches (but doesn't necessarily send to the output).
-
-You can define templates for application-specific C functions and
-routines also.  Ctalk retrieves and caches them similarly to its
-built-in templates, but they are cataloged and stored separately in each
-user's '~/.ctalk/templates' directory.
-
-As mentioned above, templates don't need to wrap a function of the same
-name as the template.  That is, 'myPrintMsg', above, does not have to be
-an actual function (although you need to prototype it that way).
-Templates for C library functions always correspond to an actual library
-function.  Program specific templates can serve as a wrapper for any
-function or set of routines.
-
-When compiling templates, the Ctalk compiler checks the user template
-registry first.  If a user defines a template with the same name as one
-of Ctalk's C library templates, then the compiler uses the user's
-template instead of Ctalk's built-in template.  That means you can
-define a template that replaces a C library template.
-
-When creating a template for a function, you need to follow these steps.
-
-   * Add a prototype of the function to the input file.  For example:
-
-
-            OBJECT *myPrintMsg (char *text);
-
-
-     Ctalk uses the prototype's argument list to check the number and
-     type of arguments.  The prototype's argument list must be the same
-     as the template's argument list.
-
-   * Check that any terms in the expression before and after the
-     template are compatible.  Ctalk can in most cases distinguish
-     between objects and C variables in expressions.  Ctalk will try to
-     warn you if it sees a mixed object/variable expression it can't
-     handle.  If an expression causes an error, try breaking it into
-     smaller pieces, with objects and methods in one set of terms, and C
-     variables and operators in another.  Also, try making the template
-     function the first term in the expression (or the first term after
-     an assignment operator).  This expression, for example, is
-     relatively easy to handle because everything that follows the
-     template is normal C code.
-
-
-          myFloat = rand () + 0.33 + (float)my_dbl;
-
-
-   * Write a template for the function, and add it to the local
-     directory's template cache with the 'template' command.  The
-     following sections describe the format that templates use.
-
-Writing Templates
------------------
-
-Templates are basically multiple line macros that provide a method
-selector and method body in a #define preprocessor statement.  When
-Ctalk finds a function name that has a template defined for it, it
-subsitutes the template name for the function name in the expression,
-adds the template's body to the output, and adds the template to the
-CFunction classes' initialization.
-
-Templates can accept arguments similarly to methods, and, like methods,
-they return a C 'OBJECT *', or NULL.
-
-Here is the template for the 'myPrintMsg()' C function.  The template
-provides a wrapper for the 'printf(3)' function, and, like 'printf(3)',
-returns an integer value (as an 'Integer' object).  The template
-contains a few features that are part of the template protocol.
-
-
-     #define myPrintMsg \n\
-     cMyPrintMsg (char *text) {\n\
-       char buf[255]; \n\
-       int result; \n\
-       OBJECT *objresult; \n\
-       if (__ctalkIsObject(ARG(0))) {\n\
-         result = printf ("myPrintMsg: %s\n", \n\
-                           __ctalkToCCharPtr(ARG(0), 1)); \n\
-         __ctalkDecimalIntegerToASCII (result, buf); \n\
-         return __ctalkCreateObjectInit ("result", "Integer", \n\
-                                         "Magnitude", LOCAL_VAR, buf); \n\
-       } else { \n\
-         __ctalkDecimalIntegerToASCII (-1, buf); \n\
-         objresult =  __ctalkCreateObjectInit ("result", "Integer", \n\
-                                         "Magnitude", LOCAL_VAR, buf); \n\
-         __ctalkRegisterUserObject (objresult); \n\
-         return objresult; \n\
-       }\n\
-     }
-
-
-   * The template embeds newlines with the string '\n\'.  When the
-     template is preprocessed, this expression joins the lines of the
-     template but keeps the line endings intact.
-   * The method selector, 'cMyPrintMsg' is built from the function name
-     ('myPrintMsg') by uppercasing the first letter and prepending a 'c'
-     to it.
-   * The template must declare its arguments, like the 'char *text'
-     declaration above, even though the actual arguments are objects, as
-     described in the next item.
-   * The expression '__ctalkIsObject(ARG(0))' checks that the argument
-     to the template is a valid object.  You can acccess the template's
-     arguments with the 'ARG' macro.  The first argument is 'ARG(0)',
-     the second argment is 'ARG(1)', and so on.
-   * The function, '__ctalkToCCharPtr()' translates the argument object
-     into a 'char *' string that 'printf(3)' expects as its argument.
-   * Normally templates create a return object manually, using the API
-     function '__ctalkCreateObjectInit ()' or a similar function.  Note
-     that '__ctalkCreateObjectInit ()' uses a 'char *' to store the
-     value of the object, which is why many templates declare a buffer
-     for the C function's result and use __ctalkDecimalIntegerToASCII
-     ().  If the result is more complex, then the template might need to
-     format it with a function like 'sprintf (3)'.  Templates can also
-     return NULL, but if a program uses such a templated function in an
-     assignment statement, it causes a program to generate a NULL
-     argument object warning when the program is run.
-   * Whenever a method returns an object it creates, it should register
-     the object, for example by calling '__ctalkRegisterUserObject' as
-     in the template above.  That way Ctalk can either maintain the
-     object or clean it up when it needs to be deleted.  This function
-     call is optional, but omitting it may cause memory leaks when the
-     program is run.
-   * A template can use macros, like 'LOCAL_VAR'.  The most convenient
-     way to define macros is to '#include <ctalk/ctalkdefs.h>' somewhere
-     in the input.  Many classes already do this, and the template can
-     use the same set of macro definitions as the class libraries.
-
-Cataloging Templates
---------------------
-
-When looking up templates, Ctalk looks in the template registry file,
-which is normally '~/.ctalk/templates/fnnames' for the name given in the
-input.  If the function is aliased to another name by a macro
-substitution, 'fnnames' contains the name of the alias also.
-
-For example, on some systems, the function 'getc(3)' is a macro that
-expands to '_IO_getc'.  The 'fnnames' file would then contain '_IO_getc'
-as the templated function's name.
-
-When the compiler finds the function's name or alias in 'fnnames', it
-looks in the directory for the template file, which is named for the
-first letter of the function's name.  That is, when looking for
-'myPrintMsg's' template, Ctalk looks for a file named
-'~/.ctalk/templates/m'.
-
-The C library templates that come with Ctalk use the same scheme, except
-that the template files are stored in a subdirectory of the class
-library called 'libc'.  The registry is part or the run-time library, so
-C library templates do not need a separate registry file.
-
-The manual page, 'fnnames(5ctalk)' contains more information about the
-'fnnames' file.  The 'templates(5ctalk)' manual page describes the
-format of individual templates.
 

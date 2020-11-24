@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.10 2020/11/20 19:59:44 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.13 2020/11/24 17:15:57 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -15911,16 +15911,23 @@ to display the list items.  The default is @samp{sans serif-12}.
 The distance in pixels the list should scroll up or down when
 the user scrolls the list.  The default is 4 pixels.
 
-@cindex @code{leftMargin} resource @idxclscite{X11ListPane}
-@item leftMargin
-An @code{Integer} that defines the width in pixels of between
-the left edge of pane's list area and the left margin of the
-item text.  The default is 4 pixels.
+@cindex @code{margin} resource @idxclscite{X11ListPane}
+@item margin
+An @code{Integer} that defines the width in pixels of between the left
+edge of pane's list area and the left margin of the item text, and the
+right margin, when selecting using full-width scroll bars (see
+@code{selectStyle}, below).  The default is 4 pixels.
 
 @cindex @code{selectColor} resource @idxclscite{X11ListPane}
 @item selectColor
 A @code{String} that contains the background color of selected
 items.  The default is @samp{lightblue}.
+
+@cindex @code{selectStyle} resource @idxclscite{X11ListPane}
+@item selectStyle
+A @code{String} that defines whether a select bar extends to the right
+edge of an item's text, or to the right margin of the pane.  The class
+recognizes the values, "item," and, "pane."  The default is "pane."
 
 @cindex @code{textColor} resource @idxclscite{X11ListPane}
 @item textColor
@@ -15979,12 +15986,26 @@ ItemBox instanceVariable size Point 0;
 An @code{Integer} that simply causes the @mnm{drawItemList} method to
 wait for class to initialize the fonts it needs.
 
+@cindex @code{margin} instance variable @idxclscite{X11ListPane}
+@item margin
+An @code{Integer} that defines the width in pixels between the
+left edge of the pane's list area and the start of the item text,
+and the right edge of the list area when @code{selectStyle} is
+@samp{pane}.
+
+@cindex @code{selectStyle} instance variable @idxclscite{X11ListPane}
+@item selectStyle
+A @code{String} that determines whether the pane displays selection
+bars over item text only, or whether the selection bar extends to the
+right margin of the pane.  The class recognizes the values, "item,"
+and, "pane."  The default is, "pane."
+
 @cindex @code{scrollWidth} instance variable @idxclscite{X11ListPane}
 @item scrollWidth
 An @code{Integer} that defines the width in pixels of the scroll bar.
-It is initialized from the value of the @code{scrollWidth} resource when
-the @code{X11ListPane} object is attached to its parent window by the
-@mnm{attachTo} method.  The default is 10 pixels.
+It is initialized from the value of the @code{scrollWidth} resource
+when the @code{X11ListPane} object is attached to its parent window by
+the @mnm{attachTo} method.  The default is 10 pixels.
 
 @cindex @code{scrollWidth} instance variable @idxclscite{X11ListPane}
 @item scrollWidth
@@ -16133,6 +16154,14 @@ If no item is selected, the method returns and empty @code{String}.
 Selects the font to display the list items, and saves the font
 parameters in the object's @code{ftFontVar} instance variable,
 which is inherited from @code{X11Pane} class.
+
+@cindex @code{selectExtentWith} instance method @idxclscite{X11ListPane}
+@item @mnm{selectExtentWith} (@code{ItemBox} @var{item})
+Returns the width of an item's selection bar depending on the value of
+the list pane's @code{selectStyle} instance variable.  Depending on
+@code{selectStyle's} value, which may be either, "item," or, "pane,"
+the selection bar shades the item text only, or extends to the right
+margin of the pane.
 
 @end table
 
