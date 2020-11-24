@@ -1,6 +1,6 @@
 # Ctalk Github Archive
 
-<table>
+<table border="0">
 <tr>
 <td>
 <img height="300px" src="https://a.fsdn.com/con/app/proj/ctalk/screenshots/analogclock_sample_2.jpg"/>
