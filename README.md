@@ -8,7 +8,7 @@
 </td>
 <td>
 <img height="300px" src="https://sourceforge.net/p/ctalk/screenshot/filedialog_screenshot_800x600.jpg"/></tc>
-<br><b>Ctalk's</b> native widget set for X is currently in development.  The widgets use objects of the <em>X11Pane</em> class and its subclasses - no external toolkit is needed.
+<br><b>Ctalk's</b> native widget set for X is currently in development.  The widgets in this toolkit use objects of the <em>X11Pane</em> class and its subclasses.
 </td>
 </table>
 
