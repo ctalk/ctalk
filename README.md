@@ -3,11 +3,11 @@
 <table border="0">
 <tr>
 <td>
-<img height="300px" src="https://a.fsdn.com/con/app/proj/ctalk/screenshots/analogclock_sample_2.jpg"/>
+<img height="300px" width="300px" src="https://a.fsdn.com/con/app/proj/ctalk/screenshots/analogclock_sample_2.jpg"/>
 <br>Code from the <b>analogclock.ca</b> program, which is available in the <a href="#packages">timepieces package.
 </td>
 <td>
-<img height="300px" src="https://sourceforge.net/p/ctalk/screenshot/filedialog_screenshot_800x600.jpg"/></tc>
+<img height="300px" width="400px" src="https://sourceforge.net/p/ctalk/screenshot/filedialog_screenshot_800x600.jpg"/></tc>
 <br><b>Ctalk's</b> native widget set for X is currently in development.  The widgets use objects of the <em>X11Pane</em> class, and widget and toolkit subclasses. 
 </td>
 </table>
