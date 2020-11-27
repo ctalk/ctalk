@@ -1,6 +1,7 @@
 <head>
-<meta name="viewport" content="width=device-width initial-scale=1"/>
+<meta name="viewport" content="width=800px initial-scale=1"/>
 
+<!--
 <style>
 @media screen and (max-width: 100px){
 	img.mobile {
@@ -8,6 +9,7 @@
 	}
 }
 </style>
+-->
 </head>
 <body>
 
