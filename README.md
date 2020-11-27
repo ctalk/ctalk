@@ -1,13 +1,11 @@
 <head>
 <meta name="viewport" content="width=device-width initial-scale=1"/>
 
-<style>
 @media screen and (max-width: 100px){
 	img.mobile {
        scale: "50%";
 	}
 }
-</style>
 </head>
 
 
