@@ -5,7 +5,7 @@
 <table border="0">
 <tr>
 <td>
-<img src="https://a.fsdn.com/con/app/proj/ctalk/screenshots/analogclock_sample_2.jpg"/>
+<img sizes="(min-width: 600px) 495px, 100px" src="https://a.fsdn.com/con/app/proj/ctalk/screenshots/analogclock_sample_2.jpg">
 <br>Code from the <b>analogclock.ca</b> program, which is available in the <a href="#packages">timepieces package.
 </td>
 <td>
