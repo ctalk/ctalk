@@ -1,5 +1,5 @@
 <head>
-<meta name="viewport" content="width=800px initial-scale=1"/>
+<meta name="viewport" content="width=800 initial-scale=1.0">
 
 <!--
 <style>
