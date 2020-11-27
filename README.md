@@ -1,6 +1,7 @@
 <head>
 <meta name="viewport" content="width=device-width initial-scale=1"/>
 
+</head>
 <code>
 @media screen and (max-width: 481px){
 	.img {
@@ -8,7 +9,6 @@
 	}
 }
 </code>
-</head>
 
 # Ctalk Github Archive
 
