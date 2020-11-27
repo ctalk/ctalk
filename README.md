@@ -3,7 +3,7 @@
 
 <code>
 @media screen and (max-width: 481px){
-	#mobile {
+	.img {
        scale: "50%";
 	}
 }
