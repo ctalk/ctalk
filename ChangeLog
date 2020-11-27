@@ -1476,5 +1476,13 @@
 	instance method, and the X11ListPane instance variables, margin,
 	and selectStyle.  Also clip a selection bar if thse selected
 	item scrolls past the top of the pane.
+2020-11-26
+	- In rt_self_expr, added a check for METHODMSGLABEL tokens,
+	and save their stack index (rt_expr.c).
+	- Added tmp_lval_type_str (c_rval.c).
+	- Added get_tmp_lval_tab_idx and tmp_lval_cvar (c_rval.c).
+2020-11-27
+	- Added method_arg_is_fn_call (arg.c), called by rt_self_expr
+	(rt_expr.c).
 
 

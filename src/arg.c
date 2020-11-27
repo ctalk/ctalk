@@ -1,4 +1,4 @@
-/* $Id: arg.c,v 1.9 2020/10/10 15:03:55 rkiesling Exp $ */
+/* $Id: arg.c,v 1.10 2020/11/27 13:36:45 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -2522,5 +2522,97 @@ char *format_method_arg_accessor (int param_idx, char *tok, bool varargs,
 	     ascii[param_idx], ")", NULL);
     return expr_out;
   }
+  return NULL;
+}
+
+/***/
+/*
+ *  Use for expressions like, 
+ * 
+ *   <rcvr> <method> <arg_expr>, <fn_expr_in_arglist (fn_arg0, ...)>;
+ */
+char *method_arg_is_fn_call (MESSAGE_STACK messages, int start_idx,
+			     int fn_label_idx,
+			     int stack_top_idx, int method_idx,
+			     int *expr_end_idx) {
+  int fn_arg_start_idx = fn_label_idx,
+    fn_arg_end_idx = fn_label_idx,
+    tmp_lval_tab_idx;
+  char fn_arg_expr_1[MAXMSG],
+    *fn_return_class, tmp_lval_name[MAXLABEL],
+    tmpl_cvar_register_buf[MAXMSG], template_expr[RVALTEMPLATEMAX];
+  CFUNC *c_fn;
+  CVAR *cvar;
+  METHOD *method = NULL;
+  int i;
+  OBJECT *arg_object;
+
+  if ((fn_arg_start_idx = nextlangmsg (messages, fn_label_idx)) == ERROR)
+    return NULL;
+  if ((fn_arg_end_idx = match_paren (messages, fn_arg_start_idx,
+				      stack_top_idx)) == ERROR) {
+    error (messages[fn_label_idx], "Mismatched parentheses.");
+  }
+  *expr_end_idx = fn_arg_end_idx;
+
+  /* The method's receiver message should normally be TOK_SELF here,
+     until we try to use this fn elsewhere... */
+  if (((method = get_instance_method (messages[method_idx] -> receiver_msg,
+				      rcvr_class_obj,
+				      M_NAME(messages[method_idx]),
+				      ANY_ARGS, FALSE)) == NULL) &&
+      ((method = get_class_method (messages[method_idx] -> receiver_msg,
+				   rcvr_class_obj,
+				   M_NAME(messages[method_idx]),
+				   ANY_ARGS, FALSE)) == NULL)) {
+    return NULL;
+  }
+
+  if ((c_fn = get_function (M_NAME(messages[fn_label_idx]))) 
+      == NULL) {
+    /* Check for a user template before simply returning an error. */
+    if (!user_template_name (M_NAME(messages[fn_label_idx]))) {
+      return NULL;
+    }
+  }
+  fn_return_class = 
+    basic_class_from_cfunc (messages[fn_label_idx], c_fn, 0);
+  /* TODO We should probably check if there's a template -
+     see c_rval.c ~835 and before. */
+  tmp_lval_tab_idx = get_tmp_lval_tab_idx (messages, fn_label_idx,
+					   fn_return_class);
+  make_tmp_fn_block_name (tmp_lval_name);
+  cvar = tmp_lval_cvar (tmp_lval_tab_idx);
+  strcpy (cvar -> name, tmp_lval_name);
+
+  if (nextlangmsg (messages, fn_arg_start_idx) ==
+      fn_arg_end_idx) {
+    /* empty argument list */
+    toks2str (messages, fn_label_idx, fn_arg_end_idx, fn_arg_expr_1);
+  } else {
+    arg_object = fn_arg_expression (rcvr_class_obj, method,
+				    messages, fn_label_idx);
+    strcatx (fn_arg_expr_1, M_NAME(messages[fn_label_idx]),
+	     "(", arg_object -> __o_name, ")", NULL);
+    delete_object (arg_object);
+  }
+
+  sprintf (template_expr, ARG_FN_EXPR_TEMPLATE,
+	   tmp_lval_type_str (tmp_lval_tab_idx),
+	   tmp_lval_name,
+	   fn_arg_expr_1,
+	   fmt_register_c_method_arg_call 
+	   (cvar, tmp_lval_name, LOCAL_VAR, tmpl_cvar_register_buf));
+	     
+  fileout (template_expr, FALSE, start_idx);
+  
+  strcpy (messages[fn_label_idx] -> name, tmp_lval_name);
+  for (i = fn_label_idx - 1; i >= fn_arg_end_idx; i--) {
+    messages[i] -> name[0] = ' '; messages[i] -> name[1] = '\0';
+    messages[i] -> tokentype = WHITESPACE;
+    ++messages[i] -> evaled;
+    ++messages[i] -> output;
+  }
+
   return NULL;
 }
