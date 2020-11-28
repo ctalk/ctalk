@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.13 2020/11/24 17:15:57 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.14 2020/11/28 10:37:44 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -449,6 +449,7 @@ Object
    X11PaneDispatcher
     X11CanvasPane
      X11ButtonPane
+     X11CheckBoxPane
      X11LabelPane
      X11ListPane
      X11MessageBoxPane
@@ -545,6 +546,7 @@ Object
 *    X11PaneDispatcher::
 *     X11CanvasPane::
 *      X11ButtonPane::
+*      X11CheckBoxPane::
 *      X11LabelPane::
 *      X11ListPane::
 *      X11MessageBoxPane::
@@ -14655,7 +14657,7 @@ The handler for Resize events from the X display.  Resizes the pane's
 X window and adjusts the pane's dimensions.
 @end table
 
-@node X11ButtonPane, X11LabelPane, X11CanvasPane, Classes
+@node X11ButtonPane, X11CheckBoxPane, X11CanvasPane, Classes
 @iftex
 @section @code{X11ButtonPane} Class
 @end iftex
@@ -15267,8 +15269,17 @@ with a space character (@samp{ }) between them.
 
 @end table
 
+@node X11CheckBoxPane, X11LabelPane, X11ButtonPane, Classes
+@iftex
+@section @code{X11CheckBoxPane} Class
+@end iftex
+@ifnottex
+@subheading @code{X11CheckBoxPane} Class
+@end ifnottex
+@cindex @code{X11CheckBoxPane} class
 
-@node X11LabelPane, X11ListPane, X11ButtonPane, Classes
+
+@node X11LabelPane, X11ListPane, X11CheckBoxPane, Classes
 @iftex
 @section @code{X11LabelPane} Class
 @end iftex
