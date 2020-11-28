@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.14 2020/11/28 10:37:44 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.15 2020/11/28 21:15:10 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -15278,6 +15278,66 @@ with a space character (@samp{ }) between them.
 @end ifnottex
 @cindex @code{X11CheckBoxPane} class
 
+A @code{X11CheckBoxPane} object draws a checkable box on its parent
+pane.  The class has methods for initialization, and maintaining
+the box's clicked/unclicked state, and the instance data for retrieving
+the state.
+
+@c demos/x11/checkbox.ca
+Here is a brief example of a @code{X11CheckBoxPane} object in a
+program.
+
+@verbatim
+
+#include <ctalk/ctalkdefs.h>
+
+int main (int argv, char **argc) @{
+  X11Pane new xPane;
+  X11PaneDispatcher new xTopLevelPane;
+  X11CheckBoxPane new xCheckBoxPane;
+  InputEvent new e;
+  Exception new ex;
+
+  xPane initialize 0, 0, 300, 300;
+  xPane inputStream eventMask = BUTTONPRESS|WINDELETE|EXPOSE;
+  xTopLevelPane attachTo xPane;
+  xCheckBoxPane attachTo xTopLevelPane, "25x25+25+25";
+  xPane map;
+  xPane raiseWindow;
+
+  xPane openEventStream;
+
+  xCheckBoxPane draw;
+  
+  while (TRUE) @{
+    xPane inputStream queueInput;
+    if (xPane inputStream eventPending) @{
+      e become xPane inputStream inputQueue unshift;
+      xPane subPaneNotify e;  /* Call the classes' event handlers. */
+      if (ex pending)
+	ex handle;
+      
+      switch (e eventClass value)
+     	@{
+	case BUTTONPRESS:
+	  if (xCheckBoxPane clicked) @{
+	     printf ("clicked\n");
+	  @}  else @{
+	     printf ("unclicked\n");
+          @}
+	  break;
+	case WINDELETE:
+      	  xPane deleteAndClose;
+     	  exit (0);
+     	  break;
+     	default:
+     	  break;
+     	@}
+    @}
+  @}
+@}
+
+@end verbatim
 
 @node X11LabelPane, X11ListPane, X11CheckBoxPane, Classes
 @iftex

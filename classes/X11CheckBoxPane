@@ -1,4 +1,4 @@
-/* $Id: X11CheckBoxPane,v 1.1 2020/11/28 10:37:43 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11CheckBoxPane,v 1.5 2020/11/28 21:15:10 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -24,5 +24,84 @@
 /*
  *    X11CheckBoxPane class.
  */
+/*
+      Resources
+
+      clickColor                "darkslategray"
+      backgroundColor           "white"
+ */
 
 X11CanvasPane class X11CheckBoxPane;
+
+X11CanvasPane instanceVariable clicked Boolean false;
+
+X11CheckBoxPane instanceMethod new (String __paneName) {
+  Method new buttonPressMethod;
+
+  X11CheckBoxPane super new __paneName;
+
+  buttonPressMethod definedInstanceMethod "X11CheckBoxPane", "onClick";
+  __paneName setMethodHandler "pointerinput", buttonPressMethod;
+
+  __paneName resources atPut "marginX", 3;
+  __paneName resources atPut "marginY", 3;
+  __paneName resources atPut "sizeX", 15;
+  __paneName resources atPut "sizeY", 15;
+
+  __paneName resources atPut "clickColor", "darkslategray";
+  __paneName resources atPut "backgroundColor", "white";
+
+  return __paneName;
+}
+
+X11CheckBoxPane instanceMethod onClick (Object subPane, InputEvent event) {
+  subPane clicked = !subPane clicked;
+  subPane draw;
+}
+
+X11CheckBoxPane instanceMethod draw (void) {
+
+  self paneBuffer background self resources at "backgroundColor";
+
+  self pen colorName = self resources at "backgroundColor";
+  self drawFilledRectangle (self resources integerAt "marginX"),
+    (self resources integerAt "marginY"),
+    (self resources integerAt "sizeX"),
+    (self resources integerAt "sizeY");
+
+  self pen colorName = self resources at "clickColor";
+  self pen width = 1;
+  self drawRectangle (self resources integerAt "marginX") - 1,
+    (self resources integerAt "marginY") - 1,
+    (self resources integerAt "sizeX") + 1,
+    (self resources integerAt "sizeY") + 1;
+
+  if (self clicked) {
+    self drawFilledRectangle
+      (self resources integerAt "marginX") + 1,
+      (self resources integerAt "marginY") + 1,
+      (self resources integerAt "sizeX") - 3,
+      (self resources integerAt "sizeY") - 3;
+  }
+
+#if 0
+   /* Might not need inner border if not clicked. */
+  if (!self clicked) {
+    self drawFilledRectangle
+      (self resources integerAt "marginX") + 1,
+      (self resources integerAt "marginY") + 1,
+      (self resources integerAt "sizeX") - 3,
+      (self resources integerAt "sizeY") - 3;
+  }
+ else {
+    self drawFilledRectangle
+      (self resources integerAt "marginX") + 1,
+      (self resources integerAt "marginY") + 1,
+      (self resources integerAt "sizeX") - 3,
+      (self resources integerAt "sizeY") - 3;
+  }
+#endif    
+
+  self refresh;
+}
+
