@@ -1,3 +1,32 @@
+/* $Id: checkbox.ca,v 1.8 2020/11/29 18:50:19 rkiesling Exp $ -*-c-*-*/
+
+/*
+ *  X11CheckBoxPane demo.
+ */	
+
+/* 
+ *  To display bevels, uncomment the following line. 
+ */
+/* #define BEVEL */
+
+/* 
+ * To draw a checkbox with rounded corners, uncomment this
+ * #define and set it to a non-zero value.  Note that the
+ * libraries' radius drawing might not fill very narrow borders
+ * fully.
+ */
+/* #define RADIUS 0 */
+
+/* 
+ * To change the width, height, and internal margin of the
+ * check box, edit these #defines.  The measurements are in
+ * pixels.
+ */
+#define CHECKBOX_WIDTH   15
+#define CHECKBOX_HEIGHT  15
+#define CHECKBOX_MARGIN  1
+#define CHECKBOX_BORDER  1
+
 #include <ctalk/ctalkdefs.h>
 
 int main (int argv, char **argc) {
@@ -7,10 +36,23 @@ int main (int argv, char **argc) {
   InputEvent new e;
   Exception new ex;
 
+  xCheckBoxPane resources replaceAt "width", CHECKBOX_WIDTH;
+  xCheckBoxPane resources replaceAt "height", CHECKBOX_HEIGHT;
+  xCheckBoxPane resources replaceAt "margin", CHECKBOX_MARGIN;
+  xCheckBoxPane resources replaceAt "borderWidth", CHECKBOX_BORDER;
+#ifdef RADIUS
+  xCheckBoxPane resources replaceAt "radius", RADIUS;
+#endif  
+
   xPane initialize 0, 0, 300, 300;
   xPane inputStream eventMask = BUTTONPRESS|WINDELETE|EXPOSE;
   xTopLevelPane attachTo xPane;
   xCheckBoxPane attachTo xTopLevelPane, "25x25+25+25";
+
+#ifdef BEVEL
+  xCheckBoxPane resources replaceAt "bevel", true;
+#endif
+
   xPane map;
   xPane raiseWindow;
 
