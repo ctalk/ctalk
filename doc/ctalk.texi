@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.15 2020/11/28 21:15:10 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.16 2020/11/29 15:52:48 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -4170,22 +4170,23 @@ input event classes, and returns the following information
 in the @code{xEventData} instance variables, which are
 defined in @code{InputEvent} class. @xref{InputEvent}.
 @smallexample
-Event Class     xEventData1 xEventData2 xEventData3 xEventData4 xEventData5
-BUTTONPRESS     x           y           state       button      -
-BUTTONRELEASE   x           y           state       button      -
-KEYPRESS        x           y           state       keycode     x_keycode[1]
-KEYRELEASE      x           y           state       keycode     x_keycode[1]
-CONFIGURENOTIFY x           y           height      width       border
-MOVENOTIFY      x           y           height      width       border
-RESIZENOTIFY    x           y           height      width       border
-MOTIONNOTIFY    x           y           state       is_hint     -
-MAPNOTIFY       event       window      -           -           -
-EXPOSE          x           y           width       height      count
-SELECTIONREQUEST -          -           -           -           -
-SELECTIONCLEAR  -           -           -           -           -
-WINDELETE       -           -           -           -           -
+eventClass      eventData   xEventData1 xEventData2 xEventData3 xEventData4 xEventData5
+BUTTONPRESS     Window ID   x           y           state       button      -
+BUTTONRELEASE   Window ID   x           y           state       button      -
+KEYPRESS        Window ID   x           y           state       keycode     x_keycode[1]
+KEYRELEASE      Window ID   x           y           state       keycode     x_keycode[1]
+CONFIGURENOTIFY Window ID   x           y           height      width       border
+MOVENOTIFY      Window ID   x           y           height      width       border
+RESIZENOTIFY    Window ID   x           y           height      width       border
+MOTIONNOTIFY    Window ID   x           y           state       is_hint     -
+MAPNOTIFY       Window ID   event       window      -           -           -
+EXPOSE          Window ID   x           y           width       height      count
+SELECTIONREQUEST[2]
+SELECTIONCLEAR[2]
+WINDELETE
 @end smallexample
 [1] The values of X keycodes are defined in X11/keysymdefs.h.
+[2] Handled internally only by either sending a SelectionNotify event to the application that made the request, or by clearing the selection.
 
 The @code{x} and @code{y} coordinates of the key and button
 events are relative to the window's origin.  The @code{x}
@@ -13840,6 +13841,12 @@ Handler Class  Event Class    Description                     Default Handler Me
                               application window.
 
 @end smallexample
+
+@subsubheading Data Provided by @code{InputEvent} Objects
+
+The @code{X11TerminalStream} section contains a description of the
+data that each class of event provides to the
+application. @xref{XEventClasses}.
 
 @subsubheading Handler Methods
 A handler typically takes as its arguments a reference to a
