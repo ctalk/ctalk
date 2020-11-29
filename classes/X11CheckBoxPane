@@ -1,4 +1,4 @@
-/* $Id: X11CheckBoxPane,v 1.5 2020/11/28 21:15:10 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11CheckBoxPane,v 1.7 2020/11/29 09:54:59 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -29,6 +29,11 @@
 
       clickColor                "darkslategray"
       backgroundColor           "white"
+      width                     15 px
+      height                    15 px
+      margin                    1  px
+      borderWidth               1  px
+      
  */
 
 X11CanvasPane class X11CheckBoxPane;
@@ -43,15 +48,51 @@ X11CheckBoxPane instanceMethod new (String __paneName) {
   buttonPressMethod definedInstanceMethod "X11CheckBoxPane", "onClick";
   __paneName setMethodHandler "pointerinput", buttonPressMethod;
 
-  __paneName resources atPut "marginX", 3;
-  __paneName resources atPut "marginY", 3;
-  __paneName resources atPut "sizeX", 15;
-  __paneName resources atPut "sizeY", 15;
-
+  __paneName resources atPut "margin", 1;
+  __paneName resources atPut "borderWidth", 1;
+  __paneName resources atPut "width", 15;
+  __paneName resources atPut "height", 15;
   __paneName resources atPut "clickColor", "darkslategray";
   __paneName resources atPut "backgroundColor", "white";
 
   return __paneName;
+}
+
+X11CheckBoxPane instanceMethod attachTo (Object parentPane,
+				       String geomspec) {
+  "Register the receiver pane as a subpane of the X11Pane
+  given as the argument.  Generally parent pane should
+  be a X11PaneDispatcher object.  This class only uses the
+  X and Y members of <geomspec> for the control's placement.
+  The length of the check box's size are controlled by the
+  width and height resources."
+					  
+  X11Bitmap new xPaneBuffer;
+  X11Bitmap new xPaneBackingStore;
+  int x, y, width, height;
+
+  __ctalkX11SubWindowGeometry (parentPane, geomspec,
+				 &x, &y, &width, &height);
+
+  self size x = self resources integerAt "width";
+  self size y = self resources integerAt "height";
+  self origin x = x;
+  self origin y = y;
+
+  geomspec printOn "%dx%d+%d+%d", self size x, self size y, x, y;
+
+  self super attachTo (parentPane, geomspec);
+
+  self paneBuffer become xPaneBuffer;
+  self paneBackingStore become xPaneBackingStore;
+
+  (X11Bitmap *)self paneBuffer create self displayPtr, self xWindowID,
+    self size x, self size y, self depth;
+  (X11Bitmap *)self paneBuffer background (self backgroundColor);
+  (X11Bitmap *)self paneBackingStore create self displayPtr, self xWindowID,
+    self size x, self size y, self depth;
+
+  return NULL;
 }
 
 X11CheckBoxPane instanceMethod onClick (Object subPane, InputEvent event) {
@@ -61,27 +102,40 @@ X11CheckBoxPane instanceMethod onClick (Object subPane, InputEvent event) {
 
 X11CheckBoxPane instanceMethod draw (void) {
 
+  Integer new width, height, borderWidth, margin;
+
   self paneBuffer background self resources at "backgroundColor";
-
-  self pen colorName = self resources at "backgroundColor";
-  self drawFilledRectangle (self resources integerAt "marginX"),
-    (self resources integerAt "marginY"),
-    (self resources integerAt "sizeX"),
-    (self resources integerAt "sizeY");
-
   self pen colorName = self resources at "clickColor";
-  self pen width = 1;
-  self drawRectangle (self resources integerAt "marginX") - 1,
-    (self resources integerAt "marginY") - 1,
-    (self resources integerAt "sizeX") + 1,
-    (self resources integerAt "sizeY") + 1;
+
+  borderWidth = self resources integerAt "borderWidth";
+  margin = self resources integerAt "margin";
+  width = self resources integerAt "width";
+  height = self resources integerAt "height";
+
+  self pen width = borderWidth;
+  self drawRectangle 0, 0, width, height;
+
 
   if (self clicked) {
+
+#if 0 /***/
+    printf ("%d, %d, %d, %d: %d\n",
+	    (self resources integerAt "borderWidth"),
+	    (self resources integerAt "margin"),
+	    (self resources integerAt "width"),
+	    ((self resources integerAt "borderWidth") +
+	     (self resources integerAt "margin")),
+	    ((self resources integerAt "width") -
+	     ((self resources integerAt "borderWidth") +
+	      (self resources integerAt "margin")))
+	    );
+#endif    
+
     self drawFilledRectangle
-      (self resources integerAt "marginX") + 1,
-      (self resources integerAt "marginY") + 1,
-      (self resources integerAt "sizeX") - 3,
-      (self resources integerAt "sizeY") - 3;
+      margin + borderWidth,
+      margin + borderWidth,
+      width - ((margin + borderWidth) * 2),
+      height - ((margin + borderWidth) * 2);
   }
 
 #if 0

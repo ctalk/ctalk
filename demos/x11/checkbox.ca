@@ -29,11 +29,13 @@ int main (int argv, char **argc) {
       switch (e eventClass value)
      	{
 	case BUTTONPRESS:
+	if (e eventData == xCheckBoxPane xWindowID) {
 	  if (xCheckBoxPane clicked) {
-	     printf ("clicked\n");
-	  }  else {
-	     printf ("unclicked\n");
+	    printf ("clicked\n");
+	  } else {
+	    printf ("unclicked\n");
           }
+	  }
 	  break;
 	case WINDELETE:
       	  xPane deleteAndClose;
