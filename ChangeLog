@@ -1487,5 +1487,13 @@
 2020-11-28
 	- Test version of X11CheckBoxPane class, and the
 	demos/x11/checkbox.ca example program.
+2020-11-30
+	- Updated __ctalkX11SubWindowGeometry to return -1
+	as the width and height of the geometry specification
+	if the specification only provides the X,Y origin
+	for the window; e.g., +150+150.  Also, the function
+	can use 'c' or 'C' as the geometry string's X or Y
+	dimension, which centers the subwindow horizontally
+	or vertically in the parent window (xgeometry.c).
 
 

@@ -2625,6 +2625,13 @@ placement.
 For information about the format of a X geometry string, refer to the
 XParseGeometry(3) manual page.
 
+Note: Additionally, Ctalk adds the dimension 'c' or
+'C'.  If given as either the geometry's x or y
+value, this centers the subpane horizontally or vertically in the
+parent pane.  For the additions that Ctalk adds to the X geometry
+specification refer to the __ctalkX11SubWindowGeometry
+description. 
+
 >>>Application::spawnC (String command, Integer restrict)
 Starts the program given by the argument command, and resumes
 execution of the main program.  The method returns an Integer

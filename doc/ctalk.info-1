@@ -4434,6 +4434,13 @@ Instance Methods
      For information about the format of a X geometry string, refer to
      the 'XParseGeometry(3)' manual page.
 
+     _Note:_ Additionally, Ctalk adds the dimension 'c' or 'C'.  If
+     given as either the geometry's _x_ or _y_ value, this centers the
+     subpane horizontally or vertically in the parent pane.  For the
+     additions that Ctalk adds to the X geometry specification refer to
+     the '__ctalkX11SubWindowGeometry' description.  *Note
+     XGeometryStrings::.
+
 'spawnC (String COMMAND, Integer RESTRICT)'
      Starts the program given by the argument COMMAND, and resumes
      execution of the main program.  The method returns an 'Integer'

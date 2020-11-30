@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.17 2020/11/29 18:54:48 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.20 2020/11/30 23:21:18 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -5538,6 +5538,13 @@ placement.
 
 For information about the format of a X geometry string, refer to the
 @cite{XParseGeometry(3)} manual page.
+
+@emph{Note:} Additionally, Ctalk adds the dimension @samp{c} or
+@samp{C}.  If given as either the geometry's @emph{x} or @emph{y}
+value, this centers the subpane horizontally or vertically in the
+parent pane.  For the additions that Ctalk adds to the X geometry
+specification refer to the @cite{__ctalkX11SubWindowGeometry}
+description. @xref{XGeometryStrings}.
 
 @cindex @mnm{spawnC} instance method @idxclscite{Application}
 @item @mnm{spawnC} (@code{String} @var{command}, @code{Integer} @var{restrict})
@@ -23819,6 +23826,7 @@ __ctalkX11SetBackgroundBasic.
 @idxlibfn{__ctalkX11SubWindowGeometry}
 @cindex Window geometry
 @cindex Geometry, windows
+@anchor{XGeometryStrings}
 @item __ctalkX11SubWindowGeometry (@code{OBJECT *} @var{parentpane}, @code{char *} @var{geomstr}, @code{int *}@var{x_out}, @code{int *}@var{y_out}, @code{int *}@code{width_out}, @code{int *}@var{height_out})
 Parses a string that contains the geometry specification of a
 subwindow, and returns the width and height of the subwindow and its
@@ -23828,7 +23836,7 @@ A geometry specification has the form:
 
 @example
 
-width[%]xheight[%][+x_org[%]+y_org[%]]
+width[%]xheight[%][+[x_org[%]]|[cC]+[y_org[%]]|[cC]]
 
 @end example
 
@@ -23838,9 +23846,24 @@ followed by a percent sign (@samp{%}).  In that case, the dimension is
 interpreted as a fraction of the parent window's corresponding
 vertical or horizontal dimension.
 
+If the value of either @emph{x} or @emph{y} is @samp{c} or @samp{C},
+then the subwindow is centered in the parent pane horizontally
+vertically.
+
 For some @code{Pane} classes, like dialog windows, if @emph{x_org} and
 @emph{y_org} are missing, then the class positions the dialog window
 centered over the parent window.
+
+Also, if the specification is missing the width and height dimensions, for
+example,
+
+@example
+
++100+100
+
+@end example
+
+then the function returns @samp{-1} for the width and height values.
 
 @idxlibfn{__ctalkX11TextFromData}
 @item __ctalkX11TextFromData (@code{void *}@var{display}, @code{int} @var{drawable_id}, @code{int} @var{GD_ptr}, @code{char *}@var{text})

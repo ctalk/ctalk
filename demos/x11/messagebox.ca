@@ -30,7 +30,7 @@ int main (void) {
     EXPOSE|ENTERWINDOWNOTIFY|LEAVEWINDOWNOTIFY|BUTTONPRESS|BUTTONRELEASE|KEYPRESS|KEYRELEASE|WINDELETE|MOVENOTIFY;
 
   dispatcher attachTo mainWindow;
-  button attachTo dispatcher, "110x50+73+100";
+  button attachTo dispatcher, "110x50+c+100";
   label attachTo dispatcher, "177x80+34+15";
   messageBox attachTo dispatcher, "300x200";
 

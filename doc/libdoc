@@ -1033,7 +1033,7 @@ A geometry specification has the form:
 
 ---------------------------------------------------------
 
-width[%]xheight[%][+x_org[%]+y_org[%]]
+width[%]xheight[%][+[x_org[%]]|[cC]+[y_org[%]]|[cC]]
 
 ---------------------------------------------------------
 
@@ -1043,9 +1043,24 @@ followed by a percent sign (%).  In that case, the dimension is
 interpreted as a fraction of the parent window's corresponding
 vertical or horizontal dimension.
 
+If the value of either x or y is c or C,
+then the subwindow is centered in the parent pane horizontally
+vertically.
+
 For some Pane classes, like dialog windows, if x_org and
 y_org are missing, then the class positions the dialog window
 centered over the parent window.
+
+Also, if the specification is missing the width and height dimensions, for
+example,
+
+---------------------------------------------------------
+
++100+100
+
+---------------------------------------------------------
+
+then the function returns -1 for the width and height values.
 
 >>>__ctalkX11TextFromData (void *display, int drawable_id, int GD_ptr, char *text)
 Displays text on drawable_id.
