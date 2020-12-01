@@ -1,4 +1,4 @@
-/* $Id: xrender.c,v 1.2 2020/09/18 21:25:13 rkiesling Exp $ -*-c-*-*/
+/* $Id: xrender.c,v 1.2 2020/12/01 21:12:52 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -219,6 +219,7 @@ static void rect_corner_dots (struct rectinfo *rect,
 			      double start, double end) {
   double i, opp, adj, opp1, adj1, opp2, adj2, opp3, adj3;
   double pen_half, radius_adj;
+  int j;
 
   switch (rect -> pen_width)
     {
@@ -236,7 +237,8 @@ static void rect_corner_dots (struct rectinfo *rect,
   } else {
     radius_adj = (double)rect -> corner_radius;
   }
-  for (i = start; i <= end; i += 1.0 ){
+
+  for (i = start; i <= end; i += 0.5 ){
     opp = opp_side (i, ((double)radius_adj));
     adj = adj_side (i, ((double)radius_adj));
     opp1 = opp_side (i + 1.0, ((double)radius_adj));
