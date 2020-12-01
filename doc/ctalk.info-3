@@ -17,6 +17,112 @@ Texts.  A copy of the license is included in the section entitled, "GNU
 Free Documentation License."
 
 
+File: ctalk.info,  Node: Scoping,  Next: Templates,  Prev: Required classes,  Up: Methods
+
+Scope of Objects
+----------------
+
+In Ctalk, an object can have a number of different scopes, and Ctalk
+implements many more scopes for objects than for C variables.
+
+All of the scopes are available when creating and modifying objects.  In
+practice, however, you should only need to use a few of them.  Ctalk
+uses many of the scopes internally.
+
+These are the scopes that Ctalk implements.
+
+'GLOBAL_VAR'
+     An object that is declared globally; that is, outside of any
+     function or method.
+'LOCAL_VAR'
+     An object declared within a function or method.
+'ARG_VAR'
+     An object derived from a C function argument that is used within a
+     Ctalk expression.  This scope is normally used only internally.
+'RECEIVER_VAR'
+     An object created internally for receiver objects that do not
+     already have objects.  Ctalk assigns RECEIVER_VAR objects C
+     constants and constant expressions when they are used as receivers.
+'PROTOTYPE_VAR'
+     Used by the front end when evaluating objects that are declared as
+     method parameters.
+'CREATED_PARAM'
+     Used mainly for temporary objects that are derived from C constants
+     that are arguments to methods and functions.
+'CVAR_VAR_ALIAS_COPY'
+     Used for temporary and non-temporary objects that are created from
+     C variables.
+'CREATED_CVAR_SCOPE'
+     This is a combination of CVAR_VAR_ALIAS_COPY|LOCAL_VAR scopes.
+     Used for C variable objects that are only needed for the duration
+     of an expression.  Also used for other values that aren't needed
+     after an expression has been evaluated, like boolean method return
+     values.
+'SUBEXPR_CREATED_RESULT'
+     Used internally for temporary objects that are the results of
+     subexpressions.
+'VAR_REF_OBJECT'
+     Used for objects that are referred to by other objects; for example
+     an object referred to by a 'Symbol' object may have this scope set.
+'METHOD_USER_OBJECT'
+     This scope is used mostly internally for objects that are returned
+     by methods and saved as method resources.
+'TYPECAST_OBJECT'
+     Used internally for temporary objects that are derived from C type
+     cast expressions.
+You set a new object's scope with the '__ctalkCreateObject' or
+'__ctalkCreateObjectInit' functions.  To change an existing object's
+scope, use the '__ctalkSetObjectScope' library function to set an
+object's scope.
+
+Even though you can set an 'OBJECT *''s 'scope' directly, using these
+functions insures that the object and all of its instance variables
+maintain the same scope.
+
+When creating an object with a function like '__ctalkCreateObjectInit',
+you can declare a scope directly.
+     result = __ctalkCreateObjectInit ("result",
+                                       "Symbol", "Object",
+                                       LOCAL_VAR, "0x0");
+When altering the scope of an existing object, however, you should add
+or subtract only that scope from the object's existing scope.
+
+For example, to add a 'VAR_REF_OBJECT' scope to an object:
+     __ctalkSetObjectScope (object, object -> scope | VAR_REF_OBJECT);
+To remove the scope, use an expression like this.
+     __ctalkSetObjectScope (object, object -> scope & ~VAR_REF_OBJECT);
+
+For values of integral classes like 'Integer', 'LongInteger' or
+'Symbol', '__ctalkCreateObjectInit' tries to convert the VALUE parameter
+to its numeric value.  It the function can't figure out a way to convert
+the argument to its numeric value, it issues a warning message.
+
+
+     ctalk: can't convert d to an int.
+
+
+In these cases (and in many others) it is easier to simply use an empty
+string as the final parameter and then fill in the value after the
+object is created, as in this example (assuming that the object is an
+'Integer')..
+
+
+     result = __ctalkCreateObjectInit
+       (INTEGER_CLASSNAME, INTEGER_SUPERCLASSNAME, LOCAL_VAR, "");
+     *(int *)result -> __o_value = int_value;
+     *(int *)result -> instancevars -> __o_value = int_value;
+
+
+In this case, the INTVAL, LLVAL, and SYMVAL macros can help make the
+expression more readable, depending on whether the new object is an
+'Integer', 'LongInteger', or 'Symbol'.
+
+
+     INTVAL(result -> __o_value) = int_value;
+     INTVAL(result -> instancevars -> __o_value) = int_value;
+
+
+
 File: ctalk.info,  Node: Templates,  Next: Return values,  Prev: Scoping,  Up: Methods
 
 Templates

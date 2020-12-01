@@ -1,4 +1,4 @@
-/* $Id: X11CheckBoxPane,v 1.13 2020/12/01 14:11:57 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11CheckBoxPane,v 1.14 2020/12/01 21:36:55 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -36,7 +36,8 @@
       bevel                     false
       lightShadowColor          "gray"
       darkShadowColor           "gray60"
-      radius                    0
+      frameRadius               0
+      fillRadius                0
  */
 
 X11CanvasPane class X11CheckBoxPane;
@@ -60,7 +61,8 @@ X11CheckBoxPane instanceMethod new (String __paneName) {
   __paneName resources atPut "backgroundColor", "white";
   __paneName resources atPut "lightShadowColor", "gray";
   __paneName resources atPut "darkShadowColor", "gray60";
-  __paneName resources atPut "radius", 0;
+  __paneName resources atPut "frameRadius", 0;
+  __paneName resources atPut "fillRadius", 0;
 
   return __paneName;
 }
@@ -122,7 +124,7 @@ X11CheckBoxPane instanceMethod onClick (Object subPane, InputEvent event) {
 X11CheckBoxPane instanceMethod draw (void) {
 
   Integer new width, height, borderWidth, margin, bevel,
-    i, borderIn, radius;
+    i, borderIn, frameRadius, fillRadius;
   String new clickColor, lightShadow, darkShadow;
 
   self paneBuffer background self resources at "backgroundColor";
@@ -132,7 +134,8 @@ X11CheckBoxPane instanceMethod draw (void) {
   width = self resources integerAt "width";
   height = self resources integerAt "height";
   bevel = self resources integerAt "bevel";
-  radius = self resources integerAt "radius";
+  frameRadius = self resources integerAt "frameRadius";
+  fillRadius = self resources integerAt "fillRadius";
   clickColor = self resources at "clickColor";
   lightShadow = self resources at "lightShadowColor";
   darkShadow = self resources at "darkShadowColor";
@@ -140,7 +143,7 @@ X11CheckBoxPane instanceMethod draw (void) {
   self pen colorName = clickColor;
   self pen width = borderWidth;
 
-  if (!radius) {
+  if (!frameRadius) {
     self drawRectangle 0, 0, width, height;
 
     if (bevel) {
@@ -169,8 +172,8 @@ X11CheckBoxPane instanceMethod draw (void) {
 	}
       }
     }
-  } else { /* if (!radius) */
-    self drawRoundedRectangle 0, 0, width, height, radius;
+  } else { /* if (!frameRadius) */
+    self drawRoundedRectangle 0, 0, width, height, frameRadius;
   }
 
   if (self clicked) {
@@ -189,13 +192,13 @@ X11CheckBoxPane instanceMethod draw (void) {
 	    );
 #endif    
 
-    if (radius) {
+    if (fillRadius) {
       self drawFilledRoundedRectangle
 	margin + borderWidth,
 	margin + borderWidth,
 	width - ((margin + borderWidth) * 2),
 	height - ((margin + borderWidth) * 2),
-	radius;
+	fillRadius;
     } else {
       self drawFilledRectangle
 	margin + borderWidth,

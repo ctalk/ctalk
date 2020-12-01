@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.21 2020/12/01 14:11:58 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.22 2020/12/01 21:42:43 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -15292,10 +15292,10 @@ with a space character (@samp{ }) between them.
 @end ifnottex
 @cindex @code{X11CheckBoxPane} class
 
-A @code{X11CheckBoxPane} object draws a checkable box on its parent
-pane.  The class has methods for initialization, and maintaining
-the box's clicked/unclicked state, and the instance data for retrieving
-the state.
+A @code{X11CheckBoxPane} object draws a checkable box on the main
+window.  The class has methods for initialization, drawing,
+changing the box's clicked/unclicked state, and the instance data
+for retrieving the state.
 
 @c demos/x11/checkbox.ca
 Here is a brief example of a @code{X11CheckBoxPane} object in a
@@ -15313,12 +15313,17 @@ program.
 /* #define BEVEL */
 
 /* 
- * To draw a checkbox with rounded corners, uncomment this
- * #define and set it to a non-zero value.  Note that the
- * libraries' radius drawing might not fill very narrow borders
- * fully.
+ * To draw a checkbox with rounded corners, uncomment the following
+ * lines and set FRAME_RADIUS and FILL_RADIUS to non-zero values.  The
+ * checkboxes use different radius' for the frame and the filled
+ * interior of a checked checkbox because most radius are a
+ * significant percent of the boxes' sides, which can make the frame
+ * look like a rectangle with rounded corners, and also make the fill
+ * rectangle look like an oval, if the shapes use the same radius.
  */
-/* #define RADIUS 0 */
+/* #define RADIUS */
+/* #define FRAME_RADIUS 0 */
+/* #define FILL_RADIUS 0 */
 
 /* 
  * To change the width, height, and internal margin of the
@@ -15353,7 +15358,8 @@ int main (int argv, char **argc) @{
   xCheckBoxPane resources replaceAt "margin", CHECKBOX_MARGIN;
   xCheckBoxPane resources replaceAt "borderWidth", CHECKBOX_BORDER;
 #ifdef RADIUS
-  xCheckBoxPane resources replaceAt "radius", RADIUS;
+  xCheckBoxPane resources replaceAt "frameRadius", FRAME_RADIUS;
+  xCheckBoxPane resources replaceAt "fillRadius", FILL_RADIUS;
 #endif  
 
   xCheckBoxPane attachTo xTopLevelPane, "+25%+25%";
