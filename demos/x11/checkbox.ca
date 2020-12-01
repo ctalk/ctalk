@@ -1,4 +1,4 @@
-/* $Id: checkbox.ca,v 1.8 2020/11/29 18:50:19 rkiesling Exp $ -*-c-*-*/
+/* $Id: checkbox.ca,v 1.10 2020/12/01 14:11:57 rkiesling Exp $ -*-c-*-*/
 
 /*
  *  X11CheckBoxPane demo.
@@ -36,6 +36,15 @@ int main (int argv, char **argc) {
   InputEvent new e;
   Exception new ex;
 
+  xPane initialize 0, 0, 300, 300;
+  xPane inputStream eventMask = BUTTONPRESS|WINDELETE|EXPOSE;
+  xTopLevelPane attachTo xPane;
+
+  /* Note that the geometry string in the, "attachTo," call below
+     contains only the X,Y origin of the check box.  In this case, the
+     size of the check box is taken from the object's resources, which
+     we can adjust any time before, "attachTo," sizes the actual
+     drawing surfaces. */
   xCheckBoxPane resources replaceAt "width", CHECKBOX_WIDTH;
   xCheckBoxPane resources replaceAt "height", CHECKBOX_HEIGHT;
   xCheckBoxPane resources replaceAt "margin", CHECKBOX_MARGIN;
@@ -44,10 +53,7 @@ int main (int argv, char **argc) {
   xCheckBoxPane resources replaceAt "radius", RADIUS;
 #endif  
 
-  xPane initialize 0, 0, 300, 300;
-  xPane inputStream eventMask = BUTTONPRESS|WINDELETE|EXPOSE;
-  xTopLevelPane attachTo xPane;
-  xCheckBoxPane attachTo xTopLevelPane, "25x25+25+25";
+  xCheckBoxPane attachTo xTopLevelPane, "+25%+25%";
 
 #ifdef BEVEL
   xCheckBoxPane resources replaceAt "bevel", true;

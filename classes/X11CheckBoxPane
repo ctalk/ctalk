@@ -1,4 +1,4 @@
-/* $Id: X11CheckBoxPane,v 1.12 2020/11/29 18:50:19 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11CheckBoxPane,v 1.13 2020/12/01 14:11:57 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -69,10 +69,10 @@ X11CheckBoxPane instanceMethod attachTo (Object parentPane,
 				       String geomspec) {
   "Register the receiver pane as a subpane of the X11Pane
   given as the argument.  Generally parent pane should
-  be a X11PaneDispatcher object.  This class only uses the
-  X and Y members of <geomspec> for the control's placement.
-  The length of the check box's size are controlled by the
-  width and height resources."
+    be a X11PaneDispatcher object.  Optionally, this class 
+    only requires the X and Y members of <geomspec> for the
+    control's placement.  In this case, the check box's size
+    is controlled by the width and height resources."
 					  
   X11Bitmap new xPaneBuffer;
   X11Bitmap new xPaneBackingStore;
@@ -81,8 +81,20 @@ X11CheckBoxPane instanceMethod attachTo (Object parentPane,
   __ctalkX11SubWindowGeometry (parentPane, geomspec,
 				 &x, &y, &width, &height);
 
-  self size x = self resources integerAt "width";
-  self size y = self resources integerAt "height";
+  /* If the geomspec didn't specify width and height dimensions,
+     use the dimensions from the width and height resources. 
+     Then we create a complete geometry string which the 
+     superclass(es) use to attach to the main window. */
+  if (width != -1) {
+    self size x = width;
+  } else {
+    self size x = self resources integerAt "width";
+  }
+  if (height != -1) {
+    self size y = height;
+  } else {
+    self size y = self resources integerAt "height";
+  }
   self origin x = x;
   self origin y = y;
 
