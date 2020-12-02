@@ -3593,11 +3593,12 @@ File: ctalk.info,  Node: X11CheckBoxPane,  Next: X11LabelPane,  Prev: X11ButtonP
 'X11CheckBoxPane' Class
 -----------------------
 
-A 'X11CheckBoxPane' object draws a checkable box on the main window.
-The class has methods for initialization, drawing, changing the box's
-clicked/unclicked state, and the instance data for retrieving the state.
+A single 'X11CheckBoxPane' object draws a checkable box on the main
+window.  The class has methods for initialization, drawing, changing the
+box's clicked/unclicked state, and the instance data for retrieving the
+state.
 
-Here is a brief example of a 'X11CheckBoxPane' object in a program.
+Here is an example program that displays a 'X11CheckBoxPane' object.
 
 
 /*
@@ -3702,6 +3703,140 @@ int main (int argv, char **argc) @{
   @}
 @}
 
+
+Retrieving a 'X11CheckBox' Object's State
+-----------------------------------------
+
+The 'X11CheckBoxPane' class declares the 'checked' instance variable,
+which is either true or false depending on when and how many times a
+user has clicked on the checkbox.  Successive clicks change the
+'checked' instance variable's state from false to true and back again.
+The 'draw' method draws the checkbox filled or empty depending on the
+state of the 'checked' instance variable.
+
+Here is the portion of the program above that retrieves the checkbox's
+state.  The check box object is named 'xCheckBoxPane'.  The condition,
+'if (e eventData == xCheckBoxPane xWindowID)' insures that the program
+uses only pointer clicks that fall within 'xCheckBoxPane's' boundaries.
+
+
+     if (e eventData == xCheckBoxPane xWindowID) {
+       if (xCheckBoxPane clicked) {
+         printf ("clicked\n");
+       } else {
+         printf ("unclicked\n");
+       }
+     }
+
+
+Resources
+---------
+
+'backgroundColor'
+     A 'String' that contains the color name of the checkbox's
+     background.  The default is 'white'.
+
+'bevel'
+     A 'Boolean' that determines whether to draw beveled edges on the
+     checkbox's interior.  The default is 'false'.
+
+'borderWidth'
+     An 'Integer' that specifies the width in pixels of the checkbox's
+     border.  The default is 1px.
+
+'clickColor'
+     A 'String' that contains the color name of the checkbox's border
+     and interior when checked.  The default is 'darkslategray'.
+
+'fillRadius'
+'frameRadius'
+     These are 'Integer' objects which, if nonzero, cause the checkbox
+     to be drawn with rounded corners.  There is a separate dimension
+     for the margin and the checkbox interior because the radius
+     comprises a significant amount of a checkbox's size, so the margin
+     might appear like a rectangle with rounded corners, while the
+     interior might look like a circle or oval, if the shapes use the
+     same corner radius.
+
+'darkShadowColor'
+'lightShadowColor'
+     The names of the colors of the light and dark shadows that the
+     checkbox displays inside its border if the 'bevel' resource is
+     true.
+
+'height'
+'width'
+     These are 'Integer' values that contain the width and height of the
+     checkbox, in pixels.  Their default value, '15px', is set when the
+     checkbox object is created, and may be changed before the checkbox
+     is attached to its parent pane.  If the checkbox's 'attachTo'
+     method is given a geometry that also contains a width and height,
+     then this latest dimension setting determines the checkbox's size
+     when displayed.
+
+'margin'
+     The distance in pixels between the inner edge of the border and the
+     edge of the check in a filled checkbox.  The default is 1px.
+
+Instance Variables
+------------------
+
+'clicked'
+     A 'Boolean' that changes between true and false every time the
+     check box is clicked.  The variable's value also determines whether
+     the checkbox's interior is filled.
+
+Instance Methods
+----------------
+
+'attachTo (Object PARENTPANE, String GEOMETRY)'
+     Attaches the receiver 'X11CheckBoxPane' to its PARENTPANE using the
+     dimensions given by GEOMETRY.  The method also creates the drawing
+     surfaces with the correct dimensions.
+
+     The GEOMETRY argument may optionally omit the checkbox's width and
+     height, which causes the method to use the width and height given
+     by the checkbox object's resources.  For example, if the program
+     contains an expression like the following:
+
+
+          xCheckBoxPane attachTo xTopLevelPane, "+25%+25%";
+
+
+     Then the method will create the checkbox with the dimensions preset
+     by the object's 'width' and 'height' resources.  If the checkbox's
+     dimensions are determined in this manner, a program my change the
+     checkbox's size any time before the 'attachTo' method is called.
+     However, if the program contains a statement like the following,
+
+
+          xCheckBoxPane attachTo xTopLevelPane, "20x20+25%+25%";
+
+
+     Then the program uses the '20x20' size given as the argument, which
+     is the most recent dimension that the program has defined..
+
+'draw (void)'
+     This method draws the checkbox.  It uses the CLICKED instance
+     variable state to determine whether to draw a filled checkbox, as
+     well as the classes' resources that have been set in the object to
+     determine check checkbox's style; i.e., the checkbox's size,
+     whether its edges are beveled or rounded, and the checkbox's color.
+
+'new (String PANENAME)'
+     The 'X11CheckBoxPane' constructor.  Creates a new 'X11CheckBox'
+     with the name given by PANENAME, and makes it available to the
+     method that contains the statement, or to the entire program if the
+     new 'X11CheckBoxPane' is declared in a global scope.  The method
+     also initializes the event handlers and resources that are defined
+     in the class.
+
+'onClick (Object SUBPANE, InputEvent EVENT)'
+     This method receives a 'BUTTONPRESS' event from the display system,
+     and toggles the receiver checkbox's 'clicked' instance variable
+     between true and false.  The method changes the 'clicked' state
+     only in response to 'BUTTONPRESS' events; a corresponding
+     'BUTTONRELEASE' event is ignored.
 
 
 File: ctalk.info,  Node: X11LabelPane,  Next: X11ListPane,  Prev: X11CheckBoxPane,  Up: Classes
@@ -8339,147 +8474,4 @@ function call, either global or local.
 
 _Note:_ In future versions of Ctalk, the names of these functions are
 likely to change.
-
-
-File: ctalk.info,  Node: C Macros,  Next: Required classes,  Prev: Translating,  Up: Methods
-
-C Macros
---------
-
-Ctalk also provides many macros that help standardize the Ctalk-to-C
-conventions.  They're defined in the 'ctalkdefs.h' include file.  To use
-them, include 'ctalkdefs.h' in a source file or class library.
-
-
-     #include <ctalk/ctalkdefs.h>
-
-
-Some of the macro definitions in 'ctalkdefs.h' are described here.
-
-'ARG'
-     With a numeric argument, retrieves the n'th method or template
-     argument from the stack; i.e., 'ARG(0)' refers to the first
-     argument on the stack, 'ARG(1)' retrieves the second argument, and
-     so on.
-
-'CLASSNAME'
-     Returns an object's classname.
-
-     _Note:_ You should use this macro in new code.  While typing
-     '__o_classname' directly with an 'OBJECT *' should work for a
-     while, it's going to be phased out.
-
-     Using __o_classname with an object and the '->' method is still
-     okay, though.  For example:
-
-
-            OBJECT *myObjRef;
-            String new myString;
-
-            /* The use of __o_classname as struct member is going away... */
-            myObjRef -> __o_classname;
-            /* Instead, write this. */
-            myObjRef -> CLASSNAME;
-
-            /* These are still okay, because -> is a method, not the C operator. */
-            myString -> __o_classname;
-            self -> __o_classname;
-
-            /* The same is true for the SUPERCLASSNAME definition. */
-
-            SUPERCLASSNAME(myObjRef);
-
-            self -> SUPERCLASSNAME;
-            myString ->  SUPERCLASSNAME;
-
-'FILEEOF'
-     Writes an fEOF to the 'char *' buffer given as its argument.
-
-'FMT_0XHEX'
-     When used with a function like 'sprintf ()', formats a pointer into
-     its string representation.  For example:
-
-
-          char buf[64];
-          OBJECT *my_object_ptr;
-
-          ....   /* Do stuff. */
-
-          sprintf (buf, FMT_0XHEX(my_object_ptr));
-
-
-     However, this macro is not very portable and using functions that
-     use stdargs (e.g., printf, scanf, etc.)  can be cumbersome.
-     Library functions like '__ctalkGenericPtrFromStr ()' *Note
-     ctalkGenericPtrFromStr::, and '__ctalkFilePtrFromStr ()' *Note
-     ctalkFilePtrFromStr::, might be faster and more reliable.
-
-'IS_OBJECT'
-     Returns True or False if its argument, a C pointer, refers to a
-     valid object.
-
-'IS_VALUE_INSTANCE_VAR'
-     Returns True or False if its argument, a C pointer, refers to the
-     value instance variable of an object.
-
-'MEMADDR'
-     Casts its operand to a 'void **', which is what Ctalk's internal
-     function '__xfree ()' uses when freeing memory.  Normally you
-     should use __ctalkFree () to free memory, but the MEMADDR macro is
-     here in case you want to call __xfree () directly.  Refer to the
-     entry for __ctalkFree () for details.  *Note ctalkFree::.
-
-'STR_0XHEX_TO_PTR'
-     Does the converse of 'FMT_0XHEX;' it converts the string
-     representation of a pointer into an actual pointer, when used with
-     a function like 'sscanf ()'.  For example:
-
-
-          OBJECT *my_object;
-          OBJECT *my_object_ptr;
-
-          sscanf (my_object -> __o_value, STR_0XHEX_TO_PTR(my_object_ptr));
-
-
-     Again, using stdargs functions can be cumbersome and not very
-     portable.  In many cases, '__ctalkObjValPtr ()' accomplishes the
-     same thing.  *Note ctalkObjValPtr::.
-
-'SUPERCLASSNAME'
-     Returns an object's superclass name.  This macro should be used
-     only with OBJECT *'s, as it is rather extensive and written in C.
-     Returns an empty string if the object doesn't have a superclass.
-     *Note CLASSNAMEMacro::, above.
-
-'__LIST_HEAD(List *l)'
-     When given an argument that is a collection like a 'List' object,
-     returns the first member of the collection.
-
-'STR_IS_NULL(char *s)'
-     Evaluates to True if the 'char *' argument evaluates to zero; i.e.,
-     its value is '(null)', '0', '0x0' or the first character is an
-     ASCII 'NUL' ('\0') byte.
-
-
-File: ctalk.info,  Node: Required classes,  Next: Scoping,  Prev: C Macros,  Up: Methods
-
-Required Classes
-----------------
-
-The keyword 'require' tells 'ctalk' to preload the class given as its
-argument before any other classes or methods.
-
-The following lines appear in the 'ctalklib' library.
-
-     require Object;
-     require Symbol;
-     require String;
-
-These statements tell 'ctalk' to first load the 'Object' class and its
-methods, and then load the class 'Symbol' and its methods, and then
-class 'String.' Ctalk loads the class and its methods at that point in
-the program, before further processing of the source file.
-
-The 'require' keyword always occurs in a global scope; that is, outside
-of any method or function.
 

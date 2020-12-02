@@ -1,4 +1,4 @@
-/* $Id: checkbox.ca,v 1.13 2020/12/01 21:36:55 rkiesling Exp $ -*-c-*-*/
+/* $Id: checkbox.ca,v 1.14 2020/12/02 19:15:34 rkiesling Exp $ -*-c-*-*/
 
 /*
  *  X11CheckBoxPane demo.
@@ -42,7 +42,7 @@ int main (int argv, char **argc) {
   Exception new ex;
 
   xPane initialize 0, 0, 300, 300;
-  xPane inputStream eventMask = BUTTONPRESS|WINDELETE|EXPOSE;
+  xPane inputStream eventMask = BUTTONPRESS|BUTTONRELEASE|WINDELETE|EXPOSE;
   xTopLevelPane attachTo xPane;
 
   /* Note that the geometry string in the, "attachTo," call below

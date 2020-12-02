@@ -7123,6 +7123,64 @@ with a space character (' ') between them.
 
 
 
+>>>X11CheckBoxPane::attachTo (Object parentPane, String geometry)
+Attaches the receiver X11CheckBoxPane to its parentPane
+using the dimensions given by geometry.  The method also creates
+the drawing surfaces with the correct dimensions.
+
+The geometry argument may optionally omit the checkbox's width
+and height, which causes the method to use the width and height given
+by the checkbox object's resources.  For example, if the program
+contains an expression like the following:
+
+---------------------------------------------------------
+  
+  xCheckBoxPane attachTo xTopLevelPane, "+25%+25%";
+  
+---------------------------------------------------------
+
+Then the method will create the checkbox with the dimensions
+preset by the object's 'width' and 'height' resources.
+If the checkbox's dimensions are determined in this manner, a
+program my change the checkbox's size any time before the attachTo
+method is called.  However, if the program contains a statement like
+the following,
+
+---------------------------------------------------------
+  
+  xCheckBoxPane attachTo xTopLevelPane, "20x20+25%+25%";
+  
+---------------------------------------------------------
+
+Then the program uses the '20x20' size given as the argument,
+which is the most recent dimension that the program has defined..
+
+>>>X11CheckBoxPane::draw (void)
+This method draws the checkbox. It uses the clicked instance
+variable state to determine whether to draw a filled checkbox, as
+well as the classes' resources that have been set in the object
+to determine check checkbox's style; i.e., the checkbox's size,
+whether its edges are beveled or rounded, and the checkbox's
+color.
+
+>>>X11CheckBoxPane::new (String paneName)
+The X11CheckBoxPane constructor.  Creates a new
+X11CheckBox with the name given by paneName, and makes it
+available to the method that contains the statement, or to the entire
+program if the new X11CheckBoxPane is declared in a global
+scope.  The method also initializes the event handlers and resources
+that are defined in the class.
+
+>>>X11CheckBoxPane::onClick (Object subPane, InputEvent event)
+This method receives a 'BUTTONPRESS' event from the display
+system, and toggles the receiver checkbox's clicked instance
+variable between true and false.  The method changes the
+clicked state only in response to 'BUTTONPRESS' events;
+a corresponding 'BUTTONRELEASE' event is ignored.
+
+
+
+
 >>>X11LabelPane::draw (void)
 >>>X11LabelPane::drawButtonLayout (void)
 Draws the text of the label, and updates the visible label on the

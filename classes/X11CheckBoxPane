@@ -1,4 +1,4 @@
-/* $Id: X11CheckBoxPane,v 1.14 2020/12/01 21:36:55 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11CheckBoxPane,v 1.15 2020/12/02 19:15:34 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -117,8 +117,11 @@ X11CheckBoxPane instanceMethod attachTo (Object parentPane,
 }
 
 X11CheckBoxPane instanceMethod onClick (Object subPane, InputEvent event) {
-  subPane clicked = !subPane clicked;
-  subPane draw;
+  if (event eventClass == BUTTONPRESS) {
+    printf ("event\n");
+    subPane clicked = !subPane clicked;
+    subPane draw;
+  }
 }
 
 X11CheckBoxPane instanceMethod draw (void) {
@@ -179,19 +182,6 @@ X11CheckBoxPane instanceMethod draw (void) {
   if (self clicked) {
     self pen colorName = clickColor;
 
-#if 0 /***/
-    printf ("%d, %d, %d, %d: %d\n",
-	    (self resources integerAt "borderWidth"),
-	    (self resources integerAt "margin"),
-	    (self resources integerAt "width"),
-	    ((self resources integerAt "borderWidth") +
-	     (self resources integerAt "margin")),
-	    ((self resources integerAt "width") -
-	     ((self resources integerAt "borderWidth") +
-	      (self resources integerAt "margin")))
-	    );
-#endif    
-
     if (fillRadius) {
       self drawFilledRoundedRectangle
 	margin + borderWidth,
@@ -207,24 +197,6 @@ X11CheckBoxPane instanceMethod draw (void) {
 	height - ((margin + borderWidth) * 2);
     }
   }
-
-#if 0
-   /* Might not need inner border if not clicked. */
-  if (!self clicked) {
-    self drawFilledRectangle
-      (self resources integerAt "marginX") + 1,
-      (self resources integerAt "marginY") + 1,
-      (self resources integerAt "sizeX") - 3,
-      (self resources integerAt "sizeY") - 3;
-  }
- else {
-    self drawFilledRectangle
-      (self resources integerAt "marginX") + 1,
-      (self resources integerAt "marginY") + 1,
-      (self resources integerAt "sizeX") - 3,
-      (self resources integerAt "sizeY") - 3;
-  }
-#endif    
 
   self refresh;
 }

@@ -17,6 +17,149 @@ Texts.  A copy of the license is included in the section entitled, "GNU
 Free Documentation License."
 
 
+File: ctalk.info,  Node: C Macros,  Next: Required classes,  Prev: Translating,  Up: Methods
+
+C Macros
+--------
+
+Ctalk also provides many macros that help standardize the Ctalk-to-C
+conventions.  They're defined in the 'ctalkdefs.h' include file.  To use
+them, include 'ctalkdefs.h' in a source file or class library.
+
+
+     #include <ctalk/ctalkdefs.h>
+
+
+Some of the macro definitions in 'ctalkdefs.h' are described here.
+
+'ARG'
+     With a numeric argument, retrieves the n'th method or template
+     argument from the stack; i.e., 'ARG(0)' refers to the first
+     argument on the stack, 'ARG(1)' retrieves the second argument, and
+     so on.
+
+'CLASSNAME'
+     Returns an object's classname.
+
+     _Note:_ You should use this macro in new code.  While typing
+     '__o_classname' directly with an 'OBJECT *' should work for a
+     while, it's going to be phased out.
+
+     Using __o_classname with an object and the '->' method is still
+     okay, though.  For example:
+
+
+            OBJECT *myObjRef;
+            String new myString;
+
+            /* The use of __o_classname as struct member is going away... */
+            myObjRef -> __o_classname;
+            /* Instead, write this. */
+            myObjRef -> CLASSNAME;
+
+            /* These are still okay, because -> is a method, not the C operator. */
+            myString -> __o_classname;
+            self -> __o_classname;
+
+            /* The same is true for the SUPERCLASSNAME definition. */
+
+            SUPERCLASSNAME(myObjRef);
+
+            self -> SUPERCLASSNAME;
+            myString ->  SUPERCLASSNAME;
+
+'FILEEOF'
+     Writes an fEOF to the 'char *' buffer given as its argument.
+
+'FMT_0XHEX'
+     When used with a function like 'sprintf ()', formats a pointer into
+     its string representation.  For example:
+
+
+          char buf[64];
+          OBJECT *my_object_ptr;
+
+          ....   /* Do stuff. */
+
+          sprintf (buf, FMT_0XHEX(my_object_ptr));
+
+
+     However, this macro is not very portable and using functions that
+     use stdargs (e.g., printf, scanf, etc.)  can be cumbersome.
+     Library functions like '__ctalkGenericPtrFromStr ()' *Note
+     ctalkGenericPtrFromStr::, and '__ctalkFilePtrFromStr ()' *Note
+     ctalkFilePtrFromStr::, might be faster and more reliable.
+
+'IS_OBJECT'
+     Returns True or False if its argument, a C pointer, refers to a
+     valid object.
+
+'IS_VALUE_INSTANCE_VAR'
+     Returns True or False if its argument, a C pointer, refers to the
+     value instance variable of an object.
+
+'MEMADDR'
+     Casts its operand to a 'void **', which is what Ctalk's internal
+     function '__xfree ()' uses when freeing memory.  Normally you
+     should use __ctalkFree () to free memory, but the MEMADDR macro is
+     here in case you want to call __xfree () directly.  Refer to the
+     entry for __ctalkFree () for details.  *Note ctalkFree::.
+
+'STR_0XHEX_TO_PTR'
+     Does the converse of 'FMT_0XHEX;' it converts the string
+     representation of a pointer into an actual pointer, when used with
+     a function like 'sscanf ()'.  For example:
+
+
+          OBJECT *my_object;
+          OBJECT *my_object_ptr;
+
+          sscanf (my_object -> __o_value, STR_0XHEX_TO_PTR(my_object_ptr));
+
+
+     Again, using stdargs functions can be cumbersome and not very
+     portable.  In many cases, '__ctalkObjValPtr ()' accomplishes the
+     same thing.  *Note ctalkObjValPtr::.
+
+'SUPERCLASSNAME'
+     Returns an object's superclass name.  This macro should be used
+     only with OBJECT *'s, as it is rather extensive and written in C.
+     Returns an empty string if the object doesn't have a superclass.
+     *Note CLASSNAMEMacro::, above.
+
+'__LIST_HEAD(List *l)'
+     When given an argument that is a collection like a 'List' object,
+     returns the first member of the collection.
+
+'STR_IS_NULL(char *s)'
+     Evaluates to True if the 'char *' argument evaluates to zero; i.e.,
+     its value is '(null)', '0', '0x0' or the first character is an
+     ASCII 'NUL' ('\0') byte.
+
+
+File: ctalk.info,  Node: Required classes,  Next: Scoping,  Prev: C Macros,  Up: Methods
+
+Required Classes
+----------------
+
+The keyword 'require' tells 'ctalk' to preload the class given as its
+argument before any other classes or methods.
+
+The following lines appear in the 'ctalklib' library.
+
+     require Object;
+     require Symbol;
+     require String;
+
+These statements tell 'ctalk' to first load the 'Object' class and its
+methods, and then load the class 'Symbol' and its methods, and then
+class 'String.' Ctalk loads the class and its methods at that point in
+the program, before further processing of the source file.
+
+The 'require' keyword always occurs in a global scope; that is, outside
+of any method or function.
+
+
 File: ctalk.info,  Node: Scoping,  Next: Templates,  Prev: Required classes,  Up: Methods
 
 Scope of Objects
@@ -8253,6 +8396,8 @@ Index
                                                              (line  459)
 * attachTo instance method (X11CanvasPane class): X11CanvasPane.
                                                              (line  181)
+* attachTo instance method (X11CheckBoxPane class): X11CheckBoxPane.
+                                                             (line  202)
 * attachTo instance method (X11ListPane class): X11ListPane. (line  305)
 * attachTo instance method (X11MessageBoxPane class): X11MessageBoxPane.
                                                              (line  234)
@@ -8292,6 +8437,8 @@ Index
                                                              (line   31)
 * backgroundColor resource (X11ButtonPane class): X11ButtonPane.
                                                              (line  301)
+* backgroundColor resource (X11CheckBoxPane class): X11CheckBoxPane.
+                                                             (line  145)
 * backgroundColor resource (X11LabelPane class): X11LabelPane.
                                                              (line  147)
 * backgroundColor resource (X11TextEntryPane class): X11TextEntryPane.
@@ -8310,6 +8457,7 @@ Index
 * become instance method (Object class): Object.             (line  286)
 * bevel instance variable (X11ScrollBarPane class): X11ScrollBarPane.
                                                              (line  115)
+* bevel resource (X11CheckBoxPane class): X11CheckBoxPane.   (line  149)
 * bevelEdges instance variable (X11ButtonPane class): X11ButtonPane.
                                                              (line  411)
 * bevelWidth instance variable (X11ButtonPane class): X11ButtonPane.
@@ -8359,6 +8507,8 @@ Index
                                                              (line  212)
 * borderWidth instance variable (X11Pane class): X11Pane.    (line   46)
 * borderWidth resource (X11ButtonPane class): X11ButtonPane. (line  326)
+* borderWidth resource (X11CheckBoxPane class): X11CheckBoxPane.
+                                                             (line  153)
 * borderWidth resource (X11LabelPane class): X11LabelPane.   (line  157)
 * borderWidth resource (X11ListPane class): X11ListPane.     (line  179)
 * borderWidth resource (X11TextEntryPane class): X11TextEntryPane.
@@ -8542,8 +8692,12 @@ Index
 * clearSelection instance method (X11TextEntryPane class): X11TextEntryPane.
                                                              (line  284)
 * clearWindow instance method (X11Pane class): X11Pane.      (line  214)
+* clickColor resource (X11CheckBoxPane class): X11CheckBoxPane.
+                                                             (line  157)
 * clicked instance variable (X11ButtonPane class): X11ButtonPane.
                                                              (line  432)
+* clicked instance variable (X11CheckBoxPane class): X11CheckBoxPane.
+                                                             (line  194)
 * clientFD instance variable (X11TerminalStream class): X11TerminalStream.
                                                              (line  102)
 * clipX instance variable (X11TextEntryPane class): X11TextEntryPane.
@@ -8664,6 +8818,8 @@ Index
 * cusorPosY method (Win32TerminalStream class): Win32TerminalStream.
                                                              (line   58)
 * Cutting text:                          X11TextEditorPane.  (line   45)
+* darkShadowColor resource (X11CheckBoxPane class): X11CheckBoxPane.
+                                                             (line  171)
 * dayName instance method (CalendarTime class): CalendarTime.
                                                              (line  109)
 * Debugging:                             C statements.       (line  207)
@@ -8821,6 +8977,8 @@ Index
 * draw instance method (Point class):    Point.              (line   30)
 * draw instance method (Rectangle class): Rectangle.         (line   95)
 * draw instance method (X11ButtonPane class): X11ButtonPane. (line  485)
+* draw instance method (X11CheckBoxPane class): X11CheckBoxPane.
+                                                             (line  229)
 * draw instance method (X11FileSelectDialog class): X11FileSelectDialog.
                                                              (line  393)
 * draw instance method (X11LabelPane class): X11LabelPane.   (line  302)
@@ -9005,6 +9163,8 @@ Index
                                                              (line  246)
 * fill instance method (X11YesNoBoxPane class): X11YesNoBoxPane.
                                                              (line  299)
+* fillRadius resource (X11CheckBoxPane class): X11CheckBoxPane.
+                                                             (line  161)
 * fillWithPen instance method (Rectangle class): Rectangle.  (line  114)
 * float C data type:                     C statements.       (line  141)
 * Float class:                           Float.              (line    6)
@@ -9071,6 +9231,8 @@ Index
                                                              (line  123)
 * framePen instance variable (X11ScrollBarPane class): X11ScrollBarPane.
                                                              (line  131)
+* frameRadius resource (X11CheckBoxPane class): X11CheckBoxPane.
+                                                             (line  161)
 * frameRate instance method (GLXCanvasPane class): GLXCanvasPane.
                                                              (line  419)
 * frameWidth instance method (X11ScrollBarPane class): X11ScrollBarPane.
@@ -9278,6 +9440,7 @@ Index
 * height instance variable (X11Font class): X11Font.         (line   36)
 * height instance variable (X11FreeTypeFont class): X11FreeTypeFont.
                                                              (line  148)
+* height resource (X11CheckBoxPane class): X11CheckBoxPane.  (line  177)
 * highlight instance variable (X11PaneDispatcher class): X11PaneDispatcher.
                                                              (line  240)
 * highlightBorderColor instance variable (X11LabelPane class): X11LabelPane.
@@ -9572,6 +9735,8 @@ Index
 * Library functions:                     Ctalk library.      (line    6)
 * libraryPath instance method (Object class): Object.        (line  440)
 * LibrarySearch class:                   LibrarySearch.      (line    6)
+* lightShadowColor resource (X11CheckBoxPane class): X11CheckBoxPane.
+                                                             (line  171)
 * Line class:                            Line.               (line    6)
 * lineHeight instance variable (X11TextPane class): X11TextPane.
                                                              (line   74)
@@ -9662,6 +9827,7 @@ Index
 * margin instance variable (X11ListPane class): X11ListPane. (line  251)
 * margin instance variable (X11ScrollBarPane class): X11ScrollBarPane.
                                                              (line  143)
+* margin resource (X11CheckBoxPane class): X11CheckBoxPane.  (line  187)
 * margin resource (X11ListPane class):   X11ListPane.        (line  191)
 * match instance method (String class):  String.             (line  360)
 * matchAt instance method (String class): String.            (line  365)
@@ -9806,6 +9972,8 @@ Index
 * new instance method (SignalHandler class): SignalHandler.  (line   81)
 * new instance method (X11ButtonPane class): X11ButtonPane.  (line  515)
 * new instance method (X11CanvasPane class): X11CanvasPane.  (line  409)
+* new instance method (X11CheckBoxPane class): X11CheckBoxPane.
+                                                             (line  236)
 * new instance method (X11FileSelectDialog class): X11FileSelectDialog.
                                                              (line  425)
 * new instance method (X11LabelPane class): X11LabelPane.    (line  328)
@@ -9891,6 +10059,8 @@ Index
                                                              (line  477)
 * onButtonPress instance method (GLXCanvasPane class): GLXCanvasPane.
                                                              (line  485)
+* onClick instance method (X11CheckBoxPane class): X11CheckBoxPane.
+                                                             (line  244)
 * onClick instance method (X11ListPane class): X11ListPane.  (line  347)
 * onEnter instance method (X11ListPane class): X11ListPane.  (line  347)
 * onExpose instance method (GLXCanvasPane class): GLXCanvasPane.
@@ -11086,6 +11256,7 @@ Index
 * while statements:                      Control structures. (line    6)
 * width instance variable (Pen class):   Pen.                (line   29)
 * width instance variable (X11Bitmap class): X11Bitmap.      (line   41)
+* width resource (X11CheckBoxPane class): X11CheckBoxPane.   (line  177)
 * Win32TerminalStream class:             Win32TerminalStream.
                                                              (line    6)
 * Window geometry:                       X11PaneDispatcher.  (line   11)

@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.22 2020/12/01 21:42:43 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.24 2020/12/02 19:28:31 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -15292,14 +15292,13 @@ with a space character (@samp{ }) between them.
 @end ifnottex
 @cindex @code{X11CheckBoxPane} class
 
-A @code{X11CheckBoxPane} object draws a checkable box on the main
-window.  The class has methods for initialization, drawing,
-changing the box's clicked/unclicked state, and the instance data
-for retrieving the state.
+A single @code{X11CheckBoxPane} object draws a checkable box on the
+main window.  The class has methods for initialization, drawing,
+changing the box's clicked/unclicked state, and the instance data for
+retrieving the state.
 
 @c demos/x11/checkbox.ca
-Here is a brief example of a @code{X11CheckBoxPane} object in a
-program.
+Here is an example program that displays a @code{X11CheckBoxPane} object.
 
 @verbatim
 
@@ -15406,6 +15405,172 @@ int main (int argv, char **argc) @{
 @}
 
 @end verbatim
+
+@subheading Retrieving a @code{X11CheckBox} Object's State
+
+The @code{X11CheckBoxPane} class declares the @code{checked} instance
+variable, which is either true or false depending on when and how many
+times a user has clicked on the checkbox.  Successive clicks change
+the @code{checked} instance variable's state from false to true and
+back again.  The @code{draw} method draws the checkbox filled or empty
+depending on the state of the @code{checked} instance variable.
+
+Here is the portion of the program above that retrieves the checkbox's
+state.  The check box object is named @code{xCheckBoxPane}.  The
+condition, @samp{if (e eventData == xCheckBoxPane xWindowID)} insures
+that the program uses only pointer clicks that fall within
+@code{xCheckBoxPane's} boundaries.
+
+@example
+
+if (e eventData == xCheckBoxPane xWindowID) @{
+  if (xCheckBoxPane clicked) @{
+    printf ("clicked\n");
+  @} else @{
+    printf ("unclicked\n");
+  @}
+@}
+
+@end example
+
+@subheading Resources
+
+@table @code
+
+@cindex @code{backgroundColor} resource @idxclscite{X11CheckBoxPane}
+@item backgroundColor
+A @code{String} that contains the color name of the checkbox's
+background.  The default is @samp{white}.
+
+@cindex @code{bevel} resource @idxclscite{X11CheckBoxPane}
+@item bevel
+A @code{Boolean} that determines whether to draw beveled edges
+on the checkbox's interior.  The default is @samp{false}.
+
+@cindex @code{borderWidth} resource @idxclscite{X11CheckBoxPane}
+@item borderWidth
+An @code{Integer} that specifies the width in pixels of the checkbox's
+border.  The default is 1px.
+
+@cindex @code{clickColor} resource @idxclscite{X11CheckBoxPane}
+@item clickColor
+A @code{String} that contains the color name of the checkbox's border
+and interior when checked.  The default is @samp{darkslategray}.
+
+@cindex @code{fillRadius} resource @idxclscite{X11CheckBoxPane}
+@cindex @code{frameRadius} resource @idxclscite{X11CheckBoxPane}
+@item fillRadius
+@item frameRadius
+These are @code{Integer} objects which, if nonzero, cause the checkbox
+to be drawn with rounded corners.  There is a separate dimension for
+the margin and the checkbox interior because the radius comprises a
+significant amount of a checkbox's size, so the margin might appear
+like a rectangle with rounded corners, while the interior might look
+like a circle or oval, if the shapes use the same corner radius.
+
+@cindex @code{lightShadowColor} resource @idxclscite{X11CheckBoxPane}
+@cindex @code{darkShadowColor} resource @idxclscite{X11CheckBoxPane}
+@item darkShadowColor
+@item lightShadowColor
+The names of the colors of the light and dark shadows that the
+checkbox displays inside its border if the @samp{bevel} resource is
+true.
+
+@cindex @code{height} resource @idxclscite{X11CheckBoxPane}
+@cindex @code{width} resource @idxclscite{X11CheckBoxPane}
+@item height
+@item width
+These are @code{Integer} values that contain the width and height of
+the checkbox, in pixels.  Their default value, @samp{15px}, is set
+when the checkbox object is created, and may be changed before the
+checkbox is attached to its parent pane.  If the checkbox's
+@mnm{attachTo} method is given a geometry that also contains a width
+and height, then this latest dimension setting determines the
+checkbox's size when displayed.
+
+@cindex @code{margin} resource @idxclscite{X11CheckBoxPane}
+@item margin
+The distance in pixels between the inner edge of the border and the
+edge of the check in a filled checkbox.  The default is 1px.
+
+@end table
+
+@subheading Instance Variables
+
+@table @code
+
+@cindex @code{clicked} instance variable @idxclscite{X11CheckBoxPane}
+@item clicked
+A @code{Boolean} that changes between true and false every time
+the check box is clicked.  The variable's value also determines
+whether the checkbox's interior is filled.
+
+@end table
+
+@subheading Instance Methods
+
+@table @code
+
+@cindex @code{attachTo} instance method @idxclscite{X11CheckBoxPane}
+@item attachTo (@code{Object} @var{parentPane}, @code{String} @var{geometry})
+Attaches the receiver @code{X11CheckBoxPane} to its @var{parentPane}
+using the dimensions given by @var{geometry}.  The method also creates
+the drawing surfaces with the correct dimensions.
+
+The @var{geometry} argument may optionally omit the checkbox's width
+and height, which causes the method to use the width and height given
+by the checkbox object's resources.  For example, if the program
+contains an expression like the following:
+
+@example
+
+xCheckBoxPane attachTo xTopLevelPane, "+25%+25%";
+
+@end example
+
+Then the method will create the checkbox with the dimensions
+preset by the object's @samp{width} and @samp{height} resources.
+If the checkbox's dimensions are determined in this manner, a
+program my change the checkbox's size any time before the @code{attachTo}
+method is called.  However, if the program contains a statement like
+the following,
+
+@example
+
+xCheckBoxPane attachTo xTopLevelPane, "20x20+25%+25%";
+
+@end example
+
+Then the program uses the @samp{20x20} size given as the argument,
+which is the most recent dimension that the program has defined..
+
+@cindex @code{draw} instance method @idxclscite{X11CheckBoxPane}
+@item draw (@code{void})
+This method draws the checkbox. It uses the @var{clicked} instance
+variable state to determine whether to draw a filled checkbox, as
+well as the classes' resources that have been set in the object
+to determine check checkbox's style; i.e., the checkbox's size,
+whether its edges are beveled or rounded, and the checkbox's
+color.
+
+@cindex @code{new} instance method @idxclscite{X11CheckBoxPane}
+@item new (@code{String} @var{paneName})
+The @code{X11CheckBoxPane} constructor.  Creates a new
+@code{X11CheckBox} with the name given by @var{paneName}, and makes it
+available to the method that contains the statement, or to the entire
+program if the new @code{X11CheckBoxPane} is declared in a global
+scope.  The method also initializes the event handlers and resources
+that are defined in the class.
+
+@cindex @code{onClick} instance method @idxclscite{X11CheckBoxPane}
+@item onClick (@code{Object} @var{subPane}, @code{InputEvent} @var{event})
+This method receives a @samp{BUTTONPRESS} event from the display
+system, and toggles the receiver checkbox's @code{clicked} instance
+variable between true and false.  The method changes the
+@code{clicked} state only in response to @samp{BUTTONPRESS} events;
+a corresponding @samp{BUTTONRELEASE} event is ignored.
+
+@end table
 
 @node X11LabelPane, X11ListPane, X11CheckBoxPane, Classes
 @iftex
