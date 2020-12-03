@@ -1505,5 +1505,7 @@
 	- Updated demos/x11/buttons.ca and the X11ButtonPane ::
 	subPaneExpose method to check for the button's window
 	before redrawing the button.
+	- Conditionally reverted to using XftTextExtents8 to
+	measure text in __ctalkXftGetStringDimensions (xftlib.c).
 
 
