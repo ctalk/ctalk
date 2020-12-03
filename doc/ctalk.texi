@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.24 2020/12/02 19:28:31 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.25 2020/12/03 13:30:29 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -14700,8 +14700,6 @@ the second draws rounded, non-beveled buttons.
 @c demos/x11/buttons.ca
 @example
 
-/* buttons.ca - X11ButtonPane Demonstration -*-c-*- */
-
 #include <ctalk/ctalkdefs.h>
 
 /* Uncomment this #define to use X bitmap fonts. */
@@ -14786,8 +14784,8 @@ int main (void) @{
     (rbutton resources at "foregroundColor");
   lbutton label resources replaceAt "highlightBorderWidth", 2;
   rbutton label resources replaceAt "highlightBorderWidth", 2;
-  lbutton label resources replaceAt "ftFont", "sans serif-10:bold";
-  rbutton label resources replaceAt "ftFont", "sans serif-10:bold";
+  rbutton label resources replaceAt "highlightTextBold", true;
+  lbutton label resources replaceAt "highlightTextBold", true;
 #endif  
 
   lbutton draw;
@@ -14807,9 +14805,10 @@ int main (void) @{
       switch (e eventClass value)
 	@{
 	case EXPOSE:
-	  lbutton subPaneExpose (lbutton, e);
-	  rbutton subPaneExpose (rbutton, e);
-	  label subPaneExpose (label, e);
+	  if (e eventData == lbutton xWindowID) 
+	    lbutton subPaneExpose (lbutton, e);
+	  else if (e eventData == lbutton xWindowID)
+	    rbutton subPaneExpose (rbutton, e);
 	  break;
 	case WINDELETE:
  	  mainWindow deleteAndClose;

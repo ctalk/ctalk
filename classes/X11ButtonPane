@@ -1,4 +1,4 @@
-/* $Id: X11ButtonPane,v 1.1.1.1 2020/07/26 05:50:11 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11ButtonPane,v 1.2 2020/12/03 13:30:29 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -387,13 +387,15 @@ X11ButtonPane instanceMethod subPaneFocusOut (void) {
   }
 }
 
-X11ButtonPane instanceMethod subPaneExpose (Object __subPane,
-					  InputEvent __event) {
+X11ButtonPane instanceMethod subPaneExpose (Object subPane,
+					  InputEvent event) {
 #ifdef TRACK_EVENTS
   printf ("subPaneExpose\n");
 #endif  
-  self draw;
-  self refresh;
+  if (event eventData == subPane xWindowID) { 
+    subPane draw;
+    subPane refresh;
+  }
 }
 
 #ifdef HANDLE_MAP

@@ -119,9 +119,10 @@ int main (void) {
       switch (e eventClass value)
 	{
 	case EXPOSE:
-	  lbutton subPaneExpose (lbutton, e);
-	  rbutton subPaneExpose (rbutton, e);
-	  label subPaneExpose (label, e);
+	  if (e eventData == lbutton xWindowID) 
+	    lbutton subPaneExpose (lbutton, e);
+	  else if (e eventData == lbutton xWindowID)
+	    rbutton subPaneExpose (rbutton, e);
 	  break;
 	case WINDELETE:
  	  mainWindow deleteAndClose;
