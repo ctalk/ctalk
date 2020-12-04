@@ -1507,5 +1507,14 @@
 	before redrawing the button.
 	- Conditionally reverted to using XftTextExtents8 to
 	measure text in __ctalkXftGetStringDimensions (xftlib.c).
+	- Added the XK_Alt_L and XK_Alt_R keysym definitions
+	and the shiftStateAlt definition X11TextEditorPane and
+	edittext.c.  Also added an Alt-v handler in
+	X11TextEditorPane :: subPaneKbdInput.
+	- Added __xlib_get_clipboard __edittext_set_clipboard_owner,
+	and __edittext_get_clipboard (edittext.c).
+2020-12-04
+	- Preliminary update to paste text from the clipboard using
+	Alt-V and Button2+Ctrl+Shift.
 
 

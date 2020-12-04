@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.25 2020/12/03 13:30:29 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.26 2020/12/04 17:58:01 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -19442,6 +19442,7 @@ End, Ctrl-E         End of line
 Ctrl-Q              Start of text
 Ctrl-Z              End of text
 Ctrl-D              Delete character under cursor
+Alt-V               Paste text from the clipboard at the insertion point.
 Backspace           Delete previous character.  If selecting text, delete
                     the selection.
 Del                 Delete the character under the cursor, or the
@@ -19451,7 +19452,8 @@ Esc                 Close the window and exit the program.
 
 Mouse-1             Move the insertion point cursor to the click.
                     Click and drag the pointer to select text.
-Mouse-2             Paste text of the X selection at the insertion point.
+Mouse-2             Paste text of the X selection at the click location.
+Mouse-2+Ctrl+Shift  Paste text from the clipboard at the click location.
 
 @end example
 
@@ -26073,11 +26075,15 @@ is, if the value of the object is an empty string, @samp{(NULL)}, or
 @idxlibfn{__edittext_scroll_down}
 @idxlibfn{__edittext_scroll_up}
 @idxlibfn{__edittext_set_selection_owner}
+@idxlibfn{__edittext_set_clipboard_owner}
+@idxlibfn{__edittext_get_clipboard}
 @idxclscite {X11TextEditorPane}
 @cindex Text editing
 @cindex Editing, text
 
 @item __edittext_delete_char (OBJECT *x11texteditorpane_object)
+@item __edittext_get_primary_selection (OBJECT *x11texteditorpan_eobject, void **buf_out, int *size_out)
+@item __edittext_get_clipboard (OBJECT *x11texteditorpan_eobject, void **buf_out, int *size_out)
 @item __edittext_insert_at_point (OBJECT *x11texteditorpane_object, int keycode, int shift_state, int keypress)
 @item __edittext_line_end (OBJECT *x11texteditorpane_object)
 @item __edittext_line_start (OBJECT *x11texteditorpane_object)
@@ -26096,7 +26102,7 @@ is, if the value of the object is an empty string, @samp{(NULL)}, or
 @item __edittext_index_from_pointer (OBJECT *x11texteditorpane_object, int pointer_x, int pointer_y)
 @item __edittext_insert_str_at_click (OBJECT *x11texteditorpane_object, int click_x, int click_y, char *)
 @item __edittext_insert_str_at_point (OBJECT *x11texteditorpane_object, char *)
-@item __edittext_get_primary_selection (OBJECT *x11texteditorpan_eobject, void **buf_out, int *size_out)
+@item __edittext_set_clipboard_owner (OBJECT *x11texteditorpane_object)
 @item __edittext_set_selection_owner (OBJECT *x11texteditorpane_object)
 @item __edittext_recenter (OBJECT *x11texteditorpane_object)
 Text editing functions used by @code{X11TextEditorPane} objects.

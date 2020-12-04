@@ -7125,6 +7125,7 @@ different keys by modifying the 'handleKbdInput' method.
      Ctrl-Q              Start of text
      Ctrl-Z              End of text
      Ctrl-D              Delete character under cursor
+     Alt-V               Paste text from the clipboard at the insertion point.
      Backspace           Delete previous character.  If selecting text, delete
                          the selection.
      Del                 Delete the character under the cursor, or the
@@ -7134,7 +7135,8 @@ different keys by modifying the 'handleKbdInput' method.
 
      Mouse-1             Move the insertion point cursor to the click.
                          Click and drag the pointer to select text.
-     Mouse-2             Paste text of the X selection at the insertion point.
+     Mouse-2             Paste text of the X selection at the click location.
+     Mouse-2+Ctrl+Shift  Paste text from the clipboard at the click location.
 
 
 Cutting and Pasting Text

@@ -1,4 +1,4 @@
-/* $Id: X11TextEditorPane,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11TextEditorPane,v 1.6 2020/12/04 17:58:01 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -24,6 +24,8 @@
 /*
  *    X11TextEditorPane class.
  */
+
+#include <ctalk/ctalkdefs.h>
 
 X11TextPane class X11TextEditorPane;
 X11TextEditorPane instanceVariable shiftState Integer 0;
@@ -324,6 +326,12 @@ X11TextEditorPane instanceMethod subPaneMotionNotify
   }
 }
 
+/* these are our possible shiftState values */
+/* if changing these, also change in edittext.c */
+#define shiftStateShift (1 << 0)
+#define shiftStateCtrl  (1 << 1)
+#define shiftStateAlt   (1 << 2)
+
 X11TextEditorPane instanceMethod subPaneButtonPress
                  (X11TextEditorPane __subPane, InputEvent __event) {
   void *selection_out;
@@ -342,17 +350,28 @@ X11TextEditorPane instanceMethod subPaneButtonPress
 	  self displayText;
 	  break;
 	case Button2:
-	  self button |= BUTTON2MASK;
-	  button_int |= BUTTON2MASK;
-	  /* Allocs a buffer for the selection data (only text
-	     so far), that we need to __xfree below. */
-	  __edittext_get_primary_selection (self, &selection_out,
-					    &selection_length_out);
-	  __edittext_insert_str_at_click (self,
-					  __event xEventData1,
-					  __event xEventData2,
-					  (char *)selection_out);
-	  __xfree (MEMADDR(selection_out));
+	  if (self shiftState & shiftStateShift &&
+	      self shiftState & shiftStateCtrl) {
+	    __edittext_get_clipboard (self, &selection_out,
+				      &selection_length_out);
+	    __edittext_insert_str_at_click (self,
+					    __event xEventData1,
+					    __event xEventData2,
+					    (char *)selection_out);
+	    __xfree (MEMADDR(selection_out));
+	  } else {
+	    self button |= BUTTON2MASK;
+	    button_int |= BUTTON2MASK;
+	    /* Allocs a buffer for the selection data (only text
+	       so far), that we need to __xfree below. */
+	    __edittext_get_primary_selection (self, &selection_out,
+					      &selection_length_out);
+	    __edittext_insert_str_at_click (self,
+					    __event xEventData1,
+					    __event xEventData2,
+					    (char *)selection_out);
+	    __xfree (MEMADDR(selection_out));
+	  }
 	  self displayText;
 	  break;
 	case Button3:
@@ -474,16 +493,19 @@ X11TextEditorPane instanceMethod subPaneSelectionClear
 #ifndef XK_BackSpace
 #define XK_BackSpace 0xff08
 #endif
-
-/* these are our possible shiftState values */
-/* if changing these, also change in edittext.c */
-#define shiftStateShift (1 << 0)
-#define shiftStateCtrl  (1 << 1)
+#ifndef XK_Alt_L
+#define XK_Alt_L 0xffe9
+#endif
+#ifndef XK_Alt_R
+#define XK_Alt_R 0xffea
+#endif
 
 X11TextEditorPane instanceMethod subPaneKbdInput (X11TextEditorPane __subPane, 
 						  InputEvent __event) {
   "Handle keypress or keyrelease events."
     char c;
+  void *selection_out;
+  int selection_length_out;
 
   switch (__event eventClass)
     {
@@ -497,6 +519,10 @@ X11TextEditorPane instanceMethod subPaneKbdInput (X11TextEditorPane __subPane,
 	case XK_Shift_L:
 	case XK_Shift_R:
 	  self shiftState |= shiftStateShift;
+	  break;
+	case XK_Alt_L:
+	case XK_Alt_R:
+	  self shiftState |= shiftStateAlt;
 	  break;
 	case XK_Escape:
 	case CTRL_C:
@@ -567,6 +593,18 @@ X11TextEditorPane instanceMethod subPaneKbdInput (X11TextEditorPane __subPane,
 	    }
 	    __edittext_recenter (self);
 	  }
+	  if (self shiftState & shiftStateAlt) {
+	    if (__event xEventData5 == 118) {
+	      /* alt-v */ /***/
+	      __edittext_get_clipboard (self, &selection_out,
+					&selection_length_out);
+	      __edittext_insert_str_at_click (self,
+					      __event xEventData1,
+					      __event xEventData2,
+					      (char *)selection_out);
+	      __xfree (MEMADDR(selection_out));
+	    }
+	  }
 	  c = __edittext_insert_at_point (self, __event xEventData4,
 					  self shiftState,
 					  __event xEventData5);
@@ -584,6 +622,10 @@ X11TextEditorPane instanceMethod subPaneKbdInput (X11TextEditorPane __subPane,
 	case XK_Shift_L:
 	case XK_Shift_R:
 	  self shiftState &= ~shiftStateShift;
+	  break;
+	case XK_Alt_L:
+	case XK_Alt_R:
+	  self shiftState &= ~shiftStateAlt;
 	  break;
 	} /* switch (__event xEventData5) */
       break;  /* case KEYRELEASE: */

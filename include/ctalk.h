@@ -1,4 +1,4 @@
-/* $Id: ctalk.h,v 1.12 2020/11/27 15:00:50 rkiesling Exp $ -*-Fundamental-*- */
+/* $Id: ctalk.h,v 1.13 2020/12/03 21:46:22 rkiesling Exp $ -*-Fundamental-*- */
 
 /*
   This file is part of Ctalk.
@@ -1498,6 +1498,7 @@ int __edittext_point_to_click (OBJECT *, int, int);
 int __edittext_index_from_pointer (OBJECT *, int, int);
 int __edittext_insert_at_point (OBJECT *, int, int, int);
 int __edittext_get_primary_selection (OBJECT *, void **, int *);
+int __edittext_get_clipboard (OBJECT *, void **, int *);
 int __edittext_insert_str_at_point (OBJECT *, char *);
 int __edittext_set_selection_owner (OBJECT *);
 int __edittext_insert_str_at_click (OBJECT *, int, int, char *);

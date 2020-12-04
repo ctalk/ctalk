@@ -1,4 +1,4 @@
-/* $Id: ctalklib.in,v 1.3 2020/11/19 21:51:18 rkiesling Exp $ -*-c-*-*/
+/* $Id: ctalklib.in,v 1.5 2020/12/03 21:46:22 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -1400,6 +1400,7 @@ extern int __ctalkGlobFiles (char *, OBJECT *);
 extern OBJECT *__ctalkClassVariableObject (OBJECT *);
 extern int __ctalkReferenceObject (OBJECT *, OBJECT *);
 extern int __edittext_get_primary_selection (OBJECT *, void **, int *);
+extern int __edittext_get_clipboard (OBJECT *, void **, int *);
 extern int __edittext_insert_at_point (OBJECT *, int, int, int);
 extern int __edittext_prev_char (OBJECT *);
 extern int __edittext_next_char (OBJECT *);
@@ -1415,6 +1416,7 @@ extern int __edittext_text_start (OBJECT *);
 extern int __edittext_point_to_click (OBJECT *, int, int);
 extern int __edittext_index_from_pointer (OBJECT *, int, int);
 extern int __edittext_insert_str_at_point (OBJECT *, char *);
+extern int __edittext_set_clipboard_owner (OBJECT *);
 extern int __edittext_set_selection_owner (OBJECT *);
 extern int __edittext_insert_str_at_click (OBJECT *, int, int, char *);
 extern int __edittext_row_col_from_mark (OBJECT *, int, int, int *, int *);

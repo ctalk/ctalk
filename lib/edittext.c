@@ -1,4 +1,4 @@
-/* $Id: edittext.c,v 1.6 2020/10/15 18:59:57 rkiesling Exp $ -*-c-*-*/
+/* $Id: edittext.c,v 1.7 2020/12/04 02:46:15 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -94,6 +94,7 @@ extern bool natural_text;
 /* if changing these, also change in X11TextEditorPane class */
 #define shiftStateShift (1 << 0)
 #define shiftStateCtrl  (1 << 1)
+#define shiftStateAlt   (1 << 2)
 
 static int c_line_width = -1;  /* Dimensions calculated for the */
 static int c_scrollmargin;     /* client process.               */
@@ -919,6 +920,7 @@ static void delete_selection (void) {
 
 }
 
+/***/
 int __xlib_set_primary_selection_owner (Display *d, Window win_id) {
   XSetSelectionOwner (d, XA_PRIMARY, win_id, CurrentTime);
   XFlush (d);
@@ -975,16 +977,35 @@ int __entrytext_update_selection (void *d, unsigned int win_id,
   return SUCCESS;
 }
 
+static Atom CLIPBOARD = 0;
+
+/***/
+int __edittext_set_clipboard_owner (OBJECT *editorpane_object) {
+  Drawable win_id;
+  if (need_init)
+    buf_init (editorpane_object);
+  win_id = (Drawable)INTVAL(win_xid_instance_var -> __o_value);
+
+  if (CLIPBOARD == 0) {
+    if ((CLIPBOARD = XInternAtom (display, "CLIPBOARD", False)) == 0)
+      return ERROR;
+  }
+  if (XSetSelectionOwner (display, CLIPBOARD, win_id, CurrentTime) == win_id){
+    return ERROR;
+  } else {
+    return SUCCESS;
+  }
+}
+
+
 int __edittext_set_selection_owner (OBJECT *editorpane_object) {
   Drawable win_id;
   if (need_init)
     buf_init (editorpane_object);
   win_id = (Drawable)INTVAL(win_xid_instance_var -> __o_value);
   if (XSetSelectionOwner (display, XA_PRIMARY, win_id, CurrentTime) == win_id){
-    fprintf (stderr, "XSetSelectionOwner failed!\n");
     return ERROR;
   } else {
-    fprintf (stderr, "XSetSelectionOwner succeeded!\n");
     return SUCCESS;
   }
 }
@@ -1891,8 +1912,12 @@ static void init_ft_surfaces (Drawable w) {
   }
 }
 
-int __edittext_get_primary_selection (OBJECT *editorpane_object,
-				      void **buf_out, int *size_out) {
+
+
+/***/
+static int __edittext_get_selection_internal (OBJECT *editorpane_object,
+				       void **buf_out, int *size_out,
+				       Atom atom) {
   char handle_basename_path[FILENAME_MAX], intbuf[0xff],
     data_path[FILENAME_MAX], info_path[FILENAME_MAX];
   OBJECT *win_id_var, *content_var, *sstart_var, *send_var;
@@ -1905,7 +1930,7 @@ int __edittext_get_primary_selection (OBJECT *editorpane_object,
 						TRUE)) != NULL) {
     if ((d_l = XOpenDisplay (getenv ("DISPLAY"))) != NULL) {
       win_id = (Drawable)INTVAL(win_id_var -> __o_value);
-      if ((selection_win = XGetSelectionOwner (d_l, XA_PRIMARY)) == win_id) {
+      if ((selection_win = XGetSelectionOwner (d_l, atom)) == win_id) {
 	content_var = __ctalkGetInstanceVariable (editorpane_object, "text",
 						  TRUE);
 	sstart_var = __ctalkGetInstanceVariable (editorpane_object, "sStart", TRUE);
@@ -1937,11 +1962,19 @@ int __edittext_get_primary_selection (OBJECT *editorpane_object,
   strcatx (handle_basename_path, P_tmpdir, "/text", ctitoa (getpid (), intbuf),
 	   NULL);
   memset ((void *)shm_mem, 0, SHM_BLKSIZE);
-  make_req (shm_mem,
-	    SYMVAL(display_ptr_instance_var -> instancevars -> __o_value),
-	    PANE_GET_PRIMARY_SELECTION_REQUEST, 0, 0,
-	    handle_basename_path);
-  wait_req (shm_mem);
+  if (atom == XA_PRIMARY) {
+    make_req (shm_mem,
+	      SYMVAL(display_ptr_instance_var -> instancevars -> __o_value),
+	      PANE_GET_PRIMARY_SELECTION_REQUEST, 0, 0,
+	      handle_basename_path);
+    wait_req (shm_mem);
+  } else if (atom == CLIPBOARD) {
+    make_req (shm_mem,
+	      SYMVAL(display_ptr_instance_var -> instancevars -> __o_value),
+	      PANE_GET_CLIPBOARD_REQUEST, 0, 0,
+	      handle_basename_path);
+    wait_req (shm_mem);
+  }
 
   strcatx (info_path, handle_basename_path, ".inf", NULL);
   strcatx (data_path, handle_basename_path, ".dat", NULL);
@@ -1961,11 +1994,35 @@ int __edittext_get_primary_selection (OBJECT *editorpane_object,
       unlink (data_path);
     }
   } else {
-    *buf_out = NULL;
-    *size_out = 0;
+    *buf_out = __xalloc (1);
+    *size_out = 1;
   }
 
   return SUCCESS;
+}
+
+/***/
+int __edittext_get_primary_selection (OBJECT *editorpane_object,
+				      void **buf_out, int *size_out) {
+  return __edittext_get_selection_internal (editorpane_object,
+					    buf_out, size_out,
+					    XA_PRIMARY);
+}
+/***/
+int __edittext_get_clipboard (OBJECT *editorpane_object,
+			      void **buf_out, int *size_out) {
+  Display *d_l;
+  if ((d_l = XOpenDisplay (getenv ("DISPLAY"))) == NULL) {
+    return ERROR;
+  }
+  if (CLIPBOARD == 0) {
+    if ((CLIPBOARD = XInternAtom (d_l, "CLIPBOARD", False)) == 0)
+      return ERROR;
+  }
+  XCloseDisplay (d_l);
+  return __edittext_get_selection_internal (editorpane_object,
+					    buf_out, size_out,
+					    CLIPBOARD);
 }
 
 int __xlib_get_primary_selection (Display *, Drawable, GC, char *);
@@ -2065,6 +2122,57 @@ int __entrytext_get_primary_selection (OBJECT *entrypane_object,
   } else {
     *buf_out = NULL;
     *size_out = 0;
+  }
+
+  return SUCCESS;
+}
+
+/***/
+int __xlib_get_clipboard (Display *d, Drawable pixmap, GC gc, char
+			  *handle_basename_path) {
+  Window owner;
+  int fmt_return;
+  unsigned long nitems, bytes_left, dummy;
+  unsigned char *data;
+  Atom type_return;
+  char info_path[FILENAME_MAX], data_path[FILENAME_MAX],
+    bytes_left_buf[0xff];
+  FILE *f_inf, *f_dat;
+
+
+  if (CLIPBOARD == 0) {
+    if ((CLIPBOARD = XInternAtom (display, "CLIPBOARD", False)) == 0)
+      return ERROR;
+  }
+
+  strcatx (info_path, handle_basename_path, ".inf", NULL);
+  strcatx (data_path, handle_basename_path, ".dat", NULL);
+  if ((owner = XGetSelectionOwner (d, CLIPBOARD)) == None)
+    return SUCCESS;
+
+  XConvertSelection (d, CLIPBOARD, XA_STRING, 0, owner,
+		     (Time)time (NULL));
+
+  XFlush (d);
+  XGetWindowProperty (d, owner, XA_STRING, 0, 0, False,
+		      AnyPropertyType, &type_return, &fmt_return,
+		      &nitems, &bytes_left, &data);
+
+  if (bytes_left) {
+    if (!XGetWindowProperty (d, owner, XA_STRING, 0,
+			     bytes_left, 0, AnyPropertyType,
+			     &type_return, &fmt_return,
+			     &nitems, &dummy, &data)) {
+      if ((f_inf = fopen (info_path, "w")) != NULL) {
+	ctitoa (bytes_left, bytes_left_buf);
+	fwrite (bytes_left_buf, sizeof (char), strlen (bytes_left_buf), f_inf);
+	fclose (f_inf);
+      }
+      if ((f_dat = fopen (data_path, "w")) != NULL) {
+	fwrite (data, sizeof (char), bytes_left, f_dat);
+	fclose (f_dat);
+      }
+    }
   }
 
   return SUCCESS;
@@ -2412,8 +2520,10 @@ int __xlib_render_text (Display *d, Drawable pixmap, GC gc, char *fn) {
 
 #else  /* #ifdef HAVE_XFT_H */
 
-int __edittext_get_primary_selection (OBJECT *editorpane_object,
-				      void **buf_out, int *size_out) {
+static int __edittext_get_primary_selection_internal (OBJECT *editorpane_object,
+						      void **buf_out,
+						      int *size_out,
+						      Atom atom) {
   char handle_basename_path[FILENAME_MAX], intbuf[0xff],
     data_path[FILENAME_MAX], info_path[FILENAME_MAX];
   int r, s_start, s_end, data_length = 0;
@@ -2427,7 +2537,7 @@ int __edittext_get_primary_selection (OBJECT *editorpane_object,
 						TRUE)) != NULL) {
     if ((d_l = XOpenDisplay (getenv ("DISPLAY"))) != NULL) {
       win_id = (Drawable)INTVAL(win_id_var -> __o_value);
-      if ((selection_win = XGetSelectionOwner (d_l, XA_PRIMARY)) == win_id) {
+      if ((selection_win = XGetSelectionOwner (d_l, atom)) == win_id) {
 	content_var = __ctalkGetInstanceVariable (editorpane_object, "text",
 						  TRUE);
 	sstart_var = __ctalkGetInstanceVariable (editorpane_object, "sStart", TRUE);
@@ -2487,6 +2597,76 @@ int __edittext_get_primary_selection (OBJECT *editorpane_object,
   } else {
     *buf_out = NULL;
     *size_out = 0;
+  }
+
+  return SUCCESS;
+}
+
+/***/
+int __edittext_get_primary_selection (OBJECT *editorpane_object,
+				      void **buf_out, int *size_out) {
+  return __edittext_get_selection_internal (editorpane_object,
+					    buf_out, size_out,
+					    XA_PRIMARY);
+}
+/***/
+int __edittext_get_clipboard (OBJECT *editorpane_object,
+			      void **buf_out, int *size_out) {
+  if (CLIPBOARD == 0) {
+    if ((CLIPBOARD = XInternAtom (display, "CLIPBOARD", False)) == 0)
+      return ERROR;
+  }
+  return __edittext_get_selection_internal (editorpane_object,
+					    buf_out, size_out,
+					    CLIPBOARD);
+}
+
+/***/
+int __xlib_get_clipboard (Display *d, Drawable pixmap, GC gc, char
+			  *handle_basename_path) {
+  Window owner;
+  int fmt_return;
+  unsigned long nitems, bytes_left, dummy;
+  unsigned char *data;
+  Atom type_return;
+  char info_path[FILENAME_MAX], data_path[FILENAME_MAX],
+    bytes_left_buf[0xff];
+  FILE *f_inf, *f_dat;
+
+
+  if (CLIPBOARD == 0) {
+    if ((CLIPBOARD = XInternAtom (display, "CLIPBOARD", False)) == 0)
+      return ERROR;
+  }
+
+  strcatx (info_path, handle_basename_path, ".inf", NULL);
+  strcatx (data_path, handle_basename_path, ".dat", NULL);
+  if ((owner = XGetSelectionOwner (d, CLIPBOARD)) == None)
+    return SUCCESS;
+
+  XConvertSelection (d, CLIPBOARD, XA_STRING, 0, owner,
+		     (Time)time (NULL));
+
+  XFlush (d);
+  XGetWindowProperty (d, owner, XA_STRING, 0, 0, False,
+		      AnyPropertyType, &type_return, &fmt_return,
+		      &nitems, &bytes_left, &data);
+
+  if (bytes_left) {
+    if (!XGetWindowProperty (d, owner, XA_STRING, 0,
+			     bytes_left, 0, AnyPropertyType,
+			     &type_return, &fmt_return,
+			     &nitems, &dummy, &data)) {
+      if ((f_inf = fopen (info_path, "w")) != NULL) {
+	ctitoa (bytes_left, bytes_left_buf);
+	fwrite (bytes_left_buf, sizeof (char), strlen (bytes_left_buf), f_inf);
+	fclose (f_inf);
+      }
+      if ((f_dat = fopen (data_path, "w")) != NULL) {
+	fwrite (data, sizeof (char), bytes_left, f_dat);
+	fclose (f_dat);
+      }
+    }
   }
 
   return SUCCESS;
@@ -2825,7 +3005,14 @@ unsigned int __edittext_xk_keysym (int keycode, int shift_state,
 
 int __xlib_get_primary_selection (void *d, unsigned int pixmap, uintptr_t gc,
 				  char  *handle_basename_path) {
-  fprintf (stderr, "__edittext_get_primary_selection: This function requires "
+  fprintf (stderr, "__xlib_get_primary_selection: This function requires "
+	   "the X Window System.\n");
+  exit (EXIT_FAILURE);
+}
+
+int __xlib_get_clipboard (void *d, unsigned int pixmap, uintptr_t gc,
+				  char  *handle_basename_path) {
+  fprintf (stderr, "__xlib_get_clipboard: This function requires "
 	   "the X Window System.\n");
   exit (EXIT_FAILURE);
 }
@@ -2858,4 +3045,16 @@ int __entrytext_send_selection (void *d_p, void *e_p) {
 	   "the X Window System.\n");
   exit (EXIT_FAILURE);
 }
+int __edittext_set_clipboard_owner (OBJECT *editorpane_object) {
+  fprintf (stderr, "__edittext_set_clipboard_owner: This function requires "
+	   "the X Window System.\n");
+  exit (EXIT_FAILURE);
+}
+int __edittext_get_clipboard (OBJECT *editorpane_object,
+			      void **buf_out, int *size_out) {
+  fprintf (stderr, "__edittext_get_clipboard: This function requires "
+	   "the X Window System.\n");
+  exit (EXIT_FAILURE);
+}
+
 #endif /* ! defined (DJGPP) && ! defined (WITHOUT_X11) */

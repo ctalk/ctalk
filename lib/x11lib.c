@@ -1,4 +1,4 @@
-/* $Id: x11lib.c,v 1.2 2020/11/20 16:37:51 rkiesling Exp $ -*-c-*-*/
+/* $Id: x11lib.c,v 1.3 2020/12/04 02:46:16 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -132,6 +132,7 @@ int __xlib_draw_point (Display *, Drawable, GC, char *);
 /* In edittext.c */
 int __xlib_render_text (Display *, Drawable, GC, char *);
 int __xlib_get_primary_selection (Display *, Drawable, GC, char *);
+int __xlib_get_clipboard (Display *, Drawable, GC, char *);
 int __xlib_send_selection (XEvent *);
 int __xlib_clear_selection (XEvent *);
 int __xlib_set_primary_selection_owner (Display *, Drawable);
@@ -1631,6 +1632,9 @@ int __xlib_handle_client_request (char *shm_mem_2) {
       break;
     case PANE_SET_PRIMARY_SELECTION_TEXT:
       __xlib_set_primary_selection_text (&shm_mem_2[SHM_DATA]);
+      break;
+    case PANE_GET_CLIPBOARD_REQUEST:
+      __xlib_get_clipboard (d, (Drawable)w, gc, &shm_mem_2[SHM_DATA]);
       break;
     } 
  x_event_cleanup:
