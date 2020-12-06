@@ -1,4 +1,4 @@
-/* $Id: ctalk.h,v 1.13 2020/12/03 21:46:22 rkiesling Exp $ -*-Fundamental-*- */
+/* $Id: ctalk.h,v 1.14 2020/12/06 01:01:22 rkiesling Exp $ -*-Fundamental-*- */
 
 /*
   This file is part of Ctalk.
@@ -1486,6 +1486,7 @@ void __inspect_init (void);
 /* lib/edittext.c */
 int __textedit_insert (OBJECT *, int, int, int);
 int __edittext_prev_char (OBJECT *);
+int __edittext_delete_selection (OBJECT *);
 int __edittext_next_char (OBJECT *);
 int __edittext_prev_line (OBJECT *);
 int __edittext_next_line (OBJECT *);

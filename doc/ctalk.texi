@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.26 2020/12/04 17:58:01 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.28 2020/12/06 01:19:21 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -19442,7 +19442,11 @@ End, Ctrl-E         End of line
 Ctrl-Q              Start of text
 Ctrl-Z              End of text
 Ctrl-D              Delete character under cursor
+
 Alt-V               Paste text from the clipboard at the insertion point.
+Alt-C               Copy the selected text to the clipboard.
+Alt-X               Delete the text and save the text on the clipboard.
+
 Backspace           Delete previous character.  If selecting text, delete
                     the selection.
 Del                 Delete the character under the cursor, or the
@@ -26052,6 +26056,7 @@ is, if the value of the object is an empty string, @samp{(NULL)}, or
 @samp{0x0}, it returns @code{NULL}. This allows you to compare objects to 
 @code{NULLs} in C expressions without the generating compiler warnings.
 
+@idxlibfn{__edittext_delete_selection}
 @idxlibfn{__edittext_insert_at_point}
 @idxlibfn{__edittext_xk_keysym}
 @idxlibfn{__edittext_prev_char}
@@ -26082,6 +26087,7 @@ is, if the value of the object is an empty string, @samp{(NULL)}, or
 @cindex Editing, text
 
 @item __edittext_delete_char (OBJECT *x11texteditorpane_object)
+@item __edittext_delete_selection (OBJECT *x11texteditorpane_object)
 @item __edittext_get_primary_selection (OBJECT *x11texteditorpan_eobject, void **buf_out, int *size_out)
 @item __edittext_get_clipboard (OBJECT *x11texteditorpan_eobject, void **buf_out, int *size_out)
 @item __edittext_insert_at_point (OBJECT *x11texteditorpane_object, int keycode, int shift_state, int keypress)

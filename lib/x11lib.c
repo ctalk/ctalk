@@ -1,4 +1,4 @@
-/* $Id: x11lib.c,v 1.3 2020/12/04 02:46:16 rkiesling Exp $ -*-c-*-*/
+/* $Id: x11lib.c,v 1.5 2020/12/05 17:30:14 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -115,6 +115,7 @@ char *shm_mem;
 int mem_id = 0;
 
 Atom wm_delete_window;
+Atom CLIPBOARD;
 
 static int __ctalkX11IOErrorHandler (Display *);
 static int __ctalkX11ErrorHandler (Display *, XErrorEvent *);
@@ -137,6 +138,7 @@ int __xlib_send_selection (XEvent *);
 int __xlib_clear_selection (XEvent *);
 int __xlib_set_primary_selection_owner (Display *, Drawable);
 int __xlib_set_primary_selection_text (char *);
+int __xlib_set_clipboard_owner (Display *, Drawable);
 
 int __have_bitmap_buffers (OBJECT *);
 void request_client_shutdown (void) {
@@ -1631,10 +1633,14 @@ int __xlib_handle_client_request (char *shm_mem_2) {
       shm_mem_2[SHM_RETVAL] = ((r == SUCCESS) ? '0' : '1');
       break;
     case PANE_SET_PRIMARY_SELECTION_TEXT:
+    case PANE_SET_CLIPBOARD_TEXT_REQUEST:
       __xlib_set_primary_selection_text (&shm_mem_2[SHM_DATA]);
       break;
     case PANE_GET_CLIPBOARD_REQUEST:
       __xlib_get_clipboard (d, (Drawable)w, gc, &shm_mem_2[SHM_DATA]);
+      break;
+    case PANE_SET_CLIPBOARD_OWNERSHIP_REQUEST:
+      __xlib_set_clipboard_owner (d, (Drawable)w);
       break;
     } 
  x_event_cleanup:
@@ -2098,6 +2104,7 @@ int __ctalkOpenX11InputClient (OBJECT *streamobject) {
   INTVAL(&shm_mem[SHM_EVENT_READY]) = 0;
   INTVAL(&shm_mem[SHM_EVENT_MASK]) = 0;
   INTVAL(&shm_mem[SHM_LOCK_XID]) = 0;
+  CLIPBOARD = XInternAtom (display, "CLIPBOARD", False);
   
 #if !X11LIB_FRAME
   x11_pane_stream_object = streamobject;

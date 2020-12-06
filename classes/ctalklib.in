@@ -1,4 +1,4 @@
-/* $Id: ctalklib.in,v 1.5 2020/12/03 21:46:22 rkiesling Exp $ -*-c-*-*/
+/* $Id: ctalklib.in,v 1.6 2020/12/06 01:01:22 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -1399,6 +1399,7 @@ extern void __ctalkXPMToGLTexture (char **, unsigned short int, int *, int *,
 extern int __ctalkGlobFiles (char *, OBJECT *);
 extern OBJECT *__ctalkClassVariableObject (OBJECT *);
 extern int __ctalkReferenceObject (OBJECT *, OBJECT *);
+extern int __edittext_delete_selection (OBJECT *);
 extern int __edittext_get_primary_selection (OBJECT *, void **, int *);
 extern int __edittext_get_clipboard (OBJECT *, void **, int *);
 extern int __edittext_insert_at_point (OBJECT *, int, int, int);

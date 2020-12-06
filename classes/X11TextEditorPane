@@ -1,4 +1,4 @@
-/* $Id: X11TextEditorPane,v 1.6 2020/12/04 17:58:01 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11TextEditorPane,v 1.10 2020/12/06 15:31:15 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -331,6 +331,17 @@ X11TextEditorPane instanceMethod subPaneMotionNotify
 #define shiftStateShift (1 << 0)
 #define shiftStateCtrl  (1 << 1)
 #define shiftStateAlt   (1 << 2)
+/* These are from the system's X.h. */
+#ifndef Button1
+#define Button1 1
+#endif
+#ifndef Button2
+#define Button2 2
+#endif
+#ifndef Button3
+#define Button3 3
+#endif
+
 
 X11TextEditorPane instanceMethod subPaneButtonPress
                  (X11TextEditorPane __subPane, InputEvent __event) {
@@ -581,6 +592,34 @@ X11TextEditorPane instanceMethod subPaneKbdInput (X11TextEditorPane __subPane,
 	  self displayText;
 	  break;
 	default:
+	  if (self shiftState & shiftStateAlt) {
+	    if (__event xEventData5 == 118) {
+	      /* alt-v */ /***/
+	      __edittext_get_clipboard (self, &selection_out,
+					&selection_length_out);
+	      __edittext_insert_str_at_point
+		(self, (char *)selection_out);
+	      __xfree (MEMADDR(selection_out));
+	      __edittext_recenter (self);
+	      self displayText;
+	      return NULL;
+	    } else if (__event xEventData5 == 99) {
+	      /* alt-c */
+	      if (self sStart != 0 && self sEnd != 0) {
+		__edittext_set_clipboard_owner (self);
+	      }
+	      return NULL;
+	    } else if (__event xEventData5 == 120) {
+	      /* alt-x */
+	      if (self sStart != 0 && self sEnd != 0) {
+		__edittext_set_clipboard_owner (self);
+		__edittext_delete_selection (self);
+		self clearSelection;
+		self displayText;
+	      }
+	      return NULL;
+	    }
+	  }
 	  if (self selecting) {
 	    /* inserting a character while selecting clears the
 	       selection, unless the key is a backspace, then the
@@ -592,18 +631,6 @@ X11TextEditorPane instanceMethod subPaneKbdInput (X11TextEditorPane __subPane,
 	      self clearSelection;
 	    }
 	    __edittext_recenter (self);
-	  }
-	  if (self shiftState & shiftStateAlt) {
-	    if (__event xEventData5 == 118) {
-	      /* alt-v */ /***/
-	      __edittext_get_clipboard (self, &selection_out,
-					&selection_length_out);
-	      __edittext_insert_str_at_click (self,
-					      __event xEventData1,
-					      __event xEventData2,
-					      (char *)selection_out);
-	      __xfree (MEMADDR(selection_out));
-	    }
 	  }
 	  c = __edittext_insert_at_point (self, __event xEventData4,
 					  self shiftState,
@@ -634,10 +661,11 @@ X11TextEditorPane instanceMethod subPaneKbdInput (X11TextEditorPane __subPane,
   return NULL;
 }
 
+#if 0 /***/
 X11TextEditorPane instanceMethod subPaneSelectionRequest
      (X11TextEditorPane __subPane, InputEvent __event) {
-  printf ("selection request!\n");
 }
+#endif
 
 X11TextEditorPane instanceMethod gotoChar (Integer charPos) {
   /* Sets the point to the position given by the argument.
