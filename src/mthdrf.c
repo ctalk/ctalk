@@ -1,4 +1,4 @@
-/* $Id: mthdrf.c,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ */
+/* $Id: mthdrf.c,v 1.3 2020/12/06 20:31:09 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -766,7 +766,14 @@ OBJECT *method_from_prototype (char *methodname) {
     _error ("Parser error.\n");
   } else {
     m_method = r_messages[method_msg_ptr];
-    m_method -> receiver_obj = r_messages[stack_start] -> obj;
+    /***/
+    if ((m_method -> receiver_obj = r_messages[stack_start] -> obj)
+	== NULL) {
+      /***/
+      r_messages[stack_start] -> obj =
+	get_class_object (M_NAME(r_messages[stack_start]));
+      m_method -> receiver_obj = r_messages[stack_start] -> obj;
+    }
     m_method -> tokentype = METHODMSGLABEL;
   }
 
@@ -1029,6 +1036,407 @@ if ((x_chars_read = read_file (x_srcbuf, tmpname)) != statbuf.st_size)
      rcvr_class_obj -> instance_methods = n_method;
    } else {
      for (tm = rcvr_class_obj -> instance_methods; tm -> next; tm = tm -> next)
+       ;
+     tm -> next = n_method;
+     n_method -> prev = tm;
+   }
+
+   _hash_put (declared_method_names, n_method -> name, n_method -> name);
+   _hash_put (declared_method_selectors, n_method -> selector, n_method -> selector);
+
+   if (output_method_prototypes == NULL) {
+     output_method_prototypes = new_list ();
+     output_method_prototypes -> data = strdup (n_method -> selector);
+   } else {
+     LIST *l;
+     l = new_list ();
+     l -> data = strdup (n_method -> selector);
+     list_push (&output_method_prototypes, &l);
+   }
+
+   unlink_tmp ();
+
+   interpreter_pass = prev_pass;
+
+   new_methods[++new_method_ptr] = NULL;
+  
+   REUSE_MESSAGES(r_messages,r_messageptr,N_R_MESSAGES)
+
+   __xfree (MEMADDR(srcbuf));
+
+   method_from_proto = FALSE;
+   return NULL;
+}
+
+/*
+ *  This is an update version of method from prototype
+ *  which tries to use the receiver class of the receiver
+ *  token - hopefully it's more accurate.  This is called
+ *  from only one place in method_call (method.c). 
+ *
+ *  The #define is instead of, "rcvr_class_obj," here.
+ */
+#define TGT_METHOD_CLASS (r_messages[stack_start] -> obj)
+
+OBJECT *method_from_prototype_3 (MESSAGE_STACK messages,
+				 int method_token_ptr) {
+
+  int stack_start;
+  char *proto_buf;
+  char tmpbuf[MAXMSG],    /* Buffer for collected method body tokens.      */
+    *srcbuf;              /* Buffer for method with translated declaration.*/
+    int method_msg_ptr,
+    param_start_ptr,     /* Index of parameter start.                     */
+    param_end_ptr,       /* Index of parameter end.                       */
+    method_start_ptr,    /* Index of function body open block.            */
+    method_end_ptr,      /* End of the method body.                       */
+    alias_ptr,           /* Index of the method alias, if any.            */
+    funcname_ptr,        /* Index of the function name.                   */
+    n_params,            /* Number of parameters in declaration.          */
+    i,
+    buflength;
+  int have_c_param = 0;
+  int x_chars_read;
+  MESSAGE *m_method;  /* Message of the, "method," keyword. */
+
+  METHOD  *n_method,
+    *tm,
+    *rcvr_method;
+
+  PARAMLIST_ENTRY *params[MAXARGS];
+  char c_param[MAXMSG],
+    funcname[MAXLABEL],
+    alias[MAXLABEL],
+    tmpname[FILENAME_MAX],  /* For method buffering. */
+    *x_srcbuf, *src_start;
+
+  CVAR *__cvar_dup;
+  CFUNC *__shadowed_c_fn;
+  
+  I_PASS prev_pass;
+  struct stat statbuf;
+
+  method_from_proto = TRUE;
+  stack_start = r_messageptr; /* Before lexing, points to the
+				 start of the stack. */
+
+  if (IS_OBJECT(messages[method_token_ptr] -> receiver_obj)) {
+    if ((proto_buf =
+	 method_proto (messages[method_token_ptr] -> receiver_obj
+		       -> __o_classname,
+		       M_NAME(messages[method_token_ptr])))
+	== NULL) 
+      return NULL;
+  } else {
+    return NULL;
+  }
+#if 0 /***/
+  if ((proto_buf = method_proto (rcvr_class_obj -> __o_name, M_NAME(messages[method_token_ptr])))
+      == NULL) 
+    return NULL;
+#endif  
+
+  src_start = strstr (proto_buf, ":::");
+  src_start += 3;
+
+  (void) tokenize_reuse (r_message_push, src_start);
+
+  if ((method_msg_ptr = nextlangmsg (r_messages, stack_start)) == ERROR) {
+    _error ("Parser error.\n");
+  } else {
+    m_method = r_messages[method_msg_ptr];
+    /***/
+    if ((m_method -> receiver_obj = r_messages[stack_start] -> obj)
+	== NULL) {
+      if (IS_OBJECT(messages[method_token_ptr] -> receiver_obj)) {
+	r_messages[stack_start] -> obj =
+	  messages[method_token_ptr] -> receiver_obj -> __o_class;
+	m_method -> receiver_obj =
+	  messages[method_token_ptr] -> receiver_obj;
+      }
+	
+#if 0
+      /***/
+      r_messages[stack_start] -> obj =
+	get_class_object (M_NAME(r_messages[stack_start]));
+      m_method -> receiver_obj = r_messages[stack_start] -> obj;
+#endif      
+    }
+    m_method -> tokentype = METHODMSGLABEL;
+  }
+
+  /* 
+   *  Find the number of args required by the method declaration.
+   *  TO DO - Determine if we can use method_declaration_info ()
+   *  here also - we only need n_params here.
+   */
+
+   if ((method_end_ptr = 
+	find_function_close (r_messages, method_msg_ptr, r_messageptr))
+       == ERROR) {
+     int e_prev_idx, e_next_idx;
+     MESSAGE *m_error_rcvr, *m_error_name;
+     if ((e_prev_idx = prevlangmsg (r_messages,
+				    method_msg_ptr)) != ERROR) {
+       m_error_rcvr = r_messages[e_prev_idx];
+     } else {
+       m_error_rcvr = NULL;
+     }
+     if ((e_next_idx = nextlangmsg (r_messages,
+				    method_msg_ptr)) != ERROR) {
+       m_error_name = r_messages[e_next_idx];
+     } else {
+       m_error_name = NULL;
+     }
+     error (m_method, "%s method %s : Can't find method close.",
+ 	   (m_error_rcvr ? M_NAME(m_error_rcvr) : ""),
+ 	   (m_error_name ? M_NAME(m_error_name) : ""));
+   }
+
+   if ((param_start_ptr = 
+        scanforward (r_messages, method_msg_ptr,
+ 		    method_end_ptr, OPENPAREN)) == ERROR)
+     error (m_method, "Missing parameters in method declaration.");
+
+   if ((param_end_ptr = scanforward (r_messages, param_start_ptr,
+ 				    method_end_ptr, CLOSEPAREN)) == ERROR)
+     error (m_method, "Missing parameters in method declaration.");
+
+   if ((method_start_ptr = scanforward (r_messages, param_start_ptr,
+					method_end_ptr, OPENBLOCK)) == ERROR)
+     error (m_method, "Missing start of method body.");
+
+
+   if ((n_method = (METHOD *)__xalloc (sizeof (METHOD))) == NULL)
+     _error ("method_from_prototype: %s.", strerror (errno));
+   n_method -> sig = METHOD_SIG;
+
+   new_methods[new_method_ptr--] = create_newmethod_init (n_method);
+
+   fn_param_declarations (r_messages, param_start_ptr, param_end_ptr,
+			  params, &n_params);
+
+  /*
+   *   Reversing the order of the parameters here helps to 
+   *   ensure that the run-time code pushes the arguments 
+   *   in the correct order for nested method calls.
+   */
+   n_method -> n_params = n_params;
+
+   for (i = n_params - 1; i >= 0; i--) {
+     /* TO DO - Possibly add error checking in method_param (). 
+	See the comment below. */
+     /* TO DO - Make sure that method_param has the correct
+	error line, column, and source file name. */
+     n_method -> params[i] = method_param_tok (r_messages, params[i]);
+
+     if (! param_class_exists (n_method -> params[i] -> class)) {
+      /*
+       *  NOTE - This should be handled as an exception in
+       *  a future release.  (Remember to declare this again
+       *  at the start of the function.)
+       */
+       /* param_class_exception = i; */
+     }
+     if ((i == 0) && 
+	 (n_method -> params[i] -> attrs & PARAM_C_PARAM)) {
+       char *s;
+       s = strchr (params[i] -> buf, ' ');
+       have_c_param = TRUE;
+       strcpy (c_param, s);
+     }
+     if (n_method -> params[i] -> attrs & PARAM_VARARGS_PARAM)
+       n_method -> varargs = TRUE;
+     __xfree (MEMADDR(params[i]));
+   }
+
+   method_declaration_msg (r_messages, method_msg_ptr, param_start_ptr,
+			   funcname, &funcname_ptr, alias, &alias_ptr);
+
+#ifdef DEBUG_UNDEFINED_PARAMETER_CLASSES
+   if (param_class_exception != ERROR)
+     warning (r_messagesmethod_msg_ptr],
+       "Undefined parameter class %s. (Method %s, Class %s).",
+       n_method -> params[param_class_exception] -> class,
+       ((*alias) ? alias : funcname),
+       rcvr_class_obj -> __o_name);
+#endif
+
+     strcpy (n_method -> name, ((*alias) ? alias : funcname));
+     n_method -> n_args = 0;
+     n_method -> error_line = m_method -> error_line;
+     n_method -> error_column = m_method -> error_column;
+  /* This is a kludge - all methods are marked as imported,
+     until we can get the method buffering straightened out. */
+     n_method -> imported = True;
+     n_method -> queued = False;
+  
+     strcpy (n_method -> selector, 
+	     make_selector (TGT_METHOD_CLASS,
+			    n_method, funcname,
+			    i_or_c_instance));
+     strcpy (n_method -> returnclass, TGT_METHOD_CLASS -> __o_name);
+
+#if 0 /***/
+     strcpy (n_method -> selector, 
+	make_selector (rcvr_class_obj, n_method, funcname, i_or_c_instance));
+
+     strcpy (n_method -> returnclass, rcvr_class_obj -> __o_name);
+#endif
+
+
+     for (rcvr_method = TGT_METHOD_CLASS -> instance_methods; rcvr_method;
+	  rcvr_method = rcvr_method -> next) {
+#if 0 /***/
+       for (rcvr_method = rcvr_class_obj -> instance_methods; rcvr_method;
+	  rcvr_method = rcvr_method -> next) {
+#endif	 
+    if (str_eq (rcvr_method -> name, n_method -> name) && 
+	(rcvr_method -> n_params == n_method -> n_params) &&
+	(rcvr_method -> prefix == n_method -> prefix) &&
+	(rcvr_method -> varargs == n_method -> varargs) &&
+	(rcvr_method -> no_init == n_method -> no_init)) {
+    
+	 warning (m_method, "Redefinition of method, \"%s.\" (Class %s).",
+		  n_method -> name, TGT_METHOD_CLASS -> __o_name);
+
+	 delete_newmethod (new_methods[new_method_ptr+1]);
+	 new_methods[new_method_ptr++] = NULL;
+	 __xfree (MEMADDR(n_method));
+	 return NULL;
+
+       }
+     }
+
+     generate_instance_method_definition_call (TGT_METHOD_CLASS -> __o_name,
+					       ((*alias) ? alias : funcname),
+					       n_method -> selector, n_params, 
+				       method_definition_attributes (n_method));
+
+   for (i = 0; i < n_params; i++) {
+     if (!(n_method -> params[i] -> attrs & PARAM_C_PARAM))
+       generate_instance_method_param_definition_call (TGT_METHOD_CLASS -> __o_name,
+ 					   ((*alias) ? alias : funcname),
+				       n_method -> selector,
+ 					   n_method -> params[i] -> name,
+ 					   n_method -> params[i] -> class,
+ 					   n_method -> params[i] -> is_ptr,
+				       n_method -> params[i] -> is_ptrptr
+						       );
+   }
+
+   if ((__cvar_dup = _hash_remove (declared_global_variables,
+ 				  n_method -> name)) != NULL) {
+     warning (message_stack_at(method_msg_ptr),
+	      "Method %s shadows a global variable.", n_method -> name);
+     unlink_global_cvar (__cvar_dup);
+     _delete_cvar (__cvar_dup);
+   }
+
+   if ((__shadowed_c_fn = get_function (n_method -> name)) != NULL) {
+       warning (message_stack_at(method_msg_ptr),
+ 	       "Method %s shadows a function.", n_method -> name);
+   }
+
+  /* Collect tokens from the end of the ctalk declaration to the end of
+     the method.
+  */
+
+   toks2str (r_messages, method_start_ptr, method_end_ptr, tmpbuf);
+
+   if (have_c_param) {
+     buflength = METHOD_RETURN_LENGTH + 2 + /* 2 spaces */
+       strlen (c_param) + 5 +               /*  strlen (" ( ) ") */
+       strlen (n_method -> selector) + strlen (tmpbuf);
+   } else {
+     buflength = METHOD_RETURN_LENGTH + 3 + /* 3 spaces */
+       METHOD_C_PARAM_LENGTH + 
+       strlen (n_method -> selector) + strlen (tmpbuf);
+   }
+
+if ((srcbuf = (char *)__xalloc (buflength + 1)) == NULL)
+     _error ("new_instance_method: %s.", strerror (errno));
+
+   if (n_method -> params[0] &&
+       (n_method -> params[0] -> attrs & PARAM_C_PARAM)) {
+     strcatx (srcbuf, METHOD_RETURN, " ",
+	      n_method -> selector, " (", 
+	      c_param, ") ", tmpbuf, NULL);
+    } else {
+     strcatx (srcbuf, METHOD_RETURN, " ",
+	      n_method -> selector, " ",
+	      METHOD_C_PARAM, " ",
+	      tmpbuf, NULL);
+	      
+    }
+
+   prev_pass = interpreter_pass;
+   interpreter_pass = method_pass;
+
+  /*
+    TO DO -
+    1. Make sure that methods can be resolved as externs - and also
+       class declarations, which might be initialized in a method's
+       init block.
+  */
+
+   create_tmp ();
+   begin_method_buffer (n_method);
+   parse (srcbuf, (long long) strlen (srcbuf));
+   end_method_buffer ();
+   unbuffer_method_statements ();
+
+   close_tmp ();
+   generate_instance_method_return_class_call (TGT_METHOD_CLASS -> __o_name,
+ 				     n_method -> name,
+					       n_method -> selector,
+					       n_method -> returnclass,
+					       n_method -> n_params);
+   strcpy (tmpname, get_tmpname ());
+   stat (tmpname, &statbuf);
+if ((x_srcbuf = (char *) __xalloc (statbuf.st_size + 1)) == NULL)
+     error (m_method, "new_instance_method %s (class %s): %s.",
+ 	   n_method -> name, TGT_METHOD_CLASS -> __o_name,
+ 	   strerror (errno));
+#ifdef __DJGPP__
+     errno = 0;
+     x_chars_read = read_file (x_srcbuf, tmpname);
+     if (errno)
+     error (m_method, "new_instance_method %s (class %s): %s.",
+ 	   n_method -> name, TGT_METHOD_CLASS -> __o_name,
+	    strerror (errno));
+#else
+if ((x_chars_read = read_file (x_srcbuf, tmpname)) != statbuf.st_size)
+     error (m_method, "new_instance_method %s (class %s): %s.",
+ 	   n_method -> name, TGT_METHOD_CLASS -> __o_name,
+ 	   strerror (errno));
+#endif
+   n_method -> src = strdup (x_srcbuf);
+   __xfree (MEMADDR(x_srcbuf));
+
+   queue_method_for_output (TGT_METHOD_CLASS, n_method);
+
+   if (!library_input) {
+
+    /* TO DO - 
+       Inform the parent parser simply to skip the frames of the 
+       source method, if possible, without adding another state to 
+       the parser. */
+     for (i = stack_start; i >= method_end_ptr; i--) {
+       MESSAGE *m_tmp;
+        m_tmp = r_messages[i];
+        if ((m_tmp -> tokentype != WHITESPACE) &&
+ 	   (m_tmp -> tokentype != NEWLINE)) {
+ 	 m_tmp -> tokentype = WHITESPACE;
+ 	 strcpy (m_tmp -> name, " ");
+        }
+     }
+   }
+
+   if (TGT_METHOD_CLASS -> instance_methods == NULL) {
+     TGT_METHOD_CLASS -> instance_methods = n_method;
+   } else {
+     for (tm = TGT_METHOD_CLASS -> instance_methods; tm -> next; tm = tm -> next)
        ;
      tm -> next = n_method;
      n_method -> prev = tm;

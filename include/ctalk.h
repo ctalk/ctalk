@@ -1,4 +1,4 @@
-/* $Id: ctalk.h,v 1.14 2020/12/06 01:01:22 rkiesling Exp $ -*-Fundamental-*- */
+/* $Id: ctalk.h,v 1.15 2020/12/06 20:31:09 rkiesling Exp $ -*-Fundamental-*- */
 
 /*
   This file is part of Ctalk.
@@ -2971,6 +2971,7 @@ int is_superclass_method_proto (char *, char *);
 int method_proto_is_output (char *);
 OBJECT *method_from_prototype (char *);
 OBJECT *method_from_prototype_2 (OBJECT *, char *);
+OBJECT *method_from_prototype_3 (MESSAGE_STACK, int);
 char *method_proto (char *, char *);
 int this_method_from_proto (char *, char *);
 MESSAGE_STACK r_message_stack (void);

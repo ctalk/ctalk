@@ -1,4 +1,4 @@
-/* $Id: Symbol,v 1.2 2020/11/19 21:51:18 rkiesling Exp $ -*-c-*-*/
+/* $Id: Symbol,v 1.4 2020/12/06 18:33:19 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -199,10 +199,15 @@ Symbol instanceMethod setValue (void *v) {
   Otherwise, set the receiver's value to refer to the
   argument object.  The referenced object's scope
   includes VAR_REF_OBJECT scope."
+  Object new oldVal;
   OBJECT *rcvr_val, *arg;
   char buf[MAXLABEL];
 
+#if 0
+  oldVal = self removeValue;
+#else
   self removeValue;
+#endif  
 
   rcvr_val = self value;
   arg = ARG(0);
