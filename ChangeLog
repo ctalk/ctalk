@@ -1522,5 +1522,8 @@
 	(Alt-C and Alt-X) in X11TextEditorPane : subPaneKbdInput.
 2020-12-06
 	- Added method_from_prototype_3, which gets the class
-	of the target method from its receiver token (mthdrf.c).
+	of the target method from its receiver token, and also
+	saves the fileout stack index and restores it after
+	parsing the new method (mthdrf.c).
+
 

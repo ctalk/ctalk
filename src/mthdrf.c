@@ -1,4 +1,4 @@
-/* $Id: mthdrf.c,v 1.3 2020/12/06 20:31:09 rkiesling Exp $ */
+/* $Id: mthdrf.c,v 1.4 2020/12/07 08:31:25 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -1078,6 +1078,9 @@ if ((x_chars_read = read_file (x_srcbuf, tmpname)) != statbuf.st_size)
  */
 #define TGT_METHOD_CLASS (r_messages[stack_start] -> obj)
 
+int get_last_fileout_stmt (void);
+void set_last_fileout_stmt (int i);
+
 OBJECT *method_from_prototype_3 (MESSAGE_STACK messages,
 				 int method_token_ptr) {
 
@@ -1097,6 +1100,7 @@ OBJECT *method_from_prototype_3 (MESSAGE_STACK messages,
     buflength;
   int have_c_param = 0;
   int x_chars_read;
+  int fileout_idx_save;
   MESSAGE *m_method;  /* Message of the, "method," keyword. */
 
   METHOD  *n_method,
@@ -1208,7 +1212,7 @@ OBJECT *method_from_prototype_3 (MESSAGE_STACK messages,
 
 
    if ((n_method = (METHOD *)__xalloc (sizeof (METHOD))) == NULL)
-     _error ("method_from_prototype: %s.", strerror (errno));
+     _error ("method_from_prototype_3: %s.", strerror (errno));
    n_method -> sig = METHOD_SIG;
 
    new_methods[new_method_ptr--] = create_newmethod_init (n_method);
@@ -1380,11 +1384,13 @@ if ((srcbuf = (char *)__xalloc (buflength + 1)) == NULL)
        init block.
   */
 
+   fileout_idx_save = get_last_fileout_stmt ();
    create_tmp ();
    begin_method_buffer (n_method);
    parse (srcbuf, (long long) strlen (srcbuf));
    end_method_buffer ();
    unbuffer_method_statements ();
+   set_last_fileout_stmt (fileout_idx_save);
 
    close_tmp ();
    generate_instance_method_return_class_call (TGT_METHOD_CLASS -> __o_name,
