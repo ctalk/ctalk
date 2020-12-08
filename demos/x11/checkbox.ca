@@ -1,4 +1,4 @@
-/* $Id: checkbox.ca,v 1.14 2020/12/02 19:15:34 rkiesling Exp $ -*-c-*-*/
+/* $Id: checkbox.ca,v 1.17 2020/12/08 03:24:02 rkiesling Exp $ -*-c-*-*/
 
 /*
  *  X11CheckBoxPane demo.
@@ -38,10 +38,15 @@ int main (int argv, char **argc) {
   X11Pane new xPane;
   X11PaneDispatcher new xTopLevelPane;
   X11CheckBoxPane new xCheckBoxPane;
+  X11LabelPane new label;
+  X11CanvasPane new canvas;
   InputEvent new e;
   Exception new ex;
+  Pen new arrowPen;
 
-  xPane initialize 0, 0, 300, 300;
+  xPane ftFontVar initFontLib;
+
+  xPane initialize 0, 0, 300, 300, "Checkbox Demo";
   xPane inputStream eventMask = BUTTONPRESS|BUTTONRELEASE|WINDELETE|EXPOSE;
   xTopLevelPane attachTo xPane;
 
@@ -59,7 +64,15 @@ int main (int argv, char **argc) {
   xCheckBoxPane resources replaceAt "fillRadius", FILL_RADIUS;
 #endif  
 
-  xCheckBoxPane attachTo xTopLevelPane, "+25%+25%";
+  label ftFontVar selectFontFromFontConfig "URW Gothic L-12";
+  label ftFontVar saveSelectedFont;
+  label justify = LABEL_LEFT;
+  label text "Please Click";
+  label resources replaceAt "borderWidth", 0;
+  
+  canvas attachTo xTopLevelPane, "280x280+10+10";
+  xCheckBoxPane attachTo xTopLevelPane, "+20%+40%";
+  label attachTo xTopLevelPane, "160x25+35%+40";
 
 #ifdef BEVEL
   xCheckBoxPane resources replaceAt "bevel", true;
@@ -70,7 +83,12 @@ int main (int argv, char **argc) {
 
   xPane openEventStream;
 
+  xPane setWMTitle "Checkbox Demo";
+  canvas background "white";
+  label draw;
   xCheckBoxPane draw;
+  arrowPen width = 1;
+  arrowPen colorName = "black";
   
   while (TRUE) {
     xPane inputStream queueInput;
@@ -83,13 +101,22 @@ int main (int argv, char **argc) {
       switch (e eventClass value)
      	{
 	case BUTTONPRESS:
-	if (e eventData == xCheckBoxPane xWindowID) {
-	  if (xCheckBoxPane clicked) {
-	    printf ("clicked\n");
-	  } else {
-	    printf ("unclicked\n");
-          }
+	  if (e eventData == xCheckBoxPane xWindowID) {
+	    if (xCheckBoxPane clicked) {
+	      printf ("clicked\n");
+	    } else {
+	      printf ("unclicked\n");
+	    }
 	  }
+	  break;
+	case EXPOSE:
+	  label draw;
+	  canvas paneBuffer drawRectangle 10, 10, 260, 260, false,
+	    1, "black", 0;
+	  canvas paneBuffer drawLine 110, 45, 70, 100, arrowPen;
+	  canvas paneBuffer drawLine 70, 100, 70, 90, arrowPen;
+	  canvas paneBuffer drawLine 70, 100, 81, 97, arrowPen;
+	  canvas refresh;
 	  break;
 	case WINDELETE:
       	  xPane deleteAndClose;

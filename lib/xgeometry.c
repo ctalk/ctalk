@@ -1,4 +1,4 @@
-/* $Id: xgeometry.c,v 1.5 2020/12/08 02:28:41 rkiesling Exp $ -*-c-*-*/
+/* $Id: xgeometry.c,v 1.6 2020/12/08 02:51:57 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -312,13 +312,14 @@ void __ctalkX11SubWindowGeometry (OBJECT *parentpane, char *geomspec,
       if (((r = strchr (ybuf, '%')) == NULL) &&
 	  ((r = strchr (ybuf, 'c')) == NULL) &&
 	  ((r = strchr (ybuf, 'C')) == NULL) &&
-	  ((r = strchr (ybuf, '-')) == NULL)) {
+	  ((r = strchr (p - 1, '-')) == NULL)) {
 	if ((*y_out = strtol_geom_error (ybuf)) < 0)
 	  _error ("ctalk: bad geometry specification: \"%s.\" Exiting.\n",
 		  geomspec);
 	if (height_inset_adj)
 	  *height_out -= *y_out;
-      } else if ((r = strchr (ybuf, '-')) != NULL) {
+	/* } else if ((r = strchr (ybuf, '-')) != NULL) { *//***/
+      } else if ((r = strchr (p-1, '-')) != NULL) {
 	++r;
 	var = __ctalkGetInstanceVariable (pt, "size", TRUE);
 	subvar = __ctalkGetInstanceVariable (var, "y", TRUE);
