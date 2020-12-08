@@ -1,4 +1,4 @@
-/* $Id: rt_rcvr.c,v 1.1.1.1 2020/07/17 07:41:39 rkiesling Exp $ */
+/* $Id: rt_rcvr.c,v 1.2 2020/12/08 16:55:21 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -43,8 +43,8 @@ extern RT_INFO rtinfo;
 static inline void __rcvr_ref_cnt_store (OBJREF_T obj_p, int nrefs) {
   OBJECT *vars, *vars_prev;
 
-  if (IS_OBJECT (*obj_p)) {
-    (*obj_p) -> nrefs = nrefs;
+  (*obj_p) -> nrefs = nrefs;
+  if (IS_OBJECT (*obj_p) && IS_OBJECT((*obj_p) -> instancevars)) {
     for (vars = (*obj_p) -> instancevars, vars_prev = NULL; 
 	 vars != NULL; vars = vars -> next) {
       if (!IS_OBJECT(vars)) {
@@ -63,7 +63,7 @@ static inline void __rcvr_ref_cnt_store (OBJREF_T obj_p, int nrefs) {
       __rcvr_ref_cnt_store (OBJREF (vars), nrefs);
       vars_prev = vars;
     }
-  } 
+  }
 }
 
 int __ctalk_receiver_push (OBJECT *__o) {
