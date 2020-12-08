@@ -1,4 +1,4 @@
-/* $Id: X11CheckBoxPane,v 1.15 2020/12/02 19:15:34 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11CheckBoxPane,v 1.16 2020/12/08 01:08:49 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -118,7 +118,6 @@ X11CheckBoxPane instanceMethod attachTo (Object parentPane,
 
 X11CheckBoxPane instanceMethod onClick (Object subPane, InputEvent event) {
   if (event eventClass == BUTTONPRESS) {
-    printf ("event\n");
     subPane clicked = !subPane clicked;
     subPane draw;
   }

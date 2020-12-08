@@ -1,4 +1,4 @@
-/* $Id: X11ListPane,v 1.12 2020/11/24 20:38:03 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11ListPane,v 1.14 2020/12/08 01:16:16 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -31,8 +31,7 @@
    borderWidth              1
    thumbMargin              2
    font                     "sans serif-12";
-   margin                   4
-   selectStyle              "pane"
+   leftMargin               4
    keyScrollIncrement       4
    thumbColor               "darkgray"
    textColor                "black"
@@ -50,8 +49,6 @@ X11ListPane instanceVariable buttonState Integer 0;
 X11ListPane instanceVariable thumbOrg Point NULL;
 X11ListPane instanceVariable thumbExt Point NULL;
 X11ListPane instanceVariable shiftState Integer 0;
-X11ListPane instanceVariable margin Integer 4;
-X11ListPane instanceVariable selectStyle String "pane";
 
 String class ItemBox;
 
@@ -60,11 +57,9 @@ ItemBox instanceVariable ext Point 0;
 ItemBox instanceVariable size Point 0;
 ItemBox instanceVariable selected Boolean false;
 
-static int y_1 = -1, x_1 = 0, d_y;
+static int y_1 = 0, x_1 = 0, d_y;
 static int scroll_max_y, scroll_min_y;
 static int last_click_nth = -1;
-/* Set in onClick, cleared in onMotion */
-static bool dragstart = false;
 
 /*
  *  Helps speed up scrolling on slower systems.  If you
@@ -147,7 +142,7 @@ X11ListPane instanceMethod add (String itemText) {
   itemWidth = self ftFontVar textWidth itemText;
 
   (*itemPtr) org x = (self resources integerAt "scrollWidth") +
-    (self resources integerAt "margin");
+    (self resources integerAt "leftMargin");
   (*itemPtr) org y = (nth * self ftFontVar height);
 
   (*itemPtr) ext x = (*itemPtr) org x + itemWidth;
@@ -188,8 +183,7 @@ X11ListPane instanceMethod new (String paneName) {
   paneName resources atPut "borderWidth", 1;
   paneName resources atPut "thumbMargin", 2;
   paneName resources atPut "font", "sans-serif-12";
-  paneName resources atPut "margin", 4;
-  paneName resources atPut "selectStyle", "pane";
+  paneName resources atPut "leftMargin", 4;
   paneName resources atPut "keyScrollIncrement", 4;
   paneName resources atPut "thumbColor", "darkgray";
   paneName resources atPut "textColor", "black";
@@ -255,16 +249,9 @@ X11ListPane instanceMethod onClick (Object subPane, InputEvent event) {
 	case Button1:
 	  subPane buttonState |= BUTTON1MASK;
 	  x_1 = event xEventData1;
-#if 0 /***/
-	  if (y_1 < 0) {
-	    /* Absolute y-coord on the first click only. */
-	    y_1 = event xEventData2;
-	    y_1 += self viewStartY;
-	  }
-#endif	  
+	  y_1 = event xEventData2;
+	  y_1 += self viewStartY;
 	  if (x_1 > self scrollWidth) {
-	    y_1 = event xEventData2;
-	    y_1 += self viewStartY;
 	    i = 0;
 	    self items map {
 	      /* Simplifies expressions. */
@@ -311,13 +298,6 @@ X11ListPane instanceMethod onClick (Object subPane, InputEvent event) {
 	      }
 	      ++i;
 	    }
-	  } else {
-	    if (y_1 < 0) {
-	      /* Absolute y-coord on the first click only. */
-	      y_1 = event xEventData2;
-	      y_1 += self viewStartY;
-	    }
-	    dragstart = true;
 	  }
 	  self draw;
 	  self refresh;
@@ -335,7 +315,7 @@ X11ListPane instanceMethod onClick (Object subPane, InputEvent event) {
 	{
 	case Button1:
 	  subPane buttonState &= ~BUTTON1MASK;
-	  /* y_1 = 0; *//***/
+	  y_1 = 0;
 	  break;
 	case Button2:
 	  subPane buttonState &= ~BUTTON2MASK;
@@ -358,19 +338,13 @@ X11ListPane instanceMethod onMotion (Object subPane, InputEvent event) {
     if ((event xEventData1 >= self thumbOrg x) &&
 	(event xEventData1 <= self thumbExt x)) {
       if (self buttonState & BUTTON1MASK) {
-	if (!dragstart) {
-	  d_y = event xEventData2 - y_1;
-	  if (abs (d_y) < MIN_SCROLL)
-	    return NULL;
-	  y_1 += d_y;
-	  self thumbOrg y += d_y;
-	  self thumbExt y += d_y;
-	  self viewStartY += d_y;
-	} else {
-	  y_1 = event xEventData2;
-	  dragstart = false;
+	d_y = event xEventData2 - y_1;
+	if (abs (d_y) < MIN_SCROLL)
 	  return NULL;
-	}
+	y_1 += d_y;
+	self thumbOrg y += d_y;
+	self thumbExt y += d_y;
+	self viewStartY += d_y;
 	if (self thumbOrg y > (scroll_max_y - 5)) {
 	  d_y = (self thumbOrg y - (scroll_max_y - 5));
 	  self thumbOrg y -= d_y;
@@ -393,8 +367,6 @@ X11ListPane instanceMethod onMotion (Object subPane, InputEvent event) {
 	self draw;
 	self refresh;
       }
-    } else {
-      dragstart = false;
     }
 #if 0 /***/
   }
@@ -517,9 +489,6 @@ X11ListPane instanceMethod attachTo (Object parentPane,
 
   self scrollWidth = self resources at "scrollWidth";
 
-  self margin = self resources integerAt "margin";
-  self selectStyle = self resources at "selectStyle";
-
   return NULL;
 }
 
@@ -534,20 +503,9 @@ X11ListPane instanceMethod dumpList (void) {
   }
 }
 
-X11ListPane instanceMethod selectStyleWith (ItemBox item) {
-  "Returns the horizontal size of a selection bar, depending
-    on the value of the receiver's 'selectStyle' instance
-    variable."
-  if (self selectStyle == "pane") {
-    return self size x - (self scrollWidth) - (self margin * 2);
-  } else   if (self selectStyle == "item") {
-    return item size x;
-  }
-}
-
 X11ListPane instanceMethod drawItemList (void) {
   ItemBox new item;
-  Integer new lineHeight, selectY, selectHeight;
+  Integer new lineHeight;
   
   if (self iInit++ < 5)
     return NULL;
@@ -565,23 +523,12 @@ X11ListPane instanceMethod drawItemList (void) {
       if (item selected == true) {
 
 	super pen colorName = super resources at "selectColor";
-	/* Try to center the rectangle vertically over the item text. */
-        selectY = item ext y - super viewStartY - lineHeight;
-        selectHeight = item size y;
-
-       if (selectY < 0) {
-	 /* The rectangle drawing routines can't handle negative
-	    numbers, so the method clips here if the selection 
-	    rectangle's origin is negative. (I.e., the selected
-	    item only partially appears at the top of the pane.) */
-	   selectHeight += selectY;
-	   selectY = 0;
-       }
-
 	super drawFilledRectangle (item org x,
-				   selectY,
-				   super selectStyleWith item,
-				   selectHeight);
+				   /* Try to center the rectangle 
+				      vertically over the text. */
+				   (item ext y - super viewStartY - lineHeight),
+				   item size x,
+				   item size y);
       }
       super putStrXY item org x,
 	(item ext y - super viewStartY), item value;

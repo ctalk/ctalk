@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.28 2020/12/06 01:19:21 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.29 2020/12/08 01:49:44 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -17573,8 +17573,6 @@ Here is an example program.
 @c demos/x11/yesnobox.ca
 @example
 
-/* yesnobox.ca - X11YesNoBoxPane Demonstration -*-c-*- */
-
 #include <ctalk/ctalkdefs.h>
 
 int main (void) @{
@@ -17655,7 +17653,7 @@ int main (void) @{
 	  break;
 	case BUTTONRELEASE:
 	  yesnoBox showManaged button;
-	  printf ("returnVal: %d: %s\n", yesnoBox returnVal,
+	  printf ("returnVal: %d: returnText: %s\n", yesnoBox returnVal,
 		  yesnoBox returnText);
 	  break;
 	case WINDELETE:

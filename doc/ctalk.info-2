@@ -5527,8 +5527,6 @@ close.
 Here is an example program.
 
 
-     /* yesnobox.ca - X11YesNoBoxPane Demonstration -*-c-*- */
-
      #include <ctalk/ctalkdefs.h>
 
      int main (void) {
@@ -5609,7 +5607,7 @@ Here is an example program.
      	  break;
      	case BUTTONRELEASE:
      	  yesnoBox showManaged button;
-     	  printf ("returnVal: %d: %s\n", yesnoBox returnVal,
+     	  printf ("returnVal: %d: returnText: %s\n", yesnoBox returnVal,
      		  yesnoBox returnText);
      	  break;
      	case WINDELETE:

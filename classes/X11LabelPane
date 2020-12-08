@@ -1,4 +1,4 @@
-/* $Id: X11LabelPane,v 1.1.1.1 2020/07/26 05:50:11 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11LabelPane,v 1.5 2020/12/08 01:49:44 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -278,6 +278,8 @@ X11LabelPane instanceMethod drawBorder (void) {
   }
 }
 
+bool label_font_init = false;
+
 X11LabelPane instanceMethod draw (void) {
   Integer new ts, parheight, lineStartY, vAir;
   
@@ -290,8 +292,14 @@ X11LabelPane instanceMethod draw (void) {
 
   if (self ftFontVar libIsInitialized) {
     /* X11FreeTypeFont */
-    self ftFontVar selectFontFromFontConfig self resources at "ftFont";
-    self ftFontVar saveSelectedFont;
+    if (!label_font_init) {
+      /* We need this because the class doesn't have a dedicated
+	 "attachTo" method where we can initialize resources. */
+      self ftFontVar selectFontFromFontConfig self resources at "ftFont";
+      self ftFontVar saveSelectedFont;
+    } else {
+      self ftFontVar selectFont;
+    }
     if (self grayed) {
       /* leave like this until we figure out why lighter grays don't
 	 display */
