@@ -1,4 +1,4 @@
-/* $Id: X11ButtonPane,v 1.3 2020/12/08 01:16:16 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11ButtonPane,v 1.4 2020/12/08 16:55:21 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -226,10 +226,12 @@ X11ButtonPane instanceMethod draw (void) {
   printf ("draw\n");
 #endif  
 
+#if 0
   if (self ftFontVar family length > 0) {
     /* i.e., The app has stored this widget's font selection. */
     self ftFontVar selectFont;
   }
+#endif
 
   if (self bevelEdges) {
     for (in = 0; in < self bevelWidth; ++in) {

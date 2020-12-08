@@ -1,4 +1,4 @@
-/* $Id: X11LabelPane,v 1.5 2020/12/08 01:49:44 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11LabelPane,v 1.6 2020/12/08 16:55:21 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -183,8 +183,11 @@ X11LabelPane instanceMethod subPaneLeave (Object __subPane,
 }
 
 X11LabelPane instanceMethod selectFont (void) {
+  self ftFontVar selectFont;
+#if 0 /***/
   self ftFontVar selectFontFromFontConfig self resources at "ftFont";
   self ftFontVar saveSelectedFont;
+#endif  
 }
 
 X11LabelPane instanceMethod font (String fontDesc) {
@@ -297,9 +300,12 @@ X11LabelPane instanceMethod draw (void) {
 	 "attachTo" method where we can initialize resources. */
       self ftFontVar selectFontFromFontConfig self resources at "ftFont";
       self ftFontVar saveSelectedFont;
-    } else {
+    }
+#if 0 /***/
+    else {
       self ftFontVar selectFont;
     }
+#endif    
     if (self grayed) {
       /* leave like this until we figure out why lighter grays don't
 	 display */
@@ -379,6 +385,8 @@ X11LabelPane instanceMethod draw (void) {
   self refresh;
 }
 
+bool button_label_font_init = false;
+
 X11LabelPane instanceMethod drawButtonLayout (void) {
   "Similar to the draw method, except this method uses
    a different algorithm for spacing text."
@@ -393,8 +401,21 @@ X11LabelPane instanceMethod drawButtonLayout (void) {
 
   if (self ftFontVar libIsInitialized) {
     /* X11FreeTypeFont */
+    if (!button_label_font_init) {
+      /* We need this because the class doesn't have a dedicated
+	 "attachTo" method where we can initialize resources. */
+      self ftFontVar selectFontFromFontConfig self resources at "ftFont";
+      self ftFontVar saveSelectedFont;
+    }
+#if 0
+    else {
+      self ftFontVar selectFont;
+    }
+#endif    
+#if 0
     self ftFontVar selectFontFromFontConfig self resources at "ftFont";
     self ftFontVar saveSelectedFont;
+#endif    
     if (self grayed) {
       self faceRegular;
       self ftFontVar namedX11Color self grayedColor;
