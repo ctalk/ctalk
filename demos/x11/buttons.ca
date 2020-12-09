@@ -46,6 +46,7 @@ int main (void) {
   label resources replaceAt "backgroundColor", "blue";
   label resources replaceAt "foregroundColor", "blue";
   label resources replaceAt "textColor", "white";
+  label resources replaceAt "ftFont", "sans serif-12:bold";
   lbutton resources replaceAt "backgroundColor", "blue";
   rbutton resources replaceAt "backgroundColor", "blue";
   lbutton resources replaceAt "ftFont", "sans serif-10";
@@ -57,7 +58,7 @@ int main (void) {
   dispatcher attachTo mainWindow;
   lbutton attachTo dispatcher, "90x50+25+100";
   rbutton attachTo dispatcher, "90x50+135+100";
-  label attachTo dispatcher, "147x80+44+15";
+  label attachTo dispatcher, "147x80+c+15";
 
   mainWindow map;
   mainWindow raiseWindow;
@@ -69,16 +70,24 @@ int main (void) {
 #ifndef XFONTS
   /*
    * This is the recommended way to set up fonts for each widget.
+   * Programs tend to work best when they select the fonts before
+   * entering the event loop.
    */
   label ftFontVar initFontLib;
-  label ftFont "DejaVu Sans", 0, FTFONT_BOLD, 0, 12.0;
-  label ftFontVar saveSelectedFont;
-  lbutton ftFont "DejaVu Sans", 0, FTFONT_MEDIUM, 0, 10.0;
+  label ftFontVar selectFontFromFontConfig "sans serif-12";
+
+  lbutton ftFontVar selectFontFromFontConfig "sans serif-12";
   lbutton ftFontVar saveSelectedFont;
-  rbutton ftFont "DejaVu Sans", 0, FTFONT_MEDIUM, 0, 10.0;
+  lbutton label resources replaceAt "highlightTextBold", false;
+
+  rbutton ftFontVar selectFontFromFontConfig "sans serif-12";
   rbutton ftFontVar saveSelectedFont;
+  rbutton label resources replaceAt "highlightTextBold", false;
+
 #else
+
   lbutton label font "fixed";
+
 #endif  
 
   label multiLine "X11ButtonPane\nDemo";

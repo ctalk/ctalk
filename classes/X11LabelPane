@@ -1,4 +1,4 @@
-/* $Id: X11LabelPane,v 1.6 2020/12/08 16:55:21 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11LabelPane,v 1.8 2020/12/09 01:10:16 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -135,6 +135,40 @@ X11LabelPane instanceMethod new (String __paneName) {
   return __paneName;
 }
 
+X11LabelPane instanceMethod attachTo (Object parentPane,
+				       String geomspec) {
+  "Register the receiver pane as a subpane of the X11Pane
+  given as the argument.  Generally parent pane should
+  be a X11PaneDispatcher object."
+  X11Bitmap new xPaneBuffer;
+  X11Bitmap new xPaneBackingStore;
+  X11LabelPane new l_local;
+  String new labelGeom;
+  Integer new inset;
+  int x, y, width, height;
+
+  self super attachTo (parentPane, geomspec);
+  self paneBuffer become xPaneBuffer;
+  self paneBackingStore become xPaneBackingStore;
+
+  __ctalkX11SubWindowGeometry (parentPane, geomspec,
+				 &x, &y, &width, &height);
+  self size x = width;
+  self size y = height;
+  self origin x = x;
+  self origin y = y;
+
+  (X11Bitmap *)self paneBuffer create self displayPtr, self xWindowID,
+    self size x, self size y, self depth;
+  (X11Bitmap *)self paneBackingStore create self displayPtr, self xWindowID,
+    self size x, self size y, self depth;
+
+  self ftFontVar selectFontFromFontConfig self resources at "ftFont";
+  self ftFontVar saveSelectedFont;
+
+  return NULL;
+}
+
 X11LabelPane instanceMethod subPaneResize (X11Pane subPane,
 					    InputEvent event) {
   int x_out, y_out, width_out, height_out;
@@ -184,10 +218,6 @@ X11LabelPane instanceMethod subPaneLeave (Object __subPane,
 
 X11LabelPane instanceMethod selectFont (void) {
   self ftFontVar selectFont;
-#if 0 /***/
-  self ftFontVar selectFontFromFontConfig self resources at "ftFont";
-  self ftFontVar saveSelectedFont;
-#endif  
 }
 
 X11LabelPane instanceMethod font (String fontDesc) {
@@ -281,8 +311,6 @@ X11LabelPane instanceMethod drawBorder (void) {
   }
 }
 
-bool label_font_init = false;
-
 X11LabelPane instanceMethod draw (void) {
   Integer new ts, parheight, lineStartY, vAir;
   
@@ -295,17 +323,6 @@ X11LabelPane instanceMethod draw (void) {
 
   if (self ftFontVar libIsInitialized) {
     /* X11FreeTypeFont */
-    if (!label_font_init) {
-      /* We need this because the class doesn't have a dedicated
-	 "attachTo" method where we can initialize resources. */
-      self ftFontVar selectFontFromFontConfig self resources at "ftFont";
-      self ftFontVar saveSelectedFont;
-    }
-#if 0 /***/
-    else {
-      self ftFontVar selectFont;
-    }
-#endif    
     if (self grayed) {
       /* leave like this until we figure out why lighter grays don't
 	 display */
@@ -315,7 +332,7 @@ X11LabelPane instanceMethod draw (void) {
     } else {
       if (self highlight) {
 	self ftFontVar namedX11Color self resources at "highlightTextColor";
-	if (self resources at "highlightTextBold") {
+	if (self resources integerAt "highlightTextBold") {
 	  self faceBold;
  	} else {
 	  self faceRegular;
@@ -385,8 +402,6 @@ X11LabelPane instanceMethod draw (void) {
   self refresh;
 }
 
-bool button_label_font_init = false;
-
 X11LabelPane instanceMethod drawButtonLayout (void) {
   "Similar to the draw method, except this method uses
    a different algorithm for spacing text."
@@ -401,27 +416,12 @@ X11LabelPane instanceMethod drawButtonLayout (void) {
 
   if (self ftFontVar libIsInitialized) {
     /* X11FreeTypeFont */
-    if (!button_label_font_init) {
-      /* We need this because the class doesn't have a dedicated
-	 "attachTo" method where we can initialize resources. */
-      self ftFontVar selectFontFromFontConfig self resources at "ftFont";
-      self ftFontVar saveSelectedFont;
-    }
-#if 0
-    else {
-      self ftFontVar selectFont;
-    }
-#endif    
-#if 0
-    self ftFontVar selectFontFromFontConfig self resources at "ftFont";
-    self ftFontVar saveSelectedFont;
-#endif    
     if (self grayed) {
       self faceRegular;
       self ftFontVar namedX11Color self grayedColor;
     } else {
       if (self highlight) {
-	if (self resources at "highlightTextBold") {
+	if (self resources integerAt "highlightTextBold") {
 	  self faceBold;
  	} else {
 	  self faceRegular;
