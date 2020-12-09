@@ -13,13 +13,17 @@ int main (void) {
   X11LabelPane new label;
   InputEvent new e;
 
-  mainWindow backgroundColor = "blue";
-  label resources replaceAt "backgroundColor", "blue";
-  rbutton resources replaceAt "backgroundColor", "blue";
-  lbutton resources replaceAt "backgroundColor", "blue";
-  rbutton resources replaceAt "foregroundColor", "blue";
-  lbutton resources replaceAt "foregroundColor", "blue";
+  label ftFontVar initFontLib;
 
+  mainWindow backgroundColor = "blue";
+
+  lbutton resources replaceAt "borderColor", "white";
+  lbutton resources replaceAt "borderWidth", 2;
+  lbutton resources replaceAt "highlightBorderWidth", 3;
+  rbutton resources replaceAt "borderColor", "white";
+  rbutton resources replaceAt "borderWidth", 2;
+  rbutton resources replaceAt "highlightBorderWidth", 3;
+  label resources replaceAt "ftFont", "sans serif-12:bold";
 
   mainWindow initialize 225, 150;
   mainWindow inputStream eventMask = 
@@ -27,7 +31,7 @@ int main (void) {
   dispatcher attachTo mainWindow;
   lbutton attachTo dispatcher, "80x30+22+100";
   rbutton attachTo dispatcher, "80x30+124+100";
-  label attachTo dispatcher, "147x80+32+15";
+  label attachTo dispatcher, "225x80+C+15";
 
   mainWindow map;
   mainWindow raiseWindow;
@@ -36,7 +40,6 @@ int main (void) {
 
   mainWindow setWMTitle "X11ButtonPane Demo";
 
-  label ftFontVar initFontLib;
   label multiLine "X11ButtonPane\nRounded Button\nDemo";
   label canFocus = false;
   label borderWidth = 0;
@@ -45,10 +48,13 @@ int main (void) {
   label resources replaceAt "backgroundColor", "blue";
   label resources replaceAt "foregroundColor", "blue";
 
+  rbutton resources replaceAt "backgroundColor", "blue";
+  lbutton resources replaceAt "backgroundColor", "blue";
   rbutton resources replaceAt "foregroundColor", "blue";
   lbutton resources replaceAt "foregroundColor", "blue";
   rbutton resources replaceAt "textColor", "white";
   lbutton resources replaceAt "textColor", "white";
+
 
 
   lbutton label text "Left";
