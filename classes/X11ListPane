@@ -1,4 +1,4 @@
-/* $Id: X11ListPane,v 1.20 2020/12/10 15:00:50 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11ListPane,v 1.21 2020/12/10 15:13:57 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -495,10 +495,8 @@ X11ListPane instanceMethod attachTo (Object parentPane,
   scrollmargin += self resources integerAt "borderWidth";
   scrollwidth = self resources integerAt "scrollWidth";
   thumbwidth = scrollmargin + (scrollwidth - (scrollmargin * 2));
-  /* Also set the instance variables in case somebody uses them. */
-  self thumbMargin = scrollmargin;
+  /* Also set the instance variable in case somebody uses it. */
   self scrollWidth = scrollwidth;
-  self scrollMargin = scrollmargin;
 
   return NULL;
 }
