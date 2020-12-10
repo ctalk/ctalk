@@ -4472,6 +4472,15 @@ Resources
      An 'Integer' that defines the distance in pixels between the thumb
      and its channel.  The default is 2 pixels.
 
+'vAlignHint'
+     An 'Integer' that helps display items vertically centered in their
+     layout boxes.  While X11ListPane objects generally can approximate
+     how font renderers align text within their layout boxes, fonts and
+     even different library versions may vary this.  Increasing this
+     number shifts the item's text downward within the box when it is
+     displayed.  Smaller numbers (including negative numbers) shift the
+     text upward.  The default is 2px.
+
 Instance Variables
 ------------------
 
@@ -4540,6 +4549,14 @@ Instance Variables
      the percentage of the list contents that are visible in the window
      at any one time.  The value of 'thumbOrg' records the vertical
      position of the thumb where the user moved it using the pointer.
+
+'vAlignHint'
+     An 'Integer' that helps center text vertically when it is
+     displayed.  While X11ListPane objects generally can make a good
+     approximation of how text is aligned, fonts and even font library
+     versions may differ.  A larger number nudges text down by pixels,
+     which a smaller number (including negative numbers) nudges text
+     upward.  The default is 2px.
 
 'viewStartY'
      An 'Integer' that contains the distance from the top edge of the

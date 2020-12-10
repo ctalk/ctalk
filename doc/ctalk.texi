@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.33 2020/12/10 18:43:52 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.35 2020/12/10 19:21:57 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -16295,6 +16295,17 @@ The default is @samp{darkgray}.
 An @code{Integer} that defines the distance in pixels between the
 thumb and its channel.  The default is 2 pixels.
 
+@cindex @code{vAlignHint} resource @idxclscite{X11ListPane}
+@item vAlignHint
+An @code{Integer} that helps display items vertically centered
+in their layout boxes.  While X11ListPane objects generally
+can approximate how font renderers align text within their
+layout boxes, fonts and even different library versions
+may vary this.  Increasing this number shifts the item's
+text downward within the box when it is displayed.  Smaller
+numbers (including negative numbers) shift the text upward.
+The default is 2px.
+
 @end table
 
 @subheading Instance Variables
@@ -16382,6 +16393,15 @@ the scroll thumb in pixels.  The value of @code{thumbExt} is calculated
 from the percentage of the list contents that are visible in the
 window at any one time.  The value of @code{thumbOrg} records the vertical
 position of the thumb where the user moved it using the pointer.
+
+@cindex @code{valignHint} instance variable @idxclscite{X11ListPane}
+@item vAlignHint
+An @code{Integer} that helps center text vertically when it is
+displayed.  While X11ListPane objects generally can make a good
+approximation of how text is aligned, fonts and even font library
+versions may differ.  A larger number nudges text down by pixels,
+which a smaller number (including negative numbers) nudges text
+upward.  The default is 2px.
 
 @cindex @code{viewStartY} instance variable @idxclscite{X11ListPane}
 @item viewStartY

@@ -1,4 +1,4 @@
-/* $Id: X11ListPane,v 1.25 2020/12/10 18:43:52 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11ListPane,v 1.26 2020/12/10 19:21:05 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -37,6 +37,7 @@
    textColor                "black"
    selectColor              "lightblue"
    scrollMargin             2
+   vAlignHint               2
 
 */
 
@@ -50,6 +51,7 @@ X11ListPane instanceVariable thumbOrg Point NULL;
 X11ListPane instanceVariable thumbExt Point NULL;
 X11ListPane instanceVariable shiftState Integer 0;
 X11ListPane instanceVariable lineHeight Integer 0;
+X11ListPane instanceVariable vAlignHint Integer 0;
 
 String class ItemBox;
 
@@ -197,6 +199,7 @@ X11ListPane instanceMethod new (String paneName) {
   paneName resources atPut "textColor", "black";
   paneName resources atPut "selectColor", "lightblue";
   paneName resources atPut "scrollMargin", 1;
+  paneName resources atPut "vAlignHint", 2;
 
   return paneName;
 }
@@ -505,6 +508,7 @@ X11ListPane instanceMethod attachTo (Object parentPane,
   self scrollWidth = scrollwidth;
 
   self lineHeight = self ftFontVar textHeight "T"; /***/
+  self vAlignHint = self resources integerAt "vAlignHint";
 
   return NULL;
 }
@@ -543,7 +547,7 @@ X11ListPane instanceMethod drawItemList (void) {
 				   item size y);
       }
       super putStrXY item org x,
-	(item ext y - super viewStartY) + 2, item value;
+	(item ext y - super viewStartY) + super vAlignHint, item value;
     }
   }
 
