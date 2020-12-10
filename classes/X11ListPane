@@ -1,4 +1,4 @@
-/* $Id: X11ListPane,v 1.14 2020/12/08 01:16:16 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11ListPane,v 1.17 2020/12/10 11:02:19 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -57,7 +57,7 @@ ItemBox instanceVariable ext Point 0;
 ItemBox instanceVariable size Point 0;
 ItemBox instanceVariable selected Boolean false;
 
-static int y_1 = 0, x_1 = 0, d_y;
+static int y_1 = 0, x_1 = 0, d_y = 0;
 static int scroll_max_y, scroll_min_y;
 static int last_click_nth = -1;
 
@@ -239,7 +239,7 @@ X11ListPane instanceMethod selectRange (Integer nthClicked) {
 
 X11ListPane instanceMethod onClick (Object subPane, InputEvent event) {
   ItemBox new item, lastItem;
-  int i;
+  int i, y_2;
   
   switch (event eventClass)
     {
@@ -248,16 +248,24 @@ X11ListPane instanceMethod onClick (Object subPane, InputEvent event) {
 	{
 	case Button1:
 	  subPane buttonState |= BUTTON1MASK;
-	  x_1 = event xEventData1;
+	  /* On the first MotionNotify after a click, 
+	     in onMotion, below, 
+             (d_y = (event xEventData2 - y_1)) == 0  
+	     This insures that onMotion uses only the change in
+	     the pointer Y (d_y) to move the thumb, and ignores the
+	     absolute Y coord of the click, so onMotion doesn't try
+	     to position the scroll thumb at the Y coord of the click,
+	     which means the thumb doesn't move if (when) the user clicks
+	     anywhere between the top and bottom of the thumb. */
 	  y_1 = event xEventData2;
-	  y_1 += self viewStartY;
-	  if (x_1 > self scrollWidth) {
+	  y_2 = y_1 + self viewStartY;
+	  if (event xEventData1 > self scrollWidth) {
 	    i = 0;
 	    self items map {
 	      /* Simplifies expressions. */
 	      item = self;
 	      if (super shiftState == 0) {
-		if ((y_1 >= item org y) && (y_1 <= item ext y)) {
+		if ((y_2 >= item org y) && (y_2 <= item ext y)) {
 		  /* Clicking on the same item twice de-selects it. */
 		  if (last_click_nth == -1) {
 		    last_click_nth = i;
@@ -315,7 +323,6 @@ X11ListPane instanceMethod onClick (Object subPane, InputEvent event) {
 	{
 	case Button1:
 	  subPane buttonState &= ~BUTTON1MASK;
-	  y_1 = 0;
 	  break;
 	case Button2:
 	  subPane buttonState &= ~BUTTON2MASK;
@@ -330,47 +337,39 @@ X11ListPane instanceMethod onClick (Object subPane, InputEvent event) {
 
 X11ListPane instanceMethod onMotion (Object subPane, InputEvent event) {
 
-#if 0 /***/
-  /* Maybe we don't need this. */
-  if (event eventData == self xWindowID) {
-#endif    
-
-    if ((event xEventData1 >= self thumbOrg x) &&
-	(event xEventData1 <= self thumbExt x)) {
-      if (self buttonState & BUTTON1MASK) {
-	d_y = event xEventData2 - y_1;
-	if (abs (d_y) < MIN_SCROLL)
-	  return NULL;
-	y_1 += d_y;
-	self thumbOrg y += d_y;
-	self thumbExt y += d_y;
-	self viewStartY += d_y;
-	if (self thumbOrg y > (scroll_max_y - 5)) {
-	  d_y = (self thumbOrg y - (scroll_max_y - 5));
-	  self thumbOrg y -= d_y;
-	  self thumbExt y -= d_y;
-	  self viewStartY -= d_y;
-	} else if (self thumbOrg y < 2) {
-	  if (self thumbOrg y >= 0) {
-	    d_y = (2 - self thumbOrg y);
-	    self thumbOrg y += d_y;
-	    self thumbExt y += d_y;
-	    self viewStartY += d_y;
-	  } else {
-	    d_y = -self thumbOrg y;
-	    d_y += 2;
-	    self thumbOrg y += d_y;
-	    self thumbExt y += d_y;
-	    self viewStartY += d_y;
-	  }
+  if ((event xEventData1 >= self thumbOrg x) &&
+      (event xEventData1 <= self thumbExt x)) {
+    if (self buttonState & BUTTON1MASK) {
+      d_y = event xEventData2 - y_1;
+      if (abs (d_y) < MIN_SCROLL)
+	return NULL;
+      y_1 += d_y;
+      self thumbOrg y += d_y;
+      self thumbExt y += d_y;
+      self viewStartY += d_y;
+      if (self thumbOrg y > (scroll_max_y - 5)) {
+	d_y = (self thumbOrg y - (scroll_max_y - 5));
+	self thumbOrg y -= d_y;
+	self thumbExt y -= d_y;
+	self viewStartY -= d_y;
+      } else if (self thumbOrg y < 2) {
+	if (self thumbOrg y >= 0) {
+	  d_y = (2 - self thumbOrg y);
+	  self thumbOrg y += d_y;
+	  self thumbExt y += d_y;
+	  self viewStartY += d_y;
+	} else {
+	  d_y = -self thumbOrg y;
+	  d_y += 2;
+	  self thumbOrg y += d_y;
+	  self thumbExt y += d_y;
+	  self viewStartY += d_y;
 	}
-	self draw;
-	self refresh;
       }
+      self draw;
+      self refresh;
     }
-#if 0 /***/
   }
-#endif  
 }
 
 #ifndef XK_Up
@@ -507,8 +506,10 @@ X11ListPane instanceMethod drawItemList (void) {
   ItemBox new item;
   Integer new lineHeight;
   
+#if 0 /***/
   if (self iInit++ < 5)
     return NULL;
+#endif  
 
   /* self ftFontVar selectFontFromFontConfig self resources at "font";*/
   self ftFontVar selectFont;
