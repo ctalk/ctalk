@@ -1,4 +1,4 @@
-/* $Id: X11ListPane,v 1.17 2020/12/10 11:02:19 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11ListPane,v 1.20 2020/12/10 15:00:50 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -36,6 +36,7 @@
    thumbColor               "darkgray"
    textColor                "black"
    selectColor              "lightblue"
+   scrollMargin             2
 
 */
 
@@ -60,6 +61,8 @@ ItemBox instanceVariable selected Boolean false;
 static int y_1 = 0, x_1 = 0, d_y = 0;
 static int scroll_max_y, scroll_min_y;
 static int last_click_nth = -1;
+static int scrollmargin, scrollwidth, thumbwidth;
+
 
 /*
  *  Helps speed up scrolling on slower systems.  If you
@@ -188,6 +191,7 @@ X11ListPane instanceMethod new (String paneName) {
   paneName resources atPut "thumbColor", "darkgray";
   paneName resources atPut "textColor", "black";
   paneName resources atPut "selectColor", "lightblue";
+  paneName resources atPut "scrollMargin", 1;
 
   return paneName;
 }
@@ -486,7 +490,15 @@ X11ListPane instanceMethod attachTo (Object parentPane,
   self ftFontVar saveSelectedFont;
   self ftFontVar namedX11Color self resources at "textColor";
 
-  self scrollWidth = self resources at "scrollWidth";
+  /* self scrollWidth = self resources at "scrollWidth"; *//***/
+  scrollmargin = self resources integerAt "scrollMargin";
+  scrollmargin += self resources integerAt "borderWidth";
+  scrollwidth = self resources integerAt "scrollWidth";
+  thumbwidth = scrollmargin + (scrollwidth - (scrollmargin * 2));
+  /* Also set the instance variables in case somebody uses them. */
+  self thumbMargin = scrollmargin;
+  self scrollWidth = scrollwidth;
+  self scrollMargin = scrollmargin;
 
   return NULL;
 }
@@ -539,16 +551,18 @@ X11ListPane instanceMethod drawItemList (void) {
 }
 
 X11ListPane instanceMethod drawThumb (void) {
-  Integer new margin;
-  Integer new usableScroll;
+  /* Integer new margin; */ /***/
+  /* Integer new usableScroll; */ /***/
 
-  margin = self resources integerAt "thumbMargin";
-  usableScroll = self resources integerAt "scrollWidth";
-  usableScroll -= (margin * 2);
+  /* margin = self resources integerAt "thumbMargin"; *//***/
+  /* usableScroll = self resources integerAt "scrollWidth"; */ /***/
+  /* usableScroll -= (margin * 2);  *//***/
   
   self pen colorName = self resources at "thumbColor";
-  self drawFilledRectangle self thumbOrg x, self thumbOrg y,
-    margin + usableScroll, self thumbExt y;
+  /* self drawFilledRectangle self thumbOrg x, self thumbOrg y,
+     margin + usableScroll, self thumbExt y; *//***/
+  self drawFilledRectangle scrollmargin, self thumbOrg y,
+    thumbwidth, self thumbExt y;
 
 }
 

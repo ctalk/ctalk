@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.30 2020/12/08 03:24:03 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.32 2020/12/10 15:00:51 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -14732,6 +14732,7 @@ int main (void) @{
   label resources replaceAt "backgroundColor", "blue";
   label resources replaceAt "foregroundColor", "blue";
   label resources replaceAt "textColor", "white";
+  label resources replaceAt "ftFont", "sans serif-12:bold";
   lbutton resources replaceAt "backgroundColor", "blue";
   rbutton resources replaceAt "backgroundColor", "blue";
   lbutton resources replaceAt "ftFont", "sans serif-10";
@@ -14743,7 +14744,7 @@ int main (void) @{
   dispatcher attachTo mainWindow;
   lbutton attachTo dispatcher, "90x50+25+100";
   rbutton attachTo dispatcher, "90x50+135+100";
-  label attachTo dispatcher, "147x80+44+15";
+  label attachTo dispatcher, "147x80+c+15";
 
   mainWindow map;
   mainWindow raiseWindow;
@@ -14755,16 +14756,24 @@ int main (void) @{
 #ifndef XFONTS
   /*
    * This is the recommended way to set up fonts for each widget.
+   * Programs tend to work best when they select the fonts before
+   * entering the event loop.
    */
   label ftFontVar initFontLib;
-  label ftFont "DejaVu Sans", 0, FTFONT_BOLD, 0, 12.0;
-  label ftFontVar saveSelectedFont;
-  lbutton ftFont "DejaVu Sans", 0, FTFONT_MEDIUM, 0, 10.0;
+  label ftFontVar selectFontFromFontConfig "sans serif-12";
+
+  lbutton ftFontVar selectFontFromFontConfig "sans serif-12";
   lbutton ftFontVar saveSelectedFont;
-  rbutton ftFont "DejaVu Sans", 0, FTFONT_MEDIUM, 0, 10.0;
+  lbutton label resources replaceAt "highlightTextBold", false;
+
+  rbutton ftFontVar selectFontFromFontConfig "sans serif-12";
   rbutton ftFontVar saveSelectedFont;
+  rbutton label resources replaceAt "highlightTextBold", false;
+
 #else
+
   lbutton label font "fixed";
+
 #endif  
 
   label multiLine "X11ButtonPane\nDemo";
@@ -15622,6 +15631,7 @@ Here is a simple example program that displays a X11LabelPane widget.
 
 #include <ctalk/ctalkdefs.h>
 
+
 #define FTFONTS    /* Comment this line out to use X fonts. */
 #define MULTILINE  /* Comment out to display a single line label. */
 #define ROUNDED    /* Comment out to draw borders with straight edges. */
@@ -15953,6 +15963,12 @@ the @mnm{multiLine} method.
 
 @table @code
 
+@cindex @code{attachTo} instance method @idxclscite{X11LabelPane}
+@item attachTo (@code{Object} @var{parentPane}, @code{String} @var{geometry})
+Attaches the pane to its parent, using the dimensions given by
+@var{geometry}.  Refer to the section that describes window geometry
+for more information. @xref{XGeometryStrings}.
+
 @cindex @code{draw} instance method @idxclscite{X11LabelPane}
 @cindex @code{drawButtonLayout} instance method @idxclscite{X11LabelPane}
 @item draw (@code{void})
@@ -16247,6 +16263,11 @@ An @code{Integer} that defines the width in pixels of between the left
 edge of pane's list area and the left margin of the item text, and the
 right margin, when selecting using full-width scroll bars (see
 @code{selectStyle}, below).  The default is 4 pixels.
+
+@cindex @code{scrollMargin} resource @idxclscite{X11ListPane}
+@item scrollMargin
+An @code{Integer} that defines the distance between the left edge
+of the pane and the scroll thumb, in pixels.  The default is 2px.
 
 @cindex @code{selectColor} resource @idxclscite{X11ListPane}
 @item selectColor
