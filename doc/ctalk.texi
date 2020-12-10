@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.32 2020/12/10 15:00:51 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.33 2020/12/10 18:43:52 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -16332,10 +16332,12 @@ ItemBox instanceVariable size Point 0;
 
 @end example
 
-@cindex @code{iInit} instance variable @idxclscite{X11ListPane}
-@item iInit
-An @code{Integer} that simply causes the @mnm{drawItemList} method to
-wait for class to initialize the fonts it needs.
+@cindex @code{lineHeight} instance variable @idxclscite{X11ListPane}
+@item lineHeight
+An @code{Integer} that contains the height given by the font rendering
+libraries, which is generally the vertical distance, including
+leading, between one line's characters' layout box and the adjacent
+lines.
 
 @cindex @code{margin} instance variable @idxclscite{X11ListPane}
 @item margin

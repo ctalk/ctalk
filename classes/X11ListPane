@@ -1,4 +1,4 @@
-/* $Id: X11ListPane,v 1.21 2020/12/10 15:13:57 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11ListPane,v 1.25 2020/12/10 18:43:52 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -43,13 +43,13 @@
 X11CanvasPane class X11ListPane;
 
 X11ListPane instanceVariable items List NULL;
-X11ListPane instanceVariable iInit Integer 0;
 X11ListPane instanceVariable viewStartY Integer  0;
 X11ListPane instanceVariable scrollWidth Integer 0;
 X11ListPane instanceVariable buttonState Integer 0;
 X11ListPane instanceVariable thumbOrg Point NULL;
 X11ListPane instanceVariable thumbExt Point NULL;
 X11ListPane instanceVariable shiftState Integer 0;
+X11ListPane instanceVariable lineHeight Integer 0;
 
 String class ItemBox;
 
@@ -59,9 +59,10 @@ ItemBox instanceVariable size Point 0;
 ItemBox instanceVariable selected Boolean false;
 
 static int y_1 = 0, x_1 = 0, d_y = 0;
-static int scroll_max_y, scroll_min_y;
+static int scroll_max_y, scroll_boundary_y, scroll_min_y;
 static int last_click_nth = -1;
 static int scrollmargin, scrollwidth, thumbwidth;
+static int display_line_height;
 
 
 /*
@@ -102,6 +103,10 @@ X11ListPane instanceMethod calcThumb (void) {
   margin = self resources integerAt "thumbMargin";
 
   scroll_max_y = self size y - margin;
+  scroll_boundary_y = scroll_max_y - 5; /* gives us a boundary where we
+					  can move the thumb to the limit
+					  of the channel in case the user
+					  moves it too far. */
   scroll_min_y = margin;
 
   /* The (Object *) cast tells Ctalk to use Object : = . not 
@@ -351,8 +356,8 @@ X11ListPane instanceMethod onMotion (Object subPane, InputEvent event) {
       self thumbOrg y += d_y;
       self thumbExt y += d_y;
       self viewStartY += d_y;
-      if (self thumbOrg y > (scroll_max_y - 5)) {
-	d_y = (self thumbOrg y - (scroll_max_y - 5));
+      if (self thumbOrg y > scroll_boundary_y) {
+	d_y = (self thumbOrg y - scroll_boundary_y);
 	self thumbOrg y -= d_y;
 	self thumbExt y -= d_y;
 	self viewStartY -= d_y;
@@ -491,12 +496,15 @@ X11ListPane instanceMethod attachTo (Object parentPane,
   self ftFontVar namedX11Color self resources at "textColor";
 
   /* self scrollWidth = self resources at "scrollWidth"; *//***/
+  display_line_height = self ftFontVar textHeight "T";
   scrollmargin = self resources integerAt "scrollMargin";
   scrollmargin += self resources integerAt "borderWidth";
   scrollwidth = self resources integerAt "scrollWidth";
   thumbwidth = scrollmargin + (scrollwidth - (scrollmargin * 2));
   /* Also set the instance variable in case somebody uses it. */
   self scrollWidth = scrollwidth;
+
+  self lineHeight = self ftFontVar textHeight "T"; /***/
 
   return NULL;
 }
@@ -514,35 +522,28 @@ X11ListPane instanceMethod dumpList (void) {
 
 X11ListPane instanceMethod drawItemList (void) {
   ItemBox new item;
-  Integer new lineHeight;
+  /* Integer new lineHeight; *//***/
   
-#if 0 /***/
-  if (self iInit++ < 5)
-    return NULL;
-#endif  
-
-  /* self ftFontVar selectFontFromFontConfig self resources at "font";*/
   self ftFontVar selectFont;
   self ftFontVar namedX11Color self resources at "textColor";
-
-  lineHeight = self ftFontVar textHeight "T";
 
   self items map {
     item = self;
 
-    if (super viewStartY - lineHeight <= item org y) {
+    if (super viewStartY - super lineHeight <= item org y) { /***/
       if (item selected == true) {
 
 	super pen colorName = super resources at "selectColor";
 	super drawFilledRectangle (item org x,
 				   /* Try to center the rectangle 
 				      vertically over the text. */
-				   (item ext y - super viewStartY - lineHeight),
+				   (item ext y - super viewStartY
+				    - super lineHeight),
 				   item size x,
 				   item size y);
       }
       super putStrXY item org x,
-	(item ext y - super viewStartY), item value;
+	(item ext y - super viewStartY) + 2, item value;
     }
   }
 

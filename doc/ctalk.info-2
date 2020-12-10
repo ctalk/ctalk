@@ -4500,9 +4500,11 @@ Instance Variables
           ItemBox instanceVariable size Point 0;
 
 
-'iInit'
-     An 'Integer' that simply causes the 'drawItemList' method to wait
-     for class to initialize the fonts it needs.
+'lineHeight'
+     An 'Integer' that contains the height given by the font rendering
+     libraries, which is generally the vertical distance, including
+     leading, between one line's characters' layout box and the adjacent
+     lines.
 
 'margin'
      An 'Integer' that defines the width in pixels between the left edge
