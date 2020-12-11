@@ -4455,10 +4455,16 @@ Resources
      The default is 'lightblue'.
 
 'selectStyle'
-     A 'String' that defines whether a select bar extends to the right
+     An 'Integer' that defines whether a select bar extends to the right
      edge of an item's text, or to the right margin of the pane.  The
-     class recognizes the values, "item," and, "pane."  The default is
-     "pane."
+     class recognizes the #defines 'SELECT_PANE' and 'SELECT_ITEM',
+     which are defined in 'ctalkdefs.h'.  The default is 'SELECT_PANE',
+     so to change it to only highlight an item's text, a program should
+     contain the line,
+
+
+          myListPane resources replaceAt "selectStyle", SELECT_ITEM;
+
 
 'textColor'
      A 'String' that contains the color of the list text.  The default

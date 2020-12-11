@@ -1537,7 +1537,10 @@
 	- Added is_instance_var_series in resolve.c, to handle
 	C variables that have the same name as an instance variable.
 	(resolve.c).
-	- Added the lineHeight instance variable to X11ListPane class,
-	and made many internal changes.
+	- Added the lineHeight and vAlignHint instance variables to
+	X11ListPane class, and also the vAlignHint resource, and also
+	many internal changes. Also added the selectStyle resource
+	to X11ListPane class, and the definitions for SELECT_PANE
+	and SELECT_ITEM in ctalkdefs.h.
 
 

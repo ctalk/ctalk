@@ -1,4 +1,4 @@
-/* $Id: X11ListPane,v 1.26 2020/12/10 19:21:05 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11ListPane,v 1.28 2020/12/11 03:01:21 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -21,6 +21,8 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
 */
 
+#include <ctalk/ctalkdefs.h>
+
 /* 
    X11ListPane Class
 
@@ -38,6 +40,7 @@
    selectColor              "lightblue"
    scrollMargin             2
    vAlignHint               2
+   selectStyle              SELECT_PANE
 
 */
 
@@ -65,6 +68,7 @@ static int scroll_max_y, scroll_boundary_y, scroll_min_y;
 static int last_click_nth = -1;
 static int scrollmargin, scrollwidth, thumbwidth;
 static int display_line_height;
+static int select_style, text_left_margin;
 
 
 /*
@@ -200,6 +204,7 @@ X11ListPane instanceMethod new (String paneName) {
   paneName resources atPut "selectColor", "lightblue";
   paneName resources atPut "scrollMargin", 1;
   paneName resources atPut "vAlignHint", 2;
+  paneName resources atPut "selectStyle", SELECT_PANE;
 
   return paneName;
 }
@@ -509,6 +514,8 @@ X11ListPane instanceMethod attachTo (Object parentPane,
 
   self lineHeight = self ftFontVar textHeight "T"; /***/
   self vAlignHint = self resources integerAt "vAlignHint";
+  select_style = self resources integerAt "selectStyle";
+  text_left_margin = self resources integerAt "leftMargin";
 
   return NULL;
 }
@@ -527,27 +534,60 @@ X11ListPane instanceMethod dumpList (void) {
 X11ListPane instanceMethod drawItemList (void) {
   ItemBox new item;
   /* Integer new lineHeight; *//***/
+  int pane_size_x;
   
   self ftFontVar selectFont;
   self ftFontVar namedX11Color self resources at "textColor";
 
-  self items map {
-    item = self;
+  if (select_style == SELECT_ITEM) {
+    /* Here we need to check the width each list item, and
+       we just do the complete loop, so we don't have to
+       check select_style for each item, also. */
+    self items map {
+      item = self;
 
-    if (super viewStartY - super lineHeight <= item org y) { /***/
-      if (item selected == true) {
+      if (super viewStartY - super lineHeight <= item org y) { /***/
+	if (item selected == true) {
 
-	super pen colorName = super resources at "selectColor";
-	super drawFilledRectangle (item org x,
-				   /* Try to center the rectangle 
-				      vertically over the text. */
-				   (item ext y - super viewStartY
-				    - super lineHeight),
-				   item size x,
-				   item size y);
+	  super pen colorName = super resources at "selectColor";
+	  super drawFilledRectangle (item org x,
+				     /* Try to center the rectangle 
+					vertically over the text. */
+				     (item ext y - super viewStartY
+				      - super lineHeight),
+				     item size x,
+				     item size y);
+	}
+	super putStrXY item org x,
+	  (item ext y - super viewStartY) + super vAlignHint, item value;
       }
-      super putStrXY item org x,
-	(item ext y - super viewStartY) + super vAlignHint, item value;
+    }
+  } else {
+    pane_size_x = self size x;
+    self items map {
+      item = self;
+
+      if (super viewStartY - super lineHeight <= item org y) { /***/
+	if (item selected == true) {
+
+	  super pen colorName = super resources at "selectColor";
+	  super drawFilledRectangle (item org x,
+				     /* Try to center the rectangle 
+					vertically over the text. */
+				     (item ext y - super viewStartY
+				      - super lineHeight),
+#if 0
+				     /* work on this ... */
+				     super size x - scrollwidth -
+				     text_left_margin
+#endif				     
+				     pane_size_x - scrollwidth -
+				     text_left_margin - 5,
+				     item size y);
+	}
+	super putStrXY item org x,
+	  (item ext y - super viewStartY) + super vAlignHint, item value;
+      }
     }
   }
 
