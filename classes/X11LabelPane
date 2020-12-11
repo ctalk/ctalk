@@ -1,4 +1,4 @@
-/* $Id: X11LabelPane,v 1.8 2020/12/09 01:10:16 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11LabelPane,v 1.9 2020/12/11 18:07:53 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -120,7 +120,6 @@ X11LabelPane instanceMethod new (String __paneName) {
 
   __paneName resources atPut "backgroundColor", "gray";
   __paneName resources atPut "foregroundColor", "white";
-  __paneName resources atPut "ftFont", "sans-serif-12";
   __paneName resources atPut "textColor", "black";
   __paneName resources atPut "borderColor", "black";
   __paneName resources atPut "highlightTextColor", "black";
@@ -131,6 +130,14 @@ X11LabelPane instanceMethod new (String __paneName) {
   __paneName resources atPut "grayedColor", "gray";
   __paneName resources atPut "highlightBorderColor", "black";
   __paneName resources atPut "highlightTextBold", false;
+
+  __paneName resources atPut "font", "sans-serif-12";
+  /* Check if the program has used the older "ftFont" keyword,
+     and if so, set the value of the "font" resource to it. */
+  if (__paneName resources keyExists "ftFont") {
+    __paneName resources replaceAt "font",
+      (__paneName resources "ftFont");
+  }
 
   return __paneName;
 }
@@ -163,7 +170,7 @@ X11LabelPane instanceMethod attachTo (Object parentPane,
   (X11Bitmap *)self paneBackingStore create self displayPtr, self xWindowID,
     self size x, self size y, self depth;
 
-  self ftFontVar selectFontFromFontConfig self resources at "ftFont";
+  self ftFontVar selectFontFromFontConfig self resources at "font";
   self ftFontVar saveSelectedFont;
 
   return NULL;

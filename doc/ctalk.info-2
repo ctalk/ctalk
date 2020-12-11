@@ -4014,9 +4014,12 @@ the 'resources' instance variable, an 'AssociativeArray' that is
 declared in 'X11Pane' class.  For a description, see the 'resources'
 instance variable documentation.  *Note PaneResources::.
 
+'font'
 'ftFont'
      A 'String' that contains the text font's Fontconfig font
-     descriptor.  The default is 'sans serif-12'.
+     descriptor.  The resource, 'ftFont', is a synonym that is used in
+     earlier Ctalk releases, and is still included for compatibility.
+     The default is 'sans serif-12'.
 
      For more information about Fontconfig descriptors, refer to the
      'X11FreeTypeFont' class.  *Note X11FreeTypeFont::.

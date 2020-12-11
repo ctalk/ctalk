@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.36 2020/12/10 20:40:54 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.37 2020/12/11 18:07:54 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -15760,10 +15760,14 @@ class.  For a description, see the @code{resources} instance variable
 documentation. @xref{PaneResources}.
 
 @table @code
+@cindex @code{font} resource @idxclscite{X11LabelPane}
+@item font
 @cindex @code{ftFont} resource @idxclscite{X11LabelPane}
 @item ftFont
 A @code{String} that contains the text font's Fontconfig font
-descriptor.  The default is @samp{sans serif-12}.
+descriptor.  The resource, @samp{ftFont}, is a synonym that is
+used in earlier Ctalk releases, and is still included for compatibility.
+The default is @samp{sans serif-12}.
 
 For more information about Fontconfig descriptors, refer to the
 @code{X11FreeTypeFont} class. @xref{X11FreeTypeFont}.
