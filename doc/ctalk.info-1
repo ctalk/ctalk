@@ -1130,16 +1130,15 @@ the pane's 'fontVar' instance variable), or the scalable Freetype fonts
 The default is to use X's built in bitmap fonts.  These fonts are
 initialized when the program connects to the display server.
 
-However, to enable drawing with scalable fonts, programs need to call
-the 'initFontLib' method during program initialization, with a line
-similar to this one.
+To enable font drawing, programs need to call the 'initFontLib' method
+during program initialization, with a line similar to this one.
 
 
      myMainWindow ftFontVar initFontLib;
 
 
 Fontconfig Font Selection
-.........................
+-------------------------
 
 Fontconfig font descriptions have their own syntax.  A Fontconfig
 pattern has the following elements.
@@ -1171,8 +1170,37 @@ The Fontconfig user guide describes the library's font selection syntax.
 The documentation is available from many software package archives and
 also on the web at <http://freedesktop.org/fontconfig>.
 
+Font Selection Issues
+---------------------
+
+Ctalk graphical classes use the fontconfig string 'sans serif-12'.  This
+string is a generic font that all systems map to an actual font that is
+distributed with the operating system.  Generally this works pretty
+well.  However, some operating system distributions may not configure
+this to the best available font for a particular application.  So if a
+program's fonts display appears faint or blurry, it's generally because
+operating system has mapped the 'sans serif-12' font to a font that is
+less than optimum.
+
+The best way to cope with this per application is to select a specific
+font that's present on the system.  You can view the fonts available
+with the 'fc-list(1)' application, and Ctalk's 'FreeTypeTools' package
+also contains font catalog and display utilities.
+
+Then, after the pane object is created, but before it's attached to its
+parent pane with 'attachTo', your program can include a line similar to
+this one.
+
+
+     myListPane resources replaceAt "font", "DejaVu Sans-12:style=book";
+
+
+which names an actual font that is commonly installed with operating
+systems.  Looking through the system's font catalog should present other
+alternatives to a generic font specification.
+
 Basic 'fonts.conf' Files
-........................
+------------------------
 
 Ctalk also uses a subset of the 'fonts.conf' tag syntax and the older
 style of finding a system's or users' 'fonts.conf' file:
@@ -1207,14 +1235,14 @@ There is a sample 'XftConfig' file in the Ctalk source distribution,
 user and developer documentation provide even more information.
 
 Further Information About Fontconfig and libXft
-...............................................
+-----------------------------------------------
 
 For further information about the the Fontconfig libraries, refer to:
 <https://freedesktop.org/fontconfig>.  Information about Xft is
 available at <http://freedesktop.org/wiki/Software/Xft>.
 
 Instance Variables
-..................
+------------------
 
 'family'
      A 'String' that contains the family of the currently selected font.
@@ -1254,7 +1282,7 @@ Instance Variables
      characters horizontal dimensions.
 
 Instance Methods
-................
+----------------
 
 'alpha (Integer VALUE)'
      Set the current Xft font's foreground alpha channel.  The argument
