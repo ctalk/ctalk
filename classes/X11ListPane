@@ -1,4 +1,4 @@
-/* $Id: X11ListPane,v 1.28 2020/12/11 03:01:21 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11ListPane,v 1.31 2020/12/11 21:12:52 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -69,7 +69,6 @@ static int last_click_nth = -1;
 static int scrollmargin, scrollwidth, thumbwidth;
 static int display_line_height;
 static int select_style, text_left_margin;
-
 
 /*
  *  Helps speed up scrolling on slower systems.  If you
@@ -503,7 +502,6 @@ X11ListPane instanceMethod attachTo (Object parentPane,
   self ftFontVar saveSelectedFont;
   self ftFontVar namedX11Color self resources at "textColor";
 
-  /* self scrollWidth = self resources at "scrollWidth"; *//***/
   display_line_height = self ftFontVar textHeight "T";
   scrollmargin = self resources integerAt "scrollMargin";
   scrollmargin += self resources integerAt "borderWidth";
@@ -512,7 +510,7 @@ X11ListPane instanceMethod attachTo (Object parentPane,
   /* Also set the instance variable in case somebody uses it. */
   self scrollWidth = scrollwidth;
 
-  self lineHeight = self ftFontVar textHeight "T"; /***/
+  self lineHeight = self ftFontVar textHeight "T";
   self vAlignHint = self resources integerAt "vAlignHint";
   select_style = self resources integerAt "selectStyle";
   text_left_margin = self resources integerAt "leftMargin";
@@ -533,7 +531,6 @@ X11ListPane instanceMethod dumpList (void) {
 
 X11ListPane instanceMethod drawItemList (void) {
   ItemBox new item;
-  /* Integer new lineHeight; *//***/
   int pane_size_x;
   
   self ftFontVar selectFont;
@@ -546,7 +543,7 @@ X11ListPane instanceMethod drawItemList (void) {
     self items map {
       item = self;
 
-      if (super viewStartY - super lineHeight <= item org y) { /***/
+      if (super viewStartY - super lineHeight <= item org y) {
 	if (item selected == true) {
 
 	  super pen colorName = super resources at "selectColor";
@@ -567,7 +564,7 @@ X11ListPane instanceMethod drawItemList (void) {
     self items map {
       item = self;
 
-      if (super viewStartY - super lineHeight <= item org y) { /***/
+      if (super viewStartY - super lineHeight <= item org y) {
 	if (item selected == true) {
 
 	  super pen colorName = super resources at "selectColor";
@@ -594,16 +591,7 @@ X11ListPane instanceMethod drawItemList (void) {
 }
 
 X11ListPane instanceMethod drawThumb (void) {
-  /* Integer new margin; */ /***/
-  /* Integer new usableScroll; */ /***/
-
-  /* margin = self resources integerAt "thumbMargin"; *//***/
-  /* usableScroll = self resources integerAt "scrollWidth"; */ /***/
-  /* usableScroll -= (margin * 2);  *//***/
-  
   self pen colorName = self resources at "thumbColor";
-  /* self drawFilledRectangle self thumbOrg x, self thumbOrg y,
-     margin + usableScroll, self thumbExt y; *//***/
   self drawFilledRectangle scrollmargin, self thumbOrg y,
     thumbwidth, self thumbExt y;
 

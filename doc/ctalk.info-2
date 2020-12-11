@@ -4460,13 +4460,13 @@ Resources
 'selectStyle'
      An 'Integer' that defines whether a select bar extends to the right
      edge of an item's text, or to the right margin of the pane.  The
-     class recognizes the #defines 'SELECT_PANE' and 'SELECT_ITEM',
-     which are defined in 'ctalkdefs.h'.  The default is 'SELECT_PANE',
-     so to change it to only highlight an item's text, a program should
-     contain the line,
+     class recognizes the #defines 'LIST_SELECT_PANE' and
+     'LIST_SELECT_ITEM', which are defined in 'ctalkdefs.h'.  The
+     default is 'LIST_SELECT_PANE', so to change it to only highlight an
+     item's text, a program should contain the line,
 
 
-          myListPane resources replaceAt "selectStyle", SELECT_ITEM;
+          myListPane resources replaceAt "selectStyle", LIST_SELECT_ITEM;
 
 
 'textColor'

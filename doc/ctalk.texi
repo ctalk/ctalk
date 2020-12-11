@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.37 2020/12/11 18:07:54 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.40 2020/12/11 21:12:52 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -1561,9 +1561,8 @@ The default is to use X's built in bitmap fonts.  These fonts are
 initialized when the program connects to the display
 server.
 
-However, to enable drawing with scalable fonts, programs need to call
-the @mnm{initFontLib} method during program initialization, with a
-line similar to this one.
+To enable font drawing, programs need to call the @mnm{initFontLib}
+method during program initialization, with a line similar to this one.
 
 @example
 
@@ -1571,7 +1570,7 @@ myMainWindow ftFontVar initFontLib;
 
 @end example
 
-@subsubheading Fontconfig Font Selection
+@subheading Fontconfig Font Selection
 
 Fontconfig font descriptions have their own syntax.  A Fontconfig
 pattern has the following elements.
@@ -1611,7 +1610,41 @@ syntax.  The documentation is available from many software package
 archives and also on the web at
 @url{http://freedesktop.org/fontconfig}.
 
-@subsubheading Basic @code{fonts.conf} Files
+@subheading Font Selection Issues
+
+@cindex Fonts, display issues
+@cindex Desktop font issues
+Ctalk graphical classes use the fontconfig string @samp{sans
+serif-12}.  This string is a generic font that all systems map to an
+actual font that is distributed with the operating system.  Generally
+this works pretty well.  However, some operating system distributions
+may not configure this to the best available font for a particular
+application.  So if a program's fonts display appears faint or blurry,
+it's generally because operating system has mapped the @samp{sans
+serif-12} font to a font that is less than optimum.
+
+@cindex FreeTypeTools
+The best way to cope with this per application is to select a specific
+font that's present on the system.  You can view the fonts available
+with the @cite{fc-list(1)} application, and Ctalk's
+@cite{FreeTypeTools} package also contains font catalog and display
+utilities.
+
+Then, after the pane object is created, but before it's attached to
+its parent pane with @mnm{attachTo}, your program can include a line
+similar to this one.
+
+@example
+
+myListPane resources replaceAt "font", "DejaVu Sans-12:style=book";
+
+@end example
+
+which names an actual font that is commonly installed with operating
+systems.  Looking through the system's font catalog should present
+other alternatives to a generic font specification.
+
+@subheading Basic @code{fonts.conf} Files
 
 Ctalk also uses a subset of the @code{fonts.conf} tag syntax and the
 older style of finding a system's or users' @code{fonts.conf} file:
@@ -1650,13 +1683,13 @@ distribution, @flnm{doc/XftConfig.sample}.  The @cite{fonts.conf (5)}
 manual page and the Xft user and developer documentation provide even
 more information.
 
-@subsubheading Further Information About Fontconfig and libXft
+@subheading Further Information About Fontconfig and libXft
 
 For further information about the the Fontconfig libraries, refer to:
 @url{https://freedesktop.org/fontconfig}.  Information about Xft is available at
 @url{http://freedesktop.org/wiki/Software/Xft}.
 
-@subsubheading Instance Variables
+@subheading Instance Variables
 @table @code
 @cindex @mnm{family} instance variable @idxclscite{X11FreeTypeFont}
 @item family
@@ -1712,7 +1745,7 @@ font's characters horizontal dimensions.
 @end table
 
 
-@subsubheading Instance Methods
+@subheading Instance Methods
 @table @code
 
 @cindex @mnm{alpha} instance method @idxclscite{X11FreeTypeFont}
@@ -16282,14 +16315,14 @@ items.  The default is @samp{lightblue}.
 @item selectStyle
 An @code{Integer} that defines whether a select bar extends to the
 right edge of an item's text, or to the right margin of the pane.  The
-class recognizes the #defines @samp{SELECT_PANE} and
-@samp{SELECT_ITEM}, which are defined in @flnm{ctalkdefs.h}.  The
-default is @samp{SELECT_PANE}, so to change it to only highlight
+class recognizes the #defines @samp{LIST_SELECT_PANE} and
+@samp{LIST_SELECT_ITEM}, which are defined in @flnm{ctalkdefs.h}.  The
+default is @samp{LIST_SELECT_PANE}, so to change it to only highlight
 an item's text, a program should contain the line,
 
 @example
 
-myListPane resources replaceAt "selectStyle", SELECT_ITEM;
+myListPane resources replaceAt "selectStyle", LIST_SELECT_ITEM;
 
 @end example
 
