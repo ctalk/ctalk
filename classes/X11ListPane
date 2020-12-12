@@ -1,4 +1,4 @@
-/* $Id: X11ListPane,v 1.31 2020/12/11 21:12:52 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11ListPane,v 1.32 2020/12/12 19:02:09 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -40,7 +40,7 @@
    selectColor              "lightblue"
    scrollMargin             2
    vAlignHint               2
-   selectStyle              SELECT_PANE
+   selectStyle              LIST_SELECT_PANE
 
 */
 
@@ -203,7 +203,7 @@ X11ListPane instanceMethod new (String paneName) {
   paneName resources atPut "selectColor", "lightblue";
   paneName resources atPut "scrollMargin", 1;
   paneName resources atPut "vAlignHint", 2;
-  paneName resources atPut "selectStyle", SELECT_PANE;
+  paneName resources atPut "selectStyle", LIST_SELECT_PANE;
 
   return paneName;
 }
@@ -536,7 +536,7 @@ X11ListPane instanceMethod drawItemList (void) {
   self ftFontVar selectFont;
   self ftFontVar namedX11Color self resources at "textColor";
 
-  if (select_style == SELECT_ITEM) {
+  if (select_style == LIST_SELECT_ITEM) {
     /* Here we need to check the width each list item, and
        we just do the complete loop, so we don't have to
        check select_style for each item, also. */
