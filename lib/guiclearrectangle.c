@@ -1,4 +1,4 @@
-/* $Id: guiclearrectangle.c,v 1.1.1.1 2020/07/17 07:41:39 rkiesling Exp $ -*-c-*-*/
+/* $Id: guiclearrectangle.c,v 1.2 2020/12/12 18:45:54 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -59,6 +59,10 @@ int __ctalkGUIPaneClearRectangle (OBJECT *self_object, int x, int y,
 
 #define CLEAR_RECTANGLE_GCV_MASK (GCFunction|GCForeground|GCBackground|GCFillStyle)
 
+extern int dpyrec_ptr (void);
+extern DIALOG_C *dpyrec_at (int);
+extern DIALOG_C *dpyrec_top (void);
+
 int __ctalkX11ClearRectangleBasic (void *d, int drawable_id,
 				   unsigned long int gc_ptr, 
 				   int x, int y,
@@ -115,7 +119,8 @@ int __ctalkX11ClearRectangleBasic (void *d, int drawable_id,
 	     NULL);
 
     if (dialog_dpy ()) {
-      __xlib_clear_rectangle (d, drawable_id, (GC)gc_ptr, d_buf);
+      l_d = dpyrec_top () -> d_p;
+      __xlib_clear_rectangle (l_d, drawable_id, (GC)gc_ptr, d_buf);
     } else {
       make_req (shm_mem, (uintptr_t)d, PANE_CLEAR_RECTANGLE_REQUEST,
 		drawable_id, gc_ptr, d_buf);
