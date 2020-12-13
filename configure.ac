@@ -1,5 +1,5 @@
-# $Id: configure.ac,v 1.6 2020/12/07 10:05:30 rkiesling Exp $
-AC_INIT(ctalk, 0.66.0, rk3314042@gmail.com, "")
+# $Id: configure.ac,v 1.1.1.1 2020/12/13 14:51:02 rkiesling Exp $
+AC_INIT(ctalk, 0.0.66, rk3314042@gmail.com, "")
 
 # Contained in acinclude.m4 and generated aclocal.m4
 AC_CONFIG_MACRO_DIR([m4])
@@ -63,7 +63,7 @@ AC_SUBST(PACKAGE)
 AC_SUBST(VERSION)
 AC_SUBST(PPVERSION)
 PACKAGE=ctalk
-VERSION=0.66.0
+VERSION=0.0.66
 
 AC_SUBST(LIB_AM_LDFLAGS)
 AC_SUBST(AM_CFLAGS)

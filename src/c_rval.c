@@ -99,7 +99,7 @@ static void check_extra_fn_expr_tokens (MESSAGE_STACK messages,
   }
 }
 
-char *make_tmp_fn_block_name (char *buf_out) {
+static char *make_tmp_fn_block_name (char *buf_out) {
   if (interpreter_pass == method_pass) {
     strcatx (buf_out, TMP_FN_BLK_PFX, new_methods[new_method_ptr+1] -> method -> selector,
 	     "_",
@@ -518,9 +518,9 @@ static char *handle_template_subscript_expr (MESSAGE_STACK messages,
   return NULL;
 }
 
-void register_template_arg_CVARs (MESSAGE_STACK messages,
-				  int start_idx, int end_idx,
-				  char *buf) {
+static void register_template_arg_CVARs (MESSAGE_STACK messages,
+					 int start_idx, int end_idx,
+					 char *buf) {
   int i, lookahead, agg_end_idx;
   char expr_buf[MAXMSG], *e;
 
@@ -605,10 +605,6 @@ static struct {
   {"long long int"}
 };
 
-char *tmp_lval_type_str (int str_idx) {
-  return tmp_lval_decl_tab[str_idx].decl_str;
-}
-
 CVAR tmp_lval_cvar_tab[] = {
   {CVAR_SIG, "", "int", "", "", "", "", "", "", 0, 0, 0, CVAR_TYPE_INT,
    false, 0,},
@@ -634,10 +630,6 @@ CVAR tmp_lval_cvar_tab[] = {
    false, 0,}
 };
 
-CVAR *tmp_lval_cvar (int tmp_lval_tab_idx) {
-  return &tmp_lval_cvar_tab[tmp_lval_tab_idx];
-}
-
 static struct {
   int return_type_attrs, 
     return_derefs,
@@ -658,34 +650,16 @@ static struct {
   {-1, -1, -1}
 };
 
-/* returns an index into the tmp_lval_decl_tab */
-int get_tmp_lval_tab_idx (MESSAGE_STACK messages, int fn_label_idx,
-		      char *fn_return_class) {
-  if (str_eq (fn_return_class, INTEGER_CLASSNAME)) {
-    return TMP_LVAL_INT;
-  } else if (str_eq (fn_return_class, OBJECT_CLASSNAME)) {
-    return TMP_LVAL_OBJECT_PTR;
-  } else if (str_eq (fn_return_class, STRING_CLASSNAME)) {
-    return TMP_LVAL_CHAR_PTR;
-  } else if (str_eq (fn_return_class, CHARACTER_CLASSNAME)) {
-    return TMP_LVAL_CHAR;
-  } else if (str_eq (fn_return_class, SYMBOL_CLASSNAME)) {
-    return TMP_LVAL_VOID_PTR;
-  } else if (str_eq (fn_return_class, FLOAT_CLASSNAME)) {
-    return TMP_LVAL_FLOAT;
-  } else if (str_eq (fn_return_class, ARRAY_CLASSNAME)) {
-    return TMP_LVAL_ARRAY;
-  } else {
-    warning (messages[fn_label_idx], 
-	     "Function %s has unimplemented return class. "
-	     "Return class defaulting to Integer.",
-	     M_NAME(messages[fn_label_idx]));
-    return TMP_LVAL_INT;
-  }
-  return ERROR;
-}
+#define RVALTEMPLATEMAX 0xffff
 
 static char object_class_str[] = "Object";
+
+#define SELF_LVAL_FN_EXPR_TEMPLATE "\n\
+       {\n\
+          %s %s = %s;\n\
+          %s\n\
+          %s;\n\
+       }\n"
 
 int format_self_lval_fn_expr (MESSAGE_STACK messages, int self_tok_ptr) {
   char tmp_lval_name[MAXLABEL];
@@ -821,8 +795,27 @@ int format_self_lval_fn_expr (MESSAGE_STACK messages, int self_tok_ptr) {
 
     make_tmp_fn_block_name (tmp_lval_name);
 
-    tmp_lval_tab_idx = get_tmp_lval_tab_idx
-      (messages, fn_expr_start_idx, fn_return_class);
+    if (str_eq (fn_return_class, INTEGER_CLASSNAME)) {
+      tmp_lval_tab_idx = TMP_LVAL_INT;
+    } else if (str_eq (fn_return_class, OBJECT_CLASSNAME)) {
+      tmp_lval_tab_idx = TMP_LVAL_OBJECT_PTR;
+    } else if (str_eq (fn_return_class, STRING_CLASSNAME)) {
+      tmp_lval_tab_idx = TMP_LVAL_CHAR_PTR;
+    } else if (str_eq (fn_return_class, CHARACTER_CLASSNAME)) {
+      tmp_lval_tab_idx = TMP_LVAL_CHAR;
+    } else if (str_eq (fn_return_class, SYMBOL_CLASSNAME)) {
+      tmp_lval_tab_idx = TMP_LVAL_VOID_PTR;
+    } else if (str_eq (fn_return_class, FLOAT_CLASSNAME)) {
+      tmp_lval_tab_idx = TMP_LVAL_FLOAT;
+    } else if (str_eq (fn_return_class, ARRAY_CLASSNAME)) {
+      tmp_lval_tab_idx = TMP_LVAL_ARRAY;
+    } else {
+      warning (messages[self_tok_ptr], 
+	       "Function %s has unimplemented return class. "
+	       "Return class defaulting to Integer.",
+	       M_NAME(messages[fn_expr_start_idx]));
+      tmp_lval_tab_idx = TMP_LVAL_INT;
+    }
 
     if (*arg_object -> __o_name) { 
       if (c99name != NULL && !have_complex_expr) {
@@ -846,11 +839,11 @@ int format_self_lval_fn_expr (MESSAGE_STACK messages, int self_tok_ptr) {
     strcpy (tmp_lval_cvar_tab[tmp_lval_tab_idx].name, tmp_lval_name);
     strcat (rt_expr_buf, "\ndelete_method_arg_cvars ();\n");
     sprintf (outbuf, SELF_LVAL_FN_EXPR_TEMPLATE, 
-	     tmp_lval_type_str (tmp_lval_tab_idx),
+	     tmp_lval_decl_tab[tmp_lval_tab_idx].decl_str, 
 	     tmp_lval_name, /* fn_expr_buf, */
 	     (*fn_expr_buf_2 ? fn_expr_buf_2 : fn_expr_buf),
 	     fmt_register_c_method_arg_call 
-	     (tmp_lval_cvar (tmp_lval_tab_idx),
+	     (&tmp_lval_cvar_tab[tmp_lval_tab_idx],
 	      tmp_lval_name, LOCAL_VAR, tmpl_cvar_register_buf),
 	     rt_expr_buf);
     if (argblk)

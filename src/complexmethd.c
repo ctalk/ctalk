@@ -1,4 +1,4 @@
-/* $Id: complexmethd.c,v 1.2 2020/12/10 18:23:33 rkiesling Exp $ */
+/* $Id: complexmethd.c,v 1.1.1.1 2020/12/13 14:51:02 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -317,8 +317,7 @@ char *complex_expr_class (MESSAGE_STACK messages, int rcvr_msg_idx) {
   stack_end_idx = get_stack_top (messages);
 
   prev_tok_idx = -1;
-  for (i = rcvr_msg_idx-1; messages[i] && i >= stack_end_idx; i--) {
-
+  for (i = rcvr_msg_idx-1; i >= stack_end_idx; i--) {
 
     if (M_ISSPACE(messages[i])) continue;
 

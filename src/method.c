@@ -1,4 +1,4 @@
-/* $Id: method.c,v 1.4 2020/12/06 20:31:09 rkiesling Exp $ */
+/* $Id: method.c,v 1.1.1.1 2020/12/13 14:51:02 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -2882,8 +2882,7 @@ int method_call (int method_message_ptr) {
 	    if (is_method_proto (class_object, m -> name)) {
  	    if (!method_proto_is_output (M_NAME(m)) && 
 		!this_method_from_proto (class_object->CLASSNAME, M_NAME(m))) {
-	      method_from_prototype_3 (message_stack (),
-				       method_message_ptr);
+	      method_from_prototype (M_NAME(m));
 	      if (((method = 
 		    get_instance_method (m, class_object, 
 					 m -> name, 

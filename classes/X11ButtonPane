@@ -1,4 +1,4 @@
-/* $Id: X11ButtonPane,v 1.6 2020/12/09 17:16:53 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11ButtonPane,v 1.1.1.1 2020/12/13 14:51:03 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -203,8 +203,6 @@ X11ButtonPane instanceMethod attachTo (Object parentPane,
   self label become l_local;
   self pen colorName = self label backgroundColor;
   self pen width = 1;
-  self borderWidth = self resources at "borderWidth";
-  self borderHighlightWidth = self resources at "highlightBorderWidth";
 
   self shadowPen colorName = self resources at "shadowPenColor";
   self shadowPen width = B_RES_PX;
@@ -212,8 +210,6 @@ X11ButtonPane instanceMethod attachTo (Object parentPane,
   self highlightHPen width = B_RES_PX;
   self highlightVPen colorName = self resources at "highlightVPenColor";
   self highlightVPen width = B_RES_PX;
-
-  self borderColor = self resources at "borderColor";
   
   return NULL;
 }
@@ -229,6 +225,11 @@ X11ButtonPane instanceMethod draw (void) {
 #ifdef TRACK_EVENTS
   printf ("draw\n");
 #endif  
+
+  if (self ftFontVar family length > 0) {
+    /* i.e., The app has stored this widget's font selection. */
+    self ftFontVar selectFont;
+  }
 
   if (self bevelEdges) {
     for (in = 0; in < self bevelWidth; ++in) {
@@ -253,15 +254,15 @@ X11ButtonPane instanceMethod draw (void) {
 
       /* This blends the corner curves with the main window's 
 	 background color. */
-      self pen colorName = self resources at "foregroundColor";
+      self pen colorName = self resources at "backgroundColor";
       self drawFilledRectangle 0, 0, self size x, self size y;
       if (self highlight) {
 	self pen colorName = self resources at "highlightBackgroundColor";
       } else {
 	self pen colorName = self resources at "foregroundColor";
       }
-      /* self drawFilledRoundedRectangle 0, 0, self size x, self size y,
-	 self radius; */ /***/
+      self drawFilledRoundedRectangle 0, 0, self size x, self size y,
+	self radius;
 
     } else {
       self drawFilledRectangle 0, 0, self size x, self size y;
@@ -270,7 +271,7 @@ X11ButtonPane instanceMethod draw (void) {
       saveBGColor = self pen colorName;
       savePenWidth = self pen width;
       self pen width = self borderHighlightWidth;
-      self pen colorName = self resources at "borderColor";
+      self pen colorName = self borderColor;
       if (self radius) {
 	self drawRoundedRectangle self borderMargin, self borderMargin,
 	  self size x - (self borderMargin * 2),
@@ -287,8 +288,7 @@ X11ButtonPane instanceMethod draw (void) {
       saveBGColor = self pen colorName;
       savePenWidth = self pen width;
       self pen width = self borderWidth;
-      /* self pen colorName = self resources at "borderColor"; */
-      self pen colorName = self borderColor;
+      self pen colorName = "black";
       if (self radius) {
 	self drawRoundedRectangle self borderMargin, self borderMargin,
 	  self size x - (self borderMargin * 2),
@@ -311,11 +311,8 @@ X11ButtonPane instanceMethod draw (void) {
        button.)
     */
     labelWidth = self label ftFontVar textWidth self label textLine;
-    self label ftFontVar namedX11Color (self resources at "textColor");
-    self label ftFontVar selectFont;
-#if 0
+    self ftFontVar namedX11Color (self resources at "textColor");
     self ftFontVar selectFontFromFontConfig (self label resources at "ftFont");
-#endif    
 
     pxSize = (self label ftFontVar pointSize *
 	      (self label ftFontVar dpi / 72)) asInteger;

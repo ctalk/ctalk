@@ -84,21 +84,6 @@ static void pop_dpyrec (void) {
   dpyrecs[dpyrecs_ptr] = NULL;
 }
 
-/* Prototype these wherever they're used, so we don't have to include the
-   GUI includes in ctalk.h. */
-int dpyrec_ptr (void) {
-  return dpyrecs_ptr;
-}
-
-DIALOG_C *dpyrec_at (int i) {
-  return dpyrecs[i];
-}
-
-DIALOG_C *dpyrec_top () {
-  return dpyrecs[dpyrecs_ptr + 1];
-}
-
-
 static Display *open_dialog_display_connection (void) {
   Display *d_l;
   if ((d_l = XOpenDisplay (getenv ("DISPLAY"))) == NULL) {

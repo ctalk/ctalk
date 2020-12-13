@@ -285,7 +285,6 @@ program is built.
 *    X11PaneDispatcher::
 *     X11CanvasPane::
 *      X11ButtonPane::
-*      X11CheckBoxPane::
 *      X11LabelPane::
 *      X11ListPane::
 *      X11MessageBoxPane::
@@ -1130,15 +1129,16 @@ the pane's 'fontVar' instance variable), or the scalable Freetype fonts
 The default is to use X's built in bitmap fonts.  These fonts are
 initialized when the program connects to the display server.
 
-To enable font drawing, programs need to call the 'initFontLib' method
-during program initialization, with a line similar to this one.
+However, to enable drawing with scalable fonts, programs need to call
+the 'initFontLib' method during program initialization, with a line
+similar to this one.
 
 
      myMainWindow ftFontVar initFontLib;
 
 
 Fontconfig Font Selection
--------------------------
+.........................
 
 Fontconfig font descriptions have their own syntax.  A Fontconfig
 pattern has the following elements.
@@ -1170,37 +1170,8 @@ The Fontconfig user guide describes the library's font selection syntax.
 The documentation is available from many software package archives and
 also on the web at <http://freedesktop.org/fontconfig>.
 
-Font Selection Issues
----------------------
-
-Ctalk graphical classes use the fontconfig string 'sans serif-12'.  This
-string is a generic font that all systems map to an actual font that is
-distributed with the operating system.  Generally this works pretty
-well.  However, some operating system distributions may not configure
-this to the best available font for a particular application.  So if a
-program's fonts display appears faint or blurry, it's generally because
-operating system has mapped the 'sans serif-12' font to a font that is
-less than optimum.
-
-The best way to cope with this per application is to select a specific
-font that's present on the system.  You can view the fonts available
-with the 'fc-list(1)' application, and Ctalk's 'FreeTypeTools' package
-also contains font catalog and display utilities.
-
-Then, after the pane object is created, but before it's attached to its
-parent pane with 'attachTo', your program can include a line similar to
-this one.
-
-
-     myListPane resources replaceAt "font", "DejaVu Sans-12:style=book";
-
-
-which names an actual font that is commonly installed with operating
-systems.  Looking through the system's font catalog should present other
-alternatives to a generic font specification.
-
 Basic 'fonts.conf' Files
-------------------------
+........................
 
 Ctalk also uses a subset of the 'fonts.conf' tag syntax and the older
 style of finding a system's or users' 'fonts.conf' file:
@@ -1235,14 +1206,14 @@ There is a sample 'XftConfig' file in the Ctalk source distribution,
 user and developer documentation provide even more information.
 
 Further Information About Fontconfig and libXft
------------------------------------------------
+...............................................
 
 For further information about the the Fontconfig libraries, refer to:
 <https://freedesktop.org/fontconfig>.  Information about Xft is
 available at <http://freedesktop.org/wiki/Software/Xft>.
 
 Instance Variables
-------------------
+..................
 
 'family'
      A 'String' that contains the family of the currently selected font.
@@ -1282,7 +1253,7 @@ Instance Variables
      characters horizontal dimensions.
 
 Instance Methods
-----------------
+................
 
 'alpha (Integer VALUE)'
      Set the current Xft font's foreground alpha channel.  The argument
@@ -3304,23 +3275,21 @@ A 'X11TerminalStream' object recognizes the following input event
 classes, and returns the following information in the 'xEventData'
 instance variables, which are defined in 'InputEvent' class.  *Note
 InputEvent::.
-     eventClass      eventData   xEventData1 xEventData2 xEventData3 xEventData4 xEventData5
-     BUTTONPRESS     Window ID   x           y           state       button      -
-     BUTTONRELEASE   Window ID   x           y           state       button      -
-     KEYPRESS        Window ID   x           y           state       keycode     x_keycode[1]
-     KEYRELEASE      Window ID   x           y           state       keycode     x_keycode[1]
-     CONFIGURENOTIFY Window ID   x           y           height      width       border
-     MOVENOTIFY      Window ID   x           y           height      width       border
-     RESIZENOTIFY    Window ID   x           y           height      width       border
-     MOTIONNOTIFY    Window ID   x           y           state       is_hint     -
-     MAPNOTIFY       Window ID   event       window      -           -           -
-     EXPOSE          Window ID   x           y           width       height      count
-     SELECTIONREQUEST[2]
-     SELECTIONCLEAR[2]
-     WINDELETE
-[1] The values of X keycodes are defined in X11/keysymdefs.h.  [2]
-Handled internally only by either sending a SelectionNotify event to the
-application that made the request, or by clearing the selection.
+     Event Class     xEventData1 xEventData2 xEventData3 xEventData4 xEventData5
+     BUTTONPRESS     x           y           state       button      -
+     BUTTONRELEASE   x           y           state       button      -
+     KEYPRESS        x           y           state       keycode     x_keycode[1]
+     KEYRELEASE      x           y           state       keycode     x_keycode[1]
+     CONFIGURENOTIFY x           y           height      width       border
+     MOVENOTIFY      x           y           height      width       border
+     RESIZENOTIFY    x           y           height      width       border
+     MOTIONNOTIFY    x           y           state       is_hint     -
+     MAPNOTIFY       event       window      -           -           -
+     EXPOSE          x           y           width       height      count
+     SELECTIONREQUEST -          -           -           -           -
+     SELECTIONCLEAR  -           -           -           -           -
+     WINDELETE       -           -           -           -           -
+[1] The values of X keycodes are defined in X11/keysymdefs.h.
 
 The 'x' and 'y' coordinates of the key and button events are relative to
 the window's origin.  The 'x' and 'y' coordinates of a 'CONFIGURENOTIFY'
@@ -4461,13 +4430,6 @@ Instance Methods
 
      For information about the format of a X geometry string, refer to
      the 'XParseGeometry(3)' manual page.
-
-     _Note:_ Additionally, Ctalk adds the dimension 'c' or 'C'.  If
-     given as either the geometry's _x_ or _y_ value, this centers the
-     subpane horizontally or vertically in the parent pane.  For the
-     additions that Ctalk adds to the X geometry specification refer to
-     the '__ctalkX11SubWindowGeometry' description.  *Note
-     XGeometryStrings::.
 
 'spawnC (String COMMAND, Integer RESTRICT)'
      Starts the program given by the argument COMMAND, and resumes

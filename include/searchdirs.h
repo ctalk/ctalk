@@ -1,27 +1,12 @@
 /* This is a machine generated file.  Do not edit! */
 
 char *searchdirs[] = {
-"/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin",
-"/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/9.1.0",
-"/usr/include",
-"/Users/rkiesling/builds/ctalk",
+"/usr/lib64/gcc/x86_64-suse-linux/10/include",
 "/usr/local/include",
-"/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/9.1.0/include",
-"/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include",
+"/usr/lib64/gcc/x86_64-suse-linux/10/include-fixed",
+"/usr/lib64/gcc/x86_64-suse-linux/10/../../../../x86_64-suse-linux/include",
 "/usr/include",
-"/System/Library/Frameworks",
-"/Library/Frameworks",
-"/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/9.1.0",
-"/usr/include",
-"/Users/rkiesling/builds/ctalk",
-"/usr/local/include",
-"/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/9.1.0/include",
-"/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include",
-"/usr/include",
-"/System/Library/Frameworks",
-"/Library/Frameworks",
-"/usr/X11R6/include",
 (void *)0
 };
 #define __have_preloaded_searchdirs
-#define N_PATHS 20
+#define N_PATHS 6

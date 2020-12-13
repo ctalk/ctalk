@@ -1,4 +1,4 @@
-/* $Id: ctalkdefs.h,v 1.3 2020/12/11 18:31:00 rkiesling Exp $ -*-C-*-*/
+/* $Id: ctalkdefs.h,v 1.1.1.1 2020/12/13 14:51:03 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -382,22 +382,6 @@ int memcmp(const void *s1, const void *s2, size_t n);
 #define FILESELECT_RBUTTON       1
 #endif
 
-/*
- *  Definitions for selection styles.
- */
-#ifndef LIST_SELECT_PANE
-#define LIST_SELECT_PANE 1
-#endif
-#ifndef LIST_SELECT_ITEM
-#define LIST_SELECT_ITEM 2
-#endif
-
-#ifndef LIST_SELECT_HOVER
-#define LIST_SELECT_HOVER 1
-#endif
-#ifndef LIST_SELECT_CLICK
-#define LIST_SELECT_CLICK 2
-#endif
 
 #define _CTALKDEFS_H_
 #endif /* #ifdef _CTALKDEFS_H_ */

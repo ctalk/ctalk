@@ -1,4 +1,4 @@
-/* $Id: rt_expr.c,v 1.6 2020/11/27 15:00:50 rkiesling Exp $ */
+/* $Id: rt_expr.c,v 1.1.1.1 2020/12/13 14:51:02 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -1585,8 +1585,6 @@ static bool rtse_instvar_msg (MESSAGE_STACK messages, int tok_idx,
   return false;
 }
 
-/* static char object_class_str[] = "Object";*//***/
-
 /*
  *  Use this macro when rt_self_expr () needs to use the first token
  *  of the expression to determine its context.  The, "start_idx," 
@@ -1598,7 +1596,6 @@ static bool rtse_instvar_msg (MESSAGE_STACK messages, int tok_idx,
  *  because a "self" token can appear many times within a frame, and
  *  each occurence needs its own output buffer (ie. via fileout). 
  */
-
 #define _RTSE_1ST_TOK ((leading_tok_idx==-1) ? start_idx : leading_tok_idx)
 
 char *rt_self_expr (MESSAGE_STACK messages, int start_idx, int *end_idx,
@@ -1612,7 +1609,7 @@ char *rt_self_expr (MESSAGE_STACK messages, int start_idx, int *end_idx,
   int i;
   int fn_idx, arg_idx, next_idx;
   int lookback;
-  int leading_tok_idx, pri_method_idx;
+  int leading_tok_idx;
   int expr_limit;
   int messages_self_is_receiver_of;
   OBJECT *expr_rcvr_class = rcvr_class_obj;
@@ -1625,8 +1622,6 @@ char *rt_self_expr (MESSAGE_STACK messages, int start_idx, int *end_idx,
   bool have_cvar_registration = false;
   bool have_rcvr_expr_open_paren_adj = false;
   int rcvr_expr_open_paren_idx = start_idx, actual_expr_start = start_idx;
-  char *c99name, *cfn_buf;
-  OBJECT *arg_object;
 
   stack_start_idx = stack_start (messages);
   stack_top_idx = get_stack_top (messages);
@@ -1824,48 +1819,6 @@ char *rt_self_expr (MESSAGE_STACK messages, int start_idx, int *end_idx,
       } else if ((fn = get_function (M_NAME(messages[i]))) != NULL) {
 	if (format_self_lval_fn_expr (messages, start_idx) != ERROR) {
 	  goto rt_expr_evaled_2;
-	} else {
-	  if ((c99name = template_name (M_NAME(messages[i]))) == NULL) {
-	    /* If there's a template for the function, paste that
-	       in later. */
-	    int fn_expr_end_idx;
-	    switch (context = object_context (messages, i))
-	      {
-	      case argument_context:
-		method_arg_is_fn_call (messages, start_idx, i, stack_top_idx,
-				       pri_method_idx, &fn_expr_end_idx);
-		have_cvar_registration = true;
-		fmt_rt_expr (messages, start_idx, end_idx, exprbuf);
-		i = fn_expr_end_idx;
-		continue;
-		break;
-	      default:
-		break;
-	      }
-	  } else { /* if ((c99name ... */
-	    int fn_arg_start_idx, fn_arg_end_idx;
-	    char expr_buf_1[MAXMSG], expr_buf_tmp[MAXMSG],
-	      /***/
-	      tmpl_cvar_register_buf[MAXMSG] /*, *fn_return_class*/;
-	    cfn_buf = clib_fn_rt_expr (messages, i);
-	    fn_arg_start_idx = nextlangmsg (messages, i);
-	    fn_arg_end_idx = match_paren (messages, fn_arg_start_idx,
-					  stack_top_idx);
-	    toks2str (messages, fn_arg_start_idx, fn_arg_end_idx,
-		      expr_buf_tmp);
-	    memset (tmpl_cvar_register_buf, 0, MAXMSG);
-	    register_template_arg_CVARs (messages, fn_arg_start_idx,
-					 fn_arg_end_idx,
-					 tmpl_cvar_register_buf);
-	    strcatx (expr_buf_1, cfn_buf, " ", expr_buf_tmp, NULL);
-	    /***/
-	    /* fn_return_class = object_class_str; */
-	    arg_object = create_object (CFUNCTION_CLASSNAME,
-					fmt_eval_expr_str
-					(expr_buf_1, expr_buf_tmp));
-	    delete_object (arg_object);
-	    /* TO DO - check for trailing characters */
-	  }
 	}
       } else {
 	/*
@@ -1887,13 +1840,6 @@ char *rt_self_expr (MESSAGE_STACK messages, int start_idx, int *end_idx,
 	  warning (messages[i], "Undefined label, \"%s.\"",
 		   M_NAME(messages[i]));
 	}
-      }
-    } else if (M_TOK(messages[i]) == METHODMSGLABEL) { /***/
-      pri_method_idx = i;
-      if (messages[actual_expr_start] -> attrs & TOK_SELF) {
-	messages[i] -> receiver_msg = messages[actual_expr_start];
-      } else if (messages[start_idx] -> attrs & TOK_SELF) {
-	messages[i] -> receiver_msg = messages[start_idx];
       }
     } else {
       if (!M_ISSPACE(messages[i])) {

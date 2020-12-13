@@ -1,4 +1,4 @@
-/* $Id: resolve.c,v 1.3 2020/12/10 14:29:25 rkiesling Exp $ */
+/* $Id: resolve.c,v 1.1.1.1 2020/12/13 14:51:02 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -1108,28 +1108,6 @@ static void undefined_self_exception_in_fn (int message_ptr,
   }
 }
 
-/* We should only need this in the case where we need to check
-   if a CVAR label is also in the place of an instance variable. */
-/***/
-static bool is_instance_var_series (MSINFO *ms) {
-  int prev_tok_ptr;
-  OBJECT *rcvr;
-
-  if ((prev_tok_ptr = prevlangmsg (ms -> messages, ms -> tok)) != ERROR) {
-    if (M_TOK(ms -> messages[prev_tok_ptr]) == LABEL ||
-	M_TOK(ms -> messages[prev_tok_ptr]) == METHODMSGLABEL) {
-      if ((rcvr = get_object (M_NAME(ms -> messages[prev_tok_ptr]), NULL))
-	  != NULL) {
-	if (get_instance_variable_series (rcvr, ms -> messages[ms -> tok],
-					  ms -> tok, ms -> stack_ptr)) {
-	  return true;
-	}
-      }
-    }
-  }
-  return false;
-}
-
 extern PARSER *parsers[MAXARGS+1];           /* Declared in rtinfo.c. */
 extern int current_parser_ptr;
 
@@ -1257,191 +1235,174 @@ OBJECT *resolve (int message_ptr) {
     }
 
      if ((result_object = get_object (M_NAME(m), NULL)) == NULL) {
-       /***/
-       if (((cvar = get_local_var (M_NAME(m))) != NULL) ||
-	   ((cvar = get_global_var_not_shadowed (M_NAME(m))) != NULL)) {
-	 if (!is_instance_var_series (&ms)) {
-	   m -> attrs |= TOK_IS_DECLARED_C_VAR;
-	   if (handle_cvar_arg_before_terminal_method_a (ms.messages, message_ptr)
-	       == ERROR) {
-	     if ((next_label_ptr = nextlangmsg (ms.messages, message_ptr))
-		 != ERROR) {
-	       m_next_label =
-		 ms.messages[next_label_ptr];
+      if (((cvar = get_local_var (M_NAME(m))) != NULL) ||
+	  ((cvar = get_global_var_not_shadowed (M_NAME(m))) != NULL)) {
+	m -> attrs |= TOK_IS_DECLARED_C_VAR;
+	if (handle_cvar_arg_before_terminal_method_a (ms.messages, message_ptr)
+	   == ERROR) {
+	 if ((next_label_ptr = nextlangmsg (ms.messages, message_ptr))
+	     != ERROR) {
+	   m_next_label =
+	     ms.messages[next_label_ptr];
 
-	       if (m -> attrs & TOK_IS_DECLARED_C_VAR) {
-		 /* If we were mistaken for an "int." */
-		 if (M_TOK(m_next_label) == SEMICOLON) {
-		   if ((prev_tok_ptr =
-			prevlangmsg (ms.messages, message_ptr)) != ERROR) {
-		     if (get_class_object
-			 (M_NAME(ms.messages[prev_tok_ptr]))) {
-		       error (m, "error: Identifier, \"%s,\" follows a "
-			      "class name without a constructor.",
-			      M_NAME(m));
-		     }
-		   }
+	   if (m -> attrs & TOK_IS_DECLARED_C_VAR) {
+	     /* If we were mistaken for an "int." */
+	     if (M_TOK(m_next_label) == SEMICOLON) {
+	       if ((prev_tok_ptr =
+		    prevlangmsg (ms.messages, message_ptr)) != ERROR) {
+		 if (get_class_object
+		     (M_NAME(ms.messages[prev_tok_ptr]))) {
+		   error (m, "error: Identifier, \"%s,\" follows a "
+			  "class name without a constructor.",
+			  M_NAME(m));
 		 }
-	       }
-	       if (M_TOK(m_next_label) == LABEL) {
-		 if (!is_c_keyword (M_NAME(m)) &&
-		     !(cvar -> type_attrs & CVAR_TYPE_STRUCT) &&
-		     !(cvar -> type_attrs & CVAR_TYPE_UNION) &&
-		     /* we don't handle aggregates here (yet) */
-		     !function_not_shadowed_by_method (ms.messages, message_ptr) &&
-		 !typedef_is_declared (M_NAME (m))) {
-		   m -> obj = create_object 
-		     (basic_class_from_cvar 
-		      (ms.messages[message_ptr], cvar, 0),
-		      M_NAME(m));
-		   /* NOTE: Don't check for a class typecast here - it's actually
-		      slower. */
-		   /* sic */
-		   if (m -> obj -> __o_class) {
-		     if (is_method_name(M_NAME(m_next_label)) ||
-			 is_method_proto (m->obj->__o_class, m -> name)) {
-		       m_next_label -> receiver_msg = m;
-		       m_next_label -> receiver_obj = m -> obj;
-		       m_next_label -> tokentype = METHODMSGLABEL;
-		       if (ctrlblk_pred) {
-			 ctrlblk_pred_rt_expr (ms.messages, message_ptr);
-			 return NULL;
-		       }
-		     }
-		   }
-		 }
-	       } else if (M_TOK(m_next_label) == ARRAYOPEN) {
-		 int __a, __i, __n;
-		 if ((__a = 
-		      is_subscript_expr (ms.messages,
-					 message_ptr, stack_top ))  > 0) {
-		   /* this doesn't return if true */
-		   is_OBJECT_ptr_array_deref (ms.messages,
-					      message_ptr);
-		   for (__i = next_label_ptr; __i >= __a; __i--) {
-		     ms.messages[__i] -> receiver_msg = m;
-		   }
-		   if ((__n = nextlangmsg (ms.messages, __a)) != ERROR) {
-		     MESSAGE *__m_n = ms.messages[__n];
-		     if ((M_TOK(__m_n) == INCREMENT) ||
-			 (M_TOK(__m_n) == DECREMENT)) {
-		       __m_n -> attrs |= TOK_IS_POSTFIX_OPERATOR;
-		       __m_n -> receiver_msg = 
-			 ms.messages[__a] -> receiver_msg;
-		     }
-		     if (M_TOK(__m_n) == ARRAYOPEN) {
-		       if (IS_OBJECT(result_object)) {
-			 warning (__m_n, 
-				  "Object, \"%s,\" has more than one subscript.", M_NAME(m));
-			 warning (__m_n, 
-				  "The standard class library does not support multi-dimension arrays.");
-		       }
-		     }
-		     /* Handle a subscripted receiver. 
-			Control structure predicates get handled
-			elsewhere. */
-		     if (!ctrlblk_pred && 
-			 subscr_rcvr_next_tok_is_method_a 
-			 (ms.messages, message_ptr, cvar)) {
-		       handle_simple_subscr_rcvr (ms.messages,
-						  message_ptr);
-		       return NULL;
-		     }
-		   }
-		 }
-	       } else if ((M_TOK(m_next_label) == INCREMENT) ||
-			  (M_TOK(m_next_label) == DECREMENT)) {
-		 m_next_label -> attrs |= TOK_IS_POSTFIX_OPERATOR;
-		 m_next_label -> receiver_msg = m;
-	       } else if ((M_TOK(m_next_label) == PERIOD) ||
-			  (M_TOK(m_next_label) == DEREF)) {
-		 if ((t = struct_end 
-		      (ms.messages, message_ptr, 
-		       stack_top)) > 0) {
-		   int __i, __postfix_idx;
-		   MESSAGE *__m_postfix;
-		   m -> attrs |= RCVR_TOK_IS_C_STRUCT_EXPR;
-		   for (__i = next_label_ptr; __i >= t; __i--) {
-		     ms.messages[__i] -> receiver_msg = m;
-		     ms.messages[__i] -> attrs |= 
-		       RCVR_TOK_IS_C_STRUCT_EXPR;
-		   }
-		   if ((__postfix_idx = is_trailing_postfix_op 
-			(ms.messages, t, stack_top)) > 0) {
-		     __m_postfix = ms.messages[__postfix_idx];
-		     if ((M_TOK(__m_postfix) == INCREMENT) ||
-			 (M_TOK(__m_postfix) == DECREMENT)) {
-		       __m_postfix -> attrs |= TOK_IS_POSTFIX_OPERATOR;
-		       __m_postfix -> receiver_msg = m;
-		     }
-		   }
-		   if (ctrlblk_pred) {
-		     int following_label;
-		     if ((following_label =
-			  label_following_deref_expr (ms.messages,
-						      message_ptr))
-			 != ERROR) {
-		       ctrlblk_pred_rt_expr (ms.messages, message_ptr);
-		       return NULL;
-		     }
-		   }
-		   if  (need_cvar_argblk_translation (cvar)) {
-		     /* The CVAR should not be anything but an
-			OBJECT * here, so just translating the
-			struct tag should be okay. */
-		     handle_cvar_argblk_translation (ms.messages,
-						     message_ptr,
-						     next_label_ptr,
-						     cvar);
-		   } else {
-		     insert_object_ref (ms.messages, message_ptr);
-		   }
-		   return NULL;
-		 } /* if ((__t = struct_end (ms.messages...*/
-	       } /* else if (M_TOK(m_next_label) == PERIOD  ... */
-	     } /* if ((next_label_ptr =  ... */
-	   } /* if (handle_cvar_arg_before_terminal_method_a ... */
-
-	   if (insert_object_ref (ms.messages, message_ptr)) {
-	     return NULL;
-	   }
-
-	   if (need_cvar_argblk_translation (cvar))
-	     return handle_cvar_argblk_translation (ms.messages,
-						    message_ptr,
-						    next_label_ptr,
-						    cvar);
-
-	   if (cvar -> scope & GLOBAL_VAR) {
-	     if (m -> output == 0) {
-	       /* The CVAR should be output immediately after the
-		  frame so setting the attribute here is close enough. */
-	       if (!(cvar -> attrs & CVAR_ATTR_TUI_DECL)) {
-		 cvar -> attrs |= CVAR_ATTR_TUI_DECL;
-		 return NULL;
-	       } else {
-		 /* "extern" declarations get handled by the parser,
-		    so this should not be needed normally. */
 	       }
 	     }
 	   }
-	 } else { /* if (!is_instance_var_series ... */
-	   /* An instance var is effectively in a different namespace,
-	      so there shouldn't need to be a warning message here...
-	      hopefully. So we can just output the expression and
-	      return. */
-	   /***/
-	   int _end;
-	   char argbuf[MAXMSG];
-	   prev_tok_ptr = prevlangmsg (ms.messages, ms.tok);
-	   if (ms.messages[prev_tok_ptr] -> attrs & TOK_SELF) {
-	     rt_self_expr (ms.messages, prev_tok_ptr, &_end, argbuf);
-	   } else {
-	     rt_expr (ms.messages, prev_tok_ptr, &_end, argbuf);
-	   }
-	   return NULL;
-	 }
-       } /* if (((cvar = get_local_var (M_NAME(m))) != NULL) || */
+	   if (M_TOK(m_next_label) == LABEL) {
+	     if (!is_c_keyword (M_NAME(m)) &&
+		 !(cvar -> type_attrs & CVAR_TYPE_STRUCT) &&
+		 !(cvar -> type_attrs & CVAR_TYPE_UNION) &&
+		 /* we don't handle aggregates here (yet) */
+		 !function_not_shadowed_by_method (ms.messages, message_ptr) &&
+		 !typedef_is_declared (M_NAME (m))) {
+	       m -> obj = create_object 
+		 (basic_class_from_cvar 
+		  (ms.messages[message_ptr], cvar, 0),
+		  M_NAME(m));
+	       /* NOTE: Don't check for a class typecast here - it's actually
+		  slower. */
+		 /* sic */
+	       if (m -> obj -> __o_class) {
+		 if (is_method_name(M_NAME(m_next_label)) ||
+		     is_method_proto (m->obj->__o_class, m -> name)) {
+		   m_next_label -> receiver_msg = m;
+		   m_next_label -> receiver_obj = m -> obj;
+		   m_next_label -> tokentype = METHODMSGLABEL;
+		   if (ctrlblk_pred) {
+		     ctrlblk_pred_rt_expr (ms.messages, message_ptr);
+		     return NULL;
+		   }
+		 }
+	       }
+	     }
+	   } else if (M_TOK(m_next_label) == ARRAYOPEN) {
+	     int __a, __i, __n;
+	     if ((__a = 
+		  is_subscript_expr (ms.messages,
+				     message_ptr, stack_top ))  > 0) {
+	       /* this doesn't return if true */
+	       is_OBJECT_ptr_array_deref (ms.messages,
+					  message_ptr);
+	       for (__i = next_label_ptr; __i >= __a; __i--) {
+		 ms.messages[__i] -> receiver_msg = m;
+	       }
+	       if ((__n = nextlangmsg (ms.messages, __a)) != ERROR) {
+		 MESSAGE *__m_n = ms.messages[__n];
+		 if ((M_TOK(__m_n) == INCREMENT) ||
+		     (M_TOK(__m_n) == DECREMENT)) {
+		   __m_n -> attrs |= TOK_IS_POSTFIX_OPERATOR;
+		   __m_n -> receiver_msg = 
+		     ms.messages[__a] -> receiver_msg;
+		 }
+		 if (M_TOK(__m_n) == ARRAYOPEN) {
+		   if (IS_OBJECT(result_object)) {
+		     warning (__m_n, 
+	     "Object, \"%s,\" has more than one subscript.", M_NAME(m));
+		     warning (__m_n, 
+     "The standard class library does not support multi-dimension arrays.");
+		   }
+		 }
+		 /* Handle a subscripted receiver. 
+		    Control structure predicates get handled
+		    elsewhere. */
+		 if (!ctrlblk_pred && 
+		     subscr_rcvr_next_tok_is_method_a 
+		     (ms.messages, message_ptr, cvar)) {
+		   handle_simple_subscr_rcvr (ms.messages,
+					      message_ptr);
+		   return NULL;
+		 }
+	       }
+	     }
+	   } else if ((M_TOK(m_next_label) == INCREMENT) ||
+		      (M_TOK(m_next_label) == DECREMENT)) {
+	     m_next_label -> attrs |= TOK_IS_POSTFIX_OPERATOR;
+	     m_next_label -> receiver_msg = m;
+	   } else if ((M_TOK(m_next_label) == PERIOD) ||
+		      (M_TOK(m_next_label) == DEREF)) {
+	     if ((t = struct_end 
+			 (ms.messages, message_ptr, 
+			  stack_top)) > 0) {
+	       int __i, __postfix_idx;
+	       MESSAGE *__m_postfix;
+	       m -> attrs |= RCVR_TOK_IS_C_STRUCT_EXPR;
+	       for (__i = next_label_ptr; __i >= t; __i--) {
+		 ms.messages[__i] -> receiver_msg = m;
+		 ms.messages[__i] -> attrs |= 
+		   RCVR_TOK_IS_C_STRUCT_EXPR;
+	       }
+	       if ((__postfix_idx = is_trailing_postfix_op 
+		    (ms.messages, t, stack_top)) > 0) {
+		 __m_postfix = ms.messages[__postfix_idx];
+		 if ((M_TOK(__m_postfix) == INCREMENT) ||
+		     (M_TOK(__m_postfix) == DECREMENT)) {
+		   __m_postfix -> attrs |= TOK_IS_POSTFIX_OPERATOR;
+		   __m_postfix -> receiver_msg = m;
+		 }
+	       }
+	       if (ctrlblk_pred) {
+		 int following_label;
+		 if ((following_label =
+		      label_following_deref_expr (ms.messages,
+						  message_ptr))
+		     != ERROR) {
+		   ctrlblk_pred_rt_expr (ms.messages, message_ptr);
+		   return NULL;
+		 }
+	       }
+	       if  (need_cvar_argblk_translation (cvar)) {
+		 /* The CVAR should not be anything but an
+		    OBJECT * here, so just translating the
+		    struct tag should be okay. */
+		 handle_cvar_argblk_translation (ms.messages,
+						 message_ptr,
+						 next_label_ptr,
+						 cvar);
+	       } else {
+		 insert_object_ref (ms.messages, message_ptr);
+	       }
+	       return NULL;
+	     } /* if ((__t = struct_end (ms.messages...*/
+	   } /* else if (M_TOK(m_next_label) == PERIOD  ... */
+	 } /* if ((next_label_ptr =  ... */
+       } /* if (handle_cvar_arg_before_terminal_method_a ... */
+
+	if (insert_object_ref (ms.messages, message_ptr)) {
+	  return NULL;
+	}
+
+	if (need_cvar_argblk_translation (cvar))
+	  return handle_cvar_argblk_translation (ms.messages,
+						 message_ptr,
+						 next_label_ptr,
+						 cvar);
+
+	if (cvar -> scope & GLOBAL_VAR) {
+	  if (m -> output == 0) {
+	    /* The CVAR should be output immediately after the
+	       frame so setting the attribute here is close enough. */
+	    if (!(cvar -> attrs & CVAR_ATTR_TUI_DECL)) {
+	      cvar -> attrs |= CVAR_ATTR_TUI_DECL;
+	      return NULL;
+	    } else {
+	      /* "extern" declarations get handled by the parser,
+		 so this should not be needed normally. */
+	    }
+	  }
+	}
+
+      } /* if (((cvar = get_local_var (M_NAME(m))) != NULL) || */
      } /* if ((result_object = get_object (M_NAME(m), NULL)) == NULL) */
 
      /* Check for an object that shadows a C symbol first. */

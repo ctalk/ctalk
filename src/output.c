@@ -1,4 +1,4 @@
-/* $Id: output.c,v 1.2 2020/12/07 08:31:25 rkiesling Exp $ */
+/* $Id: output.c,v 1.1.1.1 2020/12/13 14:51:02 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -1261,13 +1261,6 @@ void __fileout_import (char *s) {
 }
 
 int last_fileout_stmt;
-
-int get_last_fileout_stmt (void) {
-  return last_fileout_stmt;
-}
-void set_last_fileout_stmt (int i) {
-  last_fileout_stmt = i;
-}
 
 /*
  *  Output the generated ctalk code, delaying the output 

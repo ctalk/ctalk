@@ -1,4 +1,4 @@
-/* $Id: ctalk.h,v 1.15 2020/12/06 20:31:09 rkiesling Exp $ -*-Fundamental-*- */
+/* $Id: ctalk.h,v 1.1.1.1 2020/12/13 14:51:03 rkiesling Exp $ -*-Fundamental-*- */
 
 /*
   This file is part of Ctalk.
@@ -878,8 +878,6 @@ int split_args_idx (MESSAGE_STACK, int, int, int *, int *);
 char *stdarg_fmt_arg_expr (MESSAGE_STACK, int, METHOD *, char *);
 char *writable_arg_rt_arg_expr (MESSAGE_STACK, int, int, char *);
 char *format_method_arg_accessor (int, char *, bool, char *);
-char *method_arg_is_fn_call (MESSAGE_STACK, int, int, int, int, int *);
-
 
 /* argblk.c */
 int argblk_end (MESSAGE_STACK, int);
@@ -1165,11 +1163,6 @@ char *format_fn_call_method_expr_block (MESSAGE_STACK, int, int *, char *);
 void eval_params_inline (MESSAGE_STACK, int, int, int, CFUNC *,
      char *);
 char *format_fn_call_method_expr_block_cond (MESSAGE_STACK, int, int *, char *);
-char *tmp_lval_type_str (int);
-int get_tmp_lval_tab_idx (MESSAGE_STACK, int, char *);
-char *make_tmp_fn_block_name (char *);
-CVAR *tmp_lval_cvar (int);
-void register_template_arg_CVARs (MESSAGE_STACK, int, int, char *);
 
 /* enum.c */
 CVAR *enum_decl (MESSAGE_STACK, int);
@@ -1486,7 +1479,6 @@ void __inspect_init (void);
 /* lib/edittext.c */
 int __textedit_insert (OBJECT *, int, int, int);
 int __edittext_prev_char (OBJECT *);
-int __edittext_delete_selection (OBJECT *);
 int __edittext_next_char (OBJECT *);
 int __edittext_prev_line (OBJECT *);
 int __edittext_next_line (OBJECT *);
@@ -1499,7 +1491,6 @@ int __edittext_point_to_click (OBJECT *, int, int);
 int __edittext_index_from_pointer (OBJECT *, int, int);
 int __edittext_insert_at_point (OBJECT *, int, int, int);
 int __edittext_get_primary_selection (OBJECT *, void **, int *);
-int __edittext_get_clipboard (OBJECT *, void **, int *);
 int __edittext_insert_str_at_point (OBJECT *, char *);
 int __edittext_set_selection_owner (OBJECT *);
 int __edittext_insert_str_at_click (OBJECT *, int, int, char *);
@@ -2971,7 +2962,6 @@ int is_superclass_method_proto (char *, char *);
 int method_proto_is_output (char *);
 OBJECT *method_from_prototype (char *);
 OBJECT *method_from_prototype_2 (OBJECT *, char *);
-OBJECT *method_from_prototype_3 (MESSAGE_STACK, int);
 char *method_proto (char *, char *);
 int this_method_from_proto (char *, char *);
 MESSAGE_STACK r_message_stack (void);
