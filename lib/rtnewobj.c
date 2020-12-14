@@ -1,4 +1,4 @@
-/* $Id: rtnewobj.c,v 1.5 2020/11/15 01:37:31 rkiesling Exp $ -*-c-*-*/
+/* $Id: rtnewobj.c,v 1.1.1.1 2020/12/13 14:51:03 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.

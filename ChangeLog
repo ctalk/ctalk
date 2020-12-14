@@ -1470,4 +1470,27 @@
 	member (x11lib.c).
 	- Updates and speedups in X11ListPane class.
 	- Release 0.0.66 2020-11-20.
+2020-12-13
+	- Updated SignalHandler : __setSystemSig to keep the
+	signal setting calls in one method.  Also
+	method_arg_is_fn_call (arg.c), called by rt_self_expr
+	(rt_expr.c), and register_template_arg_CVARs, tmp_lval_cvar,
+	make_tmp_fn_block_name, and_tmp_lval_type_str (c_rval.c),
+	and added the templates SELF_LVAL_FN_EXPR_TEMPLATE and
+	ARG_FN_EXPR_TEMPLATE to parser.h.
+2020-12-14
+	- Added dialog window support in __ctalkGUIPaneClearWindow
+	(guiclearwindow.c).
+	- Added X11CheckBoxPane class and demos/x11/checkbox.ca demo
+	program.
+	- Updated __ctalkX11SubWindowGeometry to allow for geometry
+	strings that contain only the X,Y window origin (xgeometry.c),
+	as well as use negative X,Y parameters with percent parameters.
+	- Returned the libXft text measuring functions to
+	__ctalkXftGetStringDimensions for now (xftlib.c).
+	- Added the X11ListPane : selectStyle resource, and the
+	vAlignHint instance variable, and also some speedups in
+	X11ListPane and X11FileSelectDialog.
+	- Release 0.66.0 2020-12-14.
+
 

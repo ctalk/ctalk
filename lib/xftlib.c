@@ -1,4 +1,4 @@
-/* $Id: xftlib.c,v 1.3 2020/11/20 12:07:16 rkiesling Exp $ -*-c-*-*/
+/* $Id: xftlib.c,v 1.2 2020/12/14 14:18:14 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -771,6 +771,8 @@ static char m_filename[FILENAME_MAX] = "";
 static FT_Library glyph_ft = NULL;
 static FT_Face glyph_face = NULL;
 
+#ifdef USE_NEW_GLYPH_METRICS
+
 int __ctalkXftGetStringDimensions (char *str, int *x, int *y,
 				   int *width, int *height,
 				   int *rbearing) {
@@ -867,6 +869,58 @@ int __ctalkXftGetStringDimensions (char *str, int *x, int *y,
   }
 
 }
+
+#else /* #ifdef USE_NEW_GLYPH_METRICS */
+
+int __ctalkXftGetStringDimensions (char *str, int *x, int *y,
+				   int *width, int *height,
+				   int *rbearing) {
+  XGlyphInfo extents;
+  Display *d_l;
+  char *d_env = NULL;
+
+  if (selected_font == NULL) {
+    *x = *y = *width = *height = 0;
+    return SUCCESS;
+  }
+
+  if (*selected_filename == '\0') {
+    /* We haven't actually selected a font yet - use Xft's 
+       algorightm. */
+    if ((d_env = getenv ("DISPLAY")) == NULL) {
+      printf ("This program requires the X Window System. Exiting.\n");
+      exit (1);
+    }
+
+    d_l = XOpenDisplay (d_env);
+
+    XftTextExtents8 (d_l, selected_font,
+		     (XftChar8 *)str, strlen (str),
+		     &extents);
+    XCloseDisplay (d_l);
+    *x = extents.x;
+    *y = extents.y;
+    *width = extents.width;
+    *height = extents.height;
+    *rbearing = 0;
+    
+  } else {
+  
+    XftTextExtents8 (display, selected_font,
+		     (XftChar8 *)str, strlen (str),
+		     &extents);
+ 
+    *x = extents.x;
+    *y = extents.y;
+    *width = extents.width;
+    *height = extents.height;
+    *rbearing = 0;
+
+  }
+  return SUCCESS;
+}
+
+#endif /* #ifdef USE_NEW_GLYPH_METRICS */
 
 #else /* #ifdef HAVE_XRENDER_H */
 int __ctalkXftGetStringDimensions (char *str, int *x, int *y,

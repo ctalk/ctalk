@@ -1,4 +1,4 @@
-/* $Id: guiclearwindow.c,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ -*-c-*-*/
+/* $Id: guiclearwindow.c,v 1.2 2020/12/14 13:20:16 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -41,6 +41,8 @@ extern Display *display;   /* Defined in x11lib.c. */
 extern char *shm_mem;
 extern int mem_id;
 
+extern int __xlib_clear_window (Display *, Window, GC);
+
 #if X11LIB_FRAME
 int __ctalkX11PaneClearWindow (OBJECT *self_object) {
   return SUCCESS;
@@ -55,16 +57,26 @@ int __ctalkX11PaneClearWindow (OBJECT *self) {
 int __ctalkGUIPaneClearWindow (OBJECT *self) {
   OBJECT *self_object, *win_id_value, *gc_value,
     *displayPtr_var;
+  Display *l_d;
+  Window win_id;
   self_object = (IS_VALUE_INSTANCE_VAR (self) ? self->__o_p_obj : self);
   win_id_value = __x11_pane_win_id_value_object (self_object);
+  win_id = INTVAL(win_id_value -> __o_value);
   gc_value = __x11_pane_win_gc_value_object (self_object);
   displayPtr_var = __ctalkGetInstanceVariable (self_object,
 					       "displayPtr", TRUE);
-  make_req (shm_mem, SYMVAL(displayPtr_var -> instancevars -> __o_value),
-	    PANE_CLEAR_WINDOW_REQUEST,
-	    INTVAL(win_id_value ->  __o_value),
-	    SYMVAL(gc_value -> __o_value), "");
-  wait_req (shm_mem);
+  if (dialog_dpy ()) {
+    l_d = (Display *)SYMVAL(displayPtr_var -> instancevars -> __o_value);
+    win_id = INTVAL(win_id_value -> __o_value);
+    __xlib_clear_window (l_d, win_id, (GC)SYMVAL(gc_value -> __o_value));
+  } else {
+    make_req (shm_mem, SYMVAL(displayPtr_var -> instancevars -> __o_value),
+	      PANE_CLEAR_WINDOW_REQUEST,
+	      INTVAL(win_id_value ->  __o_value),
+	      SYMVAL(gc_value -> __o_value), "");
+    wait_req (shm_mem);
+  }
+
   return SUCCESS;
 }
 #endif /* X11LIB_FRAME */

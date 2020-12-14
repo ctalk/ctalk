@@ -1,0 +1,202 @@
+/* $Id: X11CheckBoxPane,v 1.1 2020/12/14 13:31:23 rkiesling Exp $ -*-c-*-*/
+
+/*
+  This file is part of Ctalk.
+  Copyright © 2020  Robert Kiesling, rk3314042@gmail.com.
+  Permission is granted to copy this software provided that this copyright
+  notice is included in all source code modules.
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+*/
+
+/*
+ *    X11CheckBoxPane class.
+ */
+/*
+      Resources
+
+      clickColor                "darkslategray"
+      backgroundColor           "white"
+      width                     15 px
+      height                    15 px
+      margin                    1  px
+      borderWidth               1  px
+      bevel                     false
+      lightShadowColor          "gray"
+      darkShadowColor           "gray60"
+      frameRadius               0
+      fillRadius                0
+ */
+
+X11CanvasPane class X11CheckBoxPane;
+
+X11CanvasPane instanceVariable clicked Boolean false;
+
+X11CheckBoxPane instanceMethod new (String __paneName) {
+  Method new buttonPressMethod;
+
+  X11CheckBoxPane super new __paneName;
+
+  buttonPressMethod definedInstanceMethod "X11CheckBoxPane", "onClick";
+  __paneName setMethodHandler "pointerinput", buttonPressMethod;
+
+  __paneName resources atPut "margin", 1;
+  __paneName resources atPut "borderWidth", 1;
+  __paneName resources atPut "width", 15;
+  __paneName resources atPut "height", 15;
+  __paneName resources atPut "bevel", false;
+  __paneName resources atPut "clickColor", "darkslategray";
+  __paneName resources atPut "backgroundColor", "white";
+  __paneName resources atPut "lightShadowColor", "gray";
+  __paneName resources atPut "darkShadowColor", "gray60";
+  __paneName resources atPut "frameRadius", 0;
+  __paneName resources atPut "fillRadius", 0;
+
+  return __paneName;
+}
+
+X11CheckBoxPane instanceMethod attachTo (Object parentPane,
+				       String geomspec) {
+  "Register the receiver pane as a subpane of the X11Pane
+  given as the argument.  Generally parent pane should
+    be a X11PaneDispatcher object.  Optionally, this class 
+    only requires the X and Y members of <geomspec> for the
+    control's placement.  In this case, the check box's size
+    is controlled by the width and height resources."
+					  
+  X11Bitmap new xPaneBuffer;
+  X11Bitmap new xPaneBackingStore;
+  int x, y, width, height;
+
+  __ctalkX11SubWindowGeometry (parentPane, geomspec,
+				 &x, &y, &width, &height);
+
+  /* If the geomspec didn't specify width and height dimensions,
+     use the dimensions from the width and height resources. 
+     Then we create a complete geometry string which the 
+     superclass(es) use to attach to the main window. */
+  if (width != -1) {
+    self size x = width;
+  } else {
+    self size x = self resources integerAt "width";
+  }
+  if (height != -1) {
+    self size y = height;
+  } else {
+    self size y = self resources integerAt "height";
+  }
+  self origin x = x;
+  self origin y = y;
+
+  geomspec printOn "%dx%d+%d+%d", self size x, self size y, x, y;
+
+  self super attachTo (parentPane, geomspec);
+
+  self paneBuffer become xPaneBuffer;
+  self paneBackingStore become xPaneBackingStore;
+
+  (X11Bitmap *)self paneBuffer create self displayPtr, self xWindowID,
+    self size x, self size y, self depth;
+  (X11Bitmap *)self paneBuffer background (self backgroundColor);
+  (X11Bitmap *)self paneBackingStore create self displayPtr, self xWindowID,
+    self size x, self size y, self depth;
+
+  return NULL;
+}
+
+X11CheckBoxPane instanceMethod onClick (Object subPane, InputEvent event) {
+  if (event eventClass == BUTTONPRESS) {
+    subPane clicked = !subPane clicked;
+    subPane draw;
+  }
+}
+
+X11CheckBoxPane instanceMethod draw (void) {
+
+  Integer new width, height, borderWidth, margin, bevel,
+    i, borderIn, frameRadius, fillRadius;
+  String new clickColor, lightShadow, darkShadow;
+
+  self paneBuffer background self resources at "backgroundColor";
+
+  borderWidth = self resources integerAt "borderWidth";
+  margin = self resources integerAt "margin";
+  width = self resources integerAt "width";
+  height = self resources integerAt "height";
+  bevel = self resources integerAt "bevel";
+  frameRadius = self resources integerAt "frameRadius";
+  fillRadius = self resources integerAt "fillRadius";
+  clickColor = self resources at "clickColor";
+  lightShadow = self resources at "lightShadowColor";
+  darkShadow = self resources at "darkShadowColor";
+
+  self pen colorName = clickColor;
+  self pen width = borderWidth;
+
+  if (!frameRadius) {
+    self drawRectangle 0, 0, width, height;
+
+    if (bevel) {
+      if (margin == 1 || borderWidth == 1) {
+	self pen colorName = lightShadow;
+	self drawLine width - 2, 1, width - 2, height - 1;
+	self drawLine width - 2, height - 2, 1, height - 2;
+	self pen colorName = darkShadow;
+	self drawLine 2, height - 3, 2, 2;
+	self drawLine 1, 2, width - 3, 2;
+      } else {
+	borderIn = borderWidth / 2;
+	for (i = borderWidth; i < (margin + borderWidth); ++i) {
+	  self pen colorName = lightShadow;
+	  self drawLine width - (i + borderIn), i,  width - (i + borderIn),
+	    height - i;
+	  self drawLine width - (i + borderIn),
+	    height - (i + borderIn), i, height - (i + borderIn);
+
+	  self pen colorName = darkShadow;
+	  self drawLine (i + borderIn), width - (i + borderIn),
+	    (i + borderIn), (i + borderIn);
+
+	  self drawLine width - (i + borderIn),
+	    (i + borderIn), i, (i + borderIn);
+	}
+      }
+    }
+  } else { /* if (!frameRadius) */
+    self drawRoundedRectangle 0, 0, width, height, frameRadius;
+  }
+
+  if (self clicked) {
+    self pen colorName = clickColor;
+
+    if (fillRadius) {
+      self drawFilledRoundedRectangle
+	margin + borderWidth,
+	margin + borderWidth,
+	width - ((margin + borderWidth) * 2),
+	height - ((margin + borderWidth) * 2),
+	fillRadius;
+    } else {
+      self drawFilledRectangle
+	margin + borderWidth,
+	margin + borderWidth,
+	width - ((margin + borderWidth) * 2),
+	height - ((margin + borderWidth) * 2);
+    }
+  }
+
+  self refresh;
+}
+

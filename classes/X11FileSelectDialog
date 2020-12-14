@@ -1,4 +1,4 @@
-/* $Id: X11FileSelectDialog,v 1.5 2020/09/19 01:08:25 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11FileSelectDialog,v 1.4 2020/12/14 18:12:05 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -328,8 +328,6 @@ X11FileSelectDialog instanceMethod onListClick (Object subPane, InputEvent event
 		    }
 		  }
 		}
-		super listPane draw;
-		super listPane refresh;
 	      } else if (super listPane shiftState & shiftStateShift) {
 		if ((y_1 >= item org y) && (y_1 <= item ext y)) {
 		  if (last_click_nth == i) {
@@ -352,12 +350,12 @@ X11FileSelectDialog instanceMethod onListClick (Object subPane, InputEvent event
 		    item selected = true;
 		    super listPane selectRange i;
 		  }
-		  super listPane draw;
-		  super listPane refresh;
 		}
 	      }
 	      ++i;
 	    }
+	    self listPane draw;
+	    self listPane refresh;
 	  }
 	  break;
 	case Button2:

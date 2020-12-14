@@ -1,4 +1,4 @@
-/* $Id: libdeps.c,v 1.2 2020/11/10 23:26:51 rkiesling Exp $ */
+/* $Id: libdeps.c,v 1.1.1.1 2020/12/13 14:51:02 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.

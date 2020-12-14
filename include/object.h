@@ -1,4 +1,4 @@
-/* $Id: object.h,v 1.8 2020/11/12 10:58:28 rkiesling Exp $ */
+/* $Id: object.h,v 1.1.1.1 2020/12/13 14:51:03 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.

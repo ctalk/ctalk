@@ -1,4 +1,4 @@
-/* $Id: ctalk.h,v 1.3 2020/11/19 21:51:18 rkiesling Exp $ -*-Fundamental-*- */
+/* $Id: ctalk.h,v 1.2 2020/12/14 02:35:18 rkiesling Exp $ -*-Fundamental-*- */
 
 /*
   This file is part of Ctalk.
@@ -878,6 +878,10 @@ int split_args_idx (MESSAGE_STACK, int, int, int *, int *);
 char *stdarg_fmt_arg_expr (MESSAGE_STACK, int, METHOD *, char *);
 char *writable_arg_rt_arg_expr (MESSAGE_STACK, int, int, char *);
 char *format_method_arg_accessor (int, char *, bool, char *);
+char *method_arg_is_fn_call (MESSAGE_STACK messages, int start_idx,
+			     int fn_label_idx,
+			     int stack_top_idx, int method_idx,
+			     int *expr_end_idx);
 
 /* argblk.c */
 int argblk_end (MESSAGE_STACK, int);
@@ -1163,6 +1167,15 @@ char *format_fn_call_method_expr_block (MESSAGE_STACK, int, int *, char *);
 void eval_params_inline (MESSAGE_STACK, int, int, int, CFUNC *,
      char *);
 char *format_fn_call_method_expr_block_cond (MESSAGE_STACK, int, int *, char *);
+int get_tmp_lval_tab_idx (MESSAGE_STACK messages, int fn_label_idx,
+		      char *fn_return_class);
+CVAR *tmp_lval_cvar (int);		      
+char *make_tmp_fn_block_name (char *);
+char *tmp_lval_type_str (int);
+void register_template_arg_CVARs (MESSAGE_STACK messages,
+				  int start_idx, int end_idx,
+				  char *buf);
+
 
 /* enum.c */
 CVAR *enum_decl (MESSAGE_STACK, int);
@@ -2528,6 +2541,7 @@ int __ctalkIsDir (char *);
 bool is_shell_script (char *);
 bool file_has_exec_permissions (char *);
 char *__ctalkExpandPath (char *, char *);
+int file_size_silent (char *path);
 
 /* lib/strcatx.c */
 int strcatx (char *, ...);
