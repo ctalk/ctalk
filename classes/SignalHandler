@@ -1,4 +1,4 @@
-/* $Id: SignalHandler,v 1.1.1.1 2020/12/13 14:51:03 rkiesling Exp $ -*-c-*-*/
+/* $Id: SignalHandler,v 1.2 2020/12/14 02:35:17 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -61,9 +61,7 @@ SignalHandler instanceMethod setSigNo (Integer signo) {
 
 SignalHandler instanceMethod __setSystemSig (String sigName) {
   "Internal method to handle setting a system defined signal."
-  int sig_no;
-  sig_no = __ctalkSystemSignalNumber ("SIGUSR2");
-  self addInstanceVariable "sigNo", sig_no;
+  self addInstanceVariable "sigNo", __ctalkSystemSignalNumber (sigName);
   return self;
 }
 

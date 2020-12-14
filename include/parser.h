@@ -1,4 +1,4 @@
-/* $Id: parser.h,v 1.1.1.1 2020/12/13 14:51:03 rkiesling Exp $ */
+/* $Id: parser.h,v 1.2 2020/12/14 02:35:18 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -248,6 +248,21 @@ typedef enum {
   instance_var_message,
   class_var_message
 } MESSAGE_CLASS;
+
+#define SELF_LVAL_FN_EXPR_TEMPLATE "\n\
+       {\n\
+          %s %s = %s;\n\
+          %s\n\
+          %s;\n\
+       }\n"
+
+#define ARG_FN_EXPR_TEMPLATE "\n\
+       {\n\
+          %s %s = %s;\n\
+          %s\
+       }\n"
+
+#define RVALTEMPLATEMAX 0xffff
 
 #endif
 

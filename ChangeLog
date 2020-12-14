@@ -1470,4 +1470,12 @@
 	member (x11lib.c).
 	- Updates and speedups in X11ListPane class.
 	- Release 0.0.66 2020-11-20.
+2020-12-15
+	- Updated SignalHandler : __setSystemSig to keep the
+	signal setting calls in one method.  Also
+	method_arg_is_fn_call (arg.c), called by rt_self_expr
+	(rt_expr.c), and register_template_arg_CVARs, tmp_lval_cvar,
+	make_tmp_fn_block_name, and_tmp_lval_type_str (c_rval.c),
+	and added the templates SELF_LVAL_FN_EXPR_TEMPLATE and
+	ARG_FN_EXPR_TEMPLATE to parser.h.
 
