@@ -17,6 +17,351 @@ Texts.  A copy of the license is included in the section entitled, "GNU
 Free Documentation License."
 
 
+File: ctalk.info,  Node: Required classes,  Next: Scoping,  Prev: C Macros,  Up: Methods
+
+Required Classes
+----------------
+
+The keyword 'require' tells 'ctalk' to preload the class given as its
+argument before any other classes or methods.
+
+The following lines appear in the 'ctalklib' library.
+
+     require Object;
+     require Symbol;
+     require String;
+
+These statements tell 'ctalk' to first load the 'Object' class and its
+methods, and then load the class 'Symbol' and its methods, and then
+class 'String.' Ctalk loads the class and its methods at that point in
+the program, before further processing of the source file.
+
+The 'require' keyword always occurs in a global scope; that is, outside
+of any method or function.
+
+
+File: ctalk.info,  Node: Scoping,  Next: Templates,  Prev: Required classes,  Up: Methods
+
+Scope of Objects
+----------------
+
+In Ctalk, an object can have a number of different scopes, and Ctalk
+implements many more scopes for objects than for C variables.
+
+All of the scopes are available when creating and modifying objects.  In
+practice, however, you should only need to use a few of them.  Ctalk
+uses many of the scopes internally.
+
+These are the scopes that Ctalk implements.
+
+'GLOBAL_VAR'
+     An object that is declared globally; that is, outside of any
+     function or method.
+'LOCAL_VAR'
+     An object declared within a function or method.
+'ARG_VAR'
+     An object derived from a C function argument that is used within a
+     Ctalk expression.  This scope is normally used only internally.
+'RECEIVER_VAR'
+     An object created internally for receiver objects that do not
+     already have objects.  Ctalk assigns RECEIVER_VAR objects C
+     constants and constant expressions when they are used as receivers.
+'PROTOTYPE_VAR'
+     Used by the front end when evaluating objects that are declared as
+     method parameters.
+'CREATED_PARAM'
+     Used mainly for temporary objects that are derived from C constants
+     that are arguments to methods and functions.
+'CVAR_VAR_ALIAS_COPY'
+     Used for temporary and non-temporary objects that are created from
+     C variables.
+'CREATED_CVAR_SCOPE'
+     This is a combination of CVAR_VAR_ALIAS_COPY|LOCAL_VAR scopes.
+     Used for C variable objects that are only needed for the duration
+     of an expression.  Also used for other values that aren't needed
+     after an expression has been evaluated, like boolean method return
+     values.
+'SUBEXPR_CREATED_RESULT'
+     Used internally for temporary objects that are the results of
+     subexpressions.
+'VAR_REF_OBJECT'
+     Used for objects that are referred to by other objects; for example
+     an object referred to by a 'Symbol' object may have this scope set.
+'METHOD_USER_OBJECT'
+     This scope is used mostly internally for objects that are returned
+     by methods and saved as method resources.
+'TYPECAST_OBJECT'
+     Used internally for temporary objects that are derived from C type
+     cast expressions.
+You set a new object's scope with the '__ctalkCreateObject' or
+'__ctalkCreateObjectInit' functions.  To change an existing object's
+scope, use the '__ctalkSetObjectScope' library function to set an
+object's scope.
+
+Even though you can set an 'OBJECT *''s 'scope' directly, using these
+functions insures that the object and all of its instance variables
+maintain the same scope.
+
+When creating an object with a function like '__ctalkCreateObjectInit',
+you can declare a scope directly.
+     result = __ctalkCreateObjectInit ("result",
+                                       "Symbol", "Object",
+                                       LOCAL_VAR, "0x0");
+When altering the scope of an existing object, however, you should add
+or subtract only that scope from the object's existing scope.
+
+For example, to add a 'VAR_REF_OBJECT' scope to an object:
+     __ctalkSetObjectScope (object, object -> scope | VAR_REF_OBJECT);
+To remove the scope, use an expression like this.
+     __ctalkSetObjectScope (object, object -> scope & ~VAR_REF_OBJECT);
+
+For values of integral classes like 'Integer', 'LongInteger' or
+'Symbol', '__ctalkCreateObjectInit' tries to convert the VALUE parameter
+to its numeric value.  It the function can't figure out a way to convert
+the argument to its numeric value, it issues a warning message.
+
+
+     ctalk: can't convert d to an int.
+
+
+In these cases (and in many others) it is easier to simply use an empty
+string as the final parameter and then fill in the value after the
+object is created, as in this example (assuming that the object is an
+'Integer')..
+
+
+     result = __ctalkCreateObjectInit
+       (INTEGER_CLASSNAME, INTEGER_SUPERCLASSNAME, LOCAL_VAR, "");
+     *(int *)result -> __o_value = int_value;
+     *(int *)result -> instancevars -> __o_value = int_value;
+
+
+In this case, the INTVAL, LLVAL, and SYMVAL macros can help make the
+expression more readable, depending on whether the new object is an
+'Integer', 'LongInteger', or 'Symbol'.
+
+
+     INTVAL(result -> __o_value) = int_value;
+     INTVAL(result -> instancevars -> __o_value) = int_value;
+
+
+
+File: ctalk.info,  Node: Templates,  Next: Return values,  Prev: Scoping,  Up: Methods
+
+Templates
+---------
+
+_Templates_ are simplified methods that are defined as macros and
+written in C. They provide a method-compatible wrapper to C functions.
+
+Template methods can appear in place of C functions in complex
+expressions, and they must be used if a C function writes to its
+arguments (e.g., like 'scanf(3)' or 'sscanf(3)').  For example, if we
+have a template defined for the function 'myPrintMsg', then Ctalk
+subsitutes the method expression wherever 'myPrintMsg' appears in an
+expression like this one.
+
+
+       if ((myInt = myPrintMsg (someMsg)) != 0) {
+          _... do something..._
+       }
+
+
+After compilation, the expression looks like this.
+
+
+       if ((myInt = CFunction cMyPrintMsg (someMsg)) != 0) {
+          ...
+
+
+You can also use 'myPrintMsg' on the left-hand side of an assignment,
+like this.
+
+
+       myInt = myPrintMsg (someMsg);
+
+       _-or-_
+
+       self = myPrintMsg (someMsg);
+
+
+Additionally, you can use templates on their own, by prefacing the
+method's name (the template function's alias) with its class object.
+
+
+       CFuntion myPrintMsg (someMsg);
+
+
+As the last example implies, templates are class methods in the
+pseudo-class 'CFunction'.  Ctalk loads and caches templates where
+necessary when compiling the input file, so you won't see any methods of
+the 'CFunction' class unless the program calls for one or more of them.
+
+If the template wraps a C function of the same name, then, of course,
+you can also use the C function on its own.  However, templates don't
+necessarily need to correspond to a C function; they can provide any set
+of C expressions with a method compatible interface.
+
+Ctalk defines a number of built-in templates for the standard C library.
+You can determine if Ctalk substitutes a template for a C function by
+giving the '--printtemplates' option to 'ctalk' when it compiles a
+source file.  This displays the templates that the compiler loads and
+caches (but doesn't necessarily send to the output).
+
+You can define templates for application-specific C functions and
+routines also.  Ctalk retrieves and caches them similarly to its
+built-in templates, but they are cataloged and stored separately in each
+user's '~/.ctalk/templates' directory.
+
+As mentioned above, templates don't need to wrap a function of the same
+name as the template.  That is, 'myPrintMsg', above, does not have to be
+an actual function (although you need to prototype it that way).
+Templates for C library functions always correspond to an actual library
+function.  Program specific templates can serve as a wrapper for any
+function or set of routines.
+
+When compiling templates, the Ctalk compiler checks the user template
+registry first.  If a user defines a template with the same name as one
+of Ctalk's C library templates, then the compiler uses the user's
+template instead of Ctalk's built-in template.  That means you can
+define a template that replaces a C library template.
+
+When creating a template for a function, you need to follow these steps.
+
+   * Add a prototype of the function to the input file.  For example:
+
+
+            OBJECT *myPrintMsg (char *text);
+
+
+     Ctalk uses the prototype's argument list to check the number and
+     type of arguments.  The prototype's argument list must be the same
+     as the template's argument list.
+
+   * Check that any terms in the expression before and after the
+     template are compatible.  Ctalk can in most cases distinguish
+     between objects and C variables in expressions.  Ctalk will try to
+     warn you if it sees a mixed object/variable expression it can't
+     handle.  If an expression causes an error, try breaking it into
+     smaller pieces, with objects and methods in one set of terms, and C
+     variables and operators in another.  Also, try making the template
+     function the first term in the expression (or the first term after
+     an assignment operator).  This expression, for example, is
+     relatively easy to handle because everything that follows the
+     template is normal C code.
+
+
+          myFloat = rand () + 0.33 + (float)my_dbl;
+
+
+   * Write a template for the function, and add it to the local
+     directory's template cache with the 'template' command.  The
+     following sections describe the format that templates use.
+
+Writing Templates
+-----------------
+
+Templates are basically multiple line macros that provide a method
+selector and method body in a #define preprocessor statement.  When
+Ctalk finds a function name that has a template defined for it, it
+subsitutes the template name for the function name in the expression,
+adds the template's body to the output, and adds the template to the
+CFunction classes' initialization.
+
+Templates can accept arguments similarly to methods, and, like methods,
+they return a C 'OBJECT *', or NULL.
+
+Here is the template for the 'myPrintMsg()' C function.  The template
+provides a wrapper for the 'printf(3)' function, and, like 'printf(3)',
+returns an integer value (as an 'Integer' object).  The template
+contains a few features that are part of the template protocol.
+
+
+     #define myPrintMsg \n\
+     cMyPrintMsg (char *text) {\n\
+       char buf[255]; \n\
+       int result; \n\
+       OBJECT *objresult; \n\
+       if (__ctalkIsObject(ARG(0))) {\n\
+         result = printf ("myPrintMsg: %s\n", \n\
+                           __ctalkToCCharPtr(ARG(0), 1)); \n\
+         __ctalkDecimalIntegerToASCII (result, buf); \n\
+         return __ctalkCreateObjectInit ("result", "Integer", \n\
+                                         "Magnitude", LOCAL_VAR, buf); \n\
+       } else { \n\
+         __ctalkDecimalIntegerToASCII (-1, buf); \n\
+         objresult =  __ctalkCreateObjectInit ("result", "Integer", \n\
+                                         "Magnitude", LOCAL_VAR, buf); \n\
+         __ctalkRegisterUserObject (objresult); \n\
+         return objresult; \n\
+       }\n\
+     }
+
+
+   * The template embeds newlines with the string '\n\'.  When the
+     template is preprocessed, this expression joins the lines of the
+     template but keeps the line endings intact.
+   * The method selector, 'cMyPrintMsg' is built from the function name
+     ('myPrintMsg') by uppercasing the first letter and prepending a 'c'
+     to it.
+   * The template must declare its arguments, like the 'char *text'
+     declaration above, even though the actual arguments are objects, as
+     described in the next item.
+   * The expression '__ctalkIsObject(ARG(0))' checks that the argument
+     to the template is a valid object.  You can acccess the template's
+     arguments with the 'ARG' macro.  The first argument is 'ARG(0)',
+     the second argment is 'ARG(1)', and so on.
+   * The function, '__ctalkToCCharPtr()' translates the argument object
+     into a 'char *' string that 'printf(3)' expects as its argument.
+   * Normally templates create a return object manually, using the API
+     function '__ctalkCreateObjectInit ()' or a similar function.  Note
+     that '__ctalkCreateObjectInit ()' uses a 'char *' to store the
+     value of the object, which is why many templates declare a buffer
+     for the C function's result and use __ctalkDecimalIntegerToASCII
+     ().  If the result is more complex, then the template might need to
+     format it with a function like 'sprintf (3)'.  Templates can also
+     return NULL, but if a program uses such a templated function in an
+     assignment statement, it causes a program to generate a NULL
+     argument object warning when the program is run.
+   * Whenever a method returns an object it creates, it should register
+     the object, for example by calling '__ctalkRegisterUserObject' as
+     in the template above.  That way Ctalk can either maintain the
+     object or clean it up when it needs to be deleted.  This function
+     call is optional, but omitting it may cause memory leaks when the
+     program is run.
+   * A template can use macros, like 'LOCAL_VAR'.  The most convenient
+     way to define macros is to '#include <ctalk/ctalkdefs.h>' somewhere
+     in the input.  Many classes already do this, and the template can
+     use the same set of macro definitions as the class libraries.
+
+Cataloging Templates
+--------------------
+
+When looking up templates, Ctalk looks in the template registry file,
+which is normally '~/.ctalk/templates/fnnames' for the name given in the
+input.  If the function is aliased to another name by a macro
+substitution, 'fnnames' contains the name of the alias also.
+
+For example, on some systems, the function 'getc(3)' is a macro that
+expands to '_IO_getc'.  The 'fnnames' file would then contain '_IO_getc'
+as the templated function's name.
+
+When the compiler finds the function's name or alias in 'fnnames', it
+looks in the directory for the template file, which is named for the
+first letter of the function's name.  That is, when looking for
+'myPrintMsg's' template, Ctalk looks for a file named
+'~/.ctalk/templates/m'.
+
+The C library templates that come with Ctalk use the same scheme, except
+that the template files are stored in a subdirectory of the class
+library called 'libc'.  The registry is part or the run-time library, so
+C library templates do not need a separate registry file.
+
+The manual page, 'fnnames(5ctalk)' contains more information about the
+'fnnames' file.  The 'templates(5ctalk)' manual page describes the
+format of individual templates.
+
+
 File: ctalk.info,  Node: Return values,  Next: Variable arguments,  Prev: Templates,  Up: Methods
 
 Return Values
@@ -7919,6 +8264,8 @@ Index
                                                              (line  459)
 * attachTo instance method (X11CanvasPane class): X11CanvasPane.
                                                              (line  181)
+* attachTo instance method (X11CheckBoxPane class): X11CheckBoxPane.
+                                                             (line  229)
 * attachTo instance method (X11ListPane class): X11ListPane. (line  287)
 * attachTo instance method (X11MessageBoxPane class): X11MessageBoxPane.
                                                              (line  234)
@@ -7958,6 +8305,8 @@ Index
                                                              (line   31)
 * backgroundColor resource (X11ButtonPane class): X11ButtonPane.
                                                              (line  301)
+* backgroundColor resource (X11CheckBoxPane class): X11CheckBoxPane.
+                                                             (line  172)
 * backgroundColor resource (X11LabelPane class): X11LabelPane.
                                                              (line  147)
 * backgroundColor resource (X11TextEntryPane class): X11TextEntryPane.
@@ -7976,6 +8325,7 @@ Index
 * become instance method (Object class): Object.             (line  286)
 * bevel instance variable (X11ScrollBarPane class): X11ScrollBarPane.
                                                              (line  115)
+* bevel resource (X11CheckBoxPane class): X11CheckBoxPane.   (line  176)
 * bevelEdges instance variable (X11ButtonPane class): X11ButtonPane.
                                                              (line  411)
 * bevelWidth instance variable (X11ButtonPane class): X11ButtonPane.
@@ -8025,6 +8375,8 @@ Index
                                                              (line  212)
 * borderWidth instance variable (X11Pane class): X11Pane.    (line   46)
 * borderWidth resource (X11ButtonPane class): X11ButtonPane. (line  326)
+* borderWidth resource (X11CheckBoxPane class): X11CheckBoxPane.
+                                                             (line  180)
 * borderWidth resource (X11LabelPane class): X11LabelPane.   (line  157)
 * borderWidth resource (X11ListPane class): X11ListPane.     (line  179)
 * borderWidth resource (X11TextEntryPane class): X11TextEntryPane.
@@ -8208,8 +8560,12 @@ Index
 * clearSelection instance method (X11TextEntryPane class): X11TextEntryPane.
                                                              (line  284)
 * clearWindow instance method (X11Pane class): X11Pane.      (line  214)
+* clickColor resource (X11CheckBoxPane class): X11CheckBoxPane.
+                                                             (line  184)
 * clicked instance variable (X11ButtonPane class): X11ButtonPane.
                                                              (line  432)
+* clicked instance variable (X11CheckBoxPane class): X11CheckBoxPane.
+                                                             (line  221)
 * clientFD instance variable (X11TerminalStream class): X11TerminalStream.
                                                              (line  100)
 * clipX instance variable (X11TextEntryPane class): X11TextEntryPane.
@@ -8330,6 +8686,8 @@ Index
 * cusorPosY method (Win32TerminalStream class): Win32TerminalStream.
                                                              (line   58)
 * Cutting text:                          X11TextEditorPane.  (line   45)
+* darkShadowColor resource (X11CheckBoxPane class): X11CheckBoxPane.
+                                                             (line  198)
 * dayName instance method (CalendarTime class): CalendarTime.
                                                              (line  109)
 * Debugging:                             C statements.       (line  207)
@@ -8487,6 +8845,8 @@ Index
 * draw instance method (Point class):    Point.              (line   30)
 * draw instance method (Rectangle class): Rectangle.         (line   95)
 * draw instance method (X11ButtonPane class): X11ButtonPane. (line  485)
+* draw instance method (X11CheckBoxPane class): X11CheckBoxPane.
+                                                             (line  256)
 * draw instance method (X11FileSelectDialog class): X11FileSelectDialog.
                                                              (line  393)
 * draw instance method (X11LabelPane class): X11LabelPane.   (line  302)
@@ -8671,6 +9031,8 @@ Index
                                                              (line  246)
 * fill instance method (X11YesNoBoxPane class): X11YesNoBoxPane.
                                                              (line  299)
+* fillRadius resource (X11CheckBoxPane class): X11CheckBoxPane.
+                                                             (line  188)
 * fillWithPen instance method (Rectangle class): Rectangle.  (line  114)
 * float C data type:                     C statements.       (line  141)
 * Float class:                           Float.              (line    6)
@@ -8737,6 +9099,8 @@ Index
                                                              (line  123)
 * framePen instance variable (X11ScrollBarPane class): X11ScrollBarPane.
                                                              (line  131)
+* frameRadius resource (X11CheckBoxPane class): X11CheckBoxPane.
+                                                             (line  188)
 * frameRate instance method (GLXCanvasPane class): GLXCanvasPane.
                                                              (line  419)
 * frameWidth instance method (X11ScrollBarPane class): X11ScrollBarPane.
@@ -8944,6 +9308,7 @@ Index
 * height instance variable (X11Font class): X11Font.         (line   36)
 * height instance variable (X11FreeTypeFont class): X11FreeTypeFont.
                                                              (line  148)
+* height resource (X11CheckBoxPane class): X11CheckBoxPane.  (line  204)
 * highlight instance variable (X11PaneDispatcher class): X11PaneDispatcher.
                                                              (line  234)
 * highlightBorderColor instance variable (X11LabelPane class): X11LabelPane.
@@ -9239,6 +9604,8 @@ Index
 * Library functions:                     Ctalk library.      (line    6)
 * libraryPath instance method (Object class): Object.        (line  440)
 * LibrarySearch class:                   LibrarySearch.      (line    6)
+* lightShadowColor resource (X11CheckBoxPane class): X11CheckBoxPane.
+                                                             (line  198)
 * Line class:                            Line.               (line    6)
 * lineHeight instance variable (X11TextPane class): X11TextPane.
                                                              (line   74)
@@ -9328,6 +9695,7 @@ Index
                                                              (line  274)
 * margin instance variable (X11ScrollBarPane class): X11ScrollBarPane.
                                                              (line  143)
+* margin resource (X11CheckBoxPane class): X11CheckBoxPane.  (line  214)
 * match instance method (String class):  String.             (line  360)
 * matchAt instance method (String class): String.            (line  365)
 * matchAt instance method (String class) <1>: String.        (line  669)
@@ -9471,6 +9839,8 @@ Index
 * new instance method (SignalHandler class): SignalHandler.  (line   81)
 * new instance method (X11ButtonPane class): X11ButtonPane.  (line  515)
 * new instance method (X11CanvasPane class): X11CanvasPane.  (line  409)
+* new instance method (X11CheckBoxPane class): X11CheckBoxPane.
+                                                             (line  263)
 * new instance method (X11FileSelectDialog class): X11FileSelectDialog.
                                                              (line  425)
 * new instance method (X11LabelPane class): X11LabelPane.    (line  328)
@@ -9556,6 +9926,8 @@ Index
                                                              (line  477)
 * onButtonPress instance method (GLXCanvasPane class): GLXCanvasPane.
                                                              (line  485)
+* onClick instance method (X11CheckBoxPane class): X11CheckBoxPane.
+                                                             (line  271)
 * onClick instance method (X11ListPane class): X11ListPane.  (line  329)
 * onEnter instance method (X11ListPane class): X11ListPane.  (line  329)
 * onExpose instance method (GLXCanvasPane class): GLXCanvasPane.
@@ -10746,6 +11118,7 @@ Index
 * while statements:                      Control structures. (line    6)
 * width instance variable (Pen class):   Pen.                (line   29)
 * width instance variable (X11Bitmap class): X11Bitmap.      (line   41)
+* width resource (X11CheckBoxPane class): X11CheckBoxPane.   (line  204)
 * Win32TerminalStream class:             Win32TerminalStream.
                                                              (line    6)
 * Window geometry:                       X11PaneDispatcher.  (line   11)
@@ -10826,6 +11199,7 @@ Index
 * X11Bitmap class:                       X11Bitmap.          (line    6)
 * X11ButtonPane class:                   X11ButtonPane.      (line    6)
 * X11CanvasPane class:                   X11CanvasPane.      (line    6)
+* X11CheckBoxPane class:                 X11CheckBoxPane.    (line    6)
 * X11Cursor class:                       X11Cursor.          (line    6)
 * X11FileSelectDialog class:             X11FileSelectDialog.
                                                              (line    6)

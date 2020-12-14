@@ -1,0 +1,130 @@
+/* $Id: checkbox.ca,v 1.1 2020/12/14 13:39:44 rkiesling Exp $ -*-c-*-*/
+
+/*
+ *  X11CheckBoxPane demo.
+ */	
+
+/* 
+ *  To display bevels, uncomment the following line. 
+ */
+/* #define BEVEL */
+
+/* 
+ * To draw a checkbox with rounded corners, uncomment the following
+ * lines and set FRAME_RADIUS and FILL_RADIUS to non-zero values.  The
+ * checkboxes use different radius' for the frame and the filled
+ * interior of a checked checkbox because most radius are a
+ * significant percent of the boxes' sides, which can make the frame
+ * look like a rectangle with rounded corners, and also make the fill
+ * rectangle look like an oval, if the shapes use the same radius.
+ */
+/* #define RADIUS */
+/* #define FRAME_RADIUS 0 */
+/* #define FILL_RADIUS 0 */
+
+/* 
+ * To change the width, height, and internal margin of the
+ * check box, edit these #defines.  The measurements are in
+ * pixels.
+ */
+#define CHECKBOX_WIDTH   15
+#define CHECKBOX_HEIGHT  15
+#define CHECKBOX_MARGIN  1
+#define CHECKBOX_BORDER  1
+
+#include <ctalk/ctalkdefs.h>
+
+int main (int argv, char **argc) {
+  X11Pane new xPane;
+  X11PaneDispatcher new xTopLevelPane;
+  X11CheckBoxPane new xCheckBoxPane;
+  X11LabelPane new label;
+  X11CanvasPane new canvas;
+  InputEvent new e;
+  Exception new ex;
+  Pen new arrowPen;
+
+  xPane ftFontVar initFontLib;
+
+  xPane initialize 0, 0, 300, 300, "Checkbox Demo";
+  xPane inputStream eventMask = BUTTONPRESS|BUTTONRELEASE|WINDELETE|EXPOSE;
+  xTopLevelPane attachTo xPane;
+
+  /* Note that the geometry string in the, "attachTo," call below
+     contains only the X,Y origin of the check box.  In this case, the
+     size of the check box is taken from the object's resources, which
+     we can adjust any time before, "attachTo," sizes the actual
+     drawing surfaces. */
+  xCheckBoxPane resources replaceAt "width", CHECKBOX_WIDTH;
+  xCheckBoxPane resources replaceAt "height", CHECKBOX_HEIGHT;
+  xCheckBoxPane resources replaceAt "margin", CHECKBOX_MARGIN;
+  xCheckBoxPane resources replaceAt "borderWidth", CHECKBOX_BORDER;
+#ifdef RADIUS
+  xCheckBoxPane resources replaceAt "frameRadius", FRAME_RADIUS;
+  xCheckBoxPane resources replaceAt "fillRadius", FILL_RADIUS;
+#endif  
+
+  label ftFontVar selectFontFromFontConfig "URW Gothic L-12";
+  label ftFontVar saveSelectedFont;
+  label justify = LABEL_LEFT;
+  label text "Please Click";
+  label resources replaceAt "borderWidth", 0;
+  
+  canvas attachTo xTopLevelPane, "280x280+10+10";
+  xCheckBoxPane attachTo xTopLevelPane, "+20%+40%";
+  label attachTo xTopLevelPane, "160x25+35%+40";
+
+#ifdef BEVEL
+  xCheckBoxPane resources replaceAt "bevel", true;
+#endif
+
+  xPane map;
+  xPane raiseWindow;
+
+  xPane openEventStream;
+
+  xPane setWMTitle "Checkbox Demo";
+  canvas background "white";
+  label draw;
+  xCheckBoxPane draw;
+  arrowPen width = 1;
+  arrowPen colorName = "black";
+  
+  while (TRUE) {
+    xPane inputStream queueInput;
+    if (xPane inputStream eventPending) {
+      e become xPane inputStream inputQueue unshift;
+      xPane subPaneNotify e;  /* Call the classes' event handlers. */
+      if (ex pending)
+	ex handle;
+      
+      switch (e eventClass value)
+     	{
+	case BUTTONPRESS:
+	  if (e eventData == xCheckBoxPane xWindowID) {
+	    if (xCheckBoxPane clicked) {
+	      printf ("clicked\n");
+	    } else {
+	      printf ("unclicked\n");
+	    }
+	  }
+	  break;
+	case EXPOSE:
+	  label draw;
+	  canvas paneBuffer drawRectangle 10, 10, 260, 260, false,
+	    1, "black", 0;
+	  canvas paneBuffer drawLine 110, 45, 70, 100, arrowPen;
+	  canvas paneBuffer drawLine 70, 100, 70, 90, arrowPen;
+	  canvas paneBuffer drawLine 70, 100, 81, 97, arrowPen;
+	  canvas refresh;
+	  break;
+	case WINDELETE:
+      	  xPane deleteAndClose;
+     	  exit (0);
+     	  break;
+     	default:
+     	  break;
+     	}
+    }
+  }
+}
