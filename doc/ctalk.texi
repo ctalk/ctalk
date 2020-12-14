@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.2 2020/12/14 13:49:39 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.3 2020/12/14 16:22:45 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -16240,6 +16240,22 @@ item text.  The default is 4 pixels.
 A @code{String} that contains the background color of selected
 items.  The default is @samp{lightblue}.
 
+@cindex @code{selectStyle} resource @idxclscite{X11ListPane}
+@item selectStyle
+An @code{Integer} that defines whether a select bar extends to the
+right edge of an item's text, or to the right margin of the pane.  The
+class recognizes the #defines @samp{LIST_SELECT_PANE} and
+@samp{LIST_SELECT_ITEM}, which are defined in @flnm{ctalkdefs.h}.  The
+default is @samp{LIST_SELECT_PANE}, so to change it to only highlight
+an item's text, a program should contain the line,
+
+
+@example
+
+myListPane resources replaceAt "selectStyle", LIST_SELECT_ITEM;
+
+@end example
+
 @cindex @code{textColor} resource @idxclscite{X11ListPane}
 @item textColor
 A @code{String} that contains the color of the list text.
@@ -16254,6 +16270,17 @@ The default is @samp{darkgray}.
 @item thumbMargin
 An @code{Integer} that defines the distance in pixels between the
 thumb and its channel.  The default is 2 pixels.
+
+@cindex @code{vAlignHint} resource @idxclscite{X11ListPane}
+@item vAlignHint
+An @code{Integer} that helps display items vertically centered
+in their layout boxes.  While X11ListPane objects generally
+can approximate how font renderers align text within their
+layout boxes, fonts and even different library versions
+may vary this.  Increasing this number shifts the item's
+text downward within the box when it is displayed.  Smaller
+numbers (including negative numbers) shift the text upward.
+The default is 2px.
 
 @end table
 

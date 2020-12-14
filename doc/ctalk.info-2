@@ -4429,6 +4429,18 @@ Resources
      A 'String' that contains the background color of selected items.
      The default is 'lightblue'.
 
+'selectStyle'
+     An 'Integer' that defines whether a select bar extends to the right
+     edge of an item's text, or to the right margin of the pane.  The
+     class recognizes the #defines 'LIST_SELECT_PANE' and
+     'LIST_SELECT_ITEM', which are defined in 'ctalkdefs.h'.  The
+     default is 'LIST_SELECT_PANE', so to change it to only highlight an
+     item's text, a program should contain the line,
+
+
+          myListPane resources replaceAt "selectStyle", LIST_SELECT_ITEM;
+
+
 'textColor'
      A 'String' that contains the color of the list text.  The default
      is 'black'.
@@ -4440,6 +4452,15 @@ Resources
 'thumbMargin'
      An 'Integer' that defines the distance in pixels between the thumb
      and its channel.  The default is 2 pixels.
+
+'vAlignHint'
+     An 'Integer' that helps display items vertically centered in their
+     layout boxes.  While X11ListPane objects generally can approximate
+     how font renderers align text within their layout boxes, fonts and
+     even different library versions may vary this.  Increasing this
+     number shifts the item's text downward within the box when it is
+     displayed.  Smaller numbers (including negative numbers) shift the
+     text upward.  The default is 2px.
 
 Instance Variables
 ------------------
@@ -8470,124 +8491,4 @@ function call, either global or local.
 
 _Note:_ In future versions of Ctalk, the names of these functions are
 likely to change.
-
-
-File: ctalk.info,  Node: C Macros,  Next: Required classes,  Prev: Translating,  Up: Methods
-
-C Macros
---------
-
-Ctalk also provides many macros that help standardize the Ctalk-to-C
-conventions.  They're defined in the 'ctalkdefs.h' include file.  To use
-them, include 'ctalkdefs.h' in a source file or class library.
-
-
-     #include <ctalk/ctalkdefs.h>
-
-
-Some of the macro definitions in 'ctalkdefs.h' are described here.
-
-'ARG'
-     With a numeric argument, retrieves the n'th method or template
-     argument from the stack; i.e., 'ARG(0)' refers to the first
-     argument on the stack, 'ARG(1)' retrieves the second argument, and
-     so on.
-
-'CLASSNAME'
-     Returns an object's classname.
-
-     _Note:_ You should use this macro in new code.  While typing
-     '__o_classname' directly with an 'OBJECT *' should work for a
-     while, it's going to be phased out.
-
-     Using __o_classname with an object and the '->' method is still
-     okay, though.  For example:
-
-
-            OBJECT *myObjRef;
-            String new myString;
-
-            /* The use of __o_classname as struct member is going away... */
-            myObjRef -> __o_classname;
-            /* Instead, write this. */
-            myObjRef -> CLASSNAME;
-
-            /* These are still okay, because -> is a method, not the C operator. */
-            myString -> __o_classname;
-            self -> __o_classname;
-
-            /* The same is true for the SUPERCLASSNAME definition. */
-
-            SUPERCLASSNAME(myObjRef);
-
-            self -> SUPERCLASSNAME;
-            myString ->  SUPERCLASSNAME;
-
-'FILEEOF'
-     Writes an fEOF to the 'char *' buffer given as its argument.
-
-'FMT_0XHEX'
-     When used with a function like 'sprintf ()', formats a pointer into
-     its string representation.  For example:
-
-
-          char buf[64];
-          OBJECT *my_object_ptr;
-
-          ....   /* Do stuff. */
-
-          sprintf (buf, FMT_0XHEX(my_object_ptr));
-
-
-     However, this macro is not very portable and using functions that
-     use stdargs (e.g., printf, scanf, etc.)  can be cumbersome.
-     Library functions like '__ctalkGenericPtrFromStr ()' *Note
-     ctalkGenericPtrFromStr::, and '__ctalkFilePtrFromStr ()' *Note
-     ctalkFilePtrFromStr::, might be faster and more reliable.
-
-'IS_OBJECT'
-     Returns True or False if its argument, a C pointer, refers to a
-     valid object.
-
-'IS_VALUE_INSTANCE_VAR'
-     Returns True or False if its argument, a C pointer, refers to the
-     value instance variable of an object.
-
-'MEMADDR'
-     Casts its operand to a 'void **', which is what Ctalk's internal
-     function '__xfree ()' uses when freeing memory.  Normally you
-     should use __ctalkFree () to free memory, but the MEMADDR macro is
-     here in case you want to call __xfree () directly.  Refer to the
-     entry for __ctalkFree () for details.  *Note ctalkFree::.
-
-'STR_0XHEX_TO_PTR'
-     Does the converse of 'FMT_0XHEX;' it converts the string
-     representation of a pointer into an actual pointer, when used with
-     a function like 'sscanf ()'.  For example:
-
-
-          OBJECT *my_object;
-          OBJECT *my_object_ptr;
-
-          sscanf (my_object -> __o_value, STR_0XHEX_TO_PTR(my_object_ptr));
-
-
-     Again, using stdargs functions can be cumbersome and not very
-     portable.  In many cases, '__ctalkObjValPtr ()' accomplishes the
-     same thing.  *Note ctalkObjValPtr::.
-
-'SUPERCLASSNAME'
-     Returns an object's superclass name.  This macro should be used
-     only with OBJECT *'s, as it is rather extensive and written in C.
-     Returns an empty string if the object doesn't have a superclass.
-     *Note CLASSNAMEMacro::, above.
-
-'__LIST_HEAD(List *l)'
-     When given an argument that is a collection like a 'List' object,
-     returns the first member of the collection.
-
-'STR_IS_NULL(char *s)'
-     Evaluates to True if the 'char *' argument evaluates to zero; i.e.,
-     its value is '(null)', '0', '0x0' or the first character is an
-     ASCII 'NUL' ('\0') byte.
 

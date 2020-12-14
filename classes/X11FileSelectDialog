@@ -1,4 +1,4 @@
-/* $Id: X11FileSelectDialog,v 1.1.1.1 2020/12/13 14:51:03 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11FileSelectDialog,v 1.2 2020/12/14 16:22:44 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -37,6 +37,8 @@
    # Distance between bottom of listbox and bottom of window:
    listROPx                50      # Without the text entry
    listRWPx                70      # With the text entry
+
+   buttonFont              "sans serif-10"
 */
 
 X11ListBox class X11FileSelectDialog;
@@ -74,8 +76,10 @@ X11FileSelectDialog instanceMethod makeItem (String itemText) {
 
   returnObjectClass ItemBox;
 
+#if 0 /***/
   self listPane ftFontVar selectFontFromFontConfig self listPane resources at "font";
   self listPane selectFont;
+#endif  
 
   *itemPtr = ItemBox basicNew itemText, itemText;
 
@@ -192,6 +196,7 @@ X11FileSelectDialog instanceMethod new (String paneName) {
   paneName resources atPut "listROPx", 50;
   paneName resources atPut "listRWPx", 100;
   paneName resources atPut "pad", 0;
+  paneName resources atPut "buttonFont", "sans serif-10";
 
   return paneName;
 }
@@ -328,8 +333,6 @@ X11FileSelectDialog instanceMethod onListClick (Object subPane, InputEvent event
 		    }
 		  }
 		}
-		super listPane draw;
-		super listPane refresh;
 	      } else if (super listPane shiftState & shiftStateShift) {
 		if ((y_1 >= item org y) && (y_1 <= item ext y)) {
 		  if (last_click_nth == i) {
@@ -339,8 +342,10 @@ X11FileSelectDialog instanceMethod onListClick (Object subPane, InputEvent event
 		    last_click_nth = i;
 		    item selected = true;
 		  }
+#if 0
 		  super listPane draw;
 		  super listPane refresh;
+#endif		  
 		}
 	      } else if (super listPane shiftState & shiftStateCtrl) {
 		if ((y_1 >= item org y) && (y_1 <= item ext y)) {
@@ -352,13 +357,17 @@ X11FileSelectDialog instanceMethod onListClick (Object subPane, InputEvent event
 		    item selected = true;
 		    super listPane selectRange i;
 		  }
+#if 0
 		  super listPane draw;
 		  super listPane refresh;
+#endif		  
 		}
 	      }
 	      ++i;
 	    }
 	  }
+	  self listPane draw;
+	  self listPane refresh;
 	  break;
 	case Button2:
 	  subPane listPane buttonState |= BUTTON2MASK;
@@ -525,6 +534,28 @@ X11FileSelectDialog instanceMethod initWidgets (void) {
   self rbutton label text (self resources at "rightButtonText");
 
   self waitCursor watch;
+
+  self listPane ftFontVar selectFontFromFontConfig
+    self listPane resources at "font";
+  self lbutton resources replaceAt "ftFont",
+    self resources at "buttonFont";
+  self lbutton label resources replaceAt "ftFont",
+    self resources at "buttonFont";
+  self rbutton resources replaceAt "ftFont",
+    self resources at "buttonFont";
+  self rbutton label resources replaceAt "ftFont",
+    self resources at "buttonFont";
+
+#if 1
+  self lbutton ftFontVar selectFontFromFontConfig
+    self resources at "buttonFont";
+  self rbutton ftFontVar selectFontFromFontConfig
+    self resources at "buttonFont";
+#endif  
+  
+  self listPane selectFont;
+  self lbutton ftFontVar selectFont;
+  self rbutton ftFontVar selectFont;
 
   self initialized = true;
 

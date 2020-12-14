@@ -17,6 +17,126 @@ Texts.  A copy of the license is included in the section entitled, "GNU
 Free Documentation License."
 
 
+File: ctalk.info,  Node: C Macros,  Next: Required classes,  Prev: Translating,  Up: Methods
+
+C Macros
+--------
+
+Ctalk also provides many macros that help standardize the Ctalk-to-C
+conventions.  They're defined in the 'ctalkdefs.h' include file.  To use
+them, include 'ctalkdefs.h' in a source file or class library.
+
+
+     #include <ctalk/ctalkdefs.h>
+
+
+Some of the macro definitions in 'ctalkdefs.h' are described here.
+
+'ARG'
+     With a numeric argument, retrieves the n'th method or template
+     argument from the stack; i.e., 'ARG(0)' refers to the first
+     argument on the stack, 'ARG(1)' retrieves the second argument, and
+     so on.
+
+'CLASSNAME'
+     Returns an object's classname.
+
+     _Note:_ You should use this macro in new code.  While typing
+     '__o_classname' directly with an 'OBJECT *' should work for a
+     while, it's going to be phased out.
+
+     Using __o_classname with an object and the '->' method is still
+     okay, though.  For example:
+
+
+            OBJECT *myObjRef;
+            String new myString;
+
+            /* The use of __o_classname as struct member is going away... */
+            myObjRef -> __o_classname;
+            /* Instead, write this. */
+            myObjRef -> CLASSNAME;
+
+            /* These are still okay, because -> is a method, not the C operator. */
+            myString -> __o_classname;
+            self -> __o_classname;
+
+            /* The same is true for the SUPERCLASSNAME definition. */
+
+            SUPERCLASSNAME(myObjRef);
+
+            self -> SUPERCLASSNAME;
+            myString ->  SUPERCLASSNAME;
+
+'FILEEOF'
+     Writes an fEOF to the 'char *' buffer given as its argument.
+
+'FMT_0XHEX'
+     When used with a function like 'sprintf ()', formats a pointer into
+     its string representation.  For example:
+
+
+          char buf[64];
+          OBJECT *my_object_ptr;
+
+          ....   /* Do stuff. */
+
+          sprintf (buf, FMT_0XHEX(my_object_ptr));
+
+
+     However, this macro is not very portable and using functions that
+     use stdargs (e.g., printf, scanf, etc.)  can be cumbersome.
+     Library functions like '__ctalkGenericPtrFromStr ()' *Note
+     ctalkGenericPtrFromStr::, and '__ctalkFilePtrFromStr ()' *Note
+     ctalkFilePtrFromStr::, might be faster and more reliable.
+
+'IS_OBJECT'
+     Returns True or False if its argument, a C pointer, refers to a
+     valid object.
+
+'IS_VALUE_INSTANCE_VAR'
+     Returns True or False if its argument, a C pointer, refers to the
+     value instance variable of an object.
+
+'MEMADDR'
+     Casts its operand to a 'void **', which is what Ctalk's internal
+     function '__xfree ()' uses when freeing memory.  Normally you
+     should use __ctalkFree () to free memory, but the MEMADDR macro is
+     here in case you want to call __xfree () directly.  Refer to the
+     entry for __ctalkFree () for details.  *Note ctalkFree::.
+
+'STR_0XHEX_TO_PTR'
+     Does the converse of 'FMT_0XHEX;' it converts the string
+     representation of a pointer into an actual pointer, when used with
+     a function like 'sscanf ()'.  For example:
+
+
+          OBJECT *my_object;
+          OBJECT *my_object_ptr;
+
+          sscanf (my_object -> __o_value, STR_0XHEX_TO_PTR(my_object_ptr));
+
+
+     Again, using stdargs functions can be cumbersome and not very
+     portable.  In many cases, '__ctalkObjValPtr ()' accomplishes the
+     same thing.  *Note ctalkObjValPtr::.
+
+'SUPERCLASSNAME'
+     Returns an object's superclass name.  This macro should be used
+     only with OBJECT *'s, as it is rather extensive and written in C.
+     Returns an empty string if the object doesn't have a superclass.
+     *Note CLASSNAMEMacro::, above.
+
+'__LIST_HEAD(List *l)'
+     When given an argument that is a collection like a 'List' object,
+     returns the first member of the collection.
+
+'STR_IS_NULL(char *s)'
+     Evaluates to True if the 'char *' argument evaluates to zero; i.e.,
+     its value is '(null)', '0', '0x0' or the first character is an
+     ASCII 'NUL' ('\0') byte.
+
+
 File: ctalk.info,  Node: Required classes,  Next: Scoping,  Prev: C Macros,  Up: Methods
 
 Required Classes
@@ -8145,7 +8265,7 @@ Index
 * acos(3) C function <1>:                acos.               (line    6)
 * acosh(3) C function:                   CFunction.          (line   25)
 * acosh(3) C function <1>:               acosh-asinh-atanh.  (line    6)
-* add instance method (X11ListPane class): X11ListPane.      (line  277)
+* add instance method (X11ListPane class): X11ListPane.      (line  298)
 * addBuffer instance method (ANSIWidgetPane class): ANSIWidgetPane.
                                                              (line   78)
 * addChild instance method (TreeNode class): TreeNode.       (line   38)
@@ -8266,7 +8386,7 @@ Index
                                                              (line  181)
 * attachTo instance method (X11CheckBoxPane class): X11CheckBoxPane.
                                                              (line  229)
-* attachTo instance method (X11ListPane class): X11ListPane. (line  287)
+* attachTo instance method (X11ListPane class): X11ListPane. (line  308)
 * attachTo instance method (X11MessageBoxPane class): X11MessageBoxPane.
                                                              (line  234)
 * attachTo instance method (X11Pane class): X11Pane.         (line  197)
@@ -8401,7 +8521,7 @@ Index
 * buttonState instance variable (GLXCanvasPane class): GLXCanvasPane.
                                                              (line  174)
 * buttonState instance variable (X11ListPane class): X11ListPane.
-                                                             (line  215)
+                                                             (line  236)
 * buttonText instance method (X11FileSelectDialog class): X11FileSelectDialog.
                                                              (line  372)
 * buttonText instance variable (ANSIButtonPane class): ANSIButtonPane.
@@ -8417,7 +8537,7 @@ Index
 * cAcos method (CFunction class):        CFunction.          (line   22)
 * cAcosh method (CFunction class):       CFunction.          (line   25)
 * calcThumb instance method (X11ListPane class): X11ListPane.
-                                                             (line  296)
+                                                             (line  317)
 * calculateSpaceAppend instance method (X11TextEntryPane class): X11TextEntryPane.
                                                              (line  271)
 * CalendarTime Class:                    CalendarTime.       (line    6)
@@ -8851,7 +8971,7 @@ Index
                                                              (line  393)
 * draw instance method (X11LabelPane class): X11LabelPane.   (line  302)
 * draw instance method (X11ListBox class): X11ListBox.       (line  245)
-* draw instance method (X11ListPane class): X11ListPane.     (line  307)
+* draw instance method (X11ListPane class): X11ListPane.     (line  328)
 * draw instance method (X11MessageBoxPane class): X11MessageBoxPane.
                                                              (line  241)
 * draw instance method (X11TextEntryBox class): X11TextEntryBox.
@@ -8880,7 +9000,7 @@ Index
 * drawFmtTextW instance method (GLXCanvasPane class): GLXCanvasPane.
                                                              (line  362)
 * drawItemList instance method (X11ListPane class): X11ListPane.
-                                                             (line  312)
+                                                             (line  333)
 * drawLine instance method (X11Bitmap class): X11Bitmap.     (line   88)
 * drawLine instance method (X11Bitmap class) <1>: Line.      (line   67)
 * drawLine instance method (X11CanvasPane class): X11CanvasPane.
@@ -8903,7 +9023,7 @@ Index
 * drawTextW instance method (GLXCanvasPane class): GLXCanvasPane.
                                                              (line  390)
 * drawThumb instance method (X11ListPane class): X11ListPane.
-                                                             (line  316)
+                                                             (line  337)
 * drawThumb instance method (X11ScrollBarPane class): X11ScrollBarPane.
                                                              (line  192)
 * drawWithPen instance method (Line class): Line.            (line   71)
@@ -9374,7 +9494,7 @@ Index
 * if statements:                         Control structures. (line    6)
 * ignoreSignal instance method (SignalHandler class): SignalHandler.
                                                              (line   74)
-* iInit instance variable (X11ListPane class): X11ListPane.  (line  240)
+* iInit instance variable (X11ListPane class): X11ListPane.  (line  261)
 * imported instance variable (Method class): Method.         (line   86)
 * Include files:                         Preprocessor.       (line    6)
 * incReferenceCount instance method (Object class): Object.  (line  367)
@@ -9559,7 +9679,7 @@ Index
 * items instance variable (ANSIScrollingListBoxPane class): ANSIScrollingListBoxPane.
                                                              (line   76)
 * items instance variable (X11ListBox class): X11ListBox.    (line  220)
-* items instance variable (X11ListPane class): X11ListPane.  (line  226)
+* items instance variable (X11ListPane class): X11ListPane.  (line  247)
 * justify instance variable (X11LabelPane class): X11LabelPane.
                                                              (line  247)
 * Key class:                             Key.                (line    6)
@@ -9845,7 +9965,7 @@ Index
                                                              (line  425)
 * new instance method (X11LabelPane class): X11LabelPane.    (line  328)
 * new instance method (X11ListBox class): X11ListBox.        (line  253)
-* new instance method (X11ListPane class): X11ListPane.      (line  320)
+* new instance method (X11ListPane class): X11ListPane.      (line  341)
 * new instance method (X11MessageBoxPane class): X11MessageBoxPane.
                                                              (line  256)
 * new instance method (X11PaneDispatcher class): X11PaneDispatcher.
@@ -9878,7 +9998,7 @@ Index
 * nItemsSelected instance method (X11FileSelectDialog class): X11FileSelectDialog.
                                                              (line  444)
 * nItemsSelected instance method (X11ListPane class): X11ListPane.
-                                                             (line  325)
+                                                             (line  346)
 * nMatches instance method (String class): String.           (line  393)
 * noBorder instance method (ANSIScrollingListBoxPane class): ANSIScrollingListBoxPane.
                                                              (line  131)
@@ -9928,29 +10048,29 @@ Index
                                                              (line  485)
 * onClick instance method (X11CheckBoxPane class): X11CheckBoxPane.
                                                              (line  271)
-* onClick instance method (X11ListPane class): X11ListPane.  (line  329)
-* onEnter instance method (X11ListPane class): X11ListPane.  (line  329)
+* onClick instance method (X11ListPane class): X11ListPane.  (line  350)
+* onEnter instance method (X11ListPane class): X11ListPane.  (line  350)
 * onExpose instance method (GLXCanvasPane class): GLXCanvasPane.
                                                              (line  525)
 * onExpose instance method (X11FileSelectDialog class): X11FileSelectDialog.
                                                              (line  436)
-* onExpose instance method (X11ListPane class): X11ListPane. (line  329)
+* onExpose instance method (X11ListPane class): X11ListPane. (line  350)
 * onIdle instance method (GLXCanvasPane class): GLXCanvasPane.
                                                              (line  551)
-* onKey instance method (X11ListPane class): X11ListPane.    (line  329)
+* onKey instance method (X11ListPane class): X11ListPane.    (line  350)
 * onKeyPress instance method (GLXCanvasPane class): GLXCanvasPane.
                                                              (line  568)
-* onLeave instance method (X11ListPane class): X11ListPane.  (line  329)
+* onLeave instance method (X11ListPane class): X11ListPane.  (line  350)
 * onListClick instance method (X11FileSelectDialog class): X11FileSelectDialog.
                                                              (line  437)
-* onMotion instance method (X11ListPane class): X11ListPane. (line  329)
+* onMotion instance method (X11ListPane class): X11ListPane. (line  350)
 * onPointerMotion instance method (GLXCanvasPane class): GLXCanvasPane.
                                                              (line  626)
 * onResize instance method (GLXCanvasPane class): GLXCanvasPane.
                                                              (line  644)
 * onResize instance method (X11FileSelectDialog class): X11FileSelectDialog.
                                                              (line  438)
-* onResize instance method (X11ListPane class): X11ListPane. (line  329)
+* onResize instance method (X11ListPane class): X11ListPane. (line  350)
 * onTimerTick instance method (GLXCanvasPane class): GLXCanvasPane.
                                                              (line  660)
 * open instance method (UNIXNetworkStreamReader class): UNIXNetworkStreamReader.
@@ -10335,9 +10455,9 @@ Index
 * scrollThumbStart instance method (ANSIScrollingListBoxPane class): ANSIScrollingListBoxPane.
                                                              (line  186)
 * scrollWidth instance variable (X11ListPane class): X11ListPane.
-                                                             (line  244)
+                                                             (line  265)
 * scrollWidth instance variable (X11ListPane class) <1>: X11ListPane.
-                                                             (line  250)
+                                                             (line  271)
 * search instance method (String class): String.             (line  418)
 * search instance method (TreeNode class): TreeNode.         (line   60)
 * Search path, classes:                  Application.        (line   58)
@@ -10358,19 +10478,19 @@ Index
 * selectedItemN instance method (X11FileSelectDialog class): X11FileSelectDialog.
                                                              (line  463)
 * selectedItemN instance method (X11ListPane class): X11ListPane.
-                                                             (line  340)
+                                                             (line  361)
 * selectedItems instance method (X11FileSelectDialog class): X11FileSelectDialog.
                                                              (line  459)
 * selectedItems instance method (X11ListPane class): X11ListPane.
-                                                             (line  349)
+                                                             (line  370)
 * selectedItemsN instance method (X11FileSelectDialog class): X11FileSelectDialog.
                                                              (line  467)
 * selectedItemsN instance method (X11ListPane class): X11ListPane.
-                                                             (line  353)
+                                                             (line  374)
 * selectedItemText instance method (X11FileSelectDialog class): X11FileSelectDialog.
                                                              (line  472)
 * selectedItemText instance method (X11ListPane class): X11ListPane.
-                                                             (line  358)
+                                                             (line  379)
 * selectedLine instance variable (ANSIListBoxPane class): ANSIListBoxPane.
                                                              (line   60)
 * selectedLine instance variable (ANSIScrollingListBoxPane class): ANSIScrollingListBoxPane.
@@ -10384,7 +10504,7 @@ Index
 * selectFont instance method (X11LabelPane class): X11LabelPane.
                                                              (line  333)
 * selectFont instance method (X11ListPane class): X11ListPane.
-                                                             (line  362)
+                                                             (line  383)
 * selectFontFromFontConfig instance method (X11FreeTypeFont class): X11FreeTypeFont.
                                                              (line  365)
 * selectFontFromXLFD instance method (X11FreeTypeFont class): X11FreeTypeFont.
@@ -10409,6 +10529,7 @@ Index
                                                              (line  102)
 * selectPrev instance method (ANSIScrollingListBoxPane class): ANSIScrollingListBoxPane.
                                                              (line  200)
+* selectStyle resource (X11ListPane class): X11ListPane.     (line  200)
 * self keyword:                          Self and super.     (line    6)
 * self keyword <1>:                      Return values.      (line  130)
 * self keyword <2>:                      Method keywords.    (line   88)
@@ -10851,7 +10972,7 @@ Index
                                                              (line  287)
 * textColor resource (X11ButtonPane class): X11ButtonPane.   (line  403)
 * textColor resource (X11LabelPane class): X11LabelPane.     (line  192)
-* textColor resource (X11ListPane class): X11ListPane.       (line  200)
+* textColor resource (X11ListPane class): X11ListPane.       (line  212)
 * textColor resource (X11TextEntryPane class): X11TextEntryPane.
                                                              (line  181)
 * textEntry instance method (X11FileSelectDialog class): X11FileSelectDialog.
@@ -10881,20 +11002,20 @@ Index
                                                              (line  155)
 * thumbBackgroundColor instance variable (X11ScrollBarPane class): X11ScrollBarPane.
                                                              (line  159)
-* thumbColor resource (X11ListPane class): X11ListPane.      (line  204)
+* thumbColor resource (X11ListPane class): X11ListPane.      (line  216)
 * thumbDimensions instance method (X11ScrollBarPane class): X11ScrollBarPane.
                                                              (line  236)
 * thumbErasePen instance variable (X11ScrollBarPane class): X11ScrollBarPane.
                                                              (line  163)
 * thumbExt instance variable (X11ListPane class): X11ListPane.
-                                                             (line  260)
+                                                             (line  281)
 * thumbHeight instance variable (ANSIScrollPane class): ANSIScrollPane.
                                                              (line   66)
 * thumbHeight instance variable (X11ScrollBarPane class): X11ScrollBarPane.
                                                              (line  167)
-* thumbMargin resource (X11ListPane class): X11ListPane.     (line  208)
+* thumbMargin resource (X11ListPane class): X11ListPane.     (line  220)
 * thumbOrg instance variable (X11ListPane class): X11ListPane.
-                                                             (line  260)
+                                                             (line  281)
 * thumbPen instance variable (X11ScrollBarPane class): X11ScrollBarPane.
                                                              (line  171)
 * thumbPercent instance method (X11ScrollBarPane class): X11ScrollBarPane.
@@ -10997,6 +11118,7 @@ Index
 * usingXRender instance Method (X11Pane class): X11Pane.     (line  402)
 * uSleep instance method (Application class): Application.   (line  237)
 * utcTime instance method (CTime class): CTime.              (line   58)
+* vAlignHint resource (X11ListPane class): X11ListPane.      (line  224)
 * value instance method (List class):    List.               (line  171)
 * value instance method (Object class):  Object.             (line  643)
 * value instance method (ReadFileStream class): ReadFileStream.
@@ -11045,7 +11167,7 @@ Index
 * viewStartLine instance variable (X11TextPane class): X11TextPane.
                                                              (line  110)
 * viewStartY instance variable (X11ListPane class): X11ListPane.
-                                                             (line  268)
+                                                             (line  289)
 * viewWidth instance variable (ANSILabelPane class): ANSILabelPane.
                                                              (line   50)
 * viewWidth instance variable (ANSIProgressBarPane class): ANSIProgressBarPane.
