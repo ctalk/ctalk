@@ -1,4 +1,4 @@
-/* $Id: x11defs.h,v 1.1.1.1 2020/12/13 14:51:03 rkiesling Exp $ -*-c-*-*/
+/* $Id: x11defs.h,v 1.4 2020/12/21 18:24:17 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -176,7 +176,9 @@
 #define PANE_GET_PRIMARY_SELECTION_REQUEST 23
 #define PANE_SET_PRIMARY_SELECTION_OWNERSHIP_REQUEST 24
 #define PANE_SET_PRIMARY_SELECTION_TEXT 25
-
+#define PANE_GET_CLIPBOARD_REQUEST 26
+#define PANE_SET_CLIPBOARD_OWNERSHIP_REQUEST 27
+#define PANE_SET_CLIPBOARD_TEXT_REQUEST 28
 
 #define WM_CONFIGURE_EVENTS (ExposureMask|StructureNotifyMask|PropertyChangeMask|SubstructureNotifyMask|FocusChangeMask|EnterWindowMask|LeaveWindowMask)
 #define WM_INPUT_EVENTS (KeyPressMask|KeyReleaseMask|ButtonPressMask|ButtonReleaseMask|PointerMotionMask)
