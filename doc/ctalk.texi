@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.3 2020/12/14 16:22:45 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.4 2020/12/21 23:51:16 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -19434,8 +19434,8 @@ Objects of @code{X11TextEditorPane} class create a X window which
 displays text, and editing commands to perform basic text editing
 operations.
 
-There is an example program that demonstrates a @code{X11TextEditorPane}
-object's use in a text editor program at the end of this section.
+There is an example text editor program that demonstrates a
+@code{X11TextEditorPane} object's use at the end of this section.
 
 @subsubheading Editing Commands
 
@@ -19455,6 +19455,11 @@ End, Ctrl-E         End of line
 Ctrl-Q              Start of text
 Ctrl-Z              End of text
 Ctrl-D              Delete character under cursor
+
+Alt-V               Paste text from the clipboard at the insertion point.
+Alt-C               Copy the selected text to the clipboard.
+Alt-X               Delete selected text and save the text on the clipboard.
+
 Backspace           Delete previous character.  If selecting text, delete
                     the selection.
 Del                 Delete the character under the cursor, or the
@@ -19468,11 +19473,13 @@ Mouse-2             Paste text of the X selection at the insertion point.
 
 @end example
 
-@subsubheading Cutting and Pasting Text
+@subsubheading Cutting and Pasting Text with the X Selection
 
 @cindex Selecting text
 @cindex Cutting text
 @cindex Pasting text
+@cindex Selection
+@cindex X Selection
 @code{X11TextEditorPane} objects can copy text selections to the X
 primary selection, and paste selected text from other X programs into
 the program's text.
@@ -19505,6 +19512,38 @@ X display's primary selection buffer.  @code{X11TextEditorPane}
 objects maintain the contents of its selection buffer continuously
 when selecting, but they only send the contents to the X display's
 primary selection when another program requests it.
+
+
+@cindex Pasting text
+@cindex Cutting text
+@cindex Copying text
+@cindex Clipboard
+@subsubheading Cutting and Pasting Text with the X Clipboard
+
+@code{X11TextEditorPane} objects also provide generic support for copying
+and pasting text using the X clipboard.
+
+Many graphical environments provide their own clipboard
+implementation, and @code{X11TextEditorPane} class doesn't yet support
+them.  For vanilla clipboard implementations, however, selecting text
+for the clipboard is similar to the the X selection's process: press
+the left pointer button and drag the pointer across the text that you
+want to select.  The text should be highlighted with the color defined
+by the @code{selectionBackgroundColor} instance variable.
+
+However, the clipboard operations' are performed entirely with
+keystrokes, and the key bindings are customizable, even though most
+text oriented applications use a standard set of key definitions for
+working with the clipboard:
+
+@example
+
+Alt-X         Cut the selected text and save it on the clipboard.
+Alt-C         Copy the selected text to the clipboard, without deleting it.
+Alt-V         Paste the text from the clipboard at the point where the
+              user clicks.
+
+@end example
 
 
 @subsubheading Fonts
@@ -26070,6 +26109,8 @@ is, if the value of the object is an empty string, @samp{(NULL)}, or
 @idxlibfn{__edittext_scroll_down}
 @idxlibfn{__edittext_scroll_up}
 @idxlibfn{__edittext_set_selection_owner}
+@idxlibfn{__edittext_get_clipboard}
+@idxlibfn{__edittext_set_clipboard_owner}
 @idxclscite {X11TextEditorPane}
 @cindex Text editing
 @cindex Editing, text
@@ -26096,6 +26137,8 @@ is, if the value of the object is an empty string, @samp{(NULL)}, or
 @item __edittext_get_primary_selection (OBJECT *x11texteditorpan_eobject, void **buf_out, int *size_out)
 @item __edittext_set_selection_owner (OBJECT *x11texteditorpane_object)
 @item __edittext_recenter (OBJECT *x11texteditorpane_object)
+@item __edittext_get_clipboard (OBJECT *x11texteditorpane_object, void **buf_out, int *size_out);
+@item __exittext_set_clipboard_owner (OBJECT *x11texteditorpane_object)
 Text editing functions used by @code{X11TextEditorPane} objects.
 For more information, refer to @code{X11TextEditorPane} class..
 @xref{X11TextEditorPane}.

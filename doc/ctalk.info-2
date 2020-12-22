@@ -7122,8 +7122,8 @@ File: ctalk.info,  Node: X11TextEditorPane,  Next: Symbol,  Prev: X11TextPane,  
 Objects of 'X11TextEditorPane' class create a X window which displays
 text, and editing commands to perform basic text editing operations.
 
-There is an example program that demonstrates a 'X11TextEditorPane'
-object's use in a text editor program at the end of this section.
+There is an example text editor program that demonstrates a
+'X11TextEditorPane' object's use at the end of this section.
 
 Editing Commands
 ................
@@ -7143,6 +7143,11 @@ different keys by modifying the 'handleKbdInput' method.
      Ctrl-Q              Start of text
      Ctrl-Z              End of text
      Ctrl-D              Delete character under cursor
+
+     Alt-V               Paste text from the clipboard at the insertion point.
+     Alt-C               Copy the selected text to the clipboard.
+     Alt-X               Delete selected text and save the text on the clipboard.
+
      Backspace           Delete previous character.  If selecting text, delete
                          the selection.
      Del                 Delete the character under the cursor, or the
@@ -7155,8 +7160,8 @@ different keys by modifying the 'handleKbdInput' method.
      Mouse-2             Paste text of the X selection at the insertion point.
 
 
-Cutting and Pasting Text
-........................
+Cutting and Pasting Text with the X Selection
+.............................................
 
 'X11TextEditorPane' objects can copy text selections to the X primary
 selection, and paste selected text from other X programs into the
@@ -7189,6 +7194,32 @@ primary selection buffer.  'X11TextEditorPane' objects maintain the
 contents of its selection buffer continuously when selecting, but they
 only send the contents to the X display's primary selection when another
 program requests it.
+
+Cutting and Pasting Text with the X Clipboard
+.............................................
+
+'X11TextEditorPane' objects also provide generic support for copying and
+pasting text using the X clipboard.
+
+Many graphical environments provide their own clipboard implementation,
+and 'X11TextEditorPane' class doesn't yet support them.  For vanilla
+clipboard implementations, however, selecting text for the clipboard is
+similar to the the X selection's process: press the left pointer button
+and drag the pointer across the text that you want to select.  The text
+should be highlighted with the color defined by the
+'selectionBackgroundColor' instance variable.
+
+However, the clipboard operations' are performed entirely with
+keystrokes, and the key bindings are customizable, even though most text
+oriented applications use a standard set of key definitions for working
+with the clipboard:
+
+
+     Alt-X         Cut the selected text and save it on the clipboard.
+     Alt-C         Copy the selected text to the clipboard, without deleting it.
+     Alt-V         Paste the text from the clipboard at the point where the
+                   user clicks.
+
 
 Fonts
 .....
