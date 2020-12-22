@@ -1245,6 +1245,12 @@ Instance Variables
 'descent'
      An 'Integer' that contains the font's height in pixels below the
      baseline.
+'handle'
+     A 'Symbol' that contains the value of the font's handle.  Normally
+     this is set by 'X11FreeTypeFont : saveSelectedFont'.  The handle's
+     value is a cast from a 'XftFont *' in a normal setup, like the
+     Ctalk library's default when the Xft libraries are enabled during
+     installation.
 'height'
      An 'Integer' that contains the dimensions in pixels of the font's
      total height, both above and below the baseline, and any extra

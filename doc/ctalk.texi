@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.5 2020/12/22 15:11:54 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.6 2020/12/22 15:45:17 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -1700,6 +1700,13 @@ the baseline.
 @item descent
 An @code{Integer} that contains the font's height in pixels below
 the baseline.
+@cindex @mnm{handle} instance variable @idxclscite{X11FreeTypeFont}
+@item handle
+A @code{Symbol} that contains the value of the font's handle.
+Normally this is set by @code{X11FreeTypeFont : saveSelectedFont}.  The
+handle's value is a cast from a @code{XftFont *} in a normal setup, like
+the Ctalk library's default when the Xft libraries are enabled during
+installation.
 @cindex @mnm{height} instance variable @idxclscite{X11FreeTypeFont}
 @item height
 An @code{Integer} that contains the dimensions in pixels of the font's
@@ -25652,7 +25659,11 @@ is @samp{0}.
 @item __ctalkXftHandle (@code{void})
 Returns a @code{void *} with the handle of the selected font.
 Typically this is a cast from a @code{XftFont *} when used in a normal
-Xft configuration.
+Xft configuration.  The font library uses this value whenever the
+font's face is requested after it is first initialized with the
+parameters from the font specification: i.e., when the family, weight,
+slant, height, and spacing haven't changed since the app first opened
+the font.
 
 @idxlibfn{__ctalkXftHeight}
 @item __ctalkXftHeight (@code{void})

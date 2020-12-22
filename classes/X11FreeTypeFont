@@ -1,4 +1,4 @@
-/* $Id: X11FreeTypeFont,v 1.2 2020/12/22 15:11:53 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11FreeTypeFont,v 1.3 2020/12/22 15:45:17 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -67,6 +67,7 @@ receiver object."
   self descent = __ctalkXftDescent ();
   self height = __ctalkXftHeight ();
   self maxAdvance = __ctalkXftMaxAdvance ();
+  self handle = __ctalkXftHandle ();
 }
 
 X11FreeTypeFont instanceMethod initFontLib (void) {

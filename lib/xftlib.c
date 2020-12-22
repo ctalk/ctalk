@@ -1,4 +1,4 @@
-/* $Id: xftlib.c,v 1.3 2020/12/22 15:11:54 rkiesling Exp $ -*-c-*-*/
+/* $Id: xftlib.c,v 1.8 2020/12/22 20:45:19 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -84,6 +84,7 @@ FT_Face ft2_selectedface = NULL;
 
 FcConfig *config = NULL;
 XftFont *selected_font = NULL;
+extern DEFAULTCLASSCACHE *rt_defclasses;
 
 unsigned short fgred = 0, fggreen = 0, fgblue = 0, fgalpha = 0xffff;
 
@@ -123,6 +124,102 @@ int selected_spacing = 90; /* dual */
 int selected_width = 100;  /* normal */
 double selected_pt_size = 12.0f;
 bool monospace = true;
+
+struct _xftstash {
+  char family[MAXLABEL];
+  char style[MAXLABEL];
+  int slant,
+    weight,
+    dpi,
+    spacing,
+    width;
+  double ptsize;
+  bool monospace;
+  XftFont *handle;
+  int hits;
+  struct _xftstash *next, *prev;
+};
+
+/* #define STASH_STATS */
+
+static struct _xftstash *xft_stash = NULL, *xft_stash_head = NULL;
+
+#ifdef STASH_STATS
+static int n_stash_entries = 0;
+#endif
+
+static void push_new_stash_entry (char *facename, char *facestyle,
+				  int slant, int weight,
+				  int dpi, int spacing, int width,
+				  double pt_size,
+				  bool monospace, XftFont *handle) {
+  struct _xftstash *s;
+  s = (struct _xftstash *)__xalloc (sizeof  (struct _xftstash));
+  if (facename && *facename) {
+    strcpy (s -> family, facename);
+  }
+  if (facestyle && *facestyle) {
+    strcpy (s -> style, facestyle);
+  }
+  s -> slant = slant;
+  s -> weight = weight;
+  s -> dpi = dpi;
+  s -> spacing = spacing;
+  s -> monospace = monospace;
+  s -> ptsize = pt_size;
+  s -> handle = handle;
+  if (xft_stash == NULL) {
+    xft_stash = xft_stash_head = s;
+  } else {
+    xft_stash_head -> next = s;
+    s -> prev = xft_stash_head;
+    xft_stash_head = s;
+  }
+#ifdef STASH_STATS
+  ++n_stash_entries;
+#endif  
+}
+
+#define MATCH_STR(p,s) (((p != NULL && *p != 0) && \
+			 (s != NULL && *s != 0)) &&	\
+			!str_eq (p, s) ? 0 : 1)
+#define MATCH_NUM(p,s) (((s > 0 && p > 0) &&	\
+			 (s != p)) ? 0 : 1)
+
+
+static XftFont *xft_font_is_cached (char *p_family, char *p_style,
+				    int p_slant, int p_weight,
+				    int p_dpi, double p_size) {
+
+  struct _xftstash *x;
+#ifdef STASH_STATS
+  int r = 0;
+#endif
+
+  for (x = xft_stash; x; x = x -> next) {
+    if (MATCH_STR(x -> family, p_family) &&
+	MATCH_STR(x -> style, p_style) &&
+	MATCH_NUM(x -> slant, p_slant) &&
+	MATCH_NUM(x -> weight, p_weight) &&
+	MATCH_NUM(x -> dpi, p_dpi) &&
+	MATCH_NUM(x -> ptsize, p_size)) {
+      ++x -> hits;
+#ifdef STASH_STATS
+      fprintf (stderr, "!!!!!! HIT r  = %d of %d entries, hits = %d\n",
+	       r, n_stash_entries, x -> hits);
+#endif      
+      return x -> handle;
+    }
+#ifdef STASH_STATS
+    ++r;
+#endif    
+  }
+
+#ifdef STASH_STATS
+  fprintf (stderr, "------------ MISS: %s\n", p_family);
+#endif  
+  return NULL;
+}
 
 /* fill in when we load a font. */
 static char selected_filename[FILENAME_MAX] = "";
@@ -328,7 +425,8 @@ static void selected_fn (char *family) {
 
 static XftFont *__select_font (char *p_family, int p_slant,
 			       int p_weight, int p_dpi, double p_size) {
-  int spacing;
+  int spacing, width;
+  XftFont *l_selected_handle;
 
 #ifdef FC_PATTERN_SET
   FcPattern *pat = NULL, *font_pat_p;
@@ -343,6 +441,12 @@ static XftFont *__select_font (char *p_family, int p_slant,
   font_set = FcFontList (config, pat, properties);
   if (font_set -> nfont > 0) {
 #endif    /* FC_PATTERN_SET */
+
+    if ((l_selected_handle =
+	 xft_font_is_cached (p_family, "", p_slant, p_weight, p_dpi, p_size))
+	!= NULL) {
+      return l_selected_handle;
+    }
 
     if (*p_family)
       strcpy (selected_family, p_family);
@@ -373,6 +477,8 @@ static XftFont *__select_font (char *p_family, int p_slant,
      NULL)) != NULL) {
     XftPatternGetInteger (selected_font -> pattern,
 			  FC_SPACING, 0, &spacing);
+    XftPatternGetInteger (selected_font -> pattern,
+			  FC_WIDTH, 0, &width);
     monospace = (spacing == XFT_MONO ? true : false);
     selected_fn (selected_family);
     if (xft_message_level > XFT_NOTIFY_ERRORS) {
@@ -391,6 +497,10 @@ static XftFont *__select_font (char *p_family, int p_slant,
     FcPatternDestroy (pat);
 #endif /* FC_PATTERN_SET */
 
+  push_new_stash_entry (selected_family, "",
+			selected_slant, selected_weight, selected_dpi,
+			spacing, width, 
+			selected_pt_size, monospace, selected_font);
   return selected_font;
 }
 
@@ -471,6 +581,7 @@ static XftFont *__select_font_fc (char *p_family, char *p_style, int p_slant,
 				  int p_spacing, int p_width) {
   int i, spacing;
   XftFont *font;
+  XftFont *l_cached_handle;
 #ifdef FC_PATTERN_SET
   XftPattern *pat, *font_pat_p;
   FcFontSet *font_set;
@@ -485,6 +596,13 @@ static XftFont *__select_font_fc (char *p_family, char *p_style, int p_slant,
 
   if (font_set -> nfont > 0) {
 #endif    
+
+    if ((l_cached_handle =
+	 xft_font_is_cached (p_family, "", p_slant, p_weight, p_dpi, p_size))
+	!= NULL) {
+      return l_cached_handle;
+    }
+
     if (*p_family)
       strcpy (selected_family, p_family);
     /***/
@@ -1725,6 +1843,16 @@ int load_ft_font_faces_internal (char *family, double pt_size,
 				 unsigned short int slant,
 				 unsigned short int weight,
 				 unsigned short int dpi) {
+#if 0 /***/
+  XftFont *l_cached_handle;
+
+  if ((l_cached_handle =
+       xft_font_is_cached (family, "", slant, weight, dpi, pt_size))
+      != NULL) {
+    return l_cached_handle;
+  }
+#endif  
+
   if (new_font_spec (family, weight, slant, dpi, pt_size))  {
     if ((ft_font.normal =
 	 XftFontOpen (DISPLAY, DefaultScreen (display),
