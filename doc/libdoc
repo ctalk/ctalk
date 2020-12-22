@@ -2386,6 +2386,11 @@ the dimensions.  If the library is initialized but the application
 hasn't yet specified a font, then the value returned for rbearing
 is 0.
 
+>>>__ctalkXftHandle (void)
+Returns a void * with the handle of the selected font.
+Typically this is a cast from a XftFont * when used in a normal
+Xft configuration.
+
 >>>__ctalkXftHeight (void)
 Returns an int with the font's height above and below
 the baseline in pixels, and including any additional vertical

@@ -1,4 +1,4 @@
-/* $Id: ctalk.h,v 1.5 2020/12/21 18:24:17 rkiesling Exp $ -*-Fundamental-*- */
+/* $Id: ctalk.h,v 1.6 2020/12/22 15:11:54 rkiesling Exp $ -*-Fundamental-*- */
 
 /*
   This file is part of Ctalk.
@@ -2724,6 +2724,7 @@ int __ctalkXftAscent (void);
 int __ctalkXftDescent (void);
 int __ctalkXftHeight (void);
 int __ctalkXftMaxAdvance (void);
+void *__ctalkXftHandle (void);
 void __ctalkXftSetForeground (int, int, int, int);
 void __ctalkXftSetForegroundFromNamedColor (char *);
 char *__ctalkXftFontPathFirst (char *);

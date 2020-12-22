@@ -1,4 +1,4 @@
-/* $Id: X11FreeTypeFont,v 1.2 2020/09/19 01:08:25 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11FreeTypeFont,v 1.2 2020/12/22 15:11:53 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -49,6 +49,7 @@ X11FreeTypeFont instanceVariable ascent Integer 0;
 X11FreeTypeFont instanceVariable descent Integer 0;
 X11FreeTypeFont instanceVariable height Integer 0;
 X11FreeTypeFont instanceVariable maxAdvance Integer 0;
+X11FreeTypeFont instanceVariable handle Symbol NULL;
 
 X11FreeTypeFont instanceMethod saveSelectedFont (void) {
   "Store the FreeType library's font parameters in the

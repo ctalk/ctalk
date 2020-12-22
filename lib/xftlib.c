@@ -1,4 +1,4 @@
-/* $Id: xftlib.c,v 1.2 2020/12/14 14:18:14 rkiesling Exp $ -*-c-*-*/
+/* $Id: xftlib.c,v 1.3 2020/12/22 15:11:54 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -1556,6 +1556,7 @@ int __ctalkXftAscent (void) {return selected_font -> ascent;}
 int __ctalkXftDescent (void) {return selected_font -> descent;}
 int __ctalkXftHeight (void) {return selected_font -> height;}
 int __ctalkXftMaxAdvance (void) {return selected_font -> max_advance_width;}
+void *__ctalkXftHandle (void) {return selected_font;}
 
 
 void __ctalkXftSetForeground (int r, int g, int b, int alpha) {
@@ -1824,6 +1825,10 @@ int __ctalkXftMaxAdvance (void) {
   xft_support_error ();
   return 0; /* notreached */
 }
+void *__ctalkXftHandle (void) {
+  xft_support_error ();
+  return NULL; /* notreached */
+}
 int __ctalkXftAscent (void) {
   xft_support_error ();
   return 0; /* notreached */
@@ -1988,6 +1993,10 @@ void __ctalkXftSelectFontFromXLFD (char *xlfd) {
 int __ctalkXftMaxAdvance (void) {
   xft_support_error ();
   return 0; /* notreached */
+}
+void *__ctalkXftHandle (void) {
+  xft_support_error ();
+  return NULL; /* notreached */
 }
 int __ctalkXftAscent (void) {
   xft_support_error ();

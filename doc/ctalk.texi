@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.4 2020/12/21 23:51:16 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.5 2020/12/22 15:11:54 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -25647,6 +25647,12 @@ not initialized or not available, the function returns 0 for all of
 the dimensions.  If the library is initialized but the application
 hasn't yet specified a font, then the value returned for @var{rbearing}
 is @samp{0}.
+
+@idxlibfn{__ctalkXftHandle}
+@item __ctalkXftHandle (@code{void})
+Returns a @code{void *} with the handle of the selected font.
+Typically this is a cast from a @code{XftFont *} when used in a normal
+Xft configuration.
 
 @idxlibfn{__ctalkXftHeight}
 @item __ctalkXftHeight (@code{void})

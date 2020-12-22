@@ -1,4 +1,4 @@
-/* $Id: ctalklib.in,v 1.4 2020/12/21 18:24:16 rkiesling Exp $ -*-c-*-*/
+/* $Id: ctalklib.in,v 1.5 2020/12/22 15:11:54 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -1324,6 +1324,7 @@ extern int __ctalkXftAscent (void);
 extern int __ctalkXftDescent (void);
 extern int __ctalkXftHeight (void);
 extern int __ctalkXftMaxAdvance (void);
+extern void *__ctalkXftHandle (void);
 extern bool __ctalkXftIsMonospace (void);
 extern bool __ctalkGLEW20 (void);
 extern int __ctalkGLUTVersion (void);
