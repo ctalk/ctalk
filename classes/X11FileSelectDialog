@@ -1,4 +1,4 @@
-/* $Id: X11FileSelectDialog,v 1.4 2020/12/14 18:12:05 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11FileSelectDialog,v 1.6 2020/12/23 16:38:52 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -286,6 +286,14 @@ X11FileSelectDialog instanceMethod onResize (Object subPane, InputEvent event) {
 #define shiftStateShift (1 << 0)
 #define shiftStateCtrl  (1 << 1)
 
+/*
+ *  NOTE - The state variables - x_1, y_1, etc., are declared
+ *  in X11ListPane class.  If you build this class another way,
+ *  they are not guaranteed to be defined.  So it's okay to 
+ *  declare them here, or rename them if it results in duplicate
+ *  label errors.
+ */
+
 X11FileSelectDialog instanceMethod onListClick (Object subPane, InputEvent event) {
   ItemBox new item, lastItem;
   int i;
@@ -300,8 +308,8 @@ X11FileSelectDialog instanceMethod onListClick (Object subPane, InputEvent event
 	  x_1 = event xEventData1;
 	  y_1 = event xEventData2;
 	  /* Simplifies expressions. */
-	  y_1 += self listPane viewStartY;
 	  if (x_1 > self listPane scrollWidth) {
+	    y_1 += self listPane viewStartY;
 	    i = 0;
 	    self listPane items map {
 	      /* Simplifies expressions, too. */
