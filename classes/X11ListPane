@@ -1,4 +1,4 @@
-/* $Id: X11ListPane,v 1.2 2020/12/14 16:22:44 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11ListPane,v 1.4 2020/12/23 14:54:50 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -69,6 +69,7 @@ static int last_click_nth = -1;
 static int scrollmargin, scrollwidth, thumbwidth;
 static int display_line_height;
 static int select_style, text_left_margin;
+static int thumborg_x, thumbext_x;
 
 /*
  *  Helps speed up scrolling on slower systems.  If you
@@ -140,6 +141,8 @@ X11ListPane instanceMethod calcThumb (void) {
 
   self thumbOrg x = margin;
   self thumbExt x = margin + usableScroll;
+  thumborg_x = margin;
+  thumbext_x = margin + usableScroll;
   /* initial position at the top of the scrollbar */
   self thumbOrg y = margin;
 
@@ -353,8 +356,14 @@ X11ListPane instanceMethod onClick (Object subPane, InputEvent event) {
 
 X11ListPane instanceMethod onMotion (Object subPane, InputEvent event) {
 
+  int thumborg_y_tmp;
+
+  if ((event xEventData1 >= thumborg_x) &&
+      (event xEventData1 <= thumbext_x)) {
+#if 0 /***/
   if ((event xEventData1 >= self thumbOrg x) &&
       (event xEventData1 <= self thumbExt x)) {
+#endif    
     if (self buttonState & BUTTON1MASK) {
       d_y = event xEventData2 - y_1;
       if (abs (d_y) < MIN_SCROLL)
@@ -363,13 +372,14 @@ X11ListPane instanceMethod onMotion (Object subPane, InputEvent event) {
       self thumbOrg y += d_y;
       self thumbExt y += d_y;
       self viewStartY += d_y;
-      if (self thumbOrg y > scroll_boundary_y) {
+      thumborg_y_tmp = self thumbOrg y;
+      if (thumborg_y_tmp > scroll_boundary_y) {
 	d_y = (self thumbOrg y - scroll_boundary_y);
 	self thumbOrg y -= d_y;
 	self thumbExt y -= d_y;
 	self viewStartY -= d_y;
-      } else if (self thumbOrg y < 2) {
-	if (self thumbOrg y >= 0) {
+      } else if (thumborg_y_tmp < 2) {
+	if (thumborg_y_tmp >= 0) {
 	  d_y = (2 - self thumbOrg y);
 	  self thumbOrg y += d_y;
 	  self thumbExt y += d_y;
