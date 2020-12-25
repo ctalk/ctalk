@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.6 2020/12/22 15:45:17 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.7 2020/12/25 14:09:48 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -424,6 +424,7 @@ Object
   Integer
    CTime
      CalendarTime
+   RGBAColor
   LongInteger
   Pen
   Point
@@ -521,6 +522,7 @@ Object
 *   Integer::
 *    CTime::
 *      CalendarTime::
+*    RGBAColor::
 *   LongInteger::
 *   Pen::
 *   Point::
@@ -9368,6 +9370,16 @@ Fills in the receiver's @code{timeZone}, @code{tzStd}, @code{tzDst},
 current time zone.
 
 @end table
+
+@node RGBAColor, LongInteger, CalendarTime, Classes
+@iftex
+@section @code{RGBAColor} class
+@end iftex
+@ifnottex
+@subheading @code{RGBAColor} Class
+@end ifnottex
+@cindex @code{RGBAColor} Class
+
 
 @node LongInteger, Pen, CalendarTime, Classes
 @iftex

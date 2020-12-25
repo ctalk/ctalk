@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.2 2020/12/14 13:31:23 rkiesling Exp $
+# $Id: Makefile.am,v 1.3 2020/12/25 14:02:39 rkiesling Exp $
 
 SUBDIRS = libc libctalk
 
@@ -12,9 +12,9 @@ pkginclude_HEADERS=ANSIButtonPane ANSILabelPane ANSIListBoxPane \
 	FileStream Float GLUTApplication GLXCanvasPane Integer InputEvent \
 	Key LibrarySearch Line List LongInteger Magnitude Method \
 	NetworkStream Object ObjectInspector Pane Pen \
-	Point ReadFileStream ReadWriteFileStream Rectangle SignalEvent \
-	SignalHandler Stream SortedList String Symbol SystemErrnoException \
-	TCPIPNetworkStream TCPIPNetworkStreamReader \
+	Point ReadFileStream ReadWriteFileStream Rectangle RGBAColor \
+	SignalEvent SignalHandler Stream SortedList String Symbol \
+	SystemErrnoException TCPIPNetworkStream TCPIPNetworkStreamReader \
 	TCPIPNetworkStreamWriter TCPIPV6NetworkStream \
 	TCPIPV6NetworkStreamReader TCPIPV6NetworkStreamWriter TerminalStream \
 	TreeNode UNIXNetworkStream \

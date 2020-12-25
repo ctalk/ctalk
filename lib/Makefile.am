@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.1.1.1 2020/12/13 14:51:03 rkiesling Exp $
+# $Id: Makefile.am,v 1.2 2020/12/25 14:02:39 rkiesling Exp $
 
 SUBDIRS = 
 
@@ -28,7 +28,7 @@ libctalk_la_SOURCES=ansitime.c become.c bintodec.c bitmap.c bnamecmp.c \
 	tempio.c tempname.c termsize.c textcx.c trimstr.c typecast.c \
 	unixsock.c val.c \
 	wregex.c x11ksym.c x11lib.c xcircle.c xcopypixmap.c xdialog.c \
-	xftlib.c xgeometry.c xlibfont.c xrender.c xresource.c
+	xftlib.c xgeometry.c xlibfont.c xmenu.c xrender.c xresource.c
 
 
 libctalk_la_LTLIBOBJS=ansitime.lo become.lo bintodec.lo bitmap.lo \
@@ -56,7 +56,7 @@ libctalk_la_LTLIBOBJS=ansitime.lo become.lo bintodec.lo bitmap.lo \
 	textcx.lo trimstr.lo typecast.lo unixsock.lo val.lo wregex.lo \
 	x11ksym.lo \
 	x11lib.lo xcircle.lo xcopypixmap.lo xftlib.lo xdialog.lo \
-	xgeometry.lo xlibfont.lo xrender.lo xresource.lo
+	xgeometry.lo xlibfont.lo xmenu.lo xrender.lo xresource.lo
 
 lib_LTLIBRARIES=libctalk.la
 
