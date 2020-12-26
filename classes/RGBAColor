@@ -1,4 +1,4 @@
-/* $Id: RGBAColor,v 1.1 2020/12/25 14:02:39 rkiesling Exp $ -*-c-*-*/
+/* $Id: RGBAColor,v 1.2 2020/12/26 15:06:31 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -31,16 +31,18 @@ Integer class RGBAColor;
 components as Integers.  The default format is 24-bit
 color, but the Integers' size allows for expansion to
 higher resolution color values.  The color's alpha value
-is stored as a 16-bit Integer, but finer resolutions are
-also possible with this value. The class performs the
-color specification from X11 color names, from #rrggbb
-HTML specifications, and can approximate display colors
-from any R,G,B values by using Xlib calls." 
+is stored as a 16-bit Integer, although finer resolutions
+are also possible with a 32-bit Integer. The class 
+performs the color lookup and allocation X11 color names, 
+from #rrggbb HTML specifications, and can approximate 
+display colors from any R,G,B values by using Xlib calls." 
 
 RGBAColor instanceVariable red Integer 0;
 RGBAColor instanceVariable green Integer 0;
 RGBAColor instanceVariable blue Integer 0;
 RGBAColor instanceVariable alpha Integer 0xffff;
-RGBAColor instanceVariable alpha Integer 0;
+RGBAColor instanceVariable x11Pixel Integer 0;
 RGBAColor instanceVariable x11Name String "";
+
+
 
