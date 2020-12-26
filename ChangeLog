@@ -1509,5 +1509,9 @@
 	make scrolling faster, and fixed the scroll state persistence
 	in X11FileSelectBox : onListClick.
 2020-11-26
-	- Added the lib/xcolor.c source module.
+	- Added the lib/xcolor.c source module.  Moved lookup_color,
+	lookup_pixel, lookup_pixel_d, and lookup_rgb from x11lib.c
+	to xcolor.c.  Added the __ctalkX11NamedColor and
+	__ctalkX11RGBColor library functions. Also added the
+	RGBAColor : namedX11Color and RGBAColor : rgbX11Color.
 

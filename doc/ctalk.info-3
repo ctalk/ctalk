@@ -17,6 +17,120 @@ Texts.  A copy of the license is included in the section entitled, "GNU
 Free Documentation License."
 
 
+File: ctalk.info,  Node: Translating,  Next: C Macros,  Prev: Prefixes,  Up: Methods
+
+Translating C Variables into Object Values
+------------------------------------------
+
+The 'OBJECT' C data type that Ctalk uses internally stores objects'
+values as C 'char *''s.  *Note OBJECT typedef::.
+
+To store numeric values, you must format them as character strings,
+using, for example, 'sprintf'.  In many cases, however, Ctalk performs
+this translation automatically.
+
+'Integer' objects can also translate values with 'atoi(3)' or
+'__ctalkDecimalIntegerToASCII'. Other scalar data types have
+corresponding functions that translate numbers to character strings.
+
+If for some reason you need to translate an object to its C type or back
+again, the Ctalk library provides the following functions.
+
+'__ctalkToCArrayElement (OBJECT *O)'
+     Translate the value of an 'Integer,' 'Character,' 'String,' or
+     'LongInteger' array element to a 'void *' that points to its
+     corresponding C data type.
+
+'__ctalkToCCharPtr (OBJECT *O, int KEEP)'
+     Translate the value of a 'String' object into a C 'char *.' If KEEP
+     is 'FALSE', delete O.
+
+'__ctalkToCIntArrayElement (OBJECT *O)'
+     Translate the value of an 'Integer' array element to an 'int.'
+
+'__ctalkToCInteger (OBJECT *O, int KEEP_OBJECT)'
+     Translate the value of an 'Integer' to an 'int.' If KEEP_OBJECT is
+     'FALSE,' then delete the object.
+
+'__ctalkToCInteger (OBJECT *O, int KEEP_OBJECT)'
+     Translate the value of an 'Integer' to a 'long int.' If KEEP_OBJECT
+     is 'FALSE,' then delete the object.
+
+'__ctalk_to_c_char_ptr (OBJECT *O)'
+     Translate the value of a 'String' object into a C 'char *.' Note:
+     This function is being phased out.  Use '__ctalkToCCharPtr ()',
+     above, instead.
+
+'__ctalk_to_c_double (OBJECT *O)'
+     Translate the value of a 'Float' object into a C 'double.'
+
+'__ctalk_to_c_int (OBJECT *O)'
+     Translate the value of an 'Integer' object into a C 'int.'
+
+'__ctalk_to_c_longlong (OBJECT *OBJ, int KEEP)'
+     Translate the value of a 'LongInteger' object into a C 'long long
+     int.' If KEEP is non-zero, does not delete OBJ, or, in compound
+     expressions that need to interface with C variables, (like complex
+     if-statement conditionals), whether to delete the library's
+     internal C variable registrations.
+
+     Formats the arguments of the second-most calling method and prints
+     them on the receiver.  This function is meant to be used within a
+     method that is called by another method.  One method that uses this
+     function is 'String : vPrintOn'.  Refer to 'String : vPrintOn' for
+     an example of this function's use.  *Note vPrintOn--class String::
+
+'__ctalkCBoolToObj (bool B)'
+     Create a 'Boolean' object with the boolean (either true or false)
+     value of the argument.
+
+'__ctalkCCharPtrToObj (char *S)'
+     Create a 'String' object with the value S.
+
+'__ctalkClassLibraryPath (void)'
+     Return a 'char *' containing the directories that Ctalk searches
+     for class libraries.  When compiling programs Ctalk searches first
+     for directories given as arguments to the '-I' option, then
+     directories given by the 'CLASSLIBDIRS' environment variable, then
+     the standard class library directory which is defined when Ctalk is
+     built.  In addition, for each directory, if a subdirectory named
+     'ctalk' exists, then Ctalk searches that subdirectory also.
+
+     The standard library directory defaults to
+     '/usr/local/include/ctalk', although if you define a different
+     '--prefix' when building and installing Ctalk, the class libraries
+     will be located in PREFIX'/include/ctalk'.
+
+     If it is necessary to look up class libraries at run time, Ctalk
+     first searches the directories listed by the 'CLASSLIBDIRS'
+     environment variable, then the default class library directory
+     mentioned above.
+
+'__ctalkClassSearchPath (void)'
+     A synonym for '__ctalkClassLibraryPath()', above.
+
+'__ctalkCDoubleToObj (double F)'
+     Create a 'Float' object with the value F.
+
+'__ctalkCIntToObj (int I)'
+     Create an 'Integer' object with the value I.
+
+'__ctalkCLongLongToObj (long long int L)'
+     Create a 'LongInteger' object with the value L.
+
+'__ctalkCSymbolToObj (unsigned int LABEL)'
+     Create a 'Symbol' object with the value that is the address of
+     LABEL.  This is used for expressions where a function name appears
+     by itself, for example.  In that case, the result is a 'Symbol'
+     object with the address of the function.
+
+The functions that create objects give the objects the scope of the
+function call, either global or local.
+
+_Note:_ In future versions of Ctalk, the names of these functions are
+likely to change.
+
+
 File: ctalk.info,  Node: C Macros,  Next: Required classes,  Prev: Translating,  Up: Methods
 
 C Macros
@@ -3455,6 +3569,21 @@ functions.
 '__ctalkX11MoveWindow (OBJECT *PANE_OBJECT, int X, int Y)'
      Move PANE_OBJECT's window so that its origin is at X,Y.
 
+'__ctalkX11NamedColor (char *COLORNAME, int *RED_OUT, int *GREEN_OUT, int *BLUE_OUT, unsigned long int *PIXEL_OUT)'
+     Looks up the X11 color given by COLORNAME, and returns its red,
+     green, and blue components, and the color's pixel value as given by
+     the X server.  If the color name is supported by the X server, the
+     function returns 0 (SUCCESS), or -1 (ERROR) if COLORNAME is not a
+     valid X11 color name.  For a list of the colors that X supports,
+     refer to 'rgb(1)'.
+
+     To look up RGB color combinations that the X server may not
+     support, refer to *Note ctalkX11RGBColor::.
+
+     If '__ctalkX11NamedColor' cannot find the color, it sets RED_OUT,
+     GREEN_OUT, and BLUE_OUT to 0 and sets PIXEL_OUT to the display
+     server's black pixel.
+
 '__ctalkX11OpenInputClient (OBJECT *STREAMOBJECT)'
      The library interface of the 'X11TerminalStream' class's input
      client.  This function is called by 'openInputClient' (class
@@ -3500,6 +3629,30 @@ functions.
      libraries.  If the application uses different drawables than
      PANE_OBJECT's window surface or its buffers, use
      '__ctalkX11PanePutStrBasic' instead.
+
+'__ctalkX11NamedColor (char *COLORSPEC, int *RED_OUT, int *GREEN_OUT, int *BLUE_OUT, unsigned long int *PIXEL_OUT)'
+     Parses the color specification given by COLORSPEC, and returns the
+     red, green, and blue components of the color as given by the X
+     server, and also the server's pixel value for the color, which the
+     function allocates.
+
+     The COLORSPEC argument may have one of the forms that the X server
+     recognizes as RGB color specifications.
+
+
+          #rgb, #rrggbb, #rrrgggbbb, #rrrrggggbbbb
+
+          rgb:r/g/b, rgb:rr/gg/bb, rgb:rrr/ggg/bbb, rgb:rrrr/gggg/bbbb
+
+
+     The function returns 0 (SUCCESS) and sets RED_OUT, GREEN_OUT,
+     BLUE_OUT, and PIXEL_OUT if it was able to obtain a pixel value for
+     the color.  If the function can't parse COLORSPEC, or it can't
+     allocate the color, it returns -1 (ERROR), and sets the color
+     channels to 0, and PIXEL_VALUE to the X server's black pixel value.
+
+     For more information about the COLORSPEC formats, refer to
+     'XParseColor(3)'.
 
 '__ctalkX11SetSizeHints (int X, int Y, intp WIDTH, int HEIGHT, int GEOM_FLAGS)'
      Set the window size hints based on the window dimensions set by the
@@ -7691,9 +7844,9 @@ Index
 * ^ metacharacter:                       String.             (line  549)
 * ^= instance method (Integer class):    Integer.            (line  115)
 * ^= instance method (LongInteger class): LongInteger.       (line   99)
-* _error function:                       Ctalk library.      (line 2788)
-* _store_int () function:                Ctalk library.      (line 2904)
-* _warning function:                     Ctalk library.      (line 2848)
+* _error function:                       Ctalk library.      (line 2827)
+* _store_int () function:                Ctalk library.      (line 2943)
+* _warning function:                     Ctalk library.      (line 2887)
 * __argvFileName function:               Ctalk library.      (line   16)
 * __argvName function:                   Ctalk library.      (line   12)
 * __arg_trace function:                  Ctalk library.      (line   19)
@@ -8064,196 +8217,198 @@ Index
 * __ctalkX11InputClient () function:     Ctalk library.      (line 2093)
 * __ctalkX11MakeEvent () function:       Ctalk library.      (line 2098)
 * __ctalkX11MoveWindow () function:      Ctalk library.      (line 2104)
-* __ctalkX11OpenInputClient () function: Ctalk library.      (line 2107)
-* __ctalkX11PaneClearRectangle () function: Ctalk library.   (line 2178)
-* __ctalkX11PaneClearWindow () function: Ctalk library.      (line 2208)
-* __ctalkX11PaneDrawCircleBasic () function: Ctalk library.  (line 2123)
-* __ctalkX11PaneDrawLine () function:    Ctalk library.      (line 2184)
+* __ctalkX11NamedColor () function:      Ctalk library.      (line 2107)
+* __ctalkX11OpenInputClient () function: Ctalk library.      (line 2122)
+* __ctalkX11PaneClearRectangle () function: Ctalk library.   (line 2217)
+* __ctalkX11PaneClearWindow () function: Ctalk library.      (line 2247)
+* __ctalkX11PaneDrawCircleBasic () function: Ctalk library.  (line 2138)
+* __ctalkX11PaneDrawLine () function:    Ctalk library.      (line 2223)
 * __ctalkX11PaneDrawLineBasic () function: Ctalk library.    (line 1034)
 * __ctalkX11PaneDrawLineBasic () function <1>: Ctalk library.
-                                                             (line 2191)
-* __ctalkX11PaneDrawPoint () function:   Ctalk library.      (line 2196)
-* __ctalkX11PaneDrawPointBasic () function: Ctalk library.   (line 2203)
-* __ctalkX11PaneDrawRectangle () function: Ctalk library.    (line 2213)
+                                                             (line 2230)
+* __ctalkX11PaneDrawPoint () function:   Ctalk library.      (line 2235)
+* __ctalkX11PaneDrawPointBasic () function: Ctalk library.   (line 2242)
+* __ctalkX11PaneDrawRectangle () function: Ctalk library.    (line 2252)
 * __ctalkX11PaneDrawRectangleBasic () function: Ctalk library.
-                                                             (line 2131)
-* __ctalkX11PanePutStr () function:      Ctalk library.      (line 2141)
-* __ctalkX11PanePutStrBasic () function: Ctalk library.      (line 2219)
-* __ctalkX11PaneRefresh () function:     Ctalk library.      (line 2225)
-* __ctalkX11ParseGeometry () function:   Ctalk library.      (line 2114)
-* __ctalkX11QueryFont () function:       Ctalk library.      (line 2230)
-* __ctalkX11ResizePaneBuffer () function: Ctalk library.     (line 2163)
-* __ctalkX11ResizePixmap () function:    Ctalk library.      (line 2168)
-* __ctalkX11ResizeWindow () function:    Ctalk library.      (line 2173)
-* __ctalkX11SetBackground () function:   Ctalk library.      (line 2235)
-* __ctalkX11SetBackgroundBasic () function: Ctalk library.   (line 2241)
-* __ctalkX11SetForegroundBasic () function: Ctalk library.   (line 2245)
-* __ctalkX11SetResource () function:     Ctalk library.      (line 2249)
-* __ctalkX11SetSizeHints () function:    Ctalk library.      (line 2153)
-* __ctalkX11SetWMNameProp () function:   Ctalk library.      (line 2253)
+                                                             (line 2146)
+* __ctalkX11PanePutStr () function:      Ctalk library.      (line 2156)
+* __ctalkX11PanePutStrBasic () function: Ctalk library.      (line 2258)
+* __ctalkX11PaneRefresh () function:     Ctalk library.      (line 2264)
+* __ctalkX11ParseGeometry () function:   Ctalk library.      (line 2129)
+* __ctalkX11QueryFont () function:       Ctalk library.      (line 2269)
+* __ctalkX11ResizePaneBuffer () function: Ctalk library.     (line 2202)
+* __ctalkX11ResizePixmap () function:    Ctalk library.      (line 2207)
+* __ctalkX11ResizeWindow () function:    Ctalk library.      (line 2212)
+* __ctalkX11RGBColor () function:        Ctalk library.      (line 2168)
+* __ctalkX11SetBackground () function:   Ctalk library.      (line 2274)
+* __ctalkX11SetBackgroundBasic () function: Ctalk library.   (line 2280)
+* __ctalkX11SetForegroundBasic () function: Ctalk library.   (line 2284)
+* __ctalkX11SetResource () function:     Ctalk library.      (line 2288)
+* __ctalkX11SetSizeHints () function:    Ctalk library.      (line 2192)
+* __ctalkX11SetWMNameProp () function:   Ctalk library.      (line 2292)
 * __ctalkX11SubWindowGeometry () function: Ctalk library.    (line 1073)
 * __ctalkX11TextFromData () function:    Ctalk library.      (line 1094)
 * __ctalkX11TextWidth () function:       Ctalk library.      (line 1097)
-* __ctalkX11UseCursor () function:       Ctalk library.      (line 2258)
+* __ctalkX11UseCursor () function:       Ctalk library.      (line 2297)
 * __ctalkX11UseFontBasic () function:    Ctalk library.      (line 1651)
-* __ctalkX11UseFontBasic () function <1>: Ctalk library.     (line 2266)
-* __ctalkX11UseXRender () function:      Ctalk library.      (line 2262)
-* __ctalkX11UsingXRender () function:    Ctalk library.      (line 2273)
+* __ctalkX11UseFontBasic () function <1>: Ctalk library.     (line 2305)
+* __ctalkX11UseXRender () function:      Ctalk library.      (line 2301)
+* __ctalkX11UsingXRender () function:    Ctalk library.      (line 2312)
 * __ctalkX11WxHGeometry () function:     Ctalk library.      (line 1103)
-* __ctalkX11XPMFromData () function:     Ctalk library.      (line 2281)
-* __ctalkX11XPMInfo () function:         Ctalk library.      (line 2286)
-* __ctalkXftAlpha () function:           Ctalk library.      (line 2356)
-* __ctalkXftAscent () function:          Ctalk library.      (line 2332)
-* __ctalkXftBlue () function:            Ctalk library.      (line 2356)
-* __ctalkXftDescent () function:         Ctalk library.      (line 2345)
-* __ctalkXftDescStr () function:         Ctalk library.      (line 2336)
-* __ctalkXftFgAlpha () function:         Ctalk library.      (line 2349)
-* __ctalkXftFgBlue () function:          Ctalk library.      (line 2349)
-* __ctalkXftFgGreen () function:         Ctalk library.      (line 2349)
-* __ctalkXftFgRed () function:           Ctalk library.      (line 2349)
-* __ctalkXftFontPathFirst () function:   Ctalk library.      (line 2363)
-* __ctalkXftFontPathNext () function:    Ctalk library.      (line 2368)
-* __ctalkXftGetStringDimensions () function: Ctalk library.  (line 2372)
-* __ctalkXftGreen () function:           Ctalk library.      (line 2356)
-* __ctalkXftHandle () function:          Ctalk library.      (line 2381)
-* __ctalkXftHeight () function:          Ctalk library.      (line 2390)
-* __ctalkXftInitialized () function:     Ctalk library.      (line 2407)
-* __ctalkXftInitLib () function:         Ctalk library.      (line 2394)
-* __ctalkXftIsMonospace () function:     Ctalk library.      (line 2411)
-* __ctalkXftListFontsEnd () function:    Ctalk library.      (line 2427)
-* __ctalkXftListFontsFirst () function:  Ctalk library.      (line 2415)
-* __ctalkXftListFontsNext () function:   Ctalk library.      (line 2423)
-* __ctalkXftMajorVersion () function:    Ctalk library.      (line 2430)
-* __ctalkXftMaxAdvance () function:      Ctalk library.      (line 2436)
-* __ctalkXftMinorVersion () function:    Ctalk library.      (line 2440)
-* __ctalkXftQualifyFontName () function: Ctalk library.      (line 2447)
-* __ctalkXftRed () function:             Ctalk library.      (line 2356)
-* __ctalkXftRequestedDPI () function:    Ctalk library.      (line 2450)
-* __ctalkXftRequestedFamily () function: Ctalk library.      (line 2450)
-* __ctalkXftRequestedPointSize () function: Ctalk library.   (line 2450)
-* __ctalkXftRequestedSlant () function:  Ctalk library.      (line 2450)
-* __ctalkXftRequestedWeigth () function: Ctalk library.      (line 2450)
-* __ctalkXftRevision () function:        Ctalk library.      (line 2459)
-* __ctalkXftSelectedFamily () function:  Ctalk library.      (line 2490)
+* __ctalkX11XPMFromData () function:     Ctalk library.      (line 2320)
+* __ctalkX11XPMInfo () function:         Ctalk library.      (line 2325)
+* __ctalkXftAlpha () function:           Ctalk library.      (line 2395)
+* __ctalkXftAscent () function:          Ctalk library.      (line 2371)
+* __ctalkXftBlue () function:            Ctalk library.      (line 2395)
+* __ctalkXftDescent () function:         Ctalk library.      (line 2384)
+* __ctalkXftDescStr () function:         Ctalk library.      (line 2375)
+* __ctalkXftFgAlpha () function:         Ctalk library.      (line 2388)
+* __ctalkXftFgBlue () function:          Ctalk library.      (line 2388)
+* __ctalkXftFgGreen () function:         Ctalk library.      (line 2388)
+* __ctalkXftFgRed () function:           Ctalk library.      (line 2388)
+* __ctalkXftFontPathFirst () function:   Ctalk library.      (line 2402)
+* __ctalkXftFontPathNext () function:    Ctalk library.      (line 2407)
+* __ctalkXftGetStringDimensions () function: Ctalk library.  (line 2411)
+* __ctalkXftGreen () function:           Ctalk library.      (line 2395)
+* __ctalkXftHandle () function:          Ctalk library.      (line 2420)
+* __ctalkXftHeight () function:          Ctalk library.      (line 2429)
+* __ctalkXftInitialized () function:     Ctalk library.      (line 2446)
+* __ctalkXftInitLib () function:         Ctalk library.      (line 2433)
+* __ctalkXftIsMonospace () function:     Ctalk library.      (line 2450)
+* __ctalkXftListFontsEnd () function:    Ctalk library.      (line 2466)
+* __ctalkXftListFontsFirst () function:  Ctalk library.      (line 2454)
+* __ctalkXftListFontsNext () function:   Ctalk library.      (line 2462)
+* __ctalkXftMajorVersion () function:    Ctalk library.      (line 2469)
+* __ctalkXftMaxAdvance () function:      Ctalk library.      (line 2475)
+* __ctalkXftMinorVersion () function:    Ctalk library.      (line 2479)
+* __ctalkXftQualifyFontName () function: Ctalk library.      (line 2486)
+* __ctalkXftRed () function:             Ctalk library.      (line 2395)
+* __ctalkXftRequestedDPI () function:    Ctalk library.      (line 2489)
+* __ctalkXftRequestedFamily () function: Ctalk library.      (line 2489)
+* __ctalkXftRequestedPointSize () function: Ctalk library.   (line 2489)
+* __ctalkXftRequestedSlant () function:  Ctalk library.      (line 2489)
+* __ctalkXftRequestedWeigth () function: Ctalk library.      (line 2489)
+* __ctalkXftRevision () function:        Ctalk library.      (line 2498)
+* __ctalkXftSelectedFamily () function:  Ctalk library.      (line 2529)
 * __ctalkXftSelectedFontDescriptor () function: Ctalk library.
-                                                             (line 2503)
+                                                             (line 2542)
 * __ctalkXftSelectedFontDescriptor () function <1>: Ctalk library.
-                                                             (line 2545)
-* __ctalkXftSelectedFontPath () function: Ctalk library.     (line 2507)
-* __ctalkXftSelectedPointSize () function: Ctalk library.    (line 2494)
-* __ctalkXftSelectedSlant () function:   Ctalk library.      (line 2497)
-* __ctalkXftSelectedWeight () function:  Ctalk library.      (line 2500)
-* __ctalkXftSelectFont () function:      Ctalk library.      (line 2511)
+                                                             (line 2584)
+* __ctalkXftSelectedFontPath () function: Ctalk library.     (line 2546)
+* __ctalkXftSelectedPointSize () function: Ctalk library.    (line 2533)
+* __ctalkXftSelectedSlant () function:   Ctalk library.      (line 2536)
+* __ctalkXftSelectedWeight () function:  Ctalk library.      (line 2539)
+* __ctalkXftSelectFont () function:      Ctalk library.      (line 2550)
 * __ctalkXftSelectFontFromFontConfig () function: Ctalk library.
-                                                             (line 2465)
-* __ctalkXftSelectFontFromXLFD () function: Ctalk library.   (line 2519)
-* __ctalkXftSetForeground () function:   Ctalk library.      (line 2537)
+                                                             (line 2504)
+* __ctalkXftSelectFontFromXLFD () function: Ctalk library.   (line 2558)
+* __ctalkXftSetForeground () function:   Ctalk library.      (line 2576)
 * __ctalkXftSetForgroundFromNamedColor () function: Ctalk library.
-                                                             (line 2541)
-* __ctalkXftShowFontLoad () function:    Ctalk library.      (line 2470)
-* __ctalkXftVerbosity () function:       Ctalk library.      (line 2548)
-* __ctalkXftVersion () function:         Ctalk library.      (line 2561)
-* __ctalkXPMToGLTexture () function:     Ctalk library.      (line 2290)
-* __ctalkXPMToGLXTexture () function:    Ctalk library.      (line 2290)
-* __ctalk_arg () function:               Ctalk library.      (line 2566)
-* __ctalk_arg_cleanup () function:       Ctalk library.      (line 2569)
-* __ctalk_arg_internal () function:      Ctalk library.      (line 2575)
-* __ctalk_arg_pop () function:           Ctalk library.      (line 2590)
-* __ctalk_arg_pop_deref () function:     Ctalk library.      (line 2590)
-* __ctalk_arg_value_internal () function: Ctalk library.     (line 2580)
-* __ctalk_class_initialize () function:  Ctalk library.      (line 2596)
-* __ctalk_define_class () function:      Ctalk library.      (line 2600)
-* __ctalk_dictionary_add () function:    Ctalk library.      (line 2604)
-* __ctalk_exitFn () function:            Ctalk library.      (line 2608)
-* __ctalk_get_object () function:        Ctalk library.      (line 2622)
-* __ctalk_get_object_return () function: Ctalk library.      (line 2622)
-* __ctalk_init () function:              Ctalk library.      (line 2633)
-* __ctalk_initFn () function:            Ctalk library.      (line 2614)
-* __ctalk_initLocalObjects () function:  Ctalk library.      (line 2618)
-* __ctalk_method () function:            Ctalk library.      (line 2637)
-* __ctalk_new_object () function:        Ctalk library.      (line 2644)
-* __ctalk_primitive_method () function:  Ctalk library.      (line 2647)
-* __ctalk_process_exitFn () function:    Ctalk library.      (line 2653)
-* __ctalk_receiver_pop () function:      Ctalk library.      (line 2658)
-* __ctalk_receiver_push () function:     Ctalk library.      (line 2662)
-* __ctalk_register_c_method_arg () function: Ctalk library.  (line 2673)
-* __ctalk_self_internal () function:     Ctalk library.      (line 2686)
-* __ctalk_self_internal_value () function: Ctalk library.    (line 2689)
-* __ctalk_set_global () function:        Ctalk library.      (line 2695)
-* __ctalk_set_local () function:         Ctalk library.      (line 2700)
-* __ctalk_set_local_by_name () function: Ctalk library.      (line 2700)
-* __ctalk_to_c_char () function:         Ctalk library.      (line 2709)
-* __ctalk_to_c_char_ptr () function:     Ctalk library.      (line 2713)
+                                                             (line 2580)
+* __ctalkXftShowFontLoad () function:    Ctalk library.      (line 2509)
+* __ctalkXftVerbosity () function:       Ctalk library.      (line 2587)
+* __ctalkXftVersion () function:         Ctalk library.      (line 2600)
+* __ctalkXPMToGLTexture () function:     Ctalk library.      (line 2329)
+* __ctalkXPMToGLXTexture () function:    Ctalk library.      (line 2329)
+* __ctalk_arg () function:               Ctalk library.      (line 2605)
+* __ctalk_arg_cleanup () function:       Ctalk library.      (line 2608)
+* __ctalk_arg_internal () function:      Ctalk library.      (line 2614)
+* __ctalk_arg_pop () function:           Ctalk library.      (line 2629)
+* __ctalk_arg_pop_deref () function:     Ctalk library.      (line 2629)
+* __ctalk_arg_value_internal () function: Ctalk library.     (line 2619)
+* __ctalk_class_initialize () function:  Ctalk library.      (line 2635)
+* __ctalk_define_class () function:      Ctalk library.      (line 2639)
+* __ctalk_dictionary_add () function:    Ctalk library.      (line 2643)
+* __ctalk_exitFn () function:            Ctalk library.      (line 2647)
+* __ctalk_get_object () function:        Ctalk library.      (line 2661)
+* __ctalk_get_object_return () function: Ctalk library.      (line 2661)
+* __ctalk_init () function:              Ctalk library.      (line 2672)
+* __ctalk_initFn () function:            Ctalk library.      (line 2653)
+* __ctalk_initLocalObjects () function:  Ctalk library.      (line 2657)
+* __ctalk_method () function:            Ctalk library.      (line 2676)
+* __ctalk_new_object () function:        Ctalk library.      (line 2683)
+* __ctalk_primitive_method () function:  Ctalk library.      (line 2686)
+* __ctalk_process_exitFn () function:    Ctalk library.      (line 2692)
+* __ctalk_receiver_pop () function:      Ctalk library.      (line 2697)
+* __ctalk_receiver_push () function:     Ctalk library.      (line 2701)
+* __ctalk_register_c_method_arg () function: Ctalk library.  (line 2712)
+* __ctalk_self_internal () function:     Ctalk library.      (line 2725)
+* __ctalk_self_internal_value () function: Ctalk library.    (line 2728)
+* __ctalk_set_global () function:        Ctalk library.      (line 2734)
+* __ctalk_set_local () function:         Ctalk library.      (line 2739)
+* __ctalk_set_local_by_name () function: Ctalk library.      (line 2739)
+* __ctalk_to_c_char () function:         Ctalk library.      (line 2748)
+* __ctalk_to_c_char_ptr () function:     Ctalk library.      (line 2752)
 * __ctalk_to_c_char_ptr function:        Translating.        (line   40)
-* __ctalk_to_c_double () function:       Ctalk library.      (line 2718)
+* __ctalk_to_c_double () function:       Ctalk library.      (line 2757)
 * __ctalk_to_c_double function:          Translating.        (line   45)
-* __ctalk_to_c_int () function:          Ctalk library.      (line 2723)
+* __ctalk_to_c_int () function:          Ctalk library.      (line 2762)
 * __ctalk_to_c_int function:             Translating.        (line   48)
-* __ctalk_to_c_longlong () function:     Ctalk library.      (line 2730)
+* __ctalk_to_c_longlong () function:     Ctalk library.      (line 2769)
 * __ctalk_to_c_longlong function:        Translating.        (line   51)
-* __ctalk_to_c_ptr () function:          Ctalk library.      (line 2736)
-* __ctalk_to_c_ptr_u () function:        Ctalk library.      (line 2740)
+* __ctalk_to_c_ptr () function:          Ctalk library.      (line 2775)
+* __ctalk_to_c_ptr_u () function:        Ctalk library.      (line 2779)
 * __c_arg__ attribute:                   Method functions.   (line   18)
 * __c_arg__ attribute <1>:               Method keywords.    (line    6)
-* __edittext_delete_char () function:    Ctalk library.      (line 2747)
-* __edittext_get_clipboard () function:  Ctalk library.      (line 2747)
-* __edittext_index_from_pointer () function: Ctalk library.  (line 2747)
+* __edittext_delete_char () function:    Ctalk library.      (line 2786)
+* __edittext_get_clipboard () function:  Ctalk library.      (line 2786)
+* __edittext_index_from_pointer () function: Ctalk library.  (line 2786)
 * __edittext_index_from_pointer () function <1>: Ctalk library.
-                                                             (line 2747)
-* __edittext_insert_at_point () function: Ctalk library.     (line 2747)
-* __edittext_insert_str_at_click () function: Ctalk library. (line 2747)
-* __edittext_insert_str_at_point () function: Ctalk library. (line 2747)
-* __edittext_line_end () function:       Ctalk library.      (line 2747)
-* __edittext_line_start () function:     Ctalk library.      (line 2747)
-* __edittext_next_char () function:      Ctalk library.      (line 2747)
-* __edittext_next_line () function:      Ctalk library.      (line 2747)
-* __edittext_next_page () function:      Ctalk library.      (line 2747)
-* __edittext_point_to_click () function: Ctalk library.      (line 2747)
-* __edittext_prev_char () function:      Ctalk library.      (line 2747)
-* __edittext_prev_line () function:      Ctalk library.      (line 2747)
-* __edittext_prev_page () function:      Ctalk library.      (line 2747)
-* __edittext_recenter () function:       Ctalk library.      (line 2747)
-* __edittext_rol_col_from_mark () function: Ctalk library.   (line 2747)
-* __edittext_scroll_down () function:    Ctalk library.      (line 2747)
-* __edittext_scroll_up () function:      Ctalk library.      (line 2747)
-* __edittext_set_clipboard_owner () function: Ctalk library. (line 2747)
-* __edittext_set_selection_owner () function: Ctalk library. (line 2747)
-* __edittext_text_end () function:       Ctalk library.      (line 2747)
-* __edittext_text_start () function:     Ctalk library.      (line 2747)
-* __edittext_xk_keysym () function:      Ctalk library.      (line 2747)
+                                                             (line 2786)
+* __edittext_insert_at_point () function: Ctalk library.     (line 2786)
+* __edittext_insert_str_at_click () function: Ctalk library. (line 2786)
+* __edittext_insert_str_at_point () function: Ctalk library. (line 2786)
+* __edittext_line_end () function:       Ctalk library.      (line 2786)
+* __edittext_line_start () function:     Ctalk library.      (line 2786)
+* __edittext_next_char () function:      Ctalk library.      (line 2786)
+* __edittext_next_line () function:      Ctalk library.      (line 2786)
+* __edittext_next_page () function:      Ctalk library.      (line 2786)
+* __edittext_point_to_click () function: Ctalk library.      (line 2786)
+* __edittext_prev_char () function:      Ctalk library.      (line 2786)
+* __edittext_prev_line () function:      Ctalk library.      (line 2786)
+* __edittext_prev_page () function:      Ctalk library.      (line 2786)
+* __edittext_recenter () function:       Ctalk library.      (line 2786)
+* __edittext_rol_col_from_mark () function: Ctalk library.   (line 2786)
+* __edittext_scroll_down () function:    Ctalk library.      (line 2786)
+* __edittext_scroll_up () function:      Ctalk library.      (line 2786)
+* __edittext_set_clipboard_owner () function: Ctalk library. (line 2786)
+* __edittext_set_selection_owner () function: Ctalk library. (line 2786)
+* __edittext_text_end () function:       Ctalk library.      (line 2786)
+* __edittext_text_start () function:     Ctalk library.      (line 2786)
+* __edittext_xk_keysym () function:      Ctalk library.      (line 2786)
 * __entrytext_get_primary_selection () function: Ctalk library.
-                                                             (line 2777)
-* __entrytext_send_selection () function: Ctalk library.     (line 2777)
+                                                             (line 2816)
+* __entrytext_send_selection () function: Ctalk library.     (line 2816)
 * __entrytext_set_selection_owner () function: Ctalk library.
-                                                             (line 2777)
-* __entrytext_update_selection () function: Ctalk library.   (line 2777)
+                                                             (line 2816)
+* __entrytext_update_selection () function: Ctalk library.   (line 2816)
 * __handleAppExit instance method (Application class): Application.
                                                              (line   39)
 * __handleSigAbrt instance method (Application class): Application.
                                                              (line   52)
-* __inspector_trace () function:         Ctalk library.      (line 2791)
-* __inspect_get_global () function:      Ctalk library.      (line 2791)
-* __inspect_get_receiver () function:    Ctalk library.      (line 2791)
-* __inspect_globals () function:         Ctalk library.      (line 2791)
-* __inspect_locals () function:          Ctalk library.      (line 2791)
-* __inspect_long_help () function:       Ctalk library.      (line 2791)
-* __inspect_short_help () function:      Ctalk library.      (line 2791)
+* __inspector_trace () function:         Ctalk library.      (line 2830)
+* __inspect_get_global () function:      Ctalk library.      (line 2830)
+* __inspect_get_receiver () function:    Ctalk library.      (line 2830)
+* __inspect_globals () function:         Ctalk library.      (line 2830)
+* __inspect_locals () function:          Ctalk library.      (line 2830)
+* __inspect_long_help () function:       Ctalk library.      (line 2830)
+* __inspect_short_help () function:      Ctalk library.      (line 2830)
 * __LIST_HEAD macro:                     C Macros.           (line  111)
-* __objRefCntDec function:               Ctalk library.      (line 2858)
+* __objRefCntDec function:               Ctalk library.      (line 2897)
 * __objRefCntDec function.:              Ctalk library.      (line  460)
-* __objRefCntInc function:               Ctalk library.      (line 2851)
-* __objRefCntSet function:               Ctalk library.      (line 2866)
-* __objRefCntZero function:              Ctalk library.      (line 2880)
+* __objRefCntInc function:               Ctalk library.      (line 2890)
+* __objRefCntSet function:               Ctalk library.      (line 2905)
+* __objRefCntZero function:              Ctalk library.      (line 2919)
 * __objRefCntZero function <1>:          free.               (line    9)
 * __objRefCntZero function.:             Ctalk library.      (line  460)
-* __receiver_trace () function:          Ctalk library.      (line 2791)
-* __refObj () function:                  Ctalk library.      (line 2897)
-* __rt_init_library_paths () function:   Ctalk library.      (line 2808)
-* __warning_trace () function:           Ctalk library.      (line 2815)
-* __xalloc () function:                  Ctalk library.      (line 2819)
-* __xfree () function:                   Ctalk library.      (line 2824)
+* __receiver_trace () function:          Ctalk library.      (line 2830)
+* __refObj () function:                  Ctalk library.      (line 2936)
+* __rt_init_library_paths () function:   Ctalk library.      (line 2847)
+* __warning_trace () function:           Ctalk library.      (line 2854)
+* __xalloc () function:                  Ctalk library.      (line 2858)
+* __xfree () function:                   Ctalk library.      (line 2863)
 * __xfree function:                      Ctalk library.      (line  238)
-* __xrealloc () function:                Ctalk library.      (line 2842)
+* __xrealloc () function:                Ctalk library.      (line 2881)
 * | instance method (Character class):   Character.          (line  225)
 * | instance method (Integer class):     Integer.            (line  126)
 * | instance method (LongInteger class): LongInteger.        (line  110)
@@ -8296,6 +8451,7 @@ Index
 * alpha instance method (X11FreeTypeFont class): X11FreeTypeFont.
                                                              (line  166)
 * alpha instance variable (Pen class):   Pen.                (line   17)
+* alpha instance variable (RGBAColor class): RGBAColor.      (line   31)
 * animationHandler instance variable (GLXCanvasPane class): GLXCanvasPane.
                                                              (line  166)
 * ANSIButtonPane class:                  ANSIButtonPane.     (line    6)
@@ -8474,6 +8630,7 @@ Index
                                                              (line  112)
 * blue instance method (X11FreeTypeFont class): X11FreeTypeFont.
                                                              (line  171)
+* blue instance variable (RGBAColor class): RGBAColor.       (line   35)
 * boldOnOff instance method (ANSITerminalPane class): ANSITerminalPane.
                                                              (line  117)
 * Boolean class:                         Boolean.            (line    6)
@@ -8483,7 +8640,7 @@ Index
 * boolTrue class variable (Boolean class): Boolean.          (line   23)
 * boolTrue class variable (Boolean class) <1>: Ctalk library.
                                                              (line 1552)
-* BOOLVAL macro () function:             Ctalk library.      (line 2910)
+* BOOLVAL macro () function:             Ctalk library.      (line 2949)
 * border instance variable (ANSITerminalPane class): ANSITerminalPane.
                                                              (line   96)
 * border instance variable (X11LabelPane class): X11LabelPane.
@@ -8728,6 +8885,7 @@ Index
 * cmdLineArgs instance variable (Application class): Application.
                                                              (line   19)
 * Collection class:                      Collection.         (line    6)
+* Color RGB specifications:              RGBAColor.          (line   10)
 * colormap instance variable (GLXCanvasPane class): GLXCanvasPane.
                                                              (line  197)
 * colorName instance variable (Pen class): Pen.              (line   23)
@@ -9048,7 +9206,7 @@ Index
 * drawWithPen instance method (Rectangle class): Rectangle.  (line  100)
 * dump instance method (Object class):   Object.             (line  342)
 * dump instance method (Object class) <1>: C statements.     (line  266)
-* Editing, text:                         Ctalk library.      (line 2747)
+* Editing, text:                         Ctalk library.      (line 2786)
 * Emacs, GNU:                            GNU tools.          (line    6)
 * enableExceptionTrace instance method (Object class): Object.
                                                              (line  347)
@@ -9364,6 +9522,7 @@ Index
 * grayedColor resource (X11LabelPane class): X11LabelPane.   (line  164)
 * green instance method (X11FreeTypeFont class): X11FreeTypeFont.
                                                              (line  196)
+* green instance variable (RGBAColor class): RGBAColor.      (line   35)
 * handle instance method (Exception class): Exception.       (line  157)
 * handle instance variable (X11FreeTypeFont class): X11FreeTypeFont.
                                                              (line  148)
@@ -9587,8 +9746,8 @@ Index
 * inspect instance method (ObjectInspector class): ObjectInspector.
                                                              (line   49)
 * inspect instance method (ObjectInspector class) <1>: Ctalk library.
-                                                             (line 2791)
-* inspect_get_local () function:         Ctalk library.      (line 2791)
+                                                             (line 2830)
+* inspect_get_local () function:         Ctalk library.      (line 2830)
 * installAbortHandlerBasic instance method (Application class): Application.
                                                              (line   99)
 * installCallBackFns instance method (GLUTApplication class): GLUTApplication.
@@ -9612,7 +9771,7 @@ Index
 * Integer class:                         Integer.            (line    6)
 * integerAt instance method (Collection class): Collection.  (line   68)
 * INTVAL macro:                          Scoping.            (line   97)
-* INTVAL macro () function:              Ctalk library.      (line 2916)
+* INTVAL macro () function:              Ctalk library.      (line 2955)
 * INVALID_OPERAND_X exception:           Exception.          (line  118)
 * INVALID_RECEIVER_X exception:          Exception.          (line  118)
 * INVALID_VARIABLE_DECLARATION_X exception: Exception.       (line  118)
@@ -9690,7 +9849,7 @@ Index
 * isXLFD instance method (String class): String.             (line  311)
 * IS_OBJECT macro:                       C Macros.           (line   74)
 * IS_VALUE_INSTANCE_VAR macro:           C Macros.           (line   78)
-* is_zero_q function:                    Ctalk library.      (line 2927)
+* is_zero_q function:                    Ctalk library.      (line 2966)
 * ItemBox class:                         X11FileSelectDialog.
                                                              (line  429)
 * items instance variable (ANSIListBoxPane class): ANSIListBoxPane.
@@ -9771,7 +9930,7 @@ Index
 * llrintl(3) C function <1>:             llrint.             (line    6)
 * llround(3) C function:                 llround.            (line    6)
 * LLVAL macro:                           Scoping.            (line   97)
-* LLVAL macro () function:               Ctalk library.      (line 2931)
+* LLVAL macro () function:               Ctalk library.      (line 2970)
 * loadNotify instance method (X11FreeTypeFont class): X11FreeTypeFont.
                                                              (line  224)
 * localCVARs instance variable (Method class): Method.       (line   99)
@@ -9947,6 +10106,8 @@ Index
 * name instance method (Symbol class):   Symbol.             (line  119)
 * namedColorFT instance method (GLXCanvasPane class): GLXCanvasPane.
                                                              (line  471)
+* namedX11Color instance method (RGBAColor class): RGBAColor.
+                                                             (line   54)
 * namedX11Color instance method (X11FreeTypeFont class): X11FreeTypeFont.
                                                              (line  242)
 * nArgs instance variable (Method class): Method.            (line   71)
@@ -10048,11 +10209,11 @@ Index
                                                              (line   48)
 * OBJECT_IS_STRING_LITERAL attribute;:   Attributes.         (line   45)
 * OBJREF macro:                          Ctalk library.      (line  283)
-* OBJREF macro <1>:                      Ctalk library.      (line 2897)
-* OBJREF macro <2>:                      Ctalk library.      (line 2993)
-* OBJREF_T data type:                    Ctalk library.      (line 2897)
-* obj_ref_range_chk () function:         Ctalk library.      (line 2892)
-* obj_ref_str function:                  Ctalk library.      (line 2936)
+* OBJREF macro <1>:                      Ctalk library.      (line 2936)
+* OBJREF macro <2>:                      Ctalk library.      (line 3032)
+* OBJREF_T data type:                    Ctalk library.      (line 2936)
+* obj_ref_range_chk () function:         Ctalk library.      (line 2931)
+* obj_ref_str function:                  Ctalk library.      (line 2975)
 * octahedron instance method (GLUTApplication class): GLUTApplication.
                                                              (line  211)
 * okButton instance variable (ANSIMessageBoxPane class): ANSIMessageBoxPane.
@@ -10354,6 +10515,7 @@ Index
 * Rectangle class:                       Rectangle.          (line    6)
 * red instance method (X11FreeTypeFont class): X11FreeTypeFont.
                                                              (line  295)
+* red instance variable (RGBAColor class): RGBAColor.        (line   35)
 * reflow instance method (X11TextEntryPane class): X11TextEntryPane.
                                                              (line  332)
 * refresh instance method (ANSILabelPane class): ANSILabelPane.
@@ -10428,9 +10590,11 @@ Index
                                                              (line  270)
 * reverseOnOff instance method (ANSITerminalPane class): ANSITerminalPane.
                                                              (line  174)
-* RGBAColor Class:                       RGBAColor.          (line    5)
+* RGB color specifications:              RGBAColor.          (line   10)
+* RGBAColor Class:                       RGBAColor.          (line    6)
 * RGBAColor instance method (X11FreeTypeFont class): X11FreeTypeFont.
                                                              (line  309)
+* rgbX11Color instance method (RGBAColor class): RGBAColor.  (line   65)
 * right instance variable (Rectangle class): Rectangle.      (line   73)
 * rightButtonText resource (X11YesNoBoxPane class): X11YesNoBoxPane.
                                                              (line  198)
@@ -10805,7 +10969,7 @@ Index
 * STR_0XHEX_TO_PTR macro:                C Macros.           (line   89)
 * STR_IS_NULL macro:                     Object.             (line   26)
 * STR_IS_NULL macro <1>:                 C Macros.           (line  115)
-* str_is_zero_q function:                Ctalk library.      (line 2941)
+* str_is_zero_q function:                Ctalk library.      (line 2980)
 * Subpane geometry:                      X11CanvasPane.      (line  181)
 * subPaneButton instance method (X11FileSelectDialog class): X11FileSelectDialog.
                                                              (line  439)
@@ -10916,8 +11080,8 @@ Index
                                                              (line  265)
 * subPaneSelectionClear instance method (X11TextEntryPane class): X11TextEntryPane.
                                                              (line  345)
-* substrcat function:                    Ctalk library.      (line 2946)
-* substrcpy function:                    Ctalk library.      (line 2950)
+* substrcat function:                    Ctalk library.      (line 2985)
+* substrcpy function:                    Ctalk library.      (line 2989)
 * subString instance method (String class): String.          (line  440)
 * SUCCESS_X exception:                   Exception.          (line  118)
 * super keyword:                         Self and super.     (line    6)
@@ -10929,9 +11093,9 @@ Index
 * Symbol class:                          Symbol.             (line    6)
 * Symbol class <1>:                      C statements.       (line  122)
 * symbolReference instance method (Symbol class): Symbol.    (line  126)
-* SYMTOOBJ macro () function:            Ctalk library.      (line 2953)
+* SYMTOOBJ macro () function:            Ctalk library.      (line 2992)
 * SYMVAL macro:                          Scoping.            (line   97)
-* SYMVAL macro () function:              Ctalk library.      (line 2967)
+* SYMVAL macro () function:              Ctalk library.      (line 3006)
 * syncSwap instance method (GLXCanvasPane class): GLXCanvasPane.
                                                              (line  696)
 * sysErrno (SystemErrnoException class): SystemErrnoException.
@@ -10979,7 +11143,7 @@ Index
 * tetrahedron instance method (GLUTApplication class): GLUTApplication.
                                                              (line  215)
 * text (SignalHandler class):            SignalEvent.        (line   50)
-* Text editing:                          Ctalk library.      (line 2747)
+* Text editing:                          Ctalk library.      (line 2786)
 * Text editor example program:           X11TextEditorPane.  (line  271)
 * text instance method (X11ButtonPane class): X11ButtonPane. (line  535)
 * text instance method (X11LabelPane class): X11LabelPane.   (line  356)
@@ -11088,9 +11252,9 @@ Index
 * traceEnabled instance method (Object class): Object.       (line  639)
 * TreeNode class:                        TreeNode.           (line    6)
 * TRIM_CHAR macro:                       Character.          (line   36)
-* TRIM_CHAR macro <1>:                   Ctalk library.      (line 3003)
-* TRIM_CHAR_BUF macro:                   Ctalk library.      (line 3007)
-* TRIM_LITERAL macro:                    Ctalk library.      (line 2999)
+* TRIM_CHAR macro <1>:                   Ctalk library.      (line 3042)
+* TRIM_CHAR_BUF macro:                   Ctalk library.      (line 3046)
+* TRIM_LITERAL macro:                    Ctalk library.      (line 3038)
 * trunc(3) C function:                   trunc.              (line    5)
 * ttyDevice instance variable (ANSITerminalStream class): ANSITerminalStream.
                                                              (line  133)
@@ -11354,8 +11518,10 @@ Index
 * X11ListBox class:                      X11ListBox.         (line    6)
 * X11ListPane class:                     X11ListPane.        (line    6)
 * X11MessageBoxPane class:               X11MessageBoxPane.  (line    6)
+* x11Name instance variable (RGBAColor class): RGBAColor.    (line   44)
 * X11Pane class:                         X11Pane.            (line    6)
 * X11PaneDispatcher class:               X11PaneDispatcher.  (line    6)
+* x11Pixel instance variable (RGBAColor class): RGBAColor.   (line   48)
 * X11ScrollBarPane class:                X11ScrollBarPane.   (line    6)
 * X11TextEditorPane class:               X11TextEditorPane.  (line    6)
 * X11TextEntryBox class:                 X11TextEntryBox.    (line    6)
@@ -11373,9 +11539,9 @@ Index
                                                              (line   28)
 * xEventData5 instanceVariable (InputEvent class): InputEvent.
                                                              (line   28)
-* xfopen () function:                    Ctalk library.      (line 3012)
-* xfprintf () function:                  Ctalk library.      (line 3012)
-* xfscanf () function:                   Ctalk library.      (line 3012)
+* xfopen () function:                    Ctalk library.      (line 3051)
+* xfprintf () function:                  Ctalk library.      (line 3051)
+* xfscanf () function:                   Ctalk library.      (line 3051)
 * Xft configuration:                     X11FreeTypeFont.    (line   13)
 * XftConfig file:                        X11FreeTypeFont.    (line   13)
 * xGC instance variable (X11Bitmap class): X11Bitmap.        (line   44)
@@ -11386,9 +11552,9 @@ Index
                                                              (line  323)
 * xMaxCharWidth instance variable (GLXCanvasPane class): GLXCanvasPane.
                                                              (line  328)
-* xmemcpy () function:                   Ctalk library.      (line 3012)
-* xmemmove () function:                  Ctalk library.      (line 3012)
-* xmemset () function:                   Ctalk library.      (line 3012)
+* xmemcpy () function:                   Ctalk library.      (line 3051)
+* xmemmove () function:                  Ctalk library.      (line 3051)
+* xmemset () function:                   Ctalk library.      (line 3051)
 * xpmCharsPerColorFromData instance method (X11Bitmap class): X11Bitmap.
                                                              (line  272)
 * xpmColorsFromData instance method (X11Bitmap class): X11Bitmap.
@@ -11403,14 +11569,14 @@ Index
                                                              (line  246)
 * xpmWidthFromData instance method (X11Bitmap class): X11Bitmap.
                                                              (line  284)
-* xsprintf () function:                  Ctalk library.      (line 3012)
-* xstderr () function:                   Ctalk library.      (line 3029)
-* xstdin () function:                    Ctalk library.      (line 3029)
-* xstdout () function:                   Ctalk library.      (line 3029)
-* xstrcat () function:                   Ctalk library.      (line 3012)
-* xstrcpy () function:                   Ctalk library.      (line 3012)
-* xstrncat () function:                  Ctalk library.      (line 3012)
-* xstrncpy () function:                  Ctalk library.      (line 3012)
+* xsprintf () function:                  Ctalk library.      (line 3051)
+* xstderr () function:                   Ctalk library.      (line 3068)
+* xstdin () function:                    Ctalk library.      (line 3068)
+* xstdout () function:                   Ctalk library.      (line 3068)
+* xstrcat () function:                   Ctalk library.      (line 3051)
+* xstrcpy () function:                   Ctalk library.      (line 3051)
+* xstrncat () function:                  Ctalk library.      (line 3051)
+* xstrncpy () function:                  Ctalk library.      (line 3051)
 * Xt object classes:                     C library functions.
                                                              (line   20)
 * xterm instance method (X11Cursor class): X11Cursor.        (line   51)

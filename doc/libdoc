@@ -2115,6 +2115,14 @@ queueInput} method: receives the data for an X event from the X11 input client a
 >>>__ctalkX11MoveWindow (OBJECT *pane_object, int x, int y)
 Move pane_object's window so that its origin is at X,Y.
 
+>>>__ctalkX11NamedColor (char *colorname, int *red_out, int *green_out, int *blue_out, unsigned long int *pixel_out)
+Looks up the X11 color given by colorname, and returns its red, green, and blue components, and the color's pixel value as given by the X server.  If the color name is supported by the X server, the function returns 0 (SUCCESS), or -1 (ERROR) if colorname is not a valid X11 color name.  For a list of the colors that X supports, refer to rgb(1).
+
+To look up RGB color combinations that the X server may not support,
+refer to 
+
+If __ctalkX11NamedColor cannot find the color, it sets red_out, green_out, and blue_out to 0 and sets pixel_out to the display server's black pixel.
+
 >>>__ctalkX11OpenInputClient (OBJECT *streamobject)
 The library interface of the X11TerminalStream class's input
 client. This function is called by openInputClient (class
@@ -2156,6 +2164,30 @@ instance variable names that are defined in several class libraries.
 If the application uses different drawables than pane_object's
 window surface or its buffers, use __ctalkX11PanePutStrBasic
 instead.
+
+>>>__ctalkX11NamedColor (char *colorspec, int *red_out, int *green_out, int *blue_out, unsigned long int *pixel_out)
+Parses the color specification given by colorspec, and returns the red, green, and blue components of the color as given by the X server, and also the server's pixel value for the color, which the function allocates.
+
+The colorspec argument may have one of the forms that the X server recognizes as RGB color specifications.
+
+---------------------------------------------------------
+
+#rgb, #rrggbb, #rrrgggbbb, #rrrrggggbbbb
+
+rgb:r/g/b, rgb:rr/gg/bb, rgb:rrr/ggg/bbb, rgb:rrrr/gggg/bbbb
+
+---------------------------------------------------------
+
+The function returns 0 (SUCCESS) and sets red_out,
+green_out, blue_out, and pixel_out if it was able to
+obtain a pixel value for the color.  If the function can't parse
+colorspec, or it can't allocate the color, it returns -1
+(ERROR), and sets the color channels to 0, and pixel_value to
+the X server's black pixel value.
+
+For more information about the colorspec formats, refer to
+XParseColor(3).
+
 
 >>>__ctalkX11SetSizeHints (int x, int y, intp width, int height, int geom_flags)
 Set the window size hints based on the window dimensions set by the
@@ -2389,7 +2421,11 @@ is 0.
 >>>__ctalkXftHandle (void)
 Returns a void * with the handle of the selected font.
 Typically this is a cast from a XftFont * when used in a normal
-Xft configuration.
+Xft configuration.  The font library uses this value whenever the
+font's face is requested after it is first initialized with the
+parameters from the font specification: i.e., when the family, weight,
+slant, height, and spacing haven't changed since the app first opened
+the font.
 
 >>>__ctalkXftHeight (void)
 Returns an int with the font's height above and below

@@ -7470,6 +7470,77 @@ File: ctalk.info,  Node: RGBAColor,  Next: LongInteger,  Prev: CalendarTime,  Up
 'RGBAColor' Class
 -----------------
 
+'RGBAColor' objects store red, green, blue, and alpha color information,
+and also the names of X11 colors and their X11 pixel values, if
+appropriate.
+
+The class also provides methods for looking up X colors either by their
+color name or their RGB specification, as well as the alpha channel.
+
+The 'rgb(1)' program lists the color names supported by X displays.  RGB
+color specifications may have the following forms.
+
+
+     #rgb, #rrggbb, #rrrrgggbbb, #rrrrggggbbbb
+
+     rgb:r/g/b, rgb:rr/gg/bb, rgb:rrr/ggg/bbb, rgb:rrrr/gggg/bbbb
+
+
+     r|g|b == hexadecimal digits, either case
+
+
+The 'XParseColor(3)' manual page describes all of the color
+specification formats used by X display servers.
+
+Instance Variables
+------------------
+
+'alpha'
+     The value used for blending the color with its background; in the
+     range 0 (completely transparent) to 65535 (completely opaque).
+
+'red'
+'green'
+'blue'
+     The red, green, and blue components of the colors.  For X displays,
+     these values are unsigned short ints, with values of 1 ...  255.
+     Because the class uses 'XAllocNamedColor(3)' and 'XParseColor(3)'
+     internally, red, green and blue values, if given, are scaled to the
+     X server's RGB range.
+
+'x11Name'
+     A 'String' that contains a color name supported by the X server, if
+     appropriate.
+
+'x11Pixel'
+     The value of the pixel color allocated by the X display.
+
+Instance Methods
+----------------
+
+'namedX11Color (String COLOR_NAME, Integer RED_OUT, Integer GREEN_OUT, Integer BLUE_OUT, Integer PIXEL_OUT)'
+     Looks up the color given by COLOR_NAME and returns the color's red,
+     green, blue, and pixel values.  The 'rgb(1)' program lists the
+     colors that the X server supports.
+
+     If COLOR_NAME is suppored by the X server, the method returns 0
+     (SUCESS). If the color is not supported, the method returns -1
+     (ERROR), and sets the red, green, and blue returns to 0.  In
+     addition, it sets PIXEL_OUT to the server's black pixel, and raises
+     an exception.
+
+'rgbX11Color (String COLOR_SPEC, Integer RED_OUT, Integer GREEN_OUT, Integer BLUE_OUT, Integer PIXEL_OUT)'
+     Returns the color values and pixel value of COLOR_SPEC.  RGB color
+     specifications are described more fully in the 'XParseColor(3)'
+     manual page.
+
+     If COLOR_SPEC is suppored by the X server, the method returns 0
+     (SUCESS), and retrieves the red, green, blue, and pixel values
+     provided by the server.  If the color is not supported, the method
+     returns -1 (ERROR), and sets the red, green, and blue returns to 0.
+     In addition, it sets PIXEL_OUT to the server's black pixel, and
+     raises an exception.
+
 
 File: ctalk.info,  Node: LongInteger,  Next: Pen,  Prev: CalendarTime,  Up: Classes
 
@@ -8846,111 +8917,4 @@ Instance Methods
 'sizePane (Integer WIDTH, Integer HEIGHT)'
      Set the size of the pane object and its buffers.  This method is
      normally called by the 'appendLine' method, above.
-
-
-File: ctalk.info,  Node: ANSIListBoxPane,  Next: ANSIMessageBoxPane,  Prev: ANSILabelPane,  Up: Classes
-
-'ANSIListBoxPane' Class
------------------------
-
-An 'ANSIListBoxPane' object displays a list of items, and allows the
-user to select one of the items in the list by using the cursor motion
-keys.
-
-Each item in the list is an 'ANSILabelPane'.  To modify the appearance
-of the items, refer to the 'ANSILabelPane' class.  *Note
-ANSILabelPane::.
-
-After exiting by pressing Escape or Enter, a program can retrieve the
-text of the selected item.
-
-Here is a simple program that displays a list of items, then prints the
-selected item's text before exiting.
-
-
-     int main () {
-       ANSIListBoxPane new listBox;
-
-       listBox appendLine "Item 1";
-       listBox appendLine "Item 2";
-       listBox appendLine "Item 3";
-       listBox appendLine "Item 4";
-       listBox appendLine "Item 5";
-
-       listBox show 2, 2;   // Waits for the user to press Escape or Enter
-                            // before returning.
-
-       printf ("\nYou selected %s.\n", listBox selectedText);
-
-       listBox cleanup;
-     }
-
-
-Instance Variables
-------------------
-
-'items'
-     A 'List' of 'ANSILabelPane' items that contain the text of the list
-     selections.
-
-'oldSelectedContent'
-     An 'ANSILabelPane' object that contains the content of the previous
-     selection.  Used for erasing the previous selection before drawing
-     the new selection.
-
-'prevSelectedLine'
-     An 'Integer' that contains the index of the previously selected
-     item.  The 'ANSIListBoxPane' indexes items starting with 1 for the
-     first item.
-
-'selectedContent'
-     An 'ANSILabelPane' object that contains the contents of the
-     currently selected item.
-
-'selectedLine'
-     An 'Integer' that contains the index, counting from 1, of the
-     currently selected item.
-
-'totalLines'
-     An 'Integer' that contains the number of items to be displayed.
-
-Instance Methods
-................
-
-'appendLine (String TEXT)'
-     Creates a new 'ANSILabelBox' object with the contents TEXT, then
-     adds the 'ANSILabelBox' to the 'items' list.
-
-'cleanup (void)'
-     Deletes the buffers associated with the 'ANSIListBoxPane' object
-     and its items.
-
-'handleInput (void)'
-     Waits for input from the user and processes it.  Pressing a cursor
-     key or an Emacs or vi next/previous line key shifts the selection.
-     Pressing Escape or Enter causes the method to return.
-
-'new (LISTPANE1, LISTPANE2, ...;)'
-     The 'ANSIListBoxPane' constructor.  The argument contains the names
-     of one or more new 'ANSIListBoxPane' objects.
-
-'refresh (void)'
-     Draw the list pane and items on the terminal.
-
-'refreshSelectionFirst (void)'
-     Highlight the initially selected item.  Should only be called after
-     a call to 'refresh'.
-
-'refreshSelection (void)'
-     Redraw the highlightd selected item, and un-highlight the
-     previously selected item.  Should only be called after a call to
-     'selectNext' or 'selectPrev'
-
-'selectedText (void)'
-     Returns the text of the selected item as a 'String' object.
-
-'selectNext (void)'
-'selectPrev (void)'
-     Select the next or previous item of the list box's contents.  Also
-     saves the index and contents of the previously selected item.
 

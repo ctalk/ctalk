@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.7 2020/12/25 14:09:48 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.8 2020/12/26 21:43:07 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -9380,6 +9380,84 @@ current time zone.
 @end ifnottex
 @cindex @code{RGBAColor} Class
 
+@code{RGBAColor} objects store red, green, blue, and alpha color
+information, and also the names of X11 colors and their X11 pixel
+values, if appropriate.
+
+@cindex Color RGB specifications
+@cindex RGB color specifications
+The class also provides methods for looking up X colors either by
+their color name or their RGB specification, as well as the alpha
+channel.
+
+The @cite{rgb(1)} program lists the color names supported by X
+displays.  RGB color specifications may have the following forms.
+
+@example
+
+#rgb, #rrggbb, #rrrrgggbbb, #rrrrggggbbbb
+
+rgb:r/g/b, rgb:rr/gg/bb, rgb:rrr/ggg/bbb, rgb:rrrr/gggg/bbbb
+
+
+r|g|b == hexadecimal digits, either case
+
+@end example
+
+The @cite{XParseColor(3)} manual page describes all of the color
+specification formats used by X display servers.
+
+@subheading Instance Variables
+
+@table @code
+@cindex @code{alpha} instance variable @idxclscite{RGBAColor}
+@item alpha
+The value used for blending the color with its background; in the
+range 0 (completely transparent) to 65535 (completely opaque).
+
+@cindex @code{red} instance variable @idxclscite{RGBAColor}
+@cindex @code{green} instance variable @idxclscite{RGBAColor}
+@cindex @code{blue} instance variable @idxclscite{RGBAColor}
+@item red
+@item green
+@item blue
+The red, green, and blue components of the colors.  For X displays,
+these values are unsigned short ints, with values of 1 ... 255.
+Because the class uses @cite{XAllocNamedColor(3)} and
+@cite{XParseColor(3)} internally, red, green and blue values, if
+given, are scaled to the X server's RGB range.
+
+@cindex @code{x11Name} instance variable @idxclscite{RGBAColor}
+@item x11Name
+A @code{String} that contains a color name supported by the X server,
+if appropriate.
+
+@cindex @code{x11Pixel} instance variable @idxclscite{RGBAColor}
+@item x11Pixel
+The value of the pixel color allocated by the X display. 
+
+@end table
+
+@subheading Instance Methods
+
+@table @code
+@cindex @mnm{namedX11Color} instance method @idxclscite{RGBAColor}
+@item namedX11Color (@code{String} @var{color_name}, @code{Integer} @var{red_out}, @code{Integer} @var{green_out}, @code{Integer} @var{blue_out}, @code{Integer} @var{pixel_out})
+Looks up the color given by @var{color_name} and returns the color's
+red, green, blue, and pixel values.  The @cite{rgb(1)} program lists
+the colors that the X server supports.
+
+If @var{color_name} is suppored by the X server, the method returns 0 (SUCESS).  If the color is not supported, the method returns -1 (ERROR), and sets the red, green, and blue returns to 0.  In addition, it sets @var{pixel_out} to the server's black pixel, and raises an exception.
+
+@cindex @mnm{rgbX11Color} instance method @idxclscite{RGBAColor}
+@item rgbX11Color (@code{String} @var{color_spec}, @code{Integer} @var{red_out}, @code{Integer} @var{green_out}, @code{Integer} @var{blue_out}, @code{Integer} @var{pixel_out})
+Returns the color values and pixel value of @var{color_spec}.  RGB
+color specifications are described more fully in the
+@cite{XParseColor(3)} manual page.
+
+If @var{color_spec} is suppored by the X server, the method returns 0 (SUCESS), and retrieves the red, green, blue, and pixel values provided by the server.  If the color is not supported, the method returns -1 (ERROR), and sets the red, green, and blue returns to 0.  In addition, it sets @var{pixel_out} to the server's black pixel, and raises an exception.
+
+@end table
 
 @node LongInteger, Pen, CalendarTime, Classes
 @iftex
@@ -25342,6 +25420,15 @@ queueInput} method: receives the data for an X event from the X11 input client a
 @item __ctalkX11MoveWindow (@code{OBJECT *}@var{pane_object}, @code{int} @var{x}, @code{int} @var{y})
 Move @var{pane_object}'s window so that its origin is at @var{X},@var{Y}.
 
+@idxlibfn{__ctalkX11NamedColor}
+@item __ctalkX11NamedColor (@code{char *}@var{colorname}, @code{int *}@var{red_out}, @code{int *}@var{green_out}, @code{int *}@var{blue_out}, @code{unsigned long int *}@var{pixel_out})
+Looks up the X11 color given by @var{colorname}, and returns its red, green, and blue components, and the color's pixel value as given by the X server.  If the color name is supported by the X server, the function returns 0 (SUCCESS), or -1 (ERROR) if @var{colorname} is not a valid X11 color name.  For a list of the colors that X supports, refer to @cite{rgb(1)}.
+
+To look up RGB color combinations that the X server may not support,
+refer to @xref{ctalkX11RGBColor}.
+
+If @cite{__ctalkX11NamedColor} cannot find the color, it sets @var{red_out}, @var{green_out}, and @var{blue_out} to 0 and sets @var{pixel_out} to the display server's black pixel.
+
 @idxlibfn{__ctalkX11OpenInputClient}
 @item __ctalkX11OpenInputClient (@code{OBJECT *}@var{streamobject})
 The library interface of the @code{X11TerminalStream} class's input
@@ -25388,6 +25475,32 @@ instance variable names that are defined in several class libraries.
 If the application uses different drawables than @var{pane_object}'s
 window surface or its buffers, use @cite{__ctalkX11PanePutStrBasic}
 instead.
+
+@anchor{ctalkX11RGBColor}
+@idxlibfn{__ctalkX11RGBColor}
+@item __ctalkX11NamedColor (@code{char *}@var{colorspec}, @code{int *}@var{red_out}, @code{int *}@var{green_out}, @code{int *}@var{blue_out}, @code{unsigned long int *}@var{pixel_out})
+Parses the color specification given by @var{colorspec}, and returns the red, green, and blue components of the color as given by the X server, and also the server's pixel value for the color, which the function allocates.
+
+The @var{colorspec} argument may have one of the forms that the X server recognizes as RGB color specifications.
+
+@example
+
+#rgb, #rrggbb, #rrrgggbbb, #rrrrggggbbbb
+
+rgb:r/g/b, rgb:rr/gg/bb, rgb:rrr/ggg/bbb, rgb:rrrr/gggg/bbbb
+
+@end example
+
+The function returns 0 (SUCCESS) and sets @var{red_out},
+@var{green_out}, @var{blue_out}, and @var{pixel_out} if it was able to
+obtain a pixel value for the color.  If the function can't parse
+@var{colorspec}, or it can't allocate the color, it returns -1
+(ERROR), and sets the color channels to 0, and @var{pixel_value} to
+the X server's black pixel value.
+
+For more information about the @var{colorspec} formats, refer to
+@cite{XParseColor(3)}.
+
 
 @anchor{ctalkX11SetSizeHints}
 @idxlibfn{__ctalkX11SetSizeHints}

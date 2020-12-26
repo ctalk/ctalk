@@ -1,4 +1,4 @@
-/* $Id: RGBAColor,v 1.2 2020/12/26 15:06:31 rkiesling Exp $ -*-c-*-*/
+/* $Id: RGBAColor,v 1.6 2020/12/26 19:38:46 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -26,7 +26,8 @@
  *    RGBAColor class.
  */
 
-Integer class RGBAColor;
+
+Integer class RGBAColor
 "This class stores colors' red, green, blue, and alpha
 components as Integers.  The default format is 24-bit
 color, but the Integers' size allows for expansion to
@@ -35,7 +36,7 @@ is stored as a 16-bit Integer, although finer resolutions
 are also possible with a 32-bit Integer. The class 
 performs the color lookup and allocation X11 color names, 
 from #rrggbb HTML specifications, and can approximate 
-display colors from any R,G,B values by using Xlib calls." 
+display colors from any R,G,B values by using Xlib calls." ;
 
 RGBAColor instanceVariable red Integer 0;
 RGBAColor instanceVariable green Integer 0;
@@ -44,5 +45,53 @@ RGBAColor instanceVariable alpha Integer 0xffff;
 RGBAColor instanceVariable x11Pixel Integer 0;
 RGBAColor instanceVariable x11Name String "";
 
+#include <ctalk/ctalkdefs.h>
+
+RGBAColor instanceMethod namedX11Color (String colorName) {
+  int r_out, b_out, g_out, r;
+  Exception new ex;
+  String new errbuf;
+  unsigned long int pix_out;
+  returnObjectClass Integer;
+  r = __ctalkX11NamedColor
+    (colorName, &r_out, &g_out, &b_out, &pix_out);
+  self red = r_out;
+  self green = g_out;
+  self blue = b_out;
+  self x11Pixel = pix_out;
+  self x11Name = colorName;
+  
+  if (!r) {
+    return SUCCESS;
+  } else {
+    errbuf printOn "RGBAColor : namedX11Color: Unknown color name: %s.\n",
+      colorName;
+    ex raiseException INVALID_OPERAND_X, errbuf;
+    return ERROR;
+  }
+}
+
+RGBAColor instanceMethod rgbX11Color (String colorSpec) {
+  int r_out, b_out, g_out, r;
+  unsigned long int pixel_out;
+  Exception new ex;
+  String new errbuf;
+  returnObjectClass Integer;
+  r = __ctalkX11RGBColor (colorSpec,
+			  &r_out, &b_out, &g_out, &pixel_out);
+  self red = r_out;
+  self green = g_out;
+  self blue = b_out;
+  self x11Pixel = pixel_out;
+
+  if (!r) {
+    return SUCCESS;
+  } else {
+    errbuf printOn "RGBAColor : rgbX11Color: Unknown color spec: %s.\n",
+      colorSpec;
+    ex raiseException INVALID_OPERAND_X, errbuf;
+    return ERROR;
+  }
+}
 
 

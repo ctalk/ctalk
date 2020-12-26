@@ -17,6 +17,113 @@ Texts.  A copy of the license is included in the section entitled, "GNU
 Free Documentation License."
 
 
+File: ctalk.info,  Node: ANSIListBoxPane,  Next: ANSIMessageBoxPane,  Prev: ANSILabelPane,  Up: Classes
+
+'ANSIListBoxPane' Class
+-----------------------
+
+An 'ANSIListBoxPane' object displays a list of items, and allows the
+user to select one of the items in the list by using the cursor motion
+keys.
+
+Each item in the list is an 'ANSILabelPane'.  To modify the appearance
+of the items, refer to the 'ANSILabelPane' class.  *Note
+ANSILabelPane::.
+
+After exiting by pressing Escape or Enter, a program can retrieve the
+text of the selected item.
+
+Here is a simple program that displays a list of items, then prints the
+selected item's text before exiting.
+
+
+     int main () {
+       ANSIListBoxPane new listBox;
+
+       listBox appendLine "Item 1";
+       listBox appendLine "Item 2";
+       listBox appendLine "Item 3";
+       listBox appendLine "Item 4";
+       listBox appendLine "Item 5";
+
+       listBox show 2, 2;   // Waits for the user to press Escape or Enter
+                            // before returning.
+
+       printf ("\nYou selected %s.\n", listBox selectedText);
+
+       listBox cleanup;
+     }
+
+
+Instance Variables
+------------------
+
+'items'
+     A 'List' of 'ANSILabelPane' items that contain the text of the list
+     selections.
+
+'oldSelectedContent'
+     An 'ANSILabelPane' object that contains the content of the previous
+     selection.  Used for erasing the previous selection before drawing
+     the new selection.
+
+'prevSelectedLine'
+     An 'Integer' that contains the index of the previously selected
+     item.  The 'ANSIListBoxPane' indexes items starting with 1 for the
+     first item.
+
+'selectedContent'
+     An 'ANSILabelPane' object that contains the contents of the
+     currently selected item.
+
+'selectedLine'
+     An 'Integer' that contains the index, counting from 1, of the
+     currently selected item.
+
+'totalLines'
+     An 'Integer' that contains the number of items to be displayed.
+
+Instance Methods
+................
+
+'appendLine (String TEXT)'
+     Creates a new 'ANSILabelBox' object with the contents TEXT, then
+     adds the 'ANSILabelBox' to the 'items' list.
+
+'cleanup (void)'
+     Deletes the buffers associated with the 'ANSIListBoxPane' object
+     and its items.
+
+'handleInput (void)'
+     Waits for input from the user and processes it.  Pressing a cursor
+     key or an Emacs or vi next/previous line key shifts the selection.
+     Pressing Escape or Enter causes the method to return.
+
+'new (LISTPANE1, LISTPANE2, ...;)'
+     The 'ANSIListBoxPane' constructor.  The argument contains the names
+     of one or more new 'ANSIListBoxPane' objects.
+
+'refresh (void)'
+     Draw the list pane and items on the terminal.
+
+'refreshSelectionFirst (void)'
+     Highlight the initially selected item.  Should only be called after
+     a call to 'refresh'.
+
+'refreshSelection (void)'
+     Redraw the highlightd selected item, and un-highlight the
+     previously selected item.  Should only be called after a call to
+     'selectNext' or 'selectPrev'
+
+'selectedText (void)'
+     Returns the text of the selected item as a 'String' object.
+
+'selectNext (void)'
+'selectPrev (void)'
+     Select the next or previous item of the list box's contents.  Also
+     saves the index and contents of the previously selected item.
+
+
 File: ctalk.info,  Node: ANSIMessageBoxPane,  Next: ANSIProgressBarPane,  Prev: ANSIListBoxPane,  Up: Classes
 
 'ANSIMessageBoxPane' Class
@@ -8408,118 +8515,4 @@ methods that perform multiplication and subtraction.
 
 The subject of method overloading is discussed further in its own
 section.  *Note Overloading::.
-
-
-File: ctalk.info,  Node: Translating,  Next: C Macros,  Prev: Prefixes,  Up: Methods
-
-Translating C Variables into Object Values
-------------------------------------------
-
-The 'OBJECT' C data type that Ctalk uses internally stores objects'
-values as C 'char *''s.  *Note OBJECT typedef::.
-
-To store numeric values, you must format them as character strings,
-using, for example, 'sprintf'.  In many cases, however, Ctalk performs
-this translation automatically.
-
-'Integer' objects can also translate values with 'atoi(3)' or
-'__ctalkDecimalIntegerToASCII'. Other scalar data types have
-corresponding functions that translate numbers to character strings.
-
-If for some reason you need to translate an object to its C type or back
-again, the Ctalk library provides the following functions.
-
-'__ctalkToCArrayElement (OBJECT *O)'
-     Translate the value of an 'Integer,' 'Character,' 'String,' or
-     'LongInteger' array element to a 'void *' that points to its
-     corresponding C data type.
-
-'__ctalkToCCharPtr (OBJECT *O, int KEEP)'
-     Translate the value of a 'String' object into a C 'char *.' If KEEP
-     is 'FALSE', delete O.
-
-'__ctalkToCIntArrayElement (OBJECT *O)'
-     Translate the value of an 'Integer' array element to an 'int.'
-
-'__ctalkToCInteger (OBJECT *O, int KEEP_OBJECT)'
-     Translate the value of an 'Integer' to an 'int.' If KEEP_OBJECT is
-     'FALSE,' then delete the object.
-
-'__ctalkToCInteger (OBJECT *O, int KEEP_OBJECT)'
-     Translate the value of an 'Integer' to a 'long int.' If KEEP_OBJECT
-     is 'FALSE,' then delete the object.
-
-'__ctalk_to_c_char_ptr (OBJECT *O)'
-     Translate the value of a 'String' object into a C 'char *.' Note:
-     This function is being phased out.  Use '__ctalkToCCharPtr ()',
-     above, instead.
-
-'__ctalk_to_c_double (OBJECT *O)'
-     Translate the value of a 'Float' object into a C 'double.'
-
-'__ctalk_to_c_int (OBJECT *O)'
-     Translate the value of an 'Integer' object into a C 'int.'
-
-'__ctalk_to_c_longlong (OBJECT *OBJ, int KEEP)'
-     Translate the value of a 'LongInteger' object into a C 'long long
-     int.' If KEEP is non-zero, does not delete OBJ, or, in compound
-     expressions that need to interface with C variables, (like complex
-     if-statement conditionals), whether to delete the library's
-     internal C variable registrations.
-
-     Formats the arguments of the second-most calling method and prints
-     them on the receiver.  This function is meant to be used within a
-     method that is called by another method.  One method that uses this
-     function is 'String : vPrintOn'.  Refer to 'String : vPrintOn' for
-     an example of this function's use.  *Note vPrintOn--class String::
-
-'__ctalkCBoolToObj (bool B)'
-     Create a 'Boolean' object with the boolean (either true or false)
-     value of the argument.
-
-'__ctalkCCharPtrToObj (char *S)'
-     Create a 'String' object with the value S.
-
-'__ctalkClassLibraryPath (void)'
-     Return a 'char *' containing the directories that Ctalk searches
-     for class libraries.  When compiling programs Ctalk searches first
-     for directories given as arguments to the '-I' option, then
-     directories given by the 'CLASSLIBDIRS' environment variable, then
-     the standard class library directory which is defined when Ctalk is
-     built.  In addition, for each directory, if a subdirectory named
-     'ctalk' exists, then Ctalk searches that subdirectory also.
-
-     The standard library directory defaults to
-     '/usr/local/include/ctalk', although if you define a different
-     '--prefix' when building and installing Ctalk, the class libraries
-     will be located in PREFIX'/include/ctalk'.
-
-     If it is necessary to look up class libraries at run time, Ctalk
-     first searches the directories listed by the 'CLASSLIBDIRS'
-     environment variable, then the default class library directory
-     mentioned above.
-
-'__ctalkClassSearchPath (void)'
-     A synonym for '__ctalkClassLibraryPath()', above.
-
-'__ctalkCDoubleToObj (double F)'
-     Create a 'Float' object with the value F.
-
-'__ctalkCIntToObj (int I)'
-     Create an 'Integer' object with the value I.
-
-'__ctalkCLongLongToObj (long long int L)'
-     Create a 'LongInteger' object with the value L.
-
-'__ctalkCSymbolToObj (unsigned int LABEL)'
-     Create a 'Symbol' object with the value that is the address of
-     LABEL.  This is used for expressions where a function name appears
-     by itself, for example.  In that case, the result is a 'Symbol'
-     object with the address of the function.
-
-The functions that create objects give the objects the scope of the
-function call, either global or local.
-
-_Note:_ In future versions of Ctalk, the names of these functions are
-likely to change.
 
