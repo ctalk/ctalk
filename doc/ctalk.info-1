@@ -7510,7 +7510,8 @@ Instance Variables
 
 'x11Name'
      A 'String' that contains a color name supported by the X server, if
-     appropriate.
+     appropriate, or a RGB color specification that X11 uses.  Refer to
+     *Note X11RGBSpec::.
 
 'x11Pixel'
      The value of the pixel color allocated by the X display.
@@ -7518,18 +7519,21 @@ Instance Variables
 Instance Methods
 ----------------
 
-'namedX11Color (String COLOR_NAME, Integer RED_OUT, Integer GREEN_OUT, Integer BLUE_OUT, Integer PIXEL_OUT)'
-     Looks up the color given by COLOR_NAME and returns the color's red,
-     green, blue, and pixel values.  The 'rgb(1)' program lists the
-     colors that the X server supports.
+'namedX11Color (String COLOR_NAME)'
+     Looks up the color given by COLOR_NAME and fills in the receiver's
+     returns the color's red, green, blue, and pixel values, and sets
+     its x11Name to COLOR_NAME.
+
+     The 'rgb(1)' program lists by name the colors that the X server
+     supports.
 
      If COLOR_NAME is suppored by the X server, the method returns 0
-     (SUCESS). If the color is not supported, the method returns -1
+     (SUCCESS). If the color is not supported, the method returns -1
      (ERROR), and sets the red, green, and blue returns to 0.  In
      addition, it sets PIXEL_OUT to the server's black pixel, and raises
      an exception.
 
-'rgbX11Color (String COLOR_SPEC, Integer RED_OUT, Integer GREEN_OUT, Integer BLUE_OUT, Integer PIXEL_OUT)'
+'rgbX11Color (String COLOR_SPEC)'
      Returns the color values and pixel value of COLOR_SPEC.  RGB color
      specifications are described more fully in the 'XParseColor(3)'
      manual page.
@@ -7540,6 +7544,10 @@ Instance Methods
      returns -1 (ERROR), and sets the red, green, and blue returns to 0.
      In addition, it sets PIXEL_OUT to the server's black pixel, and
      raises an exception.
+
+'x11Color (String COLOR_SPEC)'
+     A convenience method that calls either 'namedX11Color' or
+     'rgbX11Color' depending on the format of COLOR_SPEC.
 
 
 File: ctalk.info,  Node: LongInteger,  Next: Pen,  Prev: CalendarTime,  Up: Classes

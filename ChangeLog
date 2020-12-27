@@ -1514,4 +1514,10 @@
 	to xcolor.c.  Added the __ctalkX11NamedColor and
 	__ctalkX11RGBColor library functions. Also added the
 	RGBAColor : namedX11Color and RGBAColor : rgbX11Color.
+2020-11-27
+	- Added the rgba instance variable, a RGBAColor, to Pen
+	class.
+	- Added the RGBAColor : x11Color instance method.
+	- Updated X11CanvasPane : background method
+	to call RGBAColor to fill in the receiver pen's rgba data.
 

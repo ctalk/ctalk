@@ -4758,19 +4758,26 @@ current time zone.
 
 
 
->>>RGBAColor::namedX11Color (String color_name, Integer red_out, Integer green_out, Integer blue_out, Integer pixel_out)
-Looks up the color given by color_name and returns the color's
-red, green, blue, and pixel values.  The rgb(1) program lists
-the colors that the X server supports.
+>>>RGBAColor::namedX11Color (String color_name)
+Looks up the color given by color_name and fills in the
+receiver's returns the color's red, green, blue, and pixel values, and sets
+its x11Name to color_name.
 
-If color_name is suppored by the X server, the method returns 0 (SUCESS).  If the color is not supported, the method returns -1 (ERROR), and sets the red, green, and blue returns to 0.  In addition, it sets pixel_out to the server's black pixel, and raises an exception.
+The rgb(1) program lists by name the colors that the X server
+supports.
 
->>>RGBAColor::rgbX11Color (String color_spec, Integer red_out, Integer green_out, Integer blue_out, Integer pixel_out)
+If color_name is suppored by the X server, the method returns 0 (SUCCESS).  If the color is not supported, the method returns -1 (ERROR), and sets the red, green, and blue returns to 0.  In addition, it sets pixel_out to the server's black pixel, and raises an exception.
+
+>>>RGBAColor::rgbX11Color (String color_spec)
 Returns the color values and pixel value of color_spec.  RGB
 color specifications are described more fully in the
 XParseColor(3) manual page.
 
 If color_spec is suppored by the X server, the method returns 0 (SUCESS), and retrieves the red, green, blue, and pixel values provided by the server.  If the color is not supported, the method returns -1 (ERROR), and sets the red, green, and blue returns to 0.  In addition, it sets pixel_out to the server's black pixel, and raises an exception.
+
+>>>RGBAColor::x11Color (String color_spec)
+A convenience method that calls either namedX11Color or
+rgbX11Color depending on the format of color_spec.
 
 
 

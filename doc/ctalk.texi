@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.8 2020/12/26 21:43:07 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.10 2020/12/27 20:33:01 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -9430,7 +9430,8 @@ given, are scaled to the X server's RGB range.
 @cindex @code{x11Name} instance variable @idxclscite{RGBAColor}
 @item x11Name
 A @code{String} that contains a color name supported by the X server,
-if appropriate.
+if appropriate, or a RGB color specification that X11 uses.  Refer to
+@xref{X11RGBSpec}.
 
 @cindex @code{x11Pixel} instance variable @idxclscite{RGBAColor}
 @item x11Pixel
@@ -9442,20 +9443,29 @@ The value of the pixel color allocated by the X display.
 
 @table @code
 @cindex @mnm{namedX11Color} instance method @idxclscite{RGBAColor}
-@item namedX11Color (@code{String} @var{color_name}, @code{Integer} @var{red_out}, @code{Integer} @var{green_out}, @code{Integer} @var{blue_out}, @code{Integer} @var{pixel_out})
-Looks up the color given by @var{color_name} and returns the color's
-red, green, blue, and pixel values.  The @cite{rgb(1)} program lists
-the colors that the X server supports.
+@item namedX11Color (@code{String} @var{color_name})
+Looks up the color given by @var{color_name} and fills in the
+receiver's returns the color's red, green, blue, and pixel values, and sets
+its x11Name to @var{color_name}.
 
-If @var{color_name} is suppored by the X server, the method returns 0 (SUCESS).  If the color is not supported, the method returns -1 (ERROR), and sets the red, green, and blue returns to 0.  In addition, it sets @var{pixel_out} to the server's black pixel, and raises an exception.
+The @cite{rgb(1)} program lists by name the colors that the X server
+supports.
 
+If @var{color_name} is suppored by the X server, the method returns 0 (SUCCESS).  If the color is not supported, the method returns -1 (ERROR), and sets the red, green, and blue returns to 0.  In addition, it sets @var{pixel_out} to the server's black pixel, and raises an exception.
+
+@anchor{X11RGBSpec}
 @cindex @mnm{rgbX11Color} instance method @idxclscite{RGBAColor}
-@item rgbX11Color (@code{String} @var{color_spec}, @code{Integer} @var{red_out}, @code{Integer} @var{green_out}, @code{Integer} @var{blue_out}, @code{Integer} @var{pixel_out})
+@item rgbX11Color (@code{String} @var{color_spec})
 Returns the color values and pixel value of @var{color_spec}.  RGB
 color specifications are described more fully in the
 @cite{XParseColor(3)} manual page.
 
 If @var{color_spec} is suppored by the X server, the method returns 0 (SUCESS), and retrieves the red, green, blue, and pixel values provided by the server.  If the color is not supported, the method returns -1 (ERROR), and sets the red, green, and blue returns to 0.  In addition, it sets @var{pixel_out} to the server's black pixel, and raises an exception.
+
+@cindex @mnm{x11Color} instance method @idxclscite{RGBAColor}
+@item x11Color (@code{String} @var{color_spec})
+A convenience method that calls either @mnm{namedX11Color} or
+@mnm{rgbX11Color} depending on the format of @var{color_spec}.
 
 @end table
 
