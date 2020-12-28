@@ -3283,9 +3283,9 @@ A 'X11TerminalStream' object recognizes the following input event
 classes, and returns the following information in the 'xEventData'
 instance variables, which are defined in 'InputEvent' class.  *Note
 InputEvent::.
-     Event Class     xEventData1 xEventData2 xEventData3 xEventData4 xEventData5
-     BUTTONPRESS     x           y           state       button      -
-     BUTTONRELEASE   x           y           state       button      -
+     Event Class     xEventData1 xEventData2 xEventData3 xEventData4 xEventData5 xEventData6
+     BUTTONPRESS     x           y           state       button      root_x      root_y
+     BUTTONRELEASE   x           y           state       button      root_x      root_y
      KEYPRESS        x           y           state       keycode     x_keycode[1]
      KEYRELEASE      x           y           state       keycode     x_keycode[1]
      CONFIGURENOTIFY x           y           height      width       border

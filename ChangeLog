@@ -1528,5 +1528,10 @@
 	- Added the RGBAColor : new method, which fixes up the
 	value attributes for the x11Name instance variable.
 	- Updates to the colors used by tools/ctxlogo/ctxlogo.ca.
+	- Added the X11PopupMenu : popup method, and the
+	__ctalkX11CreatePopupMenu library function (xmenu.c).
+	Also updated the InputEvent initialization from the
+	server to include the root_x, and root_y BUTTONPRESS and
+	BUTTONRELEASE coordinates.
 
 

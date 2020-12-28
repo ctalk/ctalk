@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.11 2020/12/28 08:48:52 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.13 2020/12/28 21:11:48 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -4179,9 +4179,9 @@ input event classes, and returns the following information
 in the @code{xEventData} instance variables, which are
 defined in @code{InputEvent} class. @xref{InputEvent}.
 @smallexample
-Event Class     xEventData1 xEventData2 xEventData3 xEventData4 xEventData5
-BUTTONPRESS     x           y           state       button      -
-BUTTONRELEASE   x           y           state       button      -
+Event Class     xEventData1 xEventData2 xEventData3 xEventData4 xEventData5 xEventData6
+BUTTONPRESS     x           y           state       button      root_x      root_y
+BUTTONRELEASE   x           y           state       button      root_x      root_y
 KEYPRESS        x           y           state       keycode     x_keycode[1]
 KEYRELEASE      x           y           state       keycode     x_keycode[1]
 CONFIGURENOTIFY x           y           height      width       border

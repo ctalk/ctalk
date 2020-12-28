@@ -1,4 +1,4 @@
-/* $Id: x11lib.c,v 1.4 2020/12/21 18:24:17 rkiesling Exp $ -*-c-*-*/
+/* $Id: x11lib.c,v 1.7 2020/12/28 21:11:49 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -139,6 +139,12 @@ int __xlib_clear_selection (XEvent *);
 int __xlib_set_primary_selection_owner (Display *, Drawable);
 int __xlib_set_primary_selection_text (char *);
 int __xlib_set_clipboard_owner (Display *, Drawable);
+/* in xcolor.c */
+int lookup_color (Display *, XColor *, char *);
+unsigned long lookup_pixel (char *);
+unsigned long lookup_pixel_d (Display *, char *);
+int lookup_rgb (char *, unsigned short int *, unsigned short int *,
+		unsigned short int *);
 
 int __have_bitmap_buffers (OBJECT *);
 void request_client_shutdown (void) {
@@ -295,58 +301,6 @@ sigaction (SIGTERM, &action, &old_action);
 //  sigaction (SIGUSR1, &action, &old_action);
 //  sigaction (SIGUSR2, &action, &old_action);
 //  sigaction (SIGCHLD, &action, &old_action);
-}
-
-int lookup_color (Display *d, XColor *color, char *name) {
-
-  XColor exact_color;
-  Colormap default_cmap;
-
-  default_cmap = DefaultColormap (d, DefaultScreen (d));
-  
-  if (XAllocNamedColor 
-      (d, default_cmap, name, &exact_color, color)) {
-    return SUCCESS;
-  } else {
-    return ERROR;
-  }
-}
-
-unsigned long lookup_pixel (char *color) {
-  XColor c;
-  if (!lookup_color (display, &c, color)) {
-    return c.pixel;
-  } else {
-    return BlackPixel (display, screen);
-  }
-}
-
-/* As above, but we use our own Display in case the program is
-   still initializing. */
-unsigned long lookup_pixel_d (Display *d, char *color) {
-  XColor c;
-
-  if (d == NULL)
-    return BlackPixel (display, screen);
-
-  if (!lookup_color (d, &c, color)) {
-    return c.pixel;
-  } else {
-    return BlackPixel (d, screen);
-  }
-}
-
-int lookup_rgb (char *color, unsigned short int *r_return,
-		unsigned short int *g_return,
-		unsigned short int *b_return) {
-  XColor c;
-  if (!lookup_color (display, &c, color)) {
-    *r_return= c.red; *g_return = c.green; *b_return = c.blue;
-    return c.pixel;
-  } else {
-    *r_return = 0xffff; *g_return  = 0xffff; *b_return = 0xffff;
-    return BlackPixel (display, screen);
-  }
 }
 
 extern int __xlib_clear_rectangle_basic (Display *, Drawable,
@@ -2891,7 +2845,9 @@ int __ctalkX11InputClient (OBJECT *streamobject, int parent_fd, int mem_handle, 
 			   e.xbutton.x,
 			   e.xbutton.y,
 			   e.xbutton.state,
-			   e.xbutton.button, 0, 0);
+			   e.xbutton.button,
+			   e.xbutton.root_x,
+			   e.xbutton.root_y);
 	  continue;
 	  break;
 	case ButtonRelease:
@@ -2904,7 +2860,9 @@ int __ctalkX11InputClient (OBJECT *streamobject, int parent_fd, int mem_handle, 
 			   e.xbutton.x,
 			   e.xbutton.y,
 			   e.xbutton.state,
-			   e.xbutton.button, 0, 0);
+			   e.xbutton.button,
+			   e.xbutton.root_x,
+			   e.xbutton.root_y);
 	  continue;
 	  break;
 	case KeyPress:
