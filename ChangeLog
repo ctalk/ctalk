@@ -1520,4 +1520,10 @@
 	- Added the RGBAColor : x11Color instance method.
 	- Updated X11CanvasPane : background method
 	to call RGBAColor to fill in the receiver pen's rgba data.
+	- Added a check in __ctalkToCCharPtr to not regard an
+	OBJECT_VALUE_IS_BIN_INT if the object also has the
+	attribute OBJECT_IS_VALUE_VAR and its class is String
+	(lib/objtoc.c).
+	- Added the RGBAColor : new method, which fixes up the
+	value attributes for the x11Name instance variable.
 

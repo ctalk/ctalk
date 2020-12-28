@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.10 2020/12/27 20:33:01 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.11 2020/12/28 08:48:52 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -9452,6 +9452,17 @@ The @cite{rgb(1)} program lists by name the colors that the X server
 supports.
 
 If @var{color_name} is suppored by the X server, the method returns 0 (SUCCESS).  If the color is not supported, the method returns -1 (ERROR), and sets the red, green, and blue returns to 0.  In addition, it sets @var{pixel_out} to the server's black pixel, and raises an exception.
+
+@cindex @mnm{new} instance method @idxclscite{RGBAColor}
+@item new (@code{String} @var{object_name})
+The class needs its own constructor because the primitive constructor
+internals have added an OBJECT_VALUE_IS_BIN_INT attribute to all of
+the new object's instance variables, because @code{RGBAColor's}
+superclass is @code{Integer}.  But this method needs to do a fixup and
+remove the attribute from the @code{x11Name} instance variable, which
+has a value of @code{String}.  The contructor internals don't, at the
+present time, recognize this semantic factor on a generalized basis,
+so we need to handle cases like these individually.
 
 @anchor{X11RGBSpec}
 @cindex @mnm{rgbX11Color} instance method @idxclscite{RGBAColor}

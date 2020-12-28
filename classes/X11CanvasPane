@@ -1,4 +1,4 @@
-/* $Id: X11CanvasPane,v 1.3 2020/12/27 20:33:01 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11CanvasPane,v 1.4 2020/12/28 00:30:27 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -453,8 +453,10 @@ X11CanvasPane instanceMethod background (String color) {
   self pen rgba x11Color color;
   if (self paneBuffer xID > 0) {
     /* the pane has been initialized */
-    self super background color;
-    self paneBuffer background color;
+    /* self super background color; *//***/
+    self super background (self pen rgba x11Name);
+    /* self paneBuffer background color;*//***/
+    self paneBuffer background (self pen rgba x11Name);
   }
 }
 

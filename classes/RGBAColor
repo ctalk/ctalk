@@ -1,4 +1,4 @@
-/* $Id: RGBAColor,v 1.8 2020/12/27 20:33:01 rkiesling Exp $ -*-c-*-*/
+/* $Id: RGBAColor,v 1.9 2020/12/28 08:48:51 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -46,6 +46,24 @@ RGBAColor instanceVariable x11Pixel Integer 0;
 RGBAColor instanceVariable x11Name String "";
 
 #include <ctalk/ctalkdefs.h>
+
+RGBAColor instanceMethod new (String colorName) {
+  OBJECT *object_alias, *name_var;
+  __ctalkInstanceVarsFromClassObject (colorName);
+  /* Here we need to do a strange sort of fixup, due to the
+     fact that RGBAColor's superclass is Integer, the instance
+     variables have acquired the attribute, OBJECT_VALUE_IS_BIN_INT,
+     which doesn't work with the x11Name instance variable, because
+     its value is a String, so we have to remove the attribute.
+     So far, we need to handle this case-by-case, because the
+     part of the constructor that adds instance variables to the
+     new object can't generalize this factor (yet). */
+  object_alias = colorName;
+  name_var = __ctalkGetInstanceVariable (object_alias, "x11Name", true);
+  name_var -> attrs &= ~OBJECT_VALUE_IS_BIN_INT;
+  name_var -> instancevars -> attrs &= ~OBJECT_VALUE_IS_BIN_INT;
+  return colorName;
+}
 
 RGBAColor instanceMethod namedX11Color (String colorName) {
   int r_out, b_out, g_out, r;
