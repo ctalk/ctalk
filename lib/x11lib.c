@@ -1,4 +1,4 @@
-/* $Id: x11lib.c,v 1.7 2020/12/28 21:11:49 rkiesling Exp $ -*-c-*-*/
+/* $Id: x11lib.c,v 1.8 2020/12/28 23:05:12 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -2479,8 +2479,6 @@ static void event_to_client (int eventclass,
   INTVAL(&shm_mem[SHM_EVENT_DATA5]) = eventdata5;
   INTVAL(&shm_mem[SHM_EVENT_DATA6]) = eventdata6;
 
-  INTVAL(&shm_mem[SHM_EVENT_READY]) = TRUE;
-
 }
 
  
@@ -2635,7 +2633,7 @@ static int kwin_event_loop (int parent_fd, int mem_handle, int main_win_id) {
 	case FocusOut:
 	  event_to_client (FOCUSCHANGENOTIFY,
 			   e.xfocus.window, e.xfocus.type,
-			   e.xfocus.mode, e.xfocus.detail, 0, 0, 0);
+			   e.xfocus.mode, e.xfocus.detail, 0, 0, 0, 0);
 	  eventclass = 0;
 	  continue;
 	  break;
@@ -2647,7 +2645,7 @@ static int kwin_event_loop (int parent_fd, int mem_handle, int main_win_id) {
 	    ;
 	  event_to_client (MOTIONNOTIFY,
 			   e.xmotion.window, e.xmotion.x, e.xmotion.y,
-			   e.xmotion.state, e.xmotion.is_hint, 0, 0);
+			   e.xmotion.state, e.xmotion.is_hint, 0, 0, 0);
 	  eventclass = 0;
 	  continue;
   	  break;
@@ -2683,7 +2681,7 @@ static int kwin_event_loop (int parent_fd, int mem_handle, int main_win_id) {
 			       e.xconfigure.y, 
 			       e.xconfigure.width,
 			       e.xconfigure.height,
-			       e.xconfigure.border_width, 0);
+			       e.xconfigure.border_width, 0, 0);
 	      if ((prev_d.width != e.xconfigure.width) ||
 		  (prev_d.height != e.xconfigure.height)) {
 		resize_event_to_client
@@ -2704,7 +2702,7 @@ static int kwin_event_loop (int parent_fd, int mem_handle, int main_win_id) {
 	    event_to_client (EXPOSE, e.xconfigure.x, 
 			     e.xconfigure.y, 
 			     e.xconfigure.width,
-			     e.xconfigure.height, 0, 0);
+			     e.xconfigure.height, 0, 0, 0);
 
 	  }
 	  break;
@@ -2733,7 +2731,7 @@ static int kwin_event_loop (int parent_fd, int mem_handle, int main_win_id) {
 
 	event_to_client (eventclass, eventdata1, 
 			 eventdata2, eventdata3,
-			 eventdata4, eventdata5, 0);
+			 eventdata4, eventdata5, 0, 0);
 
 	eventclass = eventdata1 = eventdata2 = 0;
       }
@@ -2846,8 +2844,8 @@ int __ctalkX11InputClient (OBJECT *streamobject, int parent_fd, int mem_handle, 
 			   e.xbutton.y,
 			   e.xbutton.state,
 			   e.xbutton.button,
-			   e.xbutton.root_x,
-			   e.xbutton.root_y);
+			   e.xbutton.x_root,
+			   e.xbutton.y_root);
 	  continue;
 	  break;
 	case ButtonRelease:
@@ -2861,8 +2859,8 @@ int __ctalkX11InputClient (OBJECT *streamobject, int parent_fd, int mem_handle, 
 			   e.xbutton.y,
 			   e.xbutton.state,
 			   e.xbutton.button,
-			   e.xbutton.root_x,
-			   e.xbutton.root_y);
+			   e.xbutton.x_root,
+			   e.xbutton.y_root);
 	  continue;
 	  break;
 	case KeyPress:

@@ -1,4 +1,4 @@
-/* $Id: xmenu.c,v 1.4 2020/12/28 21:25:32 rkiesling Exp $ -*-c-*-*/
+/* $Id: xmenu.c,v 1.5 2020/12/28 23:05:13 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -41,17 +41,10 @@ extern GC create_pane_win_gc (Display *d, Window w, OBJECT *pane);
 int __ctalkX11CreatePopupMenu (OBJECT *self_object, int x, int y) {
   Window menu_win_id;
   XSetWindowAttributes set_attributes;
-  XGCValues gcv;
   GC gc;
   OBJECT *displayPtr, *mainWinPtr, *mainWin, *titleStr;
-  /* XWMHints wm_hints; *//***/
-  XSizeHints *size_hints;
-  char buf[MAXLABEL];
   static int wm_event_mask;
-  int geom_ret, x_return, y_return;
-  int pane_x, pane_y, pane_width, pane_height, border_width;
-  unsigned int width_return, height_return, depth_return, border_width_return;
-  int x_org, y_org, x_size, y_size;
+  int x_org, y_org, x_size, y_size, border_width;
   Display *d_l;
 
   wm_event_mask = WM_CONFIGURE_EVENTS | WM_INPUT_EVENTS;
