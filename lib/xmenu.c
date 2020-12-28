@@ -1,4 +1,4 @@
-/* $Id: xmenu.c,v 1.1 2020/12/25 14:02:39 rkiesling Exp $ -*-c-*-*/
+/* $Id: xmenu.c,v 1.4 2020/12/28 21:25:32 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -36,5 +36,65 @@
 #include <X11/Xutil.h>
 
 extern Display *display;   /* Defined in x11lib.c. */
+extern GC create_pane_win_gc (Display *d, Window w, OBJECT *pane);
+
+int __ctalkX11CreatePopupMenu (OBJECT *self_object, int x, int y) {
+  Window menu_win_id;
+  XSetWindowAttributes set_attributes;
+  XGCValues gcv;
+  GC gc;
+  OBJECT *displayPtr, *mainWinPtr, *mainWin, *titleStr;
+  /* XWMHints wm_hints; *//***/
+  XSizeHints *size_hints;
+  char buf[MAXLABEL];
+  static int wm_event_mask;
+  int geom_ret, x_return, y_return;
+  int pane_x, pane_y, pane_width, pane_height, border_width;
+  unsigned int width_return, height_return, depth_return, border_width_return;
+  int x_org, y_org, x_size, y_size;
+  Display *d_l;
+
+  wm_event_mask = WM_CONFIGURE_EVENTS | WM_INPUT_EVENTS;
+
+  if ((d_l = XOpenDisplay (getenv ("DISPLAY"))) == NULL) {
+    return ERROR;
+  }
+
+  mainWinPtr = __ctalkGetInstanceVariable (self_object,
+					   "mainWindowPtr", TRUE);
+  mainWin = *(OBJECT **)mainWinPtr -> instancevars -> __o_value;
+  
+  titleStr = __ctalkPaneResource (self_object, "titleText", TRUE);
+
+  /* border_width = __x11_pane_border_width (self_object); *//***/
+  border_width = 0;
+  set_attributes.backing_store = Always;
+  set_attributes.save_under = true;
+  set_attributes.override_redirect = true;
+
+  menu_win_id = XCreateWindow (d_l, DefaultRootWindow (d_l), 
+			  x_org, y_org, x_size, y_size,
+			  border_width,
+			  DefaultDepth (display, DefaultScreen (display)),
+			  CopyFromParent, CopyFromParent, 
+			  CWBackingStore|CWSaveUnder|CWOverrideRedirect,
+			  &set_attributes);
+
+  XSelectInput(d_l, menu_win_id, wm_event_mask);
+
+  gc = create_pane_win_gc (d_l, menu_win_id, self_object);
+
+  /* XMoveResizeWindow (d_l, menu_win_id, x_org, y_org, x_size, y_size); *//***/
+
+  return menu_win_id;
+}
+
+#else /* ! defined (DJGPP) && ! defined (WITHOUT_X11) */
+
+int __ctalkX11CreatePopupMenu (OBJECT *self_object, int x, int y) {
+  fprintf (stderr, "__ctalkX11CreatePopupMenu: This program requires "
+	   "the X Window System.  Exiting.\n");
+  exit (ERROR);
+}
 
 #endif /* ! defined (DJGPP) && ! defined (WITHOUT_X11) */

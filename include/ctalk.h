@@ -1,4 +1,4 @@
-/* $Id: ctalk.h,v 1.10 2020/12/26 18:20:05 rkiesling Exp $ -*-Fundamental-*- */
+/* $Id: ctalk.h,v 1.12 2020/12/28 21:26:16 rkiesling Exp $ -*-Fundamental-*- */
 
 /*
   This file is part of Ctalk.
@@ -2692,6 +2692,9 @@ void clear_font_descriptors (void *);
 int __ctalkSelectXFontFace (void *, int, unsigned long int, int);
 int __ctalkX11UseFontBasic (void *, int, unsigned long int, char *);
 int __ctalkX11UseFontBasic (void *, int, unsigned long int, char *);
+
+/* lib/xmenu.c */
+int __ctalkX11CreatePopupMenu (OBJECT *, int, int);
 
 /* lib/xrender.c */
 void __ctalkX11UseXRender (bool);
