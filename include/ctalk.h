@@ -1,4 +1,4 @@
-/* $Id: ctalk.h,v 1.6 2020/12/22 15:11:54 rkiesling Exp $ -*-Fundamental-*- */
+/* $Id: ctalk.h,v 1.10 2020/12/26 18:20:05 rkiesling Exp $ -*-Fundamental-*- */
 
 /*
   This file is part of Ctalk.
@@ -2663,6 +2663,13 @@ void __ctalkMatchPrintToks (bool);
 /* lib/xcircle.c */
 int __ctalkX11PaneDrawCircleBasic (void *, int, unsigned long int, int, int, int, int, int, int, char *, char *);
 int __ctalkGUIPaneDrawCircleBasic (void *, int, unsigned long int, int, int, int, int, int, int, char *, char *);
+
+/* lib/xcolor.c */
+int __ctalkX11NamedColor (char *, int *, int *, int *, unsigned long int *);
+int __ctalkX11RGBColor (char *, int *, int *, int *,
+    unsigned long int *);
+/* There are also prototypes in individual source modules so we don't have to
+   include the Xlib headers here. */
 
 /* lib/xcopypixmap.c */
 int __ctalkX11CopyPixmapBasic (void *, int, unsigned long int,
