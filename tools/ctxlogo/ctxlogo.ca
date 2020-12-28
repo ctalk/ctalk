@@ -1,4 +1,4 @@
-/* $Id: ctxlogo.ca,v 1.8 2020/06/14 21:07:01 rkiesling Exp $ -*- c -*- */
+/* $Id: ctxlogo.ca,v 1.7 2020/12/28 11:02:47 rkiesling Exp $ -*- c -*- */
 
 /*
   This file is part of Ctalk.
@@ -58,6 +58,7 @@ Application instanceMethod ctxlogoOptions (void) {
   Integer new i;
   Integer new nParams;
   String new param;
+  RGBAColor new color;
 
   nParams = self cmdLineArgs size;
 
@@ -183,7 +184,7 @@ int main (int argc, char **argv) {
   ctxlogo installExitHandlerBasic;
   ctxlogo installAbortHandlerBasic;
 
-  fgColor = "antiquewhite";
+  fgColor = "gray";
   bgColor = "white";
 
   /* This performs a color fill of the window and the buffers. */
@@ -192,11 +193,6 @@ int main (int argc, char **argv) {
   ctxlogo ctxlogoOptions;
   if (geomString length > 0) 
     ctxlogo parseX11Geometry geomString;
-
-  xPane foreground fgColor;
-  xPane background bgColor;
-  xCanvasPane foreground fgColor;
-  xCanvasPane background bgColor;
 
   // The window needs to have a height and a width, so check
   // for zero.
@@ -234,6 +230,13 @@ int main (int argc, char **argv) {
   xPane setWMTitle "Ctalk X";
 
   xPane ftFontVar initFontLib;
+
+  xPane foreground fgColor;
+  xPane background bgColor;
+  xCanvasPane foreground fgColor;
+  xCanvasPane background bgColor;
+  xCanvasPane drawLogo xWindowSize, yWindowSize;
+  xCanvasPane refresh;
 
   while (TRUE) {
 
@@ -277,8 +280,10 @@ int main (int argc, char **argv) {
 	  yWindowSize = xPane size y;
 	  /* Re-fill the resized buffer with the foreground and
 	     background colors. */
+#if 0
 	  xCanvasPane foreground fgColor;
 	  xCanvasPane background bgColor;
+#endif	  
 	  xCanvasPane drawLogo xWindowSize, yWindowSize;
 	  xCanvasPane refresh;
 	  break;
