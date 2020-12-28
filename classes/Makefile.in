@@ -14,7 +14,7 @@
 
 @SET_MAKE@
 
-# $Id: Makefile.in,v 1.5 2020/12/26 15:06:31 rkiesling Exp $
+# $Id: Makefile.in,v 1.6 2020/12/28 11:49:22 rkiesling Exp $
 
 VPATH = @srcdir@
 am__is_gnu_make = { \
@@ -390,7 +390,8 @@ pkginclude_HEADERS = ANSIButtonPane ANSILabelPane ANSIListBoxPane \
 	Win32TerminalStream WriteFileStream X11Bitmap X11ButtonPane \
 	X11CanvasPane X11CheckBoxPane X11Cursor X11FileSelectDialog \
 	X11Font X11FreeTypeFont \
-	X11LabelPane X11ListBox X11ListPane X11MessageBoxPane X11Pane X11Pixmap \
+	X11LabelPane X11ListBox X11ListPane X11MessageBoxPane X11Pane \
+	X11Pixmap X11PopupMenu \
 	X11ScrollBarPane X11TerminalStream \
 	X11TextPane X11TextEditorPane X11TextEntryBox X11TextEntryPane \
 	X11PaneDispatcher X11YesNoBoxPane ctalklib ctldjgpp ctalkdefs.h \
