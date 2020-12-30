@@ -1,4 +1,4 @@
-/* $Id: x11lib.c,v 1.8 2020/12/28 23:05:12 rkiesling Exp $ -*-c-*-*/
+/* $Id: x11lib.c,v 1.9 2020/12/30 16:04:07 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -2327,6 +2327,7 @@ int read_event (int *ev_type_out, unsigned int *win_out,
       data[4] = UINTVAL(&shm_mem[SHM_EVENT_DATA5]);
       data[5] = UINTVAL(&shm_mem[SHM_EVENT_DATA6]);
       INTVAL(&shm_mem[SHM_EVENT_READY]) = 0;
+
     } else {
       INTVAL(&shm_mem[SHM_EVENT_READY]) = 0;
     }
@@ -2478,6 +2479,8 @@ static void event_to_client (int eventclass,
   INTVAL(&shm_mem[SHM_EVENT_DATA4]) = eventdata4;
   INTVAL(&shm_mem[SHM_EVENT_DATA5]) = eventdata5;
   INTVAL(&shm_mem[SHM_EVENT_DATA6]) = eventdata6;
+
+  INTVAL(&shm_mem[SHM_EVENT_READY]) = TRUE;
 
 }
 
@@ -2788,7 +2791,7 @@ int __ctalkX11InputClient (OBJECT *streamobject, int parent_fd, int mem_handle, 
   int events_waiting, handle_count;
   int eventclass, event_win,
     eventdata1, eventdata2, eventdata3, eventdata4,
-    eventdata5;
+    eventdata5, eventdata6;
   int client_sock_fd, wresult;
   char *s;
   char buf[MAXMSG], e_class[64], e1[64], e2[64], e3[64], e4[64], 
@@ -3173,7 +3176,7 @@ int __ctalkX11InputClient (OBJECT *streamobject, int parent_fd, int mem_handle, 
 	    eventclass = WINDELETE;
 	    event_win = e.xclient.window;
 	    eventdata1 = eventdata2 = eventdata3 = eventdata4 = 
-	      eventdata5 = 0;
+	      eventdata5 = eventdata6 = 0;
 	  }
 	  break;
 	case SelectionClear:

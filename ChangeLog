@@ -1536,5 +1536,9 @@
 	- Added a InputEvent : xEventData7 instance variable, and
 	updated X11TerminalStream : queueInput, and the function
 	save_x_event to handle a 7th event data member.
+2020-12-30
+	- Updated event_to_client to signal an generic event ready.
+	Also added a seventh data element when returning ClientEvents
+	(x11lib.c).
 
 
