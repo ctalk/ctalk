@@ -1,4 +1,4 @@
-/* $Id: ctalklib.in,v 1.9 2020/12/28 21:26:42 rkiesling Exp $ -*-c-*-*/
+/* $Id: ctalklib.in,v 1.12 2020/12/29 20:48:28 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -1078,6 +1078,10 @@ extern int __ctalkX11FreePaneBuffer (OBJECT *);
 extern int __ctalkX11ResizePaneBuffer (OBJECT *, int, int);
 extern int __ctalkX11ResizePixmap (void *, int, int, unsigned long int, int, int,
 				   int, int, int, int *);
+extern int __ctalkX11MapMenu (OBJECT *, int, int);
+extern int __ctalkX11MenuDrawString (void *, unsigned int, int x, int y,
+				     char *, char *);
+
 extern int __ctalkX11MoveWindow (OBJECT *, int, int);
 extern int __ctalkX11ResizeWindow (OBJECT *, int, int, int);
 extern int __ctalkX11PaneClearWindow (OBJECT *);
@@ -1097,6 +1101,7 @@ extern int __ctalkX11CloseClient (OBJECT *);
 extern int __ctalkX11QueryFont (OBJECT *, char *);
 extern int __ctalkX11InputClient (OBJECT *, int, int, int);
 extern int __ctalkX11UseFontBasic (void *, int, unsigned long int, char *);
+extern int __ctalkX11WithdrawMenu (OBJECT *);
 extern int __ctalkMapGLXWindow (OBJECT *);
 extern int __ctalkMapX11Window (OBJECT *);
 extern int __ctalkMatchText (char *, char *, long long int *);

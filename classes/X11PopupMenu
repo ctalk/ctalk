@@ -1,4 +1,4 @@
-/* $Id: X11PopupMenu,v 1.1 2020/12/28 11:49:22 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11PopupMenu,v 1.3 2020/12/29 20:48:28 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -34,5 +34,298 @@
  */
 
 #include <ctalk/ctalkdefs.h>
+#include <fontconfig/fontconfig.h>
 
 X11CanvasPane class X11PopupMenu;
+
+X11CanvasPane instanceVariable items AssociativeArray NULL;
+
+#define WITHDRAWN_NONE    0
+#define WITHDRAWN_SELECT  1
+#define WITHDRAWN_OTHER   2
+
+static bool initialized = false;
+static bool withdrawn = WITHDRAWN_NONE;
+bool point_is_in_rect (int, int, int, int, int, int);
+bool screen_click (int *, int *, unsigned int *);
+int __xlib_put_str_ft (Display *, Drawable, GC, char *);
+
+X11PopupMenu instanceMethod draw (void) {
+  Display *d_l;
+  XColor actual, nearest;
+  GC win_gc, buf_gc;
+  XGCValues xgcv;
+  int y;
+  String new s;
+  
+
+  self ftFontVar selectFontFromFontConfig "sans serif-12";
+  self ftFontVar saveSelectedFont;
+  self ftFontVar namedX11Color "black";
+  self ftFontVar alpha 0xffff;
+  self faceRegular;
+
+  d_l = self displayPtr;
+  XAllocNamedColor (d_l, DefaultColormap (d_l, DefaultScreen (d_l)),
+		    "gray", &actual, &nearest);
+  xgcv.foreground = nearest.pixel;
+  xgcv.background = nearest.pixel;
+  xgcv.function = GXcopy;
+  xgcv.fill_style = FillSolid;
+  win_gc = XCreateGC (d_l, self xWindowID,
+		  GCFillStyle|GCFunction|GCForeground|GCBackground, &xgcv);
+  buf_gc = XCreateGC (d_l, self paneBuffer xID,
+		  GCFillStyle|GCFunction|GCForeground|GCBackground, &xgcv);
+  XFillRectangle (self displayPtr, self paneBuffer xID,
+		  buf_gc, 0, 0, self size x, self size y);
+  XCopyArea (self displayPtr, self paneBuffer xID, self xWindowID,
+	     win_gc, 0, 0, self size x, self size y, 0, 0);
+
+  y = 16;
+
+  /* __ctalkX11MenuDrawString (self displayPtr, self paneBuffer xID,
+     16, 16, "hello", "black"); */
+  
+
+    /* self putStrXY 10, y, "hello"; */
+
+  self items mapKeys {
+    s = self name;
+    __ctalkX11MenuDrawString (super displayPtr, super paneBuffer xID,
+			    16, y, s, "navyblue");
+    y += 16;
+  }
+
+  XCopyArea (self displayPtr, self paneBuffer xID, self xWindowID,
+	     win_gc, 0, 0, self size x, self size y, 0, 0);
+
+  XFreeGC (d_l, win_gc);
+  XFreeGC (d_l, buf_gc);
+
+}
+
+X11PopupMenu instanceMethod popup (X11Pane parentWin,
+				   Integer p_dpy_x, Integer p_dpy_y) {
+  "Displays the pane's window. Note that th method uses raw X
+   events. This is because the pane maintains its own connection
+   to the display, and the event handler can be contained in
+   this method."
+  Display *display;
+  Window menu_win_id;
+  XEvent xev, t_xev;
+  InputEvent new e;
+  int dpy_x, dpy_y, r;
+  unsigned int ptr_state;
+  bool entry = true;
+
+
+  if (withdrawn != WITHDRAWN_NONE) {
+    withdrawn = WITHDRAWN_NONE;
+    return NULL;
+  }
+
+  if (!initialized) {
+    menu_win_id = __ctalkX11CreatePopupMenu (self, 0, 0);
+
+    display = self displayPtr;
+
+    self origin x = p_dpy_x;
+    self origin y = p_dpy_y;
+    self size x = 100;
+    /* self size y = 100; *//***/
+    initialized = true;
+
+    (X11Bitmap *)self paneBuffer create self displayPtr, self xWindowID, 
+      self size x, self size y, self depth;
+    (X11Bitmap *)self paneBuffer background "blue";
+    (X11Bitmap *)self paneBuffer foreground "blue";
+    (X11Bitmap *)self paneBackingStore create self displayPtr, self xWindowID,
+      self size x, self size y, self depth;
+    __ctalkX11MapMenu (self, p_dpy_x, p_dpy_y);
+  } else { /* if (!initialized) */
+    display = self displayPtr;
+    menu_win_id = self xWindowID;
+    self origin x = p_dpy_x;
+    self origin y = p_dpy_y;
+    __ctalkX11MapMenu (self, p_dpy_x, p_dpy_y);
+  }
+
+  self draw;
+
+  while (1) {
+    
+    screen_click (&dpy_x, &dpy_y, &ptr_state);
+    if (!entry) {
+      if (ptr_state & Button1Mask) {
+	if (!point_is_in_rect (dpy_x, dpy_y, self origin x, self origin y,
+			       self size x, self size y)) {
+	  if (point_is_in_rect (dpy_x, dpy_y, parentWin origin x,
+				parentWin origin y, parentWin size x,
+				parentWin size y)) {
+	    __ctalkX11WithdrawMenu (self);
+	    withdrawn = WITHDRAWN_OTHER;
+	    return NULL;
+	  } else {
+	    __ctalkX11WithdrawMenu (self);
+	    withdrawn = WITHDRAWN_NONE;
+	    return NULL;
+	  }
+	}
+      }
+    }
+
+    entry = false;
+    if (XPending (display)) {
+      XNextEvent (display, &xev);
+      switch (xev.type)
+	{
+	case ButtonPress:
+	  dpy_x = xev.xbutton.x_root;
+	  dpy_y = xev.xbutton.y_root;
+#if 0 /*** FIX! (display_x|y mistaken for the method param names) */
+	  printf ("Button: %d,%d Win: %d,%dx%d%d\n", xev.xbutton.display_x,
+		  xev.xbutton.display_y,
+		  self origin x, self origin y, self size x, self size y);
+#endif	  
+	  e eventClass = BUTTONPRESS;
+	  if (point_is_in_rect (dpy_x, dpy_y,
+				 self origin x, self origin y,
+				 self size x, self size y)) {
+	  } else {
+	    __ctalkX11WithdrawMenu (self);
+	    withdrawn = WITHDRAWN_OTHER;
+	    return NULL;
+	  }
+	  break;
+	}
+    }
+  }
+  return NULL;
+}
+
+
+#if 0
+#if NDC
+  /* This might be temporary - We may need for the dispatcher to
+     keep track of the subPanes externally for keystroke equivalents,
+     and we may also need to add a library function to determine if
+     we should not be checking the container if the pane is opened
+     via a dialog. */
+  X11PaneDispatcher new dispatcher;
+#endif  
+  X11Pane new mainWin;
+  InputEvent new e;
+
+#if NDC
+  dispatcher = *self container;
+  mainWin = dispatcher mainWindow;
+#endif  
+  
+  if (!self initialized) {
+
+    win_id = __ctalkX11CreateDialogWindow (self);
+    self xWindowID = win_id;
+#if NDC
+    dispatcher modalWin = win_id;
+    dispatcher modalPane = self;
+#endif    
+  
+    (X11Bitmap *)self paneBuffer create self displayPtr, self xWindowID, 
+      self size x, self size y, self depth;
+    (X11Bitmap *)self paneBuffer background
+      (self resources at "backgroundColor");
+    self paneBuffer backgroundColor = self resources at "backgroundColor";
+    (X11Bitmap *)self paneBuffer foreground
+      (self resources at "foregroundColor");
+    (X11Bitmap *)self paneBackingStore create self displayPtr, self xWindowID,
+      self size x, self size y, self depth;
+
+    self initWidgets;
+  } else {
+
+    __enable_dialog (self);
+
+    win_id = self xWindowID;
+    display = self displayPtr;
+
+  }
+
+  XMapWindow (display, win_id);
+  XMapSubwindows (display, win_id);
+  XRaiseWindow (display, win_id);
+
+  self clearWindow;
+
+  while (1) {
+    if (XPending (display)) {
+      XNextEvent (display, &xev);
+      switch (xev.type)
+	{
+	case ButtonPress:
+	  if (xev.xbutton.window == self button xWindowID) {
+	    e eventClass = BUTTONPRESS;
+	    self methodObjectMessage self handlePointerInput, self, e;
+	  }
+	  break;
+	case ButtonRelease:
+	  if (xev.xbutton.window == self button xWindowID) {
+	    e eventClass = BUTTONRELEASE;
+	    self methodObjectMessage self handlePointerInput, self, e;
+	    self withdraw;
+#if NDC
+	    dispatcher modalWin = 0;
+	    dispatcher modalPane = NULL;
+#endif	    
+	    return self;
+	  }
+	  break;
+	case EnterNotify:
+	  if (xev.xbutton.window == self button xWindowID) {
+	    e eventClass = ENTERWINDOWNOTIFY;
+	    e eventData = xev.xbutton.window;
+	    self methodObjectMessage self handleEnterNotify, self, e;
+	  }
+	  break;
+	case LeaveNotify:
+	  if (xev.xbutton.window == self button xWindowID) {
+	    e eventClass = LEAVEWINDOWNOTIFY;
+	    e eventData = xev.xbutton.window;
+	    self methodObjectMessage self handleLeaveNotify, self, e;
+	  }
+	  break;
+	case KeyPress:
+	  e eventClass = KEYPRESS;
+	  /* For the Tab and Enter keys, we don't need to worry
+	     about the shift keys */
+	  e xEventData4 = __edittext_xk_keysym
+	    (xev.xkey.keycode, xev.xkey.state, 0);
+	  self methodObjectMessage self handleKbdInput, self, e;
+	  if (self keyState == KEY_ENTER) {
+	    self withdraw;
+#if NDC
+	    dispatcher modalWin = 0;
+	    dispatcher modalPane = NULL;
+#endif	    
+	    return self;
+	  }
+	  break;
+	case Expose:
+	  self methodObjectMessage self handleExpose, self, e;
+	  break;
+	case ClientMessage:
+	  if(xev.xclient.data.l[0] == wm_delete_dialog) {
+	    self withdraw;
+#if NDC
+	    dispatcher modalWin = 0;
+	    dispatcher modalPane = NULL;
+#endif
+	    return self;
+	  }
+	  break;
+	}
+    } else {
+      usleep (5000);
+    }
+  }
+}
+#endif  
