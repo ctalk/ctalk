@@ -1,4 +1,4 @@
-/* $Id: ctalk.h,v 1.12 2020/12/28 21:26:16 rkiesling Exp $ -*-Fundamental-*- */
+/* $Id: ctalk.h,v 1.15 2021/01/03 15:15:46 rkiesling Exp $ -*-Fundamental-*- */
 
 /*
   This file is part of Ctalk.
@@ -644,6 +644,7 @@ typedef MESSAGE ** MESSAGE_STACK;
 #define TMPL_CVAR_CLEANUP_FN  "__ctalkTemplateCallerCVARCleanup"
 #define ARGBLK_LABEL "__ctblk"
 #define DELETE_CVARS_CALL "\ndelete_method_arg_cvars ();\n"
+#define ARGBLK_SUBEXPR_WRAPPER(s)(s[0] == '(' && s[1]== '*')
 
 #define DELETE_MESSAGES(__s,__i,__l) \
    while (++__i <= __l) {\
@@ -1105,6 +1106,7 @@ CVAR *get_struct_from_member (void);
 CVAR *get_typedef (char *);
 int global_var_is_declared (char *);
 CVAR *have_struct (char *);
+CVAR *get_struct_by_type (char *);
 int typedef_is_declared (char *);
 int is_c_derived_type (char *);
 bool is_enum_member (char *);
@@ -3335,6 +3337,7 @@ int is_method_param_name (char *);
 int rte_expr_contains_c_fn_arg_call (MESSAGE_STACK messages,
 					    int start, int end);
 int rt_fn_arg_cond_expr (MSINFO *);
+char *fmt_rt_argblk_expr (MESSAGE_STACK, int, int *, char *);
 
 
 /* rt_time.c */
@@ -3392,6 +3395,7 @@ void handle_simple_subscr_rcvr (MESSAGE_STACK, int);
 /* substrcpy.c */
 char *substrcpy (char *, char *, int, int);
 char *substrcat (char *, char *, int, int);
+char *extract_argblk_name_from_subexpr (char *, char *);
 
 /* symbol.c */
 #if 0

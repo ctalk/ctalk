@@ -1,4 +1,4 @@
-/* $Id: argblk.c,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ */
+/* $Id: argblk.c,v 1.3 2021/01/03 15:15:46 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -666,7 +666,10 @@ static void super_c_argument_context_handler (MSINFO *ms) {
   int lookback, prev_tok;
   int expr_end_idx;
   int i;
-  static char exprbuf[MAXMSG], expr_buf_out[MAXMSG];
+  static char exprbuf[MAXMSG], expr_buf_out[MAXMSG], arg_expr_buf[MAXMSG];
+  char actual_name[MAXLABEL];
+  CVAR *typedef_defn, *typedef_defn_2, *mbr;
+  bool have_typedef_mbr;
   CVAR *c, *struct_defn = NULL, *struct_decl = NULL; /* Avoid warnings. */
 
   if (is_fmt_arg_2 (ms)) {
@@ -710,10 +713,12 @@ static void super_c_argument_context_handler (MSINFO *ms) {
 		    (M_TOK(ms -> messages[lookback2]) != DEREF)))
 	      break;
 	  }
-	  if (((struct_decl = 
-		get_local_var (M_NAME(ms -> messages[lookback2]))) == NULL) &&
-	      ((struct_decl =
-		get_global_var (M_NAME(ms -> messages[lookback2]))) == NULL)) {
+	  if (!argblk && (((struct_decl = 
+			   get_local_var (M_NAME(ms -> messages[lookback2])))
+			  == NULL) &&
+			  ((struct_decl =
+			    get_global_var
+			    (M_NAME(ms -> messages[lookback2]))) == NULL))) {
 	    warning (ms -> messages[lookback], 
 		     "Definition of struct or union, \"%s,\" not found.",
 		     M_NAME(ms -> messages[lookback2]));
@@ -722,6 +727,78 @@ static void super_c_argument_context_handler (MSINFO *ms) {
 	      ++ms -> messages[i] -> output;
 	    }
 	    fileout (exprbuf, 0, ms -> tok);
+	  } else if (ARGBLK_SUBEXPR_WRAPPER(ms -> messages[lookback2]->name)) {
+	    /***/
+	    /* We've wrapped the struct * in parentheses to avoid a
+	       compiler warning.  Extract the actual name. */
+	    extract_argblk_name_from_subexpr (ms->messages[lookback2]->name,
+					      actual_name);
+	    if ((c = get_var_from_cvartab_name
+		 (actual_name)) != NULL) {
+	      if (c -> type_attrs & CVAR_TYPE_TYPEDEF) {
+		if ((typedef_defn = get_typedef (c -> type))
+		    != NULL) {
+		  if (IS_CVAR (typedef_defn -> members)) {
+		    lookback = nextlangmsg (ms -> messages,
+					    lookback);
+		    
+		    for (have_typedef_mbr = false,
+			   mbr = typedef_defn -> members; mbr;
+			 mbr = mbr -> next) {
+		      if (str_eq (mbr -> name,
+				  M_NAME(ms -> messages[lookback]))){
+			have_typedef_mbr = true;
+			break;
+		      }
+		    }
+		    if (have_typedef_mbr) {
+		      fmt_rt_argblk_expr (ms -> messages, ms -> tok,
+					  &expr_end_idx, arg_expr_buf);
+		      fmt_rt_return (exprbuf, 
+				     basic_class_from_cvar
+				     (ms -> messages[lookback], mbr, 0),
+				     TRUE, arg_expr_buf);
+		      for (i = ms -> tok; i >= expr_end_idx; i--) {
+			++ms -> messages[i] -> evaled;
+			++ms -> messages[i] -> output;
+		      }
+		      fileout (arg_expr_buf, 0, ms -> tok);
+		      return;
+		    }
+		  } else { /* if (IS_CVAR (typedef_defn -> members) */
+		    if ((typedef_defn_2 = get_struct_by_type
+			 (typedef_defn -> qualifier)) != NULL) {
+		      lookback = nextlangmsg (ms -> messages,
+					      lookback);
+		      for (have_typedef_mbr = false,
+			     mbr = typedef_defn_2 -> members; mbr;
+			   mbr = mbr -> next) {
+			if (str_eq (mbr -> name,
+				    M_NAME(ms -> messages[lookback]))){
+			  have_typedef_mbr = true;
+			  break;
+			}
+		      }
+		      if (have_typedef_mbr) {
+			fmt_rt_argblk_expr (ms -> messages,
+					    ms -> tok, &expr_end_idx,
+					    arg_expr_buf);
+			fmt_rt_return (exprbuf, 
+				       basic_class_from_cvar
+				       (ms -> messages[ms -> tok], mbr, 0),
+				       TRUE, arg_expr_buf);
+			for (i = ms -> tok; i >= expr_end_idx; i--) {
+			  ++ms -> messages[i] -> evaled;
+			  ++ms -> messages[i] -> output;
+			}
+			fileout (arg_expr_buf, 0, ms -> tok);
+			return;
+		      }
+		    }
+		  }  /* if (IS_CVAR (typedef_defn -> members) */
+		}
+	      }
+	    }
 	  } else {
 	    if (struct_decl -> attrs == CVAR_ATTR_STRUCT) {
 	      if (((struct_defn = get_global_var (struct_decl->type))

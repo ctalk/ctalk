@@ -1,4 +1,4 @@
-/* $Id: rt_expr.c,v 1.2 2020/12/14 02:35:18 rkiesling Exp $ */
+/* $Id: rt_expr.c,v 1.8 2021/01/03 15:15:46 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -2057,37 +2057,120 @@ char *rt_self_expr (MESSAGE_STACK messages, int start_idx, int *end_idx,
 			(M_TOK(messages[lookback2]) != DEREF)))
 		  break;
 	      }
-	      if (((struct_decl = 
-		    get_local_var (M_NAME(messages[lookback2]))) == NULL) &&
-		  ((struct_decl =
-		    get_global_var (M_NAME(messages[lookback2]))) == NULL)) {
-		if (M_TOK(messages[lookback2]) == LABEL) {
-		  warning (messages[start_idx], 
-			   "Definition of struct or union, \"%s,\" not found.",
-			   M_NAME(messages[lookback2]));
-		}
-		strcpy (arg_expr_buf, exprbuf);
-	      } else {
-		if (struct_decl -> attrs == CVAR_ATTR_STRUCT) {
-		  if (((struct_defn = get_global_var (struct_decl->type))
-		       == NULL) &&
-		      ((struct_defn = get_local_var (struct_decl->type))
-		       == NULL)) {
-		    warning (messages[start_idx], 
-			     "Definition of struct or union, \"%s,\" not found.",
-			     struct_decl -> type);
-		    struct_defn = struct_decl;
+	      if (argblk) { /***/
+		/* 
+		   If we've wrapped the cvartab name in parens to
+		   avoid warning messages from the compiler; e.g.,
+
+		     (*<typedef_name>)
+		     
+		   Then first extract the name.
+		 */
+		if ((messages[lookback2] -> attrs &
+		    RCVR_TOK_IS_C_STRUCT_EXPR) &&
+		    ARGBLK_SUBEXPR_WRAPPER(messages[lookback2]->name)) {
+		  char actual_name[MAXLABEL];
+		  CVAR *typedef_defn, *typedef_defn_2, *mbr;
+		  bool have_typedef_mbr;
+		  extract_argblk_name_from_subexpr
+		    (messages[lookback2] -> name,
+		     actual_name);
+		  if ((c = get_var_from_cvartab_name
+		       (actual_name)) != NULL) {
+		    if (c -> type_attrs & CVAR_TYPE_TYPEDEF) {
+		      if ((typedef_defn = get_typedef (c -> type))
+			  != NULL) {
+			if (IS_CVAR (typedef_defn -> members)) {
+			  lookback = nextlangmsg (messages,
+						  lookback);
+
+			  for (have_typedef_mbr = false,
+				 mbr = typedef_defn -> members; mbr;
+			       mbr = mbr -> next) {
+			    if (str_eq (mbr -> name,
+					M_NAME(messages[lookback]))){
+			      have_typedef_mbr = true;
+			      break;
+			    }
+			  }
+			  if (have_typedef_mbr) {
+			    fmt_rt_argblk_expr (messages, start_idx, end_idx,
+						arg_expr_buf);
+			    fmt_rt_return (exprbuf, 
+					   basic_class_from_cvar
+					   (messages[start_idx], mbr, 0),
+					   TRUE, arg_expr_buf);
+			  }
+			} else { /* if (IS_CVAR (typedef_defn -> members) */
+			  if ((typedef_defn_2 = get_struct_by_type
+			       (typedef_defn -> qualifier)) != NULL) {
+			    lookback = nextlangmsg (messages,
+						    lookback);
+			    for (have_typedef_mbr = false,
+				   mbr = typedef_defn_2 -> members; mbr;
+				 mbr = mbr -> next) {
+			      if (str_eq (mbr -> name,
+					  M_NAME(messages[lookback]))){
+				have_typedef_mbr = true;
+				break;
+			      }
+			    }
+			    if (have_typedef_mbr) {
+			      fmt_rt_argblk_expr (messages, start_idx, end_idx,
+						  arg_expr_buf);
+			      fmt_rt_return (exprbuf, 
+					     basic_class_from_cvar
+					     (messages[start_idx], mbr, 0),
+					     TRUE, arg_expr_buf);
+			    }
+			  }
+			}  /* if (IS_CVAR (typedef_defn -> members) */
+		      }
+		    }
 		  }
 		}
-		c = struct_member_from_expr_b (messages,
-					       lookback2, 
-					       last_expr_tok, 
-					       struct_defn);
-		fmt_rt_return (exprbuf, 
-			       basic_class_from_cvar
-			       (messages[start_idx], c, 0),
-			       TRUE, arg_expr_buf);
-	      }
+	      } else { /* if (argblk) */
+		if (((struct_decl = 
+		      get_local_var (M_NAME(messages[lookback2]))) == NULL) &&
+		    ((struct_decl =
+		      get_global_var (M_NAME(messages[lookback2]))) == NULL)) {
+		  if (M_TOK(messages[lookback2]) == LABEL) {
+		    warning (messages[start_idx], 
+			     "Definition of struct or union, \"%s,\" not found.",
+			     M_NAME(messages[lookback2]));
+		  }
+		  strcpy (arg_expr_buf, exprbuf);
+		} else {
+		  if (struct_decl -> attrs == CVAR_ATTR_STRUCT) {
+		    if (((struct_defn = get_global_var (struct_decl->type))
+			 == NULL) &&
+			((struct_defn = get_local_var (struct_decl->type))
+			 == NULL)) {
+		      warning (messages[start_idx], 
+			       "Definition of struct or union, \"%s,\" not found.",
+			       struct_decl -> type);
+		      struct_defn = struct_decl;
+		    }
+		  } else if (struct_decl -> type_attrs == CVAR_TYPE_TYPEDEF) {
+		    /***/
+		    if ((struct_defn = get_typedef (struct_decl -> type))
+			== NULL) {
+		      warning (messages[start_idx], 
+			       "Definition of typedef, \"%s,\" not found.",
+			       struct_decl -> type);
+		      struct_defn = struct_decl;
+		    }
+		  }
+		  c = struct_member_from_expr_b (messages,
+						 lookback2, 
+						 last_expr_tok, 
+						 struct_defn);
+		  fmt_rt_return (exprbuf, 
+				 basic_class_from_cvar
+				 (messages[start_idx], c, 0),
+				 TRUE, arg_expr_buf);
+		}
+	      } /* if (argblk) */
 	    } else {
 	      /*
 	       * Check again for cases not covered above.

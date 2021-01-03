@@ -1543,5 +1543,19 @@
 2021-01-01
 	- Added a check for a lval from a typedef in rt_self_expr
 	(src/rt_expr.c).
+2021-01-02
+	- Added the struct[4-5].c test programs.
+	- Added an extra check for a valid CVAR in
+	get_global_var (cvars.c).
+	- Added get_struct_by_type (cvars.c), and also added
+	a check for an lval from an incomplete typedef in
+	rt_self_expr (src/rt_exor.c).
+	- Added struct[6-7].c test programs.
+2021-01-03
+	- Added extract_argblk_name_from_subexpr (substrcpy.c).
+	- Updated super_c_argument_context_handler to handle
+	lvalues in argument blocks which typedef'd struct
+	members (argblk.c).
+	- Added struct8.c test program.
 
 

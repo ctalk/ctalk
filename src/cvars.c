@@ -1,4 +1,4 @@
-/* $Id: cvars.c,v 1.2 2020/09/19 01:08:27 rkiesling Exp $ */
+/* $Id: cvars.c,v 1.3 2021/01/02 18:30:47 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -1268,9 +1268,11 @@ CVAR *get_global_var (char *s) {
     return NULL;
 
   if ((c = (CVAR *)_hash_get (declared_global_variables, s)) != NULL){
-    if (c -> scope == 0)
-      c -> scope = GLOBAL_VAR;
-    return c;
+    if (IS_CVAR(c)) {
+      if (c -> scope == 0)
+	c -> scope = GLOBAL_VAR;
+      return c;
+    }
   }
 
   return NULL;
@@ -1912,6 +1914,29 @@ static CVAR *get_local_struct_defn_from_type (char *struct_decl) {
   return (CVAR *)NULL;
 }
 
+/*
+ *  This lets us get the definition of a struct from only an
+ *  incomplete typedef derived from the struct type.
+ */
+/* global structs only for now */
+CVAR *get_struct_by_type (char *type) {
+  CVAR *c;
+  c = _hash_first (declared_global_variables);
+  do {
+    if (str_eq (c -> type, "struct")) {
+      if (str_eq (c -> qualifier, type)) {
+	return c;
+      }
+    } else if (str_eq (c -> qualifier, "struct")) {
+      if (str_eq (c -> type, type)) {
+	return c;
+      }
+    }
+    c = _hash_next (declared_global_variables);
+  } while (c);
+  return NULL;
+}
+
 CVAR *get_struct_from_member (void) {
 
   CVAR *c, *c_mbr;
@@ -2216,7 +2241,8 @@ int validate_type_declarations (CVAR *c) {
 
   if ((c -> attrs & CVAR_ATTR_STRUCT_DECL) ||
       (c -> attrs & CVAR_ATTR_STRUCT_PTR) ||
-      (c -> attrs & CVAR_ATTR_STRUCT))
+      (c -> attrs & CVAR_ATTR_STRUCT) ||
+      (c -> attrs & CVAR_ATTR_STRUCT_PTR_TAG)) /***/
     return TRUE;
 
   if (have_undefined_type)
