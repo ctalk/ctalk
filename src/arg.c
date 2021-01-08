@@ -1,4 +1,4 @@
-/* $Id: arg.c,v 1.2 2020/12/14 02:35:18 rkiesling Exp $ */
+/* $Id: arg.c,v 1.3 2021/01/07 17:46:23 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -1920,8 +1920,31 @@ int c_param_expr_arg (MSINFO *ms) {
     if ((prev_idx != -1) && (IS_OBJECT(ms -> messages[prev_idx] -> obj))) {
       if (get_instance_variable_series (ms -> messages[prev_idx] -> obj,
 					ms -> messages[n], n,
-					ms -> stack_ptr)) {
-	continue;
+					ms -> stack_ptr)) { /***/
+	OBJECT *param_class_full, *param_class_instvar;
+	ms -> messages[n] -> receiver_msg =
+	  ms -> messages[prev_idx];
+	ms -> messages[n] -> receiver_obj =
+	  ms -> messages[prev_idx] -> obj;
+	/* The previous object could be a temporary fill-in for
+	   an unloaded class, so try to find it by its name,
+	   then a normal object's class name. */
+	if (IS_OBJECT(ms -> messages[n] -> receiver_obj)) {
+	  if (((param_class_full = get_class_object
+		(ms -> messages[n] -> receiver_obj -> __o_name)) != NULL) ||
+	      ((param_class_full = get_class_object
+		(ms -> messages[n] -> receiver_obj ->
+		 __o_class -> __o_name)) != NULL)) {
+	    if ((param_class_instvar =
+		 get_instance_variable (M_NAME(ms->messages[n]),
+					param_class_full -> __o_name,
+					false))
+		!= NULL) {
+	      ms -> messages[n] -> obj = param_class_instvar;
+	    }
+	  }
+	  continue;
+	}
       }
     }
     if (((c = get_local_var (M_NAME(ms -> messages[n]))) != NULL) ||
