@@ -1,4 +1,4 @@
-/* $Id: x11defs.h,v 1.4 2020/12/21 18:24:17 rkiesling Exp $ -*-c-*-*/
+/* $Id: x11defs.h,v 1.6 2021/01/08 19:27:46 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.

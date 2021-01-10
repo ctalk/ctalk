@@ -1,4 +1,4 @@
-/* $Id: argblk.c,v 1.3 2021/01/03 15:15:46 rkiesling Exp $ */
+/* $Id: argblk.c,v 1.5 2021/01/10 19:30:20 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -1096,6 +1096,18 @@ bool argblk_cvar_is_fn_argument (MESSAGE_STACK messages, int cvar_idx,
 	  /* if we have a following operator with equal or higher 
 	     precedence than unary '*' */
 	  sprintf (m -> name, "(*%s)", name_buf);
+	  if (M_TOK(messages[next_idx]) == PERIOD) { /***/
+	    int i_2, _struct_expr_end = 
+	      struct_end (messages, cvar_idx, get_stack_top (messages));
+	    m -> attrs |= TOK_HAS_CVARTAB_AGG_WRAPPER;
+
+	    for (i_2 = cvar_idx; i_2 >= _struct_expr_end; --i_2)
+	      /* because resolve can't parse the struct basename
+		 within the wrapper, this prevents resolve from
+		 trying to resolve the member name(s), and finally
+		 returning them. */
+	      ++(messages[i_2] -> evaled);
+	  }
 	} else if (next_idx != ERROR &&
 		   (M_TOK(messages[next_idx]) == ARRAYOPEN)) {
 	  if (!subscripted_int_in_code_block_error (messages,

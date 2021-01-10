@@ -1,4 +1,4 @@
-/* $Id: arg.c,v 1.3 2021/01/07 17:46:23 rkiesling Exp $ */
+/* $Id: arg.c,v 1.4 2021/01/10 14:51:59 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -1544,6 +1544,14 @@ char *fmt_c_fn_obj_args_expr (MESSAGE_STACK messages, int fn_idx,
     if (IS_CONSTANT_TOK(M_TOK(messages[argstrs[n_th_arg].start_idx]))) {
       add_arg (expr_buf, argstrs[n_th_arg].arg, n_th_arg, n_args);
       continue;
+    } if (messages[argstrs[n_th_arg].start_idx] -> attrs &
+	  TOK_HAS_CVARTAB_AGG_WRAPPER) {
+      if (n_th_arg < (n_args - 1)) {
+	strcatx2 (expr_buf, argstrs[n_th_arg].arg, ", ", NULL);
+      } else {
+	strcat (expr_buf, argstrs[n_th_arg].arg);
+      }
+      continue;
     } else {
       if (arg_needs_rt_eval (messages, argstrs[n_th_arg].start_idx)) {
 	int end_idx;
@@ -1551,8 +1559,12 @@ char *fmt_c_fn_obj_args_expr (MESSAGE_STACK messages, int fn_idx,
  		fn_param_return_trans 
 		(messages[fn_idx], 
 		 fn_cfunc, 
+		 fmt_rt_expr (messages, argstrs[n_th_arg].start_idx, &end_idx,
+			      expr_buf_tmp), n_th_arg),
+#if 0 /***/
 		 fmt_rt_expr (messages, argstrs[0].start_idx, &end_idx,
 			      expr_buf_tmp), n_th_arg),
+#endif		 
 		 n_th_arg, n_args);
       } else {
 	add_arg (expr_buf,
