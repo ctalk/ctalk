@@ -1,4 +1,4 @@
-/* $Id: xmenu.c,v 1.13 2020/12/30 16:04:07 rkiesling Exp $ -*-c-*-*/
+/* $Id: xmenu.c,v 1.19 2021/01/07 10:28:29 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -112,70 +112,59 @@ int __ctalkX11MapMenu (OBJECT *menu_object, int p_dpy_x, int p_dpy_y) {
   return SUCCESS;
 }
 
-extern XftFont *selected_font;  /* from xftlib.c */
-static XftDraw *ftDraw = NULL;
+extern XftFont *selected_font;
+static XftFont *xfont = NULL;  
+static XftDraw *xftdraw = NULL;
+static char ftFont[MAXMSG];
+static char textColor[MAXLABEL];
+static XftColor xftcolor;
 
 int __ctalkX11MenuDrawString (void *d, unsigned int w, int x, int y,
+			      int text_x_size, int text_y_size,
+			      int box_x_size, int box_y_size,
 			      char *str, char *p_color) {
   Display *d_l = (Display *)d;
   XColor xColor_exact, xColor_screen;
   XRenderColor xrcolor;
-  XftColor xftcolor;
+  /* XftColor xftcolor; *//***/
+  int y_vcenter = 0;
 
   
-  XftDraw *xftdraw =
-    XftDrawCreate ((Display *)d_l,
-		   (Drawable)w,
-		   DefaultVisual (d_l, DefaultScreen (d_l)),
-		   DefaultColormap (d_l, DefaultScreen (d_l)));
-  XftFont *xfont =
-    XftFontOpen (d_l, DefaultScreen (d_l),
-		 XFT_FAMILY, XftTypeString, "DejaVu",
-		 XFT_SIZE, XftTypeDouble, 10.0, NULL);
-
-  XAllocNamedColor (d_l, DefaultColormap (d_l, DefaultScreen (d_l)),
-		    p_color, &xColor_exact, &xColor_screen);
-  xrcolor.red = xColor_screen.red << 8;
-  xrcolor.green = xColor_screen.green << 8;
-  xrcolor.blue = xColor_screen.blue << 8;
-  xrcolor.alpha = 0xffff;
-  XftColorAllocValue (d_l, DefaultVisual (d_l, DefaultScreen (d_l)),
-		      DefaultColormap (d_l, DefaultScreen (d_l)),
-		      &xrcolor, &xftcolor);
-  XftDrawString8 (xftdraw, &xftcolor, xfont, x, y,
-		  (unsigned char *)str, strlen (str));
-  XftColorFree (d_l, DefaultVisual (d_l, DefaultScreen (d_l)),
-		DefaultColormap (d_l, DefaultScreen (d_l)),
-		&xftcolor);
-
-#if 0
-  XftColor ftFg;
-  XRenderColor fgColor;
-  Display *d_l;
-
-  d_l = (Display *)d;
-
-  if (!ftDraw) {
-    ftDraw = 
-      XftDrawCreate (d_l, (Drawable)w,
+  if (xftdraw == NULL) {  
+    xftdraw =
+      XftDrawCreate ((Display *)d_l,
+		     (Drawable)w,
 		     DefaultVisual (d_l, DefaultScreen (d_l)),
 		     DefaultColormap (d_l, DefaultScreen (d_l)));
   }
+  if (xfont == NULL) {
+    __ctalkXftSelectFontFromFontConfig (ftFont);
+    xfont = selected_font;
+  }
 
-  load_ft_font_faces_internal ("sans-serif", 12.0, 100, 100, 72);
+  if (strcmp (textColor, p_color)) {
+    XAllocNamedColor (d_l, DefaultColormap (d_l, DefaultScreen (d_l)),
+		      p_color, &xColor_exact, &xColor_screen);
+    xrcolor.red = xColor_screen.red << 8;
+    xrcolor.green = xColor_screen.green << 8;
+    xrcolor.blue = xColor_screen.blue << 8;
+    xrcolor.alpha = 0xffff;
+    XftColorAllocValue (d_l, DefaultVisual (d_l, DefaultScreen (d_l)),
+			DefaultColormap (d_l, DefaultScreen (d_l)),
+			&xrcolor, &xftcolor);
+    strcpy (textColor, p_color);
+  }
 
-  __ctalkXftSetForegroundFromNamedColor (color);
-  fgColor.red = (unsigned short)__ctalkXftFgRed ();
-  fgColor.green = (unsigned short)__ctalkXftFgGreen ();
-  fgColor.blue = (unsigned short)__ctalkXftFgBlue ();
-  fgColor.alpha = (unsigned short)0xffff;
-  XftColorAllocValue(d_l,
-		     DefaultVisual (d_l, DefaultScreen (d_l)),
-		     DefaultColormap (d_l, DefaultScreen (d_l)),
-		     &fgColor, &ftFg);
-  XftDrawString8 (ftDraw, &ftFg, selected_font,
-		  x, y, (unsigned char *)str,
-		  strlen (str));
+
+
+  y_vcenter = (box_y_size / 2) - (text_y_size / 2);
+  XftDrawString8 (xftdraw, &xftcolor, xfont, x, y - y_vcenter,
+		  (unsigned char *)str, strlen (str));
+
+#if 0  /* Leave for now in case we can't save a color somewhere. */
+  XftColorFree (d_l, DefaultVisual (d_l, DefaultScreen (d_l)),
+		DefaultColormap (d_l, DefaultScreen (d_l)),
+		&xftcolor);
 #endif  
 }
 
@@ -207,12 +196,14 @@ int __ctalkX11WithdrawMenu (OBJECT *menu_object) {
   return SUCCESS;
 }
 
-int __ctalkX11CreatePopupMenu (OBJECT *self_object, int x, int p_y) {
+int __ctalkX11CreatePopupMenu (OBJECT *self_object, int p_x, int p_y) {
   Window menu_win_id;
   XSetWindowAttributes set_attributes;
   GC gc;
   XGCValues xgcv;
-  OBJECT *displayPtr, *items, *size, *y, *t;
+  OBJECT *displayPtr, *items, *size, *y, *x, *t, *t_val,
+    *resources;
+    
   static int wm_event_mask;
   int x_org, y_org, x_size, y_size, border_width;
   Display *d_l;
@@ -255,13 +246,26 @@ int __ctalkX11CreatePopupMenu (OBJECT *self_object, int x, int p_y) {
 	     "\"size y\" instance variable.\n");
     exit (ERROR);
   }
+  if ((x = __ctalkGetInstanceVariable (size, "x", TRUE))
+      == NULL) {
+    fprintf (stderr, "__ctalkX11CreatePopupMenu: Could not find "
+	     "\"size x\" instance variable.\n");
+    exit (ERROR);
+  }
+  if ((resources = __ctalkGetInstanceVariable (self_object, "resources", TRUE))
+      == NULL) {
+    fprintf (stderr, "__ctalkX11CreatePopupMenu: Could not find "
+	     "\"resources\" instance variable.\n");
+    exit (ERROR);
+  }
+  for (t = resources -> instancevars; t; t = t -> next) {
+    if (str_eq (t -> __o_name, "font")) {
+      t_val = *(OBJECT **)t -> instancevars -> __o_value;
+      strcpy (ftFont, t_val -> __o_value);
+      break;
+    }
+  }
 
-  n_items = 0;
-  for (t = items -> instancevars -> next; t; t = t -> next)
-    ++n_items;
-
-  INTVAL (y -> instancevars -> __o_value) =
-    INTVAL(y -> __o_value) = (n_items + 1) * 16;
 
   border_width = 0;
   set_attributes.backing_store = Always;
@@ -270,7 +274,7 @@ int __ctalkX11CreatePopupMenu (OBJECT *self_object, int x, int p_y) {
 
   menu_win_id = XCreateWindow
     (d_l, DefaultRootWindow (d_l), 
-     x, p_y, 100, INTVAL(y -> __o_value),
+     0, 0, INTVAL(x -> __o_value), INTVAL(y -> __o_value),
      border_width,
      DefaultDepth (d_l, DefaultScreen (d_l)),
      CopyFromParent, CopyFromParent, 
@@ -312,6 +316,8 @@ int __ctalkX11MapMenu (OBJECT *menu_object, int p_dpy_x, int p_dpy_y) {
 }
 
 int __ctalkX11MenuDrawString (void *d, unsigned int w, int x, int y,
+			      int text_x_size, int text_y_size,
+			      int box_x_size, int box_y_size,
 			      char *str) {
   fprintf (stderr, "__ctalkX11MenuDrawString: This program requires "
 	   "the X Window System.  Exiting.\n");
