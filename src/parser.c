@@ -1,4 +1,4 @@
-/* $Id: parser.c,v 1.2 2020/09/19 01:08:28 rkiesling Exp $ */
+/* $Id: parser.c,v 1.2 2021/01/12 14:24:04 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -1173,7 +1173,8 @@ char *parse (char *inbuf, long long bufsize) {
 	 *  the parser doesn't need to check for matching 
 	 *  if... else clauses.
 	 */
-	if ((ctrl_state == ctrl_blk_start) || (ctrl_state == ctrl_else_start))
+	if ((ctrl_state == ctrl_blk_start) || (ctrl_state == ctrl_else_start) \
+	    ||(ctrl_state == ctrl_pred_end))
 	  ctrl_state = ctrl_null;
 	need_frame = after;
 	break;
