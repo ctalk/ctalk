@@ -6217,6 +6217,10 @@ Instance Methods
      Test for the presence of an environment variable.  Return 'TRUE' if
      the variable exists, 'FALSE' otherwise.
 
+'eval (void)'
+     Evaluate the content of the receiver String's value as if it were
+     an argument to 'eval'.
+
 'getEnv (char *ENVVARNAME)'
      Return the value of environment variable ENVVARNAME as the value of
      the receiver, or '(null).' Note that this method generates an

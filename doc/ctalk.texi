@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.13 2020/12/28 21:11:48 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.16 2021/01/12 00:08:24 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -7827,6 +7827,11 @@ search from the @var{n}'th character in the receiver string.
 @item @mnm{envVarExists} (@code{char *}@var{envVarName})
 Test for the presence of an environment variable.  Return
 @code{TRUE} if the variable exists, @code{FALSE} otherwise.
+
+@cindex @mnm{eval} instance method @idxclscite{String}
+@item @mnm{eval} (@code{void})
+Evaluate the content of the receiver String's value as if
+it were an argument to @code{eval}.
 
 @cindex @mnm{getEnv} instance method @idxclscite{String}
 @item @mnm{getEnv} (@code{char *}@var{envVarName})
@@ -25436,6 +25441,10 @@ directly by any method but is a process of the
 @item __ctalkX11MakeEvent (@code{OBJECT *}@var{eventobject_value_var}, @code{OBJECT *}inputqueue)
 Encapsulates much of the function of the @mnm{X11TerminalStream :
 queueInput} method: receives the data for an X event from the X11 input client and saves it in an @code{InputEvent} object, then queues the @code{InputEvent} object in the @code{X11TerminalStream}'s @code{inputQueue}.
+
+@idxlibfn{__ctalkX11MenuDrawString}
+@item __ctalkX11MenuDrawString (@code{void *}@var{display}, @code{unsigned int} @var{drawable}, @code{int} @var{x}, @code{int} @var{y}, @code{int} @var{text_x_size}, @code{int} @var{text_y_size}, @code{int} @var{rect_x_size}, @code{int} @var{rect_y_size}, @code{char *}@var{str}, @code{char *}@var{color})
+Draws menu text @var{str} within the margins of the rectangle defined by @var{x,y,rect_x_size,rect_y_size}.  The text is centered vertically, and is justified to the left margin defined by @var{x}.
 
 @idxlibfn{__ctalkX11MoveWindow}
 @item __ctalkX11MoveWindow (@code{OBJECT *}@var{pane_object}, @code{int} @var{x}, @code{int} @var{y})

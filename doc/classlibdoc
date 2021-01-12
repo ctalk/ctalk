@@ -3562,6 +3562,10 @@ search from the n'th character in the receiver string.
 Test for the presence of an environment variable.  Return
 TRUE if the variable exists, FALSE otherwise.
 
+>>>String::eval (void)
+Evaluate the content of the receiver String's value as if
+it were an argument to eval.
+
 >>>String::getEnv (char *envVarName)
 Return the value of environment variable envVarName as
 the value of the receiver, or (null).  Note that this
