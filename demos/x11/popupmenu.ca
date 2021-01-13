@@ -1,0 +1,157 @@
+/* popupmenu.ca - X11PopupMenu Demonstration -*-c-*- */
+
+#include <ctalk/ctalkdefs.h>
+
+/* See the X11FreeTypeFont section of the the Ctalk reference. */
+#define FTFONT_BOLD   200
+#define FTFONT_MEDIUM 100
+
+X11MessageBoxPane new aboutBox;
+
+X11MessageBoxPane instanceMethod configure (void) {
+  self resources replaceAt "backgroundColor", "darkblue";
+  self resources replaceAt "foregroundColor", "darkblue";
+  self resources replaceAt "messageColor", "white";
+  self resources replaceAt "messageText",
+    "X11PopupMenu Demo\nCtalk 0.0.66";
+  self resources replaceAt "iconID", ICON_INFO;
+
+}
+
+/* 
+   This is initialized internally when we create the app's
+   window. 
+*/
+extern Atom wm_delete_window;
+
+X11PopupMenu instanceMethod clientExit (X11Pane parentPane) {
+  "This is a typical handler to exit a X11 client from a menu entry.
+  It simulates a user selecting the close window option on the
+  window's title bar. It still needs an independent connection to
+  the display server, however."
+  XEvent e;
+  Display *d_l;
+  if ((d_l = XOpenDisplay (getenv ("DISPLAY"))) != NULL) {
+    e.type = ClientMessage;
+    e.xclient.serial = 0l;
+    e.xclient.send_event = true;
+    e.xclient.display = d_l;
+    e.xclient.window = parentPane xWindowID;
+    e.xclient.format = 32;
+    e.xclient.data.l[0] = wm_delete_window;
+    XSendEvent (d_l, parentPane xWindowID, true, 0L, &e);
+    XFlush (d_l);
+    XCloseDisplay (d_l);
+  }
+}
+
+int main (void) {
+  X11Pane new mainWin;
+  X11PaneDispatcher new dispatcher;
+  X11LabelPane new heading, subHeading;
+  X11PopupMenu new menu;
+  InputEvent new e;
+  XEvent ev_ret;
+  Display *display;
+
+  menu add "item2 entry", "self expr";
+  menu add "item3 Bigentry", "self expr";
+  menu add "item4 entry", "self expr";
+  menu add "About...", "aboutBox show";
+  menu add "Exit", "self clientExit parentPane";
+
+  heading canFocus = false;
+  heading resources replaceAt "borderWidth", 0;
+  subHeading canFocus = false;
+  subHeading resources replaceAt "borderWidth", 0;
+
+  heading ftFontVar notifyLevel XFT_NOTIFY_NONE;
+
+  heading ftFontVar initFontLib;
+
+  aboutBox configure;
+
+  mainWin backgroundColor = "blue";
+  heading resources replaceAt "backgroundColor", "blue";
+  subHeading resources replaceAt "backgroundColor", "blue";
+  menu resources replaceAt "backgroundColor", "blue";
+  
+  mainWin initialize 255, 200;
+  /*
+   * NOTE - Make a note in the docs about this, or add it to the
+   * parent window's event mask automagically.
+   */
+  mainWin inputStream eventMask = 
+    EXPOSE|ENTERWINDOWNOTIFY \
+    |LEAVEWINDOWNOTIFY|BUTTONPRESS \
+    |BUTTONRELEASE|KEYPRESS|KEYRELEASE \
+    |MOVENOTIFY|WINDELETE \
+    |WMFOCUSCHANGENOTIFY;
+
+  dispatcher attachTo mainWin;
+  heading attachTo dispatcher, "177x60+34+15";
+  subHeading attachTo dispatcher, "190x60+c+60";
+  aboutBox attachTo dispatcher, "300x200";
+
+  mainWin map;
+  mainWin raiseWindow;
+
+  mainWin openEventStream;
+
+  mainWin setWMTitle "X11PopupMenu Demo";
+
+  heading multiLine "X11PopupMenu\nDemo";
+  heading resources replaceAt "textColor", "lightgray";
+  heading resources replaceAt "foregroundColor", "blue";
+  /* heading resources replaceAt "borderColor", "blue"; *//***/
+  /* heading resources replaceAt "borderColor", "black"; *//***/
+
+  subHeading resources replaceAt "ftFont", "sans-serif-8";
+  subHeading resources replaceAt foregroundColor, "blue";
+  subHeading resources replaceAt textColor, "lightgray";
+  /* The border should be invisible if we set its width to 0,
+     as above! */
+  /* subHeading resources replaceAt "borderColor", "blue"; *//***/
+  subHeading multiLine "Click anywhere\nto display the menu.";
+
+  heading draw;
+  heading refresh;
+  subHeading draw;
+  subHeading refresh;
+
+
+  while (TRUE) {
+    mainWin inputStream queueInput;
+    if (mainWin inputStream eventPending) {
+      e become mainWin inputStream inputQueue unshift;
+
+      mainWin subPaneNotify e;
+
+      switch (e eventClass value)
+	{
+	case EXPOSE:
+	  heading subPaneExpose (heading, e);
+	  subHeading subPaneExpose (subHeading, e);
+	  break;
+	case BUTTONPRESS:
+	  menu popup mainWin, e xEventData5, e xEventData6;
+#if 1 /***/
+	  display = menu displayPtr;
+	  while (XCheckTypedEvent (display, ButtonPress, &ev_ret))
+	    ;
+#else  /* fix this next arglist! */ /***/
+	  while (XCheckTypedEvent (menu displayPtr, ButtonPress, &ev_ret))
+	    ;
+#endif	  
+	  break;
+	case WINDELETE:
+ 	  mainWin deleteAndClose;
+	  exit (0);
+	  break;
+	}
+    } else {
+      usleep (1000);
+    }
+  }
+
+}

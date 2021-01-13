@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.16 2021/01/12 00:08:24 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.17 2021/01/13 15:38:10 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -15993,6 +15993,14 @@ border when the widget is highlighed.  The default is two pixels.
 @item highlightTextColor
 A @code{String} that contains the name of the text color when the widget
 is drawn highlighted.  The default is @samp{black}.
+
+@cindex @code{initialized} instance variable @idxclscite{X11LabelPane}
+@item initialized
+A @code{Boolean} that indicates that the widget has initialized its
+instance variable states from the resource values.  Normally, a class
+does this in an @code{attachTo} method, but this class uses the
+superclasses' attachTo methods, so the class uses this to perform
+the initialization on the first call to the @code{draw} method.
 
 @cindex @code{justify} instance variable @idxclscite{X11LabelPane}
 @item justify

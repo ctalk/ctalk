@@ -1,4 +1,4 @@
-/* $Id: X11LabelPane,v 1.1.1.1 2020/12/13 14:51:03 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11LabelPane,v 1.2 2021/01/13 15:38:10 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -63,7 +63,7 @@ X11LabelPane instanceVariable border Boolean true
 "Draw a border around the label.";
 X11LabelPane instanceVariable borderColor String "black"
 "The normal color of the border.";
-X11LabelPane instanceVariable borderWidth Integer 1
+X11LabelPane instanceVariable borderWidth Integer 0
 "The normal width of the border.";
 X11LabelPane instanceVariable margin Integer 2
 "The distance between the border and the edge of the pane.";
@@ -100,6 +100,7 @@ the text.";
 X11LabelPane instanceVariable radius Integer 0
 "If greater than 0, draw borders as rounded rectangles with the radius
 equal to this value";
+X11LabelPane instanceVariable initialized Boolean false;
 
 X11LabelPane instanceMethod new (String __paneName) {
   Method new exposeMethod;
@@ -247,7 +248,8 @@ X11LabelPane instanceMethod fillStyle (void) {
 
 X11LabelPane instanceMethod borderStyle (void) {
   if (self grayed) {
-    self pen width = self resources at "borderWidth";
+    /* self pen width = self resources at "borderWidth"; *//***/
+    self pen width = self borderWidth;
     self pen colorName = self resources at "grayedColor";
     self background self resources at "foregroundColor";
   } else {
@@ -256,7 +258,8 @@ X11LabelPane instanceMethod borderStyle (void) {
       self pen colorName = self resources at "highlightBorderColor";
       self paneBuffer background self resources at "highlightForegroundColor";
     } else {
-      self pen width = self resources at "borderWidth";
+      /* self pen width = self resources at "borderWidth"; *//***/
+      self pen width = self borderWidth;
       self pen colorName = self resources at "borderColor";
       self background self resources at "foregroundColor";
     }
@@ -283,6 +286,14 @@ X11LabelPane instanceMethod draw (void) {
   
   self paneBuffer clear;
   self fillStyle;
+  if (!self initialized) {
+    /* Normally a widget class does its instance variable initialization
+       in an "attachTo" method.  This class just uses the super : attachTo
+       method instead, so we just initialize the instance variable states
+       here. */
+    self borderWidth = self resources at "borderWidth";
+    self initialized = true;
+  }
   if (self border) {
     self borderStyle;
     self drawBorder;

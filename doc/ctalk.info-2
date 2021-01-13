@@ -4213,6 +4213,13 @@ Instance Variables
      A 'String' that contains the name of the text color when the widget
      is drawn highlighted.  The default is 'black'.
 
+'initialized'
+     A 'Boolean' that indicates that the widget has initialized its
+     instance variable states from the resource values.  Normally, a
+     class does this in an 'attachTo' method, but this class uses the
+     superclasses' attachTo methods, so the class uses this to perform
+     the initialization on the first call to the 'draw' method.
+
 'justify'
      An 'Integer' that determines whether to draw the label's text
      centered horizontally, or justified on the right or left margins.

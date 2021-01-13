@@ -1,9 +1,8 @@
-/* $Id: X11PopupMenu,v 1.3 2020/12/29 20:48:28 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11PopupMenu,v 1.29 2021/01/13 14:51:24 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
-  Copyright © 2005 - 2015, 2018 - 2019  
-    Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2021 Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
 
@@ -23,14 +22,18 @@
 */
 
 /*
- *    X11Pane class.
+ *    X11PopupMenu
  *
- *  The only member of the, "children," list should be a
- *  X11PaneDispatcher.
- *
- *  NOTE - You should *NOT* change these instance variables.  Many are
- *  still hard wired in x11lib.c and gui*.c source files.  Subclass
- *  instead.
+ *    Resources - 
+ *  
+ *      font                  "sans-serif-12"
+ *      textColor             "black"
+ *      hlTextColor           "white"
+ *      hlColor               "darkblue"
+ *      hMargins              10
+ *      topMargin             10
+ *      bottomMargin          12
+ *      itemSpace             2
  */
 
 #include <ctalk/ctalkdefs.h>
@@ -38,7 +41,17 @@
 
 X11CanvasPane class X11PopupMenu;
 
-X11CanvasPane instanceVariable items AssociativeArray NULL;
+X11PopupMenu instanceVariable items AssociativeArray NULL;
+X11PopupMenu instanceVariable bgPixel Integer 0;
+X11PopupMenu instanceVariable hlPixel Integer 0;
+X11PopupMenu instanceVariable textHeight Integer 0;
+X11PopupMenu instanceVariable itemHeight Integer 0;
+
+String class MenuItemBox;
+
+MenuItemBox instanceVariable org Point 0;
+MenuItemBox instanceVariable ext Point 0;
+MenuItemBox instanceVariable size Point 0;
 
 #define WITHDRAWN_NONE    0
 #define WITHDRAWN_SELECT  1
@@ -50,26 +63,42 @@ bool point_is_in_rect (int, int, int, int, int, int);
 bool screen_click (int *, int *, unsigned int *);
 int __xlib_put_str_ft (Display *, Drawable, GC, char *);
 
+X11PopupMenu instanceMethod new (String menuName) {
+  X11PopupMenu super new menuName;
+
+  menuName resources atPut "font", "sans-serif-12: weight=medium";
+  menuName resources atPut "textColor", "black";
+  menuName resources atPut "hlTextColor", "white";
+  menuName resources atPut "hlColor", "darkblue";
+  menuName resources atPut "bgColor", "gray";
+  menuName resources atPut "hMargins", 10;
+  menuName resources atPut "topMargin", 10;
+  menuName resources atPut "bottomMargin", 12;
+  menuName resources atPut "itemSpace", 4;
+
+  return menuName;
+}
+
+static int highlight_n = -1;
+static int i;
+static int top_margin_size_x = 0, top_margin_size_y = 0;
+static int bottom_margin_org_x = 0, bottom_margin_org_y = 0,
+  bottom_margin_size_x = 0, bottom_margin_size_y = 0;
+
 X11PopupMenu instanceMethod draw (void) {
   Display *d_l;
   XColor actual, nearest;
   GC win_gc, buf_gc;
-  XGCValues xgcv;
-  int y;
+  XGCValues xgcv, hilite_xgcv;
+  int i;
   String new s;
-  
-
-  self ftFontVar selectFontFromFontConfig "sans serif-12";
-  self ftFontVar saveSelectedFont;
-  self ftFontVar namedX11Color "black";
-  self ftFontVar alpha 0xffff;
-  self faceRegular;
+  Integer new vMargin, hMargin;
+  MenuItemBox new m;
 
   d_l = self displayPtr;
-  XAllocNamedColor (d_l, DefaultColormap (d_l, DefaultScreen (d_l)),
-		    "gray", &actual, &nearest);
-  xgcv.foreground = nearest.pixel;
-  xgcv.background = nearest.pixel;
+
+  xgcv.foreground = self bgPixel;
+  xgcv.background = self bgPixel;
   xgcv.function = GXcopy;
   xgcv.fill_style = FillSolid;
   win_gc = XCreateGC (d_l, self xWindowID,
@@ -78,22 +107,43 @@ X11PopupMenu instanceMethod draw (void) {
 		  GCFillStyle|GCFunction|GCForeground|GCBackground, &xgcv);
   XFillRectangle (self displayPtr, self paneBuffer xID,
 		  buf_gc, 0, 0, self size x, self size y);
-  XCopyArea (self displayPtr, self paneBuffer xID, self xWindowID,
-	     win_gc, 0, 0, self size x, self size y, 0, 0);
 
-  y = 16;
-
-  /* __ctalkX11MenuDrawString (self displayPtr, self paneBuffer xID,
-     16, 16, "hello", "black"); */
+  xgcv.foreground = BlackPixel (d_l, DefaultScreen (d_l));
+  XChangeGC (d_l, buf_gc, GCForeground, &xgcv);
+  hMargin = self resources integerAt "hMargins";
+  hilite_xgcv.background = self hlPixel;
+  i = 0;
+  vMargin = self resources integerAt "topMargin";
   
-
-    /* self putStrXY 10, y, "hello"; */
-
-  self items mapKeys {
+  self items map {
+    (Object *)m = self;
     s = self name;
-    __ctalkX11MenuDrawString (super displayPtr, super paneBuffer xID,
-			    16, y, s, "navyblue");
-    y += 16;
+    if (highlight_n == i) {
+
+      XChangeGC (d_l, buf_gc, GCBackground, &hilite_xgcv);
+      XFillRectangle (super displayPtr, super paneBuffer xID,
+		      buf_gc, m org x, vMargin + m org y,
+		      m size x, m size y);
+      XChangeGC (d_l, buf_gc, GCBackground, &xgcv);
+      __ctalkX11MenuDrawString (super displayPtr,
+				super paneBuffer xID,
+				hMargin,
+				vMargin + m org y + m size y,
+				m size x, super textHeight,
+				m size x, m size y,
+				s, super resources at "hlTextColor");
+    } else {
+      __ctalkX11MenuDrawString (super displayPtr,
+				super paneBuffer xID,
+				hMargin,
+				vMargin + m org y + m size y,
+				m size x, super textHeight,
+				m size x, m size y,
+				s, super resources at "textColor");
+    }
+    /* y += m size y; */ /*** This gets the y's confused - it thinks that
+       the second y is a C variable, too */
+    ++i;
   }
 
   XCopyArea (self displayPtr, self paneBuffer xID, self xWindowID,
@@ -104,6 +154,97 @@ X11PopupMenu instanceMethod draw (void) {
 
 }
 
+X11PopupMenu instanceMethod add (String itemText, String exprText) {
+  "The arguments, itemText and exprText, are. respectively
+    what appears on the menu, and the expression that is
+    executed when the menu item is clicked."
+  Symbol new itemPtr;
+  Integer new nth, itemWidth, itemSpace, menuWidth;
+
+  *itemPtr = MenuItemBox basicNew itemText, exprText;
+
+  self ftFontVar selectFontFromFontConfig
+    (self resources at "font");
+  self ftFontVar saveSelectedFont;
+
+  if (self itemHeight == 0) {
+    self textHeight = self ftFontVar textHeight "Ty";
+    self itemHeight = self textHeight +
+      self resources integerAt "itemSpace";
+  }
+
+  nth = self items size;
+  itemWidth = self ftFontVar textWidth itemText;
+  menuWidth = itemWidth + ((self resources at "hMargins") * 2);
+  if (menuWidth > self size x)
+    self size x = menuWidth;
+
+  (*itemPtr) size x = self size x;
+  (*itemPtr) size y = self itemHeight;
+
+  (*itemPtr) org x = 0;
+  (*itemPtr) org y = nth * self itemHeight;
+
+  (*itemPtr) ext x = (*itemPtr) size x;
+  (*itemPtr) ext y = (*itemPtr) org y + (*itemPtr) size y;
+
+  self items push *itemPtr;
+
+}
+
+/* *** used with MotionNotify handler below, doesnt parse right */
+#if 0
+X11PopupMenu instanceMethod point_is_in_iBox (Integer p_x, Integer p_y,
+					      MenuItemBox m) {
+  returnObjectClass Boolean;
+
+  if (((p_x => m org x) && (p_x <= m ext x)) &&
+      ((p_y >= m ext) y && (p_y < m ext y))) 
+    return true;
+  else
+    return false;
+}
+
+MenuItemBox instanceMethod point_is_in_iBox (Integer p_x, Integer p_y) {
+  if (((p_x => self org x) && (p_x <= self ext x)) &&
+      ((p_y >= self ext) y && (p_y < self ext y)))
+    return true;
+  else
+    return false;
+}
+#endif
+					      
+X11PopupMenu instanceMethod execItem (X11Pane parentPane,
+				      String itemName,
+				      String exprText,
+				      Integer itemIndex) {
+  "We have our own exec method here, instead of using String : eval. This
+  is so we can still use X11PopupMenu as the receiver class, and we can
+  match the arguments in an expression to this method's parameter names.
+
+    Ex: this expression passes parentPane as an argument to the method,
+    'clientExit.'
+
+      self clientExit parentPane;
+
+    There is more information about combining application-specific handler
+    methods in the demos/x11/popupmenu.ca program and the X11PopupMenu
+    section of the language reference.
+ "
+
+ __ctalkEvalExpr (exprText);
+
+}
+
+#if 0 /***/
+X11PopupMenu instanceMethod execExpr (X11Pane parentPane,
+				      String itemName,
+				      String itemExpr,
+				      Integer itemIndex) {
+  self exec parentPane, itemExpr;
+}
+#endif
+
 X11PopupMenu instanceMethod popup (X11Pane parentWin,
 				   Integer p_dpy_x, Integer p_dpy_y) {
   "Displays the pane's window. Note that th method uses raw X
@@ -112,64 +253,112 @@ X11PopupMenu instanceMethod popup (X11Pane parentWin,
    this method."
   Display *display;
   Window menu_win_id;
-  XEvent xev, t_xev;
+  XEvent xev, t_xev, ev_ret;
   InputEvent new e;
-  int dpy_x, dpy_y, r;
+  int ptr_dpy_x, ptr_dpy_y, r;
   unsigned int ptr_state;
   bool entry = true;
-
+  OBJECT *self_alias;
+  MenuItemBox new iBox;
+  Integer new clickIndex;
+  XColor nearest, actual;
 
   if (withdrawn != WITHDRAWN_NONE) {
     withdrawn = WITHDRAWN_NONE;
     return NULL;
   }
 
+  self origin x = p_dpy_x;
+  self origin y = p_dpy_y;
+  
   if (!initialized) {
+    /* "self size x" is calculated in X11PopupMenu : add. */
+    self size y = ((self items size * (self itemHeight)) +
+		   ((self resources integerAt "topMargin") +
+		    self resources integerAt "bottomMargin"));
+    self ftFontVar selectFont;
     menu_win_id = __ctalkX11CreatePopupMenu (self, 0, 0);
+
+    /* 
+     *  Calculate top and bottom margin rectangles.
+     */
+    top_margin_size_x = self size x;
+    top_margin_size_y = self resources integerAt "topMargin";
+    bottom_margin_org_x = 0;
+    bottom_margin_org_y = self size y;
+    bottom_margin_org_y -= self resources integerAt "bottomMargin";
+    bottom_margin_size_x = self size x;
+    bottom_margin_size_y = self size y;
 
     display = self displayPtr;
 
-    self origin x = p_dpy_x;
-    self origin y = p_dpy_y;
-    self size x = 100;
-    /* self size y = 100; *//***/
+    XAllocNamedColor (display,
+		      DefaultColormap (display, DefaultScreen (display)),
+		      self resources at "bgColor", &actual, &nearest);
+    self bgPixel = nearest.pixel;
+    XAllocNamedColor (display,
+		      DefaultColormap (display, DefaultScreen (display)),
+		      self resources at "hlColor", &actual, &nearest);
+    self hlPixel = nearest.pixel;
+
     initialized = true;
 
     (X11Bitmap *)self paneBuffer create self displayPtr, self xWindowID, 
       self size x, self size y, self depth;
-    (X11Bitmap *)self paneBuffer background "blue";
-    (X11Bitmap *)self paneBuffer foreground "blue";
+    (X11Bitmap *)self paneBuffer background "gray";
+    (X11Bitmap *)self paneBuffer foreground "gray";
     (X11Bitmap *)self paneBackingStore create self displayPtr, self xWindowID,
       self size x, self size y, self depth;
     __ctalkX11MapMenu (self, p_dpy_x, p_dpy_y);
   } else { /* if (!initialized) */
+
     display = self displayPtr;
     menu_win_id = self xWindowID;
-    self origin x = p_dpy_x;
-    self origin y = p_dpy_y;
     __ctalkX11MapMenu (self, p_dpy_x, p_dpy_y);
+
   }
 
   self draw;
+  self refresh;
+  highlight_n = -1;
 
   while (1) {
     
-    screen_click (&dpy_x, &dpy_y, &ptr_state);
+    screen_click (&ptr_dpy_x, &ptr_dpy_y, &ptr_state);
     if (!entry) {
-      if (ptr_state & Button1Mask) {
-	if (!point_is_in_rect (dpy_x, dpy_y, self origin x, self origin y,
+      if (ptr_state) {
+	if (!point_is_in_rect (ptr_dpy_x, ptr_dpy_y, self origin x, self origin y,
 			       self size x, self size y)) {
-	  if (point_is_in_rect (dpy_x, dpy_y, parentWin origin x,
+	  if (point_is_in_rect (ptr_dpy_x, ptr_dpy_y, parentWin origin x,
 				parentWin origin y, parentWin size x,
 				parentWin size y)) {
+	    while (XCheckTypedEvent (display, ButtonPress, &ev_ret))
+	      ;
 	    __ctalkX11WithdrawMenu (self);
 	    withdrawn = WITHDRAWN_OTHER;
 	    return NULL;
 	  } else {
+	    while (XCheckTypedEvent (display, ButtonPress, &ev_ret))
+	      ;
 	    __ctalkX11WithdrawMenu (self);
 	    withdrawn = WITHDRAWN_NONE;
 	    return NULL;
 	  }
+	}
+      } else {
+	if (!point_is_in_rect (ptr_dpy_x, ptr_dpy_y,
+			       parentWin origin x,
+			       parentWin origin y,
+			       parentWin size x,
+			       parentWin size y) &&
+	    !point_is_in_rect (ptr_dpy_x, ptr_dpy_y,
+			       self origin x,
+			       self origin y,
+			       self size x,
+			       self size y)) {
+	  __ctalkX11WithdrawMenu (self);
+	  withdrawn = WITHDRAWN_NONE;
+	  return NULL;
 	}
       }
     }
@@ -180,21 +369,65 @@ X11PopupMenu instanceMethod popup (X11Pane parentWin,
       switch (xev.type)
 	{
 	case ButtonPress:
-	  dpy_x = xev.xbutton.x_root;
-	  dpy_y = xev.xbutton.y_root;
-#if 0 /*** FIX! (display_x|y mistaken for the method param names) */
-	  printf ("Button: %d,%d Win: %d,%dx%d%d\n", xev.xbutton.display_x,
-		  xev.xbutton.display_y,
-		  self origin x, self origin y, self size x, self size y);
-#endif	  
-	  e eventClass = BUTTONPRESS;
-	  if (point_is_in_rect (dpy_x, dpy_y,
+	  /* e eventClass = BUTTONPRESS; */ /***/
+	  if (point_is_in_rect (xev.xbutton.x_root, xev.xbutton.y_root,
 				 self origin x, self origin y,
 				 self size x, self size y)) {
+	    clickIndex = 0;
+	    self items map {
+	      iBox = self;
+	      if (point_is_in_rect (xev.xmotion.x, xev.xmotion.y,
+				    iBox org x, iBox org y,
+				    iBox size x, iBox size y)) {
+		__ctalkX11WithdrawMenu (super);
+	        withdrawn = WITHDRAWN_NONE;
+		super execItem parentWin, iBox name, iBox value, clickIndex;
+	        return NULL;
+	      }
+	      ++clickIndex;
+	    }
 	  } else {
 	    __ctalkX11WithdrawMenu (self);
 	    withdrawn = WITHDRAWN_OTHER;
 	    return NULL;
+	  }
+	  break;
+	case MotionNotify:
+	  /* If the pointer is in the top or bottom margin, remove any
+	     menu item highlight. */
+	  if (point_is_in_rect (xev.xmotion.x, xev.xmotion.y,
+				0, 0, top_margin_size_x, top_margin_size_y) ||
+	      point_is_in_rect (xev.xmotion.x, xev.xmotion.y,
+				bottom_margin_org_x, bottom_margin_org_y,
+				bottom_margin_size_x, bottom_margin_size_y)) {
+	    highlight_n = -1;
+	    self draw;
+	  } else {
+	    i = 0;
+	    self items map {
+	      iBox = self;
+	      /* Doesn't work also ***/
+	      /* if (self poipoint_is_in_rect (xev.xmotion.x, xev.xmotion.y,
+		 iBox org x, iBox org y, iBox ext x, iBox ext y)) *//***/
+	      /* Doesn't work also */ /***/
+	      /* if (self point_is_in_iBox (xev.xmotion.x, xev.xmotion.y,
+		 iBox)) { */
+	      /* or this... */
+	      /* if (iBox point_is_in_iBox (xev.xmotion.x, xev.xmotion.y)) {
+		 printf ("INBOX\n"); *//***/
+	      /* or this ... */
+	      /* if (iBox point_is_in_iBox xev.xmotion.x, xev.xmotion.y) { */
+	      /***/ /* or this... */
+	      /* if (iBox point_is_in_iBox p_x, p_y) { */
+	      if (point_is_in_rect (xev.xmotion.x, xev.xmotion.y,
+                                    iBox org x, iBox org y,
+                                    iBox size x, iBox size y)) {
+		highlight_n = i;
+		super draw;
+		break;
+	      }
+	      ++i;
+	    }
 	  }
 	  break;
 	}
@@ -204,128 +437,3 @@ X11PopupMenu instanceMethod popup (X11Pane parentWin,
 }
 
 
-#if 0
-#if NDC
-  /* This might be temporary - We may need for the dispatcher to
-     keep track of the subPanes externally for keystroke equivalents,
-     and we may also need to add a library function to determine if
-     we should not be checking the container if the pane is opened
-     via a dialog. */
-  X11PaneDispatcher new dispatcher;
-#endif  
-  X11Pane new mainWin;
-  InputEvent new e;
-
-#if NDC
-  dispatcher = *self container;
-  mainWin = dispatcher mainWindow;
-#endif  
-  
-  if (!self initialized) {
-
-    win_id = __ctalkX11CreateDialogWindow (self);
-    self xWindowID = win_id;
-#if NDC
-    dispatcher modalWin = win_id;
-    dispatcher modalPane = self;
-#endif    
-  
-    (X11Bitmap *)self paneBuffer create self displayPtr, self xWindowID, 
-      self size x, self size y, self depth;
-    (X11Bitmap *)self paneBuffer background
-      (self resources at "backgroundColor");
-    self paneBuffer backgroundColor = self resources at "backgroundColor";
-    (X11Bitmap *)self paneBuffer foreground
-      (self resources at "foregroundColor");
-    (X11Bitmap *)self paneBackingStore create self displayPtr, self xWindowID,
-      self size x, self size y, self depth;
-
-    self initWidgets;
-  } else {
-
-    __enable_dialog (self);
-
-    win_id = self xWindowID;
-    display = self displayPtr;
-
-  }
-
-  XMapWindow (display, win_id);
-  XMapSubwindows (display, win_id);
-  XRaiseWindow (display, win_id);
-
-  self clearWindow;
-
-  while (1) {
-    if (XPending (display)) {
-      XNextEvent (display, &xev);
-      switch (xev.type)
-	{
-	case ButtonPress:
-	  if (xev.xbutton.window == self button xWindowID) {
-	    e eventClass = BUTTONPRESS;
-	    self methodObjectMessage self handlePointerInput, self, e;
-	  }
-	  break;
-	case ButtonRelease:
-	  if (xev.xbutton.window == self button xWindowID) {
-	    e eventClass = BUTTONRELEASE;
-	    self methodObjectMessage self handlePointerInput, self, e;
-	    self withdraw;
-#if NDC
-	    dispatcher modalWin = 0;
-	    dispatcher modalPane = NULL;
-#endif	    
-	    return self;
-	  }
-	  break;
-	case EnterNotify:
-	  if (xev.xbutton.window == self button xWindowID) {
-	    e eventClass = ENTERWINDOWNOTIFY;
-	    e eventData = xev.xbutton.window;
-	    self methodObjectMessage self handleEnterNotify, self, e;
-	  }
-	  break;
-	case LeaveNotify:
-	  if (xev.xbutton.window == self button xWindowID) {
-	    e eventClass = LEAVEWINDOWNOTIFY;
-	    e eventData = xev.xbutton.window;
-	    self methodObjectMessage self handleLeaveNotify, self, e;
-	  }
-	  break;
-	case KeyPress:
-	  e eventClass = KEYPRESS;
-	  /* For the Tab and Enter keys, we don't need to worry
-	     about the shift keys */
-	  e xEventData4 = __edittext_xk_keysym
-	    (xev.xkey.keycode, xev.xkey.state, 0);
-	  self methodObjectMessage self handleKbdInput, self, e;
-	  if (self keyState == KEY_ENTER) {
-	    self withdraw;
-#if NDC
-	    dispatcher modalWin = 0;
-	    dispatcher modalPane = NULL;
-#endif	    
-	    return self;
-	  }
-	  break;
-	case Expose:
-	  self methodObjectMessage self handleExpose, self, e;
-	  break;
-	case ClientMessage:
-	  if(xev.xclient.data.l[0] == wm_delete_dialog) {
-	    self withdraw;
-#if NDC
-	    dispatcher modalWin = 0;
-	    dispatcher modalPane = NULL;
-#endif
-	    return self;
-	  }
-	  break;
-	}
-    } else {
-      usleep (5000);
-    }
-  }
-}
-#endif  
