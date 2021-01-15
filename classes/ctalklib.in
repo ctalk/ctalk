@@ -1,4 +1,4 @@
-/* $Id: ctalklib.in,v 1.12 2020/12/29 20:48:28 rkiesling Exp $ -*-c-*-*/
+/* $Id: ctalklib.in,v 1.17 2021/01/14 15:07:05 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -1080,6 +1080,8 @@ extern int __ctalkX11ResizePixmap (void *, int, int, unsigned long int, int, int
 				   int, int, int, int *);
 extern int __ctalkX11MapMenu (OBJECT *, int, int);
 extern int __ctalkX11MenuDrawString (void *, unsigned int, int x, int y,
+				     int text_x_size, int text_y_size,
+				     int box_x_size, int box_y_size,
 				     char *, char *);
 
 extern int __ctalkX11MoveWindow (OBJECT *, int, int);
@@ -1328,6 +1330,9 @@ extern void __ctalkXftSetForegroundFromNamedColor (char *);
 extern char *__ctalkXftFontPathFirst (char *);
 extern char *__ctalkXftFontPathNext (void);
 extern char *__ctalkXftSelectedFontPath (void);
+extern int __ctalkXftTextDimensionsBasic (void *, int, unsigned long, 
+					  char *, int *, int *, int *, int *,
+					  int *);
 extern int __ctalkXftAscent (void);
 extern int __ctalkXftDescent (void);
 extern int __ctalkXftHeight (void);

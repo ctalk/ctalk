@@ -1,4 +1,4 @@
-/* $Id: xftlib.c,v 1.8 2020/12/22 20:45:19 rkiesling Exp $ -*-c-*-*/
+/* $Id: xftlib.c,v 1.16 2021/01/14 21:41:10 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -56,6 +56,7 @@ static void xft_support_error (void) {
 #include <fontconfig/fontconfig.h>
 #include <X11/Xft/Xft.h>
 #include <X11/Xresource.h>
+#include <unistd.h>
 #include FT_FREETYPE_H
 #include "x11defs.h"
 #include "xftfont.h"
@@ -66,6 +67,10 @@ static void xft_support_error (void) {
 #define SUCCESS 0
 #define ERROR -1
 #define MAXMSG 8192
+
+extern char *shm_mem;
+extern int mem_id;
+
 
 #define FT2_CT_ENCODING FT_ENCODING_ADOBE_LATIN_1
 
@@ -1024,9 +1029,15 @@ int __ctalkXftGetStringDimensions (char *str, int *x, int *y,
     
   } else {
   
-    XftTextExtents8 (display, selected_font,
-		     (XftChar8 *)str, strlen (str),
-		     &extents);
+    if ((d_l = dialog_dpy ()) != NULL) { /***/
+      XftTextExtents8 (d_l, selected_font,
+		       (XftChar8 *)str, strlen (str),
+		       &extents);
+    } else {
+      XftTextExtents8 (display, selected_font,
+		       (XftChar8 *)str, strlen (str),
+		       &extents);
+    }
  
     *x = extents.x;
     *y = extents.y;
@@ -1872,6 +1883,135 @@ bool __ctalkXftIsMonospace (void) {
   return monospace;
 }
 
+int __ctalkXftTextDimensionsBasic (void *d, int drawable_id,
+				   unsigned long gc_ptr,
+				   char *text, int *x, int *y, int *width,
+				   int *height, int *rbearing) {
+  char d_buf[MAXLABEL];
+  Display *l_d;
+
+  if (!shm_mem)
+    return ERROR;
+
+  sprintf (d_buf, ":%s:%s:%d:%d:%d:%f:%s:",
+	   selected_family,
+	   (*selected_style ? selected_style : "-"),
+	   selected_slant,
+	   selected_weight,
+	   selected_dpi,
+	   selected_pt_size,
+	   text);
+
+  make_req (shm_mem, d, PANE_GET_TEXT_METRICS_REQUEST,
+	    drawable_id, gc_ptr, d_buf);
+  wait_req (shm_mem);
+
+  memcpy (x, &shm_mem[SHM_RETVAL], sizeof (int));
+  memcpy (y, &shm_mem[SHM_RETVAL2], sizeof (int));
+  memcpy (width, &shm_mem[SHM_RETVAL3], sizeof (int));
+  memcpy (height, &shm_mem[SHM_RETVAL4], sizeof (int));
+  memcpy (rbearing, &shm_mem[SHM_RETVAL5], sizeof (int));
+  return SUCCESS;
+}
+
+int __xlib_get_text_metrics (void *d, Drawable w, GC gc, char *data,
+			     int *x, int *y, int *width, int *height,
+			     int *rbearing) { /***/
+
+  int r;
+  char family[MAXLABEL], style[MAXLABEL], text[MAXMSG],
+    *p, *q, nbuf[32];
+  int slant, weight, dpi;
+  /* int spacing, char_width; */  /* not currently used by XftFontOpen */
+  double pt_size;
+  XftFont *font;
+  XGlyphInfo extents;
+
+  if (d == NULL) {
+    _warning ("ctalk: __xlib_get_text_metrics: Display connection is NULL.\n");
+    __warning_trace ();
+    return ERROR;
+  }
+
+  q = NULL;
+  if ((p = strchr (data, ':')) != NULL) {
+    ++p;
+    if ((q = strchr (p + 1, ':')) != NULL) {
+      memset (family, 0, MAXLABEL);
+      strncpy (family, p, q - p);
+    }
+  }
+  ++q;
+  p = q;
+  q = strchr (p, ':');
+  memset (style, 0, MAXLABEL);
+  strncpy (style, p, q - p);
+  ++q;
+  p = strchr (q, ':');
+  memset (nbuf, 0, 32);
+  strncpy (nbuf, q, p - q);
+  slant = atoi (nbuf);
+  q = p + 1;
+
+  p = strchr (q, ':');
+  memset (nbuf, 0, p - q);
+  strncpy (nbuf, q, p - q);
+  weight = atoi (nbuf);
+  q = p + 1;
+
+  p = strchr (q, ':');
+  memset (nbuf, 0, p - q);
+  strncpy (nbuf, q, p - q);
+  dpi = atoi (nbuf);
+  q = p + 1;
+
+  p = strchr (q, ':');
+  memset (nbuf, 0, p - q);
+  strncpy (nbuf, q, p - q);
+  pt_size = strtod (nbuf, NULL);
+  q = p + 1;
+  
+  strcpy (text, q);
+  if (text[strlen (text) - 1] == ':') {
+    text[strlen (text) - 1] = '\0';
+  }
+
+  if (*style != '-') {
+    if ((font = XftFontOpen (d, DefaultScreen (d),
+			     XFT_FAMILY, XftTypeString, family,
+			     XFT_STYLE, XftTypeString, style,
+			     XFT_SIZE, XftTypeDouble, pt_size,
+			     XFT_SLANT, XftTypeInteger, slant,
+			     XFT_WEIGHT, XftTypeInteger, weight,
+			     XFT_DPI, XftTypeInteger, dpi, NULL))
+	== NULL) {
+      return ERROR;
+    }
+  } else {
+    if ((font = XftFontOpen (d, DefaultScreen (d),
+			     XFT_FAMILY, XftTypeString, family,
+			     XFT_SIZE, XftTypeDouble, pt_size,
+			     XFT_SLANT, XftTypeInteger, slant,
+			     XFT_WEIGHT, XftTypeInteger, weight,
+			     XFT_DPI, XftTypeInteger, dpi, NULL))
+	== NULL) {
+      return ERROR;
+    }
+  }
+
+  
+  memset (&extents, 0, sizeof (XGlyphInfo));
+
+  XftTextExtents8 (d, font, (XftChar8 *)text, strlen (text),
+		   &extents);
+    
+  XftFontClose (d, font);
+
+  *x = extents.x; *y = extents.y; *width = extents.width;
+  *height = extents.height; *rbearing = extents.xOff;
+  return SUCCESS;
+}
+
 #else /* HAVE_XFT_H */
 
 int __ctalkInitFTLib (void) {
@@ -2173,6 +2313,14 @@ int __ctalkXftRequestedDPI (void) {
   return 0;
 }
 int __ctalkXftIsMonospace (void) {
+  xft_support_error ();
+  return 1;
+}
+int __ctalkXftTextDimensionsBasic (void *d, int drawable_id,
+				   unsigned long gc_ptr,
+				   char *text, int *rbearing,
+				   int *x, int *y, int *width,
+				   int *height) {
   xft_support_error ();
   return 1;
 }

@@ -1,4 +1,4 @@
-/* $Id: x11lib.c,v 1.9 2020/12/30 16:04:07 rkiesling Exp $ -*-c-*-*/
+/* $Id: x11lib.c,v 1.12 2021/01/14 16:38:41 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -139,6 +139,9 @@ int __xlib_clear_selection (XEvent *);
 int __xlib_set_primary_selection_owner (Display *, Drawable);
 int __xlib_set_primary_selection_text (char *);
 int __xlib_set_clipboard_owner (Display *, Drawable);
+/* in xftlib.c */
+int __xlib_get_text_metrics (Display *, Drawable, GC, char *,
+			     int *, int *, int *, int *, int *);
 /* in xcolor.c */
 int lookup_color (Display *, XColor *, char *);
 unsigned long lookup_pixel (char *);
@@ -1441,6 +1444,8 @@ int __xlib_handle_client_request (char *shm_mem_2) {
   int r;
   GC gc;
   Display *d;
+  /* For PANE_GET_TEXT_METRICS_REQUEST - __xlib_get_text_metrics */
+  int text_x, text_y, text_width, text_height, text_rbearing;
   
   if (! *shm_mem_2) goto x_event_cleanup;
 
@@ -1595,6 +1600,16 @@ int __xlib_handle_client_request (char *shm_mem_2) {
       break;
     case PANE_SET_CLIPBOARD_OWNERSHIP_REQUEST:
       __xlib_set_clipboard_owner (d, (Drawable)w);
+      break;
+    case PANE_GET_TEXT_METRICS_REQUEST: /***/
+      __xlib_get_text_metrics (d, (Drawable)w, gc, &shm_mem_2[SHM_DATA],
+			       &text_x, &text_y, &text_width, &text_height,
+			       &text_rbearing);
+      memcpy (&shm_mem_2[SHM_RETVAL], &text_x, sizeof (int));
+      memcpy (&shm_mem_2[SHM_RETVAL2], &text_y, sizeof (int));
+      memcpy (&shm_mem_2[SHM_RETVAL3], &text_width, sizeof (int));
+      memcpy (&shm_mem_2[SHM_RETVAL4], &text_height, sizeof (int));
+      memcpy (&shm_mem_2[SHM_RETVAL5], &text_rbearing, sizeof (int));
       break;
     } 
  x_event_cleanup:
