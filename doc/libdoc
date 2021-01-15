@@ -2112,6 +2112,9 @@ __ctalkOpenX11InputClient function, above.
 Encapsulates much of the function of the @mnm{X11TerminalStream :
 queueInput} method: receives the data for an X event from the X11 input client and saves it in an InputEvent object, then queues the InputEvent object in the X11TerminalStream's inputQueue.
 
+>>>__ctalkX11MenuDrawString (void *display, unsigned int drawable, int x, int y, int text_x_size, int text_y_size, int rect_x_size, int rect_y_size, char *str, char *color)
+Draws menu text str within the margins of the rectangle defined by x,y,rect_x_size,rect_y_size.  The text is centered vertically, and is justified to the left margin defined by x.
+
 >>>__ctalkX11MoveWindow (OBJECT *pane_object, int x, int y)
 Move pane_object's window so that its origin is at X,Y.
 
@@ -2418,6 +2421,10 @@ the dimensions.  If the library is initialized but the application
 hasn't yet specified a font, then the value returned for rbearing
 is 0.
 
+Note that this function works entirely on the client side, and some
+uses or systems may not be compatible with it.  For cases like those,
+refer to the server-side function, 
+
 >>>__ctalkXftHandle (void)
 Returns a void * with the handle of the selected font.
 Typically this is a cast from a XftFont * when used in a normal
@@ -2493,6 +2500,12 @@ Return the qualified font name string for pattern.
 Returns the font attributes requested after parsing a Fontconfig
 string by __ctalkXftSelectFontFromFontConfig and
 __ctalkXftSelectFontFromXLFD.
+
+>>>__ctalkXftTextDimensionsBasic (void *display, unsigned int drawable, unsigned gc_ptr, char *str, int *x, int *y, int *width, int *height, int * rbearing)
+Returns the dimensions of str in the currenly selected font.
+Unlike the function __ctalkXftGetStringDimensions, which works
+entirely within a client app's process space, this function directs
+the server process to perform the measurements.
 
 >>>__ctalkXftRevision (void)
 Returns an int with the Xft library's revision number.

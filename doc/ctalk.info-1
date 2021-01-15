@@ -290,6 +290,7 @@ program is built.
 *      X11LabelPane::
 *      X11ListPane::
 *      X11MessageBoxPane::
+*      X11PopupMenu::
 *      X11ScrollBarPane::
 *      X11TextEntryPane::
 *      X11YesNoBoxPane::
@@ -1499,6 +1500,13 @@ Instance Methods
      Return an 'Integer' with the width in pixels of TEXT in the
      currently selected FreeType font.  If the Xft library is not
      available or not initialized, the method returns 0.
+
+'textHeight (Symbol DISPLAYPTR, Integer DRAWABLE, Integer GCPTR, String STR)'
+'textWidth (Symbol DISPLAYPTR, Integer DRAWABLE, Integer GCPTR, String STR)'
+     These methods return the width and height of STR in the currently
+     selected font.  Unlike the 'textWidth' and 'textHeight' methods,
+     which work within the client app's process space, these methods
+     direct the server process to perform the measurements.
 
 'verbose'
      Causes the Ctalk libraries to output verbose information about font

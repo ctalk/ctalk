@@ -921,6 +921,15 @@ Return an Integer with the width in pixels of text in the
 currently selected FreeType font.  If the Xft library is not available
 or not initialized, the method returns 0.
 
+>>>X11FreeTypeFont::textHeight (Symbol displayPtr, Integer drawable, Integer GCPtr, String str)
+>>>X11FreeTypeFont::textWidth (Symbol displayPtr, Integer drawable, Integer GCPtr, String str)
+These methods return the width and height of str in the
+currently selected font.  Unlike the textWidth and
+textHeight methods, which work within the client app's process
+space, these methods direct the server process to perform the
+measurements.
+
+
 >>>X11FreeTypeFont::verbose
 Causes the Ctalk libraries to output verbose information about font
 selection and loading, like the complete font descriptor that the

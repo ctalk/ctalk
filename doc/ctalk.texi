@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.17 2021/01/13 15:38:10 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.19 2021/01/15 17:04:29 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -454,6 +454,7 @@ Object
      X11LabelPane
      X11ListPane
      X11MessageBoxPane
+     X11PopupMenu
      X11ScrollBarPane
      X11TextEntryPane
      X11YesNoBoxPane
@@ -552,6 +553,7 @@ Object
 *      X11LabelPane::
 *      X11ListPane::
 *      X11MessageBoxPane::
+*      X11PopupMenu::
 *      X11ScrollBarPane::
 *      X11TextEntryPane::
 *      X11YesNoBoxPane::
@@ -1994,6 +1996,17 @@ or the application has not selected a font, the method returns 0.
 Return an @code{Integer} with the width in pixels of @var{text} in the
 currently selected FreeType font.  If the Xft library is not available
 or not initialized, the method returns 0.
+
+@cindex @mnm{textWidthBasic} instance method @idxclscite{X11FreeTypeFont}
+@cindex @mnm{textHeightBasic} instance method @idxclscite{X11FreeTypeFont}
+@item @mnm{textHeight} (@code{Symbol} @var{displayPtr}, @code{Integer} @var{drawable}, @code{Integer} @var{GCPtr}, @code{String} @var{str})
+@item @mnm{textWidth} (@code{Symbol} @var{displayPtr}, @code{Integer} @var{drawable}, @code{Integer} @var{GCPtr}, @code{String} @var{str})
+These methods return the width and height of @var{str} in the
+currently selected font.  Unlike the @mnm{textWidth} and
+@mnm{textHeight} methods, which work within the client app's process
+space, these methods direct the server process to perform the
+measurements.
+
 
 @cindex @mnm{verbose} instance method @idxclscite{X11FreeTypeFont}
 @item verbose
@@ -16612,7 +16625,7 @@ which is inherited from @code{X11Pane} class.
 
 @end table
 
-@node X11MessageBoxPane, X11ScrollBarPane, X11ListPane, Classes
+@node X11MessageBoxPane, X11PopupMenu, X11ListPane, Classes
 @iftex
 @section @code{X11MessageBoxPane} Class
 @end iftex
@@ -16963,7 +16976,193 @@ the main program.
 
 @end table
 
-@node X11ScrollBarPane, X11TextEntryPane, X11MessageBoxPane, Classes
+@node X11PopupMenu, X11ScrollBarPane, X11MessageBoxPane, Classes
+@iftex
+@section @code{X11PopupMenu} Class
+@end iftex
+@ifnottex
+@subheading @code{X11PopupMenu} Class
+@end ifnottex
+@cindex @code{X11PopupMenu} class
+
+A @code{X11PopupMenu} object displays a menu window, generally where a
+pointer button is pressed, and displays a list of items and the expressions
+the class executes for each item.
+
+This example program demonstrates how a program might add
+@code{X11PopupMenu}.
+
+@c demos/x11/popupmenu.ca
+@example
+
+/* popupmenu.ca - X11PopupMenu Demonstration -*-c-*- */
+
+#include <ctalk/ctalkdefs.h>
+
+/* See the X11FreeTypeFont section of the the Ctalk reference. */
+#define FTFONT_BOLD   200
+#define FTFONT_MEDIUM 100
+
+X11MessageBoxPane new aboutBox;
+X11TextEntryBox new entryBox;
+String new userLabelText;
+
+X11MessageBoxPane instanceMethod configure (void) @{
+  self resources replaceAt "backgroundColor", "darkblue";
+  self resources replaceAt "foregroundColor", "darkblue";
+  self resources replaceAt "messageColor", "white";
+  self resources replaceAt "messageText",
+    "X11PopupMenu Demo\nCtalk 0.0.66";
+  self resources replaceAt "iconID", ICON_INFO;
+
+@}
+
+X11TextEntryBox instanceMethod configure (void) @{
+  self resources replaceAt "backgroundColor", "darkblue";
+  self resources replaceAt "foregroundColor", "darkblue";
+  self resources replaceAt "messageColor", "white";
+  self resources replaceAt "messageText",
+    "Enter the text you want displayed";
+  self resources replaceAt "iconID", ICON_QUESTION;
+@}
+
+X11PopupMenu instanceMethod getUserInput (void) @{
+  entryBox show;
+  userLabelText = entryBox entryContents;
+@}
+
+/* 
+   This is initialized internally when we create the app's
+   window. 
+*/
+extern Atom wm_delete_window;
+
+X11PopupMenu instanceMethod clientExit (X11Pane parentPane) @{
+  "This is a typical handler to exit an app from a menu entry.
+  It simulates a user selecting a close window option on the
+  window's title bar. It still needs an independent connection to
+  the display server, however."
+  XEvent e;
+  Display *d_l;
+  if ((d_l = XOpenDisplay (getenv ("DISPLAY"))) != NULL) @{
+    e.type = ClientMessage;
+    e.xclient.serial = 0l;
+    e.xclient.send_event = true;
+    e.xclient.display = d_l;
+    e.xclient.window = parentPane xWindowID;
+    e.xclient.format = 32;
+    e.xclient.data.l[0] = wm_delete_window;
+    XSendEvent (d_l, parentPane xWindowID, true, 0l, &e);
+    XFlush (d_l);
+    XCloseDisplay (d_l);
+  @}
+@}
+
+int main (void) @{
+  X11Pane new mainWin;
+  X11PaneDispatcher new dispatcher;
+  X11LabelPane new heading, subHeading;
+  X11PopupMenu new menu;
+  InputEvent new e;
+  XEvent ev_ret;
+  Display *display;
+
+  menu add "Label Text...", "entryBox getUserInput";
+  menu add "About...", "aboutBox show";
+  menu add "Exit", "self clientExit parentPane";
+
+  heading canFocus = false;
+  heading resources replaceAt "borderWidth", 0;
+  subHeading canFocus = false;
+  subHeading resources replaceAt "borderWidth", 0;
+
+  heading ftFontVar notifyLevel XFT_NOTIFY_NONE;
+
+  heading ftFontVar initFontLib;
+
+  aboutBox configure;
+  entryBox configure;
+
+  mainWin backgroundColor = "blue";
+  heading resources replaceAt "backgroundColor", "blue";
+  subHeading resources replaceAt "backgroundColor", "blue";
+  menu resources replaceAt "backgroundColor", "blue";
+  
+  mainWin initialize 255, 200;
+  /*
+   * NOTE - Make a note in the docs about this, or add it to the
+   * parent window's event mask automagically.
+   */
+  mainWin inputStream eventMask = 
+    EXPOSE|ENTERWINDOWNOTIFY \
+    |LEAVEWINDOWNOTIFY|BUTTONPRESS \
+    |BUTTONRELEASE|KEYPRESS|KEYRELEASE \
+    |MOVENOTIFY|WINDELETE \
+    |WMFOCUSCHANGENOTIFY;
+
+  dispatcher attachTo mainWin;
+  heading attachTo dispatcher, "177x60+34+15";
+  subHeading attachTo dispatcher, "190x60+c+60";
+  aboutBox attachTo dispatcher, "300x200";
+  entryBox attachTo dispatcher, "350x250";
+
+  mainWin map;
+  mainWin raiseWindow;
+
+  mainWin openEventStream;
+
+  mainWin setWMTitle "X11PopupMenu Demo";
+
+  heading multiLine "X11PopupMenu\nDemo";
+  heading resources replaceAt "textColor", "lightgray";
+  heading resources replaceAt "foregroundColor", "blue";
+
+  subHeading resources replaceAt "ftFont", "sans-serif-8";
+  subHeading resources replaceAt foregroundColor, "blue";
+  subHeading resources replaceAt textColor, "lightgray";
+  subHeading multiLine "Click anywhere\nto display the menu.";
+
+  heading draw;
+  heading refresh;
+  subHeading draw;
+  subHeading refresh;
+
+
+  while (TRUE) @{
+    mainWin inputStream queueInput;
+    if (mainWin inputStream eventPending) @{
+      e become mainWin inputStream inputQueue unshift;
+
+      mainWin subPaneNotify e;
+
+      switch (e eventClass value)
+	@{
+	case EXPOSE:
+	  heading subPaneExpose (heading, e);
+	  subHeading subPaneExpose (subHeading, e);
+	  break;
+	case BUTTONPRESS:
+	  menu popup mainWin, e xEventData5, e xEventData6;
+	  display = menu displayPtr;
+	  while (XCheckTypedEvent (display, ButtonPress, &ev_ret))
+	    ;
+	  break;
+	case WINDELETE:
+	  printf ("The user entered: %s\n", userLabelText);
+ 	  mainWin deleteAndClose;
+	  exit (0);
+	  break;
+	@}
+    @} else @{
+      usleep (1000);
+    @}
+  @}
+
+@}
+
+@end example
+
+@node X11ScrollBarPane, X11TextEntryPane, X11PopupMenu, Classes
 @iftex
 @section @code{X11ScrollBarPane} Class
 @end iftex
@@ -25818,6 +26017,10 @@ the dimensions.  If the library is initialized but the application
 hasn't yet specified a font, then the value returned for @var{rbearing}
 is @samp{0}.
 
+Note that this function works entirely on the client side, and some
+uses or systems may not be compatible with it.  For cases like those,
+refer to the server-side function, @xref{ctalkXftTextDimensionsBasic}.
+
 @idxlibfn{__ctalkXftHandle}
 @item __ctalkXftHandle (@code{void})
 Returns a @code{void *} with the handle of the selected font.
@@ -25915,6 +26118,14 @@ Return the qualified font name string for @var{pattern}.
 Returns the font attributes requested after parsing a Fontconfig
 string by @cite{__ctalkXftSelectFontFromFontConfig} and
 @cite{__ctalkXftSelectFontFromXLFD}.
+
+@anchor{ctalkXftTextDimensionsBasic}
+@idxlibfn{__ctalkXftTextDimensionsBasic}
+@item __ctalkXftTextDimensionsBasic (@code{void *}@var{display}, @code{unsigned int} @var{drawable}, @code{unsigned} @var{gc_ptr}, @code{char *}@var{str}, @code{int *}@var{x}, @code{int *}@var{y}, @code{int *}@var{width}, @code{int *}@var{height}, @code{int *} @var{rbearing})
+Returns the dimensions of @var{str} in the currenly selected font.
+Unlike the function @cite{__ctalkXftGetStringDimensions}, which works
+entirely within a client app's process space, this function directs
+the server process to perform the measurements.
 
 @idxlibfn{__ctalkXftRevision}
 @item __ctalkXftRevision (@code{void})

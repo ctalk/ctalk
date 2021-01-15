@@ -7,6 +7,8 @@
 #define FTFONT_MEDIUM 100
 
 X11MessageBoxPane new aboutBox;
+X11TextEntryBox new entryBox;
+String new userLabelText;
 
 X11MessageBoxPane instanceMethod configure (void) {
   self resources replaceAt "backgroundColor", "darkblue";
@@ -18,6 +20,20 @@ X11MessageBoxPane instanceMethod configure (void) {
 
 }
 
+X11TextEntryBox instanceMethod configure (void) {
+  self resources replaceAt "backgroundColor", "darkblue";
+  self resources replaceAt "foregroundColor", "darkblue";
+  self resources replaceAt "messageColor", "white";
+  self resources replaceAt "messageText",
+    "Enter the text you want displayed";
+  self resources replaceAt "iconID", ICON_QUESTION;
+}
+
+X11PopupMenu instanceMethod getUserInput (void) {
+  entryBox show;
+  userLabelText = entryBox entryContents;
+}
+
 /* 
    This is initialized internally when we create the app's
    window. 
@@ -25,8 +41,8 @@ X11MessageBoxPane instanceMethod configure (void) {
 extern Atom wm_delete_window;
 
 X11PopupMenu instanceMethod clientExit (X11Pane parentPane) {
-  "This is a typical handler to exit a X11 client from a menu entry.
-  It simulates a user selecting the close window option on the
+  "This is a typical handler to exit an app from a menu entry.
+  It simulates a user selecting a close window option on the
   window's title bar. It still needs an independent connection to
   the display server, however."
   XEvent e;
@@ -39,7 +55,7 @@ X11PopupMenu instanceMethod clientExit (X11Pane parentPane) {
     e.xclient.window = parentPane xWindowID;
     e.xclient.format = 32;
     e.xclient.data.l[0] = wm_delete_window;
-    XSendEvent (d_l, parentPane xWindowID, true, 0L, &e);
+    XSendEvent (d_l, parentPane xWindowID, true, 0l, &e);
     XFlush (d_l);
     XCloseDisplay (d_l);
   }
@@ -54,9 +70,7 @@ int main (void) {
   XEvent ev_ret;
   Display *display;
 
-  menu add "item2 entry", "self expr";
-  menu add "item3 Bigentry", "self expr";
-  menu add "item4 entry", "self expr";
+  menu add "Label Text...", "entryBox getUserInput";
   menu add "About...", "aboutBox show";
   menu add "Exit", "self clientExit parentPane";
 
@@ -70,6 +84,7 @@ int main (void) {
   heading ftFontVar initFontLib;
 
   aboutBox configure;
+  entryBox configure;
 
   mainWin backgroundColor = "blue";
   heading resources replaceAt "backgroundColor", "blue";
@@ -92,6 +107,7 @@ int main (void) {
   heading attachTo dispatcher, "177x60+34+15";
   subHeading attachTo dispatcher, "190x60+c+60";
   aboutBox attachTo dispatcher, "300x200";
+  entryBox attachTo dispatcher, "350x250";
 
   mainWin map;
   mainWin raiseWindow;
@@ -103,15 +119,10 @@ int main (void) {
   heading multiLine "X11PopupMenu\nDemo";
   heading resources replaceAt "textColor", "lightgray";
   heading resources replaceAt "foregroundColor", "blue";
-  /* heading resources replaceAt "borderColor", "blue"; *//***/
-  /* heading resources replaceAt "borderColor", "black"; *//***/
 
   subHeading resources replaceAt "ftFont", "sans-serif-8";
   subHeading resources replaceAt foregroundColor, "blue";
   subHeading resources replaceAt textColor, "lightgray";
-  /* The border should be invisible if we set its width to 0,
-     as above! */
-  /* subHeading resources replaceAt "borderColor", "blue"; *//***/
   subHeading multiLine "Click anywhere\nto display the menu.";
 
   heading draw;
@@ -135,16 +146,12 @@ int main (void) {
 	  break;
 	case BUTTONPRESS:
 	  menu popup mainWin, e xEventData5, e xEventData6;
-#if 1 /***/
 	  display = menu displayPtr;
 	  while (XCheckTypedEvent (display, ButtonPress, &ev_ret))
 	    ;
-#else  /* fix this next arglist! */ /***/
-	  while (XCheckTypedEvent (menu displayPtr, ButtonPress, &ev_ret))
-	    ;
-#endif	  
 	  break;
 	case WINDELETE:
+	  printf ("The user entered: %s\n", userLabelText);
  	  mainWin deleteAndClose;
 	  exit (0);
 	  break;
