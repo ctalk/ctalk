@@ -1,4 +1,4 @@
-/* $Id: X11TextEntryPane,v 1.1.1.1 2020/09/13 17:14:20 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11TextEntryPane,v 1.4 2021/01/15 17:04:29 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -847,9 +847,25 @@ X11TextEntryPane instanceMethod subPaneKbd (Object subPane,
 		}
 		self point = self sEnd;
 	      } else {
-		while (self sEnd >= self sStart) {
-		  cc = self deleteAt self sEnd;
-		  self sEnd --;
+		if (self sEnd == self chars size) {
+		  /* delete selection from end of text */
+		  if (self sStart == 0) {
+		    /* All of the characters selected. */
+		    self chars delete;
+		    self sEnd = 0;
+		    self point = 0;
+		    return NULL;
+		  } else {
+		    while (self sEnd > self sStart) {
+		      cc = self chars pop;
+		      self sEnd --;
+		    }
+		  }
+		} else {
+		  while (self sEnd >= self sStart) {
+		    cc = self deleteAt self sEnd;
+		    self sEnd --;
+		  }
 		}
 		self point = self sStart;
 	      }

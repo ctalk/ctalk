@@ -38,5 +38,22 @@
 	borderWidth instance variable from the classes' "borderWidth"
 	resource.  Also added the initialized instance variable to
 	X11LabelPane.
+	- Updated X11LabelPane : __drawJustified to do a line width
+	measurement independently after selecting the receiver label's
+	font, so the method doesn't use the incorrect metrics when
+	dealing with multiple labels/fonts.  Updated __drawJustified's
+	prototype to omit the text width metric that had been passed into
+	the method
+	- Updated __ctalkXftGetStringDimensions to check for a dialog
+	display record and use it if present (xftlib.c).
+2021-01-14
+	- Added the __ctalkXftTextDimensionsBasic library function
+	(xftlib.c), and the X11FreeType methods, textWidthBasic and
+	textHeightBasic.
+2021-01-15
+	- In X11TextEntryPane : subPaneKbd, use List : pop to
+	remove the last character when the selection includes the
+	end of the entry, or List : delete if the selection begins
+	at the start of	the text.
 
 
