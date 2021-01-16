@@ -48,12 +48,20 @@
 	display record and use it if present (xftlib.c).
 2021-01-14
 	- Added the __ctalkXftTextDimensionsBasic library function
-	(xftlib.c), and the X11FreeType methods, textWidthBasic and
+	(xftlib.c), and the X11FreeTypeFont methods, textWidthBasic and
 	textHeightBasic.
 2021-01-15
 	- In X11TextEntryPane : subPaneKbd, use List : pop to
 	remove the last character when the selection includes the
 	end of the entry, or List : delete if the selection begins
 	at the start of	the text.
+2021-01-16
+	- Updated __ctalkXftInitLib to fill in the selected_font
+	parameters from the result of trying to load system-defined
+	default fonts when library is first initialized (xftlib.c).
+	- Updated the X11CanvasPane : attachTo methods to fill in
+	the pane's ftFontVar instance variables with the parameters
+	of the currently selected font.
+	- Added the X11FreeTypeFont : style instance variable.
 
 

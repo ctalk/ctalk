@@ -1,4 +1,4 @@
-/* $Id: X11FreeTypeFont,v 1.6 2021/01/14 21:41:09 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11FreeTypeFont,v 1.8 2021/01/16 22:31:20 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -34,6 +34,7 @@ provides methods to search for fonts that are
 available in the library.";
 
 X11FreeTypeFont instanceVariable family String "Mono";
+X11FreeTypeFont instanceVariable style String "";
 X11FreeTypeFont instanceVariable slant Integer 0;
 X11FreeTypeFont instanceVariable weight Integer 100;
 X11FreeTypeFont instanceVariable dpi Integer 72;

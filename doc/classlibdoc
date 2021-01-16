@@ -7075,6 +7075,9 @@ X window and adjusts the pane's dimensions.
 
 
 >>>X11ButtonPane::attachTo (Object parentPane, String geometry)
+>>>X11ButtonPane::attachTo (Object parentPane)
+>>>X11ButtonPane::attachTo (Object parentPane, Integer xOrg, Integer yOrg)
+>>>X11ButtonPane::attachTo (Object parentPane, Integer xOrg, Integer yOrg, Integer xSize, Integer ySize)
 Attaches the receiver to the parentPane named by parentPane,
 with the placement and size given by geometry.  The parent pane
 should generally be a X11PaneDispatcher which directs X events
@@ -7084,6 +7087,14 @@ The positioning of subwindows within the parent window is controlled
 by the arguments to the attachTo methods; in particular, these
 methods accept a geometry specification, as an argument, which has
 the following format.
+
+If only parentPane is given as an argument, the child pane
+occupies the entire width and height of the parent pane.
+
+If the program has initialized the Xft Freetype libraries, this method
+also fills in the pane object's ftFontVar instance variable
+with the selected font, which is normally a system-defined standard
+font during app initialization.
 
 ---------------------------------------------------------
   

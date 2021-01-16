@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.19 2021/01/15 17:04:29 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.20 2021/01/16 22:31:20 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -1693,6 +1693,12 @@ of the rendered fonts.
 @code{Integers} that contain the slant, weight, and dpi resolution of
 the receiver font.  For a description of the Xft library's constants,
 refer to the @mnm{selectFont} method entry, below. @xref{Integer}.
+
+@cindex @mnm{style} instance variable @idxclscite{X11FreeTypeFont}
+@item style
+A @code{String} that contains the selected @code{style} parameter, if
+any.
+
 @cindex @mnm{pointSize} instance variable @idxclscite{X11FreeTypeFont}
 @item pointSize
 A @code{Float} that contains the font's point size. @xref{Float}.
@@ -15306,6 +15312,9 @@ with rounded corners.
 
 @cindex @code{attachTo} instance method @idxclscite{X11ButtonPane}
 @item attachTo (@code{Object} @var{parentPane}, @code{String} @var{geometry})
+@item attachTo (@code{Object} @var{parentPane})
+@item attachTo (@code{Object} @var{parentPane}, @code{Integer} @var{xOrg}, @code{Integer} @var{yOrg})
+@item attachTo (@code{Object} @var{parentPane}, @code{Integer} @var{xOrg}, @code{Integer} @var{yOrg}, @code{Integer} @var{xSize}, @code{Integer} @var{ySize})
 Attaches the receiver to the parentPane named by @var{parentPane},
 with the placement and size given by @code{geometry}.  The parent pane
 should generally be a @code{X11PaneDispatcher} which directs X events
@@ -15315,6 +15324,14 @@ The positioning of subwindows within the parent window is controlled
 by the arguments to the @mnm{attachTo} methods; in particular, these
 methods accept a geometry specification, as an argument, which has
 the following format.
+
+If only @var{parentPane} is given as an argument, the child pane
+occupies the entire width and height of the parent pane.
+
+If the program has initialized the Xft Freetype libraries, this method
+also fills in the pane object's @code{ftFontVar} instance variable
+with the selected font, which is normally a system-defined standard
+font during app initialization.
 
 @example
 
@@ -26177,6 +26194,11 @@ Return the point size of the selected font as a C @var{double}.
 @item __ctalkXftSelectedSlant (@code{void})
 Returns an @code{int} that contains slant of the selected
 font.
+
+@idxlibfn{__ctalkXftSelectedStyle}
+@item __ctalkXftSelectedFamily (@code{void})
+Returns a @code{String} that contains font's style parameter,
+if any.
 
 @idxlibfn{__ctalkXftSelectedWeight}
 @item __ctalkXftSelectedSlant (@code{void})

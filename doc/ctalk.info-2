@@ -3608,6 +3608,9 @@ Instance Methods
 ----------------
 
 'attachTo (Object PARENTPANE, String GEOMETRY)'
+'attachTo (Object PARENTPANE)'
+'attachTo (Object PARENTPANE, Integer XORG, Integer YORG)'
+'attachTo (Object PARENTPANE, Integer XORG, Integer YORG, Integer XSIZE, Integer YSIZE)'
      Attaches the receiver to the parentPane named by PARENTPANE, with
      the placement and size given by 'geometry'.  The parent pane should
      generally be a 'X11PaneDispatcher' which directs X events to the
@@ -3617,6 +3620,14 @@ Instance Methods
      controlled by the arguments to the 'attachTo' methods; in
      particular, these methods accept a geometry specification, as an
      argument, which has the following format.
+
+     If only PARENTPANE is given as an argument, the child pane occupies
+     the entire width and height of the parent pane.
+
+     If the program has initialized the Xft Freetype libraries, this
+     method also fills in the pane object's 'ftFontVar' instance
+     variable with the selected font, which is normally a system-defined
+     standard font during app initialization.
 
 
           width[%]xheight[%]+x[%]+y[%]
@@ -5034,6 +5045,183 @@ Instance Methods
 
 
 File: ctalk.info,  Node: X11PopupMenu,  Next: X11ScrollBarPane,  Prev: X11MessageBoxPane,  Up: Classes
+
+'X11PopupMenu' Class
+--------------------
+
+A 'X11PopupMenu' object displays a menu window, generally where a
+pointer button is pressed, and displays a list of items and the
+expressions the class executes for each item.
+
+This example program demonstrates how a program might add
+'X11PopupMenu'.
+
+
+     /* popupmenu.ca - X11PopupMenu Demonstration -*-c-*- */
+
+     #include <ctalk/ctalkdefs.h>
+
+     /* See the X11FreeTypeFont section of the the Ctalk reference. */
+     #define FTFONT_BOLD   200
+     #define FTFONT_MEDIUM 100
+
+     X11MessageBoxPane new aboutBox;
+     X11TextEntryBox new entryBox;
+     String new userLabelText;
+
+     X11MessageBoxPane instanceMethod configure (void) {
+       self resources replaceAt "backgroundColor", "darkblue";
+       self resources replaceAt "foregroundColor", "darkblue";
+       self resources replaceAt "messageColor", "white";
+       self resources replaceAt "messageText",
+         "X11PopupMenu Demo\nCtalk 0.0.66";
+       self resources replaceAt "iconID", ICON_INFO;
+
+     }
+
+     X11TextEntryBox instanceMethod configure (void) {
+       self resources replaceAt "backgroundColor", "darkblue";
+       self resources replaceAt "foregroundColor", "darkblue";
+       self resources replaceAt "messageColor", "white";
+       self resources replaceAt "messageText",
+         "Enter the text you want displayed";
+       self resources replaceAt "iconID", ICON_QUESTION;
+     }
+
+     X11PopupMenu instanceMethod getUserInput (void) {
+       entryBox show;
+       userLabelText = entryBox entryContents;
+     }
+
+     /*
+        This is initialized internally when we create the app's
+        window.
+     */
+     extern Atom wm_delete_window;
+
+     X11PopupMenu instanceMethod clientExit (X11Pane parentPane) {
+       "This is a typical handler to exit an app from a menu entry.
+       It simulates a user selecting a close window option on the
+       window's title bar. It still needs an independent connection to
+       the display server, however."
+       XEvent e;
+       Display *d_l;
+       if ((d_l = XOpenDisplay (getenv ("DISPLAY"))) != NULL) {
+         e.type = ClientMessage;
+         e.xclient.serial = 0l;
+         e.xclient.send_event = true;
+         e.xclient.display = d_l;
+         e.xclient.window = parentPane xWindowID;
+         e.xclient.format = 32;
+         e.xclient.data.l[0] = wm_delete_window;
+         XSendEvent (d_l, parentPane xWindowID, true, 0l, &e);
+         XFlush (d_l);
+         XCloseDisplay (d_l);
+       }
+     }
+
+     int main (void) {
+       X11Pane new mainWin;
+       X11PaneDispatcher new dispatcher;
+       X11LabelPane new heading, subHeading;
+       X11PopupMenu new menu;
+       InputEvent new e;
+       XEvent ev_ret;
+       Display *display;
+
+       menu add "Label Text...", "entryBox getUserInput";
+       menu add "About...", "aboutBox show";
+       menu add "Exit", "self clientExit parentPane";
+
+       heading canFocus = false;
+       heading resources replaceAt "borderWidth", 0;
+       subHeading canFocus = false;
+       subHeading resources replaceAt "borderWidth", 0;
+
+       heading ftFontVar notifyLevel XFT_NOTIFY_NONE;
+
+       heading ftFontVar initFontLib;
+
+       aboutBox configure;
+       entryBox configure;
+
+       mainWin backgroundColor = "blue";
+       heading resources replaceAt "backgroundColor", "blue";
+       subHeading resources replaceAt "backgroundColor", "blue";
+       menu resources replaceAt "backgroundColor", "blue";
+
+       mainWin initialize 255, 200;
+       /*
+        * NOTE - Make a note in the docs about this, or add it to the
+        * parent window's event mask automagically.
+        */
+       mainWin inputStream eventMask =
+         EXPOSE|ENTERWINDOWNOTIFY \
+         |LEAVEWINDOWNOTIFY|BUTTONPRESS \
+         |BUTTONRELEASE|KEYPRESS|KEYRELEASE \
+         |MOVENOTIFY|WINDELETE \
+         |WMFOCUSCHANGENOTIFY;
+
+       dispatcher attachTo mainWin;
+       heading attachTo dispatcher, "177x60+34+15";
+       subHeading attachTo dispatcher, "190x60+c+60";
+       aboutBox attachTo dispatcher, "300x200";
+       entryBox attachTo dispatcher, "350x250";
+
+       mainWin map;
+       mainWin raiseWindow;
+
+       mainWin openEventStream;
+
+       mainWin setWMTitle "X11PopupMenu Demo";
+
+       heading multiLine "X11PopupMenu\nDemo";
+       heading resources replaceAt "textColor", "lightgray";
+       heading resources replaceAt "foregroundColor", "blue";
+
+       subHeading resources replaceAt "ftFont", "sans-serif-8";
+       subHeading resources replaceAt foregroundColor, "blue";
+       subHeading resources replaceAt textColor, "lightgray";
+       subHeading multiLine "Click anywhere\nto display the menu.";
+
+       heading draw;
+       heading refresh;
+       subHeading draw;
+       subHeading refresh;
+
+
+       while (TRUE) {
+         mainWin inputStream queueInput;
+         if (mainWin inputStream eventPending) {
+           e become mainWin inputStream inputQueue unshift;
+
+           mainWin subPaneNotify e;
+
+           switch (e eventClass value)
+     	{
+     	case EXPOSE:
+     	  heading subPaneExpose (heading, e);
+     	  subHeading subPaneExpose (subHeading, e);
+     	  break;
+     	case BUTTONPRESS:
+     	  menu popup mainWin, e xEventData5, e xEventData6;
+     	  display = menu displayPtr;
+     	  while (XCheckTypedEvent (display, ButtonPress, &ev_ret))
+     	    ;
+     	  break;
+     	case WINDELETE:
+     	  printf ("The user entered: %s\n", userLabelText);
+      	  mainWin deleteAndClose;
+     	  exit (0);
+     	  break;
+     	}
+         } else {
+           usleep (1000);
+         }
+       }
+
+     }
+
 
 
 File: ctalk.info,  Node: X11ScrollBarPane,  Next: X11TextEntryPane,  Prev: X11PopupMenu,  Up: Classes
@@ -8326,203 +8514,4 @@ function.
 * Documentation::         Describing methods, classes, and variables
                           in publicly visible comments.
 * Ctalk library::         Library function reference.
-
-
-File: ctalk.info,  Node: Method API,  Next: Self and super,  Up: Methods
-
-Method Application Programming Interface
-----------------------------------------
-
-This section describes the C functions and macros that methods use to
-interface with the Ctalk run time libraries and with each other.
-
-At this point, the method API is still developing, and relies heavily on
-C library functions.
-
-This example shows method '+' of class 'Integer', which adds two Integer
-objects, creates an object for the result, and returns the result.
-
-     Integer instanceMethod + add (int i) {
-
-       OBJECT *op1, *op2;
-
-       op1 = self value;
-       op2 = i value;
-
-       methodReturnInteger(atoi(op1->__o_value) + atoi(op2->__o_value))
-     }
-
-The keyword 'self' refers to the receiver of the method.  *Note Self and
-super::.
-
-The variables 'op1' and 'op2' are the 'value' instance variables of the
-receiver and the argument.  Ctalk has a method, 'value' (class
-'Object'), which returns the 'value' instance variable, but you can also
-refer to instance variables by sending an instance variable's name as a
-message to an object.
-
-Internally, the receiver, arguments, and return value of a method are
-all 'OBJECT *'.  When you use C functions with objects, you use the
-members of an OBJECT type, a 'struct.' (*Note OBJECT typedef::.)  If you
-declare an object as a C 'OBJECT *,' then the method uses it like any
-other C 'struct *.'
-
-All methods return an 'OBJECT *' as the result.  The macro
-'methodReturnInteger' defines the object that the method returns.  *Note
-Return values::.
-
-The 'add' method is in 'classes/Integer'.  The file 'include/object.h'
-contains the declaration of the 'OBJECT' type.
-
-
-File: ctalk.info,  Node: Self and super,  Next: Class initialization,  Prev: Method API,  Up: Methods
-
-'self' and 'super'
-------------------
-
-The keywords 'self' and 'super' refer to the method's receiver object
-and a method in a superclass of the receiver's class, respectively.
-
-Refer to the method '+' (class 'Integer') from the previous section.  If
-you call '+' with the statement below, 'self' in the '+' method would
-refer to 'i.'
-
-     j = i + 2;
-
-The 'super' keyword refers to a method in one of the superclasses of the
-receiver.  It is commonly used in constructors.
-
-For example, if a class implements its own 'new' method that performs
-additional initialization for instances of a class, it can also call
-'new' implemented by a superclass.
-
-This constructor from the 'ReadFileStream' method, 'new', also calls
-'new' from class 'Object.'
-
-     ReadFileStream instanceMethod new (char *name) {
-
-       ReadFileStream super new name;
-
-       __ctalkInstanceVarsFromClassObject (name);
-
-       ReadFileStream classInit;
-
-       return name;
-     }
-
-The first statement, 'ReadFileStream super new name,' calls 'new' from
-class 'Object' before performing its own initialization.
-
-
-File: ctalk.info,  Node: Class initialization,  Next: Prefixes,  Prev: Self and super,  Up: Methods
-
-Class Initialization
---------------------
-
-Some classes that have class variables require initialization when the
-program is run.  For example, class 'ReadFileStream' needs to have its
-class variable 'stdinStream' set to the application's 'stdin' file
-stream before the program can read from standard input.  For this, you
-would use the library function 'xstdin', and use its value in
-'stdinStreamVar'.
-
-
-     __ctalkObjValPtr (stdinStreamVar, xstdin ());
-
-
-Classes that require class variable initialization need to define a
-method, 'classInit', which is called by a constructor when the first
-object is created.  An example is the 'ReadFileStream' method 'new' from
-the previous section.
-
-Here is the 'classInit' method for class 'ReadFileStream'.
-
-
-     ReadFileStream classMethod classInit (void) {
-       "Initializes the classes' standard input stream.  This
-       method is normally called by the ReadFileStream
-       constructor.  The method needs to be called only once;
-       on further calls to 'new', it is a no-op."
-       OBJECT *classObject,
-         *stdinStreamVar,
-         *classInitVar;
-
-       if (self classInitDone)
-         return NULL;
-
-       classObject = __ctalkGetClass ("ReadFileStream");
-       stdinStreamVar = __ctalkFindClassVariable ("stdinStream", TRUE);
-       __ctalkInstanceVarsFromClassObject (stdinStreamVar);
-
-       __ctalkObjValPtr (stdinStreamVar, xstdin ());
-
-       classInitVar =
-         __ctalkCreateObjectInit ("classInitDone", "Integer",
-     			     "Magnitude",
-     			     classObject -> scope, "1");
-       __ctalkAddClassVariable (classObject, "classInitDone", classInitVar);
-
-       return NULL;
-     }
-
-
-A 'classInit' method needs to be called only once.  The method checks
-the 'classInitDone' instance variable to determine the method has
-already performed the initialization that the class needs.
-
-
-File: ctalk.info,  Node: Prefixes,  Next: Translating,  Prev: Class initialization,  Up: Methods
-
-Overloading C Unary Operators
------------------------------
-
-Methods can also overload C unary operators like '*', '&', '!', '~', and
-'sizeof'.  For most unary operators, if the class defines a method to
-overload the operator, then Ctalk uses the method; otherwise, it treats
-the operator as a normal C operator.
-
-Methods that overload unary operators contain the '__prefix__' attribute
-in their declaration.  This simplifies method writing considerably,
-because that allows a class to define two different method '*' methods,
-for example, one a unary dereference operator, the other a
-multiplication operator.
-
-In the method's declaration, use the '__prefix__' attribute in place of
-paramter declarations, as in this example.
-     String instanceMethod * deref_prefix (__prefix__) {
-     ... Method statements here ...
-     }
-
-When Ctalk encounters a 'sizeof' operator, it checks whether the
-argument is a Ctalk object, or a C variable or type cast expression.  If
-the argument is a C variable or type cast expression, then Ctalk uses
-the C 'sizeof' operator.  Otherwise, it uses the 'sizeof' method
-('Object' class).  This method's implementation is simple: it treats a
-Ctalk object as an 'OBJECT *', and returns the size in bytes of a
-pointer on the system.  On 32-bit systems, the 'sizeof' method always
-returns 4.  However, you can overload the 'sizeof' operator in your own
-classes if necessary.
-
-You need to take care when using unary operators in complex statements,
-due to the precedence of Ctalk's method messages.  In the following
-highly experimental example, you would need to use parentheses to
-specify the order of evaluation, because the expression needs the result
-of '(*s) asString' to be a 'String' also.
-     String new s;
-     String new sFirstChar;
-     Character new c;
-     Integer new i;
-     s = "Hello, ";
-     sFirstChar = (*s) asString;
-Ctalk also provides postfix equivalents for many of these operators,
-like 'deref' (class 'Symbol') and 'invert' ('Character,' 'Integer,' and
-'LongInteger' classes).
-
-Ctalk can overload these operators even if the class defines a method
-that uses the operator with an argument.  For example, the pointer ('*')
-and unary minus ('-') operators can have different methods than the
-methods that perform multiplication and subtraction.
-
-The subject of method overloading is discussed further in its own
-section.  *Note Overloading::.
 
