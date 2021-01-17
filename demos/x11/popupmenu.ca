@@ -120,15 +120,17 @@ int main (void) {
   heading resources replaceAt "textColor", "lightgray";
   heading resources replaceAt "foregroundColor", "blue";
 
-  subHeading resources replaceAt "ftFont", "sans-serif-8";
+  subHeading resources replaceAt "ftFont", "DejaVu Sans-8";
   subHeading resources replaceAt foregroundColor, "blue";
   subHeading resources replaceAt textColor, "lightgray";
   subHeading multiLine "Click anywhere\nto display the menu.";
 
+#if 0 /* for testing */
   heading draw;
   heading refresh;
   subHeading draw;
   subHeading refresh;
+#endif  
 
 
   while (TRUE) {

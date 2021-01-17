@@ -1,4 +1,4 @@
-/* $Id: X11LabelPane,v 1.2 2021/01/13 15:38:10 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11LabelPane,v 1.5 2021/01/17 16:48:07 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -208,6 +208,7 @@ X11LabelPane instanceMethod multiLine (String textArg) {
   self haveMultiLine = true; 
 }
 
+#if 0 /***/
 X11LabelPane instanceMethod __drawJustified (String textArg,
 					     Integer textWidth,
 					     Integer lineStartY) {
@@ -233,6 +234,42 @@ X11LabelPane instanceMethod __drawJustified (String textArg,
     }
 
 }
+#else
+X11LabelPane instanceMethod __drawJustified (String textArg,
+					     Integer lineStartY) {
+  Integer new hAir, hCenter, lTextWidth;
+
+  self ftFontVar selectFont;
+
+#if 0 /* for testing */ /***/
+  lTextWidth = self ftFontVar textWidth textArg;
+#else
+  lTextWidth = self ftFontVar textWidthBasic self displayPtr,
+    self xWindowID, self xGC, textArg;
+#endif  
+
+  switch (self justify)
+    {
+    case LABEL_LEFT:
+      self putStrXY self margin + self padding +
+	self resources at "highlightBorderWidth", lineStartY value, textArg;
+      break;
+    case LABEL_CENTER:
+      hCenter = (self size x / 2) - (lTextWidth / 2);
+      hAir = hCenter - (hCenter / 10);
+      self putStrXY hAir, lineStartY value, textArg;
+      break;
+    case LABEL_RIGHT:
+      self putStrXY ((self size x) -
+		     (self margin + self padding +
+		      self resources at "highlightBorderWidth") -
+		     lTextWidth,
+		     lineStartY value, textArg);
+      break;
+    }
+
+}
+#endif
 
 X11LabelPane instanceMethod fillStyle (void) {
   if (self grayed) {
@@ -301,8 +338,10 @@ X11LabelPane instanceMethod draw (void) {
 
   if (self ftFontVar libIsInitialized) {
     /* X11FreeTypeFont */
+#if 0
     self ftFontVar selectFontFromFontConfig self resources at "ftFont";
     self ftFontVar saveSelectedFont;
+#endif    
     if (self grayed) {
       /* leave like this until we figure out why lighter grays don't
 	 display */
@@ -331,15 +370,19 @@ X11LabelPane instanceMethod draw (void) {
 
 
       self textLines map {
-	ts = super ftFontVar textWidth self;
-	super __drawJustified self, ts, lineStartY;
+	/* ts = super ftFontVar textWidth self;
+	   super __drawJustified self, ts, lineStartY; *//***/
+	super __drawJustified self, lineStartY;
 	lineStartY += super ftFontVar height + super leading;
       }
       
     } else {
 
-      ts = self ftFontVar textWidth (self textLine);
+      /* ts = self ftFontVar textWidth (self textLine);
       self __drawJustified self textLine, ts,
+	(self size y / 2) - (self ftFontVar height / 2) +
+	(self ftFontVar height / 2); *//***/
+      self __drawJustified self textLine, 
 	(self size y / 2) - (self ftFontVar height / 2) +
 	(self ftFontVar height / 2);
 
@@ -364,15 +407,19 @@ X11LabelPane instanceMethod draw (void) {
       lineStartY = (self size y / 2) - (parheight / 2) + vAir;
 
       self textLines map {
-	ts = super fontVar textWidth self;
-	super __drawJustified self, ts, lineStartY;
+	/* ts = super fontVar textWidth self;
+	   super __drawJustified self, ts, lineStartY; *//***/
+	super __drawJustified self, lineStartY;
 	lineStartY += super fontVar height;
       }
 
     } else {
 
-      ts = self fontVar textWidth (self textLine);
+      /* ts = self fontVar textWidth (self textLine);
       self __drawJustified self textLine, ts,
+	((self size y / 2) - (self fontVar height / 2)) +
+	(self fontVar height / 2); *//***/
+      self __drawJustified self textLine, 
 	((self size y / 2) - (self fontVar height / 2)) +
 	(self fontVar height / 2);
 
@@ -396,8 +443,10 @@ X11LabelPane instanceMethod drawButtonLayout (void) {
 
   if (self ftFontVar libIsInitialized) {
     /* X11FreeTypeFont */
+#if 0
     self ftFontVar selectFontFromFontConfig self resources at "ftFont";
     self ftFontVar saveSelectedFont;
+#endif    
     if (self grayed) {
       self faceRegular;
       self ftFontVar namedX11Color self grayedColor;
@@ -423,16 +472,19 @@ X11LabelPane instanceMethod drawButtonLayout (void) {
 	self ftFontVar ascent - vAir;
       
       self textLines map {
-	ts = super ftFontVar textWidth self;
-	super __drawJustified self, ts, lineStartY;
-	lineStartY += super ftFontVar ascent + super leading;
+	/* ts = super ftFontVar textWidth self;
+	   super __drawJustified self, ts, lineStartY; *//***/
+	super __drawJustified self, lineStartY;
+	lineStartY += super ftFontVar ascent + super leading; 
       }
       
     } else {
 
       vAir = self size y / 20;
-      ts = self ftFontVar textWidth (self textLine);
+      /* ts = self ftFontVar textWidth (self textLine);
       self __drawJustified self textLine, ts,
+      (self size y / 2) + (self ftFontVar ascent / 2) - vAir; *//***/
+      self __drawJustified self textLine, 
 	(self size y / 2) + (self ftFontVar ascent / 2) - vAir;
 
     }
@@ -455,17 +507,20 @@ X11LabelPane instanceMethod drawButtonLayout (void) {
 	(self fontVar ascent / 2) +  vAir;
 
       self textLines map {
-	ts = super fontVar textWidth self;
-	super __drawJustified self, ts, lineStartY;
+	/* ts = super fontVar textWidth self;
+	   super __drawJustified self, ts, lineStartY; *//***/
+	super __drawJustified self, lineStartY;
 	lineStartY += super fontVar ascent;
       }
 
     } else {
 
       vAir = self size y / 20;
-      ts = self fontVar textWidth (self textLine);
+      /* ts = self fontVar textWidth (self textLine);
       self __drawJustified self textLine, ts,
-	(self size y / 2) + (self fontVar ascent / 2) - vAir;
+      (self size y / 2) + (self fontVar ascent / 2) - vAir; *//***/
+      self __drawJustified self textLine, 
+      (self size y / 2) + (self fontVar ascent / 2) - vAir;
 
     }
   }
