@@ -1,4 +1,4 @@
-/* $Id: x11lib.c,v 1.12 2021/01/14 16:38:41 rkiesling Exp $ -*-c-*-*/
+/* $Id: x11lib.c,v 1.13 2021/01/17 20:00:02 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -508,7 +508,9 @@ int __xlib_put_str_ft (Display *d, Drawable w, GC gc, char *s) {
    */
 
   if (strcmp (c_term, "\x1b" "[2K"))
-    XftDrawString8 (ft_str.draw, &g_ftFg, ft_font.normal, x, y,
+    XftDrawString8 (ft_str.draw, &g_ftFg,
+		    ft_font.normal,
+		    x, y,
 		      (unsigned char *)c_term, 
 		      strlen (c_term));
 

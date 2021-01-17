@@ -1,4 +1,4 @@
-/* $Id: xftlib.c,v 1.20 2021/01/17 16:48:08 rkiesling Exp $ -*-c-*-*/
+/* $Id: xftlib.c,v 1.22 2021/01/17 20:00:02 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -506,6 +506,7 @@ static XftFont *__select_font (char *p_family, int p_slant,
 			selected_slant, selected_weight, selected_dpi,
 			spacing, width, 
 			selected_pt_size, monospace, selected_font);
+  sync_ft_font (false);
   return selected_font;
 }
 
@@ -574,6 +575,7 @@ XftFont *__select_font_for_family (int p_slant,
     FcPatternDestroy (pat);
 #endif /* FC_PATTERN_SET */
 
+  sync_ft_font (false);
   return selected_font;
 }
 
@@ -610,7 +612,6 @@ static XftFont *__select_font_fc (char *p_family, char *p_style, int p_slant,
 
     if (*p_family)
       strcpy (selected_family, p_family);
-    /***/
     if (*p_style) {
       strcpy (selected_style, p_style);
     } else {
@@ -887,8 +888,6 @@ int __ctalkXftInitLib (void) {
     double pt_size;
     int weight, slant, dpi;
     int r;
-    /***/
-    /* XftNameUnparse (selected_font -> pattern, family, MAXLABEL); */
 
     actual_family = (char **)&family;
     r = XftPatternGetString
@@ -1072,7 +1071,7 @@ int __ctalkXftGetStringDimensions (char *str, int *x, int *y,
     
   } else {
   
-    if ((d_l = dialog_dpy ()) != NULL) { /***/
+    if ((d_l = dialog_dpy ()) != NULL) {
       XftTextExtents8 (d_l, selected_font,
 		       (XftChar8 *)str, strlen (str),
 		       &extents);
@@ -1484,7 +1483,6 @@ void __ctalkXftSelectFontFromFontConfig (char *font_config_str) {
 		    font_config_str);
 	    goto fontconfig_parse_done;
 	  } else if (str_eq (M_NAME(m_prop), "style")) {
-	    /***/
 	    strcpy (style, M_NAME(fc_messages[lookahead2]));
 	    goto fc_param_done;
 	  } else if (str_eq (M_NAME(m_prop), "spacing")) {
@@ -1792,7 +1790,7 @@ void __ctalkXftSetForegroundFromNamedColor (char *color_name) {
   }
   fgred = screen_color.red; fggreen = screen_color.green;
   fgblue = screen_color.blue;
-  sync_ft_font (true);
+  sync_ft_font (false);
   XCloseDisplay (l_display);
 }
 
@@ -1924,7 +1922,6 @@ int load_ft_font_faces_internal (char *family, double pt_size,
 				 unsigned short int slant,
 				 unsigned short int weight,
 				 unsigned short int dpi) {
-#if 0 /***/
   XftFont *l_cached_handle;
 
   if ((l_cached_handle =
@@ -1932,7 +1929,6 @@ int load_ft_font_faces_internal (char *family, double pt_size,
       != NULL) {
     return l_cached_handle;
   }
-#endif  
 
   if (new_font_spec (family, weight, slant, dpi, pt_size))  {
     if ((ft_font.normal =
@@ -1945,6 +1941,7 @@ int load_ft_font_faces_internal (char *family, double pt_size,
 		      NULL)) == NULL)
       return ERROR;
     save_new_font_spec (family, weight, slant, dpi, pt_size);
+    sync_ft_font (false);
   }
   return SUCCESS;
 }
@@ -1986,11 +1983,11 @@ int __ctalkXftTextDimensionsBasic (void *d, int drawable_id,
 
 int __xlib_get_text_metrics (void *d, Drawable w, GC gc, char *data,
 			     int *x, int *y, int *width, int *height,
-			     int *rbearing) { /***/
+			     int *rbearing) {
 
   int r;
   char family[MAXLABEL], style[MAXLABEL], text[MAXMSG],
-    *p, *q, nbuf[32], buf[MAXMSG];
+    *p, *q, nbuf[32];
   int slant, weight, dpi;
   /* int spacing, char_width; */  /* not currently used by XftFontOpen */
   double pt_size;
@@ -2073,8 +2070,6 @@ int __xlib_get_text_metrics (void *d, Drawable w, GC gc, char *data,
   
   memset (&extents, 0, sizeof (XGlyphInfo));
 
-  XftNameUnparse (font -> pattern, buf, MAXMSG);
-  
   XftTextExtents8 (d, font, (XftChar8 *)text, strlen (text),
 		   &extents);
     
