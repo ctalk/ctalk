@@ -4009,6 +4009,8 @@ Here is a simple example program that displays a X11LabelPane widget.
 
      #ifdef FTFONTS
        xPane ftFontVar initFontLib;
+       xLabelPane resources replaceAt "ftFont", "DejaVu Sans-12:bold";
+       xLabelPane selectFont;
      #endif
 
        xLabelPane resources replaceAt "backgroundColor", "white";
@@ -4017,7 +4019,7 @@ Here is a simple example program that displays a X11LabelPane widget.
        xPane inputStream eventMask =
          WINDELETE|EXPOSE|ENTERWINDOWNOTIFY|LEAVEWINDOWNOTIFY;
        xTopLevelPane attachTo xPane;
-       xLabelPane attachTo xTopLevelPane, "150x150+25+50";
+       xLabelPane attachTo xTopLevelPane, "150x150+c+50";
        xPane map;
        xPane raiseWindow;
 

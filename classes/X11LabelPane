@@ -1,8 +1,8 @@
-/* $Id: X11LabelPane,v 1.5 2021/01/17 16:48:07 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11LabelPane,v 1.6 2021/01/17 22:27:57 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
-  Copyright © 2020  Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2020, 2021  Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
 
@@ -351,7 +351,7 @@ X11LabelPane instanceMethod draw (void) {
     } else {
       if (self highlight) {
 	self ftFontVar namedX11Color self resources at "highlightTextColor";
-	if (self resources at "highlightTextBold") {
+	if (self resources at "highlightTextBold" == false) {
 	  self faceBold;
  	} else {
 	  self faceRegular;
