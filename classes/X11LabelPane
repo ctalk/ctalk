@@ -1,4 +1,4 @@
-/* $Id: X11LabelPane,v 1.7 2021/01/18 12:44:38 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11LabelPane,v 1.8 2021/01/18 13:17:12 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -331,6 +331,8 @@ X11LabelPane instanceMethod draw (void) {
        here. */
     self borderWidth = self resources at "borderWidth";
     self initialized = true;
+    self ftFontVar selectFontFromFontConfig (self resources at "ftFont");
+    self ftFontVar saveSelectedFont;
   }
   if (self border) {
     self borderStyle;
@@ -435,6 +437,12 @@ X11LabelPane instanceMethod drawButtonLayout (void) {
    a different algorithm for spacing text."
     Integer new ts, parheight, lineStartY, vAir;
   
+  if (!self initialized) {
+    self ftFontVar selectFontFromFontConfig
+      (self resources at "ftFont");
+    self ftFontVar saveSelectedFont;
+  }
+
   self paneBuffer clear;
   self fillStyle;
   if (self border) {
