@@ -1,4 +1,4 @@
-/* $Id: X11ButtonPane,v 1.1.1.1 2020/12/13 14:51:03 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11ButtonPane,v 1.2 2021/01/18 12:44:38 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -190,8 +190,8 @@ X11ButtonPane instanceMethod attachTo (Object parentPane,
     (self resources at "textColor");
   l_local resources replaceAt "highlightForegroundColor",
     (self resources at "highlightForegroundColor");
-  l_local resources replaceAt "ftFont",
-    (self resources at "ftFont");
+  /* l_local resources replaceAt "ftFont",
+     (self resources at "ftFont"); *//***/
   l_local resources replaceAt "highlightBorderWidth",
     (self resources at "highlightBorderWidth");
   l_local resources replaceAt "highlightBorderColor",
@@ -211,6 +211,15 @@ X11ButtonPane instanceMethod attachTo (Object parentPane,
   self highlightVPen colorName = self resources at "highlightVPenColor";
   self highlightVPen width = B_RES_PX;
   
+  self label resources replaceAt "ftFont",
+    (self resources at "ftFont");
+  self label selectFont;
+  self ftFontVar selectFontFromFontConfig
+    (self resources at "ftFont");
+  self ftFontVar saveSelectedFont;
+  /* "highlight" is declared in X11PaneDispatcher class. */
+  self label highlight = false;
+
   return NULL;
 }
 
