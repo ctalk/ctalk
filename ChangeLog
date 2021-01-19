@@ -78,6 +78,13 @@
 2021-01-19
 	- In load_ft_font_faces_internal, integrated the font stash
 	lookup better with the call to XftFontOpen if needed (xftlib.c).
+	- Removed the separate font parameter state for the font selected
+	for rendering on the server side (i.e., the parameters used by
+	new_font_spec and save_new_font_spec (xftlib.c) and sync_ft_font
+	(i.e., the __ctalkXftRequested* functions) (xlibfont.c).
+	- Updated X11FreeTypeFont : __loadInfo to use the __ctalkXftSelected*
+	library functions instead of the __ctalkXftRequested* functions.
+
 
 
 

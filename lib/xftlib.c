@@ -1,4 +1,4 @@
-/* $Id: xftlib.c,v 1.23 2021/01/19 08:30:57 rkiesling Exp $ -*-c-*-*/
+/* $Id: xftlib.c,v 1.25 2021/01/19 16:56:16 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -1862,12 +1862,6 @@ void __ctalkXftGreen (int r) { fggreen = (unsigned short)r; }
 void __ctalkXftBlue (int r) { fgblue = (unsigned short)r; }
 void __ctalkXftAlpha (int r) { fgalpha = (unsigned short)r; }
 
-/* specs of the current font, so we know if the font changes. */
-static char g_family[MAXLABEL];
-static int g_weight = -1;
-static int g_slant = -1;
-static int g_dpi = -1;
-static double g_pt_size = 0.0;
 Display *g_dpy = NULL;
 
 /*  The color allocation is done in x11lib.c, because it
@@ -1894,12 +1888,12 @@ static bool new_font_spec (char *p_family, int p_weight, int p_slant,
 			   int p_dpi, double p_pt_size) {
   Display *d_l = DISPLAY;
 
-  if (strcmp (p_family, g_family))
+  if (strcmp (p_family, selected_family))
     return true;
-  if ((p_weight != g_weight) ||
-      (p_slant != g_slant) ||
-      (p_dpi != g_dpi) ||
-      (p_pt_size != g_pt_size) ||
+  if ((p_weight != selected_weight) ||
+      (p_slant != selected_slant) ||
+      (p_dpi != selected_dpi) ||
+      (p_pt_size != selected_pt_size) ||
       (d_l != g_dpy))
     return true;
   else
@@ -1908,11 +1902,11 @@ static bool new_font_spec (char *p_family, int p_weight, int p_slant,
 
 static void save_new_font_spec (char *p_family, int p_weight, int p_slant,
 				int p_dpi, double p_pt_size) {
-  strcpy (g_family, p_family);
-  g_weight = p_weight;
-  g_slant = p_slant;
-  g_dpi = p_dpi;
-  g_pt_size = p_pt_size;
+  strcpy (selected_family, p_family);
+  selected_weight = p_weight;
+  selected_slant = p_slant;
+  selected_dpi = p_dpi;
+  selected_pt_size = p_pt_size;
   g_dpy = DISPLAY;
 }
 

@@ -1,4 +1,4 @@
-/* $Id: X11FreeTypeFont,v 1.8 2021/01/16 22:31:20 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11FreeTypeFont,v 1.9 2021/01/19 17:00:46 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -240,9 +240,9 @@ X11FreeTypeFont instanceMethod selectFontFromXLFD (String xlfd) {
   self saveSelectedFont;
   /* __ctalkXftRequestedFamily can cause an extra warning - 
      check it eventually */
-  self __loadInfo __ctalkXftRequestedFamily (),
-    __ctalkXftRequestedSlant (), __ctalkXftRequestedWeight (),
-    __ctalkXftRequestedDPI (), __ctalkXftRequestedPointSize ();;
+  self __loadInfo __ctalkXftSelectedFamily (),
+    __ctalkXftSelectedSlant (), __ctalkXftSelectedWeight (),
+    __ctalkXftSelectedDPI (), __ctalkXftSelectedPointSize ();;
 }
 
 X11FreeTypeFont instanceMethod selectFontFromFontConfig (String fcString) {
@@ -250,9 +250,9 @@ X11FreeTypeFont instanceMethod selectFontFromFontConfig (String fcString) {
    given as the argument."
     __ctalkXftSelectFontFromFontConfig (fcString);
   self saveSelectedFont;
-  self __loadInfo __ctalkXftRequestedFamily (),
-    __ctalkXftRequestedSlant (), __ctalkXftRequestedWeight (),
-    __ctalkXftRequestedDPI (), __ctalkXftRequestedPointSize ();
+  self __loadInfo __ctalkXftSelectedFamily (),
+    __ctalkXftSelectedSlant (), __ctalkXftSelectedWeight (),
+    __ctalkXftSelectedDPI (), __ctalkXftSelectedPointSize ();
 }
 
 X11FreeTypeFont instanceMethod RGBAColor (void) {

@@ -2501,6 +2501,10 @@ Returns the font attributes requested after parsing a Fontconfig
 string by __ctalkXftSelectFontFromFontConfig and
 __ctalkXftSelectFontFromXLFD.
 
+Note: The caching in the recent Ctalk and font libraries has
+rendered these functions mostly redundant.  Programs should use the
+equivalent __ctalkXftSelected* functions instead.
+
 >>>__ctalkXftTextDimensionsBasic (void *display, unsigned int drawable, unsigned gc_ptr, char *str, int *x, int *y, int *width, int *height, int * rbearing)
 Returns the dimensions of str in the currenly selected font.
 Unlike the function __ctalkXftGetStringDimensions, which works
