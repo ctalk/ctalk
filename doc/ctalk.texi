@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.21 2021/01/17 22:27:58 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.23 2021/01/19 05:32:38 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -15156,8 +15156,8 @@ borders, programs can set this resource to @samp{0}.
 A @code{String} that defines the color used for the button's drawable
 face.  Its default color is @samp{gray}.
 
-@cindex @code{ftFont} resource @idxclscite{X11ButtonPane}
-@item @code{ftFont}
+@cindex @code{font} resource @idxclscite{X11ButtonPane}
+@item @code{font}
 A @code{String} that contains the Fontconfig descriptor of the
 button's default font.  Its default value is @samp{sans serif-12}.
 The button's label inherits the descriptor as its default font when
@@ -15176,6 +15176,11 @@ myButton label resources replaceAt "ftFont", "URW Gothic L-10";
 
 The font, @samp{URW Gothic L,} is a Type 1 font included in the
 Ghostscript @code{gsfonts} package.
+
+Note that the older, @samp{ftFont} key has been changed to,
+@samp{font}, so it's consitent with other classes' resources.  The
+class still uses the older @samp{ftfont} resource key if a program
+uses it.
 
 @cindex @code{highlightForegroundColor} resource @idxclscite{X11ButtonPane}
 @item @code{highlightForegroundColor}
@@ -15349,6 +15354,12 @@ that distance from the parent window's upper left-hand corner.
 @item clearClick (@code{void})
 Resets a button's clicked state as returned by @mnm{haveClick} to
 false.
+
+@cindex @code{configureFonts} instance method @idxclscite{X11ButtonPane}
+@item clearClick (@code{configureFonts}
+A convenience method that localizes the button's label font for more
+uses, especially with composite widgets like dialog boxes.  This method
+set's the label subpane's font to the button's @samp{font} resource.
 
 @cindex @code{draw} instance method @idxclscite{X11ButtonPane}
 @item draw (@code{void})

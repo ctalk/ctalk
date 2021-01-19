@@ -3484,7 +3484,7 @@ instance variable documentation.  *Note PaneResources::.
      A 'String' that defines the color used for the button's drawable
      face.  Its default color is 'gray'.
 
-'ftFont'
+'font'
      A 'String' that contains the Fontconfig descriptor of the button's
      default font.  Its default value is 'sans serif-12'.  The button's
      label inherits the descriptor as its default font when attaching
@@ -3501,6 +3501,10 @@ instance variable documentation.  *Note PaneResources::.
 
      The font, 'URW Gothic L,' is a Type 1 font included in the
      Ghostscript 'gsfonts' package.
+
+     Note that the older, 'ftFont' key has been changed to, 'font', so
+     it's consitent with other classes' resources.  The class still uses
+     the older 'ftfont' resource key if a program uses it.
 
 'highlightForegroundColor'
      A 'String' that contains the color used to fill the button's face
@@ -3643,6 +3647,12 @@ Instance Methods
 'clearClick (void)'
      Resets a button's clicked state as returned by 'haveClick' to
      false.
+
+'clearClick (configureFonts'
+     A convenience method that localizes the button's label font for
+     more uses, especially with composite widgets like dialog boxes.
+     This method set's the label subpane's font to the button's 'font'
+     resource.
 
 'draw (void)'
      Draws the button and its label on the pane's buffer so the widget

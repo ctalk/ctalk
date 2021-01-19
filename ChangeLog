@@ -70,6 +70,11 @@
 	values the current font.
 2021-01-18
 	- X11ButtonPane updates for more modularized font handling.
+	- Added X11ButtonPane : configureFonts to localize setting
+	the label subpane's font.  Also changed the resource key
+	to "font" so it's consistent with other classes' name for
+	the font resource, although the method also recognizes the
+	older "ftFont" key if the program uses it.
 
 
 

@@ -7112,6 +7112,11 @@ that distance from the parent window's upper left-hand corner.
 Resets a button's clicked state as returned by haveClick to
 false.
 
+>>>X11ButtonPane::clearClick
+A convenience method that localizes the button's label font for more
+uses, especially with composite widgets like dialog boxes.  This method
+set's the label subpane's font to the button's 'font' resource.
+
 >>>X11ButtonPane::draw (void)
 Draws the button and its label on the pane's buffer so the
 widget can be displayed with the refresh method.
