@@ -1,4 +1,4 @@
-/* $Id: xftlib.c,v 1.22 2021/01/17 20:00:02 rkiesling Exp $ -*-c-*-*/
+/* $Id: xftlib.c,v 1.23 2021/01/19 08:30:57 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -1922,16 +1922,14 @@ int load_ft_font_faces_internal (char *family, double pt_size,
 				 unsigned short int slant,
 				 unsigned short int weight,
 				 unsigned short int dpi) {
-  XftFont *l_cached_handle;
-
-  if ((l_cached_handle =
-       xft_font_is_cached (family, "", slant, weight, dpi, pt_size))
-      != NULL) {
-    return l_cached_handle;
-  }
 
   if (new_font_spec (family, weight, slant, dpi, pt_size))  {
-    if ((ft_font.normal =
+    if ((ft_font.normal = 
+	 xft_font_is_cached (family, "", slant, weight, dpi, pt_size))
+	!= NULL) {
+      save_new_font_spec (family, weight, slant, dpi, pt_size);
+      sync_ft_font (false);
+    } else if ((ft_font.normal =
 	 XftFontOpen (DISPLAY, DefaultScreen (display),
 		      XFT_FAMILY, XftTypeString, family,
 		      XFT_SIZE, XftTypeDouble, pt_size,
