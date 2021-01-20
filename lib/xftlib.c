@@ -1,4 +1,4 @@
-/* $Id: xftlib.c,v 1.27 2021/01/20 16:05:51 rkiesling Exp $ -*-c-*-*/
+/* $Id: xftlib.c,v 1.28 2021/01/20 17:19:59 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -1952,6 +1952,10 @@ bool __ctalkXftIsMonospace (void) {
   return monospace;
 }
 
+int __xlib_get_text_metrics (void *d, Drawable w, GC gc, char *data,
+			     int *x, int *y, int *width, int *height,
+			     int *rbearing);
+
 int __ctalkXftTextDimensionsBasic (void *d, int drawable_id,
 				   unsigned long gc_ptr,
 				   char *text, int *x, int *y, int *width,
@@ -1971,15 +1975,20 @@ int __ctalkXftTextDimensionsBasic (void *d, int drawable_id,
 	   selected_pt_size,
 	   text);
 
-  make_req (shm_mem, d, PANE_GET_TEXT_METRICS_REQUEST,
-	    drawable_id, gc_ptr, d_buf);
-  wait_req (shm_mem);
+  if (dialog_dpy ()) {
+    __xlib_get_text_metrics (d, drawable_id, (GC) gc_ptr, d_buf,
+			     x, y, width, height, rbearing);
+  } else {
+    make_req (shm_mem, d, PANE_GET_TEXT_METRICS_REQUEST,
+	      drawable_id, gc_ptr, d_buf);
+    wait_req (shm_mem);
 
-  memcpy (x, &shm_mem[SHM_RETVAL], sizeof (int));
-  memcpy (y, &shm_mem[SHM_RETVAL2], sizeof (int));
-  memcpy (width, &shm_mem[SHM_RETVAL3], sizeof (int));
-  memcpy (height, &shm_mem[SHM_RETVAL4], sizeof (int));
-  memcpy (rbearing, &shm_mem[SHM_RETVAL5], sizeof (int));
+    memcpy (x, &shm_mem[SHM_RETVAL], sizeof (int));
+    memcpy (y, &shm_mem[SHM_RETVAL2], sizeof (int));
+    memcpy (width, &shm_mem[SHM_RETVAL3], sizeof (int));
+    memcpy (height, &shm_mem[SHM_RETVAL4], sizeof (int));
+    memcpy (rbearing, &shm_mem[SHM_RETVAL5], sizeof (int));
+  }
   return SUCCESS;
 }
 
