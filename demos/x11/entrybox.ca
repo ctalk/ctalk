@@ -14,6 +14,7 @@ int main (void) {
   label canFocus = false;
   label borderWidth = 0;
 
+  label ftFontVar initFontLib;
   label ftFontVar notifyLevel XFT_NOTIFY_NONE;
 
   mainWindow backgroundColor = "blue";
@@ -36,8 +37,6 @@ int main (void) {
   mainWindow openEventStream;
 
   mainWindow setWMTitle "X11TextEntryBox Demo";
-
-  label ftFontVar initFontLib;
 
   label multiLine "X11TextEntryBox\nDemo";
   label resources replaceAt "textColor", "lightgray";

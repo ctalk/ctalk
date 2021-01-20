@@ -1,4 +1,4 @@
-/* $Id: xftlib.c,v 1.25 2021/01/19 16:56:16 rkiesling Exp $ -*-c-*-*/
+/* $Id: xftlib.c,v 1.27 2021/01/20 16:05:51 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -535,8 +535,10 @@ XftFont *__select_font_for_family (int p_slant,
       selected_slant = p_slant;
     if (p_weight >= 0)
       selected_weight = p_weight;
+#if 0
     if (p_dpi > 0)
       selected_dpi = p_dpi;
+#endif    
     if (p_size > 0.0)
       selected_pt_size = p_size;
 #ifdef FC_PATTERN_SET
@@ -621,8 +623,10 @@ static XftFont *__select_font_fc (char *p_family, char *p_style, int p_slant,
       selected_slant = p_slant;
     if (p_weight >= 0)
       selected_weight = p_weight;
+#if 0
     if (p_dpi > 0)
       selected_dpi = p_dpi;
+#endif    
     if (p_spacing > 0)
       selected_spacing = p_spacing;
     if (p_size > 0.0)
@@ -695,6 +699,7 @@ static XftFont *__select_font_fc (char *p_family, char *p_style, int p_slant,
   return selected_font;
 }
 
+#if 0 /***/
 static int default_screen_dpi (Display *d) {
   double width, width_mm, height, height_mm;
   double dpi_x, dpi_y;
@@ -712,6 +717,7 @@ static int default_screen_dpi (Display *d) {
   }
    return selected_dpi;
 }
+#endif
 
 extern char *__argvFileName (void);
 
@@ -808,6 +814,8 @@ void XFT_CONFIG_init (void) {
 
 }
 
+extern int avg_dpi ();
+
 int __ctalkXftInitLib (void) {
   struct stat statbuf;
   char *xftenv = NULL;
@@ -833,7 +841,8 @@ int __ctalkXftInitLib (void) {
     return SUCCESS;
   }
 
-  default_screen_dpi (display);
+  /* default_screen_dpi (display); *//***/
+  selected_dpi = avg_dpi ();
 
   XftInit ("");
 
@@ -1768,6 +1777,7 @@ void __ctalkXftSetForeground (int r, int g, int b, int alpha) {
    etc. in ctalk.h.  Defined in x11lib.c.
 */
 extern int lookup_color (XColor *, char *name);
+extern void sync_ft_color (void); 
 
 /* Opens a connection to the display independently if the
    program hasn't yet connected to the X server. */
@@ -1790,7 +1800,7 @@ void __ctalkXftSetForegroundFromNamedColor (char *color_name) {
   }
   fgred = screen_color.red; fggreen = screen_color.green;
   fgblue = screen_color.blue;
-  sync_ft_font (false);
+  sync_ft_color ();
   XCloseDisplay (l_display);
 }
 
@@ -1905,7 +1915,7 @@ static void save_new_font_spec (char *p_family, int p_weight, int p_slant,
   strcpy (selected_family, p_family);
   selected_weight = p_weight;
   selected_slant = p_slant;
-  selected_dpi = p_dpi;
+  /* selected_dpi = p_dpi;*//***/
   selected_pt_size = p_pt_size;
   g_dpy = DISPLAY;
 }

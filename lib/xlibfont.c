@@ -1,4 +1,4 @@
-/* $Id: xlibfont.c,v 1.2 2020/09/18 21:25:13 rkiesling Exp $ -*-c-*-*/
+/* $Id: xlibfont.c,v 1.2 2021/01/20 16:05:51 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -240,6 +240,13 @@ int load_xlib_fonts_internal_1t (void *d, char *xlfd) {
 #include "xftfont.h"
 
 extern unsigned short fgred, fggreen, fgblue, fgalpha;
+
+void sync_ft_color (void) {
+  shm_mem[SHM_FONT_FT_RED] = fgred;
+  shm_mem[SHM_FONT_FT_GREEN] = fggreen;
+  shm_mem[SHM_FONT_FT_BLUE] = fgblue;
+  shm_mem[SHM_FONT_FT_ALPHA] = fgalpha;
+}
 
 void sync_ft_font (bool sync_color_too) {
   char buf[0xff];

@@ -1,4 +1,4 @@
-/* $Id: x11lib.c,v 1.13 2021/01/17 20:00:02 rkiesling Exp $ -*-c-*-*/
+/* $Id: x11lib.c,v 1.14 2021/01/19 21:45:11 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -2043,6 +2043,30 @@ int __ctalkX11MakeEvent (OBJECT *eventobject_value_var, OBJECT *inputqueue) {
   }
   
   return 0;
+}
+
+static int scr_px_width, scr_px_height;
+static int scr_mm_width, scr_mm_height;
+static int avg_dpi_i;
+
+static void calc_screen_dpi (void) {
+  float w_in, h_in, w_dpi, h_dpi;
+  
+  scr_px_width = WidthOfScreen (DefaultScreenOfDisplay (display));
+  scr_px_height = HeightOfScreen (DefaultScreenOfDisplay (display));
+  scr_mm_width = WidthMMOfScreen (DefaultScreenOfDisplay (display));
+  scr_mm_height = HeightMMOfScreen (DefaultScreenOfDisplay (display));
+
+  w_in = (float)scr_mm_width / 25.4;
+  h_in = (float)scr_mm_height / 25.4;
+  w_dpi = (float)scr_px_width / w_in;
+  h_dpi = (float)scr_px_height / h_in;
+  avg_dpi_i = (int)((w_dpi + h_dpi) / 2);
+}
+
+int avg_dpi (void) {
+  calc_screen_dpi ();
+  return avg_dpi_i;
 }
 
 static int child_pid = -1;
