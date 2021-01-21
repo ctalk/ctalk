@@ -1,4 +1,4 @@
-/* $Id: xmenu.c,v 1.21 2021/01/21 11:48:54 rkiesling Exp $ -*-c-*-*/
+/* $Id: xmenu.c,v 1.22 2021/01/21 12:03:56 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -190,8 +190,25 @@ int __ctalkX11MenuDrawLine (void *d, int drawable_id,
 
     return SUCCESS;
 
+#else /* #if defined (HAVE_XFT_H) && defined (HAVE_XRENDER_H) */
 
+  XGCValues xgcv;
+
+  xgcv.foreground = lookup_pixel_d (d, color);
+  /* xgcv.background = self bgPixel; *//***/
+  xgcv.line_width = pen_width;
+  XChangeGC (self displayPtr, self xGC,
+	     GCForeground|GCLineWidth, &xgcv);
+#if 0/***/
+  XChangeGC (self displayPtr, self xGC,
+	     GCForeground|GCBackground|GCLineWidth, &xgcv);
 #endif  
+  
+  XDrawLine (self displayPtr, self paneBuffer xID, self xGC,
+	     x_start, y_start,
+	     x_end, y_end);
+
+#endif   /* #if defined (HAVE_XFT_H) && defined (HAVE_XRENDER_H) */
   return SUCCESS;
 }
 
