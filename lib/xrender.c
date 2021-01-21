@@ -1,4 +1,4 @@
-/* $Id: xrender.c,v 1.1.1.1 2020/12/13 14:51:03 rkiesling Exp $ -*-c-*-*/
+/* $Id: xrender.c,v 1.2 2021/01/21 11:48:54 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -104,7 +104,7 @@ int xrender_event_base = -1, xrender_error_base = -1;
 
 XRENDERDRAWREC surface = {0, NULL, 0, 0, NULL, NULL, NULL};
 
-static void xr_make_surface (Display *dpy, Drawable d) {
+void xr_make_surface (Display *dpy, Drawable d) {
   surface.draw = XftDrawCreate (dpy, d,
 				DefaultVisual (dpy,
 					       DefaultScreen (dpy)),

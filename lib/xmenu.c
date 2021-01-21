@@ -1,4 +1,4 @@
-/* $Id: xmenu.c,v 1.19 2021/01/07 10:28:29 rkiesling Exp $ -*-c-*-*/
+/* $Id: xmenu.c,v 1.21 2021/01/21 11:48:54 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -40,9 +40,13 @@
 #include FT_FREETYPE_H
 #include "xftfont.h"
 
+#if defined (HAVE_XFT_H) && defined (HAVE_XRENDER_H)
+#include "xrender.h"
+#endif
 extern Display *display;   /* Defined in x11lib.c. */
 extern GC create_pane_win_gc (Display *d, Window w, OBJECT *pane);
 extern void __save_pane_to_vars (OBJECT *, GC, int, int);
+extern char *ascii[8193];
 
 static Display *scr_click_dpy = NULL;
 
@@ -109,6 +113,85 @@ int __ctalkX11MapMenu (OBJECT *menu_object, int p_dpy_x, int p_dpy_y) {
   XMapSubwindows (menu_dpy, menu_win_id);
   XRaiseWindow (menu_dpy, menu_win_id);
 
+  return SUCCESS;
+}
+
+extern XRENDERDRAWREC surface;
+
+void xr_make_surface (Display *, Drawable);
+bool get_color (char *, XftColor *);
+void save_color (char *, XftColor *);
+
+int __ctalkX11MenuDrawLine (void *d, int drawable_id,
+			    unsigned long gc_ptr,
+			    int x_start, int y_start,
+			    int x_end, int y_end,
+			    int pen_width, int alpha,
+			    char *color) {
+#if defined (HAVE_XFT_H) && defined (HAVE_XRENDER_H)
+
+  XftColor rcolor;
+  XPointDouble poly[4];
+  int dx, dy;
+  double pen_half_width;
+  
+  xr_make_surface (d, drawable_id);
+  if (!get_color (color, &rcolor)) {
+    if (XftColorAllocName (d, 
+			   DefaultVisual (d, DefaultScreen (d)),
+			   DefaultColormap (d, DefaultScreen (d)),
+			   color, &rcolor)) {
+      rcolor.color.alpha = alpha;
+      save_color (color, &rcolor);
+    } else {
+      return ERROR;
+    }
+  }
+
+  if (rcolor.color.alpha != alpha)
+    rcolor.color.alpha = alpha;
+  surface.fill_picture = XftDrawSrcPicture (surface.draw, &rcolor);
+  if (surface.fill_picture == 0) {
+    surface.drawable = 0;
+    return ERROR;
+  }
+
+  dx = x_start - x_end;
+  dy = y_start - y_end;
+  pen_half_width = ((double)pen_width / 2.0);
+
+  /* This is (almost) from xlib_draw_line in xrender.c */
+  if (abs(dx) > abs(dy)) {
+    poly[0].x = ((double)x_start);
+    poly[0].y = ((double)y_start) + pen_half_width;
+    poly[1].x = ((double)x_end);
+    poly[1].y = ((double)y_end) + pen_half_width;
+    poly[2].x = ((double)x_end);
+    poly[2].y = ((double)y_end) - pen_half_width;
+    poly[3].x = ((double)x_start);
+    poly[3].y = ((double)y_start) - pen_half_width;
+  } else {
+    poly[0].x = ((double)x_start) + pen_half_width;
+    poly[0].y = ((double)y_start);
+    poly[1].x = ((double)x_end) + pen_half_width;
+    poly[1].y = ((double)y_end);
+    poly[2].x = ((double)x_end) - pen_half_width;;
+    poly[2].y = ((double)y_end);
+    poly[3].x = ((double)x_start) - pen_half_width;
+    poly[3].y = ((double)y_start);
+  }
+  
+  XRenderCompositeDoublePoly (d,
+			      PictOpOver,
+			      surface.fill_picture,
+			      surface.picture,
+			      surface.mask_format,
+			      0, 0, 0, 0, poly, 4, EvenOddRule);
+
+    return SUCCESS;
+
+
+#endif  
   return SUCCESS;
 }
 
@@ -324,4 +407,14 @@ int __ctalkX11MenuDrawString (void *d, unsigned int w, int x, int y,
   exit (ERROR);
 }
 
+int __ctalkX11MenuDrawLine (void *d, int drawable_id,
+			    unsigned long gc_ptr,
+			    int x_start, int y_start,
+			    int x_end, int y_end,
+			    int pen_width, int alpha,
+			    char *color) {
+  fprintf (stderr, "__ctalkX11MenuDrawLine: This program requires "
+	   "the X Window System.  Exiting.\n");
+  exit (ERROR);
+}
 #endif /* ! defined (DJGPP) && ! defined (WITHOUT_X11) */

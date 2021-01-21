@@ -1,4 +1,4 @@
-/* $Id: ctalklib.in,v 1.18 2021/01/16 21:44:33 rkiesling Exp $ -*-c-*-*/
+/* $Id: ctalklib.in,v 1.19 2021/01/21 11:05:46 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -1083,6 +1083,8 @@ extern int __ctalkX11MenuDrawString (void *, unsigned int, int x, int y,
 				     int text_x_size, int text_y_size,
 				     int box_x_size, int box_y_size,
 				     char *, char *);
+extern int __ctalkX11MenuDrawLine (void *, int, unsigned long,
+				   int, int, int, int, int, int, char *);
 
 extern int __ctalkX11MoveWindow (OBJECT *, int, int);
 extern int __ctalkX11ResizeWindow (OBJECT *, int, int, int);

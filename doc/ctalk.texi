@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.23 2021/01/19 05:32:38 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.25 2021/01/21 11:48:03 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -25679,6 +25679,12 @@ directly by any method but is a process of the
 Encapsulates much of the function of the @mnm{X11TerminalStream :
 queueInput} method: receives the data for an X event from the X11 input client and saves it in an @code{InputEvent} object, then queues the @code{InputEvent} object in the @code{X11TerminalStream}'s @code{inputQueue}.
 
+@idxlibfn{__ctalkX11MenuDrawLine}
+@item __ctalkX11MenuDrawLine (@code{void *}@var{display}, @code{unsigned int} @var{drawable}, @code{unsigned long} @var{GC_ptr}, @code{int} @var{x_start}, @code{int} @var{y_start}, @code{int} @var{x_end}, @code{int} @var{y_end}, @code{int} @var{pen_width}, @code{int} @var{alpha}, @code{char *}@var{colorName})
+Draws a line on the menu's @code{paneBuffer}, from
+@var{x_start,y_start} to @var{x_end,y_end}, with the line width,
+opacity, and color given by the arguments.
+
 @idxlibfn{__ctalkX11MenuDrawString}
 @item __ctalkX11MenuDrawString (@code{void *}@var{display}, @code{unsigned int} @var{drawable}, @code{int} @var{x}, @code{int} @var{y}, @code{int} @var{text_x_size}, @code{int} @var{text_y_size}, @code{int} @var{rect_x_size}, @code{int} @var{rect_y_size}, @code{char *}@var{str}, @code{char *}@var{color})
 Draws menu text @var{str} within the margins of the rectangle defined by @var{x,y,rect_x_size,rect_y_size}.  The text is centered vertically, and is justified to the left margin defined by @var{x}.
@@ -26148,6 +26154,10 @@ Return the qualified font name string for @var{pattern}.
 Returns the font attributes requested after parsing a Fontconfig
 string by @cite{__ctalkXftSelectFontFromFontConfig} and
 @cite{__ctalkXftSelectFontFromXLFD}.
+
+@emph{Note:} The caching in the recent Ctalk and font libraries has
+rendered these functions mostly redundant.  Programs should use the
+equivalent @cite{__ctalkXftSelected*} functions instead.
 
 @anchor{ctalkXftTextDimensionsBasic}
 @idxlibfn{__ctalkXftTextDimensionsBasic}

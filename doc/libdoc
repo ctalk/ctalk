@@ -2112,6 +2112,11 @@ __ctalkOpenX11InputClient function, above.
 Encapsulates much of the function of the @mnm{X11TerminalStream :
 queueInput} method: receives the data for an X event from the X11 input client and saves it in an InputEvent object, then queues the InputEvent object in the X11TerminalStream's inputQueue.
 
+>>>__ctalkX11MenuDrawLine (void *display, unsigned int drawable, unsigned long GC_ptr, int x_start, int y_start, int x_end, int y_end, int pen_width, int alpha, char *colorName)
+Draws a line on the menu's paneBuffer, from
+x_start,y_start to x_end,y_end, with the line width,
+opacity, and color given by the arguments.
+
 >>>__ctalkX11MenuDrawString (void *display, unsigned int drawable, int x, int y, int text_x_size, int text_y_size, int rect_x_size, int rect_y_size, char *str, char *color)
 Draws menu text str within the margins of the rectangle defined by x,y,rect_x_size,rect_y_size.  The text is centered vertically, and is justified to the left margin defined by x.
 
