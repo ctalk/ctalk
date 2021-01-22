@@ -1,4 +1,4 @@
-/* $Id: xmenu.c,v 1.22 2021/01/21 12:03:56 rkiesling Exp $ -*-c-*-*/
+/* $Id: xmenu.c,v 1.23 2021/01/22 06:20:13 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -296,6 +296,8 @@ int __ctalkX11WithdrawMenu (OBJECT *menu_object) {
   return SUCCESS;
 }
 
+unsigned long lookup_pixel_d (Display *, char *);
+
 int __ctalkX11CreatePopupMenu (OBJECT *self_object, int p_x, int p_y) {
   Window menu_win_id;
   XSetWindowAttributes set_attributes;
@@ -308,6 +310,7 @@ int __ctalkX11CreatePopupMenu (OBJECT *self_object, int p_x, int p_y) {
   int x_org, y_org, x_size, y_size, border_width;
   Display *d_l;
   int n_items;
+  char bgColorName[MAXLABEL];
 
   wm_event_mask = WM_CONFIGURE_EVENTS | WM_INPUT_EVENTS;
 
@@ -362,7 +365,8 @@ int __ctalkX11CreatePopupMenu (OBJECT *self_object, int p_x, int p_y) {
     if (str_eq (t -> __o_name, "font")) {
       t_val = *(OBJECT **)t -> instancevars -> __o_value;
       strcpy (ftFont, t_val -> __o_value);
-      break;
+    } else if (str_eq (t -> __o_name, "bgColor")) {
+      strcpy (bgColorName, t_val -> __o_value);
     }
   }
 
@@ -384,7 +388,8 @@ int __ctalkX11CreatePopupMenu (OBJECT *self_object, int p_x, int p_y) {
   XSelectInput(d_l, menu_win_id, wm_event_mask);
 
   gc = create_pane_win_gc (d_l, menu_win_id, self_object);
-  xgcv.background = WhitePixel (d_l, DefaultScreen (d_l));
+  /* xgcv.background = WhitePixel (d_l, DefaultScreen (d_l)); */ /***/
+  xgcv.background = lookup_pixel_d (d_l, bgColorName);
   xgcv.foreground = BlackPixel (d_l, DefaultScreen (d_l));
   xgcv.function = GXcopy;
   XChangeGC (d_l, gc, GCFunction|GCBackground|GCForeground, &xgcv);

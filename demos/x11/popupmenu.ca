@@ -65,14 +65,15 @@ int main (void) {
   X11Pane new mainWin;
   X11PaneDispatcher new dispatcher;
   X11LabelPane new heading, subHeading;
-  X11PopupMenu new menu;
+  X11PopupMenu new mainMenu;
   InputEvent new e;
   XEvent ev_ret;
   Display *display;
 
-  menu add "Label Text...", "entryBox getUserInput";
-  menu add "About...", "aboutBox show";
-  menu add "Exit", "self clientExit parentPane";
+  mainMenu add "Label Text...", "entryBox getUserInput";
+  mainMenu add "My SubMenu>", "entryBox getUserInput";
+  mainMenu add "About...", "aboutBox show";
+  mainMenu add "Exit", "self clientExit parentPane";
 
   heading canFocus = false;
   heading resources replaceAt "borderWidth", 0;
@@ -89,7 +90,6 @@ int main (void) {
   mainWin backgroundColor = "blue";
   heading resources replaceAt "backgroundColor", "blue";
   subHeading resources replaceAt "backgroundColor", "blue";
-  menu resources replaceAt "backgroundColor", "blue";
   
   mainWin initialize 255, 200;
   /*
@@ -147,8 +147,8 @@ int main (void) {
 	  subHeading subPaneExpose (subHeading, e);
 	  break;
 	case BUTTONPRESS:
-	  menu popup mainWin, e xEventData5, e xEventData6;
-	  display = menu displayPtr;
+	  mainMenu popup mainWin, e xEventData5, e xEventData6;
+	  display = mainMenu displayPtr;
 	  while (XCheckTypedEvent (display, ButtonPress, &ev_ret))
 	    ;
 	  break;
