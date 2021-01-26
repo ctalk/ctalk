@@ -94,7 +94,18 @@
 	- Updated __ctalkX11CreatePopupMenu (xmenu.c), and
 	X11PopupMenu : popup to use the "bgColor" resource to set
 	the menu's background color.
-
-
-
+2021-01-22
+	- Added fmt_rt_argblk_super_expr, added by rt_expr
+	(rt_expr.c).
+2021-01-24
+	- Updated handle_cvar_argblk_translation to handle more
+	that just OBJECT *'s when wrapping struct members
+	(cvartab.c).
+	- Added the addition of the TOK_HAS_CVARTAB_AGG_WRAPPER
+	to C variable tokens in fmt_rt_argblk_super_expr (rt_expr.c).
+	Also added an aggregate_end_idx parameter to
+	handle_cvar_argblk_translation (cvartab.c).
+2021-01-26
+	- Added method_arg_is_argblk_struct (arg.c), called
+	by fmt_rt_argblk_super_expr (rt_expr.c).
 

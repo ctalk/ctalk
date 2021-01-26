@@ -1,4 +1,4 @@
-/* $Id: ctalk.h,v 1.19 2021/01/14 15:07:05 rkiesling Exp $ -*-Fundamental-*- */
+/* $Id: ctalk.h,v 1.24 2021/01/25 17:18:48 rkiesling Exp $ -*-Fundamental-*- */
 
 /*
   This file is part of Ctalk.
@@ -880,6 +880,7 @@ char *stdarg_fmt_arg_expr (MESSAGE_STACK, int, METHOD *, char *);
 char *writable_arg_rt_arg_expr (MESSAGE_STACK, int, int, char *);
 char *format_method_arg_accessor (int, char *, bool, char *);
 char *method_arg_is_fn_call (MESSAGE_STACK, int, int, int, int, int *);
+char *method_arg_is_argblk_struct (MESSAGE_STACK, int, int, CVAR *);
 
 
 /* argblk.c */
@@ -1146,7 +1147,8 @@ int function_contains_argblk (MESSAGE_STACK, int);
 int function_cvar_alias_basename (CVAR *, char *);
 CVAR *get_var_from_cvartab_name (char *);
 bool need_cvar_argblk_translation (CVAR *);
-OBJECT *handle_cvar_argblk_translation (MESSAGE_STACK, int, int, CVAR *);
+OBJECT *handle_cvar_argblk_translation (MESSAGE_STACK, int, int, CVAR *,
+       				        int *);
 OBJECT *argblk_CVAR_name_to_msg (MESSAGE *, CVAR *);
 
 /* c_rval.c */
@@ -2724,6 +2726,7 @@ void __ctalkXftSelectFont (char *, int, int, int, double);
 void __ctalkXftSelectFontFromXLFD (char *);
 void __ctalkXftSelectFontFromFontConfig (char *font_config_str);
 char  *__ctalkXftSelectedFamily (void);
+char  *__ctalkXftSelectedStyle (void);
 int __ctalkXftSelectedSlant (void);
 int __ctalkXftSelectedWeight (void);
 int __ctalkXftSelectedDPI (void);
@@ -3341,6 +3344,7 @@ int rte_expr_contains_c_fn_arg_call (MESSAGE_STACK messages,
 					    int start, int end);
 int rt_fn_arg_cond_expr (MSINFO *);
 char *fmt_rt_argblk_expr (MESSAGE_STACK, int, int *, char *);
+char *fmt_rt_argblk_super_expr (MESSAGE_STACK, int, int *, char *, bool *);
 
 
 /* rt_time.c */

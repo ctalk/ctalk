@@ -1,8 +1,8 @@
-/* $Id: cvartab.c,v 1.2 2020/09/19 01:08:27 rkiesling Exp $ */
+/* $Id: cvartab.c,v 1.5 2021/01/24 21:57:24 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
-  Copyright © 2014-2020 Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2014-2021 Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
 
@@ -1274,9 +1274,13 @@ static char *fmt_cvar_tab_ref (CVAR *c, char *buf_out) {
 OBJECT *handle_cvar_argblk_translation (MESSAGE_STACK messages,
 					int message_ptr,
 					int next_label_ptr,
-					CVAR *cvar) {
+					CVAR *cvar,
+					int *agg_end_idx) {
   char cvar_block_alias[MAXLABEL];
   MESSAGE *m;
+  int i;
+
+  *agg_end_idx = -1;
 
   if (argblk_cvar_is_fn_argument (messages, message_ptr, cvar)) {
     return NULL;
@@ -1309,12 +1313,31 @@ OBJECT *handle_cvar_argblk_translation (MESSAGE_STACK messages,
 	  }
 	}
 	break;
-      case PERIOD:
-      case INCREMENT:
       case DECREMENT:
+      case INCREMENT:
+	/***/
 	if (NEED_TAB_ENTRY(cvar)) {
 	  strcatx (m -> name, "(",
 		   fmt_cvar_tab_ref (cvar, cvar_block_alias), ")", NULL);
+	} else {
+	  strcatx (m -> name, "(", cvar -> name, ")", NULL);
+	}
+#ifdef SYMBOL_SIZE_CHECK
+	check_symbol_size (m -> name);
+#endif	    
+	break;
+      case PERIOD:
+	if (NEED_TAB_ENTRY(cvar)) {
+	  /***/
+	  /* if (cvar -> type_attrs & CVAR_TYPE_OBJECT) { */
+	    strcatx (m -> name, "(",
+		     fmt_cvar_tab_ref (cvar, cvar_block_alias), ")", NULL);
+	    *agg_end_idx = struct_end (messages, message_ptr,
+					 get_stack_top (messages));
+	    for (i = message_ptr; i >= *agg_end_idx; i--) {
+	      messages[i] -> attrs |= TOK_HAS_CVARTAB_AGG_WRAPPER;
+	    }
+	    /* }*/
 	} else {
 	  strcatx (m -> name, "(", cvar -> name, ")", NULL);
 	}

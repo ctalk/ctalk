@@ -1,8 +1,8 @@
-/* $Id: arg.c,v 1.4 2021/01/10 14:51:59 rkiesling Exp $ */
+/* $Id: arg.c,v 1.6 2021/01/26 08:21:20 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
-  Copyright © 2005-2020 Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2005-2021 Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
 
@@ -1561,10 +1561,6 @@ char *fmt_c_fn_obj_args_expr (MESSAGE_STACK messages, int fn_idx,
 		 fn_cfunc, 
 		 fmt_rt_expr (messages, argstrs[n_th_arg].start_idx, &end_idx,
 			      expr_buf_tmp), n_th_arg),
-#if 0 /***/
-		 fmt_rt_expr (messages, argstrs[0].start_idx, &end_idx,
-			      expr_buf_tmp), n_th_arg),
-#endif		 
 		 n_th_arg, n_args);
       } else {
 	add_arg (expr_buf,
@@ -2561,6 +2557,56 @@ char *format_method_arg_accessor (int param_idx, char *tok, bool varargs,
 }
 
 /***/
+/*
+ *  Use for expressions like, 
+ * 
+ *   <rcvr> <method> <arg_expr>, <struct.mbr.mbr.mbr ...>;
+ */
+char *method_arg_is_argblk_struct (MESSAGE_STACK messages,
+				   int agg_start_idx,
+				   int agg_end_idx,
+				   CVAR *struct_cvar) {
+
+  char *terminal_mbr_class, *struct_expr,
+    tmp_lval_name[MAXLABEL], template_expr[MAXMSG],
+    tmpl_cvar_register_buf[MAXMSG];
+  CVAR *terminal_struct_mbr;
+  int tmp_lval_tab_idx, i;
+
+  terminal_struct_mbr = struct_member_from_expr_b (messages, agg_start_idx,
+						   agg_end_idx,
+						   struct_cvar);
+  struct_expr = collect_tokens (messages, agg_start_idx, agg_end_idx);
+  terminal_mbr_class = basic_class_from_cvar (messages[agg_start_idx],
+					      terminal_struct_mbr,
+					      0);
+  tmp_lval_tab_idx = get_tmp_lval_tab_idx (messages, agg_start_idx,
+					    terminal_mbr_class);
+  make_tmp_fn_block_name (tmp_lval_name);
+
+  for (i = agg_start_idx; i >= agg_end_idx; i--) {
+    messages[i] -> name[0] = ' '; messages[i] -> name[1] = '\0';
+    messages[i] -> tokentype = WHITESPACE;
+  }
+  __xfree (MEMADDR(messages[agg_start_idx] -> name));
+  messages[agg_start_idx] -> name = strdup (tmp_lval_name);
+
+#if 1
+  sprintf (template_expr, ARG_FN_EXPR_TEMPLATE,
+	   tmp_lval_type_str (tmp_lval_tab_idx),
+	   tmp_lval_name,
+	   struct_expr,
+	   fmt_register_c_method_arg_call 
+	   (terminal_struct_mbr, tmp_lval_name, LOCAL_VAR,
+	    tmpl_cvar_register_buf));
+	     
+  fileout (template_expr, FALSE, agg_start_idx);
+#endif  
+
+  __xfree (MEMADDR(struct_expr));
+  return NULL;
+}
+
 /*
  *  Use for expressions like, 
  * 

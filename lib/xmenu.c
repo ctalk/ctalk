@@ -1,4 +1,4 @@
-/* $Id: xmenu.c,v 1.23 2021/01/22 06:20:13 rkiesling Exp $ -*-c-*-*/
+/* $Id: xmenu.c,v 1.24 2021/01/22 13:29:41 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -365,7 +365,7 @@ int __ctalkX11CreatePopupMenu (OBJECT *self_object, int p_x, int p_y) {
     if (str_eq (t -> __o_name, "font")) {
       t_val = *(OBJECT **)t -> instancevars -> __o_value;
       strcpy (ftFont, t_val -> __o_value);
-    } else if (str_eq (t -> __o_name, "bgColor")) {
+    } else if (str_eq (t -> __o_name, "backgroundColor")) {
       strcpy (bgColorName, t_val -> __o_value);
     }
   }
@@ -388,7 +388,6 @@ int __ctalkX11CreatePopupMenu (OBJECT *self_object, int p_x, int p_y) {
   XSelectInput(d_l, menu_win_id, wm_event_mask);
 
   gc = create_pane_win_gc (d_l, menu_win_id, self_object);
-  /* xgcv.background = WhitePixel (d_l, DefaultScreen (d_l)); */ /***/
   xgcv.background = lookup_pixel_d (d_l, bgColorName);
   xgcv.foreground = BlackPixel (d_l, DefaultScreen (d_l));
   xgcv.function = GXcopy;

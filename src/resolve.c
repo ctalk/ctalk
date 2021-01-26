@@ -1,4 +1,4 @@
-/* $Id: resolve.c,v 1.3 2021/01/08 20:53:48 rkiesling Exp $ */
+/* $Id: resolve.c,v 1.5 2021/01/24 21:57:24 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -1161,7 +1161,7 @@ OBJECT *resolve (int message_ptr) {
   int prev_tok_ptr_2;
   int sender_idx;
   int method_attrs;
-  int fn_idx;
+  int fn_idx, agg_end_idx;
   int t;
   int expr_close_paren,
     expr_open_paren,
@@ -1368,7 +1368,8 @@ OBJECT *resolve (int message_ptr) {
 		 handle_cvar_argblk_translation (ms.messages,
 						 message_ptr,
 						 next_label_ptr,
-						 cvar);
+						 cvar,
+						 &agg_end_idx);
 	       } else {
 		 insert_object_ref (ms.messages, message_ptr);
 	       }
@@ -1386,7 +1387,8 @@ OBJECT *resolve (int message_ptr) {
 	  return handle_cvar_argblk_translation (ms.messages,
 						 message_ptr,
 						 next_label_ptr,
-						 cvar);
+						 cvar,
+						 &agg_end_idx);
 
 	if (cvar -> scope & GLOBAL_VAR) {
 	  if (m -> output == 0) {
@@ -2035,7 +2037,6 @@ OBJECT *resolve (int message_ptr) {
     */
    if (m -> attrs & TOK_SUPER) {
      if (argblk_super_expr (&ms) < 0) {
-     /* if (argblk_super_expr (ms.messages, message_ptr)) { */
        if (interpreter_pass == method_pass) {
 	 if ((next_label_ptr = nextlangmsg (ms.messages, message_ptr))
 	     != ERROR) {
