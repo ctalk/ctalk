@@ -1,4 +1,4 @@
-/* $Id: resolve.c,v 1.5 2021/01/24 21:57:24 rkiesling Exp $ */
+/* $Id: resolve.c,v 1.7 2021/01/28 08:38:07 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -1204,6 +1204,38 @@ OBJECT *resolve (int message_ptr) {
     if (prefix_method_attr (ms.messages, message_ptr)) {
       prefix_inc_before_method_expr_warning (ms.messages,
 					     message_ptr);
+      /***/
+      if ((__next_tok_idx = nextlangmsg (ms.messages, message_ptr)) != ERROR) {
+	if (((prev_tok_ptr = prevlangmsgstack (ms.messages, message_ptr))
+	     != ERROR) &&
+	    ((M_TOK(ms.messages[prev_tok_ptr]) == CLOSEBLOCK) ||
+	     (M_TOK(ms.messages[prev_tok_ptr]) == SEMICOLON))) {
+	  /* i.e., the start of an expression */
+	  if (M_TOK(ms.messages[__next_tok_idx]) == OPENPAREN) {
+	    expr_close_paren = match_paren (ms.messages, __next_tok_idx,
+					    stack_top);
+	    for (t = __next_tok_idx - 1; t > expr_close_paren; --t) {
+	      if (M_TOK(ms.messages[t]) == LABEL) {
+		if (is_object_or_param (M_NAME(ms.messages[t]), NULL) ||
+		    ms.messages[t] -> attrs & TOK_SELF ||
+		    ms.messages[t] -> attrs & TOK_SUPER) {
+		  char *s;
+		  int t_1;
+		  s = collect_tokens (ms.messages, message_ptr,
+				      expr_close_paren);
+		  fmt_eval_expr_str (s, expr_buf_out);
+		  fileout (expr_buf_out, 0, message_ptr);
+		  for (t_1 = message_ptr; t_1 >= expr_close_paren; --t_1) {
+		    ++ms.messages[t_1] -> evaled;
+		    ++ms.messages[t_1] -> output;
+		  }
+		  return NULL;
+		}
+	      }
+	    }
+	  }
+	}
+      }
       return NULL;
     }
   } else if (M_TOK(m) == CONDITIONAL) {

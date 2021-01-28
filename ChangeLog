@@ -108,4 +108,8 @@
 2021-01-26
 	- Added method_arg_is_argblk_struct (arg.c), called
 	by fmt_rt_argblk_super_expr (rt_expr.c).
+2021-01-28
+	- In resolve, look for a prefix operator starting an
+	object expression in parens, and output it directly
+	(resolve.c).
 
