@@ -7526,6 +7526,54 @@ the main program.
 
 
 
+>>>X11PopupMenu::add (String menuText, String expression)
+Add an item to the receiver menu.  The menuText argument
+contains the text that will appear in the menu entry, and the
+expression argument is the Ctalk expression that the program
+executes when the user selects the item.
+
+>>>X11PopupMenu::draw (void)
+Draw the menu items, the highlight bar, and any decorations on the
+side of the menu.
+
+>>>X11PopupMenu::execItem (X11Pane parentPane, String itemName, String exprText, Integer itemIndex)
+Executes the selected menu item's expression.  The method makes
+avaiable parameters that contain information about the item.  The
+parameters, which expressions can use verbatim, are listed here.
+
+---------------------------------------------------------
+  
+  parentPane     # The main window object that the menu is popped
+                 # up over.
+  itemName       # A String object that contains the item's visible
+                 # text.
+  exprText       # A String that contains the text of the menu item's
+                 # expression.
+  itemIndex      # An Integer that contains the ordinal position of
+                 # the menu item; the topmost item's index is 0, and
+                 # the index of the bottom item is <number_of_items> - 1.
+  
+---------------------------------------------------------
+
+>>>X11PopupMenu::new (String objectName)
+The X11PopupMenu constructor.  Creates a X11PopupMenu
+object and its instance variables, and initializes the object's
+resources and event handlers.
+
+>>>X11PopupMenu::subMenuGadget (Integer baseline Boolean hilight)
+Draws submenu indicator to the right of a menu entry.
+
+>>>X11PopupMenu::popup (X11Pane parentPane, Integer displayX, Integer displayY)
+Display the menu at the pointer's position, relative to the upper-right
+corner of the display.
+
+This method also withdraws the menu when the user selects an item, and
+whenever the pointer moves outside of the menu or the window defined in
+parentPane.
+
+
+
+
 >>>X11ScrollBarPane::attachTo (Object parentPane)
 Attaches the X11ScrollBarPane object to its parent pane,
 which is usually a X11PaneDispatcher object.  Also sizes the
@@ -8348,7 +8396,6 @@ no longer selecting, and redraws the text.
     if (useFtFonts && !useXFont) {
       ftFont initFontLib;
       ftFont selectFont ftFontName, 0, 80, 72, ftFontSize;
-      ftFont namedX11Color fgColor;
     }
     
   }

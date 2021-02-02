@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.56 2021/02/02 10:11:22 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.57 2021/02/02 11:40:23 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -17120,8 +17120,10 @@ the user has pressed a mouse button in a program window.
 
 At this time the class is still very basic - it doesn't support menu
 decorations like titles or separators, nor does it support submenus.
+
 This example program demonstrates how a program might use a basic
-@code{X11PopupMenu} object.
+@code{X11PopupMenu} object.  It also contains examples of simple
+helper methods that are called when a user clicks on a menu item.
 
 @c demos/x11/popupmenu.ca
 @example
@@ -17291,6 +17293,177 @@ mainMenu add "About...", "aboutBox show";
 mainMenu add "Exit", "self clientExit parentPane";
 
 @end example
+
+In addition, the X11PopupMenu class provides these parameters that
+can be used in the expressions that the menu class calls.
+
+@example
+
+parentPane     # The main window object that the menu is popped
+               # up over.
+itemName       # A String object that contains the item's visible
+               # text.
+exprText       # A String that contains the text of the menu item's
+               # expression.
+itemIndex      # An Integer that contains the ordinal position of
+               # the menu item; the topmost item's index is 0, and
+               # the index of the bottom item is <number_of_items> - 1.
+
+@end example
+
+The labels are actually parameters of the @code{X11PopupMenu :
+execItem} method, and expressions can use them verbatim.  There's
+more information in the @mnm{execItem} method's documentation.
+
+@subheading Resources
+
+@table @code
+
+@cindex @code{backgroundColor} resource @idxclscite{X11PopupMenu}
+@item backgroundColor
+The name of the color used as the menu's background.
+
+@cindex @code{bottomMargin} resource @idxclscite{X11PopupMenu}
+@item bottomMargin
+The vertical distance between the bottom menu item's text and the
+bottom of the menu.
+
+@cindex @code{cursorHPad} resource @idxclscite{X11PopupMenu}
+@item cursorHPad
+The number of pixels between the start of a menu item's text and the
+left edge of the menu's selection bar.
+
+@cindex @code{font} resource @idxclscite{X11PopupMenu}
+@item font
+The Fontconfig descriptor of the font used to display the
+menu's text.
+
+@cindex @code{gadgetRMargin} resource @idxclscite{X11PopupMenu}
+@item gadgetRMargin
+The distance in pixels between a gadget to the right
+of a menu entry's text, and the right edge of the menu.
+
+@cindex @code{gadgetSpace} resource @idxclscite{X11PopupMenu}
+@item gadgetSpace
+The distance between the right edge of the longest menu item's text,
+and a gadget on the right of the menu.
+
+@cindex @code{hlColor} resource @idxclscite{X11PopupMenu}
+@item hlColor
+The name of the background color used to highlight menu entries.
+
+@cindex @code{hlTextColor} resource @idxclscite{X11PopupMenu}
+@item hlTextColor
+The text color of highlighted items.
+
+@cindex @code{hMargins} resource @idxclscite{X11PopupMenu}
+@item hMargins
+The distance in pixels between the edge of the menu and the
+left edge of the text, and between the right edge of the longest
+menu item's text and the right edge of the menu.
+
+@cindex @code{itemSpace} resource @idxclscite{X11PopupMenu}
+@item itemSpace
+The vertical distance in pixels between menu items.
+
+@cindex @code{textColor} resource @idxclscite{X11PopupMenu}
+@item textColor
+The name of the color used to display non-highlighted text.
+
+@cindex @code{topMargin} resource @idxclscite{X11PopupMenu}
+@item topMargin
+The distance in pixels between the top of the menu and
+the first menu item.
+
+@end table
+
+@subheading Instance Variables
+
+@table @code
+
+@cindex @code{bgPixel} instance variable @idxclscite{X11PopupMenu}
+@cindex @code{hlPixel} instance variable @idxclscite{X11PopupMenu}
+@cindex @code{hlTextPixel} instance variable @idxclscite{X11PopupMenu}
+@item bgPixel
+@item hlPixel
+@item hlTextPixel
+The X pixel values of the menu's background color, and highlighted
+background and text colors.
+
+@cindex @code{gadgetSpace} instance variable @idxclscite{X11PopupMenu}
+@item gadgetSpace
+The distance between the right edge of the longest menu entry's text and
+any decorations on the right side of the menu.
+
+@cindex @code{itemHeight} instance variable @idxclscite{X11PopupMenu}
+@cindex @code{textHeight} instance variable @idxclscite{X11PopupMenu}
+@item itemHeight
+@item textHeight
+The height in pixels of a menu item's text, and the total height of
+each item.
+
+@cindex @code{items} instance variable @idxclscite{X11PopupMenu}
+@item items
+A @code{AssociativeArray} that maintains the list of menu entries.
+
+@end table
+
+@subheading Instance Methods
+
+@table @code
+
+@cindex @mnm{add} instance method @idxclscite{X11PopupMenu}
+@item add (@code{String} @var{menuText}, @code{String} @var{expression})
+Add an item to the receiver menu.  The @var{menuText} argument
+contains the text that will appear in the menu entry, and the
+@var{expression} argument is the Ctalk expression that the program
+executes when the user selects the item.
+
+@cindex @mnm{draw} instance method @idxclscite{X11PopupMenu}
+@item draw (@code{void})
+Draw the menu items, the highlight bar, and any decorations on the
+side of the menu.
+
+@cindex @mnm{execItem} instance method @idxclscite{X11PopupMenu}
+@item execItem (@code{X11Pane} @var{parentPane}, @code{String} @var{itemName}, @code{String} @var{exprText}, @code{Integer} @var{itemIndex})
+Executes the selected menu item's expression.  The method makes
+avaiable parameters that contain information about the item.  The
+parameters, which expressions can use verbatim, are listed here.
+
+@example
+
+parentPane     # The main window object that the menu is popped
+               # up over.
+itemName       # A String object that contains the item's visible
+               # text.
+exprText       # A String that contains the text of the menu item's
+               # expression.
+itemIndex      # An Integer that contains the ordinal position of
+               # the menu item; the topmost item's index is 0, and
+               # the index of the bottom item is <number_of_items> - 1.
+
+@end example
+
+@cindex @mnm{new} instance method @idxclscite{X11PopupMenu}
+@item new (@code{String} @var{objectName})
+The @code{X11PopupMenu} constructor.  Creates a @code{X11PopupMenu}
+object and its instance variables, and initializes the object's
+resources and event handlers.
+
+@cindex @mnm{subMenuGadget} instance method @idxclscite{X11PopupMenu}
+@item subMenuGadget (@code{Integer} @var{baseline} @code{Boolean} @var{hilight})
+Draws submenu indicator to the right of a menu entry.
+
+@cindex @mnm{popup} instance method @idxclscite{X11PopupMenu}
+@item popup (@code{X11Pane} @var{parentPane}, @code{Integer} @var{displayX}, @code{Integer} @var{displayY})
+Display the menu at the pointer's position, relative to the upper-right
+corner of the display.
+
+This method also withdraws the menu when the user selects an item, and
+whenever the pointer moves outside of the menu or the window defined in
+@var{parentPane}.
+
+@end table
 
 @node X11ScrollBarPane, X11TextEntryPane, X11PopupMenu, Classes
 @iftex

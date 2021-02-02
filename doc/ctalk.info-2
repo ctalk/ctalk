@@ -5147,8 +5147,10 @@ user has pressed a mouse button in a program window.
 
 At this time the class is still very basic - it doesn't support menu
 decorations like titles or separators, nor does it support submenus.
+
 This example program demonstrates how a program might use a basic
-'X11PopupMenu' object.
+'X11PopupMenu' object.  It also contains examples of simple helper
+methods that are called when a user clicks on a menu item.
 
 
      /* popupmenu.ca - X11PopupMenu Demonstration -*-c-*- */
@@ -5313,6 +5315,139 @@ Here is the part of the demo program above that adds items to the menu.
      mainMenu add "About...", "aboutBox show";
      mainMenu add "Exit", "self clientExit parentPane";
 
+
+In addition, the X11PopupMenu class provides these parameters that can
+be used in the expressions that the menu class calls.
+
+
+     parentPane     # The main window object that the menu is popped
+                    # up over.
+     itemName       # A String object that contains the item's visible
+                    # text.
+     exprText       # A String that contains the text of the menu item's
+                    # expression.
+     itemIndex      # An Integer that contains the ordinal position of
+                    # the menu item; the topmost item's index is 0, and
+                    # the index of the bottom item is <number_of_items> - 1.
+
+
+The labels are actually parameters of the 'X11PopupMenu : execItem'
+method, and expressions can use them verbatim.  There's more information
+in the 'execItem' method's documentation.
+
+Resources
+---------
+
+'backgroundColor'
+     The name of the color used as the menu's background.
+
+'bottomMargin'
+     The vertical distance between the bottom menu item's text and the
+     bottom of the menu.
+
+'cursorHPad'
+     The number of pixels between the start of a menu item's text and
+     the left edge of the menu's selection bar.
+
+'font'
+     The Fontconfig descriptor of the font used to display the menu's
+     text.
+
+'gadgetRMargin'
+     The distance in pixels between a gadget to the right of a menu
+     entry's text, and the right edge of the menu.
+
+'gadgetSpace'
+     The distance between the right edge of the longest menu item's
+     text, and a gadget on the right of the menu.
+
+'hlColor'
+     The name of the background color used to highlight menu entries.
+
+'hlTextColor'
+     The text color of highlighted items.
+
+'hMargins'
+     The distance in pixels between the edge of the menu and the left
+     edge of the text, and between the right edge of the longest menu
+     item's text and the right edge of the menu.
+
+'itemSpace'
+     The vertical distance in pixels between menu items.
+
+'textColor'
+     The name of the color used to display non-highlighted text.
+
+'topMargin'
+     The distance in pixels between the top of the menu and the first
+     menu item.
+
+Instance Variables
+------------------
+
+'bgPixel'
+'hlPixel'
+'hlTextPixel'
+     The X pixel values of the menu's background color, and highlighted
+     background and text colors.
+
+'gadgetSpace'
+     The distance between the right edge of the longest menu entry's
+     text and any decorations on the right side of the menu.
+
+'itemHeight'
+'textHeight'
+     The height in pixels of a menu item's text, and the total height of
+     each item.
+
+'items'
+     A 'AssociativeArray' that maintains the list of menu entries.
+
+Instance Methods
+----------------
+
+'add (String MENUTEXT, String EXPRESSION)'
+     Add an item to the receiver menu.  The MENUTEXT argument contains
+     the text that will appear in the menu entry, and the EXPRESSION
+     argument is the Ctalk expression that the program executes when the
+     user selects the item.
+
+'draw (void)'
+     Draw the menu items, the highlight bar, and any decorations on the
+     side of the menu.
+
+'execItem (X11Pane PARENTPANE, String ITEMNAME, String EXPRTEXT, Integer ITEMINDEX)'
+     Executes the selected menu item's expression.  The method makes
+     avaiable parameters that contain information about the item.  The
+     parameters, which expressions can use verbatim, are listed here.
+
+
+          parentPane     # The main window object that the menu is popped
+                         # up over.
+          itemName       # A String object that contains the item's visible
+                         # text.
+          exprText       # A String that contains the text of the menu item's
+                         # expression.
+          itemIndex      # An Integer that contains the ordinal position of
+                         # the menu item; the topmost item's index is 0, and
+                         # the index of the bottom item is <number_of_items> - 1.
+
+
+'new (String OBJECTNAME)'
+     The 'X11PopupMenu' constructor.  Creates a 'X11PopupMenu' object
+     and its instance variables, and initializes the object's resources
+     and event handlers.
+
+'subMenuGadget (Integer BASELINE Boolean HILIGHT)'
+     Draws submenu indicator to the right of a menu entry.
+
+'popup (X11Pane PARENTPANE, Integer DISPLAYX, Integer DISPLAYY)'
+     Display the menu at the pointer's position, relative to the
+     upper-right corner of the display.
+
+     This method also withdraws the menu when the user selects an item,
+     and whenever the pointer moves outside of the menu or the window
+     defined in PARENTPANE.
 
 
 File: ctalk.info,  Node: X11ScrollBarPane,  Next: X11TextEntryPane,  Prev: X11PopupMenu,  Up: Classes
@@ -8381,115 +8516,4 @@ Instance Methods
      Detach the receiver object from its parent collection.  The method
      also removes the OBJECT_IS_MEMBER_OF_PARENT_COLLECTION attribute
      from the receiver.
-
-
-File: ctalk.info,  Node: Vector,  Prev: Key,  Up: Classes
-
-'Vector' Class
---------------
-
-Objects of 'Vector' class refer to blocks of memory of arbitrary length.
-The memory area that the 'Vector' object points to may contain any data,
-including NULL bytes.
-
-Whenever a program or method assigns a 'Vector' object a new area of
-memory, the program or method also sets the 'Vector' object's 'length'
-instance variable; for example, the method 'readVec' (class
-'ReadFileStream') records the memory area's size in the 'length'
-instance variable after it has read a chunk of data from a disk file.
-*Note ReadFileStream::.
-
-Here's an example program that writes a copy of a JPEG image file.
-
-
-     int main () {
-       ReadFileStream new readF;
-       WriteFileStream new writeF;
-       FileStream new f;
-       Vector new vec;
-       LongInteger new size;
-
-       readF openOn "original.jpeg";
-       readF statStream;
-       size = readF streamSize;
-
-       vec = readF readVec size;
-
-       writeF openOn "copy.jpeg";
-       writeF writeVec vec;
-
-       writeF closeStream ;
-       readF closeStream;
-     }
-
-
-Instance Variables
-..................
-
-'length'
-     An 'Integer' that contains the size in bytes of the memory area
-     that the 'Vector' object points to.
-
-Instance Methods
-................
-
-'+ (Vector V)'
-     Return a 'Vector' object that is the concatenation of the receiver
-     and the argument.
-
-'+= (Vector V)'
-     Concatenate the receiver with the vector given as the argument.
-
-'asString (void)'
-     Returns the value of the receiver as a 'String' object terminated
-     with a NUL byte to the value of the receiver's 'length' instance
-     variable.  Does not check for NULs or non-printing characters in
-     the value, so the returned 'String' may still be truncated to less
-     than the receiver's length.
-
-'basicNew (char *NAME, char *VALUE, int VALUE_LENGTH'
-'basicNew (char *NAME, char *CLASSNAME, char *SUPERCLASSNAME, char *VALUE, int VALUE_LENGTH)'
-     Create a new 'Vector' object with the name, contents, length, and,
-     optionally, class name and superclass name given as the arguments.
-
-     For the five-argument form of 'basicNew', the class should be
-     'Vector' and the superclassname should be 'Symbol', unless the
-     program has subclassed 'Vector'.
-
-     In the three-argument form, the receiver must be a member of
-     'Vector' class or its subclasses, in which case the method takes
-     the class and superclass from the receiver, as in this example.
-
-
-          myBuf = Vector basicNew "memorybuf", memory_buf_ptr, memory_buf_length;
-
-
-     The VALUE argument may be any memory address that points to data of
-     arbitrary size, and may contain any data, including NULL bytes.
-
-     The VALUE_LENGTH argument supplies the length of the memory segment
-     in bytes, which the returned 'Vector' object stores in its 'length'
-     instance variable.
-
-     Most of the internal work of setting the values and attributes of
-     the returned object, and registering the memory area, is performed
-     by '__ctalkSetObjectValueAddr', which each of these methods call.
-     *Note ctalkSetObjectValueAddr::.
-
-     It's also necessary that these methods take care of other
-     initialization tasks which are necessary for all classes of
-     objects.  They're described in general in the description of
-     'basicNew' ('Object' class).  *Note ObjectbasicNew::.
-
-'contains (String PATTERN)'
-'contains (String PATTERN, Integer start_offset)'
-     With one argument, returns an 'Integer' with the byte offset of the
-     first occurence of PATTERN in the receiver, starting from the
-     beginning of the receiver's value, or -1 if the pattern is not
-     found.
-
-     If a second argument is given, it contains the 'Integer' offset
-     into the buffer where the method begins its search.  That allows
-     programs to find multiple matches of the same pattern in the
-     receiver's value.
 

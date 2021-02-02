@@ -17,6 +17,117 @@ Texts.  A copy of the license is included in the section entitled, "GNU
 Free Documentation License."
 
 
+File: ctalk.info,  Node: Vector,  Prev: Key,  Up: Classes
+
+'Vector' Class
+--------------
+
+Objects of 'Vector' class refer to blocks of memory of arbitrary length.
+The memory area that the 'Vector' object points to may contain any data,
+including NULL bytes.
+
+Whenever a program or method assigns a 'Vector' object a new area of
+memory, the program or method also sets the 'Vector' object's 'length'
+instance variable; for example, the method 'readVec' (class
+'ReadFileStream') records the memory area's size in the 'length'
+instance variable after it has read a chunk of data from a disk file.
+*Note ReadFileStream::.
+
+Here's an example program that writes a copy of a JPEG image file.
+
+
+     int main () {
+       ReadFileStream new readF;
+       WriteFileStream new writeF;
+       FileStream new f;
+       Vector new vec;
+       LongInteger new size;
+
+       readF openOn "original.jpeg";
+       readF statStream;
+       size = readF streamSize;
+
+       vec = readF readVec size;
+
+       writeF openOn "copy.jpeg";
+       writeF writeVec vec;
+
+       writeF closeStream ;
+       readF closeStream;
+     }
+
+
+Instance Variables
+..................
+
+'length'
+     An 'Integer' that contains the size in bytes of the memory area
+     that the 'Vector' object points to.
+
+Instance Methods
+................
+
+'+ (Vector V)'
+     Return a 'Vector' object that is the concatenation of the receiver
+     and the argument.
+
+'+= (Vector V)'
+     Concatenate the receiver with the vector given as the argument.
+
+'asString (void)'
+     Returns the value of the receiver as a 'String' object terminated
+     with a NUL byte to the value of the receiver's 'length' instance
+     variable.  Does not check for NULs or non-printing characters in
+     the value, so the returned 'String' may still be truncated to less
+     than the receiver's length.
+
+'basicNew (char *NAME, char *VALUE, int VALUE_LENGTH'
+'basicNew (char *NAME, char *CLASSNAME, char *SUPERCLASSNAME, char *VALUE, int VALUE_LENGTH)'
+     Create a new 'Vector' object with the name, contents, length, and,
+     optionally, class name and superclass name given as the arguments.
+
+     For the five-argument form of 'basicNew', the class should be
+     'Vector' and the superclassname should be 'Symbol', unless the
+     program has subclassed 'Vector'.
+
+     In the three-argument form, the receiver must be a member of
+     'Vector' class or its subclasses, in which case the method takes
+     the class and superclass from the receiver, as in this example.
+
+
+          myBuf = Vector basicNew "memorybuf", memory_buf_ptr, memory_buf_length;
+
+
+     The VALUE argument may be any memory address that points to data of
+     arbitrary size, and may contain any data, including NULL bytes.
+
+     The VALUE_LENGTH argument supplies the length of the memory segment
+     in bytes, which the returned 'Vector' object stores in its 'length'
+     instance variable.
+
+     Most of the internal work of setting the values and attributes of
+     the returned object, and registering the memory area, is performed
+     by '__ctalkSetObjectValueAddr', which each of these methods call.
+     *Note ctalkSetObjectValueAddr::.
+
+     It's also necessary that these methods take care of other
+     initialization tasks which are necessary for all classes of
+     objects.  They're described in general in the description of
+     'basicNew' ('Object' class).  *Note ObjectbasicNew::.
+
+'contains (String PATTERN)'
+'contains (String PATTERN, Integer start_offset)'
+     With one argument, returns an 'Integer' with the byte offset of the
+     first occurence of PATTERN in the receiver, starting from the
+     beginning of the receiver's value, or -1 if the pattern is not
+     found.
+
+     If a second argument is given, it contains the 'Integer' offset
+     into the buffer where the method begins its search.  That allows
+     programs to find multiple matches of the same pattern in the
+     receiver's value.
+
+
 File: ctalk.info,  Node: Methods,  Next: C,  Prev: Classes,  Up: Top
 
 Methods
@@ -8795,6 +8906,7 @@ Index
 * acosh(3) C function:                   CFunction.          (line   25)
 * acosh(3) C function <1>:               acosh-asinh-atanh.  (line    6)
 * add instance method (X11ListPane class): X11ListPane.      (line  317)
+* add instance method (X11PopupMenu class): X11PopupMenu.    (line  270)
 * addBuffer instance method (ANSIWidgetPane class): ANSIWidgetPane.
                                                              (line   78)
 * addChild instance method (TreeNode class): TreeNode.       (line   38)
@@ -8959,6 +9071,8 @@ Index
                                                              (line  172)
 * backgroundColor resource (X11LabelPane class): X11LabelPane.
                                                              (line  158)
+* backgroundColor resource (X11PopupMenu class): X11PopupMenu.
+                                                             (line  202)
 * backgroundColor resource (X11TextEntryPane class): X11TextEntryPane.
                                                              (line  146)
 * backgroundColor resource (X11YesNoBoxPane class): X11YesNoBoxPane.
@@ -8980,6 +9094,8 @@ Index
                                                              (line  421)
 * bevelWidth instance variable (X11ButtonPane class): X11ButtonPane.
                                                              (line  425)
+* bgPixel instance variable (X11PopupMenu class): X11PopupMenu.
+                                                             (line  249)
 * biosKey method (Win32TerminalStream class): Win32TerminalStream.
                                                              (line   42)
 * bitComp instance method (Character class): Character.      (line  157)
@@ -9038,6 +9154,7 @@ Index
 * borderWidth resource (X11TextEntryPane class): X11TextEntryPane.
                                                              (line  153)
 * bottom instance variable (Rectangle class): Rectangle.     (line   73)
+* bottomMargin resource (X11PopupMenu class): X11PopupMenu.  (line  205)
 * bufLength instance variable (X11TextEditorPane class): X11TextEditorPane.
                                                              (line  142)
 * button instance variable (X11MessageBoxPane class): X11MessageBoxPane.
@@ -9336,6 +9453,7 @@ Index
                                                              (line  221)
 * cursorAdvanceHint resource (X11TextEntryPane class): X11TextEntryPane.
                                                              (line  157)
+* cursorHPad resource (X11PopupMenu class): X11PopupMenu.    (line  209)
 * cursorPos instance method (ANSITerminalPane class): ANSITerminalPane.
                                                              (line  125)
 * cursorPos instance method (X11TextPane class): X11TextPane.
@@ -9516,6 +9634,7 @@ Index
 * draw instance method (X11ListPane class): X11ListPane.     (line  347)
 * draw instance method (X11MessageBoxPane class): X11MessageBoxPane.
                                                              (line  231)
+* draw instance method (X11PopupMenu class): X11PopupMenu.   (line  276)
 * draw instance method (X11TextEntryBox class): X11TextEntryBox.
                                                              (line  176)
 * draw instance method (X11TextEntryPane class): X11TextEntryPane.
@@ -9628,6 +9747,8 @@ Index
                                                              (line  163)
 * Exceptions:                            Errors.             (line    6)
 * execC instance method (Application class): Application.    (line   68)
+* execItem instance method (X11PopupMenu class): X11PopupMenu.
+                                                             (line  280)
 * exists instance method (FileStream class): FileStream.     (line   60)
 * exitHandler instance variable (Application class): Application.
                                                              (line   24)
@@ -9713,6 +9834,7 @@ Index
 * font resource (X11ButtonPane class):   X11ButtonPane.      (line  342)
 * font resource (X11LabelPane class):    X11LabelPane.       (line  146)
 * font resource (X11ListPane class):     X11ListPane.        (line  179)
+* font resource (X11PopupMenu class):    X11PopupMenu.       (line  213)
 * font resource (X11TextEntryPane class): X11TextEntryPane.  (line  163)
 * Font specification, determining:       String.             (line  315)
 * fontDesc instance variable (X11Font class): X11Font.       (line   27)
@@ -9802,6 +9924,10 @@ Index
 * Function arguments:                    C statements.       (line  101)
 * Function parameters:                   C statements.       (line   93)
 * fwrite(3) C function:                  fwrite.             (line    6)
+* gadgetRMargin resource (X11PopupMenu class): X11PopupMenu. (line  217)
+* gadgetSpace instance variable (X11PopupMenu class): X11PopupMenu.
+                                                             (line  255)
+* gadgetSpace resource (X11PopupMenu class): X11PopupMenu.   (line  221)
 * gdb command:                           Invoking.           (line   32)
 * gdb command <1>:                       C statements.       (line  277)
 * geometry resource (X11MessageBoxPane class): X11MessageBoxPane.
@@ -10010,6 +10136,13 @@ Index
                                                              (line  446)
 * highlightVPenColor resource (X11ButtonPane class): X11ButtonPane.
                                                              (line  406)
+* hlColor resource (X11PopupMenu class): X11PopupMenu.       (line  225)
+* hlPixel instance variable (X11PopupMenu class): X11PopupMenu.
+                                                             (line  249)
+* hlTextColor resource (X11PopupMenu class): X11PopupMenu.   (line  228)
+* hlTextPixel instance variable (X11PopupMenu class): X11PopupMenu.
+                                                             (line  249)
+* hMargins resource (X11PopupMenu class): X11PopupMenu.      (line  231)
 * hostToAddress instance method (TCPIPNetworkStream class): TCPIPNetworkStream.
                                                              (line  100)
 * hours instance variable (CalendarTime class): CalendarTime.
@@ -10223,12 +10356,17 @@ Index
 * is_zero_q function:                    Ctalk library.      (line 2994)
 * ItemBox class:                         X11FileSelectDialog.
                                                              (line  441)
+* itemHeight instance variable (X11PopupMenu class): X11PopupMenu.
+                                                             (line  259)
 * items instance variable (ANSIListBoxPane class): ANSIListBoxPane.
                                                              (line   42)
 * items instance variable (ANSIScrollingListBoxPane class): ANSIScrollingListBoxPane.
                                                              (line   76)
 * items instance variable (X11ListBox class): X11ListBox.    (line  219)
 * items instance variable (X11ListPane class): X11ListPane.  (line  256)
+* items instance variable (X11PopupMenu class): X11PopupMenu.
+                                                             (line  264)
+* itemSpace resource (X11PopupMenu class): X11PopupMenu.     (line  236)
 * justify instance variable (X11LabelPane class): X11LabelPane.
                                                              (line  269)
 * Key class:                             Key.                (line    6)
@@ -10524,6 +10662,7 @@ Index
                                                              (line  246)
 * new instance method (X11PaneDispatcher class): X11PaneDispatcher.
                                                              (line  299)
+* new instance method (X11PopupMenu class): X11PopupMenu.    (line  297)
 * new instance method (X11ScrollBarPane class): X11ScrollBarPane.
                                                              (line  201)
 * new instance method (X11TextEditorPane class): X11TextEditorPane.
@@ -10752,6 +10891,7 @@ Index
 * Pool size, method <1>:                 Ctalk library.      (line 1381)
 * pop instance method (List class):      List.               (line  136)
 * popItemRef instance method (List class): List.             (line  140)
+* popup instance method (X11PopupMenu class): X11PopupMenu.  (line  305)
 * Port, TCPIP:                           TCPIPV6NetworkStreamWriter.
                                                              (line   16)
 * pow(3) C function:                     pow.                (line    6)
@@ -11358,6 +11498,8 @@ Index
 * str_is_zero_q function:                Ctalk library.      (line 3008)
 * style instance variable (X11FreeTypeFont class): X11FreeTypeFont.
                                                              (line  142)
+* subMenuGadget instance method (X11PopupMenu class): X11PopupMenu.
+                                                             (line  302)
 * Subpane geometry:                      X11CanvasPane.      (line  181)
 * subPaneButton instance method (X11FileSelectDialog class): X11FileSelectDialog.
                                                              (line  451)
@@ -11547,12 +11689,15 @@ Index
 * textColor resource (X11ButtonPane class): X11ButtonPane.   (line  413)
 * textColor resource (X11LabelPane class): X11LabelPane.     (line  203)
 * textColor resource (X11ListPane class): X11ListPane.       (line  216)
+* textColor resource (X11PopupMenu class): X11PopupMenu.     (line  239)
 * textColor resource (X11TextEntryPane class): X11TextEntryPane.
                                                              (line  192)
 * textEntry instance method (X11FileSelectDialog class): X11FileSelectDialog.
                                                              (line  495)
 * textHeight instance method (X11FreeTypeFont class): X11FreeTypeFont.
                                                              (line  393)
+* textHeight instance variable (X11PopupMenu class): X11PopupMenu.
+                                                             (line  259)
 * textHeightBasic instance method (X11FreeTypeFont class): X11FreeTypeFont.
                                                              (line  411)
 * textLength instance variable (X11TextEditorPane class): X11TextEditorPane.
@@ -11633,6 +11778,7 @@ Index
 * toLower instance method (Character class): Character.      (line  217)
 * tolower(3) C function:                 tolower.            (line    6)
 * top instance variable (Rectangle class): Rectangle.        (line   73)
+* topMargin resource (X11PopupMenu class): X11PopupMenu.     (line  242)
 * torus instance method (GLUTApplication class): GLUTApplication.
                                                              (line  235)
 * totalLines instance variable (ANSIListBoxPane class): ANSIListBoxPane.
