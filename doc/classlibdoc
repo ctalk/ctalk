@@ -719,10 +719,14 @@ Initializes the font library and sets the reciever's instance
 variables to the default selected font.  Apps need to use this method before
 most of the other other methods in this class.
 
+Programs should call this method before any of the attachTo
+methods, so the methods can set their drawing parameters before
+the program starts to receive X events.
+
 If the system is not configured to use outline fonts then the library
 prints a message and exits the program with a non-zero value.
   If the library is already initialized, then
-the method returns 0.
+the method returns '0'.
 
 >>>X11FreeTypeFont::isMonospace (void)
 Returns a read-only Boolean value of true if the application's
@@ -6968,29 +6972,45 @@ endY arguments, with the color and the line width given
 by the receiver's Pen object.
 
 >>>X11CanvasPane::drawLine (Intger xOrg, Integer yOrg, Integer xSize, Integer ySize)
+>>>X11CanvasPane::drawLine (Intger xOrg, Integer yOrg, Integer xSize, Integer ySize, Pen aPen)
 Draw a filled rectangle on the pane's window with the upper-left
 hand corner at the point given by the xOrg and
 yOrg arguments, with the width xSize and the
 height ySize.  If a Pen argument isn't given, uses the
 line width and color defined by the receiver's pen instance
 variable; otherwise uses the line width and color defined by the
-Pen argument.
+aPen argument.
 
 >>>X11CanvasPane::drawRoundedRectangle (Intger xOrg, Integer yOrg, Integer xSize, Integer ySize, Integer radius)
+>>>X11CanvasPane::drawRoundedRectangle (Intger xOrg, Integer yOrg, Integer xSize, Integer ySize, Pen aPen, Pen aPen, Integer radius)
 Similar to drawFilledRectangle, but this method takes an extra
 argument, the radius of the corner arcs that round the rendered rectangle's
 corners.
 
+If the aPen argument is given, the method uses its color and line width
+for drawing.  Otherwise, the method uses the color and line width defined
+by the X11CanvasPane object for drawing.
+
 >>>X11CanvasPane::drawRectangle (Intger xOrg, Integer yOrg, Integer xSize, Integer ySize)
+>>>X11CanvasPane::drawRectangle (Intger xOrg, Integer yOrg, Integer xSize, Pen aPen, Integer ySize)
 Draw the borders of a rectangle on the pane's window with
 the upper-left hand corner at the point given by the
 xOrg and yOrg arguments, with the width
 xSize and the height ySize.
 
+If the aPen argument is given, the method uses its color and
+line width for drawing.  Otherwise, the method uses the color and line
+width defined by the X11CanvasPane object for drawing.
+
 >>>X11CanvasPane::drawRoundedRectangle (Intger xOrg, Integer yOrg, Integer xSize, Integer ySize, Integer radius)
+>>>X11CanvasPane::drawRoundedRectangle (Intger xOrg, Integer yOrg, Integer xSize, Integer ySize, Pen aPen, Integer radius)
 This method is similar to drawRectangle, except that it takes an
 extra argument, radius, which specifies the radius of the arcs
 that form the rectangle's corners.
+
+If the aPen argument is given, the method uses its color and
+line width for drawing.  Otherwise, the method uses the color and line
+width defined by the X11CanvasPane object for drawing.
 
 >>>X11CanvasPane::directCopy (X11Bitmap src_bitmap, Integer src_x_ort, Integer src_y_org, Integer src_width, Integer src_height, Integer dest_x_org, Integer dest_y_org)
 Similar to the copy method, above, except directCopy
@@ -7027,13 +7047,6 @@ corner at x_org,y_org on the receiver's pane.
 The xpm_data argument is the name of the array declared at the 
 start of a xpm file's data array.
 
->>>X11CanvasPane::refresh (void)
-Redraw the pane on the main window.
-
->>>X11CanvasPane::refreshReframe (void)
-Redraw the pane on the main window.  If the user has moved the pane
-by clicking and dragging on it, then reposition the pane within the window.
-
 >>>X11CanvasPane::putStrXY (Integer xOrg, Integer yOrg String text)
 >>>X11CanvasPane::putStrXY (Integer xOrg, Integer yOrg String text, String font_desc)
 >>>X11CanvasPane::putStrXY (Integer xOrg, Integer yOrg String text, String font_desc, String color_name))
@@ -7052,6 +7065,45 @@ X11Font section
 
 If a color_name argument is also given, draws
 the text using that color.
+
+>>>X11CanvasPane::selectFont (void)
+>>>X11CanvasPane::selectFont (X11FreeTypeFont font)
+This method selects the font and face defined by the reciever's
+ftFontVar instance variable (with no arguments), or the
+font given as a single argument.
+
+These methods ensure that the font-face selection is valid in any of
+the client-server memory spaces, and folds the font's weight and slant
+into one of Ctalk's predefined face slots: medium, bold, italic, or
+bold italic.  This is basically a holdover from calculating font-face
+combinations for .BDF fonts; future versions of Ctalk should be able
+to use the typeface parameters directly.
+
+This method is basically a combination of two other methods:
+X11FreeTypeFont : selectFont, and the library function
+__ctalkSelectXFontFace, which is used in the X11Bitmap
+methods: faceBold, faceRegular, faceItalic, and
+faceBoldItalic.
+
+The four font face slots have definitions of that are given in both
+X11Bitmap class and ctalkdefs.h.  The definitions are
+listed below.
+
+---------------------------------------------------------
+  
+  #define X_FACE_REGULAR     (1 << 0)
+  #define X_FACE_BOLD        (1 << 1)
+  #define X_FACE_ITALIC      (1 << 2)
+  #define X_FACE_BOLD_ITALIC (1 << 3)
+  
+---------------------------------------------------------
+
+>>>X11CanvasPane::refresh (void)
+Redraw the pane on the main window.
+
+>>>X11CanvasPane::refreshReframe (void)
+Redraw the pane on the main window.  If the user has moved the pane
+by clicking and dragging on it, then reposition the pane within the window.
 
 >>>X11CanvasPane::subPaneDestroy (Object subPaneRef, InputEvent event)
 Deletes the pane's window and its data when the user closes the 
@@ -7269,8 +7321,9 @@ Creates a new X11LabelPane object, initializes the object's
 instance variables and event handlers, and sets the pane's default
 foreground and background colors.
 
->>>X11LabelPane::selectFont (void)
-A convenience method that is synonymous with, self ftFontVar selectFont.
+>>>X11LabelPane::selectFontOld (void)
+This method was formerly named selectFont, although it has been
+superceded by X11CanvasPane : selectFont.
 
 >>>X11LabelPane::subPaneExpose (Object subPane, InputEvent event)
 The widget's Expose event handler.  When the widget receives an Expose

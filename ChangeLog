@@ -33,7 +33,6 @@
 	- Updated parse to check for another closing block case when
 	updating the control block state (parser.c).
 2021-01-13
-	- Added the demos/x11/popupmenu.ca demo program, basic version.
 	- Cleaned up the X11LabelPane logic that initializes the
 	borderWidth instance variable from the classes' "borderWidth"
 	resource.  Also added the initialized instance variable to
@@ -112,4 +111,21 @@
 	- In resolve, look for a prefix operator starting an
 	object expression in parens, and output it directly
 	(resolve.c).
-
+	- Added the demos/x11/popupmenu.ca demo program, basic version.
+2021-01-29
+	- Added the X11LabelPane lineHeight and parHeight instance
+	variables.
+2021-01-30
+	- Added X11CanvasPane methods drawRectangle, drawRoundedRectangle,
+	drawFilledRectangle, and drawFilledRoundedRectangle with an
+	additional Pen argument, which contains the color and line
+	width used for drawing.
+	- Added the X11CanvasPane instance variables borderPen,
+	scrollBorderPen, and selectionPen.
+2021-01-31
+	- Added the X11LabelPane boldFont instance variable and
+	resource.
+	- Added dialog compatibility to __ctalkSelectXFontFace
+	(xlibfont.c).
+2021-02-01
+	- Added the X11CanvasPane : selectFont methods.

@@ -1,4 +1,4 @@
-/* $Id: checkbox.ca,v 1.1 2020/12/14 13:39:44 rkiesling Exp $ -*-c-*-*/
+/* $Id: checkbox.ca,v 1.2 2021/02/02 09:21:34 rkiesling Exp $ -*-c-*-*/
 
 /*
  *  X11CheckBoxPane demo.
@@ -72,7 +72,7 @@ int main (int argv, char **argc) {
   
   canvas attachTo xTopLevelPane, "280x280+10+10";
   xCheckBoxPane attachTo xTopLevelPane, "+20%+40%";
-  label attachTo xTopLevelPane, "160x25+35%+40";
+  label attachTo xTopLevelPane, "160x40+35%+50";
 
 #ifdef BEVEL
   xCheckBoxPane resources replaceAt "bevel", true;

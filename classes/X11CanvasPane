@@ -1,4 +1,4 @@
-/* $Id: X11CanvasPane,v 1.8 2021/01/16 22:31:20 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11CanvasPane,v 1.14 2021/02/02 00:17:44 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -461,6 +461,18 @@ X11CanvasPane instanceMethod drawRectangle (Integer xOrg, Integer yOrg,
   return NULL;
 }
 
+X11CanvasPane instanceMethod drawRectangle (Integer xOrg, Integer yOrg,
+					    Integer xSize, Integer ySize,
+					    Pen aPen) {
+  "Draw a rectangle with the bounds xOrg, yOrg, xSize,
+  ySize using the receiver's Pen object."
+  Rectangle new aRectangle;
+
+  aRectangle dimensions xOrg, yOrg, xSize, ySize;
+  __ctalkGUIPaneDrawRectangle (self, aRectangle, aPen, FALSE);
+  return NULL;
+}
+
 X11CanvasPane instanceMethod drawRoundedRectangle (Integer xOrg,
 						   Integer yOrg,
 						   Integer xSize,
@@ -473,6 +485,23 @@ X11CanvasPane instanceMethod drawRoundedRectangle (Integer xOrg,
 
   aRectangle dimensions xOrg, yOrg, xSize, ySize;
   __ctalkGUIPaneDrawRoundedRectangle (self, aRectangle, self pen, FALSE,
+				      radius);
+  return NULL;
+}
+
+X11CanvasPane instanceMethod drawRoundedRectangle (Integer xOrg,
+						   Integer yOrg,
+						   Integer xSize,
+						   Integer ySize,
+						   Pen aPen,
+						   Integer radius) {
+  "Draw a rectangle with the bounds xOrg, yOrg, xSize,
+  ySize using the receiver's Pen object.  The radius argument
+  defines how large to draw the corner arcs."
+  Rectangle new aRectangle;
+
+  aRectangle dimensions xOrg, yOrg, xSize, ySize;
+  __ctalkGUIPaneDrawRoundedRectangle (self, aRectangle, aPen, FALSE,
 				      radius);
   return NULL;
 }
@@ -521,6 +550,19 @@ X11CanvasPane instanceMethod drawFilledRectangle (Integer xOrg, Integer yOrg,
   return NULL;
 }
 
+X11CanvasPane instanceMethod drawFilledRectangle (Integer xOrg, Integer yOrg,
+						  Integer xSize, Integer ySize,
+						  Pen aPen) {
+  "Draw a filled rectangle with the dimensions xOrg, yOrg,
+  xSize, ySize given as arguments using the receiver's
+  Pen object."
+  Rectangle new aRectangle;
+
+  aRectangle dimensions xOrg, yOrg, xSize, ySize;
+  __ctalkGUIPaneDrawRectangle (self, aRectangle, aPen, TRUE);
+  return NULL;
+}
+
 X11CanvasPane instanceMethod drawFilledRoundedRectangle (Integer xOrg,
 							 Integer yOrg,
 							 Integer xSize,
@@ -533,6 +575,23 @@ X11CanvasPane instanceMethod drawFilledRoundedRectangle (Integer xOrg,
 
   aRectangle dimensions xOrg, yOrg, xSize, ySize;
   __ctalkGUIPaneDrawRoundedRectangle (self, aRectangle, self pen, TRUE,
+				      radius);
+  return NULL;
+}
+
+X11CanvasPane instanceMethod drawFilledRoundedRectangle (Integer xOrg,
+							 Integer yOrg,
+							 Integer xSize,
+							 Integer ySize,
+							 Pen aPen,
+							 Integer radius) {
+  "Draw a filled rectangle with the dimensions xOrg, yOrg,
+  xSize, ySize given as arguments using the receiver's
+  Pen object."
+  Rectangle new aRectangle;
+
+  aRectangle dimensions xOrg, yOrg, xSize, ySize;
+  __ctalkGUIPaneDrawRoundedRectangle (self, aRectangle, aPen, TRUE,
 				      radius);
   return NULL;
 }
@@ -692,6 +751,137 @@ X11CanvasPane instanceMethod drawCircle (Circle aCircle, Pen aPen,
 				 fillColor);
 }
 					 
+/* from /usr/include/fontconfig/fontconfig.h */
+#define FC_WEIGHT_THIN		    0
+#define FC_WEIGHT_EXTRALIGHT	    40
+#define FC_WEIGHT_ULTRALIGHT	    FC_WEIGHT_EXTRALIGHT
+#define FC_WEIGHT_LIGHT		    50
+#define FC_WEIGHT_DEMILIGHT	    55
+#define FC_WEIGHT_SEMILIGHT	    FC_WEIGHT_DEMILIGHT
+#define FC_WEIGHT_BOOK		    75
+#define FC_WEIGHT_REGULAR	    80
+#define FC_WEIGHT_NORMAL	    FC_WEIGHT_REGULAR
+#define FC_WEIGHT_MEDIUM	    100
+#define FC_WEIGHT_DEMIBOLD	    180
+#define FC_WEIGHT_SEMIBOLD	    FC_WEIGHT_DEMIBOLD
+#define FC_WEIGHT_BOLD		    200
+#define FC_WEIGHT_EXTRABOLD	    205
+#define FC_WEIGHT_ULTRABOLD	    FC_WEIGHT_EXTRABOLD
+#define FC_WEIGHT_BLACK		    210
+#define FC_WEIGHT_HEAVY		    FC_WEIGHT_BLACK
+#define FC_WEIGHT_EXTRABLACK	    215
+#define FC_WEIGHT_ULTRABLACK	    FC_WEIGHT_EXTRABLACK
+
+#define FC_SLANT_ROMAN		    0
+#define FC_SLANT_ITALIC		    100
+#define FC_SLANT_OBLIQUE	    110
+
+/* these are from ctalkdefs.h */
+#define X_FACE_REGULAR     (1 << 0)
+#define X_FACE_BOLD        (1 << 1)
+#define X_FACE_ITALIC      (1 << 2)
+#define X_FACE_BOLD_ITALIC (1 << 3)
+
+X11CanvasPane instanceMethod selectFont (void) {
+  "The method folds any of the possible weights and slants of the
+    receiver ftFontVar into one of Ctalk's font-face variations.
+    This is basicall a holdover from working with different faces
+    using .BDF fonts, so we may be able to use these definitions
+    directly in the future."
+  Boolean new rcvr_weight, rcvr_slant, face_fn;
+  self ftFontVar selectFont;
+
+  switch (self ftFontVar weight)
+    {
+    case FC_WEIGHT_THIN:
+    case FC_WEIGHT_EXTRALIGHT: /* also ULTRALIGHT */
+    case FC_WEIGHT_DEMILIGHT: /* also SEMILIGHT */
+    case FC_WEIGHT_BOOK:
+    case FC_WEIGHT_REGULAR:   /* also NORMAL */
+    case FC_WEIGHT_MEDIUM:
+      rcvr_weight = FC_WEIGHT_REGULAR;
+      break;
+    case FC_WEIGHT_DEMIBOLD: /* also SEMIBOLD */
+    case FC_WEIGHT_BOLD:
+    case FC_WEIGHT_EXTRABOLD:  /* also ULTRABOLD */
+    case FC_WEIGHT_BLACK:  /* also HEAVY */
+    case FC_WEIGHT_EXTRABLACK: /* also ULTRABLACKx */
+      rcvr_weight = FC_WEIGHT_BOLD;
+      break;
+    }
+  switch (self ftFontVar slant)
+    {
+    case FC_SLANT_ROMAN:
+      if (rcvr_weight == FC_WEIGHT_REGULAR) {
+	face_fn = X_FACE_REGULAR;
+      } else {
+	face_fn = X_FACE_BOLD;
+      }
+      break;
+    case FC_SLANT_ITALIC:
+    case FC_SLANT_OBLIQUE:
+      if (rcvr_weight == FC_WEIGHT_REGULAR) {
+	face_fn = X_FACE_ITALIC;
+      } else {
+	face_fn = X_FACE_BOLD_ITALIC;
+      }
+      break;
+    }
+  __ctalkSelectXFontFace (self displayPtr,
+			  self paneBuffer xID,
+			  self paneBuffer xGC,
+			  face_fn);
+}
+
+X11CanvasPane instanceMethod selectFont (X11FreeTypeFont font) {
+  "Refer to the documentation above.  This method uses the
+    X11FreeTypeFont object given as an argument, instead
+    of the receiver's ftFontVar."
+  Boolean new rcvr_weight, rcvr_slant, face_fn;
+  font selectFont;
+  switch (font weight)
+    {
+    case FC_WEIGHT_THIN:
+    case FC_WEIGHT_EXTRALIGHT: /* also ULTRALIGHT */
+    case FC_WEIGHT_DEMILIGHT: /* also SEMILIGHT */
+    case FC_WEIGHT_BOOK:
+    case FC_WEIGHT_REGULAR:   /* also NORMAL */
+    case FC_WEIGHT_MEDIUM:
+      rcvr_weight = FC_WEIGHT_REGULAR;
+      break;
+    case FC_WEIGHT_DEMIBOLD: /* also SEMIBOLD */
+    case FC_WEIGHT_BOLD:
+    case FC_WEIGHT_EXTRABOLD:  /* also ULTRABOLD */
+    case FC_WEIGHT_BLACK:  /* also HEAVY */
+    case FC_WEIGHT_EXTRABLACK: /* also ULTRABLACKx */
+      rcvr_weight = FC_WEIGHT_BOLD;
+      break;
+    }
+
+  switch (font slant)
+    {
+    case FC_SLANT_ROMAN:
+      if (rcvr_weight == FC_WEIGHT_REGULAR) {
+	face_fn = X_FACE_REGULAR;
+      } else {
+	face_fn = X_FACE_BOLD;
+      }
+      break;
+    case FC_SLANT_ITALIC:
+    case FC_SLANT_OBLIQUE:
+      if (rcvr_weight == FC_WEIGHT_REGULAR) {
+	face_fn = X_FACE_ITALIC;
+      } else {
+	face_fn = X_FACE_BOLD_ITALIC;
+      }
+      break;
+    }
+  __ctalkSelectXFontFace (self displayPtr,
+			  self paneBuffer xID,
+			  self paneBuffer xGC,
+			  face_fn);
+}
+
 X11CanvasPane instanceMethod faceBold (void) {
   (X11Bitmap *)self paneBuffer faceBold;
 }

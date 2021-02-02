@@ -1,4 +1,4 @@
-/* $Id: X11MessageBoxPane,v 1.4 2020/12/13 12:50:22 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11MessageBoxPane,v 1.2 2021/01/29 00:48:41 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -225,25 +225,6 @@ X11MessageBoxPane instanceMethod attachTo (X11Pane parentPane,
 
   self mainWindowPtr = parentPane mainWindow;
 
-#if 0
-  if (!self foregroundColor) {
-    if (parentPane mainWindow foregroundColor)
-      self foregroundColor = parentPane mainWindow foregroundColor;
-  }
-  if (!self backgroundColor) {
-    if (parentPane mainWindow backgroundColor)
-      self backgroundColor = parentPane mainWindow backgroundColor;
-  }
-
-  if (parentPane mainWindow ftFontVar libIsInitialized) {
-    self ftFontVar become parentPane mainWindow ftFontVar;
-  } else if (parentPane mainWindow fontVar fontId != 0) {
-    self fontVar become parentPane mainWindow fontVar;
-  } else {
-    self font "fixed";
-  }
-#endif  
-
   return NULL;
 }
 
@@ -356,7 +337,7 @@ X11MessageBoxPane instanceMethod initWidgets (void) {
   l_label border = false;
   l_label resources replaceAt "textColor",
     (self resources at "messageColor");
-  l_label resources replaceAt "ftFont",
+  l_label resources replaceAt "font",
     (self resources at "messageFont");
   l_label justify = LABEL_LEFT;
 

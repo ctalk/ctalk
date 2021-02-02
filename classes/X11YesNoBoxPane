@@ -1,4 +1,4 @@
-/* $Id: X11YesNoBoxPane,v 1.1.1.1 2020/09/13 17:14:20 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11YesNoBoxPane,v 1.3 2021/02/01 19:58:13 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -503,19 +503,19 @@ X11YesNoBoxPane instanceMethod initWidgets (void) {
   geomspec printOn "%dx%d+%d+%d", label_width_px, label_height_px,
     label_x_px, label_y_px;
 
-  l_label resources replaceAt "backgroundColor",
-    (self resources at "backgroundColor");
-  l_label resources replaceAt "foregroundColor",
-    (self resources at "foregroundColor");
-  l_label multiLine self resources at "messageText";
-  l_label border = false;
-  l_label resources replaceAt "textColor",
-    (self resources at "messageColor");
-  l_label resources replaceAt "ftFont",
-    (self resources at "messageFont");
-  l_label justify = LABEL_LEFT;
 
   self label become l_label;
+  self label resources replaceAt "backgroundColor",
+    (self resources at "backgroundColor");
+  self label resources replaceAt "foregroundColor",
+    (self resources at "foregroundColor");
+  self label multiLine self resources at "messageText";
+  self label border = false;
+  self label resources replaceAt "textColor",
+    (self resources at "messageColor");
+  self label resources replaceAt "font",
+    (self resources at "messageFont");
+  self label justify = LABEL_LEFT;
 
   self label attachTo self, geomspec;
 

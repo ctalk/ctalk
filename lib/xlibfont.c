@@ -1,4 +1,4 @@
-/* $Id: xlibfont.c,v 1.2 2021/01/20 16:05:51 rkiesling Exp $ -*-c-*-*/
+/* $Id: xlibfont.c,v 1.4 2021/02/01 01:38:19 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -242,6 +242,13 @@ int load_xlib_fonts_internal_1t (void *d, char *xlfd) {
 extern unsigned short fgred, fggreen, fgblue, fgalpha;
 
 void sync_ft_color (void) {
+  if (shm_mem == NULL) {
+    printf ("Shared memory not configured.  You should try setting colors "
+	    "with a method like, \"namedX11Color,\" after starting the X "
+	    "input server.  Refer to the method: "
+	    "\"X11TerminalStream : openEventStream.\"\n");
+    return;
+  }
   shm_mem[SHM_FONT_FT_RED] = fgred;
   shm_mem[SHM_FONT_FT_GREEN] = fggreen;
   shm_mem[SHM_FONT_FT_BLUE] = fgblue;
@@ -266,6 +273,8 @@ void sync_ft_font (bool sync_color_too) {
     shm_mem[SHM_FONT_FT_ALPHA] = fgalpha;
   }
 }
+
+extern int __xlib_change_font_request_ft (Display *, Drawable, GC, char *);
 
 int __ctalkSelectXFontFace (void *d, int drawable_id,
 			    unsigned long int gc_ptr, int face) {
@@ -316,10 +325,14 @@ int __ctalkSelectXFontFace (void *d, int drawable_id,
     sync_ft_font (true);
     strcatx (d_buf, ctitoa (face, intbuf), NULL);
 
-    make_req (shm_mem, d, PANE_XLIB_FACE_REQUEST_FT,
-	      drawable_id, gc_ptr, d_buf);
-
-    wait_req (shm_mem);
+    if (dialog_dpy ()) {
+      __xlib_change_font_request_ft (d, drawable_id, (GC)gc_ptr, d_buf); 
+    } else {
+      make_req (shm_mem, d, PANE_XLIB_FACE_REQUEST_FT,
+		drawable_id, gc_ptr, d_buf);
+      
+      wait_req (shm_mem);
+    }
 
   } else {
 

@@ -18,6 +18,10 @@ int main (int argv, char **argc) {
   String new itemText, itemN;
   List new itemTextOut, itemNOut;
 
+  xPane ftFontVar initFontLib;
+  listPane selectFont;
+  label selectFont;
+
   xPane resources atPut "backgroundColor", "blue";
   label resources replaceAt "backgroundColor", "blue";
   label resources replaceAt "foregroundColor", "blue";
@@ -34,10 +38,6 @@ int main (int argv, char **argc) {
   label attachTo dispatcher, "100x70+10+30%";
   button attachTo dispatcher, "60x45+50%+-75";
   listPane attachTo dispatcher, "-15x-90+100+24";
-
-  xPane ftFontVar initFontLib;
-  listPane selectFont;
-  label selectFont;
 
   for (i = 1; i < N_ITEMS; ++i) {
     listPane add "item " + i asString;
@@ -64,10 +64,6 @@ int main (int argv, char **argc) {
 
       switch (e eventClass value)
         {
-        case EXPOSE:
-	  listPane draw;
-          listPane refresh;
-          break;
         case WINDELETE:
           xPane deleteAndClose;
           exit (0);

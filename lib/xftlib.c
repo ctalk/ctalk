@@ -1,4 +1,4 @@
-/* $Id: xftlib.c,v 1.28 2021/01/20 17:19:59 rkiesling Exp $ -*-c-*-*/
+/* $Id: xftlib.c,v 1.29 2021/01/29 16:37:20 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -128,7 +128,7 @@ int selected_dpi = 72;
 int selected_spacing = 90; /* dual */
 int selected_width = 100;  /* normal */
 double selected_pt_size = 12.0f;
-bool monospace = true;
+bool monospace = false;
 
 struct _xftstash {
   char family[MAXLABEL];
@@ -1402,6 +1402,8 @@ void __ctalkXftSelectFontFromFontConfig (char *font_config_str) {
   req_slant = 0;
   req_weight = 0;
   req_dpi = 0;
+
+  spacing_def = 0;
 
   if (!font_config_str || *font_config_str == 0)
     return;

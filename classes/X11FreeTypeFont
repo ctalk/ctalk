@@ -1,4 +1,4 @@
-/* $Id: X11FreeTypeFont,v 1.9 2021/01/19 17:00:46 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11FreeTypeFont,v 1.10 2021/01/31 20:44:25 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -227,7 +227,9 @@ X11FreeTypeFont instanceMethod selectFont (void) {
   reqPointSize = self pointSize;
   __ctalkXftSelectFont (self family, self slant, self weight,
 			self dpi, self pointSize);
-  self saveSelectedFont;
+  __ctalkXftSetForeground (self fgRed, self fgGreen, self fgBlue,
+			   self fgAlpha);
+  /* self saveSelectedFont; */
   self __loadInfo reqFamily, reqSlant, reqWeight, reqDPI, reqPointSize;
 
 }

@@ -1,4 +1,4 @@
-/* $Id: X11TextEntryPane,v 1.4 2021/01/15 17:04:29 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11TextEntryPane,v 1.7 2021/02/02 10:02:12 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -41,10 +41,7 @@ Character class CharCell;
  *     borderColor         String    "gray"
  *     vPad                Integer   4
  *     hPad                Integer   4
- *     font (Linux)        String    
- *                  "DejaVu Sans Mono-12:weight=medium:slant=roman"
- *     font (MacOS)        String    
- *                  "sans serif-14:weight=medium:slant=roman"
+ *     font                String    "monospace-14"
  *                                   Linux       MacOS
  *     spacingHint          Integer  0          -1
  *     cursorAdvanceHint    Integer  4           2
@@ -128,14 +125,11 @@ X11TextEntryPane instanceMethod new (String paneName) {
     "subPanePointerMotion";
   paneName setMethodHandler "pointermotion", pointerMotionMethod;
 
+  paneName resources atPut "font", "monospace-14";
 #ifdef __APPLE__
-  paneName resources atPut "font",
-     "sans serif-14:weight=normal:slant=roman";
   paneName resources atPut "spacingHint", -1;
   paneName resources atPut "cursorAdvanceHint", 2;
 #else  
-  paneName resources atPut
-    "font", "DejaVu Sans Mono-12:weight=normal:slant=roman";
   paneName resources atPut "spacingHint", 0;
   paneName resources atPut "cursorAdvanceHint", 4;
 #endif  
@@ -339,7 +333,6 @@ X11TextEntryPane instanceMethod draw (void) {
   Pen new dotPen;
   
   self ftFontVar selectFontFromFontConfig (self resources at "font");
-  self ftFontVar saveSelectedFont;
   if (self baselineY == 0) {
     self baselineY = self size y -
       (self resources integerAt "borderWidth") -

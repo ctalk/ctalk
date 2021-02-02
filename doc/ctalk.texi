@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.25 2021/01/21 11:48:03 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.56 2021/02/02 10:11:22 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -1779,10 +1779,14 @@ Initializes the font library and sets the reciever's instance
 variables to the default selected font.  Apps need to use this method before
 most of the other other methods in this class.
 
+Programs should call this method before any of the @mnm{attachTo}
+methods, so the methods can set their drawing parameters before
+the program starts to receive X events.
+
 If the system is not configured to use outline fonts then the library
 prints a message and exits the program with a non-zero value.
 @xref{ctalkXftInitLib}.  If the library is already initialized, then
-the method returns @code{0}.
+the method returns @samp{0}.
 
 @cindex @mnm{isMonospace} instance method @idxclscite{X11FreeTypeFont}
 @item @mnm{isMonospace} (@code{void})
@@ -9207,7 +9211,7 @@ Return an @code{Integer} object containing the current UTC time.
 
 @end table
 
-@node CalendarTime, LongInteger, CTime, Classes
+@node CalendarTime, RGBAColor, CTime, Classes
 @iftex
 @section @code{CalendarTime} class
 @end iftex
@@ -9504,7 +9508,7 @@ A convenience method that calls either @mnm{namedX11Color} or
 
 @end table
 
-@node LongInteger, Pen, CalendarTime, Classes
+@node LongInteger, Pen, RGBAColor, Classes
 @iftex
 @section @code{LongInteger} class
 @end iftex
@@ -14679,32 +14683,48 @@ by the receiver's @code{Pen} object.
 
 @cindex @mnm{drawFilledRectangle} instance method @idxclscite{X11CanvasPane}
 @item @mnm{drawLine} (@code{Intger} @var{xOrg}, @code{Integer} @var{yOrg}, @code{Integer} @var{xSize}, @code{Integer} @var{ySize})
+@item @mnm{drawLine} (@code{Intger} @var{xOrg}, @code{Integer} @var{yOrg}, @code{Integer} @var{xSize}, @code{Integer} @var{ySize}, @code{Pen} @var{aPen})
 Draw a filled rectangle on the pane's window with the upper-left
 hand corner at the point given by the @var{xOrg} and
 @var{yOrg} arguments, with the width @var{xSize} and the
 height @var{ySize}.  If a @code{Pen} argument isn't given, uses the
 line width and color defined by the receiver's @code{pen} instance
 variable; otherwise uses the line width and color defined by the
-@code{Pen} argument.
+@var{aPen} argument.
 
 @cindex @mnm{drawRoundedRectangle} instance method @idxclscite{X11CanvasPane}
 @item @mnm{drawRoundedRectangle} (@code{Intger} @var{xOrg}, @code{Integer} @var{yOrg}, @code{Integer} @var{xSize}, @code{Integer} @var{ySize}, @code{Integer} @var{radius})
+@item @mnm{drawRoundedRectangle} (@code{Intger} @var{xOrg}, @code{Integer} @var{yOrg}, @code{Integer} @var{xSize}, @code{Integer} @var{ySize}, @code{Pen} @var{aPen}, @code{Pen} @var{aPen}, @code{Integer} @var{radius})
 Similar to @mnm{drawFilledRectangle}, but this method takes an extra
 argument, the radius of the corner arcs that round the rendered rectangle's
 corners.
 
+If the @var{aPen} argument is given, the method uses its color and line width
+for drawing.  Otherwise, the method uses the color and line width defined
+by the @code{X11CanvasPane} object for drawing.
+
 @cindex @mnm{drawRectangle} instance method @idxclscite{X11CanvasPane}
 @item @mnm{drawRectangle} (@code{Intger} @var{xOrg}, @code{Integer} @var{yOrg}, @code{Integer} @var{xSize}, @code{Integer} @var{ySize})
+@item @mnm{drawRectangle} (@code{Intger} @var{xOrg}, @code{Integer} @var{yOrg}, @code{Integer} @var{xSize}, @code{Pen} @var{aPen}, @code{Integer} @var{ySize})
 Draw the borders of a rectangle on the pane's window with
 the upper-left hand corner at the point given by the
 @var{xOrg} and @var{yOrg} arguments, with the width
 @var{xSize} and the height @var{ySize}.
 
+If the @var{aPen} argument is given, the method uses its color and
+line width for drawing.  Otherwise, the method uses the color and line
+width defined by the @code{X11CanvasPane} object for drawing.
+
 @cindex @mnm{drawRoundedRectangle} instance method @idxclscite{X11CanvasPane}
 @item @mnm{drawRoundedRectangle} (@code{Intger} @var{xOrg}, @code{Integer} @var{yOrg}, @code{Integer} @var{xSize}, @code{Integer} @var{ySize}, @code{Integer} @var{radius})
+@item @mnm{drawRoundedRectangle} (@code{Intger} @var{xOrg}, @code{Integer} @var{yOrg}, @code{Integer} @var{xSize}, @code{Integer} @var{ySize}, @code{Pen} @var{aPen}, @code{Integer} @var{radius})
 This method is similar to @mnm{drawRectangle}, except that it takes an
 extra argument, @var{radius}, which specifies the radius of the arcs
 that form the rectangle's corners.
+
+If the @var{aPen} argument is given, the method uses its color and
+line width for drawing.  Otherwise, the method uses the color and line
+width defined by the @code{X11CanvasPane} object for drawing.
 
 @cindex @mnm{directCopy} instance method @idxclscite{X11CanvasPane}
 @item @mnm{directCopy} (@code{X11Bitmap} @var{src_bitmap}, @code{Integer} @var{src_x_ort}, @code{Integer} @var{src_y_org}, @code{Integer} @var{src_width}, @code{Integer} @var{src_height}, @code{Integer} @var{dest_x_org}, @code{Integer} @var{dest_y_org})
@@ -14746,15 +14766,6 @@ corner at @var{x_org},@var{y_org} on the receiver's pane.
 The @var{xpm_data} argument is the name of the array declared at the 
 start of a @flnm{xpm} file's data array.
 
-@cindex @mnm{refresh} instance method @idxclscite{X11CanvasPane}
-@item @mnm{refresh} (@code{void})
-Redraw the pane on the main window.
-
-@cindex @mnm{refreshReframe} instance method @idxclscite{X11CanvasPane}
-@item @mnm{refreshReframe} (@code{void})
-Redraw the pane on the main window.  If the user has moved the pane
-by clicking and dragging on it, then reposition the pane within the window.
-
 @cindex @mnm{putStrXY} instance method @idxclscite{X11CanvasPane}
 @item @mnm{putStrXY} (@code{Integer} @var{xOrg}, @code{Integer} @var{yOrg} @code{String} @var{text})
 @item @mnm{putStrXY} (@code{Integer} @var{xOrg}, @code{Integer} @var{yOrg} @code{String} @var{text}, @code{String} @var{font_desc})
@@ -14774,6 +14785,48 @@ information about X Logical Font Descriptors, refer to the
 
 If a @var{color_name} argument is also given, draws
 the text using that color.
+
+@cindex @mnm{selectFont} instance method @idxclscite{X11CanvasPane}
+@item @mnm{selectFont} (@code{void})
+@item @mnm{selectFont} (@code{X11FreeTypeFont} @var{font})
+This method selects the font and face defined by the reciever's
+@code{ftFontVar} instance variable (with no arguments), or the
+@var{font} given as a single argument.
+
+These methods ensure that the font-face selection is valid in any of
+the client-server memory spaces, and folds the font's weight and slant
+into one of Ctalk's predefined face slots: medium, bold, italic, or
+bold italic.  This is basically a holdover from calculating font-face
+combinations for .BDF fonts; future versions of Ctalk should be able
+to use the typeface parameters directly.
+
+This method is basically a combination of two other methods:
+@mnm{X11FreeTypeFont : selectFont,} and the library function
+@cite{__ctalkSelectXFontFace}, which is used in the @code{X11Bitmap}
+methods: @mnm{faceBold, faceRegular, faceItalic,} and
+@mnm{faceBoldItalic.}
+
+The four font face slots have definitions of that are given in both
+@code{X11Bitmap} class and @flnm{ctalkdefs.h}.  The definitions are
+listed below.
+
+@example
+
+#define X_FACE_REGULAR     (1 << 0)
+#define X_FACE_BOLD        (1 << 1)
+#define X_FACE_ITALIC      (1 << 2)
+#define X_FACE_BOLD_ITALIC (1 << 3)
+
+@end example
+
+@cindex @mnm{refresh} instance method @idxclscite{X11CanvasPane}
+@item @mnm{refresh} (@code{void})
+Redraw the pane on the main window.
+
+@cindex @mnm{refreshReframe} instance method @idxclscite{X11CanvasPane}
+@item @mnm{refreshReframe} (@code{void})
+Redraw the pane on the main window.  If the user has moved the pane
+by clicking and dragging on it, then reposition the pane within the window.
 
 @cindex @mnm{subPaneDestroy} instance method @idxclscite{X11CanvasPane}
 @item @mnm{subPaneDestroy} (@code{Object} @var{subPaneRef}, @code{InputEvent} @var{event})
@@ -14799,7 +14852,7 @@ The handler for Resize events from the X display.  Resizes the pane's
 X window and adjusts the pane's dimensions.
 @end table
 
-@node X11ButtonPane, X11LabelPane, X11CanvasPane, Classes
+@node X11ButtonPane, X11CheckBoxPane, X11CanvasPane, Classes
 @iftex
 @section @code{X11ButtonPane} Class
 @end iftex
@@ -14828,14 +14881,28 @@ the second draws rounded, non-beveled buttons.
 @c demos/x11/buttons.ca
 @example
 
-/* buttons.ca - X11ButtonPane Demonstration -*-c-*- */
+/* -*-c-*- */
+
+/*
+ *  buttons.ca - X11ButtonPane demonstration.
+ *
+ *    To build, use this command line:
+ *
+ *      ctcc -x buttons.ca -o buttons
+ *
+ *    There are several options that control the buttons' appearance.
+ *    Some of them use the #defines below.  Consult the X11ButtonPane
+ *    section in the Ctalk language reference for a full description
+ *    of the X11ButtonPane class.
+ */
+
 
 #include <ctalk/ctalkdefs.h>
 
 /* Uncomment this #define to use X bitmap fonts. */
 /* #define XFONTS */
 
-/* Also, uncomment this to draw a multiline label. */
+/* Also, uncomment this to draw multiline labels. */
 /* #define MULTILINE */
 
 /* Uncomment if you want the buttons to be highlighted with wider
@@ -14857,6 +14924,7 @@ int main (void) @{
   mainWindow backgroundColor = "blue";
 
   label canFocus = false;
+  label ftFontVar initFontLib;
   label resources replaceAt "borderWidth", 0;
 
   label resources replaceAt "backgroundColor", "blue";
@@ -14871,9 +14939,14 @@ int main (void) @{
   mainWindow inputStream eventMask = 
     EXPOSE|ENTERWINDOWNOTIFY|LEAVEWINDOWNOTIFY|BUTTONPRESS|BUTTONRELEASE|KEYPRESS|KEYRELEASE|WINDELETE|MOTIONNOTIFY;
   dispatcher attachTo mainWindow;
+#ifdef MULTILINE
+  lbutton attachTo dispatcher, "100x60+25+100";
+  rbutton attachTo dispatcher, "100x60+135+100";
+#else  
   lbutton attachTo dispatcher, "90x50+25+100";
   rbutton attachTo dispatcher, "90x50+135+100";
-  label attachTo dispatcher, "147x80+44+15";
+#endif  
+  label attachTo dispatcher, "147x80+c+15";
 
   mainWindow map;
   mainWindow raiseWindow;
@@ -14883,16 +14956,7 @@ int main (void) @{
   mainWindow setWMTitle "X11ButtonPane Demo";
 
 #ifndef XFONTS
-  /*
-   * This is the recommended way to set up fonts for each widget.
-   */
   label ftFontVar initFontLib;
-  label ftFont "DejaVu Sans", 0, FTFONT_BOLD, 0, 12.0;
-  label ftFontVar saveSelectedFont;
-  lbutton ftFont "DejaVu Sans", 0, FTFONT_MEDIUM, 0, 10.0;
-  lbutton ftFontVar saveSelectedFont;
-  rbutton ftFont "DejaVu Sans", 0, FTFONT_MEDIUM, 0, 10.0;
-  rbutton ftFontVar saveSelectedFont;
 #else
   lbutton label font "fixed";
 #endif  
@@ -14914,8 +14978,8 @@ int main (void) @{
     (rbutton resources at "foregroundColor");
   lbutton label resources replaceAt "highlightBorderWidth", 2;
   rbutton label resources replaceAt "highlightBorderWidth", 2;
-  lbutton label resources replaceAt "ftFont", "sans serif-10:bold";
-  rbutton label resources replaceAt "ftFont", "sans serif-10:bold";
+  rbutton label resources replaceAt "highlightTextBold", true;
+  lbutton label resources replaceAt "highlightTextBold", true;
 #endif  
 
   lbutton draw;
@@ -14981,6 +15045,7 @@ int main (void) @{
   InputEvent new e;
 
   mainWindow backgroundColor = "blue";
+  label ftFontVar initFontLib;
   label resources replaceAt "backgroundColor", "blue";
   rbutton resources replaceAt "backgroundColor", "blue";
   lbutton resources replaceAt "backgroundColor", "blue";
@@ -15003,21 +15068,15 @@ int main (void) @{
 
   mainWindow setWMTitle "X11ButtonPane Demo";
 
-  label ftFontVar initFontLib;
   label multiLine "X11ButtonPane\nRounded Button\nDemo";
   label canFocus = false;
   label borderWidth = 0;
   label resources replaceAt "borderColor", "blue";
-  label resources replaceAt "ftFont", "sans-serif-14:bold";
   label resources replaceAt "textColor", "white";
   label resources replaceAt "backgroundColor", "blue";
   label resources replaceAt "foregroundColor", "blue";
 
-  rbutton label ftFontVar selectFontFromFontConfig "sans serif-10";
-  rbutton label ftFontVar saveSelectedFont;
   rbutton resources replaceAt "foregroundColor", "blue";
-  lbutton label ftFontVar selectFontFromFontConfig "sans serif-10";
-  lbutton label ftFontVar saveSelectedFont;
   lbutton resources replaceAt "foregroundColor", "blue";
   rbutton resources replaceAt "textColor", "white";
   lbutton resources replaceAt "textColor", "white";
@@ -15525,7 +15584,7 @@ int main (int argv, char **argc) @{
   
   canvas attachTo xTopLevelPane, "280x280+10+10";
   xCheckBoxPane attachTo xTopLevelPane, "+20%+40%";
-  label attachTo xTopLevelPane, "160x25+35%+40";
+  label attachTo xTopLevelPane, "160x40+35%+50";
 
 #ifdef BEVEL
   xCheckBoxPane resources replaceAt "bevel", true;
@@ -15750,7 +15809,7 @@ a corresponding @samp{BUTTONRELEASE} event is ignored.
 
 @end table
 
-@node X11LabelPane, X11ListPane, X11ButtonPane, Classes
+@node X11LabelPane, X11ListPane, X11CheckBoxPane, Classes
 @iftex
 @section @code{X11LabelPane} Class
 @end iftex
@@ -15904,10 +15963,21 @@ class.  For a description, see the @code{resources} instance variable
 documentation. @xref{PaneResources}.
 
 @table @code
+@cindex @code{boldFont} resource @idxclscite{X11LabelPane}
+@item boldFont
+The font that the label uses for highlighting text by printing
+in bold type.
+
+@cindex @code{font} resource @idxclscite{X11LabelPane}
 @cindex @code{ftFont} resource @idxclscite{X11LabelPane}
+@item font
 @item ftFont
 A @code{String} that contains the text font's Fontconfig font
 descriptor.  The default is @samp{sans serif-12}.
+
+Note that the class still checks for the @samp{ftFont} resource
+for compatibility with previous versions, but the class now uses the
+@samp{font} resource to make int consistent with other classes.
 
 For more information about Fontconfig descriptors, refer to the
 @code{X11FreeTypeFont} class. @xref{X11FreeTypeFont}.
@@ -15983,6 +16053,11 @@ information about XLFD's.  The default is @samp{fixed}.
 @subheading Instance Variables
 
 @table @code
+@cindex @code{boldFont} instance variable @idxclscite{X11LabelPane}
+@item boldFont
+A @code{X11FreeTypeFont} object that the label uses to highlight
+text by printing it in boldfaced text.
+
 @cindex @code{border} instance variable @idxclscite{X11LabelPane}
 @item border
 A @code{Boolean} that controls whether the label displays a border.
@@ -16078,6 +16153,10 @@ label.  This variable only affects text drawn using scalable fonts of
 the Freetype library.  X11 bitmap fonts contain the leading in the
 character glyphs.
 
+@cindex @code{lineHeight} instance variable @idxclscite{X11LabelPane}
+@item lineHeight
+An  @code{Integer} that contains the label's font height + the leading.
+
 @cindex @code{margin} instance variable @idxclscite{X11LabelPane}
 @item margin
 An @code{Integer} that defines the distance in pixels between the
@@ -16087,6 +16166,12 @@ border and the edges of the @code{X11LabelPane} object.
 @item padding
 An @code{Integer} that defines the minimum distance in pixels between the
 inner edge of the border and the pane object's text.
+
+@cindex @code{parHeight} instance variable @idxclscite{X11LabelPane}
+@item parHeight
+For multi-line labels, an @code{Integer} that contains the height of
+all of the lines of text.  For single-line labels, the
+@code{lineHeight} and @code{parHeight} are the same.
 
 @cindex @code{radius} instance variable @idxclscite{X11LabelPane}
 @item radius
@@ -16150,9 +16235,10 @@ Creates a new @code{X11LabelPane} object, initializes the object's
 instance variables and event handlers, and sets the pane's default
 foreground and background colors.
 
-@cindex @code{selectFont} instance method @idxclscite{X11LabelPane}
-@item selectFont (@code{void})
-A convenience method that is synonymous with, @code{self ftFontVar selectFont}.
+@cindex @code{selectFontOld} instance method @idxclscite{X11LabelPane}
+@item selectFontOld (@code{void})
+This method was formerly named @mnm{selectFont,} although it has been
+superceded by @mnm{X11CanvasPane : selectFont}.
 
 @cindex @code{subPaneExpose} instance method @idxclscite{X11LabelPane}
 @item subPaneExpose (@code{Object} @var{subPane}, @code{InputEvent} @var{event})
@@ -16252,6 +16338,10 @@ int main (int argv, char **argc) @{
   String new itemText, itemN;
   List new itemTextOut, itemNOut;
 
+  xPane ftFontVar initFontLib;
+  listPane selectFont;
+  label selectFont;
+
   xPane resources atPut "backgroundColor", "blue";
   label resources replaceAt "backgroundColor", "blue";
   label resources replaceAt "foregroundColor", "blue";
@@ -16262,16 +16352,12 @@ int main (int argv, char **argc) @{
 
   xPane inputStream eventMask = EXPOSE|ENTERWINDOWNOTIFY|LEAVEWINDOWNOTIFY| \
     KEYPRESS|KEYRELEASE|WINDELETE|BUTTONPRESS|BUTTONRELEASE|MOTIONNOTIFY| \
-     SELECTIONCLEAR|SELECTIONREQUEST|STRUCTURENOTIFY;
+    SELECTIONCLEAR|SELECTIONREQUEST;
   xPane initialize 300, 400;
   dispatcher attachTo xPane;
   label attachTo dispatcher, "100x70+10+30%";
   button attachTo dispatcher, "60x45+50%+-75";
   listPane attachTo dispatcher, "-15x-90+100+24";
-
-  xPane ftFontVar initFontLib;
-  listPane selectFont;
-  label selectFont;
 
   for (i = 1; i < N_ITEMS; ++i) @{
     listPane add "item " + i asString;
@@ -16298,10 +16384,6 @@ int main (int argv, char **argc) @{
 
       switch (e eventClass value)
         @{
-        case EXPOSE:
-	  listPane draw;
-          listPane refresh;
-          break;
         case WINDELETE:
           xPane deleteAndClose;
           exit (0);
@@ -16391,7 +16473,7 @@ pane's border.  The default is @samp{gray}.
 @cindex @code{borderWidth} resource @idxclscite{X11ListPane}
 @item borderWidth
 An @code{Integer} that defines the width in pixels of the pane's border
-The default is @samp{1} pixel.
+The default is @samp{2} pixels.
 
 @cindex @code{font} resource @idxclscite{X11ListPane}
 @item font
@@ -16408,6 +16490,16 @@ the user scrolls the list.  The default is 4 pixels.
 An @code{Integer} that defines the width in pixels of between
 the left edge of pane's list area and the left margin of the
 item text.  The default is 4 pixels.
+
+@cindex @code{scrollBorderColor} resource @idxclscite{X11ListPane}
+@item scrollBorderColor
+A @code{String} that contains the color for the edges of the
+scroll channel.  The default is @samp{darkgray}.
+
+@cindex @code{scrollBorderWidth} resource @idxclscite{X11ListPane}
+@item scrollBorderWidth
+An @code{Integer} that contains the width in pixels of the scroll
+channel's border.  The default is 1 pixel.
 
 @cindex @code{selectColor} resource @idxclscite{X11ListPane}
 @item selectColor
@@ -16462,6 +16554,12 @@ The default is 2px.
 
 @table @code
 
+@cindex @code{borderPen} instance variable @idxclscite{X11ListPane}
+@item borderPen
+A @code{Pen} object that contains the color and width of the border.
+Its values are defined by the @samp{borderColor} and @samp{borderWidth}
+resources.
+
 @cindex @code{buttonState} instance variable @idxclscite{X11ListPane}
 @item buttonState
 An @code{Integer} that records whether any of the pointer buttons
@@ -16497,6 +16595,18 @@ ItemBox instanceVariable size Point 0;
 @item iInit
 An @code{Integer} that simply causes the @mnm{drawItemList} method to
 wait for class to initialize the fonts it needs.
+
+@cindex @code{scrollBorderPen} instance variable @idxclscite{X11ListPane}
+@item scrollBorderPen
+A @code{Pen} object that contains the width and the color of the
+scroll channel's borders.  Its values are set by the
+@samp{scrollBorderColor} and @samp{scrollBorderWidth} resources.
+
+@cindex @code{selectionPen} instance variable @idxclscite{X11ListPane}
+@item selectionPen
+A @code{Pen} object that defines the color used to fill list selections.
+Its value is set by the @samp{selectColor} resources.  The pen's width
+is not used.
 
 @cindex @code{scrollWidth} instance variable @idxclscite{X11ListPane}
 @item scrollWidth
@@ -16680,7 +16790,7 @@ the user clicks on the main window's button.
 @c demos/x11/messagebox.ca
 @example
 
-/* messagebox.ca - X11ButtonPane Demonstration -*-c-*- */
+/* messagebox.ca - X11MessageBox Demonstration -*-c-*- */
 
 #include <ctalk/ctalkdefs.h>
 
@@ -16700,7 +16810,8 @@ int main (void) @{
   label canFocus = false;
   label borderWidth = 0;
 
-  label ftFontVar notifyLevel XFT_NOTIFY_ERRORS;
+  label ftFontVar initFontLib;
+  label ftFontVar notifyLevel XFT_NOTIFY_NONE;
 
   mainWindow backgroundColor = "blue";
   label resources replaceAt "backgroundColor", "blue";
@@ -16712,7 +16823,7 @@ int main (void) @{
     EXPOSE|ENTERWINDOWNOTIFY|LEAVEWINDOWNOTIFY|BUTTONPRESS|BUTTONRELEASE|KEYPRESS|KEYRELEASE|WINDELETE|MOVENOTIFY;
 
   dispatcher attachTo mainWindow;
-  button attachTo dispatcher, "110x50+73+100";
+  button attachTo dispatcher, "125x75+c+100";
   label attachTo dispatcher, "177x80+34+15";
   messageBox attachTo dispatcher, "300x200";
 
@@ -16723,7 +16834,6 @@ int main (void) @{
 
   mainWindow setWMTitle "X11MessageBoxPane Demo";
 
-  label ftFontVar initFontLib;
 
   label multiLine "X11MessageBoxPane\nDemo";
   label resources replaceAt "textColor", "lightgray";
@@ -16732,7 +16842,10 @@ int main (void) @{
 
   button label multiLine "Open\nMessageBox";
 
-  button label resources replaceAt "highlightForegroundColor", "gray90";
+  button label resources replaceAt "highlightForegroundColor", "gray80";
+
+  /* Icon IDs, like ICON_INFO, are defined in ctalkdefs.h. */
+  messageBox resources replaceAt "iconID", ICON_INFO;
 
   /* The program uses the "replaceAt" method because the key/value
      entry for "backgroundColor" the X11MessageBoxPane : new method
@@ -16741,11 +16854,6 @@ int main (void) @{
   messageBox resources replaceAt "foregroundColor", "blue";
   messageBox resources replaceAt "messageText",
     	       "Hello, messageBox!\nYour message text here.";
-
-  button draw;
-  button refresh;
-  label draw;
-  label refresh;
 
   while (TRUE) @{
     mainWindow inputStream queueInput;
@@ -16761,16 +16869,7 @@ int main (void) @{
 	  label subPaneExpose (label, e);
 	  break;
 	case BUTTONRELEASE:
-	  if (button haveClick) @{
-	    button clearClick;
-	  @}
-	  button highlight = false;
-	  button clicked = false;
-	  while (mainWindow inputStream eventPending)
-	    e become mainWindow inputStream inputQueue unshift;
-	  button draw;
-	  button refresh;
-	  messageBox show;
+	  messageBox showManaged button;
 	  break;
 	case WINDELETE:
  	  mainWindow deleteAndClose;
@@ -16781,6 +16880,7 @@ int main (void) @{
       usleep (1000);
     @}
   @}
+
 @}
 
 @end example
@@ -17015,12 +17115,13 @@ the main program.
 @end ifnottex
 @cindex @code{X11PopupMenu} class
 
-A @code{X11PopupMenu} object displays a menu window, generally where a
-pointer button is pressed, and displays a list of items and the expressions
-the class executes for each item.
+A @code{X11PopupMenu} object displays a basic menu at the point where
+the user has pressed a mouse button in a program window.
 
-This example program demonstrates how a program might add
-@code{X11PopupMenu}.
+At this time the class is still very basic - it doesn't support menu
+decorations like titles or separators, nor does it support submenus.
+This example program demonstrates how a program might use a basic
+@code{X11PopupMenu} object.
 
 @c demos/x11/popupmenu.ca
 @example
@@ -17034,31 +17135,16 @@ This example program demonstrates how a program might add
 #define FTFONT_MEDIUM 100
 
 X11MessageBoxPane new aboutBox;
-X11TextEntryBox new entryBox;
-String new userLabelText;
+X11FileSelectDialog new fileBox;
 
 X11MessageBoxPane instanceMethod configure (void) @{
   self resources replaceAt "backgroundColor", "darkblue";
   self resources replaceAt "foregroundColor", "darkblue";
   self resources replaceAt "messageColor", "white";
   self resources replaceAt "messageText",
-    "X11PopupMenu Demo\nCtalk 0.0.66";
+    "X11PopupMenu Demo\nCtalk Version: 0.0.66";
   self resources replaceAt "iconID", ICON_INFO;
 
-@}
-
-X11TextEntryBox instanceMethod configure (void) @{
-  self resources replaceAt "backgroundColor", "darkblue";
-  self resources replaceAt "foregroundColor", "darkblue";
-  self resources replaceAt "messageColor", "white";
-  self resources replaceAt "messageText",
-    "Enter the text you want displayed";
-  self resources replaceAt "iconID", ICON_QUESTION;
-@}
-
-X11PopupMenu instanceMethod getUserInput (void) @{
-  entryBox show;
-  userLabelText = entryBox entryContents;
 @}
 
 /* 
@@ -17092,14 +17178,14 @@ int main (void) @{
   X11Pane new mainWin;
   X11PaneDispatcher new dispatcher;
   X11LabelPane new heading, subHeading;
-  X11PopupMenu new menu;
+  X11PopupMenu new mainMenu;
   InputEvent new e;
   XEvent ev_ret;
   Display *display;
 
-  menu add "Label Text...", "entryBox getUserInput";
-  menu add "About...", "aboutBox show";
-  menu add "Exit", "self clientExit parentPane";
+  mainMenu add "Browse Files...", "fileBox show";
+  mainMenu add "About...", "aboutBox show";
+  mainMenu add "Exit", "self clientExit parentPane";
 
   heading canFocus = false;
   heading resources replaceAt "borderWidth", 0;
@@ -17111,12 +17197,10 @@ int main (void) @{
   heading ftFontVar initFontLib;
 
   aboutBox configure;
-  entryBox configure;
 
   mainWin backgroundColor = "blue";
   heading resources replaceAt "backgroundColor", "blue";
   subHeading resources replaceAt "backgroundColor", "blue";
-  menu resources replaceAt "backgroundColor", "blue";
   
   mainWin initialize 255, 200;
   /*
@@ -17131,10 +17215,14 @@ int main (void) @{
     |WMFOCUSCHANGENOTIFY;
 
   dispatcher attachTo mainWin;
-  heading attachTo dispatcher, "177x60+34+15";
-  subHeading attachTo dispatcher, "190x60+c+60";
+  heading attachTo dispatcher, "177x60+c+25";
+  subHeading attachTo dispatcher, "190x60+c+75";
+  /* The dialogs, which are launched by the menu, still need
+     to be attached to the menu's parent window, even if it's
+     only to set their dimensions to something similar to 
+     the program's dimensions. */
   aboutBox attachTo dispatcher, "300x200";
-  entryBox attachTo dispatcher, "350x250";
+  fileBox attachTo dispatcher, "250x350";
 
   mainWin map;
   mainWin raiseWindow;
@@ -17147,16 +17235,10 @@ int main (void) @{
   heading resources replaceAt "textColor", "lightgray";
   heading resources replaceAt "foregroundColor", "blue";
 
-  subHeading resources replaceAt "ftFont", "sans-serif-8";
+  subHeading resources replaceAt "ftFont", "DejaVu Sans-8";
   subHeading resources replaceAt foregroundColor, "blue";
   subHeading resources replaceAt textColor, "lightgray";
   subHeading multiLine "Click anywhere\nto display the menu.";
-
-  heading draw;
-  heading refresh;
-  subHeading draw;
-  subHeading refresh;
-
 
   while (TRUE) @{
     mainWin inputStream queueInput;
@@ -17172,13 +17254,12 @@ int main (void) @{
 	  subHeading subPaneExpose (subHeading, e);
 	  break;
 	case BUTTONPRESS:
-	  menu popup mainWin, e xEventData5, e xEventData6;
-	  display = menu displayPtr;
+	  mainMenu popup mainWin, e xEventData5, e xEventData6;
+	  display = mainMenu displayPtr;
 	  while (XCheckTypedEvent (display, ButtonPress, &ev_ret))
 	    ;
 	  break;
 	case WINDELETE:
-	  printf ("The user entered: %s\n", userLabelText);
  	  mainWin deleteAndClose;
 	  exit (0);
 	  break;
@@ -17189,6 +17270,25 @@ int main (void) @{
   @}
 
 @}
+
+@end example
+
+@subheading Constructing Menus
+
+The structure of method items is simple: each item contains the text
+of the label that is visible to the user, and also the text of the
+Ctalk expression that the class will execute when the user selects the
+item.  The @code{add} method, which is used to add the items, also
+calculates the entry's geometry within the menu.
+
+Here is the part of the demo program above that adds items to the
+menu.
+
+@example
+
+mainMenu add "Browse Files...", "fileBox show";
+mainMenu add "About...", "aboutBox show";
+mainMenu add "Exit", "self clientExit parentPane";
 
 @end example
 
@@ -17549,6 +17649,10 @@ Here is an example of an @code{X11TextEntryPane} object's use.
 @c demos/x11/entrypane.ca
 @example
 
+/* entrypane.ca, a X11TextEntryPane demonstration. -*-c-*- */
+
+/* Uncomment if you want the entry box to echo dots. */
+/* #define DOTS */
 
 #include <ctalk/ctalkdefs.h>
 
@@ -17562,7 +17666,9 @@ int main (int argv, char **argc) @{
   Integer new nEvents;
   Integer new verbose;
   X11Cursor new cursor;
-   xPane resources atPut "backgroundColor", "blue";
+
+  xPane ftFontVar initFontLib;
+  xPane resources atPut "backgroundColor", "blue";
   label resources replaceAt "backgroundColor", "blue";
   label resources replaceAt "foregroundColor", "blue";
   label resources replaceAt "highlightForegroundColor", "blue";
@@ -17570,13 +17676,19 @@ int main (int argv, char **argc) @{
   label resources replaceAt "highlightTextColor", "white";
   label border = false;
 
-   xPane inputStream eventMask = EXPOSE|ENTERWINDOWNOTIFY|LEAVEWINDOWNOTIFY| \
-    KEYPRESS|KEYRELEASE|WINDELETE|BUTTONPRESS|BUTTONRELEASE;
-   xPane initialize 300, 200;
+#ifdef DOTS
+  entry dots = true;
+#endif  
+  
+  xPane inputStream eventMask = EXPOSE|ENTERWINDOWNOTIFY|LEAVEWINDOWNOTIFY| \
+    KEYPRESS|KEYRELEASE|WINDELETE|BUTTONPRESS|BUTTONRELEASE|MOTIONNOTIFY| \
+     SELECTIONCLEAR|SELECTIONREQUEST;
+   xPane initialize 300, 185;
   dispatcher attachTo xPane;
   label attachTo dispatcher, "100x80+10+10";
-  button attachTo dispatcher, "60x45+120+100";
+  button attachTo dispatcher, "70x55+c+100";
   entry attachTo dispatcher, "140x32+120+32";
+
   xPane map;
   xPane raiseWindow;
 
@@ -17662,8 +17774,7 @@ for Linux and other systems.
 @item font
 A @code{String} that contains the display font's descriptor.  In
 order to maintain alignment between the character display and
-insertion point, it is strongly recommended that the display
-font be monospaced.
+insertion point, the display font be monospaced.
 
 The default font for MacOS is @samp{Bitstream Vera Sans
 Mono-14:weight=medium;slant=roman}. The default font for Linux and
@@ -17962,7 +18073,8 @@ int main (void) @{
   label canFocus = false;
   label borderWidth = 0;
 
-  label ftFontVar notifyLevel XFT_NOTIFY_ERRORS;
+  label ftFontVar initFontLib;
+  label ftFontVar notifyLevel XFT_NOTIFY_NONE;
 
   mainWindow backgroundColor = "blue";
   label resources replaceAt "backgroundColor", "blue";
@@ -17974,8 +18086,8 @@ int main (void) @{
     EXPOSE|ENTERWINDOWNOTIFY|LEAVEWINDOWNOTIFY|BUTTONPRESS|BUTTONRELEASE|KEYPRESS|KEYRELEASE|WINDELETE|MOVENOTIFY;
 
   dispatcher attachTo mainWindow;
-  button attachTo dispatcher, "110x70+73+100";
-  label attachTo dispatcher, "177x80+34+15";
+  label attachTo dispatcher, "177x80+c+15";
+  button attachTo dispatcher, "110x90+c+90";
   yesnoBox attachTo dispatcher, "300x200";
 
   mainWindow map;
@@ -17985,8 +18097,6 @@ int main (void) @{
 
   mainWindow setWMTitle "X11YesNoBoxPane Demo";
 
-  label ftFontVar initFontLib;
-
   label multiLine "X11YesNoBoxPane\nDemo";
   label resources replaceAt "textColor", "lightgray";
   label resources replaceAt "foregroundColor", "blue";
@@ -17995,9 +18105,6 @@ int main (void) @{
   button label multiLine "Open\nYes/No\nDialog";
 
   button label resources replaceAt "highlightForegroundColor", "gray80";
-
-  /* Icon IDs, like ICON_QUESTION, are defined in ctalkdefs.h. */
-  yesnoBox resources replaceAt "iconID", ICON_QUESTION;
 
   /* The program uses the "replaceAt" method because the key/value
      entry for "backgroundColor" the X11MessageBoxPane : new method
@@ -18377,6 +18484,7 @@ int main (void) @{
   label canFocus = false;
   label borderWidth = 0;
 
+  label ftFontVar initFontLib;
   label ftFontVar notifyLevel XFT_NOTIFY_NONE;
 
   mainWindow backgroundColor = "blue";
@@ -18389,8 +18497,8 @@ int main (void) @{
     EXPOSE|ENTERWINDOWNOTIFY|LEAVEWINDOWNOTIFY|BUTTONPRESS|BUTTONRELEASE|KEYPRESS|KEYRELEASE|WINDELETE|MOVENOTIFY;
 
   dispatcher attachTo mainWindow;
-  button attachTo dispatcher, "110x70+73+100";
-  label attachTo dispatcher, "177x80+34+15";
+  button attachTo dispatcher, "110x90+c+95";
+  label attachTo dispatcher, "177x80+c+15";
   textEntryBox attachTo dispatcher, "300x200";
 
   mainWindow map;
@@ -18400,9 +18508,7 @@ int main (void) @{
 
   mainWindow setWMTitle "X11TextEntryBox Demo";
 
-  label ftFontVar initFontLib;
-
-  label multiLine "X11YTextEntryBox\nDemo";
+  label multiLine "X11TextEntryBox\nDemo";
   label resources replaceAt "textColor", "lightgray";
   label resources replaceAt "foregroundColor", "blue";
   label resources replaceAt "borderColor", "blue";
@@ -18418,7 +18524,7 @@ int main (void) @{
   textEntryBox resources replaceAt "foregroundColor", "blue";
   textEntryBox resources replaceAt "messageColor", "white";
   textEntryBox resources replaceAt "messageText",
-               "Hello, textEntryBox!\nYour message text here.";
+    	       "Hello, textEntryBox!\nYour message text here.";
 
   button draw;
   button refresh;
@@ -18433,21 +18539,21 @@ int main (void) @{
       mainWindow subPaneNotify e;
 
       switch (e eventClass value)
-        @{
-        case EXPOSE:
-          button subPaneExpose (button, e);
-          label subPaneExpose (label, e);
-          break;
-        case BUTTONRELEASE:
-          textEntryBox showManaged button;
-          printf ("returnVal: %d: %s: %s\n", textEntryBox returnVal,
-                  textEntryBox returnText, textEntryBox entryContents);
-          break;
-        case WINDELETE:
-          mainWindow deleteAndClose;
-          exit (0);
-          break;
-        @}
+	@{
+	case EXPOSE:
+	  button subPaneExpose (button, e);
+	  label subPaneExpose (label, e);
+	  break;
+	case BUTTONRELEASE:
+	  textEntryBox showManaged button;
+	  printf ("returnVal: %d: %s: %s\n", textEntryBox returnVal,
+		  textEntryBox returnText, textEntryBox entryContents);
+	  break;
+	case WINDELETE:
+ 	  mainWindow deleteAndClose;
+	  exit (0);
+	  break;
+	@}
     @} else @{
       usleep (1000);
     @}
@@ -18582,7 +18688,7 @@ pointer is over one of the subpanes.
 @end table
 
 
-@node X11ListBox, X11TextPane, X11TextEntryBox, Classes
+@node X11ListBox, X11FileSelectDialog, X11TextEntryBox, Classes
 @iftex
 @section @code{X11ListBox} Class
 @end iftex
@@ -18657,6 +18763,7 @@ int main (void) @{
   label canFocus = false;
   label borderWidth = 0;
 
+  label ftFontVar initFontLib;
   label ftFontVar notifyLevel XFT_NOTIFY_NONE;
 
   mainWindow backgroundColor = "blue";
@@ -18669,8 +18776,8 @@ int main (void) @{
     EXPOSE|ENTERWINDOWNOTIFY|LEAVEWINDOWNOTIFY|BUTTONPRESS|BUTTONRELEASE|KEYPRESS|KEYRELEASE|WINDELETE|MOVENOTIFY|MOTIONNOTIFY;
 
   dispatcher attachTo mainWindow;
-  button attachTo dispatcher, "110x70+73+100";
-  label attachTo dispatcher, "177x80+34+15";
+  label attachTo dispatcher, "177x80+c+15";
+  button attachTo dispatcher, "110x85+c+100";
   listBox attachTo dispatcher, "300x400";
 
   mainWindow map;
@@ -18680,14 +18787,12 @@ int main (void) @{
 
   mainWindow setWMTitle "X11ListBox Demo";
 
-  label ftFontVar initFontLib;
-
   label multiLine "X11ListBox\nDemo";
   label resources replaceAt "textColor", "lightgray";
   label resources replaceAt "foregroundColor", "blue";
   label resources replaceAt "borderColor", "blue";
 
-  button label multiLine "Open\nListPane\nDialog";
+  button label multiLine "Open\nListBox\nDialog";
 
   button label resources replaceAt "highlightForegroundColor", "gray80";
 
@@ -18907,7 +19012,20 @@ Here is an example program that pops up a @code{X11FileSelectDialog} window.
 
 @example
 
-/* fileselectbox.ca, a X11FileSelectBox demonstration. -*-c-*- */
+/* -*-c-*- */
+
+/* 
+ *   fileselectbox.ca, a X11FileSelectDialog demonstration. 
+ *
+ *     To build:
+ * 
+ *       ctcc -x fileselectbox.ca -o fileselectbox
+ *
+ *     You can optionally buidl the dialog with a X11TextEntryPane
+ *     so you can enter filenames by typing.  For a full description
+ *     of the X11FileSelectDialog class, refer to the Ctalk Language
+ *     Reference.
+ */
 
 /*
  *  Uncomment the following #define if you want to build the dialog
@@ -18932,6 +19050,7 @@ int main (void) @{
   label canFocus = false;
   label borderWidth = 0;
 
+  label ftFontVar initFontLib;
   label ftFontVar notifyLevel XFT_NOTIFY_NONE;
 
   mainWindow backgroundColor = "blue";
@@ -18939,13 +19058,13 @@ int main (void) @{
   button resources replaceAt "backgroundColor", "blue";
   fileSelect resources replaceAt "backgroundColor", "blue";
   
-  mainWindow initialize 255, 200;
+  mainWindow initialize 255, 245;
   mainWindow inputStream eventMask = 
     EXPOSE|ENTERWINDOWNOTIFY|LEAVEWINDOWNOTIFY|BUTTONPRESS|BUTTONRELEASE|KEYPRESS|KEYRELEASE|WINDELETE|MOVENOTIFY|MOTIONNOTIFY;
 
   dispatcher attachTo mainWindow;
-  button attachTo dispatcher, "110x70+73+100";
-  label attachTo dispatcher, "177x80+34+15";
+  label attachTo dispatcher, "177x60+c+35";
+  button attachTo dispatcher, "110x105+c+100";
   fileSelect attachTo dispatcher, "300x400";
 
   mainWindow map;
@@ -18958,8 +19077,6 @@ int main (void) @{
 #endif  
 
   mainWindow setWMTitle "X11FileSelectDialog Demo";
-
-  label ftFontVar initFontLib;
 
   label multiLine "X11FileSelectDialog\nDemo";
   label resources replaceAt "textColor", "lightgray";
@@ -19458,7 +19575,7 @@ being displayed in @var{qualPath}.
 @end table
 
 
-@node X11TextPane, X11TextEditorPane, X11ListBox, Classes
+@node X11TextPane, X11TextEditorPane, X11FileSelectDialog, Classes
 @iftex
 @section @code{X11TextPane} Class
 @end iftex
@@ -20291,7 +20408,6 @@ Application instanceMethod findFtFonts (void) @{
   if (useFtFonts && !useXFont) @{
     ftFont initFontLib;
     ftFont selectFont ftFontName, 0, 80, 72, ftFontSize;
-    ftFont namedX11Color fgColor;
   @}
   
 @}

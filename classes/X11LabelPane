@@ -1,4 +1,4 @@
-/* $Id: X11LabelPane,v 1.9 2021/01/19 16:37:13 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11LabelPane,v 1.18 2021/02/01 10:03:42 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -28,7 +28,7 @@
 /* 
  *  The X11LabelPane class defines the following resources.
  *
- *  ftFont             A Fontconfig font specification.  These
+ *  font             A Fontconfig font specification.  These
  *                     are described in the X11FreeTypeFont
  *                     section of the Ctalk Language Reference.
  *  xFont              A X Logical Font Descriptor.  See
@@ -45,6 +45,8 @@
  *      highlightTextColor       "black"
  *      highlightForegroundColor "orange"
  *      highlightBorderColor     "black"
+ *      font                     "sans serif-12"
+ *      boldFont                 "sans serif-12:weight=bold"
  *
  *  borderWidth                  1
  *  highlightBorderWidth         2
@@ -94,6 +96,11 @@ X11LabelPane instanceVariable leading Integer 1
 "Distance between text lines.  This is only effective when using
 Freetype fonts - X fonts have leading included in the character
 glyphs.";
+X11LabelPane instanceVariable lineHeight Integer 0
+"The height of a line of text, which is the font height plus the leading";
+X11LabelPane instanceVariable parHeight Integer 0
+"For multi-line labels, the height of all of the lines of text.
+For single-line labels, the lineHeight and parHeight are the same.";
 X11LabelPane instanceVariable justify Integer LABEL_CENTER
 "Justify the text on the left or right side of the label, or center
 the text.";
@@ -101,6 +108,7 @@ X11LabelPane instanceVariable radius Integer 0
 "If greater than 0, draw borders as rounded rectangles with the radius
 equal to this value";
 X11LabelPane instanceVariable initialized Boolean false;
+X11LabelPane instanceVariable boldFont X11FreeTypeFont NULL;
 
 X11LabelPane instanceMethod new (String __paneName) {
   Method new exposeMethod;
@@ -121,7 +129,8 @@ X11LabelPane instanceMethod new (String __paneName) {
 
   __paneName resources atPut "backgroundColor", "gray";
   __paneName resources atPut "foregroundColor", "white";
-  __paneName resources atPut "ftFont", "sans-serif-12";
+  __paneName resources atPut "font", "sans-serif-12";
+  __paneName resources atPut "boldFont", "sans-serif-12:weight=bold";
   __paneName resources atPut "textColor", "black";
   __paneName resources atPut "borderColor", "black";
   __paneName resources atPut "highlightTextColor", "black";
@@ -183,12 +192,14 @@ X11LabelPane instanceMethod subPaneLeave (Object __subPane,
   }
 }
 
-X11LabelPane instanceMethod selectFont (void) {
+X11LabelPane instanceMethod selectFontOld (void) {
+  "This has been superceded by X11CanvasPane : selectFont -
+    use at own risk. ... "
   if (self resources keyExists "font") {
     self ftFontVar selectFontFromFontConfig self resources at "font";
   } else {
     /* for backward compatibility */
-    self ftFontVar selectFontFromFontConfig self resources at "ftFont";
+    self ftFontVar selectFontFromFontConfig self resources at "font";
   }
   self ftFontVar saveSelectedFont;
   self ftFontVar selectFont;
@@ -214,45 +225,11 @@ X11LabelPane instanceMethod multiLine (String textArg) {
   self haveMultiLine = true; 
 }
 
-#if 0 /***/
-X11LabelPane instanceMethod __drawJustified (String textArg,
-					     Integer textWidth,
-					     Integer lineStartY) {
-  Integer new hAir, hCenter;
-  switch (self justify)
-    {
-    case LABEL_LEFT:
-      self putStrXY self margin + self padding +
-	self resources at "highlightBorderWidth", lineStartY value, textArg;
-      break;
-    case LABEL_CENTER:
-      hCenter = (self size x / 2) - (textWidth / 2);
-      hAir = hCenter - (hCenter / 10);
-      self putStrXY hAir, lineStartY value, textArg;
-      break;
-    case LABEL_RIGHT:
-      self putStrXY ((self size x) -
-		     (self margin + self padding +
-		      self resources at "highlightBorderWidth") -
-		     textWidth,
-		     lineStartY value, textArg);
-      break;
-    }
-
-}
-#else
 X11LabelPane instanceMethod __drawJustified (String textArg,
 					     Integer lineStartY) {
   Integer new hAir, hCenter, lTextWidth;
 
-  self ftFontVar selectFont;
-
-#if 0 /* for testing */ /***/
   lTextWidth = self ftFontVar textWidth textArg;
-#else
-  lTextWidth = self ftFontVar textWidthBasic self displayPtr,
-    self xWindowID, self xGC, textArg;
-#endif  
 
   switch (self justify)
     {
@@ -275,7 +252,6 @@ X11LabelPane instanceMethod __drawJustified (String textArg,
     }
 
 }
-#endif
 
 X11LabelPane instanceMethod fillStyle (void) {
   if (self grayed) {
@@ -325,10 +301,11 @@ X11LabelPane instanceMethod drawBorder (void) {
 }
 
 X11LabelPane instanceMethod draw (void) {
-  Integer new ts, parheight, lineStartY, vAir;
+  Integer new lineStartY, vAir;
   
   self paneBuffer clear;
   self fillStyle;
+
   if (!self initialized) {
     /* Normally a widget class does its instance variable initialization
        in an "attachTo" method.  This class just uses the super : attachTo
@@ -336,65 +313,50 @@ X11LabelPane instanceMethod draw (void) {
        here. */
     self borderWidth = self resources at "borderWidth";
     self initialized = true;
-    self ftFontVar selectFontFromFontConfig (self resources at "ftFont");
+    self ftFontVar selectFontFromFontConfig (self resources at "font");
+    self ftFontVar namedX11Color self resources at "textColor";
     self ftFontVar saveSelectedFont;
-  }
-  if (self border) {
-    self borderStyle;
-    self drawBorder;
+    self boldFont selectFontFromFontConfig (self resources at "boldFont");
+    self boldFont namedX11Color self resources at "textColor";
+    self boldFont saveSelectedFont;
+    self lineHeight = self ftFontVar height + self leading;
+    self parHeight = self lineHeight * self textLines size;
   }
 
   if (self ftFontVar libIsInitialized) {
-    /* X11FreeTypeFont */
-#if 0
-    self ftFontVar selectFontFromFontConfig self resources at "ftFont";
-    self ftFontVar saveSelectedFont;
-#endif    
+    if (self border) {
+      self borderStyle;
+      self drawBorder;
+    }
     if (self grayed) {
-      /* leave like this until we figure out why lighter grays don't
-	 display */
-      self ftFontVar namedX11Color "dimgray";
       self ftFontVar alpha 0x8888;
       self faceRegular;
     } else {
       if (self highlight) {
 	self ftFontVar namedX11Color self resources at "highlightTextColor";
-	if (self resources at "highlightTextBold" == false) {
-	  self faceBold;
- 	} else {
-	  self faceRegular;
+	if (self resources integerAt "highlightTextBold" == true) {
+	  self selectFont boldFont;
+	} else {
+	  self selectFont;
 	}
       } else {
-	self ftFontVar namedX11Color self resources at "textColor";
-	self faceRegular;
+	self selectFont;
       }
     }
+
+    vAir = self size y / 10;
+
     if (self haveMultiLine) {
-
-      parheight = (self ftFontVar height + self leading) *
-	self textLines size;
-      vAir = self size y / 10;
-      lineStartY = (self size y / 2) - (parheight / 2) + vAir;
-
-
+      lineStartY = (self size y / 2) - (self parHeight / 2) + vAir;
       self textLines map {
-	/* ts = super ftFontVar textWidth self;
-	   super __drawJustified self, ts, lineStartY; *//***/
 	super __drawJustified self, lineStartY;
-	lineStartY += super ftFontVar height + super leading;
+	lineStartY += super lineHeight;
       }
-      
     } else {
-
-      /* ts = self ftFontVar textWidth (self textLine);
-      self __drawJustified self textLine, ts,
-	(self size y / 2) - (self ftFontVar height / 2) +
-	(self ftFontVar height / 2); *//***/
-      self __drawJustified self textLine, 
-	(self size y / 2) - (self ftFontVar height / 2) +
-	(self ftFontVar height / 2);
-
+      lineStartY = (self size y / 2) - (self lineHeight / 2) + vAir;
+      self __drawJustified self textLine, lineStartY;
     }
+
   } else {
     /* X11 font */
     if (self grayed) {
@@ -402,6 +364,11 @@ X11LabelPane instanceMethod draw (void) {
     } else {
       if (self highlight) {
         self foreground self resources at "highlightTextColor";
+	if (self resources integerAt "highlightTextBold" == true) {
+	  self faceBold;
+ 	} else {
+	  self faceRegular;
+	}
       } else {
 	self foreground self resources at "textColor";
       }
@@ -409,24 +376,16 @@ X11LabelPane instanceMethod draw (void) {
     self font self resources at "xFont";
     if (self haveMultiLine) {
 
-      parheight = self fontVar height  *
-	self textLines size;
       vAir = self size y / 10;
-      lineStartY = (self size y / 2) - (parheight / 2) + vAir;
+      lineStartY = (self size y / 2) - (self parHeight / 2) + vAir;
 
       self textLines map {
-	/* ts = super fontVar textWidth self;
-	   super __drawJustified self, ts, lineStartY; *//***/
 	super __drawJustified self, lineStartY;
-	lineStartY += super fontVar height;
+	lineStartY += /* super fontVar height; */ super lineHeight;
       }
 
     } else {
 
-      /* ts = self fontVar textWidth (self textLine);
-      self __drawJustified self textLine, ts,
-	((self size y / 2) - (self fontVar height / 2)) +
-	(self fontVar height / 2); *//***/
       self __drawJustified self textLine, 
 	((self size y / 2) - (self fontVar height / 2)) +
 	(self fontVar height / 2);
@@ -440,16 +399,25 @@ X11LabelPane instanceMethod draw (void) {
 X11LabelPane instanceMethod drawButtonLayout (void) {
   "Similar to the draw method, except this method uses
    a different algorithm for spacing text."
-    Integer new ts, parheight, lineStartY, vAir;
+    Integer new lineStartY, vAir;
   
   if (!self initialized) {
-    self ftFontVar selectFontFromFontConfig
-      (self resources at "ftFont");
+    /* See the comment in the draw method. */
+    self borderWidth = self resources at "borderWidth";
+    self initialized = true;
+    self ftFontVar selectFontFromFontConfig (self resources at "font");
+    self ftFontVar namedX11Color self resources at "textColor";
     self ftFontVar saveSelectedFont;
+    self boldFont selectFontFromFontConfig (self resources at "boldFont");
+    self boldFont namedX11Color self resources at "textColor";
+    self boldFont saveSelectedFont;
+    self lineHeight = self ftFontVar height + self leading;
+    self parHeight = self lineHeight * self textLines size;
   }
 
   self paneBuffer clear;
   self fillStyle;
+
   if (self border) {
     self borderStyle;
     self drawBorder;
@@ -463,7 +431,7 @@ X11LabelPane instanceMethod drawButtonLayout (void) {
     } else {
       if (self highlight) {
         self ftFontVar namedX11Color self resources at "highlightTextColor";
-	if (self resources at "highlightTextBold") {
+	if (self resources integerAt "highlightTextBold" == true) {
 	  self faceBold;
  	} else {
 	  self faceRegular;
@@ -475,15 +443,15 @@ X11LabelPane instanceMethod drawButtonLayout (void) {
     }
     if (self haveMultiLine) {
 
-      parheight = (self ftFontVar ascent + self leading) *
-	self textLines size;
+      /* self parHeight = (self ftFontVar ascent + self leading) *
+	 self textLines size; */
       vAir = self size y / 20;
-      lineStartY = (self size y / 2) - (parheight / 2) +
+      lineStartY = (self size y / 2) - (self parHeight / 2) +
 	self ftFontVar ascent - vAir;
       
       self textLines map {
 	super __drawJustified self, lineStartY;
-	lineStartY += super ftFontVar ascent + super leading; 
+	lineStartY += super lineHeight;
       }
       
     } else {
@@ -506,14 +474,14 @@ X11LabelPane instanceMethod drawButtonLayout (void) {
     if (self haveMultiLine) {
 
       vAir = self size y / 10;
-      parheight = self fontVar ascent  *
-	self textLines size;
-      lineStartY = (self size y / 2) - (parheight / 2) +
+     self parHeight = self fontVar ascent  *
+       self textLines size;
+      lineStartY = (self size y / 2) - (self parHeight / 2) +
 	(self fontVar ascent / 2) +  vAir;
 
       self textLines map {
 	super __drawJustified self, lineStartY;
-	lineStartY += super fontVar ascent;
+	lineStartY += super lineHeight;
       }
 
     } else {

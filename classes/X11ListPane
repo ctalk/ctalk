@@ -1,4 +1,4 @@
-/* $Id: X11ListPane,v 1.4 2020/12/23 14:54:50 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11ListPane,v 1.10 2021/01/30 23:40:19 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -29,17 +29,19 @@
    Resources
 
    borderColor              "gray"
+   scrollBorderColor        "darkgray"
    scrollWidth              10
    borderWidth              1
+   scrollBorderWidth        1
    thumbMargin              2
    font                     "sans serif-12";
    leftMargin               4
    keyScrollIncrement       4
    thumbColor               "darkgray"
    textColor                "black"
-   selectColor              "lightblue"
+   selectColor              "skyblue"
    scrollMargin             2
-   vAlignHint               2
+   vAlignHint               -2
    selectStyle              LIST_SELECT_PANE
 
 */
@@ -55,6 +57,9 @@ X11ListPane instanceVariable thumbExt Point NULL;
 X11ListPane instanceVariable shiftState Integer 0;
 X11ListPane instanceVariable lineHeight Integer 0;
 X11ListPane instanceVariable vAlignHint Integer 0;
+X11ListPane instanceVariable borderPen Pen NULL;
+X11ListPane instanceVariable scrollBorderPen Pen NULL;
+X11ListPane instanceVariable selectionPen Pen NULL;
 
 String class ItemBox;
 
@@ -196,17 +201,19 @@ X11ListPane instanceMethod new (String paneName) {
 
   paneName resources atPut "borderColor", "gray";
   paneName resources atPut "scrollWidth", 10;
-  paneName resources atPut "borderWidth", 1;
+  paneName resources atPut "borderWidth", 2;
   paneName resources atPut "thumbMargin", 2;
   paneName resources atPut "font", "sans-serif-12";
   paneName resources atPut "leftMargin", 4;
   paneName resources atPut "keyScrollIncrement", 4;
   paneName resources atPut "thumbColor", "darkgray";
   paneName resources atPut "textColor", "black";
-  paneName resources atPut "selectColor", "lightblue";
+  paneName resources atPut "selectColor", "skyblue";
   paneName resources atPut "scrollMargin", 1;
-  paneName resources atPut "vAlignHint", 2;
+  paneName resources atPut "vAlignHint", -2;
   paneName resources atPut "selectStyle", LIST_SELECT_PANE;
+  paneName resources atPut "scrollBorderColor", "darkgray";
+  paneName resources atPut "scrollBorderWidth", 1;
 
   return paneName;
 }
@@ -358,12 +365,11 @@ X11ListPane instanceMethod onMotion (Object subPane, InputEvent event) {
 
   int thumborg_y_tmp;
 
-  if ((event xEventData1 >= thumborg_x) &&
-      (event xEventData1 <= thumbext_x)) {
+  if (event xEventData1 <= thumbext_x) {
 #if 0 /***/
-  if ((event xEventData1 >= self thumbOrg x) &&
-      (event xEventData1 <= self thumbExt x)) {
-#endif    
+    if ((event xEventData1 >= thumborg_x) &&
+      (event xEventData1 <= thumbext_x)) {
+#endif      
     if (self buttonState & BUTTON1MASK) {
       d_y = event xEventData2 - y_1;
       if (abs (d_y) < MIN_SCROLL)
@@ -510,7 +516,6 @@ X11ListPane instanceMethod attachTo (Object parentPane,
 
   self ftFontVar selectFontFromFontConfig self resources at "font";
   self ftFontVar saveSelectedFont;
-  self ftFontVar namedX11Color self resources at "textColor";
 
   display_line_height = self ftFontVar textHeight "T";
   scrollmargin = self resources integerAt "scrollMargin";
@@ -524,6 +529,13 @@ X11ListPane instanceMethod attachTo (Object parentPane,
   self vAlignHint = self resources integerAt "vAlignHint";
   select_style = self resources integerAt "selectStyle";
   text_left_margin = self resources integerAt "leftMargin";
+
+  self borderPen colorName = self resources at "borderColor";
+  self borderPen width = self resources integerAt "borderWidth";
+  self scrollBorderPen colorName = self resources at "scrollBorderColor";
+  self scrollBorderPen width = self resources integerAt "scrollBorderWidth";
+  self selectionPen colorName = self resources at "selectColor";
+  self selectionPen width = 1;
 
   return NULL;
 }
@@ -541,63 +553,69 @@ X11ListPane instanceMethod dumpList (void) {
 
 X11ListPane instanceMethod drawItemList (void) {
   ItemBox new item;
-  int pane_size_x;
+  Integer new tViewExtX, tViewStartY, tViewTopPx;
+  void *d;
+  unsigned int xid;
+  unsigned long gc_ptr;
   
   self ftFontVar selectFont;
   self ftFontVar namedX11Color self resources at "textColor";
 
+  tViewExtX = self size x - self scrollWidth - 
+    (self resources integerAt "leftMargin") - 5;
+  tViewStartY = self viewStartY + self vAlignHint;
+  tViewTopPx = self viewStartY - self lineHeight;
+  d = self displayPtr;
+  xid = self paneBuffer xID;
+  gc_ptr = self paneBuffer xGC;
+
   if (select_style == LIST_SELECT_ITEM) {
-    /* Here we need to check the width each list item, and
+    /* Here we need to check the width of each list item, and
        we just do the complete loop, so we don't have to
        check select_style for each item, also. */
     self items map {
       item = self;
 
-      if (super viewStartY - super lineHeight <= item org y) {
+      if (tViewTopPx <= item org y) {
 	if (item selected == true) {
 
-	  super pen colorName = super resources at "selectColor";
 	  super drawFilledRectangle (item org x,
 				     /* Try to center the rectangle 
 					vertically over the text. */
 				     (item ext y - super viewStartY
 				      - super lineHeight),
 				     item size x,
-				     item size y);
+				     item size y, super selectionPen);
 	}
-	super putStrXY item org x,
-	  (item ext y - super viewStartY) + super vAlignHint, item value;
+        __ctalkX11PanePutStrBasic (d, xid, gc_ptr,
+                                   item org x, 
+                                   item ext y - tViewStartY,
+                                   item value);
       }
     }
   } else {
-    pane_size_x = self size x;
     self items map {
       item = self;
 
-      if (super viewStartY - super lineHeight <= item org y) {
+      if (tViewTopPx <= item org y) {
 	if (item selected == true) {
 
-	  super pen colorName = super resources at "selectColor";
 	  super drawFilledRectangle (item org x,
 				     /* Try to center the rectangle 
 					vertically over the text. */
 				     (item ext y - super viewStartY
 				      - super lineHeight),
-#if 0
-				     /* work on this ... */
-				     super size x - scrollwidth -
-				     text_left_margin
-#endif				     
-				     pane_size_x - scrollwidth -
-				     text_left_margin - 5,
-				     item size y);
+                                     tViewExtX, 
+				     item size y, super selectionPen);
 	}
-	super putStrXY item org x,
-	  (item ext y - super viewStartY) + super vAlignHint, item value;
+        /* for testing here, too */
+        __ctalkX11PanePutStrBasic (d, xid, gc_ptr,
+                                   item org x, 
+                                   item ext y - tViewStartY,
+                                   item value);
       }
     }
   }
-
 }
 
 X11ListPane instanceMethod drawThumb (void) {
@@ -609,21 +627,14 @@ X11ListPane instanceMethod drawThumb (void) {
 
 X11ListPane instanceMethod draw (void) {
 
-  Integer new border;
-
   self background "white";
   self clear;
 
-  self pen colorName = self resources at "borderColor";
-  self pen width = self resources integerAt "borderWidth";
-  self drawRectangle self resources integerAt "scrollWidth", 0,
-    self size x, self size y;
+ self drawRectangle self resources integerAt "scrollWidth", 0,
+	self size x, self size y, self borderPen;
 
-  self pen colorName = "darkgray";
-
-  self pen width = self resources integerAt "borderWidth";
   self drawRectangle 0, 0, self resources integerAt "scrollWidth",
-    self size y;
+    self size y, self scrollBorderPen;
   
   self drawThumb;
   self drawItemList;

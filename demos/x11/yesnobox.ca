@@ -14,6 +14,7 @@ int main (void) {
   label canFocus = false;
   label borderWidth = 0;
 
+  label ftFontVar initFontLib;
   label ftFontVar notifyLevel XFT_NOTIFY_NONE;
 
   mainWindow backgroundColor = "blue";
@@ -26,8 +27,8 @@ int main (void) {
     EXPOSE|ENTERWINDOWNOTIFY|LEAVEWINDOWNOTIFY|BUTTONPRESS|BUTTONRELEASE|KEYPRESS|KEYRELEASE|WINDELETE|MOVENOTIFY;
 
   dispatcher attachTo mainWindow;
-  button attachTo dispatcher, "110x70+73+100";
-  label attachTo dispatcher, "177x80+34+15";
+  label attachTo dispatcher, "177x80+c+15";
+  button attachTo dispatcher, "110x90+c+90";
   yesnoBox attachTo dispatcher, "300x200";
 
   mainWindow map;
@@ -36,8 +37,6 @@ int main (void) {
   mainWindow openEventStream;
 
   mainWindow setWMTitle "X11YesNoBoxPane Demo";
-
-  label ftFontVar initFontLib;
 
   label multiLine "X11YesNoBoxPane\nDemo";
   label resources replaceAt "textColor", "lightgray";

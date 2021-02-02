@@ -1,4 +1,4 @@
-This is ctalk.info, produced by makeinfo version 6.5 from ctalk.texi.
+This is ctalk.info, produced by makeinfo version 6.7 from ctalk.texi.
 
 INFO-DIR-SECTION Ctalk
 START-INFO-DIR-ENTRY
@@ -1307,6 +1307,10 @@ Instance Methods
      Initializes the font library and sets the reciever's instance
      variables to the default selected font.  Apps need to use this
      method before most of the other other methods in this class.
+
+     Programs should call this method before any of the 'attachTo'
+     methods, so the methods can set their drawing parameters before the
+     program starts to receive X events.
 
      If the system is not configured to use outline fonts then the
      library prints a message and exits the program with a non-zero
@@ -7334,7 +7338,7 @@ Instance Methods
      Return an 'Integer' object containing the current UTC time.
 
 
-File: ctalk.info,  Node: CalendarTime,  Next: LongInteger,  Prev: CTime,  Up: Classes
+File: ctalk.info,  Node: CalendarTime,  Next: RGBAColor,  Prev: CTime,  Up: Classes
 
 'CalendarTime' Class
 --------------------
@@ -7577,7 +7581,7 @@ Instance Methods
      'rgbX11Color' depending on the format of COLOR_SPEC.
 
 
-File: ctalk.info,  Node: LongInteger,  Next: Pen,  Prev: CalendarTime,  Up: Classes
+File: ctalk.info,  Node: LongInteger,  Next: Pen,  Prev: RGBAColor,  Up: Classes
 
 'LongInteger' Class
 -------------------

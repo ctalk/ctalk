@@ -1,4 +1,4 @@
-/* $Id: X11PopupMenu,v 1.35 2021/01/22 06:25:25 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11PopupMenu,v 1.43 2021/01/29 00:48:42 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -30,7 +30,7 @@
  *      textColor             "black"
  *      hlTextColor           "white"
  *      hlColor               "darkblue"
- *      bgColor               "gray"
+ *      backgroundColor       "gray"
  *      hMargins              5
  *      topMargin             10
  *      bottomMargin          12
@@ -71,7 +71,7 @@ MenuItemBox instanceVariable attrs Integer 0;
 #define SUBMENU_GADGET   (1 << 0)
 
 static bool initialized = false;
-static bool withdrawn = WITHDRAWN_NONE;
+static int withdrawn = WITHDRAWN_NONE;
 bool point_is_in_rect (int, int, int, int, int, int);
 bool screen_click (int *, int *, unsigned int *);
 int __xlib_put_str_ft (Display *, Drawable, GC, char *);
@@ -83,7 +83,7 @@ X11PopupMenu instanceMethod new (String menuName) {
   menuName resources atPut "textColor", "black";
   menuName resources atPut "hlTextColor", "white";
   menuName resources atPut "hlColor", "darkblue";
-  menuName resources atPut "bgColor", "gray";
+  menuName resources atPut "backgroundColor", "gray";
   menuName resources atPut "hMargins", 5;
   menuName resources atPut "topMargin", 10;
   menuName resources atPut "bottomMargin", 12;
@@ -158,10 +158,12 @@ X11PopupMenu instanceMethod draw (void) {
   hMargin = self resources integerAt "hMargins";
   /* hilite box starts at hMargins, so the extent is the pane width -
      (hMargins * 2) */
-  hlWidth = self size x - (hMargin * 2);
+  hlWidth = self size x - (hMargin * 2); /***/
+  /***/
   cursorHPad = self resources integerAt "cursorHPad";
   cursorOrgX = hMargin - cursorHPad;
   cursorExtX = hlWidth + (cursorHPad * 2);
+  /***/
   gadgetRMargin = self resources integerAt "gadgetRMargin";
   hilite_xgcv.background = self hlPixel;
   i = 0;
@@ -181,6 +183,16 @@ X11PopupMenu instanceMethod draw (void) {
 		      vMargin + m org y,
 		      cursorExtX,
 		      m size y);
+#if 0 /***/
+      /* Needs SERIOUS work. We added the cursorOrgX and cursorExtX
+       to compensate */
+      XFillRectangle (super displayPtr, super paneBuffer xID,
+		      buf_gc,
+		      hMargin - 1, 
+		      vMargin + m org y,
+		      hlWidth + 1,
+		      m size y);
+#endif      
       XChangeGC (d_l, buf_gc, GCBackground, &xgcv);
       __ctalkX11MenuDrawString (super displayPtr,
 				super paneBuffer xID,
@@ -193,6 +205,16 @@ X11PopupMenu instanceMethod draw (void) {
 				s, super resources at "hlTextColor");
       if (m attrs & SUBMENU_GADGET) {
 	super subMenuGadget vMargin + m org y + m size y, true;
+
+#if 0
+	__ctalkX11MenuDrawString (super displayPtr,
+				  super paneBuffer xID,
+				  super size x - gadgetRMargin,
+				  vMargin + m org y + m size y,
+				  m size x, super textHeight,
+				  m size x, m size y,
+				  "-", super resources at "hlTextColor");
+#endif	
       }
     } else {
       __ctalkX11MenuDrawString (super displayPtr,
@@ -205,6 +227,15 @@ X11PopupMenu instanceMethod draw (void) {
       if (m attrs & SUBMENU_GADGET) {
 	super subMenuGadget vMargin + m org y + m size y,
 	  blackPixel;
+#if 0 /***/
+	__ctalkX11MenuDrawString (super displayPtr,
+				  super paneBuffer xID,
+				  super size x - gadgetRMargin, /***/
+				  vMargin + m org y + m size y,
+				  m size x, super textHeight,
+				  m size x, m size y,
+				  "-", super resources at "textColor");
+#endif	
       }
     }
     ++i;
@@ -262,6 +293,11 @@ X11PopupMenu instanceMethod add (String itemText, String exprText) {
   (*itemPtr) ext y = (*itemPtr) org y + (*itemPtr) size y;
 
   if (gadgetItem) {
+  /***/
+    /* These don't work. 
+    (*itemPtr) name = itemText subString 0, (itemText length - 1);
+    ((*itemPtr) name) = itemText subString 0, (itemText length - 1); */
+
     (*itemPtr) attrs |= SUBMENU_GADGET;
   }
   if (self gadgetSpace) {
@@ -343,7 +379,7 @@ X11PopupMenu instanceMethod popup (X11Pane parentWin,
 
     XAllocNamedColor (display,
 		      DefaultColormap (display, DefaultScreen (display)),
-		      self resources at "bgColor", &actual, &nearest);
+		      self resources at "backgroundColor", &actual, &nearest);
     self bgPixel = nearest.pixel;
     XAllocNamedColor (display,
 		      DefaultColormap (display, DefaultScreen (display)),
@@ -358,8 +394,8 @@ X11PopupMenu instanceMethod popup (X11Pane parentWin,
 
     (X11Bitmap *)self paneBuffer create self displayPtr, self xWindowID, 
       self size x, self size y, self depth;
-    (X11Bitmap *)self paneBuffer background (self resources at "bgColor");
-    (X11Bitmap *)self paneBuffer foreground (self resources at "bgColor");
+    (X11Bitmap *)self paneBuffer background (self resources at "backgroundColor");
+    (X11Bitmap *)self paneBuffer foreground (self resources at "backgroundColor");
     (X11Bitmap *)self paneBackingStore create self displayPtr, self xWindowID,
       self size x, self size y, self depth;
     __ctalkX11MapMenu (self, p_dpy_x, p_dpy_y);

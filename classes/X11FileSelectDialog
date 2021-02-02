@@ -1,4 +1,4 @@
-/* $Id: X11FileSelectDialog,v 1.6 2020/12/23 16:38:52 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11FileSelectDialog,v 1.10 2021/02/02 10:23:36 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -166,6 +166,12 @@ X11FileSelectDialog instanceMethod draw (void) {
   self label draw;
   self listPane draw;
 
+  self lbutton selectFont;
+  if (self useEntryBox) {
+    self entryPane draw;
+    self entryPane refresh;
+  }
+
   self lbutton draw;
   self rbutton draw;
 
@@ -192,6 +198,7 @@ X11FileSelectDialog instanceMethod new (String paneName) {
   paneName resources atPut "listROPx", 50;
   paneName resources atPut "listRWPx", 100;
   paneName resources atPut "pad", 0;
+  paneName resources atPut "font", "sans serif-10";
 
   return paneName;
 }
@@ -430,6 +437,10 @@ X11FileSelectDialog instanceMethod subPaneButton (Object subPane,
     }
 }
 
+/* These make it easier to calculate the height of the list. */
+#define BUTTON_TOP_PX   66
+#define ENTRY_HEIGHT_PX 46
+
 X11FileSelectDialog instanceMethod initWidgets (void) {
   "Initialize the entry box's button and label widgets.  The
    message box defers constructing the new widgets until just
@@ -463,6 +474,9 @@ X11FileSelectDialog instanceMethod initWidgets (void) {
   usable_width = self size x - (padInt * 2);
   label_width_px = usable_width;
   l_label selectFont;
+  l_label ftFontVar selectFontFromFontConfig
+    (l_label resources at "font");
+  l_label ftFontVar saveSelectedFont;
   label_height_px = (l_label ftFontVar height * 3);
   label_x_px = padInt;
   label_y_px = padInt;
@@ -488,29 +502,35 @@ X11FileSelectDialog instanceMethod initWidgets (void) {
 
   self label attachTo self, geomspec;
 
+  button_y_px = BUTTON_TOP_PX;   /* distance from the bottom of the window
+				    in the geomspecs */
+
+  list_height_px = (self size y - button_y_px) - label_height_px;
+  list_height_px -= (padInt * 2);
   if (self useEntryBox) {
-    list_height_px = self resources integerAt "listRWPx";
-  } else {
-    list_height_px = self resources integerAt "listROPx";
+    list_height_px -= ENTRY_HEIGHT_PX + padInt;
   }
 
   list_y_px = label_height_px + padInt;
 
-  geomspec printOn "-%dx-%d+%d+%d", padInt, list_height_px,
+  geomspec printOn "-%dx%d+%d+%d", padInt, list_height_px,
     padInt, list_y_px;
 
   self listPane become l_list;
   self listPane attachTo self, geomspec;
   self children push self listPane;
 
-  self listPane resources replaceAt "font", (self resources at "listFont");
+  self listPane resources replaceAt "font", (self resources at "font");
 
   if (self useEntryBox) {
     self entryPane become l_entry;
-    geomspec printOn "-%dx%d+%d+-%d", padInt, 46 - padInt, padInt,
-      list_height_px - padInt;
+    geomspec printOn "-%dx%d+%d+%d", padInt, ENTRY_HEIGHT_PX, 
+      padInt, list_height_px + list_y_px + padInt;
 
     self entryPane attachTo self, geomspec;
+    self entryPane resources replaceAt "font", "monospace-12";
+    self entryPane ftFontVar namedX11Color 
+      (self entryPane resources at "textColor");
   }
 
 
@@ -519,12 +539,10 @@ X11FileSelectDialog instanceMethod initWidgets (void) {
   self rbutton become r_button;
   self children push r_button;
 
-  button_y_px = 46;   /* -46 in the geomspecs */
-
-  geomspec printOn "56x36+20%%+-%d", button_y_px;
+  geomspec printOn "70x50+20%%+-%d", button_y_px;
   self lbutton attachTo self, geomspec;
 
-  geomspec printOn "56x36+60%%+-%d", button_y_px;
+  geomspec printOn "70x50+60%%+-%d", button_y_px;
   self rbutton attachTo self, geomspec;
 
   self lbutton label text (self resources at "leftButtonText");

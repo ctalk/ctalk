@@ -7,31 +7,16 @@
 #define FTFONT_MEDIUM 100
 
 X11MessageBoxPane new aboutBox;
-X11TextEntryBox new entryBox;
-String new userLabelText;
+X11FileSelectDialog new fileBox;
 
 X11MessageBoxPane instanceMethod configure (void) {
   self resources replaceAt "backgroundColor", "darkblue";
   self resources replaceAt "foregroundColor", "darkblue";
   self resources replaceAt "messageColor", "white";
   self resources replaceAt "messageText",
-    "X11PopupMenu Demo\nCtalk 0.0.66";
+    "X11PopupMenu Demo\nCtalk Version: 0.66";
   self resources replaceAt "iconID", ICON_INFO;
 
-}
-
-X11TextEntryBox instanceMethod configure (void) {
-  self resources replaceAt "backgroundColor", "darkblue";
-  self resources replaceAt "foregroundColor", "darkblue";
-  self resources replaceAt "messageColor", "white";
-  self resources replaceAt "messageText",
-    "Enter the text you want displayed";
-  self resources replaceAt "iconID", ICON_QUESTION;
-}
-
-X11PopupMenu instanceMethod getUserInput (void) {
-  entryBox show;
-  userLabelText = entryBox entryContents;
 }
 
 /* 
@@ -70,8 +55,7 @@ int main (void) {
   XEvent ev_ret;
   Display *display;
 
-  mainMenu add "Label Text...", "entryBox getUserInput";
-  mainMenu add "My SubMenu>", "entryBox getUserInput";
+  mainMenu add "Browse Files...", "fileBox show";
   mainMenu add "About...", "aboutBox show";
   mainMenu add "Exit", "self clientExit parentPane";
 
@@ -85,7 +69,6 @@ int main (void) {
   heading ftFontVar initFontLib;
 
   aboutBox configure;
-  entryBox configure;
 
   mainWin backgroundColor = "blue";
   heading resources replaceAt "backgroundColor", "blue";
@@ -104,10 +87,14 @@ int main (void) {
     |WMFOCUSCHANGENOTIFY;
 
   dispatcher attachTo mainWin;
-  heading attachTo dispatcher, "177x60+34+15";
-  subHeading attachTo dispatcher, "190x60+c+60";
+  heading attachTo dispatcher, "177x60+c+25";
+  subHeading attachTo dispatcher, "190x60+c+75";
+  /* The dialogs, which are launched by the menu, still need
+     to be attached to the menu's parent window, even if it's
+     only to set their dimensions to something similar to 
+     the program's dimensions. */
   aboutBox attachTo dispatcher, "300x200";
-  entryBox attachTo dispatcher, "350x250";
+  fileBox attachTo dispatcher, "250x350";
 
   mainWin map;
   mainWin raiseWindow;
@@ -124,14 +111,6 @@ int main (void) {
   subHeading resources replaceAt foregroundColor, "blue";
   subHeading resources replaceAt textColor, "lightgray";
   subHeading multiLine "Click anywhere\nto display the menu.";
-
-#if 0 /* for testing */
-  heading draw;
-  heading refresh;
-  subHeading draw;
-  subHeading refresh;
-#endif  
-
 
   while (TRUE) {
     mainWin inputStream queueInput;
@@ -153,7 +132,6 @@ int main (void) {
 	    ;
 	  break;
 	case WINDELETE:
-	  printf ("The user entered: %s\n", userLabelText);
  	  mainWin deleteAndClose;
 	  exit (0);
 	  break;

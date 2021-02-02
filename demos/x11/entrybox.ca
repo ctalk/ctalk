@@ -27,9 +27,9 @@ int main (void) {
     EXPOSE|ENTERWINDOWNOTIFY|LEAVEWINDOWNOTIFY|BUTTONPRESS|BUTTONRELEASE|KEYPRESS|KEYRELEASE|WINDELETE|MOVENOTIFY;
 
   dispatcher attachTo mainWindow;
-  button attachTo dispatcher, "110x70+73+100";
-  label attachTo dispatcher, "177x80+34+15";
-  textEntryBox attachTo dispatcher, "300x200";
+  button attachTo dispatcher, "110x90+c+95";
+  label attachTo dispatcher, "177x80+c+15";
+  textEntryBox attachTo dispatcher, "325x225";
 
   mainWindow map;
   mainWindow raiseWindow;

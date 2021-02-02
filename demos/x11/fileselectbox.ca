@@ -36,6 +36,7 @@ int main (void) {
   label canFocus = false;
   label borderWidth = 0;
 
+  label ftFontVar initFontLib;
   label ftFontVar notifyLevel XFT_NOTIFY_NONE;
 
   mainWindow backgroundColor = "blue";
@@ -43,14 +44,14 @@ int main (void) {
   button resources replaceAt "backgroundColor", "blue";
   fileSelect resources replaceAt "backgroundColor", "blue";
   
-  mainWindow initialize 255, 200;
+  mainWindow initialize 255, 245;
   mainWindow inputStream eventMask = 
     EXPOSE|ENTERWINDOWNOTIFY|LEAVEWINDOWNOTIFY|BUTTONPRESS|BUTTONRELEASE|KEYPRESS|KEYRELEASE|WINDELETE|MOVENOTIFY|MOTIONNOTIFY;
 
   dispatcher attachTo mainWindow;
-  button attachTo dispatcher, "110x70+73+100";
-  label attachTo dispatcher, "177x80+34+15";
-  fileSelect attachTo dispatcher, "300x400";
+  label attachTo dispatcher, "177x60+c+35";
+  button attachTo dispatcher, "110x105+c+100";
+  fileSelect attachTo dispatcher, "350x500";
 
   mainWindow map;
   mainWindow raiseWindow;
@@ -62,8 +63,6 @@ int main (void) {
 #endif  
 
   mainWindow setWMTitle "X11FileSelectDialog Demo";
-
-  label ftFontVar initFontLib;
 
   label multiLine "X11FileSelectDialog\nDemo";
   label resources replaceAt "textColor", "lightgray";

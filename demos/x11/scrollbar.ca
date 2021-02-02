@@ -1,4 +1,4 @@
-/* $Id: scrollbar.ca,v 1.3 2021/01/14 21:41:09 rkiesling Exp $  -*-C-*- */
+/* $Id: scrollbar.ca,v 1.4 2021/02/02 09:12:19 rkiesling Exp $  -*-C-*- */
 
 int main (int argv, char **argc) {
   Integer new xWindowSize;
@@ -21,7 +21,9 @@ int main (int argv, char **argc) {
   yWindowSize = 400;
 
   xPane ftFontVar initFontLib;
-  xPane ftFontVar selectFontFromFontConfig "DejaVu Sans-48";
+  xCanvasPane ftFontVar selectFontFromFontConfig "sans serif-48";
+  xCanvasPane ftFontVar saveSelectedFont;
+  
 
   xPane initialize xWindowSize, yWindowSize;
   xPane inputStream eventMask = WINDELETE|EXPOSE|BUTTONPRESS|BUTTONRELEASE|MOTIONNOTIFY|RESIZENOTIFY|ENTERWINDOWNOTIFY|LEAVEWINDOWNOTIFY;
@@ -37,13 +39,15 @@ int main (int argv, char **argc) {
   xScrollBarPane background "lightblue";
   xScrollBarPane refresh;
   
+  xCanvasPane ftFontVar selectFontFromFontConfig "sans serif-48";
+  xCanvasPane ftFontVar namedX11Color "white";
+  xCanvasPane selectFont;
   xCanvasPane background "navy";
   xCanvasPane foreground "navy";
-  xPane ftFontVar namedX11Color "white";
   xCanvasPane clear;
   pctstr printOn "%0.2f%%", xScrollBarPane percent * 100.0;
-  strWidth = xPane ftFontVar textWidthBasic xPane displayPtr,
-  	   xPane xWindowID, xPane xGC, pctstr;
+  strWidth = xCanvasPane ftFontVar textWidthBasic xCanvasPane displayPtr,
+  	   xCanvasPane xWindowID, xCanvasPane xGC, pctstr;
   xCanvasPane putStrXY (380 / 2) - (strWidth / 2), (400 / 2), pctstr;
   xCanvasPane refresh;
 
@@ -61,24 +65,41 @@ int main (int argv, char **argc) {
       switch (e eventClass value)
  	{
 	case EXPOSE:
+	  xCanvasPane clear;
+	  pctstr printOn "%0.2f%%", xScrollBarPane percent * 100.0;
+	  strWidth = xCanvasPane ftFontVar textWidthBasic xCanvasPane displayPtr,
+	    xCanvasPane xWindowID, xCanvasPane xGC, pctstr;
+	  xCanvasPane putStrXY (380 / 2) - (strWidth / 2), (400 / 2), pctstr;
+	  xCanvasPane refresh;
+#if 0
 	  xCanvasPane paneBuffer clear;
 	  pctstr printOn "%0.2f%%", xScrollBarPane percent * 100;
-	  strWidth = xPane ftFontVar textWidthBasic xPane displayPtr,
+	  strWidth = xCanvasPane ftFontVar textWidthBasic xPane displayPtr,
 	    xPane xWindowID, xPane xGC, pctstr;
 	  xCanvasPane putStrXY (380 / 2) - (strWidth / 2), (400 / 2), pctstr;
 	  xCanvasPane refresh;
+#endif	  
 	  break;
  	case WINDELETE:
   	  xPane deleteAndClose;
  	  exit (0);
  	  break;
   	default:
-	  xCanvasPane paneBuffer clear;
-	  pctstr printOn "%0.2f%%", xScrollBarPane percent * 100;
-	  strWidth = xPane ftFontVar textWidthBasic xPane displayPtr,
-  	     xPane xWindowID, xPane xGC, pctstr;
+	  xCanvasPane clear;
+	  pctstr printOn "%0.2f%%", xScrollBarPane percent * 100.0;
+	  strWidth = xCanvasPane ftFontVar textWidthBasic xCanvasPane displayPtr,
+	    xCanvasPane xWindowID, xCanvasPane xGC, pctstr;
 	  xCanvasPane putStrXY (380 / 2) - (strWidth / 2), (400 / 2), pctstr;
 	  xCanvasPane refresh;
+#if 0
+	  xCanvasPane paneBuffer clear;
+	  pctstr printOn "%0.2f%%", xScrollBarPane percent * 100;
+	  strWidth = xCanvasPane ftFontVar textWidthBasic
+	    xCanvasPane displayPtr,
+  	     xCanvasPane xWindowID, xPane xGC, pctstr;
+	  xCanvasPane putStrXY (380 / 2) - (strWidth / 2), (400 / 2), pctstr;
+	  xCanvasPane refresh;
+#endif	  
   	  break;
  	}
     }

@@ -1,4 +1,4 @@
-/* $Id: ctedit.ca,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $  -*-c-*- */
+/* $Id: ctedit.ca,v 1.2 2021/02/02 09:29:46 rkiesling Exp $  -*-c-*- */
 
 /*
   This file is part of Ctalk.
@@ -221,7 +221,6 @@ X11TextEditorPane instanceMethod findFTFonts (void) {
   if (useFtFonts && !useXFont) {
     self ftFontVar initFontLib;
     self ftFontVar selectFont ftFontName, 0, 80, 0, ftFontSize;
-    self ftFontVar namedX11Color fgColor;
   }
 }
 
