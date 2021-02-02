@@ -1,4 +1,4 @@
-/* $Id: rt_expr.c,v 1.17 2021/01/25 17:18:48 rkiesling Exp $ */
+/* $Id: rt_expr.c,v 1.3 2021/01/01 17:50:57 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -170,80 +170,13 @@ char *fmt_rt_expr_ms (MSINFO *ms, int *end_idx, char *expr_out) {
   return expr_out;
 }
 
-
-/*
- *  Like fmt_rt_expr, but handles CVAR argblk translation, and works
- *  with the super clause in resolve ().
- */
-char *fmt_rt_argblk_super_expr (MESSAGE_STACK messages, int start_idx,
-				int *end_idx,
-				char *expr_out, bool *cvar_reg) {
-  char *exprbuf, expr_out_a[MAXMSG];
-  int idx, next_idx, agg_end_idx;
-  CVAR *cvar;
-  MSINFO ms;
-
-  ms.messages = messages;
-  ms.stack_start = stack_start (messages);
-  ms.stack_ptr = get_stack_top (messages);
-  ms.tok = start_idx;
-
-  /* called twice - the first time to find the end of the
-     expression. */
-  
-  exprbuf = collect_expression (&ms, end_idx); 
-
-  *cvar_reg = false;
-  for (idx = start_idx; idx >= *end_idx; --idx) {
-    if (M_TOK(messages[idx]) != LABEL)
-      continue;
-    if ((cvar = get_local_var (M_NAME(messages[idx]))) != NULL) {
-      next_idx = nextlangmsg (messages, idx);
-      /***/
-      handle_cvar_argblk_translation (messages, idx, next_idx,
-				      cvar, &agg_end_idx);
-      if (agg_end_idx > 0) {
-	/***/
-	method_arg_is_argblk_struct (messages, idx, agg_end_idx,
-				     cvar);
-      } else {
-	register_argblk_cvar_from_basic_cvar (messages, idx,
-					      start_idx, cvar);
-      }
-      *cvar_reg = true;
-      messages[idx] -> attrs |= TOK_OBJ_IS_CREATED_CVAR_ALIAS;
-    }
-  }
-
-  __xfree (MEMADDR(exprbuf));
-  exprbuf = collect_expression (&ms, end_idx);
-
-  for (idx = start_idx; idx >= *end_idx; idx--) {
-    messages[idx]->attrs |= TOK_IS_RT_EXPR;
-    ++messages[idx] -> evaled;
-    ++messages[idx] -> output;
-  }
-
-  /***/
-  if (*cvar_reg) {
-    fmt_eval_expr_str (exprbuf, expr_out_a);
-    strcatx (expr_out, expr_out_a, ";", DELETE_CVARS_CALL, NULL);
-    __xfree (MEMADDR(exprbuf));
-    return expr_out;
-  } else {
-    fmt_eval_expr_str (exprbuf, expr_out);
-    __xfree (MEMADDR(exprbuf));
-    return expr_out;
-  }
-}
-
 /*
  *  Like fmt_rt_expr, but handles CVAR argblk translation.
  */
 char *fmt_rt_argblk_expr (MESSAGE_STACK messages, int start_idx, int *end_idx,
 		   char *expr_out) {
   char *exprbuf;
-  int idx, next_idx, agg_end_idx;
+  int idx, next_idx;
   CVAR *cvar;
   MSINFO ms;
 
@@ -263,13 +196,13 @@ char *fmt_rt_argblk_expr (MESSAGE_STACK messages, int start_idx, int *end_idx,
     if ((cvar = get_local_var (M_NAME(messages[idx]))) != NULL) {
       next_idx = nextlangmsg (messages, idx);
       handle_cvar_argblk_translation (messages, idx, next_idx,
-				      cvar, &agg_end_idx);
+				      cvar);
       messages[idx] -> attrs |= TOK_OBJ_IS_CREATED_CVAR_ALIAS;
     }
   }
 
   __xfree (MEMADDR(exprbuf));
-  exprbuf = collect_expression (&ms, end_idx);
+  exprbuf = collect_expression (&ms, end_idx); 
 
   for (idx = start_idx; idx >= *end_idx; idx--)
     messages[idx]->attrs |= TOK_IS_RT_EXPR;
@@ -355,31 +288,15 @@ char *rt_expr (MESSAGE_STACK messages, int start_idx, int *end_idx,
   OBJECT *rcvr_obj = NULL;
   METHOD *method = NULL;;
   int n_commas = 0, n_parens = 0;
-  bool have_cvar_registration = false,
-    have_super_cvar_registration = false;
+  bool have_cvar_registration = false;
 
   stack_start_idx = stack_start (messages);
   stack_top_idx = get_stack_top (messages);
 
-  if (argblk) {
-    /***/
-    if (messages[start_idx] -> attrs & TOK_SUPER) {
-      have_super_cvar_registration = false;
-      fmt_rt_argblk_super_expr (messages, start_idx, end_idx, expr_out,
-				&have_super_cvar_registration);
-      if (have_super_cvar_registration) {
-	fileout (expr_out, 0, start_idx);
-	return expr_out;
-      } else {
-	fmt_rt_argblk_expr (messages, start_idx, end_idx, expr_out);
-	strcat (expr_out, ";\n");
-      }
-    } else {
-      fmt_rt_argblk_expr (messages, start_idx, end_idx, expr_out);
-    }
-  } else {
+  if (argblk)
+    fmt_rt_argblk_expr (messages, start_idx, end_idx, expr_out);
+  else
     fmt_rt_expr (messages, start_idx, end_idx, expr_out);
-  }
   message_of_rcvr = message_of_arg = FALSE;
   for (i = start_idx; i >= *end_idx; i--) {
     /* Here we can be slightly off on the last message
@@ -2140,120 +2057,46 @@ char *rt_self_expr (MESSAGE_STACK messages, int start_idx, int *end_idx,
 			(M_TOK(messages[lookback2]) != DEREF)))
 		  break;
 	      }
-	      if (argblk) { /***/
-		/* 
-		   If we've wrapped the cvartab name in parens to
-		   avoid warning messages from the compiler; e.g.,
-
-		     (*<typedef_name>)
-		     
-		   Then first extract the name.
-		 */
-		if ((messages[lookback2] -> attrs &
-		    RCVR_TOK_IS_C_STRUCT_EXPR) &&
-		    ARGBLK_SUBEXPR_WRAPPER(messages[lookback2]->name)) {
-		  char actual_name[MAXLABEL];
-		  CVAR *typedef_defn, *typedef_defn_2, *mbr;
-		  bool have_typedef_mbr;
-		  extract_argblk_name_from_subexpr
-		    (messages[lookback2] -> name,
-		     actual_name);
-		  if ((c = get_var_from_cvartab_name
-		       (actual_name)) != NULL) {
-		    if (c -> type_attrs & CVAR_TYPE_TYPEDEF) {
-		      if ((typedef_defn = get_typedef (c -> type))
-			  != NULL) {
-			if (IS_CVAR (typedef_defn -> members)) {
-			  lookback = nextlangmsg (messages,
-						  lookback);
-
-			  for (have_typedef_mbr = false,
-				 mbr = typedef_defn -> members; mbr;
-			       mbr = mbr -> next) {
-			    if (str_eq (mbr -> name,
-					M_NAME(messages[lookback]))){
-			      have_typedef_mbr = true;
-			      break;
-			    }
-			  }
-			  if (have_typedef_mbr) {
-			    fmt_rt_argblk_expr (messages, start_idx, end_idx,
-						arg_expr_buf);
-			    fmt_rt_return (exprbuf, 
-					   basic_class_from_cvar
-					   (messages[start_idx], mbr, 0),
-					   TRUE, arg_expr_buf);
-			  }
-			} else { /* if (IS_CVAR (typedef_defn -> members) */
-			  if ((typedef_defn_2 = get_struct_by_type
-			       (typedef_defn -> qualifier)) != NULL) {
-			    lookback = nextlangmsg (messages,
-						    lookback);
-			    for (have_typedef_mbr = false,
-				   mbr = typedef_defn_2 -> members; mbr;
-				 mbr = mbr -> next) {
-			      if (str_eq (mbr -> name,
-					  M_NAME(messages[lookback]))){
-				have_typedef_mbr = true;
-				break;
-			      }
-			    }
-			    if (have_typedef_mbr) {
-			      fmt_rt_argblk_expr (messages, start_idx, end_idx,
-						  arg_expr_buf);
-			      fmt_rt_return (exprbuf, 
-					     basic_class_from_cvar
-					     (messages[start_idx], mbr, 0),
-					     TRUE, arg_expr_buf);
-			    }
-			  }
-			}  /* if (IS_CVAR (typedef_defn -> members) */
-		      }
-		    }
-		  }
+	      if (((struct_decl = 
+		    get_local_var (M_NAME(messages[lookback2]))) == NULL) &&
+		  ((struct_decl =
+		    get_global_var (M_NAME(messages[lookback2]))) == NULL)) {
+		if (M_TOK(messages[lookback2]) == LABEL) {
+		  warning (messages[start_idx], 
+			   "Definition of struct or union, \"%s,\" not found.",
+			   M_NAME(messages[lookback2]));
 		}
-	      } else { /* if (argblk) */
-		if (((struct_decl = 
-		      get_local_var (M_NAME(messages[lookback2]))) == NULL) &&
-		    ((struct_decl =
-		      get_global_var (M_NAME(messages[lookback2]))) == NULL)) {
-		  if (M_TOK(messages[lookback2]) == LABEL) {
+		strcpy (arg_expr_buf, exprbuf);
+	      } else {
+		if (struct_decl -> attrs == CVAR_ATTR_STRUCT) {
+		  if (((struct_defn = get_global_var (struct_decl->type))
+		       == NULL) &&
+		      ((struct_defn = get_local_var (struct_decl->type))
+		       == NULL)) {
 		    warning (messages[start_idx], 
 			     "Definition of struct or union, \"%s,\" not found.",
-			     M_NAME(messages[lookback2]));
+			     struct_decl -> type);
+		    struct_defn = struct_decl;
 		  }
-		  strcpy (arg_expr_buf, exprbuf);
-		} else {
-		  if (struct_decl -> attrs == CVAR_ATTR_STRUCT) {
-		    if (((struct_defn = get_global_var (struct_decl->type))
-			 == NULL) &&
-			((struct_defn = get_local_var (struct_decl->type))
-			 == NULL)) {
-		      warning (messages[start_idx], 
-			       "Definition of struct or union, \"%s,\" not found.",
-			       struct_decl -> type);
-		      struct_defn = struct_decl;
-		    }
-		  } else if (struct_decl -> type_attrs == CVAR_TYPE_TYPEDEF) {
-		    /***/
-		    if ((struct_defn = get_typedef (struct_decl -> type))
-			== NULL) {
-		      warning (messages[start_idx], 
-			       "Definition of typedef, \"%s,\" not found.",
-			       struct_decl -> type);
-		      struct_defn = struct_decl;
-		    }
+		} else if (struct_decl -> type_attrs == CVAR_TYPE_TYPEDEF) {
+		  /***/
+		  if ((struct_defn = get_typedef (struct_decl -> type))
+		      == NULL) {
+		    warning (messages[start_idx], 
+			     "Definition of typedef, \"%s,\" not found.",
+			     struct_decl -> type);
+		    struct_defn = struct_decl;
 		  }
-		  c = struct_member_from_expr_b (messages,
-						 lookback2, 
-						 last_expr_tok, 
-						 struct_defn);
-		  fmt_rt_return (exprbuf, 
-				 basic_class_from_cvar
-				 (messages[start_idx], c, 0),
-				 TRUE, arg_expr_buf);
 		}
-	      } /* if (argblk) */
+		c = struct_member_from_expr_b (messages,
+					       lookback2, 
+					       last_expr_tok, 
+					       struct_defn);
+		fmt_rt_return (exprbuf, 
+			       basic_class_from_cvar
+			       (messages[start_idx], c, 0),
+			       TRUE, arg_expr_buf);
+	      }
 	    } else {
 	      /*
 	       * Check again for cases not covered above.

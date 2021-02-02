@@ -1,4 +1,4 @@
-/* $Id: X11FreeTypeFont,v 1.2 2020/09/19 01:08:25 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11FreeTypeFont,v 1.10 2021/01/31 20:44:25 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -34,6 +34,7 @@ provides methods to search for fonts that are
 available in the library.";
 
 X11FreeTypeFont instanceVariable family String "Mono";
+X11FreeTypeFont instanceVariable style String "";
 X11FreeTypeFont instanceVariable slant Integer 0;
 X11FreeTypeFont instanceVariable weight Integer 100;
 X11FreeTypeFont instanceVariable dpi Integer 72;
@@ -49,6 +50,7 @@ X11FreeTypeFont instanceVariable ascent Integer 0;
 X11FreeTypeFont instanceVariable descent Integer 0;
 X11FreeTypeFont instanceVariable height Integer 0;
 X11FreeTypeFont instanceVariable maxAdvance Integer 0;
+X11FreeTypeFont instanceVariable handle Symbol NULL;
 
 X11FreeTypeFont instanceMethod saveSelectedFont (void) {
   "Store the FreeType library's font parameters in the
@@ -66,6 +68,7 @@ receiver object."
   self descent = __ctalkXftDescent ();
   self height = __ctalkXftHeight ();
   self maxAdvance = __ctalkXftMaxAdvance ();
+  self handle = __ctalkXftHandle ();
 }
 
 X11FreeTypeFont instanceMethod initFontLib (void) {
@@ -126,7 +129,7 @@ currently selected font."
 #define XFT_NOTIFY_LOAD 2
 #endif
 #ifndef XFT_NOTIFY_VERBOSE
-#define XFT_NOTIFY_VERBOSe
+#define XFT_NOTIFY_VERBOSE 3
 #endif
 
 X11FreeTypeFont instanceMethod currentDescParamStr (void) {
@@ -224,7 +227,9 @@ X11FreeTypeFont instanceMethod selectFont (void) {
   reqPointSize = self pointSize;
   __ctalkXftSelectFont (self family, self slant, self weight,
 			self dpi, self pointSize);
-  self saveSelectedFont;
+  __ctalkXftSetForeground (self fgRed, self fgGreen, self fgBlue,
+			   self fgAlpha);
+  /* self saveSelectedFont; */
   self __loadInfo reqFamily, reqSlant, reqWeight, reqDPI, reqPointSize;
 
 }
@@ -237,9 +242,9 @@ X11FreeTypeFont instanceMethod selectFontFromXLFD (String xlfd) {
   self saveSelectedFont;
   /* __ctalkXftRequestedFamily can cause an extra warning - 
      check it eventually */
-  self __loadInfo __ctalkXftRequestedFamily (),
-    __ctalkXftRequestedSlant (), __ctalkXftRequestedWeight (),
-    __ctalkXftRequestedDPI (), __ctalkXftRequestedPointSize ();;
+  self __loadInfo __ctalkXftSelectedFamily (),
+    __ctalkXftSelectedSlant (), __ctalkXftSelectedWeight (),
+    __ctalkXftSelectedDPI (), __ctalkXftSelectedPointSize ();;
 }
 
 X11FreeTypeFont instanceMethod selectFontFromFontConfig (String fcString) {
@@ -247,9 +252,9 @@ X11FreeTypeFont instanceMethod selectFontFromFontConfig (String fcString) {
    given as the argument."
     __ctalkXftSelectFontFromFontConfig (fcString);
   self saveSelectedFont;
-  self __loadInfo __ctalkXftRequestedFamily (),
-    __ctalkXftRequestedSlant (), __ctalkXftRequestedWeight (),
-    __ctalkXftRequestedDPI (), __ctalkXftRequestedPointSize ();
+  self __loadInfo __ctalkXftSelectedFamily (),
+    __ctalkXftSelectedSlant (), __ctalkXftSelectedWeight (),
+    __ctalkXftSelectedDPI (), __ctalkXftSelectedPointSize ();
 }
 
 X11FreeTypeFont instanceMethod RGBAColor (void) {
@@ -266,6 +271,37 @@ the argument in the currently selected font."
   __ctalkXftGetStringDimensions (text, &x, &y, &width, &height,
 				 &rbearing);
   return width;
+}
+
+X11FreeTypeFont instanceMethod textWidthBasic (Symbol display,
+					       Integer drawable,
+					       Integer gc_ptr,
+					       String text) {
+  "Return an Integer with the width of the String given as
+the argument in the currently selected font. Unlike textWidth and
+    textHeight, which operate entirely in the process space of the
+    client application, this method, and its companion textHeightBasic,
+    direct the server process to perform the measurements."
+  int x, y, width, height, rbearing;
+  returnObjectClass Integer;
+  __ctalkXftTextDimensionsBasic (display, drawable, gc_ptr, text,
+				   &x, &y, &width, &height,
+				   &rbearing);
+  return width;
+}
+
+X11FreeTypeFont instanceMethod textHeightBasic (Symbol display,
+					       Integer drawable,
+					       Integer gc_ptr,
+					       String text) {
+  "Return an Integer with the width of the String given as
+the argument in the currently selected font."
+  int x, y, width, height, rbearing;
+  returnObjectClass Integer;
+  __ctalkXftTextDimensionsBasic (display, drawable, gc_ptr, text,
+				   &x, &y, &width, &height,
+				   &rbearing);
+  return height;
 }
 
 X11FreeTypeFont instanceMethod textHeight (String text) {

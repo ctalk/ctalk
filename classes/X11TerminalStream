@@ -1,4 +1,4 @@
-/* $Id: X11TerminalStream,v 1.2 2020/09/19 01:08:26 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11TerminalStream,v 1.2 2020/12/28 23:05:12 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -94,9 +94,9 @@ X11TerminalStream instanceMethod parentPane (void) {
 }
 
 /*
- eventClass       XEvent      xEventData1 xEventData2 xEventData3 xEventData4 xEventData5
- BUTTONPRESS      xbutton     x           y           state       button 
- BUTTONRELEASE
+ eventClass       XEvent      xEventData1 xEventData2 xEventData3 xEventData4 xEventData5         xEventData6
+ BUTTONPRESS      xbutton     x           y           state       button      screen_x            screen_y
+ BUTTONRELEASE    "
  KEYPRESS         xkey        x           y           state       keycode     Modified XK Code 
  KEYRELEASE       xkey        x           y           state       keycode     Modified XK Code 
  CONFIGURENOTIFY  xconfigure  x           y           height      width       border_width
@@ -122,7 +122,7 @@ void save_x_event (OBJECT *event_value_obj, int event_class,
   INTVAL(var -> instancevars -> __o_value) =
     INTVAL(var -> __o_value) = win;
 
-  for (var = var -> next, i = 0; i < 6; var = var -> next, ++i)
+  for (var = var -> next, i = 0; i < 7; var = var -> next, ++i)
     INTVAL(var -> instancevars -> __o_value) =
       INTVAL(var -> __o_value) = data[i];
 
@@ -132,7 +132,7 @@ X11TerminalStream instanceMethod queueInput (void) {
   "Retrieve a X event, and return it as an InputEvent
   object."
   int event_class;
-  unsigned int win, data[6];
+  unsigned int win, data[8];
   InputEvent new clientEvent;
 
  read_again:

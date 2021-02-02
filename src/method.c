@@ -1,4 +1,4 @@
-/* $Id: method.c,v 1.1.1.1 2020/12/13 14:51:02 rkiesling Exp $ */
+/* $Id: method.c,v 1.2 2021/01/08 20:53:48 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -2474,11 +2474,6 @@ int method_call (int method_message_ptr) {
   bool rcvr_cvar_registration = false, stdarg_arg = false;
 
   m = message_stack_at (method_message_ptr);
-
-#if 0 /***/
-  if (str_eq (M_NAME(m), "closeSock"))
-    printf ("hi!\n");
-#endif  
 
   arg_class = arg_null;
 

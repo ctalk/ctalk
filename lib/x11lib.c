@@ -1,4 +1,4 @@
-/* $Id: x11lib.c,v 1.1.1.1 2020/12/13 14:51:03 rkiesling Exp $ -*-c-*-*/
+/* $Id: x11lib.c,v 1.14 2021/01/19 21:45:11 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -115,6 +115,7 @@ char *shm_mem;
 int mem_id = 0;
 
 Atom wm_delete_window;
+Atom CLIPBOARD;
 
 static int __ctalkX11IOErrorHandler (Display *);
 static int __ctalkX11ErrorHandler (Display *, XErrorEvent *);
@@ -132,10 +133,21 @@ int __xlib_draw_point (Display *, Drawable, GC, char *);
 /* In edittext.c */
 int __xlib_render_text (Display *, Drawable, GC, char *);
 int __xlib_get_primary_selection (Display *, Drawable, GC, char *);
+int __xlib_get_clipboard (Display *, Drawable, GC, char *);
 int __xlib_send_selection (XEvent *);
 int __xlib_clear_selection (XEvent *);
 int __xlib_set_primary_selection_owner (Display *, Drawable);
 int __xlib_set_primary_selection_text (char *);
+int __xlib_set_clipboard_owner (Display *, Drawable);
+/* in xftlib.c */
+int __xlib_get_text_metrics (Display *, Drawable, GC, char *,
+			     int *, int *, int *, int *, int *);
+/* in xcolor.c */
+int lookup_color (Display *, XColor *, char *);
+unsigned long lookup_pixel (char *);
+unsigned long lookup_pixel_d (Display *, char *);
+int lookup_rgb (char *, unsigned short int *, unsigned short int *,
+		unsigned short int *);
 
 int __have_bitmap_buffers (OBJECT *);
 void request_client_shutdown (void) {
@@ -292,58 +304,6 @@ sigaction (SIGTERM, &action, &old_action);
 //  sigaction (SIGUSR1, &action, &old_action);
 //  sigaction (SIGUSR2, &action, &old_action);
 //  sigaction (SIGCHLD, &action, &old_action);
-}
-
-int lookup_color (Display *d, XColor *color, char *name) {
-
-  XColor exact_color;
-  Colormap default_cmap;
-
-  default_cmap = DefaultColormap (d, DefaultScreen (d));
-  
-  if (XAllocNamedColor 
-      (d, default_cmap, name, &exact_color, color)) {
-    return SUCCESS;
-  } else {
-    return ERROR;
-  }
-}
-
-unsigned long lookup_pixel (char *color) {
-  XColor c;
-  if (!lookup_color (display, &c, color)) {
-    return c.pixel;
-  } else {
-    return BlackPixel (display, screen);
-  }
-}
-
-/* As above, but we use our own Display in case the program is
-   still initializing. */
-unsigned long lookup_pixel_d (Display *d, char *color) {
-  XColor c;
-
-  if (d == NULL)
-    return BlackPixel (display, screen);
-
-  if (!lookup_color (d, &c, color)) {
-    return c.pixel;
-  } else {
-    return BlackPixel (d, screen);
-  }
-}
-
-int lookup_rgb (char *color, unsigned short int *r_return,
-		unsigned short int *g_return,
-		unsigned short int *b_return) {
-  XColor c;
-  if (!lookup_color (display, &c, color)) {
-    *r_return= c.red; *g_return = c.green; *b_return = c.blue;
-    return c.pixel;
-  } else {
-    *r_return = 0xffff; *g_return  = 0xffff; *b_return = 0xffff;
-    return BlackPixel (display, screen);
-  }
 }
 
 extern int __xlib_clear_rectangle_basic (Display *, Drawable,
@@ -548,7 +508,9 @@ int __xlib_put_str_ft (Display *d, Drawable w, GC gc, char *s) {
    */
 
   if (strcmp (c_term, "\x1b" "[2K"))
-    XftDrawString8 (ft_str.draw, &g_ftFg, ft_font.normal, x, y,
+    XftDrawString8 (ft_str.draw, &g_ftFg,
+		    ft_font.normal,
+		    x, y,
 		      (unsigned char *)c_term, 
 		      strlen (c_term));
 
@@ -1484,6 +1446,8 @@ int __xlib_handle_client_request (char *shm_mem_2) {
   int r;
   GC gc;
   Display *d;
+  /* For PANE_GET_TEXT_METRICS_REQUEST - __xlib_get_text_metrics */
+  int text_x, text_y, text_width, text_height, text_rbearing;
   
   if (! *shm_mem_2) goto x_event_cleanup;
 
@@ -1630,7 +1594,24 @@ int __xlib_handle_client_request (char *shm_mem_2) {
       shm_mem_2[SHM_RETVAL] = ((r == SUCCESS) ? '0' : '1');
       break;
     case PANE_SET_PRIMARY_SELECTION_TEXT:
+    case PANE_SET_CLIPBOARD_TEXT_REQUEST:
       __xlib_set_primary_selection_text (&shm_mem_2[SHM_DATA]);
+      break;
+    case PANE_GET_CLIPBOARD_REQUEST:
+      __xlib_get_clipboard (d, (Drawable)w, gc, &shm_mem_2[SHM_DATA]);
+      break;
+    case PANE_SET_CLIPBOARD_OWNERSHIP_REQUEST:
+      __xlib_set_clipboard_owner (d, (Drawable)w);
+      break;
+    case PANE_GET_TEXT_METRICS_REQUEST: /***/
+      __xlib_get_text_metrics (d, (Drawable)w, gc, &shm_mem_2[SHM_DATA],
+			       &text_x, &text_y, &text_width, &text_height,
+			       &text_rbearing);
+      memcpy (&shm_mem_2[SHM_RETVAL], &text_x, sizeof (int));
+      memcpy (&shm_mem_2[SHM_RETVAL2], &text_y, sizeof (int));
+      memcpy (&shm_mem_2[SHM_RETVAL3], &text_width, sizeof (int));
+      memcpy (&shm_mem_2[SHM_RETVAL4], &text_height, sizeof (int));
+      memcpy (&shm_mem_2[SHM_RETVAL5], &text_rbearing, sizeof (int));
       break;
     } 
  x_event_cleanup:
@@ -2064,6 +2045,30 @@ int __ctalkX11MakeEvent (OBJECT *eventobject_value_var, OBJECT *inputqueue) {
   return 0;
 }
 
+static int scr_px_width, scr_px_height;
+static int scr_mm_width, scr_mm_height;
+static int avg_dpi_i;
+
+static void calc_screen_dpi (void) {
+  float w_in, h_in, w_dpi, h_dpi;
+  
+  scr_px_width = WidthOfScreen (DefaultScreenOfDisplay (display));
+  scr_px_height = HeightOfScreen (DefaultScreenOfDisplay (display));
+  scr_mm_width = WidthMMOfScreen (DefaultScreenOfDisplay (display));
+  scr_mm_height = HeightMMOfScreen (DefaultScreenOfDisplay (display));
+
+  w_in = (float)scr_mm_width / 25.4;
+  h_in = (float)scr_mm_height / 25.4;
+  w_dpi = (float)scr_px_width / w_in;
+  h_dpi = (float)scr_px_height / h_in;
+  avg_dpi_i = (int)((w_dpi + h_dpi) / 2);
+}
+
+int avg_dpi (void) {
+  calc_screen_dpi ();
+  return avg_dpi_i;
+}
+
 static int child_pid = -1;
 
 int __client_pid (void) {
@@ -2094,6 +2099,7 @@ int __ctalkOpenX11InputClient (OBJECT *streamobject) {
   INTVAL(&shm_mem[SHM_EVENT_READY]) = 0;
   INTVAL(&shm_mem[SHM_EVENT_MASK]) = 0;
   INTVAL(&shm_mem[SHM_LOCK_XID]) = 0;
+  CLIPBOARD = XInternAtom (display, "CLIPBOARD", False);
   
 #if !X11LIB_FRAME
   x11_pane_stream_object = streamobject;
@@ -2362,6 +2368,7 @@ int read_event (int *ev_type_out, unsigned int *win_out,
       data[4] = UINTVAL(&shm_mem[SHM_EVENT_DATA5]);
       data[5] = UINTVAL(&shm_mem[SHM_EVENT_DATA6]);
       INTVAL(&shm_mem[SHM_EVENT_READY]) = 0;
+
     } else {
       INTVAL(&shm_mem[SHM_EVENT_READY]) = 0;
     }
@@ -2670,7 +2677,7 @@ static int kwin_event_loop (int parent_fd, int mem_handle, int main_win_id) {
 	case FocusOut:
 	  event_to_client (FOCUSCHANGENOTIFY,
 			   e.xfocus.window, e.xfocus.type,
-			   e.xfocus.mode, e.xfocus.detail, 0, 0, 0);
+			   e.xfocus.mode, e.xfocus.detail, 0, 0, 0, 0);
 	  eventclass = 0;
 	  continue;
 	  break;
@@ -2682,7 +2689,7 @@ static int kwin_event_loop (int parent_fd, int mem_handle, int main_win_id) {
 	    ;
 	  event_to_client (MOTIONNOTIFY,
 			   e.xmotion.window, e.xmotion.x, e.xmotion.y,
-			   e.xmotion.state, e.xmotion.is_hint, 0, 0);
+			   e.xmotion.state, e.xmotion.is_hint, 0, 0, 0);
 	  eventclass = 0;
 	  continue;
   	  break;
@@ -2718,7 +2725,7 @@ static int kwin_event_loop (int parent_fd, int mem_handle, int main_win_id) {
 			       e.xconfigure.y, 
 			       e.xconfigure.width,
 			       e.xconfigure.height,
-			       e.xconfigure.border_width, 0);
+			       e.xconfigure.border_width, 0, 0);
 	      if ((prev_d.width != e.xconfigure.width) ||
 		  (prev_d.height != e.xconfigure.height)) {
 		resize_event_to_client
@@ -2739,7 +2746,7 @@ static int kwin_event_loop (int parent_fd, int mem_handle, int main_win_id) {
 	    event_to_client (EXPOSE, e.xconfigure.x, 
 			     e.xconfigure.y, 
 			     e.xconfigure.width,
-			     e.xconfigure.height, 0, 0);
+			     e.xconfigure.height, 0, 0, 0);
 
 	  }
 	  break;
@@ -2768,7 +2775,7 @@ static int kwin_event_loop (int parent_fd, int mem_handle, int main_win_id) {
 
 	event_to_client (eventclass, eventdata1, 
 			 eventdata2, eventdata3,
-			 eventdata4, eventdata5, 0);
+			 eventdata4, eventdata5, 0, 0);
 
 	eventclass = eventdata1 = eventdata2 = 0;
       }
@@ -2825,7 +2832,7 @@ int __ctalkX11InputClient (OBJECT *streamobject, int parent_fd, int mem_handle, 
   int events_waiting, handle_count;
   int eventclass, event_win,
     eventdata1, eventdata2, eventdata3, eventdata4,
-    eventdata5;
+    eventdata5, eventdata6;
   int client_sock_fd, wresult;
   char *s;
   char buf[MAXMSG], e_class[64], e1[64], e2[64], e3[64], e4[64], 
@@ -2880,7 +2887,9 @@ int __ctalkX11InputClient (OBJECT *streamobject, int parent_fd, int mem_handle, 
 			   e.xbutton.x,
 			   e.xbutton.y,
 			   e.xbutton.state,
-			   e.xbutton.button, 0, 0);
+			   e.xbutton.button,
+			   e.xbutton.x_root,
+			   e.xbutton.y_root);
 	  continue;
 	  break;
 	case ButtonRelease:
@@ -2893,7 +2902,9 @@ int __ctalkX11InputClient (OBJECT *streamobject, int parent_fd, int mem_handle, 
 			   e.xbutton.x,
 			   e.xbutton.y,
 			   e.xbutton.state,
-			   e.xbutton.button, 0, 0);
+			   e.xbutton.button,
+			   e.xbutton.x_root,
+			   e.xbutton.y_root);
 	  continue;
 	  break;
 	case KeyPress:
@@ -3206,7 +3217,7 @@ int __ctalkX11InputClient (OBJECT *streamobject, int parent_fd, int mem_handle, 
 	    eventclass = WINDELETE;
 	    event_win = e.xclient.window;
 	    eventdata1 = eventdata2 = eventdata3 = eventdata4 = 
-	      eventdata5 = 0;
+	      eventdata5 = eventdata6 = 0;
 	  }
 	  break;
 	case SelectionClear:

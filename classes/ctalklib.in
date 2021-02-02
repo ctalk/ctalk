@@ -1,4 +1,4 @@
-/* $Id: ctalklib.in,v 1.6 2020/12/06 01:01:22 rkiesling Exp $ -*-c-*-*/
+/* $Id: ctalklib.in,v 1.19 2021/01/21 11:05:46 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -1073,10 +1073,19 @@ extern OBJECT *__ctalkLibcFnWithMethodVarArgs (int (*)(), METHOD *,char *);
 extern void __ctalkLocalTime (long int, int *, int *, int *, int *, int *, int *, int *, int *, int *);
 extern void __ctalkLogMessage (char *, ...);
 extern int __ctalkX11CreatePaneBuffer (OBJECT *, int, int, int);
+extern int __ctalkX11CreatePopupMenu (OBJECT *, int, int);
 extern int __ctalkX11FreePaneBuffer (OBJECT *);
 extern int __ctalkX11ResizePaneBuffer (OBJECT *, int, int);
 extern int __ctalkX11ResizePixmap (void *, int, int, unsigned long int, int, int,
 				   int, int, int, int *);
+extern int __ctalkX11MapMenu (OBJECT *, int, int);
+extern int __ctalkX11MenuDrawString (void *, unsigned int, int x, int y,
+				     int text_x_size, int text_y_size,
+				     int box_x_size, int box_y_size,
+				     char *, char *);
+extern int __ctalkX11MenuDrawLine (void *, int, unsigned long,
+				   int, int, int, int, int, int, char *);
+
 extern int __ctalkX11MoveWindow (OBJECT *, int, int);
 extern int __ctalkX11ResizeWindow (OBJECT *, int, int, int);
 extern int __ctalkX11PaneClearWindow (OBJECT *);
@@ -1096,6 +1105,7 @@ extern int __ctalkX11CloseClient (OBJECT *);
 extern int __ctalkX11QueryFont (OBJECT *, char *);
 extern int __ctalkX11InputClient (OBJECT *, int, int, int);
 extern int __ctalkX11UseFontBasic (void *, int, unsigned long int, char *);
+extern int __ctalkX11WithdrawMenu (OBJECT *);
 extern int __ctalkMapGLXWindow (OBJECT *);
 extern int __ctalkMapX11Window (OBJECT *);
 extern int __ctalkMatchText (char *, char *, long long int *);
@@ -1201,6 +1211,8 @@ extern int __ctalkToCInteger (OBJECT *o, int);
 extern long int __ctalkToCLongInteger (OBJECT *o, int);
 extern int __ctalkX11PanePutStr (OBJECT *, int, int, char *);
 extern int __ctalkX11PanePutTransformedStr (OBJECT *, int, int, char *);
+extern int __ctalkX11NamedColor (char *, int *, int *, int *, unsigned long int *);
+extern int __ctalkX11RGBColor (char *, int *, int *, int *, unsigned long int *);
 extern I_EXCEPTION *__ctalkTrapException (void);
 extern I_EXCEPTION *__ctalkTrapExceptionInternal (MESSAGE *);
 extern void __ctalkWarning (char *, ...);
@@ -1307,6 +1319,7 @@ extern int __ctalkXftSelectedSlant (void);
 extern int __ctalkXftSelectedWeight (void);
 extern int __ctalkXftSelectedDPI (void);
 extern double __ctalkXftSelectedPointSize (void);
+extern char *__ctalkXftSelectedStyle (void);
 extern int __ctalkXftFgRed (void);
 extern int __ctalkXftFgGreen (void);
 extern int __ctalkXftFgBlue (void);
@@ -1320,10 +1333,14 @@ extern void __ctalkXftSetForegroundFromNamedColor (char *);
 extern char *__ctalkXftFontPathFirst (char *);
 extern char *__ctalkXftFontPathNext (void);
 extern char *__ctalkXftSelectedFontPath (void);
+extern int __ctalkXftTextDimensionsBasic (void *, int, unsigned long, 
+					  char *, int *, int *, int *, int *,
+					  int *);
 extern int __ctalkXftAscent (void);
 extern int __ctalkXftDescent (void);
 extern int __ctalkXftHeight (void);
 extern int __ctalkXftMaxAdvance (void);
+extern void *__ctalkXftHandle (void);
 extern bool __ctalkXftIsMonospace (void);
 extern bool __ctalkGLEW20 (void);
 extern int __ctalkGLUTVersion (void);

@@ -19,7 +19,7 @@
 /* Uncomment this #define to use X bitmap fonts. */
 /* #define XFONTS */
 
-/* Also, uncomment this to draw a multiline label. */
+/* Also, uncomment this to draw multiline labels. */
 /* #define MULTILINE */
 
 /* Uncomment if you want the buttons to be highlighted with wider
@@ -41,6 +41,7 @@ int main (void) {
   mainWindow backgroundColor = "blue";
 
   label canFocus = false;
+  label ftFontVar initFontLib;
   label resources replaceAt "borderWidth", 0;
 
   label resources replaceAt "backgroundColor", "blue";
@@ -55,9 +56,14 @@ int main (void) {
   mainWindow inputStream eventMask = 
     EXPOSE|ENTERWINDOWNOTIFY|LEAVEWINDOWNOTIFY|BUTTONPRESS|BUTTONRELEASE|KEYPRESS|KEYRELEASE|WINDELETE|MOTIONNOTIFY;
   dispatcher attachTo mainWindow;
+#ifdef MULTILINE
+  lbutton attachTo dispatcher, "100x60+25+100";
+  rbutton attachTo dispatcher, "100x60+135+100";
+#else  
   lbutton attachTo dispatcher, "90x50+25+100";
   rbutton attachTo dispatcher, "90x50+135+100";
-  label attachTo dispatcher, "147x80+44+15";
+#endif  
+  label attachTo dispatcher, "147x80+c+15";
 
   mainWindow map;
   mainWindow raiseWindow;
@@ -67,16 +73,7 @@ int main (void) {
   mainWindow setWMTitle "X11ButtonPane Demo";
 
 #ifndef XFONTS
-  /*
-   * This is the recommended way to set up fonts for each widget.
-   */
   label ftFontVar initFontLib;
-  label ftFont "DejaVu Sans", 0, FTFONT_BOLD, 0, 12.0;
-  label ftFontVar saveSelectedFont;
-  lbutton ftFont "DejaVu Sans", 0, FTFONT_MEDIUM, 0, 10.0;
-  lbutton ftFontVar saveSelectedFont;
-  rbutton ftFont "DejaVu Sans", 0, FTFONT_MEDIUM, 0, 10.0;
-  rbutton ftFontVar saveSelectedFont;
 #else
   lbutton label font "fixed";
 #endif  

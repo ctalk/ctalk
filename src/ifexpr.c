@@ -1,4 +1,4 @@
-/* $Id: ifexpr.c,v 1.4 2020/10/10 21:29:04 rkiesling Exp $ */
+/* $Id: ifexpr.c,v 1.2 2020/12/23 13:29:18 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -550,9 +550,15 @@ int ctrlblk_pred_rt_expr_self (MESSAGE_STACK messages, int self_ptr) {
 				 M_NAME(messages[self_lookahead]));
 		      }
 		    } else {
+		      char *msg;
+		      msg = collect_tokens (messages, pred_start_idx,
+					    pred_end_idx);
 		      warning (messages[self_lookahead],
+			       "In the expression,\n\n\t%s\n\n"
 			       "Undefined label, \"%s.\"",
+			       msg,
 			       M_NAME(messages[self_lookahead]));
+		      __xfree (MEMADDR(msg));
 		    }
 		  }
 		} /* if (M_TOK(messages[self_lookahead]) == LABEL) */

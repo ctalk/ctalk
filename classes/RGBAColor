@@ -1,0 +1,127 @@
+/* $Id: RGBAColor,v 1.9 2020/12/28 08:48:51 rkiesling Exp $ -*-c-*-*/
+
+/*
+  This file is part of Ctalk.
+  Copyright © 2005 - 2016, 2018, 2019  
+    Robert Kiesling, rk3314042@gmail.com.
+  Permission is granted to copy this software provided that this copyright
+  notice is included in all source code modules.
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+*/
+
+/*
+ *    RGBAColor class.
+ */
+
+
+Integer class RGBAColor
+"This class stores colors' red, green, blue, and alpha
+components as Integers.  The default format is 24-bit
+color, but the Integers' size allows for expansion to
+higher resolution color values.  The color's alpha value
+is stored as a 16-bit Integer, although finer resolutions
+are also possible with a 32-bit Integer. The class 
+performs the color lookup and allocation X11 color names, 
+from #rrggbb HTML specifications, and can approximate 
+display colors from any R,G,B values by using Xlib calls." ;
+
+RGBAColor instanceVariable red Integer 0;
+RGBAColor instanceVariable green Integer 0;
+RGBAColor instanceVariable blue Integer 0;
+RGBAColor instanceVariable alpha Integer 0xffff;
+RGBAColor instanceVariable x11Pixel Integer 0;
+RGBAColor instanceVariable x11Name String "";
+
+#include <ctalk/ctalkdefs.h>
+
+RGBAColor instanceMethod new (String colorName) {
+  OBJECT *object_alias, *name_var;
+  __ctalkInstanceVarsFromClassObject (colorName);
+  /* Here we need to do a strange sort of fixup, due to the
+     fact that RGBAColor's superclass is Integer, the instance
+     variables have acquired the attribute, OBJECT_VALUE_IS_BIN_INT,
+     which doesn't work with the x11Name instance variable, because
+     its value is a String, so we have to remove the attribute.
+     So far, we need to handle this case-by-case, because the
+     part of the constructor that adds instance variables to the
+     new object can't generalize this factor (yet). */
+  object_alias = colorName;
+  name_var = __ctalkGetInstanceVariable (object_alias, "x11Name", true);
+  name_var -> attrs &= ~OBJECT_VALUE_IS_BIN_INT;
+  name_var -> instancevars -> attrs &= ~OBJECT_VALUE_IS_BIN_INT;
+  return colorName;
+}
+
+RGBAColor instanceMethod namedX11Color (String colorName) {
+  int r_out, b_out, g_out, r;
+  Exception new ex;
+  String new errbuf;
+  unsigned long int pix_out;
+  returnObjectClass Integer;
+  r = __ctalkX11NamedColor
+    (colorName, &r_out, &g_out, &b_out, &pix_out);
+  self red = r_out;
+  self green = g_out;
+  self blue = b_out;
+  self x11Pixel = pix_out;
+  self x11Name = colorName;
+  
+  if (!r) {
+    return SUCCESS;
+  } else {
+    errbuf printOn "RGBAColor : namedX11Color: Unknown color name: %s.\n",
+      colorName;
+    ex raiseException INVALID_OPERAND_X, errbuf;
+    return ERROR;
+  }
+}
+
+RGBAColor instanceMethod rgbX11Color (String colorSpec) {
+  int r_out, b_out, g_out, r;
+  unsigned long int pixel_out;
+  Exception new ex;
+  String new errbuf;
+  returnObjectClass Integer;
+  r = __ctalkX11RGBColor (colorSpec,
+			  &r_out, &b_out, &g_out, &pixel_out);
+  self red = r_out;
+  self green = g_out;
+  self blue = b_out;
+  self x11Pixel = pixel_out;
+  self x11Name = colorSpec;
+
+  if (!r) {
+    return SUCCESS;
+  } else {
+    errbuf printOn "RGBAColor : rgbX11Color: Unknown color spec: %s.\n",
+      colorSpec;
+    ex raiseException INVALID_OPERAND_X, errbuf;
+    return ERROR;
+  }
+}
+
+RGBAColor instanceMethod x11Color (String colorSpec) {
+  int r;
+  returnObjectClass Integer;
+  if (colorSpec =~ /^#/ || colorSpect =~ /^rgb:/) {
+    r = self rgbX11Color colorSpec;
+  } else {
+    r = self namedX11Color colorSpec;
+  }
+  return r;
+}
+
+

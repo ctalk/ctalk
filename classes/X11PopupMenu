@@ -1,0 +1,482 @@
+/* $Id: X11PopupMenu,v 1.44 2021/02/02 11:40:23 rkiesling Exp $ -*-c-*-*/
+
+/*
+  This file is part of Ctalk.
+  Copyright © 2021 Robert Kiesling, rk3314042@gmail.com.
+  Permission is granted to copy this software provided that this copyright
+  notice is included in all source code modules.
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+*/
+
+/*
+ *    X11PopupMenu
+ *
+ *    Resources - 
+ *  
+ *      font                  "sans-serif-12"
+ *      textColor             "black"
+ *      hlTextColor           "white"
+ *      hlColor               "darkblue"
+ *      backgroundColor       "gray"
+ *      hMargins              5
+ *      topMargin             10
+ *      bottomMargin          12
+ *      itemSpace             2
+ *      cursorHPad            1
+ *      gadgetSpace           10    - The extra width of the gadget column
+                                      on the right side of the menu if 
+				      needed.
+ *      gadgetRMargin         11    - The margin between a gadget and the
+                                      right side of the menu.
+ */
+
+#include <ctalk/ctalkdefs.h>
+#include <fontconfig/fontconfig.h>
+
+X11CanvasPane class X11PopupMenu;
+
+X11PopupMenu instanceVariable items AssociativeArray NULL;
+X11PopupMenu instanceVariable bgPixel Integer 0;
+X11PopupMenu instanceVariable hlPixel Integer 0;
+X11PopupMenu instanceVariable hlTextPixel Integer 0;
+X11PopupMenu instanceVariable textHeight Integer 0;
+X11PopupMenu instanceVariable itemHeight Integer 0;
+X11PopupMenu instanceVariable gadgetSpace Boolean false;
+
+String class MenuItemBox;
+
+MenuItemBox instanceVariable org Point 0;
+MenuItemBox instanceVariable ext Point 0;
+MenuItemBox instanceVariable size Point 0;
+MenuItemBox instanceVariable attrs Integer 0;
+
+#define WITHDRAWN_NONE    0
+#define WITHDRAWN_SELECT  1
+#define WITHDRAWN_OTHER   2
+
+/* Any attributes we want to add to a menu item. */
+#define SUBMENU_GADGET   (1 << 0)
+
+static bool initialized = false;
+static int withdrawn = WITHDRAWN_NONE;
+bool point_is_in_rect (int, int, int, int, int, int);
+bool screen_click (int *, int *, unsigned int *);
+int __xlib_put_str_ft (Display *, Drawable, GC, char *);
+
+X11PopupMenu instanceMethod new (String menuName) {
+  X11PopupMenu super new menuName;
+
+  menuName resources atPut "backgroundColor", "gray";
+  menuName resources atPut "bottomMargin", 12;
+  menuName resources atPut "cursorHPad", 1;
+  menuName resources atPut "font", "sans-serif-12: weight=medium";
+  menuName resources atPut "gadgetRMargin", 11;
+  menuName resources atPut "gadgetSpace", 10;
+  menuName resources atPut "hlColor", "darkblue";
+  menuName resources atPut "hlTextColor", "white";
+  menuName resources atPut "hMargins", 5;
+  menuName resources atPut "itemSpace", 4;
+  menuName resources atPut "textColor", "black";
+  menuName resources atPut "topMargin", 10;
+
+  return menuName;
+}
+
+static int highlight_n = -1;
+static int i;
+static int top_margin_size_x = 0, top_margin_size_y = 0;
+static int bottom_margin_org_x = 0, bottom_margin_org_y = 0,
+  bottom_margin_size_x = 0, bottom_margin_size_y = 0;
+
+X11PopupMenu instanceMethod subMenuGadget (Integer baseline,
+					   Boolean hilight) {
+  String new colorName;
+  if (hilight) {
+    colorName = self resources at "hlTextColor";
+  } else {
+    colorName = "black";
+  }
+  
+  __ctalkX11MenuDrawLine (self displayPtr, self paneBuffer xID,
+			  self xGC,
+			  self size x - 15, baseline - 2,
+			  self size x - 15, baseline - 9,
+			  1, 0x8888, colorName);
+  __ctalkX11MenuDrawLine (self displayPtr, self paneBuffer xID,
+			  self xGC,
+			  self size x - 15, baseline - 9,
+			  self size x - 9, baseline - 6,
+			  2, 0x8888, colorName);
+  __ctalkX11MenuDrawLine (self displayPtr, self paneBuffer xID,
+			  self xGC,
+			  self size x - 15, baseline - 2,
+			  self size x - 9, baseline - 6,
+			  1, 0x8888, colorName);
+}
+
+X11PopupMenu instanceMethod draw (void) {
+  Display *d_l;
+  XColor actual, nearest;
+  GC win_gc, buf_gc;
+  XGCValues xgcv, hilite_xgcv;
+  int i, black_pixel;
+  String new s;
+  Integer new vMargin, hMargin, hlWidth, cursorOrgX, cursorExtX,
+    cursorHPad, gadgetRMargin, blackPixel;
+  MenuItemBox new m;
+
+  d_l = self displayPtr;
+  black_pixel = BlackPixel(d_l, DefaultScreen(d_l));
+  blackPixel = black_pixel;
+
+  xgcv.foreground = self bgPixel;
+  xgcv.background = self bgPixel;
+  xgcv.function = GXcopy;
+  xgcv.fill_style = FillSolid;
+  win_gc = XCreateGC (d_l, self xWindowID,
+		  GCFillStyle|GCFunction|GCForeground|GCBackground, &xgcv);
+  buf_gc = XCreateGC (d_l, self paneBuffer xID,
+		  GCFillStyle|GCFunction|GCForeground|GCBackground, &xgcv);
+  XFillRectangle (self displayPtr, self paneBuffer xID,
+		  buf_gc, 0, 0, self size x, self size y);
+
+  xgcv.foreground = BlackPixel (d_l, DefaultScreen (d_l));
+  XChangeGC (d_l, buf_gc, GCForeground, &xgcv);
+  hMargin = self resources integerAt "hMargins";
+  /* hilite box starts at hMargins, so the extent is the pane width -
+     (hMargins * 2) */ 
+  hlWidth = self size x - (hMargin * 2);
+
+  cursorHPad = self resources integerAt "cursorHPad";
+  cursorOrgX = hMargin - cursorHPad;
+  cursorExtX = hlWidth + (cursorHPad * 2);
+
+  gadgetRMargin = self resources integerAt "gadgetRMargin";
+  hilite_xgcv.background = self hlPixel;
+  i = 0;
+  vMargin = self resources integerAt "topMargin";
+  
+  self items map {
+    (Object *)m = self;
+    s = self name;
+    if (highlight_n == i) {
+
+      XChangeGC (d_l, buf_gc, GCBackground, &hilite_xgcv);
+      /* The cursor box still has 1px padding outside of the
+	 hMargins */
+      XFillRectangle (super displayPtr, super paneBuffer xID,
+		      buf_gc,
+		      cursorOrgX,
+		      vMargin + m org y,
+		      cursorExtX,
+		      m size y);
+      XChangeGC (d_l, buf_gc, GCBackground, &xgcv);
+      __ctalkX11MenuDrawString (super displayPtr,
+				super paneBuffer xID,
+				hMargin,
+				vMargin + m org y + m size y,
+				m size x, super textHeight,
+				/* m size x, */
+				super size x,
+				m size y,
+				s, super resources at "hlTextColor");
+      if (m attrs & SUBMENU_GADGET) {
+	super subMenuGadget vMargin + m org y + m size y, true;
+
+      }
+    } else {
+      __ctalkX11MenuDrawString (super displayPtr,
+				super paneBuffer xID,
+				hMargin,
+				vMargin + m org y + m size y,
+				m size x, super textHeight,
+				m size x, m size y,
+				s, super resources at "textColor");
+      if (m attrs & SUBMENU_GADGET) {
+	super subMenuGadget vMargin + m org y + m size y,
+	  blackPixel;
+      }
+    }
+    ++i;
+  }
+
+  XCopyArea (self displayPtr, self paneBuffer xID, self xWindowID,
+	     win_gc, 0, 0, self size x, self size y, 0, 0);
+
+  XFreeGC (d_l, win_gc);
+  XFreeGC (d_l, buf_gc);
+
+}
+
+X11PopupMenu instanceMethod add (String itemText, String exprText) {
+  "The arguments, itemText and exprText, are. respectively
+    what appears on the menu, and the expression that is
+    executed when the menu item is clicked."
+  Symbol new itemPtr;
+  Integer new nth, itemWidth, itemSpace, menuWidth;
+  Boolean new gadgetItem;
+
+  if (itemText at (itemText length - 1) == '>') {
+    itemText = itemText subString 0, (itemText length - 1);
+    self gadgetSpace = true;
+    gadgetItem = true;
+  } else {
+    gadgetItem = false;
+  }
+
+  *itemPtr = MenuItemBox basicNew itemText, exprText;
+
+  self ftFontVar selectFontFromFontConfig
+    (self resources at "font");
+  self ftFontVar saveSelectedFont;
+
+  if (self itemHeight == 0) {
+    self textHeight = self ftFontVar textHeight "Ty";
+    self itemHeight = self textHeight +
+      self resources integerAt "itemSpace";
+  }
+
+  nth = self items size;
+  itemWidth = self ftFontVar textWidth itemText;
+  menuWidth = itemWidth + ((self resources at "hMargins") * 2);
+  if (menuWidth > self size x)
+    self size x = menuWidth;
+
+  (*itemPtr) size x = self size x;
+  (*itemPtr) size y = self itemHeight;
+
+  (*itemPtr) org x = 0;
+  (*itemPtr) org y = nth * self itemHeight;
+
+  (*itemPtr) ext x = (*itemPtr) size x;
+  (*itemPtr) ext y = (*itemPtr) org y + (*itemPtr) size y;
+
+  if (gadgetItem) {
+
+    (*itemPtr) attrs |= SUBMENU_GADGET;
+  }
+  if (self gadgetSpace) {
+    self size x += self resources integerAt "gadgetSpace";
+  }
+
+  self items push *itemPtr;
+
+}
+
+X11PopupMenu instanceMethod execItem (X11Pane parentPane,
+				      String itemName,
+				      String exprText,
+				      Integer itemIndex) {
+  "We have our own exec method here, instead of using String : eval. This
+  is so we can still use X11PopupMenu as the receiver class, and we can
+  match the arguments in an expression to this method's parameter names.
+
+    Ex: this expression passes parentPane as an argument to the method,
+    'clientExit.'
+
+      self clientExit parentPane;
+
+    There is more information about combining application-specific handler
+    methods in the demos/x11/popupmenu.ca program and the X11PopupMenu
+    section of the language reference.
+ "
+
+ __ctalkEvalExpr (exprText);
+
+}
+
+X11PopupMenu instanceMethod popup (X11Pane parentWin,
+				   Integer p_dpy_x, Integer p_dpy_y) {
+  "Displays the pane's window. Note that th method uses raw X
+   events. This is because the pane maintains its own connection
+   to the display, and the event handler can be contained in
+   this method."
+  Display *display;
+  Window menu_win_id;
+  XEvent xev, t_xev, ev_ret;
+  InputEvent new e;
+  int ptr_dpy_x, ptr_dpy_y, r;
+  unsigned int ptr_state;
+  bool entry = true;
+  OBJECT *self_alias;
+  MenuItemBox new iBox;
+  Integer new clickIndex;
+  XColor nearest, actual;
+
+  if (withdrawn != WITHDRAWN_NONE) {
+    withdrawn = WITHDRAWN_NONE;
+    return NULL;
+  }
+
+  self origin x = p_dpy_x;
+  self origin y = p_dpy_y;
+  
+  if (!initialized) {
+    /* "self size x" is calculated in X11PopupMenu : add. */
+    self size y = ((self items size * (self itemHeight)) +
+		   ((self resources integerAt "topMargin") +
+		    self resources integerAt "bottomMargin"));
+    self ftFontVar selectFont;
+    menu_win_id = __ctalkX11CreatePopupMenu (self, 0, 0);
+
+    /* 
+     *  Calculate top and bottom margin rectangles.
+     */
+    top_margin_size_x = self size x;
+    top_margin_size_y = self resources integerAt "topMargin";
+    bottom_margin_org_x = 0;
+    bottom_margin_org_y = self size y;
+    bottom_margin_org_y -= self resources integerAt "bottomMargin";
+    bottom_margin_size_x = self size x;
+    bottom_margin_size_y = self size y;
+
+    display = self displayPtr;
+
+    XAllocNamedColor (display,
+		      DefaultColormap (display, DefaultScreen (display)),
+		      self resources at "backgroundColor", &actual, &nearest);
+    self bgPixel = nearest.pixel;
+    XAllocNamedColor (display,
+		      DefaultColormap (display, DefaultScreen (display)),
+		      self resources at "hlColor", &actual, &nearest);
+    self hlPixel = nearest.pixel;
+    XAllocNamedColor (display,
+		      DefaultColormap (display, DefaultScreen (display)),
+		      self resources at "hlTextColor", &actual, &nearest);
+    self hlTextPixel = nearest.pixel;
+
+    initialized = true;
+
+    (X11Bitmap *)self paneBuffer create self displayPtr, self xWindowID, 
+      self size x, self size y, self depth;
+    (X11Bitmap *)self paneBuffer background (self resources at "backgroundColor");
+    (X11Bitmap *)self paneBuffer foreground (self resources at "backgroundColor");
+    (X11Bitmap *)self paneBackingStore create self displayPtr, self xWindowID,
+      self size x, self size y, self depth;
+    __ctalkX11MapMenu (self, p_dpy_x, p_dpy_y);
+  } else { /* if (!initialized) */
+
+    display = self displayPtr;
+    menu_win_id = self xWindowID;
+    __ctalkX11MapMenu (self, p_dpy_x, p_dpy_y);
+
+  }
+
+  self draw;
+  self refresh;
+  highlight_n = -1;
+
+  while (1) {
+    
+    screen_click (&ptr_dpy_x, &ptr_dpy_y, &ptr_state);
+    if (!entry) {
+      if (ptr_state) {
+	if (!point_is_in_rect (ptr_dpy_x, ptr_dpy_y, self origin x, self origin y,
+			       self size x, self size y)) {
+	  if (point_is_in_rect (ptr_dpy_x, ptr_dpy_y, parentWin origin x,
+				parentWin origin y, parentWin size x,
+				parentWin size y)) {
+	    while (XCheckTypedEvent (display, ButtonPress, &ev_ret))
+	      ;
+	    __ctalkX11WithdrawMenu (self);
+	    withdrawn = WITHDRAWN_OTHER;
+	    return NULL;
+	  } else {
+	    while (XCheckTypedEvent (display, ButtonPress, &ev_ret))
+	      ;
+	    __ctalkX11WithdrawMenu (self);
+	    withdrawn = WITHDRAWN_NONE;
+	    return NULL;
+	  }
+	}
+      } else {
+	if (!point_is_in_rect (ptr_dpy_x, ptr_dpy_y,
+			       parentWin origin x,
+			       parentWin origin y,
+			       parentWin size x,
+			       parentWin size y) &&
+	    !point_is_in_rect (ptr_dpy_x, ptr_dpy_y,
+			       self origin x,
+			       self origin y,
+			       self size x,
+			       self size y)) {
+	  __ctalkX11WithdrawMenu (self);
+	  withdrawn = WITHDRAWN_NONE;
+	  return NULL;
+	}
+      }
+    }
+
+    entry = false;
+    if (XPending (display)) {
+      XNextEvent (display, &xev);
+      switch (xev.type)
+	{
+	case ButtonPress:
+	  if (point_is_in_rect (xev.xbutton.x_root, xev.xbutton.y_root,
+				 self origin x, self origin y,
+				 self size x, self size y)) {
+	    clickIndex = 0;
+	    self items map {
+	      iBox = self;
+	      if (point_is_in_rect (xev.xmotion.x, xev.xmotion.y,
+				    iBox org x, iBox org y,
+				    iBox size x, iBox size y)) {
+		__ctalkX11WithdrawMenu (super);
+	        withdrawn = WITHDRAWN_NONE;
+		super execItem parentWin, iBox name, iBox value, clickIndex;
+	        return NULL;
+	      }
+	      ++clickIndex;
+	    }
+	  } else {
+	    __ctalkX11WithdrawMenu (self);
+	    withdrawn = WITHDRAWN_OTHER;
+	    return NULL;
+	  }
+	  break;
+	case MotionNotify:
+	  /* If the pointer is in the top or bottom margin, remove any
+	     menu item highlight. */
+	  if (point_is_in_rect (xev.xmotion.x, xev.xmotion.y,
+				0, 0, top_margin_size_x, top_margin_size_y) ||
+	      point_is_in_rect (xev.xmotion.x, xev.xmotion.y,
+				bottom_margin_org_x, bottom_margin_org_y,
+				bottom_margin_size_x, bottom_margin_size_y)) {
+	    highlight_n = -1;
+	    self draw;
+	  } else {
+	    i = 0;
+	    self items map {
+	      iBox = self;
+	      if (point_is_in_rect (xev.xmotion.x, xev.xmotion.y,
+                                    iBox org x, iBox org y,
+                                    iBox size x, iBox size y)) {
+		highlight_n = i;
+		super draw;
+		break;
+	      }
+	      ++i;
+	    }
+	  }
+	  break;
+	}
+    }
+  }
+  return NULL;
+}
+
+

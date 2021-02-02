@@ -1,4 +1,4 @@
-/* $Id: rt_expr.c,v 1.1.1.1 2020/12/13 14:51:03 rkiesling Exp $ */
+/* $Id: rt_expr.c,v 1.3 2021/01/12 00:02:31 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -1948,6 +1948,9 @@ static void terminal_tok_obj (MESSAGE *m_prev_msg, MESSAGE *m,
   }
 }
 
+OBJECT *__ctalkEvalObjectValue (char *object_name) {
+}
+
 /*
  *  Scopes automatically applied to existing objects, mainly receivers. 
  *  They should not be used for newly created objects.
@@ -2525,6 +2528,9 @@ OBJECT *eval_expr (char *s, OBJECT *recv_class, METHOD *method,
 	  m -> attrs |= RT_TOK_IS_SELF_KEYWORD;
 	  prev_msg_ptr = i;
 	  continue;
+#if 0 /* We might not need to look for eval at all in the
+	 runtime, leaving us free to use "eval" as a 
+	 method; e.g., String : eval. */
 	} else if (str_eq (pname, "eval")) {
 	  /* 
 	   *  Be draconian here and say, if "eval" appears *anywhere*
@@ -2536,6 +2542,7 @@ OBJECT *eval_expr (char *s, OBJECT *recv_class, METHOD *method,
 	  ++m -> evaled;
 	  prev_msg_ptr = i;
 	  continue;
+#endif	  
 	} else {
 
 	  if (dont_have_prev_message_object (m, aggregate_type_end,

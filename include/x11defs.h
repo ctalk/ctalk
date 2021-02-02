@@ -1,4 +1,4 @@
-/* $Id: x11defs.h,v 1.1.1.1 2020/12/13 14:51:03 rkiesling Exp $ -*-c-*-*/
+/* $Id: x11defs.h,v 1.8 2021/01/14 14:46:17 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -36,7 +36,11 @@
 #define SHM_DRAWABLE 0x20
 #define SHM_GC 0x40
 #define SHM_DATA 0x60
-#define SHM_RETVAL 0xe0
+#define SHM_RETVAL 0x70
+#define SHM_RETVAL2 0x80
+#define SHM_RETVAL3 0x90
+#define SHM_RETVAL4 0xa0
+#define SHM_RETVAL5 0xb0
 #define SHM_SHUTDOWN 0xfe
 /*
  *  Font data locations - will probably need more of them.
@@ -176,7 +180,10 @@
 #define PANE_GET_PRIMARY_SELECTION_REQUEST 23
 #define PANE_SET_PRIMARY_SELECTION_OWNERSHIP_REQUEST 24
 #define PANE_SET_PRIMARY_SELECTION_TEXT 25
-
+#define PANE_GET_CLIPBOARD_REQUEST 26
+#define PANE_SET_CLIPBOARD_OWNERSHIP_REQUEST 27
+#define PANE_SET_CLIPBOARD_TEXT_REQUEST 28
+#define PANE_GET_TEXT_METRICS_REQUEST 29
 
 #define WM_CONFIGURE_EVENTS (ExposureMask|StructureNotifyMask|PropertyChangeMask|SubstructureNotifyMask|FocusChangeMask|EnterWindowMask|LeaveWindowMask)
 #define WM_INPUT_EVENTS (KeyPressMask|KeyReleaseMask|ButtonPressMask|ButtonReleaseMask|PointerMotionMask)

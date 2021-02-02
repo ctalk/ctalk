@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.2 2020/12/14 13:31:23 rkiesling Exp $
+# $Id: Makefile.am,v 1.4 2020/12/28 11:49:22 rkiesling Exp $
 
 SUBDIRS = libc libctalk
 
@@ -12,9 +12,9 @@ pkginclude_HEADERS=ANSIButtonPane ANSILabelPane ANSIListBoxPane \
 	FileStream Float GLUTApplication GLXCanvasPane Integer InputEvent \
 	Key LibrarySearch Line List LongInteger Magnitude Method \
 	NetworkStream Object ObjectInspector Pane Pen \
-	Point ReadFileStream ReadWriteFileStream Rectangle SignalEvent \
-	SignalHandler Stream SortedList String Symbol SystemErrnoException \
-	TCPIPNetworkStream TCPIPNetworkStreamReader \
+	Point ReadFileStream ReadWriteFileStream Rectangle RGBAColor \
+	SignalEvent SignalHandler Stream SortedList String Symbol \
+	SystemErrnoException TCPIPNetworkStream TCPIPNetworkStreamReader \
 	TCPIPNetworkStreamWriter TCPIPV6NetworkStream \
 	TCPIPV6NetworkStreamReader TCPIPV6NetworkStreamWriter TerminalStream \
 	TreeNode UNIXNetworkStream \
@@ -22,7 +22,8 @@ pkginclude_HEADERS=ANSIButtonPane ANSILabelPane ANSIListBoxPane \
 	Win32TerminalStream WriteFileStream X11Bitmap X11ButtonPane \
 	X11CanvasPane X11CheckBoxPane X11Cursor X11FileSelectDialog \
 	X11Font X11FreeTypeFont \
-	X11LabelPane X11ListBox X11ListPane X11MessageBoxPane X11Pane X11Pixmap \
+	X11LabelPane X11ListBox X11ListPane X11MessageBoxPane X11Pane \
+	X11Pixmap X11PopupMenu \
 	X11ScrollBarPane X11TerminalStream \
 	X11TextPane X11TextEditorPane X11TextEntryBox X11TextEntryPane \
 	X11PaneDispatcher X11YesNoBoxPane ctalklib ctldjgpp ctalkdefs.h \

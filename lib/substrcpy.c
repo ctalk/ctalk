@@ -1,4 +1,4 @@
-/* $Id: substrcpy.c,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ -*-c-*-*/
+/* $Id: substrcpy.c,v 1.2 2021/01/03 13:18:19 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -87,4 +87,19 @@ char *substrcat (char * __restrict__ dest, char * __restrict__ src,
   *d = 0;
 
   return dest;
+}
+
+/* 
+   If we've wrapped the cvartab name in parens to
+   avoid warning messages from the compiler; e.g.,
+
+   (*<typedef_name>)
+   
+   Then extract the name and return it in
+   actual_name_out.
+*/
+char *extract_argblk_name_from_subexpr (char *subexpr, char *actual_name_out) {
+  strcpy (actual_name_out, &subexpr[2]);
+  actual_name_out[strlen (actual_name_out) - 1] = '\0';
+  return actual_name_out;
 }

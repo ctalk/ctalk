@@ -14,6 +14,7 @@ int main (void) {
   InputEvent new e;
 
   mainWindow backgroundColor = "blue";
+  label ftFontVar initFontLib;
   label resources replaceAt "backgroundColor", "blue";
   rbutton resources replaceAt "backgroundColor", "blue";
   lbutton resources replaceAt "backgroundColor", "blue";
@@ -36,7 +37,6 @@ int main (void) {
 
   mainWindow setWMTitle "X11ButtonPane Demo";
 
-  label ftFontVar initFontLib;
   label multiLine "X11ButtonPane\nRounded Button\nDemo";
   label canFocus = false;
   label borderWidth = 0;

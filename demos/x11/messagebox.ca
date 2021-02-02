@@ -1,4 +1,4 @@
-/* messagebox.ca - X11ButtonPane Demonstration -*-c-*- */
+/* messagebox.ca - X11MessageBox Demonstration -*-c-*- */
 
 #include <ctalk/ctalkdefs.h>
 
@@ -18,6 +18,7 @@ int main (void) {
   label canFocus = false;
   label borderWidth = 0;
 
+  label ftFontVar initFontLib;
   label ftFontVar notifyLevel XFT_NOTIFY_NONE;
 
   mainWindow backgroundColor = "blue";
@@ -30,7 +31,7 @@ int main (void) {
     EXPOSE|ENTERWINDOWNOTIFY|LEAVEWINDOWNOTIFY|BUTTONPRESS|BUTTONRELEASE|KEYPRESS|KEYRELEASE|WINDELETE|MOVENOTIFY;
 
   dispatcher attachTo mainWindow;
-  button attachTo dispatcher, "110x50+73+100";
+  button attachTo dispatcher, "125x75+c+100";
   label attachTo dispatcher, "177x80+34+15";
   messageBox attachTo dispatcher, "300x200";
 
@@ -41,7 +42,6 @@ int main (void) {
 
   mainWindow setWMTitle "X11MessageBoxPane Demo";
 
-  label ftFontVar initFontLib;
 
   label multiLine "X11MessageBoxPane\nDemo";
   label resources replaceAt "textColor", "lightgray";
@@ -62,12 +62,6 @@ int main (void) {
   messageBox resources replaceAt "foregroundColor", "blue";
   messageBox resources replaceAt "messageText",
     	       "Hello, messageBox!\nYour message text here.";
-
-  button draw;
-  button refresh;
-  label draw;
-  label refresh;
-
 
   while (TRUE) {
     mainWindow inputStream queueInput;

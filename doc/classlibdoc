@@ -719,10 +719,14 @@ Initializes the font library and sets the reciever's instance
 variables to the default selected font.  Apps need to use this method before
 most of the other other methods in this class.
 
+Programs should call this method before any of the attachTo
+methods, so the methods can set their drawing parameters before
+the program starts to receive X events.
+
 If the system is not configured to use outline fonts then the library
 prints a message and exits the program with a non-zero value.
   If the library is already initialized, then
-the method returns 0.
+the method returns '0'.
 
 >>>X11FreeTypeFont::isMonospace (void)
 Returns a read-only Boolean value of true if the application's
@@ -920,6 +924,15 @@ or the application has not selected a font, the method returns 0.
 Return an Integer with the width in pixels of text in the
 currently selected FreeType font.  If the Xft library is not available
 or not initialized, the method returns 0.
+
+>>>X11FreeTypeFont::textHeight (Symbol displayPtr, Integer drawable, Integer GCPtr, String str)
+>>>X11FreeTypeFont::textWidth (Symbol displayPtr, Integer drawable, Integer GCPtr, String str)
+These methods return the width and height of str in the
+currently selected font.  Unlike the textWidth and
+textHeight methods, which work within the client app's process
+space, these methods direct the server process to perform the
+measurements.
+
 
 >>>X11FreeTypeFont::verbose
 Causes the Ctalk libraries to output verbose information about font
@@ -3562,6 +3575,10 @@ search from the n'th character in the receiver string.
 Test for the presence of an environment variable.  Return
 TRUE if the variable exists, FALSE otherwise.
 
+>>>String::eval (void)
+Evaluate the content of the receiver String's value as if
+it were an argument to eval.
+
 >>>String::getEnv (char *envVarName)
 Return the value of environment variable envVarName as
 the value of the receiver, or (null).  Note that this
@@ -4755,6 +4772,39 @@ of the current time's month: 'Jan', 'Feb', 'Mar',
 Fills in the receiver's timeZone, tzStd, tzDst,
 gmtOff, and haveDst with information about the machine's
 current time zone.
+
+
+
+>>>RGBAColor::namedX11Color (String color_name)
+Looks up the color given by color_name and fills in the
+receiver's returns the color's red, green, blue, and pixel values, and sets
+its x11Name to color_name.
+
+The rgb(1) program lists by name the colors that the X server
+supports.
+
+If color_name is suppored by the X server, the method returns 0 (SUCCESS).  If the color is not supported, the method returns -1 (ERROR), and sets the red, green, and blue returns to 0.  In addition, it sets pixel_out to the server's black pixel, and raises an exception.
+
+>>>RGBAColor::new (String object_name)
+The class needs its own constructor because the primitive constructor
+internals have added an OBJECT_VALUE_IS_BIN_INT attribute to all of
+the new object's instance variables, because RGBAColor's
+superclass is Integer.  But this method needs to do a fixup and
+remove the attribute from the x11Name instance variable, which
+has a value of String.  The contructor internals don't, at the
+present time, recognize this semantic factor on a generalized basis,
+so we need to handle cases like these individually.
+
+>>>RGBAColor::rgbX11Color (String color_spec)
+Returns the color values and pixel value of color_spec.  RGB
+color specifications are described more fully in the
+XParseColor(3) manual page.
+
+If color_spec is suppored by the X server, the method returns 0 (SUCESS), and retrieves the red, green, blue, and pixel values provided by the server.  If the color is not supported, the method returns -1 (ERROR), and sets the red, green, and blue returns to 0.  In addition, it sets pixel_out to the server's black pixel, and raises an exception.
+
+>>>RGBAColor::x11Color (String color_spec)
+A convenience method that calls either namedX11Color or
+rgbX11Color depending on the format of color_spec.
 
 
 
@@ -6922,29 +6972,45 @@ endY arguments, with the color and the line width given
 by the receiver's Pen object.
 
 >>>X11CanvasPane::drawLine (Intger xOrg, Integer yOrg, Integer xSize, Integer ySize)
+>>>X11CanvasPane::drawLine (Intger xOrg, Integer yOrg, Integer xSize, Integer ySize, Pen aPen)
 Draw a filled rectangle on the pane's window with the upper-left
 hand corner at the point given by the xOrg and
 yOrg arguments, with the width xSize and the
 height ySize.  If a Pen argument isn't given, uses the
 line width and color defined by the receiver's pen instance
 variable; otherwise uses the line width and color defined by the
-Pen argument.
+aPen argument.
 
 >>>X11CanvasPane::drawRoundedRectangle (Intger xOrg, Integer yOrg, Integer xSize, Integer ySize, Integer radius)
+>>>X11CanvasPane::drawRoundedRectangle (Intger xOrg, Integer yOrg, Integer xSize, Integer ySize, Pen aPen, Pen aPen, Integer radius)
 Similar to drawFilledRectangle, but this method takes an extra
 argument, the radius of the corner arcs that round the rendered rectangle's
 corners.
 
+If the aPen argument is given, the method uses its color and line width
+for drawing.  Otherwise, the method uses the color and line width defined
+by the X11CanvasPane object for drawing.
+
 >>>X11CanvasPane::drawRectangle (Intger xOrg, Integer yOrg, Integer xSize, Integer ySize)
+>>>X11CanvasPane::drawRectangle (Intger xOrg, Integer yOrg, Integer xSize, Pen aPen, Integer ySize)
 Draw the borders of a rectangle on the pane's window with
 the upper-left hand corner at the point given by the
 xOrg and yOrg arguments, with the width
 xSize and the height ySize.
 
+If the aPen argument is given, the method uses its color and
+line width for drawing.  Otherwise, the method uses the color and line
+width defined by the X11CanvasPane object for drawing.
+
 >>>X11CanvasPane::drawRoundedRectangle (Intger xOrg, Integer yOrg, Integer xSize, Integer ySize, Integer radius)
+>>>X11CanvasPane::drawRoundedRectangle (Intger xOrg, Integer yOrg, Integer xSize, Integer ySize, Pen aPen, Integer radius)
 This method is similar to drawRectangle, except that it takes an
 extra argument, radius, which specifies the radius of the arcs
 that form the rectangle's corners.
+
+If the aPen argument is given, the method uses its color and
+line width for drawing.  Otherwise, the method uses the color and line
+width defined by the X11CanvasPane object for drawing.
 
 >>>X11CanvasPane::directCopy (X11Bitmap src_bitmap, Integer src_x_ort, Integer src_y_org, Integer src_width, Integer src_height, Integer dest_x_org, Integer dest_y_org)
 Similar to the copy method, above, except directCopy
@@ -6981,13 +7047,6 @@ corner at x_org,y_org on the receiver's pane.
 The xpm_data argument is the name of the array declared at the 
 start of a xpm file's data array.
 
->>>X11CanvasPane::refresh (void)
-Redraw the pane on the main window.
-
->>>X11CanvasPane::refreshReframe (void)
-Redraw the pane on the main window.  If the user has moved the pane
-by clicking and dragging on it, then reposition the pane within the window.
-
 >>>X11CanvasPane::putStrXY (Integer xOrg, Integer yOrg String text)
 >>>X11CanvasPane::putStrXY (Integer xOrg, Integer yOrg String text, String font_desc)
 >>>X11CanvasPane::putStrXY (Integer xOrg, Integer yOrg String text, String font_desc, String color_name))
@@ -7006,6 +7065,45 @@ X11Font section
 
 If a color_name argument is also given, draws
 the text using that color.
+
+>>>X11CanvasPane::selectFont (void)
+>>>X11CanvasPane::selectFont (X11FreeTypeFont font)
+This method selects the font and face defined by the reciever's
+ftFontVar instance variable (with no arguments), or the
+font given as a single argument.
+
+These methods ensure that the font-face selection is valid in any of
+the client-server memory spaces, and folds the font's weight and slant
+into one of Ctalk's predefined face slots: medium, bold, italic, or
+bold italic.  This is basically a holdover from calculating font-face
+combinations for .BDF fonts; future versions of Ctalk should be able
+to use the typeface parameters directly.
+
+This method is basically a combination of two other methods:
+X11FreeTypeFont : selectFont, and the library function
+__ctalkSelectXFontFace, which is used in the X11Bitmap
+methods: faceBold, faceRegular, faceItalic, and
+faceBoldItalic.
+
+The four font face slots have definitions of that are given in both
+X11Bitmap class and ctalkdefs.h.  The definitions are
+listed below.
+
+---------------------------------------------------------
+  
+  #define X_FACE_REGULAR     (1 << 0)
+  #define X_FACE_BOLD        (1 << 1)
+  #define X_FACE_ITALIC      (1 << 2)
+  #define X_FACE_BOLD_ITALIC (1 << 3)
+  
+---------------------------------------------------------
+
+>>>X11CanvasPane::refresh (void)
+Redraw the pane on the main window.
+
+>>>X11CanvasPane::refreshReframe (void)
+Redraw the pane on the main window.  If the user has moved the pane
+by clicking and dragging on it, then reposition the pane within the window.
 
 >>>X11CanvasPane::subPaneDestroy (Object subPaneRef, InputEvent event)
 Deletes the pane's window and its data when the user closes the 
@@ -7029,6 +7127,9 @@ X window and adjusts the pane's dimensions.
 
 
 >>>X11ButtonPane::attachTo (Object parentPane, String geometry)
+>>>X11ButtonPane::attachTo (Object parentPane)
+>>>X11ButtonPane::attachTo (Object parentPane, Integer xOrg, Integer yOrg)
+>>>X11ButtonPane::attachTo (Object parentPane, Integer xOrg, Integer yOrg, Integer xSize, Integer ySize)
 Attaches the receiver to the parentPane named by parentPane,
 with the placement and size given by geometry.  The parent pane
 should generally be a X11PaneDispatcher which directs X events
@@ -7038,6 +7139,14 @@ The positioning of subwindows within the parent window is controlled
 by the arguments to the attachTo methods; in particular, these
 methods accept a geometry specification, as an argument, which has
 the following format.
+
+If only parentPane is given as an argument, the child pane
+occupies the entire width and height of the parent pane.
+
+If the program has initialized the Xft Freetype libraries, this method
+also fills in the pane object's ftFontVar instance variable
+with the selected font, which is normally a system-defined standard
+font during app initialization.
 
 ---------------------------------------------------------
   
@@ -7054,6 +7163,11 @@ that distance from the parent window's upper left-hand corner.
 >>>X11ButtonPane::clearClick (void)
 Resets a button's clicked state as returned by haveClick to
 false.
+
+>>>X11ButtonPane::clearClick
+A convenience method that localizes the button's label font for more
+uses, especially with composite widgets like dialog boxes.  This method
+set's the label subpane's font to the button's 'font' resource.
 
 >>>X11ButtonPane::draw (void)
 Draws the button and its label on the pane's buffer so the
@@ -7207,8 +7321,9 @@ Creates a new X11LabelPane object, initializes the object's
 instance variables and event handlers, and sets the pane's default
 foreground and background colors.
 
->>>X11LabelPane::selectFont (void)
-A convenience method that is synonymous with, self ftFontVar selectFont.
+>>>X11LabelPane::selectFontOld (void)
+This method was formerly named selectFont, although it has been
+superceded by X11CanvasPane : selectFont.
 
 >>>X11LabelPane::subPaneExpose (Object subPane, InputEvent event)
 The widget's Expose event handler.  When the widget receives an Expose
@@ -7407,6 +7522,54 @@ When the show or showManaged method receives the button
 release event, this method is called to remove the pane's window from
 the display, and the show or showManaged method returns to
 the main program.
+
+
+
+
+>>>X11PopupMenu::add (String menuText, String expression)
+Add an item to the receiver menu.  The menuText argument
+contains the text that will appear in the menu entry, and the
+expression argument is the Ctalk expression that the program
+executes when the user selects the item.
+
+>>>X11PopupMenu::draw (void)
+Draw the menu items, the highlight bar, and any decorations on the
+side of the menu.
+
+>>>X11PopupMenu::execItem (X11Pane parentPane, String itemName, String exprText, Integer itemIndex)
+Executes the selected menu item's expression.  The method makes
+avaiable parameters that contain information about the item.  The
+parameters, which expressions can use verbatim, are listed here.
+
+---------------------------------------------------------
+  
+  parentPane     # The main window object that the menu is popped
+                 # up over.
+  itemName       # A String object that contains the item's visible
+                 # text.
+  exprText       # A String that contains the text of the menu item's
+                 # expression.
+  itemIndex      # An Integer that contains the ordinal position of
+                 # the menu item; the topmost item's index is 0, and
+                 # the index of the bottom item is <number_of_items> - 1.
+  
+---------------------------------------------------------
+
+>>>X11PopupMenu::new (String objectName)
+The X11PopupMenu constructor.  Creates a X11PopupMenu
+object and its instance variables, and initializes the object's
+resources and event handlers.
+
+>>>X11PopupMenu::subMenuGadget (Integer baseline Boolean hilight)
+Draws submenu indicator to the right of a menu entry.
+
+>>>X11PopupMenu::popup (X11Pane parentPane, Integer displayX, Integer displayY)
+Display the menu at the pointer's position, relative to the upper-right
+corner of the display.
+
+This method also withdraws the menu when the user selects an item, and
+whenever the pointer moves outside of the menu or the window defined in
+parentPane.
 
 
 
@@ -8233,7 +8396,6 @@ no longer selecting, and redraws the text.
     if (useFtFonts && !useXFont) {
       ftFont initFontLib;
       ftFont selectFont ftFontName, 0, 80, 72, ftFontSize;
-      ftFont namedX11Color fgColor;
     }
     
   }

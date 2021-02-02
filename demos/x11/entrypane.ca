@@ -15,7 +15,9 @@ int main (int argv, char **argc) {
   Integer new nEvents;
   Integer new verbose;
   X11Cursor new cursor;
-   xPane resources atPut "backgroundColor", "blue";
+
+  xPane ftFontVar initFontLib;
+  xPane resources atPut "backgroundColor", "blue";
   label resources replaceAt "backgroundColor", "blue";
   label resources replaceAt "foregroundColor", "blue";
   label resources replaceAt "highlightForegroundColor", "blue";
@@ -30,18 +32,16 @@ int main (int argv, char **argc) {
   xPane inputStream eventMask = EXPOSE|ENTERWINDOWNOTIFY|LEAVEWINDOWNOTIFY| \
     KEYPRESS|KEYRELEASE|WINDELETE|BUTTONPRESS|BUTTONRELEASE|MOTIONNOTIFY| \
      SELECTIONCLEAR|SELECTIONREQUEST;
-   xPane initialize 300, 200;
+   xPane initialize 300, 185;
   dispatcher attachTo xPane;
   label attachTo dispatcher, "100x80+10+10";
-  button attachTo dispatcher, "60x45+120+100";
+  button attachTo dispatcher, "70x55+c+100";
   entry attachTo dispatcher, "140x32+120+32";
 
   xPane map;
   xPane raiseWindow;
 
   xPane openEventStream;
-
-  xPane ftFontVar initFontLib;
 
   xPane setWMTitle "X11TextEntryPane Demo";
   label multiLine "Enter your\ntext:";

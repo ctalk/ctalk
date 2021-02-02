@@ -1,4 +1,4 @@
-/* $Id: ctalk.h,v 1.2 2020/12/14 02:35:18 rkiesling Exp $ -*-Fundamental-*- */
+/* $Id: ctalk.h,v 1.24 2021/01/25 17:18:48 rkiesling Exp $ -*-Fundamental-*- */
 
 /*
   This file is part of Ctalk.
@@ -644,6 +644,7 @@ typedef MESSAGE ** MESSAGE_STACK;
 #define TMPL_CVAR_CLEANUP_FN  "__ctalkTemplateCallerCVARCleanup"
 #define ARGBLK_LABEL "__ctblk"
 #define DELETE_CVARS_CALL "\ndelete_method_arg_cvars ();\n"
+#define ARGBLK_SUBEXPR_WRAPPER(s)(s[0] == '(' && s[1]== '*')
 
 #define DELETE_MESSAGES(__s,__i,__l) \
    while (++__i <= __l) {\
@@ -878,10 +879,9 @@ int split_args_idx (MESSAGE_STACK, int, int, int *, int *);
 char *stdarg_fmt_arg_expr (MESSAGE_STACK, int, METHOD *, char *);
 char *writable_arg_rt_arg_expr (MESSAGE_STACK, int, int, char *);
 char *format_method_arg_accessor (int, char *, bool, char *);
-char *method_arg_is_fn_call (MESSAGE_STACK messages, int start_idx,
-			     int fn_label_idx,
-			     int stack_top_idx, int method_idx,
-			     int *expr_end_idx);
+char *method_arg_is_fn_call (MESSAGE_STACK, int, int, int, int, int *);
+char *method_arg_is_argblk_struct (MESSAGE_STACK, int, int, CVAR *);
+
 
 /* argblk.c */
 int argblk_end (MESSAGE_STACK, int);
@@ -1107,6 +1107,7 @@ CVAR *get_struct_from_member (void);
 CVAR *get_typedef (char *);
 int global_var_is_declared (char *);
 CVAR *have_struct (char *);
+CVAR *get_struct_by_type (char *);
 int typedef_is_declared (char *);
 int is_c_derived_type (char *);
 bool is_enum_member (char *);
@@ -1146,7 +1147,8 @@ int function_contains_argblk (MESSAGE_STACK, int);
 int function_cvar_alias_basename (CVAR *, char *);
 CVAR *get_var_from_cvartab_name (char *);
 bool need_cvar_argblk_translation (CVAR *);
-OBJECT *handle_cvar_argblk_translation (MESSAGE_STACK, int, int, CVAR *);
+OBJECT *handle_cvar_argblk_translation (MESSAGE_STACK, int, int, CVAR *,
+       				        int *);
 OBJECT *argblk_CVAR_name_to_msg (MESSAGE *, CVAR *);
 
 /* c_rval.c */
@@ -1167,15 +1169,11 @@ char *format_fn_call_method_expr_block (MESSAGE_STACK, int, int *, char *);
 void eval_params_inline (MESSAGE_STACK, int, int, int, CFUNC *,
      char *);
 char *format_fn_call_method_expr_block_cond (MESSAGE_STACK, int, int *, char *);
-int get_tmp_lval_tab_idx (MESSAGE_STACK messages, int fn_label_idx,
-		      char *fn_return_class);
-CVAR *tmp_lval_cvar (int);		      
-char *make_tmp_fn_block_name (char *);
 char *tmp_lval_type_str (int);
-void register_template_arg_CVARs (MESSAGE_STACK messages,
-				  int start_idx, int end_idx,
-				  char *buf);
-
+int get_tmp_lval_tab_idx (MESSAGE_STACK, int, char *);
+char *make_tmp_fn_block_name (char *);
+CVAR *tmp_lval_cvar (int);
+void register_template_arg_CVARs (MESSAGE_STACK, int, int, char *);
 
 /* enum.c */
 CVAR *enum_decl (MESSAGE_STACK, int);
@@ -1492,6 +1490,7 @@ void __inspect_init (void);
 /* lib/edittext.c */
 int __textedit_insert (OBJECT *, int, int, int);
 int __edittext_prev_char (OBJECT *);
+int __edittext_delete_selection (OBJECT *);
 int __edittext_next_char (OBJECT *);
 int __edittext_prev_line (OBJECT *);
 int __edittext_next_line (OBJECT *);
@@ -1504,6 +1503,7 @@ int __edittext_point_to_click (OBJECT *, int, int);
 int __edittext_index_from_pointer (OBJECT *, int, int);
 int __edittext_insert_at_point (OBJECT *, int, int, int);
 int __edittext_get_primary_selection (OBJECT *, void **, int *);
+int __edittext_get_clipboard (OBJECT *, void **, int *);
 int __edittext_insert_str_at_point (OBJECT *, char *);
 int __edittext_set_selection_owner (OBJECT *);
 int __edittext_insert_str_at_click (OBJECT *, int, int, char *);
@@ -2541,7 +2541,6 @@ int __ctalkIsDir (char *);
 bool is_shell_script (char *);
 bool file_has_exec_permissions (char *);
 char *__ctalkExpandPath (char *, char *);
-int file_size_silent (char *path);
 
 /* lib/strcatx.c */
 int strcatx (char *, ...);
@@ -2669,6 +2668,13 @@ void __ctalkMatchPrintToks (bool);
 int __ctalkX11PaneDrawCircleBasic (void *, int, unsigned long int, int, int, int, int, int, int, char *, char *);
 int __ctalkGUIPaneDrawCircleBasic (void *, int, unsigned long int, int, int, int, int, int, int, char *, char *);
 
+/* lib/xcolor.c */
+int __ctalkX11NamedColor (char *, int *, int *, int *, unsigned long int *);
+int __ctalkX11RGBColor (char *, int *, int *, int *,
+    unsigned long int *);
+/* There are also prototypes in individual source modules so we don't have to
+   include the Xlib headers here. */
+
 /* lib/xcopypixmap.c */
 int __ctalkX11CopyPixmapBasic (void *, int, unsigned long int,
                                int, int, int, int, int,
@@ -2690,6 +2696,9 @@ void clear_font_descriptors (void *);
 int __ctalkSelectXFontFace (void *, int, unsigned long int, int);
 int __ctalkX11UseFontBasic (void *, int, unsigned long int, char *);
 int __ctalkX11UseFontBasic (void *, int, unsigned long int, char *);
+
+/* lib/xmenu.c */
+int __ctalkX11CreatePopupMenu (OBJECT *, int, int);
 
 /* lib/xrender.c */
 void __ctalkX11UseXRender (bool);
@@ -2717,6 +2726,7 @@ void __ctalkXftSelectFont (char *, int, int, int, double);
 void __ctalkXftSelectFontFromXLFD (char *);
 void __ctalkXftSelectFontFromFontConfig (char *font_config_str);
 char  *__ctalkXftSelectedFamily (void);
+char  *__ctalkXftSelectedStyle (void);
 int __ctalkXftSelectedSlant (void);
 int __ctalkXftSelectedWeight (void);
 int __ctalkXftSelectedDPI (void);
@@ -2729,6 +2739,7 @@ int __ctalkXftAscent (void);
 int __ctalkXftDescent (void);
 int __ctalkXftHeight (void);
 int __ctalkXftMaxAdvance (void);
+void *__ctalkXftHandle (void);
 void __ctalkXftSetForeground (int, int, int, int);
 void __ctalkXftSetForegroundFromNamedColor (char *);
 char *__ctalkXftFontPathFirst (char *);
@@ -2751,6 +2762,9 @@ int __ctalkXftRequestedSlant (void);
 int __ctalkXftRequestedWeight (void);
 int __ctalkXftRequestedDPI (void);
 bool __ctalkXftIsMonospace (void);
+int __ctalkXftTextDimensionsBasic (void *, int, unsigned long, 
+				   char *, int *, int *, int *, int *,
+				   int *);
 
 
 /* lib/x11ksym.c */
@@ -2976,6 +2990,7 @@ int is_superclass_method_proto (char *, char *);
 int method_proto_is_output (char *);
 OBJECT *method_from_prototype (char *);
 OBJECT *method_from_prototype_2 (OBJECT *, char *);
+OBJECT *method_from_prototype_3 (MESSAGE_STACK, int);
 char *method_proto (char *, char *);
 int this_method_from_proto (char *, char *);
 MESSAGE_STACK r_message_stack (void);
@@ -3328,6 +3343,8 @@ int is_method_param_name (char *);
 int rte_expr_contains_c_fn_arg_call (MESSAGE_STACK messages,
 					    int start, int end);
 int rt_fn_arg_cond_expr (MSINFO *);
+char *fmt_rt_argblk_expr (MESSAGE_STACK, int, int *, char *);
+char *fmt_rt_argblk_super_expr (MESSAGE_STACK, int, int *, char *, bool *);
 
 
 /* rt_time.c */
@@ -3385,6 +3402,7 @@ void handle_simple_subscr_rcvr (MESSAGE_STACK, int);
 /* substrcpy.c */
 char *substrcpy (char *, char *, int, int);
 char *substrcat (char *, char *, int, int);
+char *extract_argblk_name_from_subexpr (char *, char *);
 
 /* symbol.c */
 #if 0

@@ -1,4 +1,4 @@
-/* $Id: X11TextEntryBox,v 1.1.1.1 2020/07/26 05:50:11 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11TextEntryBox,v 1.8 2021/02/02 10:23:36 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -52,16 +52,14 @@ X11TextEntryBox instanceMethod new (String paneName) {
   /* These are modifications of the resources set in X11YesNoBoxPane : new. */
   paneName resources replaceAt "leftButtonText", "Cancel";
   paneName resources replaceAt "rightButtonText", "OK";
+  paneName resources replaceAt "messageFont", "sans serif-10";
+  paneName resources replaceAt "entryFont", "monospace-14";
 
   return paneName;
 }
 
 X11TextEntryBox instanceMethod draw (void) {
   
-#if 0
-  self fill self resources at "backgroundColor";
-#endif  
-
   self label draw;
   self entryPane draw;
 
@@ -118,19 +116,19 @@ X11TextEntryBox instanceMethod initWidgets (void) {
   geomspec printOn "%dx%d+%d+%d", label_width_px, label_height_px,
     label_x_px, label_y_px;
 
-  l_label resources replaceAt "backgroundColor",
-    (self resources at "backgroundColor");
-  l_label resources replaceAt "foregroundColor",
-    (self resources at "foregroundColor");
-  l_label multiLine self resources at "messageText";
-  l_label border = false;
-  l_label resources replaceAt "textColor",
-    (self resources at "messageColor");
-  l_label resources replaceAt "ftFont",
-    (self resources at "messageFont");
-  l_label justify = LABEL_LEFT;
-
   self label become l_label;
+
+  self label resources replaceAt "backgroundColor",
+    (self resources at "backgroundColor");
+  self label resources replaceAt "foregroundColor",
+    (self resources at "foregroundColor");
+  self label multiLine self resources at "messageText";
+  self label border = false;
+  self label resources replaceAt "textColor",
+    (self resources at "messageColor");
+  self label resources replaceAt "font",
+    (self resources at "messageFont");
+  self label justify = LABEL_LEFT;
 
   self label attachTo self, geomspec;
 
@@ -153,6 +151,7 @@ X11TextEntryBox instanceMethod initWidgets (void) {
   self entryPane become l_entry;
   self entryPane attachTo self, geomspec;
   self children push self entryPane;
+  self entryPane resources replaceAt "font", "monospace-14"
 
   self lbutton become l_button;
   self children push l_button;
@@ -161,11 +160,23 @@ X11TextEntryBox instanceMethod initWidgets (void) {
 
   button_y_px = label_height_px + entry_height_px + (padInt * 4);
 
-  geomspec printOn "20%%x36+20%%+%d", button_y_px;
+  geomspec printOn "25%%x36+20%%+%d", button_y_px;
   self lbutton attachTo self, geomspec;
+  self lbutton resources replaceAt "font", (self resources at "messageFont");
+  self lbutton label resources replaceAt "font",
+    (self resources at "messageFont");
+  self lbutton label ftFontVar selectFontFromFontConfig
+    (self resources at "messageFont");
+  self lbutton label selectFont;
 
   geomspec printOn "20%%x36+60%%+%d", button_y_px;
   self rbutton attachTo self, geomspec;
+  self rbutton label resources replaceAt "font",
+    (self resources at "messageFont");
+  self rbutton resources replaceAt "font", (self resources at "messageFont");
+  self rbutton label ftFontVar selectFontFromFontConfig
+    (self resources at "messageFont");
+  self rbutton label selectFont;
 
   self lbutton label text (self resources at "leftButtonText");
   self rbutton label text (self resources at "rightButtonText");

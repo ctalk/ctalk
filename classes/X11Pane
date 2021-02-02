@@ -1,4 +1,4 @@
-/* $Id: X11Pane,v 1.3 2020/07/11 15:34:02 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11Pane,v 1.2 2021/01/29 16:37:20 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -102,6 +102,8 @@ X11Pane instanceMethod new (String __paneName) {
   }
   __paneName paneBuffer become xPaneBuffer;
   __paneName paneBackingStore become xPaneBackingStore;
+
+  __paneName resources atPut "font", "sans serif-12";
   return __paneName;
 }
 
@@ -124,6 +126,8 @@ X11Pane instanceMethod initialize (int x_size, int y_size) {
   self cursor y = 1;
 
   win_id = __ctalkCreateX11MainWindow (self);
+  self ftFontVar selectFontFromFontConfig (self resources at "font");
+  self ftFontVar saveSelectedFont;
   self xWindowID = win_id;
   return self;
 }
@@ -156,6 +160,8 @@ X11Pane instanceMethod initialize (int x_org, int y_org,
   self cursor y = 1;
 
   win_id = __ctalkCreateX11MainWindow (self);
+  self ftFontVar selectFontFromFontConfig (self resources at "font");
+  self ftFontVar saveSelectedFont;
   self xWindowID = win_id;
   return self;
 }
@@ -205,7 +211,8 @@ X11Pane instanceMethod initialize (int x_org, int y_org,
 
   self cursor x = 1;
   self cursor y = 1;
-
+  self ftFontVar selectFontFromFontConfig (self resources at "font");
+  self ftFontVar saveSelectedFont;
 
   return self;
 }

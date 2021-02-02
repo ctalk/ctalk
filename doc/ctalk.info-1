@@ -1,4 +1,4 @@
-This is ctalk.info, produced by makeinfo version 6.5 from ctalk.texi.
+This is ctalk.info, produced by makeinfo version 6.7 from ctalk.texi.
 
 INFO-DIR-SECTION Ctalk
 START-INFO-DIR-ENTRY
@@ -260,6 +260,7 @@ program is built.
 *   Integer::
 *    CTime::
 *      CalendarTime::
+*    RGBAColor::
 *   LongInteger::
 *   Pen::
 *   Point::
@@ -289,6 +290,7 @@ program is built.
 *      X11LabelPane::
 *      X11ListPane::
 *      X11MessageBoxPane::
+*      X11PopupMenu::
 *      X11ScrollBarPane::
 *      X11TextEntryPane::
 *      X11YesNoBoxPane::
@@ -1237,6 +1239,10 @@ Instance Variables
      the receiver font.  For a description of the Xft library's
      constants, refer to the 'selectFont' method entry, below.  *Note
      Integer::.
+
+'style'
+     A 'String' that contains the selected 'style' parameter, if any.
+
 'pointSize'
      A 'Float' that contains the font's point size.  *Note Float::.
 'ascent'
@@ -1245,6 +1251,12 @@ Instance Variables
 'descent'
      An 'Integer' that contains the font's height in pixels below the
      baseline.
+'handle'
+     A 'Symbol' that contains the value of the font's handle.  Normally
+     this is set by 'X11FreeTypeFont : saveSelectedFont'.  The handle's
+     value is a cast from a 'XftFont *' in a normal setup, like the
+     Ctalk library's default when the Xft libraries are enabled during
+     installation.
 'height'
      An 'Integer' that contains the dimensions in pixels of the font's
      total height, both above and below the baseline, and any extra
@@ -1295,6 +1307,10 @@ Instance Methods
      Initializes the font library and sets the reciever's instance
      variables to the default selected font.  Apps need to use this
      method before most of the other other methods in this class.
+
+     Programs should call this method before any of the 'attachTo'
+     methods, so the methods can set their drawing parameters before the
+     program starts to receive X events.
 
      If the system is not configured to use outline fonts then the
      library prints a message and exits the program with a non-zero
@@ -1492,6 +1508,13 @@ Instance Methods
      Return an 'Integer' with the width in pixels of TEXT in the
      currently selected FreeType font.  If the Xft library is not
      available or not initialized, the method returns 0.
+
+'textHeight (Symbol DISPLAYPTR, Integer DRAWABLE, Integer GCPTR, String STR)'
+'textWidth (Symbol DISPLAYPTR, Integer DRAWABLE, Integer GCPTR, String STR)'
+     These methods return the width and height of STR in the currently
+     selected font.  Unlike the 'textWidth' and 'textHeight' methods,
+     which work within the client app's process space, these methods
+     direct the server process to perform the measurements.
 
 'verbose'
      Causes the Ctalk libraries to output verbose information about font
@@ -3276,9 +3299,9 @@ A 'X11TerminalStream' object recognizes the following input event
 classes, and returns the following information in the 'xEventData'
 instance variables, which are defined in 'InputEvent' class.  *Note
 InputEvent::.
-     Event Class     xEventData1 xEventData2 xEventData3 xEventData4 xEventData5
-     BUTTONPRESS     x           y           state       button      -
-     BUTTONRELEASE   x           y           state       button      -
+     Event Class     xEventData1 xEventData2 xEventData3 xEventData4 xEventData5 xEventData6
+     BUTTONPRESS     x           y           state       button      root_x      root_y
+     BUTTONRELEASE   x           y           state       button      root_x      root_y
      KEYPRESS        x           y           state       keycode     x_keycode[1]
      KEYRELEASE      x           y           state       keycode     x_keycode[1]
      CONFIGURENOTIFY x           y           height      width       border
@@ -6210,6 +6233,10 @@ Instance Methods
      Test for the presence of an environment variable.  Return 'TRUE' if
      the variable exists, 'FALSE' otherwise.
 
+'eval (void)'
+     Evaluate the content of the receiver String's value as if it were
+     an argument to 'eval'.
+
 'getEnv (char *ENVVARNAME)'
      Return the value of environment variable ENVVARNAME as the value of
      the receiver, or '(null).' Note that this method generates an
@@ -7311,7 +7338,7 @@ Instance Methods
      Return an 'Integer' object containing the current UTC time.
 
 
-File: ctalk.info,  Node: CalendarTime,  Next: LongInteger,  Prev: CTime,  Up: Classes
+File: ctalk.info,  Node: CalendarTime,  Next: RGBAColor,  Prev: CTime,  Up: Classes
 
 'CalendarTime' Class
 --------------------
@@ -7458,7 +7485,103 @@ Instance Methods
      'haveDst' with information about the machine's current time zone.
 
 
-File: ctalk.info,  Node: LongInteger,  Next: Pen,  Prev: CalendarTime,  Up: Classes
+File: ctalk.info,  Node: RGBAColor,  Next: LongInteger,  Prev: CalendarTime,  Up: Classes
+
+'RGBAColor' Class
+-----------------
+
+'RGBAColor' objects store red, green, blue, and alpha color information,
+and also the names of X11 colors and their X11 pixel values, if
+appropriate.
+
+The class also provides methods for looking up X colors either by their
+color name or their RGB specification, as well as the alpha channel.
+
+The 'rgb(1)' program lists the color names supported by X displays.  RGB
+color specifications may have the following forms.
+
+
+     #rgb, #rrggbb, #rrrrgggbbb, #rrrrggggbbbb
+
+     rgb:r/g/b, rgb:rr/gg/bb, rgb:rrr/ggg/bbb, rgb:rrrr/gggg/bbbb
+
+
+     r|g|b == hexadecimal digits, either case
+
+
+The 'XParseColor(3)' manual page describes all of the color
+specification formats used by X display servers.
+
+Instance Variables
+------------------
+
+'alpha'
+     The value used for blending the color with its background; in the
+     range 0 (completely transparent) to 65535 (completely opaque).
+
+'red'
+'green'
+'blue'
+     The red, green, and blue components of the colors.  For X displays,
+     these values are unsigned short ints, with values of 1 ...  255.
+     Because the class uses 'XAllocNamedColor(3)' and 'XParseColor(3)'
+     internally, red, green and blue values, if given, are scaled to the
+     X server's RGB range.
+
+'x11Name'
+     A 'String' that contains a color name supported by the X server, if
+     appropriate, or a RGB color specification that X11 uses.  Refer to
+     *Note X11RGBSpec::.
+
+'x11Pixel'
+     The value of the pixel color allocated by the X display.
+
+Instance Methods
+----------------
+
+'namedX11Color (String COLOR_NAME)'
+     Looks up the color given by COLOR_NAME and fills in the receiver's
+     returns the color's red, green, blue, and pixel values, and sets
+     its x11Name to COLOR_NAME.
+
+     The 'rgb(1)' program lists by name the colors that the X server
+     supports.
+
+     If COLOR_NAME is suppored by the X server, the method returns 0
+     (SUCCESS). If the color is not supported, the method returns -1
+     (ERROR), and sets the red, green, and blue returns to 0.  In
+     addition, it sets PIXEL_OUT to the server's black pixel, and raises
+     an exception.
+
+'new (String OBJECT_NAME)'
+     The class needs its own constructor because the primitive
+     constructor internals have added an OBJECT_VALUE_IS_BIN_INT
+     attribute to all of the new object's instance variables, because
+     'RGBAColor's' superclass is 'Integer'.  But this method needs to do
+     a fixup and remove the attribute from the 'x11Name' instance
+     variable, which has a value of 'String'.  The contructor internals
+     don't, at the present time, recognize this semantic factor on a
+     generalized basis, so we need to handle cases like these
+     individually.
+
+'rgbX11Color (String COLOR_SPEC)'
+     Returns the color values and pixel value of COLOR_SPEC.  RGB color
+     specifications are described more fully in the 'XParseColor(3)'
+     manual page.
+
+     If COLOR_SPEC is suppored by the X server, the method returns 0
+     (SUCESS), and retrieves the red, green, blue, and pixel values
+     provided by the server.  If the color is not supported, the method
+     returns -1 (ERROR), and sets the red, green, and blue returns to 0.
+     In addition, it sets PIXEL_OUT to the server's black pixel, and
+     raises an exception.
+
+'x11Color (String COLOR_SPEC)'
+     A convenience method that calls either 'namedX11Color' or
+     'rgbX11Color' depending on the format of COLOR_SPEC.
+
+
+File: ctalk.info,  Node: LongInteger,  Next: Pen,  Prev: RGBAColor,  Up: Classes
 
 'LongInteger' Class
 -------------------
@@ -8833,111 +8956,4 @@ Instance Methods
 'sizePane (Integer WIDTH, Integer HEIGHT)'
      Set the size of the pane object and its buffers.  This method is
      normally called by the 'appendLine' method, above.
-
-
-File: ctalk.info,  Node: ANSIListBoxPane,  Next: ANSIMessageBoxPane,  Prev: ANSILabelPane,  Up: Classes
-
-'ANSIListBoxPane' Class
------------------------
-
-An 'ANSIListBoxPane' object displays a list of items, and allows the
-user to select one of the items in the list by using the cursor motion
-keys.
-
-Each item in the list is an 'ANSILabelPane'.  To modify the appearance
-of the items, refer to the 'ANSILabelPane' class.  *Note
-ANSILabelPane::.
-
-After exiting by pressing Escape or Enter, a program can retrieve the
-text of the selected item.
-
-Here is a simple program that displays a list of items, then prints the
-selected item's text before exiting.
-
-
-     int main () {
-       ANSIListBoxPane new listBox;
-
-       listBox appendLine "Item 1";
-       listBox appendLine "Item 2";
-       listBox appendLine "Item 3";
-       listBox appendLine "Item 4";
-       listBox appendLine "Item 5";
-
-       listBox show 2, 2;   // Waits for the user to press Escape or Enter
-                            // before returning.
-
-       printf ("\nYou selected %s.\n", listBox selectedText);
-
-       listBox cleanup;
-     }
-
-
-Instance Variables
-------------------
-
-'items'
-     A 'List' of 'ANSILabelPane' items that contain the text of the list
-     selections.
-
-'oldSelectedContent'
-     An 'ANSILabelPane' object that contains the content of the previous
-     selection.  Used for erasing the previous selection before drawing
-     the new selection.
-
-'prevSelectedLine'
-     An 'Integer' that contains the index of the previously selected
-     item.  The 'ANSIListBoxPane' indexes items starting with 1 for the
-     first item.
-
-'selectedContent'
-     An 'ANSILabelPane' object that contains the contents of the
-     currently selected item.
-
-'selectedLine'
-     An 'Integer' that contains the index, counting from 1, of the
-     currently selected item.
-
-'totalLines'
-     An 'Integer' that contains the number of items to be displayed.
-
-Instance Methods
-................
-
-'appendLine (String TEXT)'
-     Creates a new 'ANSILabelBox' object with the contents TEXT, then
-     adds the 'ANSILabelBox' to the 'items' list.
-
-'cleanup (void)'
-     Deletes the buffers associated with the 'ANSIListBoxPane' object
-     and its items.
-
-'handleInput (void)'
-     Waits for input from the user and processes it.  Pressing a cursor
-     key or an Emacs or vi next/previous line key shifts the selection.
-     Pressing Escape or Enter causes the method to return.
-
-'new (LISTPANE1, LISTPANE2, ...;)'
-     The 'ANSIListBoxPane' constructor.  The argument contains the names
-     of one or more new 'ANSIListBoxPane' objects.
-
-'refresh (void)'
-     Draw the list pane and items on the terminal.
-
-'refreshSelectionFirst (void)'
-     Highlight the initially selected item.  Should only be called after
-     a call to 'refresh'.
-
-'refreshSelection (void)'
-     Redraw the highlightd selected item, and un-highlight the
-     previously selected item.  Should only be called after a call to
-     'selectNext' or 'selectPrev'
-
-'selectedText (void)'
-     Returns the text of the selected item as a 'String' object.
-
-'selectNext (void)'
-'selectPrev (void)'
-     Select the next or previous item of the list box's contents.  Also
-     saves the index and contents of the previously selected item.
 

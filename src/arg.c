@@ -1,8 +1,8 @@
-/* $Id: arg.c,v 1.2 2020/12/14 02:35:18 rkiesling Exp $ */
+/* $Id: arg.c,v 1.6 2021/01/26 08:21:20 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
-  Copyright © 2005-2020 Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2005-2021 Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
 
@@ -1544,6 +1544,14 @@ char *fmt_c_fn_obj_args_expr (MESSAGE_STACK messages, int fn_idx,
     if (IS_CONSTANT_TOK(M_TOK(messages[argstrs[n_th_arg].start_idx]))) {
       add_arg (expr_buf, argstrs[n_th_arg].arg, n_th_arg, n_args);
       continue;
+    } if (messages[argstrs[n_th_arg].start_idx] -> attrs &
+	  TOK_HAS_CVARTAB_AGG_WRAPPER) {
+      if (n_th_arg < (n_args - 1)) {
+	strcatx2 (expr_buf, argstrs[n_th_arg].arg, ", ", NULL);
+      } else {
+	strcat (expr_buf, argstrs[n_th_arg].arg);
+      }
+      continue;
     } else {
       if (arg_needs_rt_eval (messages, argstrs[n_th_arg].start_idx)) {
 	int end_idx;
@@ -1551,7 +1559,7 @@ char *fmt_c_fn_obj_args_expr (MESSAGE_STACK messages, int fn_idx,
  		fn_param_return_trans 
 		(messages[fn_idx], 
 		 fn_cfunc, 
-		 fmt_rt_expr (messages, argstrs[0].start_idx, &end_idx,
+		 fmt_rt_expr (messages, argstrs[n_th_arg].start_idx, &end_idx,
 			      expr_buf_tmp), n_th_arg),
 		 n_th_arg, n_args);
       } else {
@@ -1920,8 +1928,31 @@ int c_param_expr_arg (MSINFO *ms) {
     if ((prev_idx != -1) && (IS_OBJECT(ms -> messages[prev_idx] -> obj))) {
       if (get_instance_variable_series (ms -> messages[prev_idx] -> obj,
 					ms -> messages[n], n,
-					ms -> stack_ptr)) {
-	continue;
+					ms -> stack_ptr)) { /***/
+	OBJECT *param_class_full, *param_class_instvar;
+	ms -> messages[n] -> receiver_msg =
+	  ms -> messages[prev_idx];
+	ms -> messages[n] -> receiver_obj =
+	  ms -> messages[prev_idx] -> obj;
+	/* The previous object could be a temporary fill-in for
+	   an unloaded class, so try to find it by its name,
+	   then a normal object's class name. */
+	if (IS_OBJECT(ms -> messages[n] -> receiver_obj)) {
+	  if (((param_class_full = get_class_object
+		(ms -> messages[n] -> receiver_obj -> __o_name)) != NULL) ||
+	      ((param_class_full = get_class_object
+		(ms -> messages[n] -> receiver_obj ->
+		 __o_class -> __o_name)) != NULL)) {
+	    if ((param_class_instvar =
+		 get_instance_variable (M_NAME(ms->messages[n]),
+					param_class_full -> __o_name,
+					false))
+		!= NULL) {
+	      ms -> messages[n] -> obj = param_class_instvar;
+	    }
+	  }
+	  continue;
+	}
       }
     }
     if (((c = get_local_var (M_NAME(ms -> messages[n]))) != NULL) ||
@@ -2526,6 +2557,56 @@ char *format_method_arg_accessor (int param_idx, char *tok, bool varargs,
 }
 
 /***/
+/*
+ *  Use for expressions like, 
+ * 
+ *   <rcvr> <method> <arg_expr>, <struct.mbr.mbr.mbr ...>;
+ */
+char *method_arg_is_argblk_struct (MESSAGE_STACK messages,
+				   int agg_start_idx,
+				   int agg_end_idx,
+				   CVAR *struct_cvar) {
+
+  char *terminal_mbr_class, *struct_expr,
+    tmp_lval_name[MAXLABEL], template_expr[MAXMSG],
+    tmpl_cvar_register_buf[MAXMSG];
+  CVAR *terminal_struct_mbr;
+  int tmp_lval_tab_idx, i;
+
+  terminal_struct_mbr = struct_member_from_expr_b (messages, agg_start_idx,
+						   agg_end_idx,
+						   struct_cvar);
+  struct_expr = collect_tokens (messages, agg_start_idx, agg_end_idx);
+  terminal_mbr_class = basic_class_from_cvar (messages[agg_start_idx],
+					      terminal_struct_mbr,
+					      0);
+  tmp_lval_tab_idx = get_tmp_lval_tab_idx (messages, agg_start_idx,
+					    terminal_mbr_class);
+  make_tmp_fn_block_name (tmp_lval_name);
+
+  for (i = agg_start_idx; i >= agg_end_idx; i--) {
+    messages[i] -> name[0] = ' '; messages[i] -> name[1] = '\0';
+    messages[i] -> tokentype = WHITESPACE;
+  }
+  __xfree (MEMADDR(messages[agg_start_idx] -> name));
+  messages[agg_start_idx] -> name = strdup (tmp_lval_name);
+
+#if 1
+  sprintf (template_expr, ARG_FN_EXPR_TEMPLATE,
+	   tmp_lval_type_str (tmp_lval_tab_idx),
+	   tmp_lval_name,
+	   struct_expr,
+	   fmt_register_c_method_arg_call 
+	   (terminal_struct_mbr, tmp_lval_name, LOCAL_VAR,
+	    tmpl_cvar_register_buf));
+	     
+  fileout (template_expr, FALSE, agg_start_idx);
+#endif  
+
+  __xfree (MEMADDR(struct_expr));
+  return NULL;
+}
+
 /*
  *  Use for expressions like, 
  * 

@@ -1,4 +1,4 @@
-/* $Id: guiputstr.c,v 1.1.1.1 2020/07/17 07:41:39 rkiesling Exp $ -*-c-*-*/
+/* $Id: guiputstr.c,v 1.2 2021/02/02 09:12:19 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -64,6 +64,7 @@ int __ctalkX11PanePutStrBasic (void *d, int visual_id, unsigned long int gc_ptr,
 
 int __xlib_put_str (Display *, Drawable, GC, char *);
 int __xlib_put_str_ft (Display *, Drawable, GC, char *);
+void sync_ft_font (bool);
 
 int __ctalkX11PanePutStrBasic (void *d, int drawable_id, unsigned long int gc_ptr,
 			       int x, int y, char *s) {
@@ -79,6 +80,7 @@ int __ctalkX11PanePutStrBasic (void *d, int drawable_id, unsigned long int gc_pt
 	     ":", (((y >= 0) && (y <= 8192)) ? ascii[y] : ascii[0]),
 	     ":", s, NULL);
 
+    sync_ft_font (false);
     if (dialog_dpy ()) {
       __xlib_put_str_ft (d, drawable_id, (GC)gc_ptr, d_buf);
       return SUCCESS;
