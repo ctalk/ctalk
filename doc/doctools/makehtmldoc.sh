@@ -1,7 +1,12 @@
 #!/bin/bash
 
+#
 # output multi-part HTML docs write the parts to the subdirectory,
-# "ctalk."
+# "doc/CtalkLanguageRef," and to the single file,
+# "doc/CtalkLanguageRef.html."
+#
+# Run from the doc subdirectory.
+#
 makeinfo --html --output=CtalkLanguageRef \
 	 --css-include=doctools/refstyle.css $@
 
