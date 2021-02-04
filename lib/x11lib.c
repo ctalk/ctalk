@@ -1,4 +1,4 @@
-/* $Id: x11lib.c,v 1.14 2021/01/19 21:45:11 rkiesling Exp $ -*-c-*-*/
+/* $Id: x11lib.c,v 1.16 2021/02/04 18:50:39 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -2822,6 +2822,8 @@ static int kwin_event_loop (int parent_fd, int mem_handle, int main_win_id) {
 #endif
 
 
+ static int xfce_c_width = -1, xfce_c_height = -1;
+
 /* Uncomment this if you want the library to print a lot of event
    information on a xterm */
 /* #define TRACK_EVENTS */
@@ -3096,7 +3098,6 @@ int __ctalkX11InputClient (OBJECT *streamobject, int parent_fd, int mem_handle, 
 	   * is sending the events.
 	   */
 	  
-
 	  if (grabbed) {
 	    /* cinnamon notifies us of a FocusIn/Out ungrab or grab,
 	       so we save the event until the ungrab, and set 
@@ -3115,11 +3116,16 @@ int __ctalkX11InputClient (OBJECT *streamobject, int parent_fd, int mem_handle, 
 	       ConfigureNotify event of the resizing 
 	       operation. */
 	    XEvent e_next;
-	    xfce_resizing = true;
+	    if (xfce_c_width == -1 || xfce_c_height == -1) {
+	      xfce_c_width = e.xconfigure.width;
+	      xfce_c_height = e.xconfigure.height;
+	      continue;
+	    }
+	    if (xfce_c_width != e.xconfigure.width ||
+		xfce_c_height != e.xconfigure.height)
+	      xfce_resizing = true;
 	    while (xfce_resizing) {
 	      XPeekEvent (display, &e_next);
-	      if (e_next.type != ConfigureNotify &&
-		  e_next.type != Expose) {
 	      resize_event_to_client
 		(e.xconfigure.x, 
 		 e.xconfigure.y, 
@@ -3128,10 +3134,9 @@ int __ctalkX11InputClient (OBJECT *streamobject, int parent_fd, int mem_handle, 
 		 e.xconfigure.border_width,
 		 &prev_d, e.xconfigure.window, &eventclass);
 		xfce_resizing = false;
-	      }
-	      while (XCheckTypedWindowEvent 
-		     (display, main_win_id, ConfigureNotify, &e))
-		;
+		while (XCheckTypedWindowEvent 
+		       (display, main_win_id, ConfigureNotify, &e))
+		  ;
 	    }
 	    continue;
 	  }
