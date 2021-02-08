@@ -1,4 +1,4 @@
-/* $Id: ctalk.h,v 1.24 2021/01/25 17:18:48 rkiesling Exp $ -*-Fundamental-*- */
+/* $Id: ctalk.h,v 1.25 2021/02/07 21:08:32 rkiesling Exp $ -*-Fundamental-*- */
 
 /*
   This file is part of Ctalk.
@@ -3345,7 +3345,7 @@ int rte_expr_contains_c_fn_arg_call (MESSAGE_STACK messages,
 int rt_fn_arg_cond_expr (MSINFO *);
 char *fmt_rt_argblk_expr (MESSAGE_STACK, int, int *, char *);
 char *fmt_rt_argblk_super_expr (MESSAGE_STACK, int, int *, char *, bool *);
-
+int handle_complex_fn_arg_expr_in_argblk (MSINFO *, int, int);
 
 /* rt_time.c */
 int __ctalkUTCTime (void);

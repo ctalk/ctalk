@@ -1,4 +1,4 @@
-/* $Id: arg.c,v 1.6 2021/01/26 08:21:20 rkiesling Exp $ */
+/* $Id: arg.c,v 1.7 2021/02/07 18:36:22 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -2697,3 +2697,5 @@ char *method_arg_is_fn_call (MESSAGE_STACK messages, int start_idx,
 
   return NULL;
 }
+
+
