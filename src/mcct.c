@@ -1,4 +1,4 @@
-/* $Id: mcct.c,v 1.3 2020/09/19 03:29:27 rkiesling Exp $ */
+/* $Id: mcct.c,v 1.2 2021/02/21 15:22:36 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -693,6 +693,12 @@ bool is_mcct_expr (MESSAGE_STACK messages, int idx,
 	  /* always use a C variable natively when assigning to it in
 	     this type of expression (but only after checking for a
 	     function). */
+	  /* end_idx_ret is set to -1 in ctrlblk_pred_rt_expr_self
+	     before calling this function - probably should be set
+	     first elsewhere, in case we have some wierd assignments
+	     in if predicates */
+	  if (*end_idx_ret == -1)
+	    *end_idx_ret = i;
 	  *operand_idx_ret = i;
 	  return true;
 	}

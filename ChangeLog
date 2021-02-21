@@ -140,3 +140,7 @@
 	- Added complex_fn_arg_in_argblk (resolve.c), and
 	handle_complex_fn_arg_expr_in_argblk (rt_expr.c), for fn arg
 	exprs that contain arithmetic operators.
+2021-02-21
+	- Updated is_mcct_expr to set the expression end in some
+	cases even when we have an assignment in an if predicate
+	(mcct.c).

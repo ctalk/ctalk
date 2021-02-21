@@ -1,4 +1,4 @@
-/* $Id: ifexpr.c,v 1.2 2020/12/23 13:29:18 rkiesling Exp $ */
+/* $Id: ifexpr.c,v 1.3 2021/02/21 15:22:36 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -498,6 +498,7 @@ int ctrlblk_pred_rt_expr_self (MESSAGE_STACK messages, int self_ptr) {
 	 *  necessary.
 	 */
  	if (m -> tokentype == LABEL) {
+	  idx_end_ret = -1;
 	  if (is_mcct_expr (messages, i,
 						&idx_end_ret,
 						&obj_operand_idx)) {
