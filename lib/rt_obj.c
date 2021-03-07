@@ -1,4 +1,4 @@
-/* $Id: rt_obj.c,v 1.1.1.1 2020/12/13 14:51:03 rkiesling Exp $ */
+/* $Id: rt_obj.c,v 1.7 2021/03/07 05:40:36 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -229,6 +229,8 @@ OBJECT *__ctalk_get_object_return (const char *name,
   return __ctalk_get_object (name, classname);
 }
 
+#define ARG_FRAME_START(m) (((m -> n_args / m -> n_params) - 1) * m -> n_params)
+
 /* 
  *   TO DO - For now, if the class name is NULL, simply return 
  *   the first object that matches the name.  Add a 
@@ -332,9 +334,12 @@ OBJECT *__ctalk_get_object (const char *__name, const char *__classname) {
 	  (__m -> arg_frame_top >= __ctalk_arg_ptr) &&
 	  (__m -> arg_frame_top <= MAXARGS) &&
 	  (!__m -> varargs)) {
+	__nth_arg_frame_offset = ARG_FRAME_START(__m);
+#if 0
 	__nth_arg_frame_offset = 
 	  (__m -> n_args == __m -> n_params) ?
 	  0 : ((__m -> n_args / __m -> n_params) - 1);
+#endif	
       next_arg_frame:
 	for (i = 0; i < __m -> n_params; i++) {
 	  if ((__m -> params[i] != NULL) && 
@@ -570,9 +575,7 @@ OBJECT *__ctalk_get_arg_tok (const char *__name) {
 	  (__m -> arg_frame_top >= __ctalk_arg_ptr) &&
 	  (__m -> arg_frame_top <= MAXARGS) &&
 	  (!__m -> varargs)) {
-	__nth_arg_frame_offset = 
-	  (__m -> n_args == __m -> n_params) ?
-	  0 : ((__m -> n_args / __m -> n_params) - 1);
+	__nth_arg_frame_offset = ARG_FRAME_START(__m);
       next_arg_frame:
 	for (i = 0; i < __m -> n_params; i++) {
 	  if ((__m -> params[i] != NULL) && 
@@ -738,9 +741,10 @@ OBJECT *__ctalk_get_eval_expr_tok (const char *__name) {
 	  (__m -> arg_frame_top >= __ctalk_arg_ptr) &&
 	  (__m -> arg_frame_top <= MAXARGS) &&
 	  (!__m -> varargs)) {
-	__nth_arg_frame_offset = 
+	/* __nth_arg_frame_offset = 
 	  (__m -> n_args == __m -> n_params) ?
-	  0 : ((__m -> n_args / __m -> n_params) - 1);
+	  0 : ((__m -> n_args / __m -> n_params) - 1); *//***/
+	__nth_arg_frame_offset = ARG_FRAME_START(__m);
       next_arg_frame:
 	for (i = 0; i < __m -> n_params; i++) {
 	  if ((__m -> params[i] != NULL) && 
