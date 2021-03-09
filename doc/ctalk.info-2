@@ -5161,7 +5161,16 @@ methods that are called when a user clicks on a menu item.
      #define FTFONT_BOLD   200
      #define FTFONT_MEDIUM 100
 
+     /*
+      *  Objects that are targets of menu items
+      *  need to be within the scope of the popup's
+      *  methods.  The simplest way to do this is to
+      *  make them global.
+      */
      X11MessageBoxPane new aboutBox;
+     X11MessageBoxPane new msgBox;
+     X11YesNoBoxPane new yesNoBox;
+     X11TextEntryBox new textEntryBox;
      X11FileSelectDialog new fileBox;
 
      X11MessageBoxPane instanceMethod configure (void) {
@@ -5169,7 +5178,7 @@ methods that are called when a user clicks on a menu item.
        self resources replaceAt "foregroundColor", "darkblue";
        self resources replaceAt "messageColor", "white";
        self resources replaceAt "messageText",
-         "X11PopupMenu Demo\nCtalk Version: 0.0.66";
+         "X11PopupMenu Demo\nCtalk Version: 0.66";
        self resources replaceAt "iconID", ICON_INFO;
 
      }
@@ -5205,14 +5214,36 @@ methods that are called when a user clicks on a menu item.
        X11Pane new mainWin;
        X11PaneDispatcher new dispatcher;
        X11LabelPane new heading, subHeading;
-       X11PopupMenu new mainMenu;
+       X11PopupMenu new mainMenu, dialogMenu;
        InputEvent new e;
        XEvent ev_ret;
        Display *display;
 
-       mainMenu add "Browse Files...", "fileBox show";
+       /*
+        *  To Add a Submenu -
+        *  1. In the entry that pops up the submenu, which is
+        *     "Dialog Boxes>" here, add a '>' to the end of the
+        *     label, which marks the entry as a submenu launcher.
+        *     The '>" is displayed in the menu's right margin
+        *     where the item appears.
+        *  2. The submenu launcher's expression needs to be the
+        *     name that you want the submenu referred to as -
+        *     here, that's "dialogMenu."
+        *  3. Add the submenu to the parents menu's "subMenus"
+        *     AssociativeArray, again using the name that you
+        *     want to identify the submenu by - again, that's
+        *     "dialogMenu" in this example.
+        *
+        */
+       dialogMenu add "X11FileSelectDialog...", "fileBox show";
+       dialogMenu add "X11MessageBoxPane...", "msgBox show";
+       dialogMenu add "X11TextEntryBox...", "textEntryBox show";
+       dialogMenu add "X11YesNoBoxPane...", "yesNoBox show";
+
+       mainMenu add "Dialog Widget Classes>", "dialogMenu";
        mainMenu add "About...", "aboutBox show";
        mainMenu add "Exit", "self clientExit parentPane";
+       mainMenu subMenus atPut "dialogMenu", dialogMenu;
 
        heading canFocus = false;
        heading resources replaceAt "borderWidth", 0;
@@ -5250,6 +5281,9 @@ methods that are called when a user clicks on a menu item.
           the program's dimensions. */
        aboutBox attachTo dispatcher, "300x200";
        fileBox attachTo dispatcher, "250x350";
+       msgBox attachTo dispatcher, "250x350";
+       textEntryBox attachTo dispatcher, "350x250";
+       yesNoBox attachTo dispatcher, "250x350";
 
        mainWin map;
        mainWin raiseWindow;
@@ -5334,6 +5368,22 @@ be used in the expressions that the menu class calls.
 The labels are actually parameters of the 'X11PopupMenu : execItem'
 method, and expressions can use them verbatim.  There's more information
 in the 'execItem' method's documentation.
+
+Submenus
+--------
+
+A menu needs only to refer to its submenus by the name of the submenu.
+Adding a '>' to the end of the menu item's label designates the item as
+a submenu launcher, and the '>' character is drawn in the menu's right
+margin.
+
+The submenu is referred to by a key which is written to the parent
+menu's 'subMenus' 'AssociativeArray' object.  The key is a string and
+may be any convenient name.
+
+The example program shows the expressions used to create a submenu, its
+launcher, and how to store it in a parent menu's 'subMenu's' associative
+array.
 
 Resources
 ---------

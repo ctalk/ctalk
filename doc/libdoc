@@ -1024,6 +1024,21 @@ an actual window; e.g., X11Pane objects.  For all
 other visual types, like pixmaps, use
 __ctalkX11SetBackgroundBasic.
 
+>>>__ctalkX11CreatePopupMenu (OBJECT *menuobject, int screen_x, int screen_y)
+Creates a popup menu window with the origin at screen_x and
+screen_y.  The menuobject argument is a
+X11PopupMenu object, with the menu's width and height
+determined by the items added to the menu before this function is
+called.  The menu is to be popped up at the point
+(screen_x,screen_y), but it will not be visible until the
+__ctalkX11MapMenu function is called.
+
+>>>__ctalkX11MapMenu (OBJECT *menuObject, int screen_x, int screen_y)
+Maps a popup menu object of the class X11PopupMenu to the display at the display coordinates (screen_x,screen_y).  The menuObject must have already been initialized with a call to __ctalkX11CreatePopupMenu.
+
+>>>__ctalkX11MenuDrawLine (void *display, unsigned int w, unsigned long gcPtr, int xStart, int yStart, int xEnd, int yEnd, int penWidth, int alpha, char * colorName):__ctalkX11MenuDrawString (void *display, unsigned int drawable, unsigned long gcPtr, int xStart, int yStart, int xEnd, int penWidth, int alpha, char *colorName)
+Library functions used to draw on X11PopupMenu objects.  For their use, refer to the X11PopupMenu class.
+
 >>>__ctalkX11SubWindowGeometry (OBJECT * parentpane, char * geomstr, int *x_out, int *y_out, int *width_out, int *height_out)
 Parses a string that contains the geometry specification of a
 subwindow, and returns the width and height of the subwindow and its
@@ -1055,6 +1070,10 @@ Returns an int with the width in screen pixels of the
 text argument when rendered in the font named by fontDesc.
 There is more information about how to use fonts in the sections
 that discuss the X graphics classes. 
+
+>>>__ctalkX11WithdrawMenu (OBJECT *menupane_param)
+Withdraws all popup menus from the display.  The parameter,
+menupane_param, is not used at this time.
 
 >>>__ctalkX11WxHGeometry (int parentWidth, int parenthHeight, char *geomspec, int xOut, int yOut, int widthOut, int heightOut)
 Calculate the dimensions specified by geomspec within

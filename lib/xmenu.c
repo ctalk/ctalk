@@ -1,4 +1,4 @@
-/* $Id: xmenu.c,v 1.26 2021/03/09 00:00:46 rkiesling Exp $ -*-c-*-*/
+/* $Id: xmenu.c,v 1.34 2021/03/09 20:22:45 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -48,15 +48,14 @@ extern GC create_pane_win_gc (Display *d, Window w, OBJECT *pane);
 extern void __save_pane_to_vars (OBJECT *, GC, int, int);
 extern char *ascii[8193];
 
-static Display *scr_click_dpy = NULL;
+#define N_TRANSIENTS 63
+#define M_TRANSIENT pmenurecs[pmenurecs_ptr+1]
+static W_TRANSIENT *pmenurecs[N_TRANSIENTS+1] =  {NULL,};
+static int pmenurecs_ptr = N_TRANSIENTS;
 
-#define N_DPYRECS 63
-#define M_DPYREC pmenurecs[pmenurecs_ptr+1]
-static DIALOG_C *pmenurecs[N_DPYRECS+1] =  {NULL,};
-static int pmenurecs_ptr = N_DPYRECS;
-
-static void push_pmenurec (Display *d_l) {
+static void push_pmenurec (OBJECT *pane_object, Display *d_l) {
   pmenurecs[pmenurecs_ptr] = __xalloc (sizeof (struct _dc));
+  pmenurecs[pmenurecs_ptr] -> pane = pane_object;
   pmenurecs[pmenurecs_ptr] -> d_p = d_l;
   pmenurecs[pmenurecs_ptr] -> d_p_screen =
     DefaultScreen (pmenurecs[pmenurecs_ptr] -> d_p);
@@ -69,25 +68,18 @@ static void push_pmenurec (Display *d_l) {
   --pmenurecs_ptr;
 }
 
-static void pop_pmenurec (void) {
+static W_TRANSIENT *pop_pmenurec (void) {
+  W_TRANSIENT *w;
   ++pmenurecs_ptr;
-  __xfree (MEMADDR(pmenurecs[pmenurecs_ptr]));
+  w = pmenurecs[pmenurecs_ptr];
   pmenurecs[pmenurecs_ptr] = NULL;
+  return w;
 }
 
-static Display *open_pmenu_display_connection (void) {
-  Display *d_l;
-  if ((d_l = XOpenDisplay (getenv ("DISPLAY"))) == NULL) {
-    return NULL;
-  }
-  push_pmenurec (d_l);
-  return d_l;
-}
-
-Display *pmenu_dpy (void) {
-  if (pmenurecs_ptr < N_DPYRECS) {
-    if ((M_DPYREC != NULL) && (M_DPYREC -> d_p != NULL)) {
-      return M_DPYREC -> d_p;
+Display *menu_dpy (void) {
+  if (pmenurecs_ptr < N_TRANSIENTS) {
+    if ((M_TRANSIENT != NULL) && (M_TRANSIENT -> d_p != NULL)) {
+      return M_TRANSIENT -> d_p;
     } else {
       return NULL;
     }
@@ -95,6 +87,8 @@ Display *pmenu_dpy (void) {
     return NULL;
   }
 }
+
+static Display *scr_click_dpy = NULL;
 
 bool screen_click (int *x_return, int *y_return, unsigned int *p_mask_return) {
   Window root_return, child_return;
@@ -139,16 +133,17 @@ int __ctalkX11MapMenu (OBJECT *menu_object, int p_dpy_x, int p_dpy_y) {
   if ((displayPtr = __ctalkGetInstanceVariable (menu_object,
 						"displayPtr", TRUE))
       == NULL) {
-    fprintf (stderr, "__ctalkX11WithdrawMenu: Could not find "
+    fprintf (stderr, "__ctalkX11MapMenu: Could not find "
 	     "\"displayPtr\" instance variable.\n");
     exit (ERROR);
   }
   menu_dpy = (Display *)SYMVAL(displayPtr -> instancevars -> __o_value);
+  push_pmenurec (menu_object, menu_dpy); 
 
   if ((xWindowID = __ctalkGetInstanceVariable (menu_object,
 						"xWindowID", TRUE))
       == NULL) {
-    fprintf (stderr, "__ctalkX11WithdrawMenu: Could not find "
+    fprintf (stderr, "__ctalkX11MapMenu: Could not find "
 	     "\"displayPtr\" instance variable.\n");
     exit (ERROR);
   }
@@ -261,6 +256,8 @@ int __ctalkX11MenuDrawLine (void *d, int drawable_id,
 extern XftFont *selected_font;
 static XftFont *xfont = NULL;  
 static XftDraw *xftdraw = NULL;
+static Display *xftdraw_dpy;
+static Drawable xftdraw_drawable;
 static char ftFont[MAXMSG];
 static char textColor[MAXLABEL];
 static XftColor xftcolor;
@@ -272,9 +269,7 @@ int __ctalkX11MenuDrawString (void *d, unsigned int w, int x, int y,
   Display *d_l = (Display *)d;
   XColor xColor_exact, xColor_screen;
   XRenderColor xrcolor;
-  /* XftColor xftcolor; *//***/
   int y_vcenter = 0;
-
   
   if (xftdraw == NULL) {  
     xftdraw =
@@ -282,7 +277,20 @@ int __ctalkX11MenuDrawString (void *d, unsigned int w, int x, int y,
 		     (Drawable)w,
 		     DefaultVisual (d_l, DefaultScreen (d_l)),
 		     DefaultColormap (d_l, DefaultScreen (d_l)));
+    xftdraw_dpy = d_l;
+    xftdraw_drawable = w;
+  } else if (d_l != xftdraw_dpy || w != xftdraw_drawable) {
+    if (xftdraw)
+      XftDrawDestroy (xftdraw);
+    xftdraw =
+      XftDrawCreate ((Display *)d_l,
+		     (Drawable)w,
+		     DefaultVisual (d_l, DefaultScreen (d_l)),
+		     DefaultColormap (d_l, DefaultScreen (d_l)));
+    xftdraw_dpy = d_l;
+    xftdraw_drawable = w;
   }
+
   if (xfont == NULL) {
     __ctalkXftSelectFontFromFontConfig (ftFont);
     xfont = selected_font;
@@ -314,31 +322,40 @@ int __ctalkX11MenuDrawString (void *d, unsigned int w, int x, int y,
 #endif  
 }
 
-int __ctalkX11WithdrawMenu (OBJECT *menu_object) {
-  OBJECT *displayPtr, *xWindowID;
+int __ctalkX11WithdrawMenu (OBJECT *menu_object_param) {
+  OBJECT *menu_object, *displayPtr, *xWindowID;
   Display *menu_dpy;
   Window menu_win_id;
+  W_TRANSIENT *w;
   
-  if ((displayPtr = __ctalkGetInstanceVariable (menu_object,
+  while (pmenurecs_ptr < N_TRANSIENTS)  {
+
+    w = pop_pmenurec ();
+
+    menu_object = w -> pane;
+
+    if ((displayPtr = __ctalkGetInstanceVariable (menu_object,
 						"displayPtr", TRUE))
-      == NULL) {
-    fprintf (stderr, "__ctalkX11WithdrawMenu: Could not find "
-	     "\"displayPtr\" instance variable.\n");
-    exit (ERROR);
+	== NULL) {
+      fprintf (stderr, "__ctalkX11WithdrawMenu: Could not find "
+	       "\"displayPtr\" instance variable.\n");
+      exit (ERROR);
+    }
+    menu_dpy = (Display *)SYMVAL(displayPtr -> instancevars -> __o_value);
+    
+    if ((xWindowID = __ctalkGetInstanceVariable (menu_object,
+						 "xWindowID", TRUE))
+	== NULL) {
+      fprintf (stderr, "__ctalkX11WithdrawMenu: Could not find "
+	       "\"displayPtr\" instance variable.\n");
+      exit (ERROR);
+    }
+    menu_win_id = INTVAL(xWindowID -> instancevars -> __o_value);
+    
+    XUnmapWindow (menu_dpy, menu_win_id);
+    XFlush (menu_dpy);
+    __xfree (MEMADDR(w));
   }
-  menu_dpy = (Display *)SYMVAL(displayPtr -> instancevars -> __o_value);
-
-  if ((xWindowID = __ctalkGetInstanceVariable (menu_object,
-						"xWindowID", TRUE))
-      == NULL) {
-    fprintf (stderr, "__ctalkX11WithdrawMenu: Could not find "
-	     "\"displayPtr\" instance variable.\n");
-    exit (ERROR);
-  }
-  menu_win_id = INTVAL(xWindowID -> instancevars -> __o_value);
-
-  XUnmapWindow (menu_dpy, menu_win_id);
-  XFlush (menu_dpy);
   return SUCCESS;
 }
 
@@ -360,19 +377,10 @@ int __ctalkX11CreatePopupMenu (OBJECT *self_object, int p_x, int p_y) {
 
   wm_event_mask = WM_CONFIGURE_EVENTS | WM_INPUT_EVENTS;
 
-  if ((d_l = open_pmenu_display_connection ()) == NULL) {
-    return ERROR;
-  } else {
-    displayPtr = __ctalkGetInstanceVariable (self_object,
-					     "displayPtr", TRUE);
-    SYMVAL(displayPtr -> instancevars -> __o_value) = (uintptr_t)d_l;
-  }
-
-#if 0 /***/
   if ((d_l = XOpenDisplay (getenv ("DISPLAY"))) == NULL) {
     return ERROR;
   }
-#endif  
+  /* push_pmenurec (self_object, d_l); */
   
   if ((displayPtr = __ctalkGetInstanceVariable (self_object,
 						"displayPtr", TRUE))
@@ -455,11 +463,6 @@ int __ctalkX11CreatePopupMenu (OBJECT *self_object, int p_x, int p_y) {
   return menu_win_id;
 }
 
-int __ctalkX11ClosePopupMenuPane (OBJECT *self) {
-  pop_pmenurec ();
-  return SUCCESS;
-}
-
 #else /* ! defined (DJGPP) && ! defined (WITHOUT_X11) */
 
 int __ctalkX11CreatePopupMenu (OBJECT *self_object, int x, int y) {
@@ -496,12 +499,6 @@ int __ctalkX11MenuDrawLine (void *d, int drawable_id,
 			    int pen_width, int alpha,
 			    char *color) {
   fprintf (stderr, "__ctalkX11MenuDrawLine: This program requires "
-	   "the X Window System.  Exiting.\n");
-  exit (ERROR);
-}
-
-int __ctalkX11ClosePopupMenuPane (OBJECT *self) {
-  fprintf (stderr, "__ctalkClosePopupMenuPane: This program requires "
 	   "the X Window System.  Exiting.\n");
   exit (ERROR);
 }
