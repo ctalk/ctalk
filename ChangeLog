@@ -151,5 +151,9 @@
 	- Updated format_method to recognize prefix ++ and --
 	as possible starts of a method body (methodbuf.c).
 2021-03-08
-	- Check for a recursive call of the curre method in
+	- Check for a recursive call of the current method in
 	method_call (method.c).
+	- Added a display record stack for popup menus, and
+	pmenu_dpy (xmenu.c).
+	- Added the __ctalkX11ClosePopupMenuPane library
+	function.

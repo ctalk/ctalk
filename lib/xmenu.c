@@ -1,4 +1,4 @@
-/* $Id: xmenu.c,v 1.24 2021/01/22 13:29:41 rkiesling Exp $ -*-c-*-*/
+/* $Id: xmenu.c,v 1.26 2021/03/09 00:00:46 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -49,6 +49,52 @@ extern void __save_pane_to_vars (OBJECT *, GC, int, int);
 extern char *ascii[8193];
 
 static Display *scr_click_dpy = NULL;
+
+#define N_DPYRECS 63
+#define M_DPYREC pmenurecs[pmenurecs_ptr+1]
+static DIALOG_C *pmenurecs[N_DPYRECS+1] =  {NULL,};
+static int pmenurecs_ptr = N_DPYRECS;
+
+static void push_pmenurec (Display *d_l) {
+  pmenurecs[pmenurecs_ptr] = __xalloc (sizeof (struct _dc));
+  pmenurecs[pmenurecs_ptr] -> d_p = d_l;
+  pmenurecs[pmenurecs_ptr] -> d_p_screen =
+    DefaultScreen (pmenurecs[pmenurecs_ptr] -> d_p);
+  pmenurecs[pmenurecs_ptr] -> d_p_root =
+    RootWindow (pmenurecs[pmenurecs_ptr] -> d_p,
+		pmenurecs[pmenurecs_ptr] -> d_p_screen);
+  pmenurecs[pmenurecs_ptr] -> d_p_screen_depth =
+    DefaultDepth (pmenurecs[pmenurecs_ptr] -> d_p,
+		  pmenurecs[pmenurecs_ptr] -> d_p_screen);
+  --pmenurecs_ptr;
+}
+
+static void pop_pmenurec (void) {
+  ++pmenurecs_ptr;
+  __xfree (MEMADDR(pmenurecs[pmenurecs_ptr]));
+  pmenurecs[pmenurecs_ptr] = NULL;
+}
+
+static Display *open_pmenu_display_connection (void) {
+  Display *d_l;
+  if ((d_l = XOpenDisplay (getenv ("DISPLAY"))) == NULL) {
+    return NULL;
+  }
+  push_pmenurec (d_l);
+  return d_l;
+}
+
+Display *pmenu_dpy (void) {
+  if (pmenurecs_ptr < N_DPYRECS) {
+    if ((M_DPYREC != NULL) && (M_DPYREC -> d_p != NULL)) {
+      return M_DPYREC -> d_p;
+    } else {
+      return NULL;
+    }
+  } else {
+    return NULL;
+  }
+}
 
 bool screen_click (int *x_return, int *y_return, unsigned int *p_mask_return) {
   Window root_return, child_return;
@@ -314,9 +360,19 @@ int __ctalkX11CreatePopupMenu (OBJECT *self_object, int p_x, int p_y) {
 
   wm_event_mask = WM_CONFIGURE_EVENTS | WM_INPUT_EVENTS;
 
+  if ((d_l = open_pmenu_display_connection ()) == NULL) {
+    return ERROR;
+  } else {
+    displayPtr = __ctalkGetInstanceVariable (self_object,
+					     "displayPtr", TRUE);
+    SYMVAL(displayPtr -> instancevars -> __o_value) = (uintptr_t)d_l;
+  }
+
+#if 0 /***/
   if ((d_l = XOpenDisplay (getenv ("DISPLAY"))) == NULL) {
     return ERROR;
   }
+#endif  
   
   if ((displayPtr = __ctalkGetInstanceVariable (self_object,
 						"displayPtr", TRUE))
@@ -399,6 +455,11 @@ int __ctalkX11CreatePopupMenu (OBJECT *self_object, int p_x, int p_y) {
   return menu_win_id;
 }
 
+int __ctalkX11ClosePopupMenuPane (OBJECT *self) {
+  pop_pmenurec ();
+  return SUCCESS;
+}
+
 #else /* ! defined (DJGPP) && ! defined (WITHOUT_X11) */
 
 int __ctalkX11CreatePopupMenu (OBJECT *self_object, int x, int y) {
@@ -435,6 +496,12 @@ int __ctalkX11MenuDrawLine (void *d, int drawable_id,
 			    int pen_width, int alpha,
 			    char *color) {
   fprintf (stderr, "__ctalkX11MenuDrawLine: This program requires "
+	   "the X Window System.  Exiting.\n");
+  exit (ERROR);
+}
+
+int __ctalkX11ClosePopupMenuPane (OBJECT *self) {
+  fprintf (stderr, "__ctalkClosePopupMenuPane: This program requires "
 	   "the X Window System.  Exiting.\n");
   exit (ERROR);
 }

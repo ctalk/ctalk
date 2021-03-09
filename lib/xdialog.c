@@ -43,7 +43,6 @@
 #include "x11defs.h"
 #include <X11/Xutil.h>
 
-/* DIALOG_C *dpyrec = NULL; */
 #define N_DPYRECS 63
 #define C_DPYREC dpyrecs[dpyrecs_ptr+1]
 static DIALOG_C *dpyrecs[N_DPYRECS+1] =  {NULL,};

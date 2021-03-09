@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.57 2021/02/02 11:40:23 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.59 2021/03/09 00:00:45 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -7,7 +7,7 @@
 @paragraphindent 0
 @c %**end of header
 
-@set VERSION 0.0.66
+@set VERSION 0.66 2021-02-02
 
 @macro idxfncite{fnname}
 @cite{\fnname\} C function
@@ -25844,6 +25844,12 @@ and other data.  Does not delete subpanes - see __ctalkCloseX11Pane ()
 (above) to delete subpanes.  Applications should delete subpanes before
 closing and deleting the main window.  For an example of the functions'
 use, refer to the method @mnm{X11Pane : deleteAndClose}. @xref{X11Pane}.
+
+@idxlibfn{__ctalkX11ClosePopupMenuPane}
+@item __ctalkX11ClosePopupMenuPane (@code{OBJECT *}@var{menu_object})
+Deletes the popup menu's record from the library's internal menu
+stack.
+
 
 @c /***/
 @c @idxlibfn{__ctalkX11ClearBufferRectangle}

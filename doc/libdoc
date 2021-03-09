@@ -2010,6 +2010,11 @@ and other data.  Does not delete subpanes - see __ctalkCloseX11Pane ()
 closing and deleting the main window.  For an example of the functions'
 use, refer to the method X11Pane : deleteAndClose. 
 
+>>>__ctalkX11ClosePopupMenuPane (OBJECT *menu_object)
+Deletes the popup menu's record from the library's internal menu
+stack.
+
+
 @c /***/
 >>>__ctalkClearBufferRectangle (OBJECT *pane_object, int x, int y, int width height)
 @c Clear a rectangle in pane_object's pane buffer starting at
