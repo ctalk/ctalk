@@ -23,7 +23,7 @@ X11MessageBoxPane instanceMethod configure (void) {
   self resources replaceAt "foregroundColor", "darkblue";
   self resources replaceAt "messageColor", "white";
   self resources replaceAt "messageText",
-    "X11PopupMenu Demo\nCtalk Version: 0.66";
+    "X11PopupMenu Demo\nCtalk Version: 0.67";
   self resources replaceAt "iconID", ICON_INFO;
 
 }
@@ -107,8 +107,7 @@ int main (void) {
   
   mainWin initialize 255, 200;
   /*
-   * NOTE - Make a note in the docs about this, or add it to the
-   * parent window's event mask automagically.
+   * Select which X events we want to handle.
    */
   mainWin inputStream eventMask = 
     EXPOSE|ENTERWINDOWNOTIFY \
@@ -120,10 +119,11 @@ int main (void) {
   dispatcher attachTo mainWin;
   heading attachTo dispatcher, "177x60+c+25";
   subHeading attachTo dispatcher, "190x60+c+75";
+
   /* The dialogs, which are launched by the menu, still need
      to be attached to the menu's parent window, even if it's
-     only to set their dimensions to something similar to 
-     the program's dimensions. */
+     only to set their dimensions similar to the main window's 
+     dimensions. */
   aboutBox attachTo dispatcher, "300x200";
   fileBox attachTo dispatcher, "250x350";
   msgBox attachTo dispatcher, "250x350";

@@ -5,9 +5,9 @@ START-INFO-DIR-ENTRY
 * ctalk: (ctalk).	The Ctalk language reference manual.
 END-INFO-DIR-ENTRY
 
-This file documents Ctalk version 0.66 2021-02-02.
+This file documents Ctalk version 0.67 2021-03-11.
 
-Copyright (C) 2007-2015 Robert Kiesling
+Copyright (C) 2007-2021 Robert Kiesling
 
 Permission is granted to copy, distribute and/or modify this document
 under the terms of the GNU Free Documentation License, Version 1.1 or
@@ -5178,7 +5178,7 @@ methods that are called when a user clicks on a menu item.
        self resources replaceAt "foregroundColor", "darkblue";
        self resources replaceAt "messageColor", "white";
        self resources replaceAt "messageText",
-         "X11PopupMenu Demo\nCtalk Version: 0.66";
+         "X11PopupMenu Demo\nCtalk Version: 0.67";
        self resources replaceAt "iconID", ICON_INFO;
 
      }
@@ -5262,8 +5262,7 @@ methods that are called when a user clicks on a menu item.
 
        mainWin initialize 255, 200;
        /*
-        * NOTE - Make a note in the docs about this, or add it to the
-        * parent window's event mask automagically.
+        * Select which X events we want to handle.
         */
        mainWin inputStream eventMask =
          EXPOSE|ENTERWINDOWNOTIFY \
@@ -5275,10 +5274,11 @@ methods that are called when a user clicks on a menu item.
        dispatcher attachTo mainWin;
        heading attachTo dispatcher, "177x60+c+25";
        subHeading attachTo dispatcher, "190x60+c+75";
+
        /* The dialogs, which are launched by the menu, still need
           to be attached to the menu's parent window, even if it's
-          only to set their dimensions to something similar to
-          the program's dimensions. */
+          only to set their dimensions similar to the main window's
+          dimensions. */
        aboutBox attachTo dispatcher, "300x200";
        fileBox attachTo dispatcher, "250x350";
        msgBox attachTo dispatcher, "250x350";

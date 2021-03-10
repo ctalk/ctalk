@@ -5,9 +5,9 @@ START-INFO-DIR-ENTRY
 * ctalk: (ctalk).	The Ctalk language reference manual.
 END-INFO-DIR-ENTRY
 
-This file documents Ctalk version 0.66 2021-02-02.
+This file documents Ctalk version 0.67 2021-03-11.
 
-Copyright (C) 2007-2015 Robert Kiesling
+Copyright (C) 2007-2021 Robert Kiesling
 
 Permission is granted to copy, distribute and/or modify this document
 under the terms of the GNU Free Documentation License, Version 1.1 or
@@ -1674,7 +1674,7 @@ Method Keywords
      than the receiver class.  *Note Return values::.
 
 'self'
-     Return the method's receiver object.  In version 0.66 2021-02-02,
+     Return the method's receiver object.  In version 0.67 2021-03-11,
      you can also use 'self' in arguments as a synonym for the receiver
      of the statement, as in this example.
           String new path;
@@ -1683,7 +1683,7 @@ Method Keywords
           printf ("%s", path subString 1, self length - 1);
 
      The use of 'self' in method arguments is experimental in version
-     0.66 2021-02-02, and it should be used with caution.
+     0.67 2021-03-11, and it should be used with caution.
 
 'super'
      The keyword 'super' has two different meanings.  It can modify a
@@ -5128,13 +5128,13 @@ Here is the effect of the GCC and C99 pragmas.
 C Expressions
 -------------
 
-In version 0.66 2021-02-02, you can use simple constant expressions as
+In version 0.67 2021-03-11, you can use simple constant expressions as
 receivers, as in this example.
 
      printf ("%s", "/home/users/joe" subString 1, self length - 1);
 
-_Warning_ - This use of 'self' is experimental in version 0.66
-2021-02-02 and should be used with caution.
+_Warning_ - This use of 'self' is experimental in version 0.67
+2021-03-11 and should be used with caution.
 
 You can use a C constant in place of any receiver whose class
 corresponds to a basic C data type.  These classes include 'Character',

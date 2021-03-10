@@ -1,5 +1,5 @@
-# $Id: configure.ac,v 1.2 2020/12/14 16:45:30 rkiesling Exp $
-AC_INIT(ctalk, 0.66.0, rk3314042@gmail.com, "")
+# $Id: configure.ac,v 1.3 2021/03/10 16:14:01 rkiesling Exp $
+AC_INIT(ctalk, 0.67.0, rk3314042@gmail.com, "")
 
 # Contained in acinclude.m4 and generated aclocal.m4
 AC_CONFIG_MACRO_DIR([m4])
@@ -63,7 +63,7 @@ AC_SUBST(PACKAGE)
 AC_SUBST(VERSION)
 AC_SUBST(PPVERSION)
 PACKAGE=ctalk
-VERSION=0.66.0
+VERSION=0.67.0
 
 AC_SUBST(LIB_AM_LDFLAGS)
 AC_SUBST(AM_CFLAGS)
@@ -71,7 +71,7 @@ AC_SUBST(LIB_MAJOR_VERSION)
 AC_SUBST(LIB_MINOR_VERSION)
 
 LIB_MAJOR_VERSION=0
-LIB_MINOR_VERSION=66
+LIB_MINOR_VERSION=67
 
 AC_PROG_CC
 AC_PROG_YACC
@@ -560,8 +560,17 @@ case "$build" in
 	   ;;
      *darwin*)
            def_cflags=$def_cflags" $cc_wno_long_double"
-           parser_opt_flags="-g -O3 "
-           lib_opt_flags="-g -O3 "
+	   #
+	   # llvm (clang) on darwin needs much more testing
+	   # when building with optimization
+	   #
+	   if test -f build/.llvm; then
+		parser_opt_flags="-g "
+           	lib_opt_flags="-g "
+	   else
+		parser_opt_flags="-g -O3 "
+           	lib_opt_flags="-g -O3 "
+	   fi
 	   lib_rt_flags=""
            ;;
      * ) 

@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.62 2021/03/09 21:20:16 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.64 2021/03/10 17:14:37 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -7,7 +7,7 @@
 @paragraphindent 0
 @c %**end of header
 
-@set VERSION 0.66 2021-02-02
+@set VERSION 0.67 2021-03-11
 
 @macro idxfncite{fnname}
 @cite{\fnname\} C function
@@ -38,7 +38,7 @@
 
 This file documents Ctalk version @value{VERSION}.
 
-Copyright @copyright{} 2007-2015 Robert Kiesling
+Copyright @copyright{} 2007-2021 Robert Kiesling
 
 Permission is granted to copy, distribute and/or modify this document
 under the terms of the GNU Free Documentation License, Version 1.1 or
@@ -17153,7 +17153,7 @@ X11MessageBoxPane instanceMethod configure (void) @{
   self resources replaceAt "foregroundColor", "darkblue";
   self resources replaceAt "messageColor", "white";
   self resources replaceAt "messageText",
-    "X11PopupMenu Demo\nCtalk Version: 0.66";
+    "X11PopupMenu Demo\nCtalk Version: 0.67";
   self resources replaceAt "iconID", ICON_INFO;
 
 @}
@@ -17237,8 +17237,7 @@ int main (void) @{
   
   mainWin initialize 255, 200;
   /*
-   * NOTE - Make a note in the docs about this, or add it to the
-   * parent window's event mask automagically.
+   * Select which X events we want to handle.
    */
   mainWin inputStream eventMask = 
     EXPOSE|ENTERWINDOWNOTIFY \
@@ -17250,10 +17249,11 @@ int main (void) @{
   dispatcher attachTo mainWin;
   heading attachTo dispatcher, "177x60+c+25";
   subHeading attachTo dispatcher, "190x60+c+75";
+
   /* The dialogs, which are launched by the menu, still need
      to be attached to the menu's parent window, even if it's
-     only to set their dimensions to something similar to 
-     the program's dimensions. */
+     only to set their dimensions similar to the main window's 
+     dimensions. */
   aboutBox attachTo dispatcher, "300x200";
   fileBox attachTo dispatcher, "250x350";
   msgBox attachTo dispatcher, "250x350";
