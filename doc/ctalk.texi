@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.64 2021/03/10 17:14:37 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.65 2021/03/11 03:06:37 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -17148,7 +17148,7 @@ X11YesNoBoxPane new yesNoBox;
 X11TextEntryBox new textEntryBox;
 X11FileSelectDialog new fileBox;
 
-X11MessageBoxPane instanceMethod configure (void) @{
+X11MessageBoxPane instanceMethod aboutBoxConf (void) @{
   self resources replaceAt "backgroundColor", "darkblue";
   self resources replaceAt "foregroundColor", "darkblue";
   self resources replaceAt "messageColor", "white";
@@ -17156,6 +17156,14 @@ X11MessageBoxPane instanceMethod configure (void) @{
     "X11PopupMenu Demo\nCtalk Version: 0.67";
   self resources replaceAt "iconID", ICON_INFO;
 
+@}
+
+X11FileSelectDialog instanceMethod fileSelectConf (void) @{
+  self resources replaceAt "backgroundColor", "blue";
+  self resources replaceAt "foregroundColor", "blue";
+  self resources replaceAt "messageColor", "white";
+  self resources replaceAt "messageText",
+    "Directory:\n";
 @}
 
 /* 
@@ -17229,7 +17237,8 @@ int main (void) @{
 
   heading ftFontVar initFontLib;
 
-  aboutBox configure;
+  aboutBox aboutBoxConf;
+  fileBox fileSelectConf;
 
   mainWin backgroundColor = "blue";
   heading resources replaceAt "backgroundColor", "blue";
@@ -19548,7 +19557,20 @@ printf ("%d: %s\n",
 Further information about modifying resource entries is given in the
 @code{resources} instance variable section. @xref{PaneResources}.
 
+The dialog's subpanes use their own resources, but this class
+defines a few shortcuts that the subpanes inherit: @samp{backgroundColor},
+@samp{foregroundColor}, @samp{messageColor}, and @samp{messageText}.
+
 @table @code
+@cindex backgroundColor resource @idxclscite{X11FileSelectDialog}
+@item backgroundColor
+Defines the color of the window background.  The default is
+@samp{gray}.
+
+@cindex foregroundColor resource @idxclscite{X11FileSelectDialog}
+@item foregroundColor
+The fill color of the subpanes.  The default is @samp{gray}.
+
 @cindex listROPx resource @idxclscite{X11FileSelectDialog}
 @cindex listRWPx resource @idxclscite{X11FileSelectDialog}
 @item listROPx
@@ -19557,6 +19579,16 @@ The distance in pixels between the bottom of the file list and the
 bottom of the window, in pixels.  The values determine, respectively
 whether to display the dialog's buttons directly beneath the list, or
 to display a text entry box between the file list and the buttons.
+
+@cindex messageColor resource @idxclscite{X11FileSelectDialog}
+@item messageColor
+The color used by the directory path label.  The default is
+@samp{black}.
+
+@cindex messageText resource @idxclscite{X11FileSelectDialog}
+@item messageText
+The text of the path label's heading.  The default is
+@samp{Directory:\n}.
 
 @cindex pad resource @idxclscite{X11FileSelectDialog}
 @item pad

@@ -7253,6 +7253,16 @@ Resources
 Further information about modifying resource entries is given in the
 'resources' instance variable section.  *Note PaneResources::.
 
+The dialog's subpanes use their own resources, but this class defines a
+few shortcuts that the subpanes inherit: 'backgroundColor',
+'foregroundColor', 'messageColor', and 'messageText'.
+
+'backgroundColor'
+     Defines the color of the window background.  The default is 'gray'.
+
+'foregroundColor'
+     The fill color of the subpanes.  The default is 'gray'.
+
 'listROPx'
 'listRWPx'
      The distance in pixels between the bottom of the file list and the
@@ -7260,6 +7270,14 @@ Further information about modifying resource entries is given in the
      respectively whether to display the dialog's buttons directly
      beneath the list, or to display a text entry box between the file
      list and the buttons.
+
+'messageColor'
+     The color used by the directory path label.  The default is
+     'black'.
+
+'messageText'
+     The text of the path label's heading.  The default is
+     'Directory:\n'.
 
 'pad'
      The amount of space in pixels between the dialog window's edges and

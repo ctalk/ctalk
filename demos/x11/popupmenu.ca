@@ -18,7 +18,7 @@ X11YesNoBoxPane new yesNoBox;
 X11TextEntryBox new textEntryBox;
 X11FileSelectDialog new fileBox;
 
-X11MessageBoxPane instanceMethod configure (void) {
+X11MessageBoxPane instanceMethod aboutBoxConf (void) {
   self resources replaceAt "backgroundColor", "darkblue";
   self resources replaceAt "foregroundColor", "darkblue";
   self resources replaceAt "messageColor", "white";
@@ -26,6 +26,14 @@ X11MessageBoxPane instanceMethod configure (void) {
     "X11PopupMenu Demo\nCtalk Version: 0.67";
   self resources replaceAt "iconID", ICON_INFO;
 
+}
+
+X11FileSelectDialog instanceMethod fileSelectConf (void) {
+  self resources replaceAt "backgroundColor", "blue";
+  self resources replaceAt "foregroundColor", "blue";
+  self resources replaceAt "messageColor", "white";
+  self resources replaceAt "messageText",
+    "Directory:\n";
 }
 
 /* 
@@ -99,7 +107,8 @@ int main (void) {
 
   heading ftFontVar initFontLib;
 
-  aboutBox configure;
+  aboutBox aboutBoxConf;
+  fileBox fileSelectConf;
 
   mainWin backgroundColor = "blue";
   heading resources replaceAt "backgroundColor", "blue";
