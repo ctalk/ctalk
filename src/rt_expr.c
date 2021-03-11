@@ -1,4 +1,4 @@
-/* $Id: rt_expr.c,v 1.17 2021/01/25 17:18:48 rkiesling Exp $ */
+/* $Id: rt_expr.c,v 1.18 2021/02/07 21:08:33 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -4411,4 +4411,57 @@ int rt_fn_arg_cond_expr (MSINFO *ms) {
   fn_cond_arg_fn_label_idx = -1;
 
   return TRUE;
+}
+
+/*
+ *  We handle these as complex expressions because of
+ *  the need to push all of the args expr's own args on the stack before
+ *  the function call, and we don't want to try to embed the arg handling
+ *  in a complex function argument expression.  Yet to come... CVARs in
+ *  expressions.
+ *
+ *  At this point, this is specifically for expressions whose 2nd token is
+ *  a math operator.
+ */
+int handle_complex_fn_arg_expr_in_argblk (MSINFO *ms, int fn_idx, int arg_idx){
+  ARGSTR args[MAXARGS];
+  int open_paren_idx, close_paren_idx, n_args, i;
+  CFUNC *fn;
+  CVAR *param;
+  char arg_expr[MAXMSG], trans_arg_expr[MAXMSG], *s;
+  char *arg_classname;
+
+  open_paren_idx = nextlangmsg (ms -> messages, fn_idx);
+  if ((close_paren_idx = match_paren (ms -> messages, open_paren_idx,
+				      ms -> stack_ptr)) == -1) {
+    error (ms -> messages[fn_idx], "%s: Mismatched parentheses.",
+	   M_NAME(ms -> messages[fn_idx]));
+  }
+  split_args_argstr (ms -> messages, open_paren_idx, close_paren_idx,
+		     args, &n_args);
+  if ((fn = get_function (M_NAME(ms -> messages[fn_idx]))) == NULL) {
+    error (ms -> messages[fn_idx], "%s: Unknown function name.",
+	   M_NAME(ms -> messages[fn_idx]));
+  }
+
+  for (i = 0, param = fn -> params; i < n_args; i++, param = param -> next)
+    if (i == arg_idx)
+      break;
+  s = collect_tokens (ms -> messages, args[arg_idx].start_idx,
+		      args[arg_idx].end_idx);
+  fmt_eval_expr_str (s, arg_expr);
+  __xfree (MEMADDR(s));
+
+  arg_classname = basic_class_from_cvar (ms -> messages[ms -> tok],
+					 param, 0);
+  strcpy (trans_arg_expr,
+	  fmt_rt_return_chk_fn_arg
+	  (arg_expr, arg_classname, false, ms -> messages, ms -> tok));
+  fileout (trans_arg_expr, 0, ms -> tok);
+  for (i = args[arg_idx].start_idx; i >= args[arg_idx].end_idx; --i) {
+    ++ms -> messages[i] -> evaled;
+    ++ms -> messages[i] -> output;
+  }
+	   
+  return SUCCESS;
 }

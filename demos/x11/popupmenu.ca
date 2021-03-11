@@ -6,17 +6,34 @@
 #define FTFONT_BOLD   200
 #define FTFONT_MEDIUM 100
 
+/*
+ *  Objects that are targets of menu items 
+ *  need to be within the scope of the popup's
+ *  methods.  The simplest way to do this is to
+ *  make them global.
+ */
 X11MessageBoxPane new aboutBox;
+X11MessageBoxPane new msgBox;
+X11YesNoBoxPane new yesNoBox;
+X11TextEntryBox new textEntryBox;
 X11FileSelectDialog new fileBox;
 
-X11MessageBoxPane instanceMethod configure (void) {
+X11MessageBoxPane instanceMethod aboutBoxConf (void) {
   self resources replaceAt "backgroundColor", "darkblue";
   self resources replaceAt "foregroundColor", "darkblue";
   self resources replaceAt "messageColor", "white";
   self resources replaceAt "messageText",
-    "X11PopupMenu Demo\nCtalk Version: 0.66";
+    "X11PopupMenu Demo\nCtalk Version: 0.67";
   self resources replaceAt "iconID", ICON_INFO;
 
+}
+
+X11FileSelectDialog instanceMethod fileSelectConf (void) {
+  self resources replaceAt "backgroundColor", "blue";
+  self resources replaceAt "foregroundColor", "blue";
+  self resources replaceAt "messageColor", "white";
+  self resources replaceAt "messageText",
+    "Directory:\n";
 }
 
 /* 
@@ -50,14 +67,36 @@ int main (void) {
   X11Pane new mainWin;
   X11PaneDispatcher new dispatcher;
   X11LabelPane new heading, subHeading;
-  X11PopupMenu new mainMenu;
+  X11PopupMenu new mainMenu, dialogMenu;
   InputEvent new e;
   XEvent ev_ret;
   Display *display;
 
-  mainMenu add "Browse Files...", "fileBox show";
+  /*
+   *  To Add a Submenu - 
+   *  1. In the entry that pops up the submenu, which is 
+   *     "Dialog Boxes>" here, add a '>' to the end of the
+   *     label, which marks the entry as a submenu launcher.
+   *     The '>" is displayed in the menu's right margin
+   *     where the item appears.
+   *  2. The submenu launcher's expression needs to be the
+   *     name that you want the submenu referred to as - 
+   *     here, that's "dialogMenu."
+   *  3. Add the submenu to the parents menu's "subMenus"
+   *     AssociativeArray, again using the name that you
+   *     want to identify the submenu by - again, that's
+   *     "dialogMenu" in this example.
+   *  
+   */
+  dialogMenu add "X11FileSelectDialog...", "fileBox show";
+  dialogMenu add "X11MessageBoxPane...", "msgBox show";
+  dialogMenu add "X11TextEntryBox...", "textEntryBox show";
+  dialogMenu add "X11YesNoBoxPane...", "yesNoBox show";
+
+  mainMenu add "Dialog Widget Classes>", "dialogMenu";
   mainMenu add "About...", "aboutBox show";
   mainMenu add "Exit", "self clientExit parentPane";
+  mainMenu subMenus atPut "dialogMenu", dialogMenu;
 
   heading canFocus = false;
   heading resources replaceAt "borderWidth", 0;
@@ -68,7 +107,8 @@ int main (void) {
 
   heading ftFontVar initFontLib;
 
-  aboutBox configure;
+  aboutBox aboutBoxConf;
+  fileBox fileSelectConf;
 
   mainWin backgroundColor = "blue";
   heading resources replaceAt "backgroundColor", "blue";
@@ -76,8 +116,7 @@ int main (void) {
   
   mainWin initialize 255, 200;
   /*
-   * NOTE - Make a note in the docs about this, or add it to the
-   * parent window's event mask automagically.
+   * Select which X events we want to handle.
    */
   mainWin inputStream eventMask = 
     EXPOSE|ENTERWINDOWNOTIFY \
@@ -89,12 +128,16 @@ int main (void) {
   dispatcher attachTo mainWin;
   heading attachTo dispatcher, "177x60+c+25";
   subHeading attachTo dispatcher, "190x60+c+75";
+
   /* The dialogs, which are launched by the menu, still need
      to be attached to the menu's parent window, even if it's
-     only to set their dimensions to something similar to 
-     the program's dimensions. */
+     only to set their dimensions similar to the main window's 
+     dimensions. */
   aboutBox attachTo dispatcher, "300x200";
   fileBox attachTo dispatcher, "250x350";
+  msgBox attachTo dispatcher, "250x350";
+  textEntryBox attachTo dispatcher, "350x250";
+  yesNoBox attachTo dispatcher, "250x350";
 
   mainWin map;
   mainWin raiseWindow;

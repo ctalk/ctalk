@@ -1,4 +1,4 @@
-/* $Id: X11FileSelectDialog,v 1.10 2021/02/02 10:23:36 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11FileSelectDialog,v 1.11 2021/02/21 15:32:53 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -710,7 +710,7 @@ X11FileSelectDialog instanceMethod show (void) {
 	    e xEventData5 = __edittext_xk_keysym
 	      (xev.xkey.keycode, xev.xkey.state, 0);
 	    self listPane onKey self listPane, e;
-	  } else if (xev.xkey.window = self entryPane xWindowID) {
+	  } else if (xev.xkey.window == self entryPane xWindowID) {
 	    e eventClass = (xev.type == KeyPress) ? KEYPRESS : KEYRELEASE;
 	    e eventData = xev.xkey.window;
 	    e xEventData4 = xev.xkey.keycode;

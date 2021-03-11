@@ -1,4 +1,4 @@
-/* $Id: xftlib.c,v 1.29 2021/01/29 16:37:20 rkiesling Exp $ -*-c-*-*/
+/* $Id: xftlib.c,v 1.30 2021/03/09 19:46:28 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -58,11 +58,11 @@ static void xft_support_error (void) {
 #include <X11/Xresource.h>
 #include <unistd.h>
 #include FT_FREETYPE_H
-#include "x11defs.h"
-#include "xftfont.h"
 #include <object.h>
 #include <message.h>
 #include <ctalk.h>
+#include "x11defs.h"
+#include "xftfont.h"
 
 #define SUCCESS 0
 #define ERROR -1

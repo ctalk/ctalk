@@ -5,9 +5,9 @@ START-INFO-DIR-ENTRY
 * ctalk: (ctalk).	The Ctalk language reference manual.
 END-INFO-DIR-ENTRY
 
-This file documents Ctalk version 0.0.66.
+This file documents Ctalk version 0.67 2021-03-11.
 
-Copyright (C) 2007-2015 Robert Kiesling
+Copyright (C) 2007-2021 Robert Kiesling
 
 Permission is granted to copy, distribute and/or modify this document
 under the terms of the GNU Free Documentation License, Version 1.1 or
@@ -18,325 +18,326 @@ Free Documentation License."
 
 
 Indirect:
-ctalk.info-1: 655
-ctalk.info-2: 302873
-ctalk.info-3: 602490
+ctalk.info-1: 664
+ctalk.info-2: 302900
+ctalk.info-3: 605084
+ctalk.info-4: 902254
 
 Tag Table:
 (Indirect)
-Node: Top655
-Node: Invoking1255
-Node: Classes6044
-Node: Object8360
-Ref: NullObjects9039
-Ref: ObjectbasicNew16809
-Ref: Object_inspect21415
-Ref: methodObjectMessage24872
-Node: Bitmap31928
-Node: DisplayFont32043
-Node: X11Font32169
-Node: X11Cursor34706
-Node: X11FreeTypeFont36217
-Ref: X11FreeTypeFont-selectFont47911
-Ref: selectFontFromFontConfig50073
-Node: X11Bitmap52565
-Node: Boolean63652
-Node: Collection65536
-Node: Array69532
-Node: List71655
-Node: AssociativeArray77027
-Node: SortedList81167
-Node: Stream82624
-Node: FileStream83502
-Node: DirectoryStream87621
-Node: ReadFileStream91664
-Node: WriteFileStream93630
-Ref: writeFormat--class WriteFileStream95984
-Node: TerminalStream96493
-Node: ANSITerminalStream97587
-Node: Win32TerminalStream105013
-Node: X11TerminalStream108473
-Ref: XEventClasses110451
-Node: NetworkStream113725
-Node: TCPIPNetworkStream114527
-Node: TCPIPNetworkStreamReader121338
-Node: TCPIPNetworkStreamWriter123882
-Node: TCPIPV6NetworkStream124816
-Node: TCPIPV6NetworkStreamReader128751
-Node: TCPIPV6NetworkStreamWriter130457
-Node: UNIXNetworkStream131536
-Node: UNIXNetworkStreamReader134270
-Node: UNIXNetworkStreamWriter137941
-Node: TreeNode139681
-Node: Event142205
-Node: Application142498
-Ref: parseX11Geometry149897
-Node: ClassLibraryTree152497
-Node: GLUTApplication154413
-Node: ObjectInspector165882
-Ref: ObjectInspector_inspect167576
-Node: LibrarySearch168152
-Node: Exception169725
-Node: SystemErrnoException176842
-Node: InputEvent177794
-Node: SignalEvent178875
-Node: SignalHandler181100
-Node: Expr187639
-Node: CFunction187865
-Node: Magnitude192665
-Node: Character193932
-Node: String200661
-Ref: RecordSeparator211061
-Ref: vPrintOn--class String217723
-Ref: writeFormat--class String218483
-Ref: Pattern Matching218751
-Ref: Pattern Strings229805
-Ref: DebugPattern232328
-Node: Float237314
-Node: Integer239372
-Node: CTime243174
-Node: CalendarTime245185
-Node: RGBAColor250598
-Ref: X11RGBSpec253414
-Node: LongInteger254139
-Node: Pen257455
-Node: Point258770
-Ref: point-example260403
-Node: Line264417
-Node: Rectangle266911
-Node: Circle270828
-Node: Method275000
-Ref: CallbackSetup279438
-Node: Pane281404
-Node: ANSITerminalPane283819
-Node: ANSIWidgetPane291333
-Node: ANSIButtonPane296292
-Node: ANSILabelPane298903
-Node: ANSIListBoxPane302873
-Node: ANSIMessageBoxPane306144
-Node: ANSIProgressBarPane307969
-Node: ANSIScrollingListBoxPane311482
-Node: ANSIScrollPane318319
-Node: ANSITextBoxPane321907
-Node: ANSITextEntryPane325240
-Node: ANSIYesNoBoxPane328225
-Node: X11Pane332304
-Ref: haveXft335406
-Ref: PaneResources337094
-Node: GLXCanvasPane348123
-Ref: GLXExampleProgram378916
-Node: X11PaneDispatcher383836
-Node: X11CanvasPane399267
-Ref: X11CanvasPane_pixmapFromData415331
-Node: X11ButtonPane418848
-Node: X11CheckBoxPane438320
-Node: X11LabelPane447731
-Node: X11ListPane461074
-Node: X11MessageBoxPane475157
-Node: X11PopupMenu485556
-Node: X11ScrollBarPane496079
-Node: X11TextEntryPane504537
-Node: X11YesNoBoxPane517515
-Node: X11TextEntryBox529572
-Node: X11ListBox536814
-Node: X11FileSelectDialog545824
-Ref: Retrieving-Selection-Information551727
-Node: X11TextPane563295
-Node: X11TextEditorPane573411
-Node: Symbol593150
-Node: Key596979
-Node: Vector602490
-Node: Methods606433
-Node: Method API611141
-Node: Self and super612829
-Node: Class initialization614017
-Node: Prefixes615983
-Node: Translating618478
-Node: C Macros623203
-Ref: ARG macro623629
-Ref: CLASSNAMEMacro623853
-Node: Required classes627190
-Node: Scoping627923
-Node: Templates632236
-Node: Return values641691
-Ref: Returning method values644959
-Node: Variable arguments647632
-Node: Overloading649986
-Node: Variable method arguments653388
-Node: Method functions654748
-Node: Errors658661
-Node: Cautions661493
-Node: Method keywords663122
-Ref: ClassVariableKeyword663435
-Ref: InstanceVariableKeyword664634
-Node: Documentation666791
-Ref: MethodDocStrings667421
-Ref: ClassDocStrings671525
-Ref: VariableDocStrings672433
-Node: Ctalk library673748
-Ref: ctalkFree684001
-Ref: __ctalkDeleteObject693995
-Ref: ctalkExec697386
-Ref: ctalkFilePtrFromStr700843
-Ref: ctalkGenericPtrFromStr704837
-Ref: __ctalkGetTemplateCallerCVAR706951
-Ref: __ctalkGetExprParserAt707832
-Ref: __ctalkNewSignalEventInternal735975
-Ref: ctalkObjValPtr736446
-Ref: __ctalkPrintObject737316
-Ref: ctalkRegisterBoolReturn741366
-Ref: __ctalkRegisterUserObject743595
-Ref: ctalkSetObjectValueAddr749565
-Ref: ctalkX11RGBColor770306
-Ref: ctalkX11SetSizeHints771340
-Ref: ctalkXftInitLib783870
-Ref: ctalkXftTextDimensionsBasic786881
-Ref: errorfuncs802222
-Ref: objRefCntSet805246
-Ref: INTVAL_Macro807563
-Node: C812289
-Node: Preprocessor813097
-Node: C statements814072
-Ref: Objects in Function Arguments816927
-Ref: Debugging819809
-Node: Externs824147
-Node: Class casting826193
-Node: Control structures830019
-Node: OBJECT typedef831749
-Node: Attributes834390
-Node: C library functions836986
-Node: abs839525
-Node: acos839695
-Node: acosh-asinh-atanh840030
-Node: asctime840418
-Node: asin840931
-Node: atexit841189
-Node: atof841390
-Node: atoi841584
-Node: atol841772
-Node: atoll842042
-Node: calloc842362
-Node: cbrt842648
-Node: ceil842818
-Node: chdir842987
-Node: clock843201
-Node: copysign843392
-Node: cos843597
-Node: cosh843781
-Node: ctime843965
-Node: difftime844435
-Node: erf844645
-Node: erfc844830
-Node: exp845013
-Node: expm1845193
-Node: fabs845382
-Node: fclose845572
-Node: fegetround845781
-Node: feholdexcept845999
-Node: feof846228
-Node: ferror846433
-Node: fesetround846642
-Node: fetestexcept846864
-Node: fflush847099
-Node: fgetc847311
-Node: fgetpos847515
-Node: fgets847729
-Node: floor847944
-Node: fmod848135
-Node: fopen848327
-Node: fprintf848620
-Node: fputc848778
-Node: fputs849026
-Node: fread849273
-Node: free849520
-Node: freopen850244
-Node: frexp850554
-Node: fscanf850898
-Node: fseek851263
-Node: fsetpos851389
-Node: fstat851761
-Node: ftell852117
-Node: fwrite852323
-Node: getc852739
-Node: getchar852990
-Node: getcwd853241
-Node: getenv853642
-Node: getpid853859
-Node: gmtime-localtime853997
-Node: index-function854171
-Node: isalnum-isxdigit854342
-Node: labs855439
-Node: llabs855687
-Node: llrint855936
-Node: llround856399
-Node: log856666
-Node: log10856906
-Node: log1p857150
-Node: lrint857396
-Node: lround857645
-Node: malloc857898
-Node: memchr858162
-Node: memcmp858586
-Node: memcpy859025
-Node: memmove859443
-Node: memset859865
-Node: mkdir860247
-Node: modf860474
-Node: nearbyint860726
-Node: perror860973
-Node: pow861209
-Node: printf861472
-Node: raise861697
-Node: rand861952
-Node: realloc862150
-Node: remove862421
-Node: rename862683
-Node: rindex863013
-Node: rint863157
-Node: rmdir863412
-Node: round863565
-Node: scanf863823
-Node: sin863973
-Node: sinh864190
-Node: snprintf864413
-Node: sprintf864575
-Node: sqrt864735
-Node: srand865496
-Node: sscanf865706
-Node: strcat-strcpy866298
-Node: strchr866730
-Node: strcoll867132
-Node: strspn867388
-Node: strerror867519
-Node: strftime867655
-Node: strlen867791
-Node: strncat-strncpy867930
-Node: strpbrk868351
-Node: strrchr868492
-Node: strstr868817
-Node: strtod868946
-Node: strtok869074
-Node: strtoll869203
-Node: strxfrm869335
-Node: system869467
-Node: tan869707
-Node: tanh869824
-Node: tmpnam869943
-Node: tolower870070
-Node: toupper870306
-Node: trunc870541
-Node: ungetc870667
-Node: vfprintf870796
-Node: vfscanf871076
-Node: vprintf871340
-Node: vscanf871617
-Node: vsnprintf871879
-Node: vsprintf872150
-Node: vsscanf872420
-Node: GNU tools872670
-Node: Copying875690
-Node: GNU Free Documentation License876224
-Node: Index897434
+Node: Top664
+Node: Invoking1273
+Node: Classes6062
+Node: Object8378
+Ref: NullObjects9057
+Ref: ObjectbasicNew16827
+Ref: Object_inspect21433
+Ref: methodObjectMessage24890
+Node: Bitmap31946
+Node: DisplayFont32061
+Node: X11Font32187
+Node: X11Cursor34724
+Node: X11FreeTypeFont36235
+Ref: X11FreeTypeFont-selectFont47929
+Ref: selectFontFromFontConfig50091
+Node: X11Bitmap52583
+Node: Boolean63670
+Node: Collection65554
+Node: Array69550
+Node: List71673
+Node: AssociativeArray77045
+Node: SortedList81185
+Node: Stream82642
+Node: FileStream83520
+Node: DirectoryStream87639
+Node: ReadFileStream91682
+Node: WriteFileStream93648
+Ref: writeFormat--class WriteFileStream96002
+Node: TerminalStream96511
+Node: ANSITerminalStream97605
+Node: Win32TerminalStream105031
+Node: X11TerminalStream108491
+Ref: XEventClasses110469
+Node: NetworkStream113743
+Node: TCPIPNetworkStream114545
+Node: TCPIPNetworkStreamReader121356
+Node: TCPIPNetworkStreamWriter123900
+Node: TCPIPV6NetworkStream124834
+Node: TCPIPV6NetworkStreamReader128769
+Node: TCPIPV6NetworkStreamWriter130475
+Node: UNIXNetworkStream131554
+Node: UNIXNetworkStreamReader134288
+Node: UNIXNetworkStreamWriter137959
+Node: TreeNode139699
+Node: Event142223
+Node: Application142516
+Ref: parseX11Geometry149915
+Node: ClassLibraryTree152515
+Node: GLUTApplication154431
+Node: ObjectInspector165900
+Ref: ObjectInspector_inspect167594
+Node: LibrarySearch168170
+Node: Exception169743
+Node: SystemErrnoException176860
+Node: InputEvent177812
+Node: SignalEvent178893
+Node: SignalHandler181118
+Node: Expr187657
+Node: CFunction187883
+Node: Magnitude192683
+Node: Character193950
+Node: String200679
+Ref: RecordSeparator211079
+Ref: vPrintOn--class String217741
+Ref: writeFormat--class String218501
+Ref: Pattern Matching218769
+Ref: Pattern Strings229823
+Ref: DebugPattern232346
+Node: Float237332
+Node: Integer239390
+Node: CTime243192
+Node: CalendarTime245203
+Node: RGBAColor250616
+Ref: X11RGBSpec253432
+Node: LongInteger254157
+Node: Pen257473
+Node: Point258788
+Ref: point-example260421
+Node: Line264435
+Node: Rectangle266929
+Node: Circle270846
+Node: Method275018
+Ref: CallbackSetup279456
+Node: Pane281422
+Node: ANSITerminalPane283837
+Node: ANSIWidgetPane291351
+Node: ANSIButtonPane296310
+Node: ANSILabelPane298921
+Node: ANSIListBoxPane302900
+Node: ANSIMessageBoxPane306171
+Node: ANSIProgressBarPane307996
+Node: ANSIScrollingListBoxPane311509
+Node: ANSIScrollPane318346
+Node: ANSITextBoxPane321934
+Node: ANSITextEntryPane325267
+Node: ANSIYesNoBoxPane328252
+Node: X11Pane332331
+Ref: haveXft335433
+Ref: PaneResources337121
+Node: GLXCanvasPane348150
+Ref: GLXExampleProgram378943
+Node: X11PaneDispatcher383863
+Node: X11CanvasPane399294
+Ref: X11CanvasPane_pixmapFromData415358
+Node: X11ButtonPane418875
+Node: X11CheckBoxPane438347
+Node: X11LabelPane447758
+Node: X11ListPane461101
+Node: X11MessageBoxPane475184
+Node: X11PopupMenu485583
+Node: X11ScrollBarPane498115
+Node: X11TextEntryPane506573
+Node: X11YesNoBoxPane519551
+Node: X11TextEntryBox531608
+Node: X11ListBox538850
+Node: X11FileSelectDialog547860
+Ref: Retrieving-Selection-Information553763
+Node: X11TextPane565880
+Node: X11TextEditorPane575996
+Node: Symbol595735
+Node: Key599564
+Node: Vector605084
+Node: Methods609027
+Node: Method API613735
+Node: Self and super615423
+Node: Class initialization616611
+Node: Prefixes618577
+Node: Translating621072
+Node: C Macros625797
+Ref: ARG macro626223
+Ref: CLASSNAMEMacro626447
+Node: Required classes629784
+Node: Scoping630517
+Node: Templates634830
+Node: Return values644285
+Ref: Returning method values647553
+Node: Variable arguments650226
+Node: Overloading652580
+Node: Variable method arguments655982
+Node: Method functions657342
+Node: Errors661255
+Node: Cautions664087
+Node: Method keywords665716
+Ref: ClassVariableKeyword666029
+Ref: InstanceVariableKeyword667228
+Node: Documentation669403
+Ref: MethodDocStrings670033
+Ref: ClassDocStrings674137
+Ref: VariableDocStrings675045
+Node: Ctalk library676360
+Ref: ctalkFree686613
+Ref: __ctalkDeleteObject696607
+Ref: ctalkExec699998
+Ref: ctalkFilePtrFromStr703455
+Ref: ctalkGenericPtrFromStr707449
+Ref: __ctalkGetTemplateCallerCVAR709563
+Ref: __ctalkGetExprParserAt710444
+Ref: __ctalkNewSignalEventInternal739977
+Ref: ctalkObjValPtr740448
+Ref: __ctalkPrintObject741318
+Ref: ctalkRegisterBoolReturn745368
+Ref: __ctalkRegisterUserObject747597
+Ref: ctalkSetObjectValueAddr753567
+Ref: ctalkX11RGBColor774444
+Ref: ctalkX11SetSizeHints775478
+Ref: ctalkXftInitLib788008
+Ref: ctalkXftTextDimensionsBasic791019
+Ref: errorfuncs806360
+Ref: objRefCntSet809384
+Ref: INTVAL_Macro811701
+Node: C816427
+Node: Preprocessor817235
+Node: C statements818210
+Ref: Objects in Function Arguments821083
+Ref: Debugging823965
+Node: Externs828303
+Node: Class casting830349
+Node: Control structures834175
+Node: OBJECT typedef835905
+Node: Attributes838546
+Node: C library functions841142
+Node: abs843681
+Node: acos843851
+Node: acosh-asinh-atanh844186
+Node: asctime844574
+Node: asin845087
+Node: atexit845345
+Node: atof845546
+Node: atoi845740
+Node: atol845928
+Node: atoll846198
+Node: calloc846518
+Node: cbrt846804
+Node: ceil846974
+Node: chdir847143
+Node: clock847357
+Node: copysign847548
+Node: cos847753
+Node: cosh847937
+Node: ctime848121
+Node: difftime848591
+Node: erf848801
+Node: erfc848986
+Node: exp849169
+Node: expm1849349
+Node: fabs849538
+Node: fclose849728
+Node: fegetround849937
+Node: feholdexcept850155
+Node: feof850384
+Node: ferror850589
+Node: fesetround850798
+Node: fetestexcept851020
+Node: fflush851255
+Node: fgetc851467
+Node: fgetpos851671
+Node: fgets851885
+Node: floor852100
+Node: fmod852291
+Node: fopen852483
+Node: fprintf852776
+Node: fputc852934
+Node: fputs853182
+Node: fread853429
+Node: free853676
+Node: freopen854400
+Node: frexp854710
+Node: fscanf855054
+Node: fseek855419
+Node: fsetpos855545
+Node: fstat855917
+Node: ftell856273
+Node: fwrite856479
+Node: getc856895
+Node: getchar857146
+Node: getcwd857397
+Node: getenv857798
+Node: getpid858015
+Node: gmtime-localtime858153
+Node: index-function858327
+Node: isalnum-isxdigit858498
+Node: labs859595
+Node: llabs859843
+Node: llrint860092
+Node: llround860555
+Node: log860822
+Node: log10861062
+Node: log1p861306
+Node: lrint861552
+Node: lround861801
+Node: malloc862054
+Node: memchr862318
+Node: memcmp862742
+Node: memcpy863181
+Node: memmove863599
+Node: memset864021
+Node: mkdir864403
+Node: modf864630
+Node: nearbyint864882
+Node: perror865129
+Node: pow865365
+Node: printf865628
+Node: raise865853
+Node: rand866108
+Node: realloc866306
+Node: remove866577
+Node: rename866839
+Node: rindex867169
+Node: rint867313
+Node: rmdir867568
+Node: round867721
+Node: scanf867979
+Node: sin868129
+Node: sinh868346
+Node: snprintf868569
+Node: sprintf868731
+Node: sqrt868891
+Node: srand869652
+Node: sscanf869862
+Node: strcat-strcpy870454
+Node: strchr870886
+Node: strcoll871288
+Node: strspn871544
+Node: strerror871675
+Node: strftime871811
+Node: strlen871947
+Node: strncat-strncpy872086
+Node: strpbrk872507
+Node: strrchr872648
+Node: strstr872973
+Node: strtod873102
+Node: strtok873230
+Node: strtoll873359
+Node: strxfrm873491
+Node: system873623
+Node: tan873863
+Node: tanh873980
+Node: tmpnam874099
+Node: tolower874226
+Node: toupper874462
+Node: trunc874697
+Node: ungetc874823
+Node: vfprintf874952
+Node: vfscanf875232
+Node: vprintf875496
+Node: vscanf875773
+Node: vsnprintf876035
+Node: vsprintf876306
+Node: vsscanf876576
+Node: GNU tools876826
+Node: Copying879846
+Node: GNU Free Documentation License880380
+Node: Index902254
 
 End Tag Table
 

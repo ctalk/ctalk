@@ -1,4 +1,4 @@
-/* $Id: resolve.c,v 1.7 2021/01/28 08:38:07 rkiesling Exp $ */
+/* $Id: resolve.c,v 1.9 2021/02/07 21:08:33 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -105,6 +105,21 @@ static bool predicate_contains_c_function (void) {
       }
     }
   }
+  return false;
+}
+
+/* Works with handle_complex_fn_arg_expr_in_argblk, in rt_expr.c. */
+static bool complex_fn_arg_in_argblk (MSINFO *ms, int *fn_idx, int *arg_idx) {
+  int next_idx;
+  if (argblk) {
+    if ((*arg_idx = obj_expr_is_arg (ms -> messages, ms -> tok,
+				    ms -> stack_start, fn_idx)) >= 0) {
+      next_idx = nextlangmsg (ms -> messages, ms -> tok);
+      if (IS_C_BINARY_MATH_OP(M_TOK(ms -> messages[next_idx]))) {
+	return true;
+      }
+    }
+   }
   return false;
 }
 
@@ -1161,7 +1176,7 @@ OBJECT *resolve (int message_ptr) {
   int prev_tok_ptr_2;
   int sender_idx;
   int method_attrs;
-  int fn_idx, agg_end_idx;
+  int fn_idx, arg_idx, agg_end_idx;
   int t;
   int expr_close_paren,
     expr_open_paren,
@@ -1891,15 +1906,25 @@ OBJECT *resolve (int message_ptr) {
 							    stack_top)) {
 			    format_obj_lval_fn_expr (ms.messages,
 						     message_ptr);
+#if 0 /***/ /* repeated! */
 			  } else if (obj_expr_is_fn_expr_lvalue 
 				     (ms.messages, message_ptr,
 				      stack_top)) {
 			    format_obj_lval_fn_expr (ms.messages,
 						     message_ptr);
+#endif			    
 			  } else if (rcvr_expr_in_parens
 				     (&ms, &expr_open_paren, &__end_idx)) {
 			    output_rcvr_expr_in_parens
 			      (&ms, expr_open_paren, __end_idx);
+#if 1
+			  } else if (complex_fn_arg_in_argblk (&ms, &fn_idx,
+							       &arg_idx)) {
+			    /***/
+			    handle_complex_fn_arg_expr_in_argblk (&ms, fn_idx,
+								  arg_idx);
+			    return NULL;
+#endif			    
 			  } else {
 			    default_method (&ms);
 			  }

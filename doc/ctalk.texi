@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.57 2021/02/02 11:40:23 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.65 2021/03/11 03:06:37 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -7,7 +7,7 @@
 @paragraphindent 0
 @c %**end of header
 
-@set VERSION 0.0.66
+@set VERSION 0.67 2021-03-11
 
 @macro idxfncite{fnname}
 @cite{\fnname\} C function
@@ -38,7 +38,7 @@
 
 This file documents Ctalk version @value{VERSION}.
 
-Copyright @copyright{} 2007-2015 Robert Kiesling
+Copyright @copyright{} 2007-2021 Robert Kiesling
 
 Permission is granted to copy, distribute and/or modify this document
 under the terms of the GNU Free Documentation License, Version 1.1 or
@@ -17136,17 +17136,34 @@ helper methods that are called when a user clicks on a menu item.
 #define FTFONT_BOLD   200
 #define FTFONT_MEDIUM 100
 
+/*
+ *  Objects that are targets of menu items 
+ *  need to be within the scope of the popup's
+ *  methods.  The simplest way to do this is to
+ *  make them global.
+ */
 X11MessageBoxPane new aboutBox;
+X11MessageBoxPane new msgBox;
+X11YesNoBoxPane new yesNoBox;
+X11TextEntryBox new textEntryBox;
 X11FileSelectDialog new fileBox;
 
-X11MessageBoxPane instanceMethod configure (void) @{
+X11MessageBoxPane instanceMethod aboutBoxConf (void) @{
   self resources replaceAt "backgroundColor", "darkblue";
   self resources replaceAt "foregroundColor", "darkblue";
   self resources replaceAt "messageColor", "white";
   self resources replaceAt "messageText",
-    "X11PopupMenu Demo\nCtalk Version: 0.0.66";
+    "X11PopupMenu Demo\nCtalk Version: 0.67";
   self resources replaceAt "iconID", ICON_INFO;
 
+@}
+
+X11FileSelectDialog instanceMethod fileSelectConf (void) @{
+  self resources replaceAt "backgroundColor", "blue";
+  self resources replaceAt "foregroundColor", "blue";
+  self resources replaceAt "messageColor", "white";
+  self resources replaceAt "messageText",
+    "Directory:\n";
 @}
 
 /* 
@@ -17180,14 +17197,36 @@ int main (void) @{
   X11Pane new mainWin;
   X11PaneDispatcher new dispatcher;
   X11LabelPane new heading, subHeading;
-  X11PopupMenu new mainMenu;
+  X11PopupMenu new mainMenu, dialogMenu;
   InputEvent new e;
   XEvent ev_ret;
   Display *display;
 
-  mainMenu add "Browse Files...", "fileBox show";
+  /*
+   *  To Add a Submenu - 
+   *  1. In the entry that pops up the submenu, which is 
+   *     "Dialog Boxes>" here, add a '>' to the end of the
+   *     label, which marks the entry as a submenu launcher.
+   *     The '>" is displayed in the menu's right margin
+   *     where the item appears.
+   *  2. The submenu launcher's expression needs to be the
+   *     name that you want the submenu referred to as - 
+   *     here, that's "dialogMenu."
+   *  3. Add the submenu to the parents menu's "subMenus"
+   *     AssociativeArray, again using the name that you
+   *     want to identify the submenu by - again, that's
+   *     "dialogMenu" in this example.
+   *  
+   */
+  dialogMenu add "X11FileSelectDialog...", "fileBox show";
+  dialogMenu add "X11MessageBoxPane...", "msgBox show";
+  dialogMenu add "X11TextEntryBox...", "textEntryBox show";
+  dialogMenu add "X11YesNoBoxPane...", "yesNoBox show";
+
+  mainMenu add "Dialog Widget Classes>", "dialogMenu";
   mainMenu add "About...", "aboutBox show";
   mainMenu add "Exit", "self clientExit parentPane";
+  mainMenu subMenus atPut "dialogMenu", dialogMenu;
 
   heading canFocus = false;
   heading resources replaceAt "borderWidth", 0;
@@ -17198,7 +17237,8 @@ int main (void) @{
 
   heading ftFontVar initFontLib;
 
-  aboutBox configure;
+  aboutBox aboutBoxConf;
+  fileBox fileSelectConf;
 
   mainWin backgroundColor = "blue";
   heading resources replaceAt "backgroundColor", "blue";
@@ -17206,8 +17246,7 @@ int main (void) @{
   
   mainWin initialize 255, 200;
   /*
-   * NOTE - Make a note in the docs about this, or add it to the
-   * parent window's event mask automagically.
+   * Select which X events we want to handle.
    */
   mainWin inputStream eventMask = 
     EXPOSE|ENTERWINDOWNOTIFY \
@@ -17219,12 +17258,16 @@ int main (void) @{
   dispatcher attachTo mainWin;
   heading attachTo dispatcher, "177x60+c+25";
   subHeading attachTo dispatcher, "190x60+c+75";
+
   /* The dialogs, which are launched by the menu, still need
      to be attached to the menu's parent window, even if it's
-     only to set their dimensions to something similar to 
-     the program's dimensions. */
+     only to set their dimensions similar to the main window's 
+     dimensions. */
   aboutBox attachTo dispatcher, "300x200";
   fileBox attachTo dispatcher, "250x350";
+  msgBox attachTo dispatcher, "250x350";
+  textEntryBox attachTo dispatcher, "350x250";
+  yesNoBox attachTo dispatcher, "250x350";
 
   mainWin map;
   mainWin raiseWindow;
@@ -17314,6 +17357,21 @@ itemIndex      # An Integer that contains the ordinal position of
 The labels are actually parameters of the @code{X11PopupMenu :
 execItem} method, and expressions can use them verbatim.  There's
 more information in the @mnm{execItem} method's documentation.
+
+@subheading Submenus
+
+A menu needs only to refer to its submenus by the name of the submenu.
+Adding a @samp{>} to the end of the menu item's label designates the
+item as a submenu launcher, and the @samp{>} character is drawn in the
+menu's right margin.
+
+The submenu is referred to by a key which is written to the parent menu's
+@code{subMenus} @code{AssociativeArray} object.  The key is a string and
+may be any convenient name.
+
+The example program shows the expressions used to create a submenu,
+its launcher, and how to store it in a parent menu's @code{subMenu's}
+associative array.
 
 @subheading Resources
 
@@ -19499,7 +19557,20 @@ printf ("%d: %s\n",
 Further information about modifying resource entries is given in the
 @code{resources} instance variable section. @xref{PaneResources}.
 
+The dialog's subpanes use their own resources, but this class
+defines a few shortcuts that the subpanes inherit: @samp{backgroundColor},
+@samp{foregroundColor}, @samp{messageColor}, and @samp{messageText}.
+
 @table @code
+@cindex backgroundColor resource @idxclscite{X11FileSelectDialog}
+@item backgroundColor
+Defines the color of the window background.  The default is
+@samp{gray}.
+
+@cindex foregroundColor resource @idxclscite{X11FileSelectDialog}
+@item foregroundColor
+The fill color of the subpanes.  The default is @samp{gray}.
+
 @cindex listROPx resource @idxclscite{X11FileSelectDialog}
 @cindex listRWPx resource @idxclscite{X11FileSelectDialog}
 @item listROPx
@@ -19508,6 +19579,16 @@ The distance in pixels between the bottom of the file list and the
 bottom of the window, in pixels.  The values determine, respectively
 whether to display the dialog's buttons directly beneath the list, or
 to display a text entry box between the file list and the buttons.
+
+@cindex messageColor resource @idxclscite{X11FileSelectDialog}
+@item messageColor
+The color used by the directory path label.  The default is
+@samp{black}.
+
+@cindex messageText resource @idxclscite{X11FileSelectDialog}
+@item messageText
+The text of the path label's heading.  The default is
+@samp{Directory:\n}.
 
 @cindex pad resource @idxclscite{X11FileSelectDialog}
 @item pad
@@ -24700,6 +24781,26 @@ an actual window; e.g., @code{X11Pane} objects.  For all
 other visual types, like pixmaps, use
 __ctalkX11SetBackgroundBasic.
 
+@idxlibfn{__ctalkX11CreatePopupMenu}
+@item __ctalkX11CreatePopupMenu (@code{OBJECT *}@var{menuobject}, @code{int} @var{screen_x}, @code{int} @var{screen_y})
+Creates a popup menu window with the origin at @var{screen_x} and
+@var{screen_y}.  The @var{menuobject} argument is a
+@code{X11PopupMenu} object, with the menu's width and height
+determined by the items added to the menu before this function is
+called.  The menu is to be popped up at the point
+(@var{screen_x,screen_y}), but it will not be visible until the
+@cite{__ctalkX11MapMenu} function is called.
+
+@idxlibfn{__ctalkX11MapMenu}
+@item __ctalkX11MapMenu (@code{OBJECT *}@var{menuObject}, @code{int} @var{screen_x}, @code{int} @var{screen_y})
+Maps a popup menu object of the class @code{X11PopupMenu} to the display at the display coordinates (@var{screen_x,screen_y}).  The @var{menuObject} must have already been initialized with a call to @cite{__ctalkX11CreatePopupMenu}.
+
+@idxlibfn{__ctalkX11MenuDrawLine}
+@idxlibfn{__ctalkX11MenuDrawString}
+@item __ctalkX11MenuDrawLine (@code{void *}@var{display}, @code{unsigned int} @var{w}, @code{unsigned long} @var{gcPtr}, @code{int} @var{xStart}, @code{int} @var{yStart}, @code{int} @var{xEnd}, @code{int} @var{yEnd}, @code{int} @var{penWidth}, @code{int} @var{alpha}, @code{char *} @var{colorName})
+@item __ctalkX11MenuDrawString (@code{void *}@var{display}, @code{unsigned int} @var{drawable}, @code{unsigned long} @var{gcPtr}, @code{int} @var{xStart}, @code{int} @var{yStart}, @code{int} @var{xEnd}, @code{int} @var{penWidth}, @code{int} @var{alpha}, @code{char *}@var{colorName})
+Library functions used to draw on @code{X11PopupMenu} objects.  For their use, refer to the @code{X11PopupMenu} class.
+
 @idxlibfn{__ctalkX11SubWindowGeometry}
 @cindex Window geometry
 @cindex Geometry, windows
@@ -24736,6 +24837,11 @@ Returns an @code{int} with the width in screen pixels of the
 @var{text} argument when rendered in the font named by @var{fontDesc}.
 There is more information about how to use fonts in the sections
 that discuss the X graphics classes. @xref{X11Font}.
+
+@idxlibfn{__ctalkX11WithdrawMenu}
+@item __ctalkX11WithdrawMenu (@code{OBJECT *}@var{menupane_param})
+Withdraws all popup menus from the display.  The parameter,
+@var{menupane_param}, is not used at this time.
 
 @idxlibfn{__ctalkX11WxHGeometry}
 @item __ctalkX11WxHGeometry (@code{int} @var{parentWidth}, @code{int} @var{parenthHeight}, @code{char *}@var{geomspec}, @code{int} @var{xOut}, @code{int} @var{yOut}, @code{int} @var{widthOut}, @code{int} @var{heightOut})
@@ -25844,6 +25950,12 @@ and other data.  Does not delete subpanes - see __ctalkCloseX11Pane ()
 (above) to delete subpanes.  Applications should delete subpanes before
 closing and deleting the main window.  For an example of the functions'
 use, refer to the method @mnm{X11Pane : deleteAndClose}. @xref{X11Pane}.
+
+@idxlibfn{__ctalkX11ClosePopupMenuPane}
+@item __ctalkX11ClosePopupMenuPane (@code{OBJECT *}@var{menu_object})
+Deletes the popup menu's record from the library's internal menu
+stack.
+
 
 @c /***/
 @c @idxlibfn{__ctalkX11ClearBufferRectangle}

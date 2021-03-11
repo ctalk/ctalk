@@ -1,4 +1,4 @@
-/* $Id: method.c,v 1.2 2021/01/08 20:53:48 rkiesling Exp $ */
+/* $Id: method.c,v 1.3 2021/03/08 23:03:51 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -2898,6 +2898,22 @@ int method_call (int method_message_ptr) {
 		}
 		return ERROR;
 	      }
+	    } else if (this_method_from_proto
+		       (class_object -> CLASSNAME, M_NAME(m))) {
+	      /* just try to output a runtime expression 
+		 instead of assuming an argument mismatch here */
+	      if (argblk) {
+		int _i;
+		fmt_rt_argblk_expr
+		  (message_stack (), rcvr_ptr,
+		   &expr_end_idx, _expr_buf);
+		fileout (_expr_buf, false, expr_end_idx);
+		for (_i = rcvr_ptr; _i >= expr_end_idx; --_i) {
+		  ++message_stack_at(_i) -> evaled;
+		  ++message_stack_at(_i) -> output;
+		}
+	      }
+	      return SUCCESS;
 	    } else {
 	      report_method_argument_mismatch (m, class_object, 
 					       M_NAME(m), n_args_declared);

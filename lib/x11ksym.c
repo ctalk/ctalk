@@ -1,4 +1,4 @@
-/* $Id: x11ksym.c,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ -*-c-*-*/
+/* $Id: x11ksym.c,v 1.2 2021/03/09 19:46:28 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -39,6 +39,7 @@
 #include <X11/Xutil.h>
 #include <X11/Xatom.h>
 #include <X11/keysym.h>
+#include "object.h"
 #include "x11defs.h"
 
 extern Display *display;   /* Declared in x11lib.c. */

@@ -1,4 +1,4 @@
-/* $Id: g,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ -*-c-*-**/
+/* $Id: g,v 1.2 2021/03/07 01:37:23 rkiesling Exp $ -*-c-*-**/
 
 /*
   This file is part of ctalk.
@@ -61,7 +61,7 @@ cGetPID (void) { \n\
 #define getenv \n\
 cGetEnv (char *s) { \n\
   OBJECT *result; \n\
-  char buf[MAXLABEL]; \n\
+  char buf[MAXMSG]; \n\
 \n\
   xstrcpy (buf, (getenv (__ctalk_to_c_char_ptr(__ctalk_arg_internal(0))) ? \
     getenv(__ctalk_to_c_char_ptr(__ctalk_arg_internal(0))) : NULLSTR)); \n\

@@ -1,4 +1,4 @@
-/* $Id: methodbuf.c,v 1.1.1.1 2020/05/16 02:37:00 rkiesling Exp $ */
+/* $Id: methodbuf.c,v 1.2 2021/03/07 21:30:04 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -382,6 +382,8 @@ int format_method (BUFFERED_METHOD b) {
       case EXCLAM:
       case BIT_COMP:
       case SIZEOF:
+      case INCREMENT:
+      case DECREMENT:
 	if (fn_state == fn_null) {
 	  fn_state = fn_body;
 	  if (need_init == True)
