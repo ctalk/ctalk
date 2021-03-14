@@ -60,8 +60,10 @@ int main (void) {
      has alread created an entry for backgroundColor. */
   messageBox resources replaceAt "backgroundColor", "blue";
   messageBox resources replaceAt "foregroundColor", "blue";
+  messageBox resources replaceAt "messageColor", "white";
   messageBox resources replaceAt "messageText",
     	       "Hello, messageBox!\nYour message text here.";
+
 
   while (TRUE) {
     mainWindow inputStream queueInput;

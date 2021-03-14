@@ -4142,9 +4142,9 @@ Justification
 The 'X11LabelPane' widget contains a simple layout engine that can
 center label text, or justify it against the right or left margins.
 
-The text's justification is determined by the setting of the
-'justification' instance variable, which can have one of three values,
-which are defined by the following macros:
+The text's justification is determined by the setting of the 'justify'
+instance variable, which can have one of three values, which are defined
+by the following macros:
 
 
      LABEL_LEFT
@@ -5008,6 +5008,18 @@ Resources
      default is 'sans serif-12'.  The pane uses this value to set the
      label's 'fcFont' resource.
 
+'messageJustify'
+     Display the text of the label subpane justified within the subpane
+     at either the left or right margin, or centered.  The message box
+     uses the following constants for justification, which are defined
+     in 'ctalkdefs.h'.
+
+
+          LABEL_LEFT
+          LABEL_CENTER
+          LABEL_RIGHT
+
+
 'messageText'
      A 'String' that contains the text of the message to be displayed.
      The default is 'Sample message text.'.
@@ -5173,7 +5185,7 @@ methods that are called when a user clicks on a menu item.
      X11TextEntryBox new textEntryBox;
      X11FileSelectDialog new fileBox;
 
-     X11MessageBoxPane instanceMethod configure (void) {
+     X11MessageBoxPane instanceMethod aboutBoxConf (void) {
        self resources replaceAt "backgroundColor", "darkblue";
        self resources replaceAt "foregroundColor", "darkblue";
        self resources replaceAt "messageColor", "white";
@@ -5181,6 +5193,14 @@ methods that are called when a user clicks on a menu item.
          "X11PopupMenu Demo\nCtalk Version: 0.67";
        self resources replaceAt "iconID", ICON_INFO;
 
+     }
+
+     X11FileSelectDialog instanceMethod fileSelectConf (void) {
+       self resources replaceAt "backgroundColor", "blue";
+       self resources replaceAt "foregroundColor", "blue";
+       self resources replaceAt "messageColor", "white";
+       self resources replaceAt "messageText",
+         "Directory:\n";
      }
 
      /*
@@ -5254,7 +5274,8 @@ methods that are called when a user clicks on a menu item.
 
        heading ftFontVar initFontLib;
 
-       aboutBox configure;
+       aboutBox aboutBoxConf;
+       fileBox fileSelectConf;
 
        mainWin backgroundColor = "blue";
        heading resources replaceAt "backgroundColor", "blue";
@@ -8429,159 +8450,4 @@ Instance Methods
 
 'symbolReference (void *V)'
      Return a new 'String' object containing the receiver's name.
-
-
-File: ctalk.info,  Node: Key,  Next: Vector,  Prev: Symbol,  Up: Classes
-
-'Key' Class
------------
-
-Objects of class 'Key' are key-value pairs.  Other classes and programs
-can use 'Key' objects' names when looking up objects.  The value of a
-key object is a reference to the value object.
-
-Many of the 'Collection' subclasses are composed entirely of 'Key'
-objects, which act as the "glue" that maintains references to the the
-actual contents of the collection.  *Note Collection::.
-
-Programs can also manipulate 'Key' objects independently.  Most of the
-math operators that work with collections actually work with 'Key'
-objects.  So it's important to add the attribute
-OBJECT_IS_MEMBER_OF_PARENT_COLLECTION to a 'Key' object when building
-collections.  This tells Ctalk that the 'Key' object can be used
-independently, as well as part of its parent collection.  *Note
-Attributes::.
-
-Here's a program that manipulates the 'Key' objects of a collection
-(here, an 'AssociativeArray') directly.  *Note AssociativeArray::.
-
-
-     int main (int argc, char **argv) {
-
-       AssociativeArray new a;
-       Key new k;
-
-       a atPut "key1", "value1";
-       a atPut "key2", "value2";
-       a atPut "key3", "value3";
-       a atPut "key4", "value4";
-
-       k = *a;
-
-       while (++k)
-         printf ("%s --> %s\n", k name, *k);
-
-     }
-
-
-Instance Variables
-------------------
-
-'value'
-     The value is the formatted representation of a hexadecimal pointer
-     to a memory address.
-
-Instance Methods
-................
-
-'+ (Integer N)'
-     Increments the receiver by N.  For a 'Key' object, this sets the
-     receiver to the NTH successive element in a collection.  The
-     increments are numbered with '1' pointing to the first member of
-     the collection, and so on.  If there are no more elements, the
-     receiver's value is NULL. For an example, refer to '-', below.
-
-'++'
-     Increments the receiver to point to the next 'Key' in a collection.
-     If the receiver is already the last item item in the collection,
-     the value of the receiver after it is incremented is NULL. This
-     method works as both a prefix and postfix method, and increments
-     the receiver either before or after it is referenced, respectively.
-
-     Here is an example of how to iterate over an 'AssociativeArray'
-     using '++'.
-
-
-            AssociativeArray new a;
-            Key new k;
-
-            a atPut "key1", "value1";
-            a atPut "key2", "value2";
-            a atPut "key3", "value3";
-            a atPut "key4", "value4";
-
-            k = *a;
-
-            while (++k)
-              printf ("%s --> %s\n", k name, *k);
-
-
-'- (Integer N)'
-     Decrements the receiver by N.  For a 'Key' object, this sets the
-     receiver to the NTH previous element of the collection that the
-     receiver is a member of.  Here is a brief example
-
-
-          int main () {
-
-            AssociativeArray new a;
-            Key new k;
-
-            a atPut "1", "value1";
-            a atPut "2", "value2";
-            a atPut "3", "value3";
-            a atPut "4", "value4";
-
-            k = *a;
-            printf ("%s --> %s\n", k name, *k);
-            k = k + 3;
-            printf ("%s --> %s\n", k name, *k);
-            k = k - 1;
-            printf ("%s --> %s\n", k name, *k);
-          }
-
-
-     Running this program produces the following output.
-
-
-          1 --> value1
-          4 --> value4
-          3 --> value3
-
-
-'--'
-     Decrements the receiver to point to the previous 'Key' in a
-     collection.  If the receiver is the first item in the collection,
-     the value of the receiver after it is decremented is NULL. Like
-     '++', this method works as both a prefix and postfix method, and
-     decrements the receiver either before or after it is referenced,
-     respectively.
-
-'='
-     If the receiver refers to an object reference (that is, preceded by
-     a '*' operator), sets the value of the receiver to the address of
-     the argument.  Otherwise, sets the receiver to refer to the
-     argument.
-
-'getKeyObject (void)'
-     Return the receiver.
-
-'setName (char *KEY_NAME)'
-     Set the receiver's name to the argument, a 'String' object.
-
-     _Note:_ In some cases, the object's name is the only way that Ctalk
-     can refer to it.  In that case, the program needs to maintain an
-     alias to the object, like an 'OBJECT *,' so that it can refer to
-     the object later.  In the following example, the program can refer
-     to 'keyObject' by using 'key_alias_ptr,' regardless of the object's
-     name.
-          Key new keyObject;
-          OBJECT *key_alias_ptr;
-          ...
-          key_alias_ptr = KeyObject setName keyNameString;
-
-'ulink (void)'
-     Detach the receiver object from its parent collection.  The method
-     also removes the OBJECT_IS_MEMBER_OF_PARENT_COLLECTION attribute
-     from the receiver.
 

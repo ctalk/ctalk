@@ -1,4 +1,4 @@
-/* $Id: X11MessageBoxPane,v 1.2 2021/01/29 00:48:41 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11MessageBoxPane,v 1.4 2021/03/14 13:28:02 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -32,6 +32,7 @@
    messageColor         String    "black"
    messageFont          String    "sans serif-12"
    messageText          String    "Sample message text."
+   messageJustify       Integer   LABEL_LEFT
    buttonText           String    "Ok"
    geometry             String    <w>x<h>+<x>+<y>
    iconID               Integer   0
@@ -89,6 +90,7 @@ X11MessageBoxPane instanceMethod new (String paneName) {
   paneName resources atPut "titleText", "Message";
   paneName resources atPut "messageColor", "black";
   paneName resources atPut "messageFont", "sans serif-12";
+  paneName resources atPut "messageJustify", LABEL_LEFT;
 
   return paneName;
 }
@@ -339,7 +341,11 @@ X11MessageBoxPane instanceMethod initWidgets (void) {
     (self resources at "messageColor");
   l_label resources replaceAt "font",
     (self resources at "messageFont");
-  l_label justify = LABEL_LEFT;
+  l_label resources replaceAt "ftFont",
+    (self resources at "messageFont");
+  l_label justify = (self resources at "messageJustify");
+  /* l_label justify = LABEL_LEFT; */
+
 
   self label become l_label;
 

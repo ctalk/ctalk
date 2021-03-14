@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.65 2021/03/11 03:06:37 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.67 2021/03/14 18:08:21 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -15918,7 +15918,7 @@ The @code{X11LabelPane} widget contains a simple layout engine that can
 center label text, or justify it against the right or left margins.
 
 The text's justification is determined by the setting of the
-@code{justification} instance variable, which can have one of three
+@code{justify} instance variable, which can have one of three
 values, which are defined by the following macros:
 
 @example
@@ -16945,6 +16945,21 @@ resource to this value.
 A @code{String} that contains the Fontconfig font descriptor.  The
 default is @samp{sans serif-12}.  The pane uses this value to
 set the label's @samp{fcFont} resource.
+
+@cindex @code{messageJustify} resource @idxclscite{X11MessageBoxPane}
+@item messageJustify
+Display the text of the label subpane justified within the subpane at
+either the left or right margin, or centered.  The message box uses
+the following constants for justification, which are defined in
+@flnm{ctalkdefs.h}.
+
+@example
+
+LABEL_LEFT
+LABEL_CENTER
+LABEL_RIGHT
+
+@end example
 
 @cindex @code{messageText} resource @idxclscite{X11MessageBoxPane}
 @item messageText
