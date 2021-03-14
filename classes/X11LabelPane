@@ -1,4 +1,4 @@
-/* $Id: X11LabelPane,v 1.18 2021/02/01 10:03:42 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11LabelPane,v 1.19 2021/03/14 12:55:53 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -227,7 +227,7 @@ X11LabelPane instanceMethod multiLine (String textArg) {
 
 X11LabelPane instanceMethod __drawJustified (String textArg,
 					     Integer lineStartY) {
-  Integer new hAir, hCenter, lTextWidth;
+  Integer new hCenter, lTextWidth;
 
   lTextWidth = self ftFontVar textWidth textArg;
 
@@ -239,8 +239,7 @@ X11LabelPane instanceMethod __drawJustified (String textArg,
       break;
     case LABEL_CENTER:
       hCenter = (self size x / 2) - (lTextWidth / 2);
-      hAir = hCenter - (hCenter / 10);
-      self putStrXY hAir, lineStartY value, textArg;
+      self putStrXY hCenter, lineStartY value, textArg;
       break;
     case LABEL_RIGHT:
       self putStrXY ((self size x) -
