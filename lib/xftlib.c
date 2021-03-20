@@ -1,4 +1,4 @@
-/* $Id: xftlib.c,v 1.30 2021/03/09 19:46:28 rkiesling Exp $ -*-c-*-*/
+/* $Id: xftlib.c,v 1.32 2021/03/20 17:51:04 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
