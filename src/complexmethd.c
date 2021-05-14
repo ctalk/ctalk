@@ -1,8 +1,8 @@
-/* $Id: complexmethd.c,v 1.1.1.1 2020/12/13 14:51:02 rkiesling Exp $ */
+/* $Id: complexmethd.c,v 1.1.1.1 2021/04/03 11:26:02 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
-  Copyright © 2005-2020 Robert Kiesling, rk3314042@gmail.com.
+  Copyright © 2005-2021 Robert Kiesling, rk3314042@gmail.com.
   Permission is granted to copy this software provided that this copyright
   notice is included in all source code modules.
 
@@ -416,7 +416,7 @@ int is_overloaded_aggregate_op (MESSAGE_STACK messages, int idx) {
 void register_argblk_c_vars_1 (MESSAGE_STACK messages, 
 				    int expr_start,
 				    int expr_end) {
-  int i, next_idx;
+  int i, next_idx, agg_end_idx;
   CVAR *cvar;
   char buf[MAXMSG];
 
@@ -429,7 +429,8 @@ void register_argblk_c_vars_1 (MESSAGE_STACK messages,
 	((cvar = get_global_var (M_NAME(messages[i]))) != NULL)) {
 
       next_idx = nextlangmsg (messages, i);
-      handle_cvar_argblk_translation (messages, i, next_idx, cvar);
+      handle_cvar_argblk_translation (messages, i, next_idx, cvar,
+				      &agg_end_idx);
 
       /* So we don't cause an undefined label exception later on. */
       messages[i] -> attrs |= TOK_IS_RT_EXPR;

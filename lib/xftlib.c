@@ -1,4 +1,4 @@
-/* $Id: xftlib.c,v 1.32 2021/03/20 17:51:04 rkiesling Exp $ -*-c-*-*/
+/* $Id: xftlib.c,v 1.2 2021/05/14 19:58:16 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -402,6 +402,8 @@ static FcPattern *construct_pattern (char *p_family,
 }
 				     
 static void selected_fn (char *family) {
+  /* check for very old/broken libs */
+#ifdef HAVE_FCPATTERN_FORMAT
   FcPattern *pattern;
   FcObjectSet *os = NULL;
   FcFontSet *fs;
@@ -426,6 +428,7 @@ static void selected_fn (char *family) {
     FcPatternDestroy (pattern);
   if (fs)
     FcFontSetDestroy (fs);
+#endif /* #ifdef HAVE_FCPATTERN_FORMAT */
 }
 
 static XftFont *__select_font (char *p_family, int p_slant,

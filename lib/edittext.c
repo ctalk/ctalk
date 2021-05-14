@@ -1,4 +1,4 @@
-/* $Id: edittext.c,v 1.6 2020/12/21 20:40:02 rkiesling Exp $ -*-c-*-*/
+/* $Id: edittext.c,v 1.1.1.1 2021/04/03 11:26:06 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.

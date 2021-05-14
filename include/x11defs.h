@@ -1,4 +1,4 @@
-/* $Id: x11defs.h,v 1.8 2021/01/14 14:46:17 rkiesling Exp $ -*-c-*-*/
+/* $Id: x11defs.h,v 1.1.1.1 2021/04/03 11:26:03 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -281,7 +281,8 @@ typedef struct _dc {
   Window d_p_root;
   bool mapped;
   Window lock;
-} DIALOG_C;
+  OBJECT *pane;
+} W_TRANSIENT;
 
 #define DIALOG(d) (dpyrec && dpyrec -> mapped ? true : false)
 

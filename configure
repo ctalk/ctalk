@@ -668,6 +668,7 @@ PARSER_AM_CFLAGS
 LIB_AM_CFLAGS
 CPP_AM_CFLAGS
 HAVE_XRENDER_H
+have_fc_pattern_format
 HAVE_XFT_H
 HAVE_STDBOOL_H
 have_glut_h_def
@@ -15787,6 +15788,52 @@ fi
 else
   lib_freetype_ld_opts=
 fi
+
+
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for FcPatternFormat in -lfontconfig" >&5
+printf %s "checking for FcPatternFormat in -lfontconfig... " >&6; }
+if test ${ac_cv_lib_fontconfig_FcPatternFormat+y}
+then :
+  printf %s "(cached) " >&6
+else $as_nop
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lfontconfig  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+char FcPatternFormat ();
+int
+main (void)
+{
+return FcPatternFormat ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"
+then :
+  ac_cv_lib_fontconfig_FcPatternFormat=yes
+else $as_nop
+  ac_cv_lib_fontconfig_FcPatternFormat=no
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_fontconfig_FcPatternFormat" >&5
+printf "%s\n" "$ac_cv_lib_fontconfig_FcPatternFormat" >&6; }
+if test "x$ac_cv_lib_fontconfig_FcPatternFormat" = xyes
+then :
+  have_fc_pattern_format=" -DHAVE_FCPATTERN_FORMAT "
+else $as_nop
+  have_fc_pattern_format=""
+fi
+
+
+
 printf %s  "checking for FreeType libs... "
 if test -z $LIB_FREETYPE_LIB_ARG >/dev/null 2>&1; then
    if test "x$LIB_FREETYPE_LIB_ARG" != "xno" || test "x$LIB_FREETYPE_LIB_ARG" != "xNO"; then

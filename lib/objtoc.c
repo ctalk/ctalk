@@ -1,4 +1,4 @@
-/* $Id: objtoc.c,v 1.3 2020/12/28 08:48:52 rkiesling Exp $ */
+/* $Id: objtoc.c,v 1.1.1.1 2021/04/03 11:26:06 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.

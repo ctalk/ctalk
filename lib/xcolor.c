@@ -1,4 +1,4 @@
-/* $Id: xcolor.c,v 1.8 2020/12/27 19:25:21 rkiesling Exp $ -*-c-*-*/
+/* $Id: xcolor.c,v 1.1.1.1 2021/04/03 11:26:06 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.

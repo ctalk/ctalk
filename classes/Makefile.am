@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.4 2020/12/28 11:49:22 rkiesling Exp $
+# $Id: Makefile.am,v 1.1.1.1 2021/04/03 11:26:02 rkiesling Exp $
 
 SUBDIRS = libc libctalk
 

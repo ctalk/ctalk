@@ -1,4 +1,4 @@
-/* $Id: xrender.c,v 1.2 2021/01/21 11:48:54 rkiesling Exp $ -*-c-*-*/
+/* $Id: xrender.c,v 1.1.1.1 2021/04/03 11:26:06 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.

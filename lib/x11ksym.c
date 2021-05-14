@@ -1,4 +1,4 @@
-/* $Id: x11ksym.c,v 1.2 2021/03/09 19:46:28 rkiesling Exp $ -*-c-*-*/
+/* $Id: x11ksym.c,v 1.1.1.1 2021/04/03 11:26:06 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.

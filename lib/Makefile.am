@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.3 2020/12/26 15:06:31 rkiesling Exp $
+# $Id: Makefile.am,v 1.2 2021/05/14 19:58:16 rkiesling Exp $
 
 SUBDIRS = 
 
@@ -66,5 +66,5 @@ USE_PTHREADS=@use_pthreads@
 
 AM_CFLAGS=$(LIB_AM_CFLAGS)
 AM_CPPFLAGS=-I$(top_builddir)/include
-DEFS=-DPKGNAME=\"$(PACKAGE)\" -DINSTALLPREFIX=\"$(prefix)\" -DCLASSLIBDIR=\"$(pkgincludedir)\" -DVERSION=\"$(VERSION)\" -DDOCDIR=\"$(pkgdatadir)\" -DLIB_BUILD $(X_LIBS) $(USE_PTHREADS) @have_gl_h_def@ @have_glx_h_def@ @have_glew_h_def@ @no_restrict_warning@ @no_stringop_overflow_warning@ @stringop_truncation_warning@ @address_of_packed_member_warning@ @no_unknown_warning_warning@ 
+DEFS=-DPKGNAME=\"$(PACKAGE)\" -DINSTALLPREFIX=\"$(prefix)\" -DCLASSLIBDIR=\"$(pkgincludedir)\" -DVERSION=\"$(VERSION)\" -DDOCDIR=\"$(pkgdatadir)\" -DLIB_BUILD $(X_LIBS) $(USE_PTHREADS) @have_gl_h_def@ @have_glx_h_def@ @have_glew_h_def@ @no_restrict_warning@ @no_stringop_overflow_warning@ @stringop_truncation_warning@ @address_of_packed_member_warning@ @no_unknown_warning_warning@ @have_fc_pattern_format@
 

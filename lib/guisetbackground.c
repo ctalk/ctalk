@@ -1,4 +1,4 @@
-/* $Id: guisetbackground.c,v 1.1.1.1 2020/07/17 07:41:39 rkiesling Exp $ -*-c-*-*/
+/* $Id: guisetbackground.c,v 1.1.1.1 2021/04/03 11:26:06 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -40,7 +40,8 @@
 extern Display *display;   /* Defined in x11lib.c. */
 extern char *shm_mem;
 extern int mem_id;
-unsigned long lookup_pixel_d (Display *, char *);
+
+/* unsigned long lookup_pixel_d (Display *, char *);*/ /***/
 
 #if X11LIB_FRAME
 int __ctalkX11SetBackground (OBJECT *self_object) {
@@ -55,6 +56,8 @@ int __ctalkX11SetBackgroundBasic (void *d, int drawable_id,
   return SUCCESS;
 }
 #else /* X11LIB_FRAME */
+
+unsigned long int lookup_pixel_d (Display *, char *);
 
 int __xlib_change_gc (Display *, Drawable, GC, char *);
 
@@ -87,11 +90,11 @@ int __ctalkX11SetBackgroundBasic (void *d, int drawable_id,
       if ((l_d = XOpenDisplay (getenv ("DISPLAY"))) == NULL) {
 	_error ("ctalk: This program requires the X Window System. Exiting.\n");
       }
-      v.background = lookup_pixel_d (l_d, color);
+      v.background = lookup_pixel_d ((void *)l_d, color);
       r = XChangeGC (l_d, gc, GCBackground, &v);
       XCloseDisplay (l_d);
     } else {
-      v.background = lookup_pixel_d (display, color);
+      v.background = lookup_pixel_d ((void *)display, color);
       r = XChangeGC (display, gc, GCBackground, &v);
     }
   } else {

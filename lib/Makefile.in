@@ -14,7 +14,7 @@
 
 @SET_MAKE@
 
-# $Id: Makefile.in,v 1.8 2021/03/10 16:14:02 rkiesling Exp $
+# $Id: Makefile.in,v 1.2 2021/05/14 19:58:16 rkiesling Exp $
 
 VPATH = @srcdir@
 am__is_gnu_make = { \
@@ -352,7 +352,7 @@ CPP = @CPP@
 CPPFLAGS = @CPPFLAGS@
 CPP_AM_CFLAGS = @CPP_AM_CFLAGS@
 CYGPATH_W = @CYGPATH_W@
-DEFS = -DPKGNAME=\"$(PACKAGE)\" -DINSTALLPREFIX=\"$(prefix)\" -DCLASSLIBDIR=\"$(pkgincludedir)\" -DVERSION=\"$(VERSION)\" -DDOCDIR=\"$(pkgdatadir)\" -DLIB_BUILD $(X_LIBS) $(USE_PTHREADS) @have_gl_h_def@ @have_glx_h_def@ @have_glew_h_def@ @no_restrict_warning@ @no_stringop_overflow_warning@ @stringop_truncation_warning@ @address_of_packed_member_warning@ @no_unknown_warning_warning@ 
+DEFS = -DPKGNAME=\"$(PACKAGE)\" -DINSTALLPREFIX=\"$(prefix)\" -DCLASSLIBDIR=\"$(pkgincludedir)\" -DVERSION=\"$(VERSION)\" -DDOCDIR=\"$(pkgdatadir)\" -DLIB_BUILD $(X_LIBS) $(USE_PTHREADS) @have_gl_h_def@ @have_glx_h_def@ @have_glew_h_def@ @no_restrict_warning@ @no_stringop_overflow_warning@ @stringop_truncation_warning@ @address_of_packed_member_warning@ @no_unknown_warning_warning@ @have_fc_pattern_format@
 DEPDIR = @DEPDIR@
 DLLTOOL = @DLLTOOL@
 DSYMUTIL = @DSYMUTIL@
@@ -444,6 +444,7 @@ dvidir = @dvidir@
 exec_prefix = @exec_prefix@
 generic_path = @generic_path@
 gnuc_version = @gnuc_version@
+have_fc_pattern_format = @have_fc_pattern_format@
 have_gl_h_def = @have_gl_h_def@
 have_glew_h_def = @have_glew_h_def@
 have_glob_h__def = @have_glob_h__def@
