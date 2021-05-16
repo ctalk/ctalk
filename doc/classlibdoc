@@ -7406,6 +7406,10 @@ visible items on the pane's window.
 Another method that is called by the draw method, this
 method draws the scroll thumb within the scroll bar.
 
+>>>X11ListPane::moveThumb (Integer n)
+Move the scroll thumb by n pixels upward (if n is
+negative) or downward (if n is positive).
+
 >>>X11ListPane::new (String paneName)
 The X11ListPane constructor.  This method creates a
 X11ListPane object with the name given by paneName,

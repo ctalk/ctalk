@@ -1,4 +1,4 @@
-/* $Id: ctalklib.in,v 1.1.1.1 2021/04/03 11:26:02 rkiesling Exp $ -*-c-*-*/
+/* $Id: ctalklib,v 1.2 2021/05/14 19:58:15 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -65,10 +65,10 @@
    for some reason - it hasn't been tested very much - then this won't
    break any builds.
 */
-#define HAVE_X_H 0
+#define HAVE_X_H 1
 
 /* #if HAVE_X_H */
-// #include <X11/Xlib.h>
+#include <X11/Xlib.h>
 
 /* #else */
 
@@ -83,7 +83,7 @@
 
 
 /* And also the same for stdbool.h. */
-#define HAVE_STDBOOL_H 0
+#define HAVE_STDBOOL_H 1
 
 #ifdef HAVE_STDBOOL_H
 #include <stdbool.h>
@@ -93,7 +93,7 @@
 
 /* Here for testing only - it adds approx. 40% to each build time.  
    All the C Xft stuff is in xftlib.c. */
-/* #define HAVE_XFT_H 0 */
+/* #define HAVE_XFT_H 1 */
 /* #if HAVE_XFT_H */
 /* #include <X11/Xft/Xft.h> */
 /* #endif */

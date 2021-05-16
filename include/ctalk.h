@@ -1,4 +1,4 @@
-/* $Id: ctalk.h,v 1.25 2021/02/07 21:08:32 rkiesling Exp $ -*-Fundamental-*- */
+/* $Id: ctalk.h,v 1.1.1.1 2021/04/03 11:26:03 rkiesling Exp $ -*-Fundamental-*- */
 
 /*
   This file is part of Ctalk.
@@ -2699,6 +2699,12 @@ int __ctalkX11UseFontBasic (void *, int, unsigned long int, char *);
 
 /* lib/xmenu.c */
 int __ctalkX11CreatePopupMenu (OBJECT *, int, int);
+int __ctalkX11ClosePopupMenuPane (OBJECT *);
+#if ! defined (DJGPP) && ! defined (WITHOUT_X11)
+Display *pmenu_dpy (void);
+#else
+void *pmenu_dpy (void);
+#endif
 
 /* lib/xrender.c */
 void __ctalkX11UseXRender (bool);

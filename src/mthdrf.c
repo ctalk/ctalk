@@ -1,4 +1,4 @@
-/* $Id: mthdrf.c,v 1.1.1.1 2020/12/13 14:51:02 rkiesling Exp $ */
+/* $Id: mthdrf.c,v 1.1.1.1 2021/04/03 11:26:02 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -1164,7 +1164,7 @@ OBJECT *method_from_prototype_2 (OBJECT *class_obj, char *methodname) {
 
 
    if ((n_method = (METHOD *)__xalloc (sizeof (METHOD))) == NULL)
-     _error ("method_from_prototype: %s.", strerror (errno));
+     _error ("method_from_prototype_2: %s.", strerror (errno));
    n_method -> sig = METHOD_SIG;
 
    new_methods[new_method_ptr--] = create_newmethod_init (n_method);
@@ -1329,6 +1329,8 @@ if ((srcbuf = (char *)__xalloc (buflength + 1)) == NULL)
    unbuffer_method_statements ();
 
    close_tmp ();
+   
+
    generate_instance_method_return_class_call (class_obj -> __o_name,
  				     n_method -> name,
 					       n_method -> selector,

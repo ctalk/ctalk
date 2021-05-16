@@ -1,4 +1,4 @@
-/* $Id: X11ListPane,v 1.10 2021/01/30 23:40:19 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11ListPane,v 1.3 2021/05/16 14:05:29 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -82,6 +82,11 @@ static int thumborg_x, thumbext_x;
  *  finer scrolling.
  */
 #define MIN_SCROLL 3
+/*
+ *  How many pixels to scroll for a mouse wheel (Button4 and Button5) 
+ *  event.
+ */
+#define WHEEL_ADJ 12
 
 ItemBox instanceMethod = setEqual (OBJECT *__newObject) {
   "This is basically Object : =, but we define it here so Ctalk
@@ -151,6 +156,11 @@ X11ListPane instanceMethod calcThumb (void) {
   /* initial position at the top of the scrollbar */
   self thumbOrg y = margin;
 
+}
+
+X11ListPane instanceMethod moveThumb (Integer py) {
+  self thumbOrg y += py;
+  self thumbExt y += py;
 }
 
 X11ListPane instanceMethod add (String itemText) {
@@ -265,7 +275,7 @@ X11ListPane instanceMethod selectRange (Integer nthClicked) {
 
 X11ListPane instanceMethod onClick (Object subPane, InputEvent event) {
   ItemBox new item, lastItem;
-  int i, y_2;
+  int i, y_2, scroll_adj;
   
   switch (event eventClass)
     {
@@ -309,7 +319,7 @@ X11ListPane instanceMethod onClick (Object subPane, InputEvent event) {
 		  }
 		}
 	      } else if (super shiftState & shiftStateShift) {
-		if ((y_1 >= item org y) && (y_1 <= item ext y)) {
+		if ((y_2 >= item org y) && (y_2 <= item ext y)) {
 		  if (last_click_nth == i) {
 		    last_click_nth = -1;
 		    item selected = false;
@@ -342,6 +352,10 @@ X11ListPane instanceMethod onClick (Object subPane, InputEvent event) {
 	case Button3:
 	  subPane buttonState |= BUTTON3MASK;
 	  break;
+	case Button4:
+	  break;
+	case Button5:
+	  break;
 	}
       break;
     case BUTTONRELEASE:
@@ -356,6 +370,28 @@ X11ListPane instanceMethod onClick (Object subPane, InputEvent event) {
 	case Button3:
 	  subPane buttonState &= ~BUTTON3MASK;
 	  break;
+	case Button4:
+	  if (self viewStartY - WHEEL_ADJ > 0) {
+	    self moveThumb (-WHEEL_ADJ);
+	    self viewStartY -= WHEEL_ADJ;
+	    self draw;
+	    self refresh;
+	  } else if (self viewStartY > 0) {
+	    scroll_adj = self viewStartY;
+	    self moveThumb (-scroll_adj);
+	    self viewStartY -= scroll_adj;
+	    self draw;
+	    self refresh;
+	  }
+	  break;
+	case Button5:
+	  if (self thumbOrg y + WHEEL_ADJ < scroll_max_y) { 
+	    self moveThumb WHEEL_ADJ; 
+	    self viewStartY += WHEEL_ADJ;
+	    self draw;
+	    self refresh;
+	  }
+	  break;
 	}
       break;
     }
@@ -366,10 +402,6 @@ X11ListPane instanceMethod onMotion (Object subPane, InputEvent event) {
   int thumborg_y_tmp;
 
   if (event xEventData1 <= thumbext_x) {
-#if 0 /***/
-    if ((event xEventData1 >= thumborg_x) &&
-      (event xEventData1 <= thumbext_x)) {
-#endif      
     if (self buttonState & BUTTON1MASK) {
       d_y = event xEventData2 - y_1;
       if (abs (d_y) < MIN_SCROLL)

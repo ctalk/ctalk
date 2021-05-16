@@ -1,4 +1,4 @@
-/* $Id: xftlib.c,v 1.30 2021/03/09 19:46:28 rkiesling Exp $ -*-c-*-*/
+/* $Id: xftlib.c,v 1.5 2021/05/16 05:18:51 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -131,7 +131,8 @@ double selected_pt_size = 12.0f;
 bool monospace = false;
 
 struct _xftstash {
-  char family[MAXLABEL];
+  char selected_family[MAXLABEL];
+  char actual_family[MAXLABEL];
   char style[MAXLABEL];
   int slant,
     weight,
@@ -153,15 +154,20 @@ static struct _xftstash *xft_stash = NULL, *xft_stash_head = NULL;
 static int n_stash_entries = 0;
 #endif
 
-static void push_new_stash_entry (char *facename, char *facestyle,
+static void push_new_stash_entry (char *selected_family,
+				  char *actual_family,
+				  char *facestyle,
 				  int slant, int weight,
 				  int dpi, int spacing, int width,
 				  double pt_size,
 				  bool monospace, XftFont *handle) {
   struct _xftstash *s;
   s = (struct _xftstash *)__xalloc (sizeof  (struct _xftstash));
-  if (facename && *facename) {
-    strcpy (s -> family, facename);
+  if (selected_family && *selected_family) {
+    strcpy (s -> selected_family, selected_family);
+  }
+  if (actual_family && *actual_family) {
+    strcpy (s -> actual_family, actual_family);
   }
   if (facestyle && *facestyle) {
     strcpy (s -> style, facestyle);
@@ -202,7 +208,8 @@ static XftFont *xft_font_is_cached (char *p_family, char *p_style,
 #endif
 
   for (x = xft_stash; x; x = x -> next) {
-    if (MATCH_STR(x -> family, p_family) &&
+    if ((MATCH_STR(x -> selected_family, p_family) ||
+	 MATCH_STR(x -> actual_family, p_family)) &&
 	MATCH_STR(x -> style, p_style) &&
 	MATCH_NUM(x -> slant, p_slant) &&
 	MATCH_NUM(x -> weight, p_weight) &&
@@ -213,6 +220,12 @@ static XftFont *xft_font_is_cached (char *p_family, char *p_style,
       fprintf (stderr, "!!!!!! HIT r  = %d of %d entries, hits = %d\n",
 	       r, n_stash_entries, x -> hits);
 #endif      
+      selected_weight = x -> weight;
+      selected_slant = x -> slant;
+      selected_pt_size = x -> ptsize;
+      /* This works with either the actual family or an alias that
+	 on what the program request matches. */
+      strcpy (selected_family, p_family); 
       return x -> handle;
     }
 #ifdef STASH_STATS
@@ -401,7 +414,9 @@ static FcPattern *construct_pattern (char *p_family,
   return pat;
 }
 				     
-static void selected_fn (char *family) {
+static void selected_font_filepath (char *family) {
+  /* check for very old/broken libs */
+#ifdef HAVE_FCPATTERN_FORMAT
   FcPattern *pattern;
   FcObjectSet *os = NULL;
   FcFontSet *fs;
@@ -426,12 +441,16 @@ static void selected_fn (char *family) {
     FcPatternDestroy (pattern);
   if (fs)
     FcFontSetDestroy (fs);
+#endif /* #ifdef HAVE_FCPATTERN_FORMAT */
 }
 
 static XftFont *__select_font (char *p_family, int p_slant,
 			       int p_weight, int p_dpi, double p_size) {
   int spacing, width;
-  XftFont *l_selected_handle;
+  XftFont *l_selected_handle = NULL,
+    *tmp_handle = NULL;
+  /* char actual_family[MAXLABEL]; */
+  FcChar8 **actual_family = NULL;
 
 #ifdef FC_PATTERN_SET
   FcPattern *pat = NULL, *font_pat_p;
@@ -471,8 +490,8 @@ static XftFont *__select_font (char *p_family, int p_slant,
     }
   }
 #endif /* FC_PATTERN_SET */
-  
-  if ((selected_font = XftFontOpen
+
+  if ((tmp_handle = XftFontOpen
     (display, DefaultScreen (display),
      XFT_FAMILY, XftTypeString, selected_family,
      XFT_SIZE, XftTypeDouble, selected_pt_size,
@@ -480,12 +499,15 @@ static XftFont *__select_font (char *p_family, int p_slant,
      XFT_WEIGHT, XftTypeInteger, selected_weight,
      XFT_DPI, XftTypeInteger, selected_dpi,
      NULL)) != NULL) {
-    XftPatternGetInteger (selected_font -> pattern,
+    XftPatternGetInteger (tmp_handle -> pattern,
 			  FC_SPACING, 0, &spacing);
-    XftPatternGetInteger (selected_font -> pattern,
+    XftPatternGetInteger (tmp_handle -> pattern,
 			  FC_WIDTH, 0, &width);
+    actual_family = (FcChar8 **)__xalloc (MAXLABEL);
+    XftPatternGetString (tmp_handle -> pattern,
+			 FC_FAMILY, 0, actual_family);
     monospace = (spacing == XFT_MONO ? true : false);
-    selected_fn (selected_family);
+    selected_font_filepath (selected_family);
     if (xft_message_level > XFT_NOTIFY_ERRORS) {
       _warning ("ctalk: Loaded font: %s\n", 
 		fmt_fc_desc_str (selected_font -> pattern));
@@ -502,10 +524,21 @@ static XftFont *__select_font (char *p_family, int p_slant,
     FcPatternDestroy (pat);
 #endif /* FC_PATTERN_SET */
 
-  push_new_stash_entry (selected_family, "",
-			selected_slant, selected_weight, selected_dpi,
-			spacing, width, 
-			selected_pt_size, monospace, selected_font);
+  if (tmp_handle != NULL) {
+    selected_font = tmp_handle;
+    if (actual_family != NULL) {
+      push_new_stash_entry (selected_family, *actual_family, "",
+			    selected_slant, selected_weight, selected_dpi,
+			    spacing, width, 
+			    selected_pt_size, monospace, selected_font);
+      __xfree (MEMADDR(actual_family));
+    } else {
+      push_new_stash_entry (selected_family, "", "",
+			    selected_slant, selected_weight, selected_dpi,
+			    spacing, width, 
+			    selected_pt_size, monospace, selected_font);
+    }
+  }
   sync_ft_font (false);
   return selected_font;
 }
@@ -560,7 +593,7 @@ XftFont *__select_font_for_family (int p_slant,
     XftPatternGetInteger (selected_font -> pattern,
 			  FC_SPACING, 0, &spacing);
     monospace = (spacing == XFT_MONO ? true : false);
-    selected_fn (selected_family);
+    selected_font_filepath (selected_family);
     if (xft_message_level > XFT_NOTIFY_ERRORS) {
       _warning ("ctalk: Loaded font: %s\n", 
 		fmt_fc_desc_str (selected_font -> pattern));
@@ -663,7 +696,7 @@ static XftFont *__select_font_fc (char *p_family, char *p_style, int p_slant,
       XftPatternGetInteger (selected_font -> pattern,
 			    FC_SPACING, 0, &spacing);
       monospace = (spacing == XFT_MONO ? true : false);
-      selected_fn (selected_family);
+      selected_font_filepath (selected_family);
       if (xft_message_level > XFT_NOTIFY_ERRORS) {
 	_warning ("ctalk: Loaded font: %s\n",
 		  fmt_fc_desc_str (selected_font -> pattern));
@@ -683,7 +716,7 @@ static XftFont *__select_font_fc (char *p_family, char *p_style, int p_slant,
       XftPatternGetInteger (selected_font -> pattern,
 			    FC_SPACING, 0, &spacing);
       monospace = (spacing == XFT_MONO ? true : false);
-      selected_fn (selected_family);
+      selected_font_filepath (selected_family);
       if (xft_message_level > XFT_NOTIFY_ERRORS) {
 	_warning ("ctalk: Loaded font: %s\n",
 		  fmt_fc_desc_str (selected_font -> pattern));

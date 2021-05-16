@@ -1,4 +1,4 @@
-/* $Id: X11FileSelectDialog,v 1.11 2021/02/21 15:32:53 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11FileSelectDialog,v 1.1.1.1 2021/04/03 11:26:02 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -37,6 +37,18 @@
    # Distance between bottom of listbox and bottom of window:
    listROPx                50      # Without the text entry
    listRWPx                70      # With the text entry
+
+   # The individual widgets (the list, directory label, and the
+   # buttons) use their own resources - However, this class defines
+   # a few shortcuts that the subpanes inherit:
+   
+   backgroundColor          "gray"           # The window background
+   foregroundColor          "gray"           # The subpane fill color
+   messageColor             "black"          # Text color of the directory
+                                             # message.
+   messageText              "Directory:\n"   # Title of the directory
+                                             #  path label.
+
 */
 
 X11ListBox class X11FileSelectDialog;
@@ -199,6 +211,7 @@ X11FileSelectDialog instanceMethod new (String paneName) {
   paneName resources atPut "listRWPx", 100;
   paneName resources atPut "pad", 0;
   paneName resources atPut "font", "sans serif-10";
+  paneName resources atPut "messageText", "Directory:\n";
 
   return paneName;
 }

@@ -1,4 +1,4 @@
-/* $Id: parser.c,v 1.2 2021/01/12 14:24:04 rkiesling Exp $ */
+/* $Id: parser.c,v 1.1.1.1 2021/04/03 11:26:02 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.

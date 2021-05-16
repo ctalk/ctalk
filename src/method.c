@@ -1,4 +1,4 @@
-/* $Id: method.c,v 1.3 2021/03/08 23:03:51 rkiesling Exp $ */
+/* $Id: method.c,v 1.1.1.1 2021/04/03 11:26:02 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.

@@ -1,4 +1,4 @@
-/* $Id: message.h,v 1.2 2021/01/10 14:51:59 rkiesling Exp $ */
+/* $Id: message.h,v 1.1.1.1 2021/04/03 11:26:03 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.

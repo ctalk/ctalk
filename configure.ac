@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.3 2021/03/10 16:14:01 rkiesling Exp $
+# $Id: configure.ac,v 1.2 2021/05/14 19:58:15 rkiesling Exp $
 AC_INIT(ctalk, 0.67.0, rk3314042@gmail.com, "")
 
 # Contained in acinclude.m4 and generated aclocal.m4
@@ -1357,6 +1357,13 @@ if test "x$LIB_FREETYPE_LIB_ARG" != "xno" || test "x$LIB_FREETYPE_LIB_ARG" != "x
 else 
   lib_freetype_ld_opts=
 fi		  
+
+AC_SUBST(have_fc_pattern_format)
+AC_CHECK_LIB(fontconfig, FcPatternFormat,
+  have_fc_pattern_format=" -DHAVE_FCPATTERN_FORMAT ",
+  have_fc_pattern_format="")
+
+
 AS_ECHO_N "checking for FreeType libs... "
 if test -z $LIB_FREETYPE_LIB_ARG >/dev/null 2>&1; then
    if test "x$LIB_FREETYPE_LIB_ARG" != "xno" || test "x$LIB_FREETYPE_LIB_ARG" != "xNO"; then

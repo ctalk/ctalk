@@ -1,4 +1,4 @@
-/* $Id: cvars.c,v 1.3 2021/01/02 18:30:47 rkiesling Exp $ */
+/* $Id: cvars.c,v 1.1.1.1 2021/04/03 11:26:02 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.

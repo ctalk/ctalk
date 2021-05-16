@@ -1,4 +1,4 @@
-/* $Id: mcct.c,v 1.2 2021/02/21 15:22:36 rkiesling Exp $ */
+/* $Id: mcct.c,v 1.1.1.1 2021/04/03 11:26:02 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
