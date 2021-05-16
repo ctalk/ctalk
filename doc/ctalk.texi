@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.1.1.1 2021/04/03 11:26:03 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.2 2021/05/16 14:05:23 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -16591,11 +16591,6 @@ ItemBox instanceVariable size Point 0;
 
 @end example
 
-@cindex @code{iInit} instance variable @idxclscite{X11ListPane}
-@item iInit
-An @code{Integer} that simply causes the @mnm{drawItemList} method to
-wait for class to initialize the fonts it needs.
-
 @cindex @code{scrollBorderPen} instance variable @idxclscite{X11ListPane}
 @item scrollBorderPen
 A @code{Pen} object that contains the width and the color of the
@@ -16701,6 +16696,11 @@ visible items on the pane's window.
 @item @mnm{drawThumb} (@code{void})
 Another method that is called by the @mnm{draw} method, this
 method draws the scroll thumb within the scroll bar.
+
+@cindex @code{moveThumb} instance method @idxclscite{X11ListPane}
+@item @mnm{moveThumb} (@code{Integer} @var{n})
+Move the scroll thumb by @var{n} pixels upward (if @var{n} is
+negative) or downward (if @var{n} is positive).
 
 @cindex @code{new} instance method @idxclscite{X11ListPane}
 @item @mnm{new} (@code{String} @var{paneName})

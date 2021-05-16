@@ -25,6 +25,8 @@ int main (void) {
   label resources replaceAt "backgroundColor", "blue";
   button resources replaceAt "backgroundColor", "blue";
   messageBox resources replaceAt "backgroundColor", "blue";
+  messageBox resources replaceAt "messageColor", "white";
+  messageBox resources replaceAt "messageFont", "DejaVu Sans-14";
   
   mainWindow initialize 255, 200;
   mainWindow inputStream eventMask = 
