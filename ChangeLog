@@ -166,3 +166,16 @@
 2021-05-14
 	- Added a check for FcPatternFormat, which is used in
 	xftlib.c.
+2021-05-15
+	- Updated xft_font_is_cached (xftlib.c) to update
+	the selected font attributes when it matches and
+	returns a font handle.
+	- Added the actual font family or a returned font
+	to the internal font cache, so further requests
+	match the font by the program's requested name
+	or the actual name (xftlib.c).
+	- Fixed X11ListPane : onClick to factor in the
+	scroll bounding box when selecting multiple items.
+2021-05-16
+	- Added scroll wheel support to X11ListPane class.
+
