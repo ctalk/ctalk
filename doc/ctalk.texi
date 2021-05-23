@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.2 2021/05/16 14:05:23 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.3 2021/05/23 21:14:11 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -16302,6 +16302,9 @@ and the list may be scrolled using the scrollbar on the left
 edge of the pane, or the @key{up} and @key{down} arrow keys, or
 the @key{C-p} and @key{C-n} keys.
 
+The X11ListPane class also supports scroll wheels on pointing
+devices that are equipped with them.  
+
 Here is a program that displays a @code{X11ListPane} object, and
 prints the selected item on the terminal when the program exits.
 
@@ -16639,6 +16642,11 @@ An @code{Integer} that contains the distance from the top edge of the
 first list item (which is stored in the item's @code{org} instance
 variable) to the top of the portion of the list that is visible in
 the pane's window.
+
+@cindex @code{visiblePercent} instance variable @idxclscite{X11ListPane}
+@item visiblePercent
+A @code{Float} that contains the fraction of the list that the window
+can display at any one time.  
 
 @end table
 
@@ -19227,6 +19235,11 @@ A @code{X11FileSelectDialog} object displays a dialog box with a list
 of files in the current directory, a preselected target directory, or
 a subdirectory that a user selects from the current directory's
 entries.
+
+The class uses a @code{X11ListPane} object to display and manage the
+file list, so the @code{X11FileSelectDialog} supports the same
+scrolling and selection operations as basic list pane.
+@xref{X11ListPane}.
 
 The class allows users to select multiple entries by holding either
 the @key{Shift} or @key{Ctrl} keys while selecting items.  The class
