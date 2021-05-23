@@ -1,4 +1,4 @@
-/* $Id: rt_args.c,v 1.1.1.1 2020/12/13 14:51:03 rkiesling Exp $ */
+/* $Id: rt_args.c,v 1.4 2021/05/22 23:04:09 rkiesling Exp $ */
 
 /*
   This file is part of Ctalk.
@@ -1449,6 +1449,30 @@ int __rt_method_args(METHOD *method, MESSAGE_STACK messages,
 					rt_argstrs[rt_argstrptr].start_idx,
 					rt_argstrs[rt_argstrptr].end_idx,
 					is_arg_expr);
+		++rt_argstrptr;
+		goto arg_reevaled_1;
+	      } else if ((M_TOK(messages[rt_argstrs[rt_argstrptr].start_idx])
+			  == PLUS) ||
+			 (M_TOK(messages[rt_argstrs[rt_argstrptr].start_idx])
+			  == MINUS) &&
+			 (first_rcvr_idx == -1)) {
+		char *_s;
+		/* check for unary +/- also */
+		/* __method_backtrack above should have insured that the
+		   token prior to the arg is not a receiver of +/- ...
+		   Anything to do with the argument itself should
+		   be handled by __ctalk_arg_expr. */
+		_s = collect_tokens (messages,
+				    rt_argstrs[rt_argstrptr].start_idx,
+				    rt_argstrs[rt_argstrptr].end_idx);
+				    
+		arg_val_obj = 
+		  __ctalk_arg_expr (messages, method_msg_ptr,
+				    _s,
+				    rt_argstrs[rt_argstrptr].start_idx,
+				    rt_argstrs[rt_argstrptr].end_idx,
+				    is_arg_expr);
+		__xfree (MEMADDR(_s));
 		++rt_argstrptr;
 		goto arg_reevaled_1;
 	      } else {
