@@ -1,4 +1,4 @@
-/* $Id: guidrawrectangle.c,v 1.1.1.1 2020/07/17 07:41:39 rkiesling Exp $ -*-c-*-*/
+/* $Id: guidrawrectangle.c,v 1.2 2021/05/29 14:28:52 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -137,6 +137,7 @@ int __ctalkGUIPaneDrawRectangle (OBJECT *self, OBJECT *rectangle, OBJECT *pen,
 #ifdef GRAPHICS_WRITE_SEND_EVENT
   XEvent send_event;
 #endif
+  int start_y, end_y, height;
 
   self_object = (IS_VALUE_INSTANCE_VAR (self) ? self->__o_p_obj : self);
   pen_object = (IS_VALUE_INSTANCE_VAR (pen) ? pen->__o_p_obj : pen);
@@ -171,6 +172,13 @@ int __ctalkGUIPaneDrawRectangle (OBJECT *self, OBJECT *rectangle, OBJECT *pen,
   rect_right_end_y = 
     __ctalkGetInstanceVariable (rect_right_end, "y", TRUE);
 
+  start_y = INTVAL(rect_top_start_y->instancevars->__o_value);
+  end_y = INTVAL(rect_right_end_y->instancevars ->__o_value);
+  if (end_y - start_y > 0 && end_y - start_y < 8192)
+    height = end_y - start_y;
+  else
+    height = 0;
+
   /* panebackingstore_id is not used */
   __get_pane_buffers (self_object, 
 		      &panebuffer_xid,
@@ -181,18 +189,17 @@ int __ctalkGUIPaneDrawRectangle (OBJECT *self, OBJECT *rectangle, OBJECT *pen,
 		  __o_value < 8192) ?
 		 *(unsigned int *)rect_top_start_x -> instancevars
 		 -> __o_value : 0], ":",
+
 	   ascii[(*(unsigned int *)rect_top_start_y->instancevars->
 		  __o_value < 8192) ?
 		 *(unsigned int *) rect_top_start_y -> instancevars
 		 -> __o_value: 0], ":",
+
 	   ascii[(*(unsigned int *)rect_right_end_x->instancevars
 		  ->__o_value < 8192) ?
 		 *(unsigned int *)rect_right_end_x -> instancevars
 		 -> __o_value : 0], ":",
-	   ascii[(*(unsigned int *)rect_right_end_y->instancevars
-		  ->__o_value < 8192) ?
-		 *(unsigned int *)rect_right_end_y -> instancevars
-		 -> __o_value: 0], ":",
+	   ascii[height], ":",
 	   ascii[(*(unsigned int *)pen_width_object->instancevars->
 		  __o_value < 8192) ?
 		 *(unsigned int *)pen_width_object -> instancevars ->
@@ -204,6 +211,7 @@ int __ctalkGUIPaneDrawRectangle (OBJECT *self, OBJECT *rectangle, OBJECT *pen,
 	   NULL);
 	   
   if (dialog_dpy ()) {
+	    
     __xlib_draw_rectangle (l_d, INTVAL(win_id_value -> __o_value),
 			   (GC)SYMVAL(gc_value -> __o_value), d_buf);
   } else {
