@@ -1,4 +1,4 @@
-/* $Id: X11ListPane,v 1.6 2021/05/23 19:55:32 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11ListPane,v 1.7 2021/05/29 20:53:13 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -224,7 +224,7 @@ X11ListPane instanceMethod new (String paneName) {
   paneName resources atPut "textColor", "black";
   paneName resources atPut "selectColor", "skyblue";
   paneName resources atPut "scrollMargin", 1;
-  paneName resources atPut "vAlignHint", -2;
+  paneName resources atPut "vAlignHint", 2;
   paneName resources atPut "selectStyle", LIST_SELECT_PANE;
   paneName resources atPut "scrollBorderColor", "darkgray";
   paneName resources atPut "scrollBorderWidth", 1;
@@ -608,20 +608,18 @@ X11ListPane instanceMethod drawItemList (void) {
   if (select_style == LIST_SELECT_ITEM) {
     /* Here we need to check the width of each list item, and
        we just do the complete loop, so we don't have to
-       check select_style for each item, also. */
+       check select_style for each item, also.   This isn't
+       very useful right now because we need more speed. */
     self items map {
       item = self;
 
       if (tViewTopPx <= item org y) {
 	if (item selected == true) {
-
 	  super drawFilledRectangle (item org x,
-				     /* Try to center the rectangle 
-					vertically over the text. */
-				     (item ext y - super viewStartY
-				      - super lineHeight),
-				     item size x,
-				     item size y, super selectionPen);
+				     (item org y - super viewStartY),
+                                     tViewExtX,
+				     item ext y,
+				     super selectionPen);
 	}
         __ctalkX11PanePutStrBasic (d, xid, gc_ptr,
                                    item org x, 
@@ -635,14 +633,11 @@ X11ListPane instanceMethod drawItemList (void) {
 
       if (tViewTopPx <= item org y) {
 	if (item selected == true) {
-
 	  super drawFilledRectangle (item org x,
-				     /* Try to center the rectangle 
-					vertically over the text. */
-				     (item ext y - super viewStartY
-				      - super lineHeight),
-                                     tViewExtX, 
-				     item size y, super selectionPen);
+				     (item org y - super viewStartY),
+                                     tViewExtX,
+				     item ext y,
+				     super selectionPen);
 	}
         /* for testing here, too */
         __ctalkX11PanePutStrBasic (d, xid, gc_ptr,
