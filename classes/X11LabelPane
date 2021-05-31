@@ -1,4 +1,4 @@
-/* $Id: X11LabelPane,v 1.1.1.1 2021/04/03 11:26:02 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11LabelPane,v 1.2 2021/05/29 21:53:36 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -294,9 +294,11 @@ X11LabelPane instanceMethod drawBorder (void) {
       self radius;
   } else {
     self drawRectangle (self margin),
-      (self margin), 
+      (self margin),
+      /* probably needs some adjustment in the drawing
+	 functions, so these are consistent. */
       self size x - (self margin * 2),
-      self size y - (self margin * 2);
+      self size y - self margin;
   }
 }
 

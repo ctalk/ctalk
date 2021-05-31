@@ -1,4 +1,4 @@
-/* $Id: X11FileSelectDialog,v 1.1.1.1 2021/04/03 11:26:02 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11FileSelectDialog,v 1.2 2021/05/31 01:24:40 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -59,6 +59,7 @@ X11FileSelectDialog instanceVariable waitCursor X11Cursor NULL;
 X11FileSelectDialog instanceVariable dirPattern String ".";
 X11FileSelectDialog instanceVariable targetPath String "";
 X11FileSelectDialog instanceVariable useEntryBox Boolean false;
+X11FileSelectDialog instanceVariable chDirDoubleClick Boolean true;
 
 /* When doing something like this, make sure that the program
    instantiates an object in the class library file where the
@@ -68,6 +69,23 @@ X11FileSelectDialog instanceVariable useEntryBox Boolean false;
 ItemBox instanceVariable fileMode Integer 0;
 
 static bool needDirOnPopup = true;
+
+static int click_x, click_y;
+static unsigned int click_t;
+static bool double_click = false;
+
+static void __register_click (int x, int y) {
+  if ((click_x - x < 5 && click_x - x > -5) &&
+      (click_y - y < 5 && click_y - y > -5) &&
+      (time (NULL) == click_t)) {
+    double_click = true;
+  } else {
+    double_click = false;
+  }
+  click_x = x;
+  click_y = y;
+  click_t = time (NULL);
+}
 
 #define DIRMODE 16384   /* == 004000 in sys/stat.h, etc. */
 
@@ -321,6 +339,7 @@ X11FileSelectDialog instanceMethod onListClick (Object subPane, InputEvent event
   switch (event eventClass)
     {
     case BUTTONPRESS:
+      __register_click (event xEventData1, event xEventData2);
       switch (event xEventData4)
 	{
 	case Button1:
@@ -337,8 +356,25 @@ X11FileSelectDialog instanceMethod onListClick (Object subPane, InputEvent event
 	      if (super listPane shiftState == 0) {
 		if ((y_1 >= item org y) && (y_1 <= item ext y)) {
 		  if (item fileMode & DIRMODE) {
-		    super chDir item;
-		    return NULL;
+		    if (super chDirDoubleClick) { 
+		      if (double_click) {
+			super chDir item;
+			return NULL;
+		      } else {
+			if (last_click_nth != -1) {
+			  lastItem = *(super listPane items + last_click_nth);
+			  lastItem selected = false;
+			}
+			last_click_nth = i;
+			item selected = true;
+			super listPane draw;
+			super listPane refresh;
+			return NULL;
+		      }
+		    } else {
+		      super chDir item;
+		      return NULL;
+		    }
 		  }
 		  /* Clicking on the same item twice de-selects it. */
 		  if (last_click_nth == -1) {

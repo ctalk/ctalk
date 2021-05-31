@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.3 2021/05/23 21:14:11 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.4 2021/05/31 01:24:41 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -19241,6 +19241,12 @@ file list, so the @code{X11FileSelectDialog} supports the same
 scrolling and selection operations as basic list pane.
 @xref{X11ListPane}.
 
+Additionally, @code{X11FileSelectDialog} panes require a double
+click when changing directories.  This behavior is controlled
+by the dialog's @code{chDirDoubleClick} instance variable.  If
+this variable is set to @samp{false}, then the dialog changes
+directories with a single click.
+
 The class allows users to select multiple entries by holding either
 the @key{Shift} or @key{Ctrl} keys while selecting items.  The class
 provides a number of methods to retrieve the number of items that the
@@ -19630,6 +19636,12 @@ In addition to the instance variables defined in superclasses (like
 the following instance variables.
 
 @table @code
+
+@cindex chDirDoubleClick instance variable @idxclscite{X11FileSelectDialog}
+@item chDirDoubleClick
+A @code{Boolean} that, if @samp{true}, requires a double mouse click
+to change directories.  If this variable is false, then the dialog
+changes directories with a single click.
 
 @cindex dirPattern instance variable @idxclscite{X11FileSelectDialog}
 @item dirPattern

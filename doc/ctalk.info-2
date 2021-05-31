@@ -6968,6 +6968,11 @@ The class uses a 'X11ListPane' object to display and manage the file
 list, so the 'X11FileSelectDialog' supports the same scrolling and
 selection operations as basic list pane.  *Note X11ListPane::.
 
+Additionally, 'X11FileSelectDialog' panes require a double click when
+changing directories.  This behavior is controlled by the dialog's
+'chDirDoubleClick' instance variable.  If this variable is set to
+'false', then the dialog changes directories with a single click.
+
 The class allows users to select multiple entries by holding either the
 <Shift> or <Ctrl> keys while selecting items.  The class provides a
 number of methods to retrieve the number of items that the user selects,
@@ -7315,6 +7320,11 @@ In addition to the instance variables defined in superclasses (like
 class; 'entryPane', defined in 'X11TextEntryBox'; and 'listPane', which
 is defined in 'X11ListBox' class), the 'X11FileSelectDialog' class
 defines the following instance variables.
+
+'chDirDoubleClick'
+     A 'Boolean' that, if 'true', requires a double mouse click to
+     change directories.  If this variable is false, then the dialog
+     changes directories with a single click.
 
 'dirPattern'
      A 'String' that contains the file glob of the directory that the
