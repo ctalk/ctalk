@@ -1,4 +1,4 @@
-/* $Id: X11FileSelectDialog,v 1.2 2021/05/31 01:24:40 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11FileSelectDialog,v 1.3 2021/05/31 17:30:24 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -69,23 +69,6 @@ X11FileSelectDialog instanceVariable chDirDoubleClick Boolean true;
 ItemBox instanceVariable fileMode Integer 0;
 
 static bool needDirOnPopup = true;
-
-static int click_x, click_y;
-static unsigned int click_t;
-static bool double_click = false;
-
-static void __register_click (int x, int y) {
-  if ((click_x - x < 5 && click_x - x > -5) &&
-      (click_y - y < 5 && click_y - y > -5) &&
-      (time (NULL) == click_t)) {
-    double_click = true;
-  } else {
-    double_click = false;
-  }
-  click_x = x;
-  click_y = y;
-  click_t = time (NULL);
-}
 
 #define DIRMODE 16384   /* == 004000 in sys/stat.h, etc. */
 
@@ -339,7 +322,7 @@ X11FileSelectDialog instanceMethod onListClick (Object subPane, InputEvent event
   switch (event eventClass)
     {
     case BUTTONPRESS:
-      __register_click (event xEventData1, event xEventData2);
+      self registerClick (event xEventData1, event xEventData2);
       switch (event xEventData4)
 	{
 	case Button1:

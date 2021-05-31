@@ -1,4 +1,4 @@
-/* $Id: xrender.c,v 1.1.1.1 2021/04/03 11:26:06 rkiesling Exp $ -*-c-*-*/
+/* $Id: xrender.c,v 1.4 2021/05/31 16:59:29 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -271,6 +271,7 @@ static void __xlib_draw_rectangle_scan (char *data,
   p = data;
   q = strchr (p, ':');
   int e;
+
   if (!q) {
     fprintf (stderr, "__xlib_draw_rectangle (): Invalid message %s.\n", data);
     memset ((void *)rect, 0, sizeof (struct rectinfo));
@@ -482,7 +483,8 @@ int __xlib_draw_rectangle (Display *d, Drawable drawable_arg, GC gc, char *data)
 			 rect.r.x + rect.corner_radius,
 			 rect.r.y + rect.r.height - rect.corner_radius);
 			 
-      } else {
+      } else { /* if (rect.corner_radius) */ 
+#if 0 /***/
 	poly[0].x = rect.r.x;
 	poly[0].y = rect.r.y;
 	poly[1].x = rect.r.x + rect.r.width;
@@ -491,6 +493,15 @@ int __xlib_draw_rectangle (Display *d, Drawable drawable_arg, GC gc, char *data)
 	poly[2].y = rect.r.y + rect.r.height;
 	poly[3].x = rect.r.x;
 	poly[3].y = rect.r.y + rect.r.height;
+#endif	
+	poly[0].x = rect.r.x;
+	poly[0].y = rect.r.y;
+	poly[1].x = rect.r.width;
+	poly[1].y = rect.r.y;
+	poly[2].x = rect.r.width;
+	poly[2].y = rect.r.height;
+	poly[3].x = rect.r.x;
+	poly[3].y = rect.r.height;
 
 	XRenderCompositeDoublePoly (d,
 				    PictOpOver,
@@ -598,13 +609,23 @@ int __xlib_draw_rectangle (Display *d, Drawable drawable_arg, GC gc, char *data)
 				    surface.mask_format,
 				    0, 0, 0, 0,
 				    poly, 4, EvenOddRule);
-
+#if 0 /***/
 	poly[0].x = rect.r.x + rect.r.width;
 	poly[0].y = rect.r.y;
 	poly[1].x = rect.r.x + rect.r.width;
 	poly[1].y = rect.r.y + rect.r.height;
 	poly[2].x = rect.r.x + rect.r.width - rect.pen_width;
 	poly[2].y = rect.r.y + rect.r.height;
+	poly[3].x = rect.r.x + rect.r.width - rect.pen_width;
+	poly[3].y = rect.r.y;
+#endif
+
+	poly[0].x = rect.r.x + rect.r.width;
+	poly[0].y = rect.r.y;
+	poly[1].x = rect.r.x + rect.r.width;
+	poly[1].y = rect.r.height;
+	poly[2].x = rect.r.x + rect.r.width - rect.pen_width;
+	poly[2].y = rect.r.height;
 	poly[3].x = rect.r.x + rect.r.width - rect.pen_width;
 	poly[3].y = rect.r.y;
 	XRenderCompositeDoublePoly (d,
@@ -615,6 +636,7 @@ int __xlib_draw_rectangle (Display *d, Drawable drawable_arg, GC gc, char *data)
 				    0, 0, 0, 0,
 				    poly, 4, EvenOddRule);
 
+#if 0 /***/
 	poly[0].x = rect.r.x + rect.r.width;
 	poly[0].y = rect.r.y + rect.r.height;
 	poly[1].x = rect.r.x;
@@ -623,6 +645,15 @@ int __xlib_draw_rectangle (Display *d, Drawable drawable_arg, GC gc, char *data)
 	poly[2].y = rect.r.y + rect.r.height - rect.pen_width;
 	poly[3].x = rect.r.x + rect.r.width;
 	poly[3].y = rect.r.y + rect.r.height - rect.pen_width;
+#endif	
+	poly[0].x = rect.r.x + rect.r.width;
+	poly[0].y = rect.r.height;
+	poly[1].x = rect.r.x;
+	poly[1].y = rect.r.height;
+	poly[2].x = rect.r.x;
+	poly[2].y = rect.r.height - rect.pen_width;
+	poly[3].x = rect.r.x + rect.r.width;
+	poly[3].y = rect.r.height - rect.pen_width;
 	XRenderCompositeDoublePoly (d,
 				    PictOpOver,
 				    surface.fill_picture,
@@ -631,10 +662,20 @@ int __xlib_draw_rectangle (Display *d, Drawable drawable_arg, GC gc, char *data)
 				    0, 0, 0, 0,
 				    poly, 4, EvenOddRule);
 
+#if 0 /***/
 	poly[0].x = rect.r.x;
 	poly[0].y = rect.r.y + rect.r.height;
 	poly[1].x = rect.r.x + rect.pen_width;
 	poly[1].y = rect.r.y + rect.r.height;
+	poly[2].x = rect.r.x + rect.pen_width;
+	poly[2].y = rect.r.y;
+	poly[3].x = rect.r.x;
+	poly[3].y = rect.r.y;
+#endif	
+	poly[0].x = rect.r.x;
+	poly[0].y = rect.r.height;
+	poly[1].x = rect.r.x + rect.pen_width;
+	poly[1].y = rect.r.height;
 	poly[2].x = rect.r.x + rect.pen_width;
 	poly[2].y = rect.r.y;
 	poly[3].x = rect.r.x;

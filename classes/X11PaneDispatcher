@@ -1,4 +1,4 @@
-/* $Id: X11PaneDispatcher,v 1.2 2020/09/19 01:08:26 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11PaneDispatcher,v 1.2 2021/05/31 17:30:24 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -94,6 +94,10 @@ X11PaneDispatcher instanceVariable modalPane Symbol NULL;
 
 static unsigned long g_ptr_t = 0;
 static unsigned long g_kbd_t = 0;
+
+static int click_x, click_y;
+static unsigned int click_t;
+static bool double_click = false;
 
 X11PaneDispatcher instanceMethod setMethodHandler (String __handlerType,
 						 Method __handlerMethod) {
@@ -644,5 +648,21 @@ X11PaneDispatcher instanceMethod handleSubPaneEvent (InputEvent __e) {
       break;
     }
   return NULL;
+}
+
+X11PaneDispatcher instanceMethod registerClick (Integer x , Integer y) {
+  int l_x, l_y;
+  l_x = x;
+  l_y = y;
+  if ((click_x - l_x < 5 && click_x - l_x > -5) &&
+      (click_y - l_y < 5 && click_y - l_y > -5) &&
+      (time (NULL) == click_t)) {
+    double_click = true;
+  } else {
+    double_click = false;
+  }
+  click_x = l_x;
+  click_y = l_y;
+  click_t = time (NULL);
 }
 

@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: ctalk.texi,v 1.4 2021/05/31 01:24:41 rkiesling Exp $
+@c $Id: ctalk.texi,v 1.5 2021/05/31 17:30:25 rkiesling Exp $
 @c %**start of header  
 @setfilename ctalk.info
 @settitle Ctalk
@@ -14218,6 +14218,15 @@ that only one pane indicates that it should receive focus, including
 the synthetic focus that is assigned when shifting focus using the
 @key{Tab} key.
 
+@cindex Double click, registering
+@cindex @mnm{registerClick} instance method @idxclscite{X11PaneDispatcher}
+@item @mnm{registerClick} (@code{Integer} @var{clickX}, @code{Integer} @var{clickY}
+Registers a mouse click by saving its date and time.  If the click
+immediately follows another click in the same location, the method
+sets the internal variable @code{double_click} to true.
+
+This method is only needed if a program uses double clicks for user
+input.
 
 @cindex @mnm{subPaneDestroy} instance method @idxclscite{X11PaneDispatcher}
 @item @mnm{subPaneDestroy} (@code{Object} @var{subPaneRef}, @code{InputEvent} @var{destroyEvent})

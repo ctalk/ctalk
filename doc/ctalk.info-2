@@ -2634,6 +2634,14 @@ Instance Methods
      including the synthetic focus that is assigned when shifting focus
      using the <Tab> key.
 
+'registerClick (Integer CLICKX, Integer CLICKY'
+     Registers a mouse click by saving its date and time.  If the click
+     immediately follows another click in the same location, the method
+     sets the internal variable 'double_click' to true.
+
+     This method is only needed if a program uses double clicks for user
+     input.
+
 'subPaneDestroy (Object SUBPANEREF, InputEvent DESTROYEVENT)'
      The default handler for 'WINDELETE' events.  Like the other method
      handlers, SUBPANEREF is typically a 'Symbol' object.  The

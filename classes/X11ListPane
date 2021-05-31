@@ -1,4 +1,4 @@
-/* $Id: X11ListPane,v 1.8 2021/05/31 01:24:40 rkiesling Exp $ -*-C-*-*/
+/* $Id: X11ListPane,v 1.9 2021/05/31 17:38:02 rkiesling Exp $ -*-C-*-*/
 
 /*
   This file is part of Ctalk.
@@ -284,8 +284,6 @@ X11ListPane instanceMethod onClick (Object subPane, InputEvent event) {
   switch (event eventClass)
     {
     case BUTTONPRESS:
-      /***/
-     __register_click (event xEventData1, event xEventData2);
       switch (event xEventData4)
 	{
 	case Button1:

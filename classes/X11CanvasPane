@@ -1,4 +1,4 @@
-/* $Id: X11CanvasPane,v 1.1.1.1 2021/04/03 11:26:03 rkiesling Exp $ -*-c-*-*/
+/* $Id: X11CanvasPane,v 1.4 2021/05/31 16:59:29 rkiesling Exp $ -*-c-*-*/
 
 /*
   This file is part of Ctalk.
@@ -455,10 +455,20 @@ X11CanvasPane instanceMethod drawRectangle (Integer xOrg, Integer yOrg,
 					    Integer xSize, Integer ySize) {
   "Draw a rectangle with the bounds xOrg, yOrg, xSize,
   ySize using the receiver's Pen object."
-  Rectangle new aRectangle;
+#if 0 /***/
+    Rectangle new aRectangle;
 
   aRectangle dimensions xOrg, yOrg, xSize, ySize;
   __ctalkGUIPaneDrawRectangle (self, aRectangle, self pen, FALSE);
+#endif
+  __ctalkX11PaneDrawRectangleBasic (self displayPtr,
+				    self paneBuffer xID,
+				    self xGC, xOrg, yOrg,
+				    xSize, ySize,
+				    FALSE,
+				    self pen width,
+				    self pen colorName,
+				    0);
   return NULL;
 }
 
@@ -466,11 +476,22 @@ X11CanvasPane instanceMethod drawRectangle (Integer xOrg, Integer yOrg,
 					    Integer xSize, Integer ySize,
 					    Pen aPen) {
   "Draw a rectangle with the bounds xOrg, yOrg, xSize,
-  ySize using the receiver's Pen object."
-  Rectangle new aRectangle;
+  ySize using the a Pen object given as the argument."
+#if 0 /***/
+    Rectangle new aRectangle;
 
   aRectangle dimensions xOrg, yOrg, xSize, ySize;
   __ctalkGUIPaneDrawRectangle (self, aRectangle, aPen, FALSE);
+#else
+  __ctalkX11PaneDrawRectangleBasic (self displayPtr,
+				    self paneBuffer xID,
+				    self xGC, xOrg, yOrg,
+				    xSize, ySize,
+				    FALSE,
+				    aPen width,
+				    aPen colorName,
+				    0);
+#endif  
   return NULL;
 }
 
@@ -544,10 +565,20 @@ X11CanvasPane instanceMethod drawFilledRectangle (Integer xOrg, Integer yOrg,
   "Draw a filled rectangle with the dimensions xOrg, yOrg,
   xSize, ySize given as arguments using the receiver's
   Pen object."
-  Rectangle new aRectangle;
+#if 0 /***/
+    Rectangle new aRectangle;
 
   aRectangle dimensions xOrg, yOrg, xSize, ySize;
   __ctalkGUIPaneDrawRectangle (self, aRectangle, self pen, TRUE);
+#endif  
+    __ctalkX11PaneDrawRectangleBasic (self displayPtr,
+				    self paneBuffer xID,
+				    self xGC, xOrg, yOrg,
+				    xSize, ySize,
+				    TRUE,
+				    self pen width,
+				    self pen colorName,
+				    0);
   return NULL;
 }
 
@@ -555,12 +586,23 @@ X11CanvasPane instanceMethod drawFilledRectangle (Integer xOrg, Integer yOrg,
 						  Integer xSize, Integer ySize,
 						  Pen aPen) {
   "Draw a filled rectangle with the dimensions xOrg, yOrg,
-  xSize, ySize given as arguments using the receiver's
-  Pen object."
-  Rectangle new aRectangle;
+  xSize, ySize given as arguments with the Pen used for drawing
+    as an additional argument."
+#if 0 /***/
+    Rectangle new aRectangle;
 
   aRectangle dimensions xOrg, yOrg, xSize, ySize;
   __ctalkGUIPaneDrawRectangle (self, aRectangle, aPen, TRUE);
+#endif
+    __ctalkX11PaneDrawRectangleBasic (self displayPtr,
+				    self paneBuffer xID,
+				    self xGC, xOrg, yOrg,
+				    xSize, ySize,
+				    TRUE,
+				    aPen width,
+				    aPen colorName,
+				    0);
+
   return NULL;
 }
 
